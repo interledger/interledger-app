@@ -1,0 +1,11 @@
+stages:
+  - triggers
+
+trigger_protea:
+  stage: triggers
+  trigger:
+    include: typescript/protea/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - typescript/protea/**/*
