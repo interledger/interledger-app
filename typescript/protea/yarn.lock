@@ -255,6 +255,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^16.6.1":
+  version: 16.6.1
+  resolution: "@types/node@npm:16.6.1"
+  checksum: c13aa0da0c2bf9070e521d1b537ba38f64b213dd1b8aeec66c279fc21f8c0ccaf380364f6dc2ec8f84440c4cd1460b67dfe47de2cafcb6eaf4b648817cb27dc4
+  languageName: node
+  linkType: hard
+
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.0
   resolution: "@types/parse-json@npm:4.0.0"
@@ -1667,6 +1674,17 @@ __metadata:
     typescript:
       optional: true
   checksum: bfdf32e2c6adfeb0d1da24bd73e119cca2424d41b2e102e7e7c4b8641d57ca89164a21805bbe0ca32018a835b028bf855a3a6e8d4dffc46b0f59d91340bf1a28
+  languageName: node
+  linkType: hard
+
+"eslint-config-prettier@npm:^8.3.0":
+  version: 8.3.0
+  resolution: "eslint-config-prettier@npm:8.3.0"
+  peerDependencies:
+    eslint: ">=7.0.0"
+  bin:
+    eslint-config-prettier: bin/cli.js
+  checksum: df4cea3032671995bb5ab07e016169072f7fa59f44a53251664d9ca60951b66cdc872683b5c6a3729c91497c11490ca44a79654b395dd6756beb0c3903a37196
   languageName: node
   linkType: hard
 
@@ -3933,6 +3951,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prettier@npm:2.3.2":
+  version: 2.3.2
+  resolution: "prettier@npm:2.3.2"
+  bin:
+    prettier: bin-prettier.js
+  checksum: 17ce5784ac67621c292df58e2da60b2ee150c2d6aebea22a6ad9e52fcd6a5e66c349d0a8436ea3bd8ff9d778920a5f68000d7625b74f43558718a49755aa5259
+  languageName: node
+  linkType: hard
+
 "pretty-hrtime@npm:^1.0.3":
   version: 1.0.3
   resolution: "pretty-hrtime@npm:1.0.3"
@@ -3993,12 +4020,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "protea@workspace:."
   dependencies:
+    "@types/node": ^16.6.1
     "@types/react": 17.0.17
     autoprefixer: ^10.3.1
     eslint: 7.32.0
     eslint-config-next: 11.0.1
+    eslint-config-prettier: ^8.3.0
     next: 11.0.1
     postcss: ^8.3.6
+    prettier: 2.3.2
     react: 17.0.2
     react-dom: 17.0.2
     tailwindcss: ^2.2.7
