@@ -3,7 +3,7 @@ export default function Home() {
     <div className='flex flex-col items-center justify-center min-h-screen bg-gray-900'>
       <div className='flex flex-col items-center justify-center flex-1'>
         <svg
-          height='100'
+            className='h-[50px] sm:h-[100px]'
           viewBox='0 0 1432 400'
           fill='none'
           xmlns='http://www.w3.org/2000/svg'
@@ -37,7 +37,7 @@ export default function Home() {
             fill='#F35167'
           />
         </svg>
-        <div className='font-display text-white text-3xl'>Coming soon.</div>
+        <div className='font-display text-white text-xl sm:text-3xl'>Coming soon.</div>
       </div>
     </div>
   )
