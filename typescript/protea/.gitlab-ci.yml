@@ -1,0 +1,54 @@
+workflow:
+  rules:
+    - changes:
+      - typescript/protea/**/*
+
+stages:
+  - lint
+  - test
+  - deploy
+
+variables:
+  PROJECT_PATH: $CI_PROJECT_DIR/typescript/protea
+  YARN_CACHE_FOLDER: $CI_PROJECT_DIR/typescript/protea/.yarn/cache
+
+image: node:16-alpine3.11
+
+# per branch caching of typescript.
+# TODO: update when more packages are added and we move to yarn workspaces.
+cache:
+  key: "$CI_COMMIT_REF_SLUG-typescript"
+  paths:
+    - $PROJECT_PATH/.yarn
+    - $PROJECT_PATH/yarn.lock
+
+default:
+  before_script:
+    - echo "changing directory to $PROJECT_PATH"
+    - cd $PROJECT_PATH && yarn install
+
+lint:
+  stage: lint
+  script:
+    - yarn lint
+  interruptible: true
+
+test:
+  stage: test
+  script:
+    - echo "Testing not set up."
+  interruptible: true
+
+deploy:
+  stage: deploy
+  only:
+    - main
+  script:
+    - yarn dlx vercel --prod -t $VERCEL_CLI_TOKEN
+
+deploy_preview:
+  stage: deploy
+  except:
+    - main
+  script:
+    - yarn dlx vercel -t $VERCEL_CLI_TOKEN
