@@ -1,0 +1,3 @@
+name: cf-fynbos.dev
+runtime: go
+description: Cloudflare for fynbos.dev
