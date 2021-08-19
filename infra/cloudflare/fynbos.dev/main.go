@@ -129,7 +129,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "spf", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("v=spf1 include:_spf.google.com ~all"),
+			Value:  pulumi.String("v=spf1 include:_spf.google.com -all"),
 			Type:   pulumi.String("SPF"),
 			Ttl:    pulumi.Int(3600),
 		})
@@ -140,7 +140,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "spf_txt", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("v=spf1 include:_spf.google.com ~all"),
+			Value:  pulumi.String("v=spf1 include:_spf.google.com -all"),
 			Type:   pulumi.String("TXT"),
 			Ttl:    pulumi.Int(3600),
 		})
