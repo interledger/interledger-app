@@ -17,6 +17,12 @@ func main() {
 		ctKMSKeyArn := rootStack.GetOutput(pulumi.String("cloudtrailKMSKeyArn"))
 		ctS3BucketName := rootStack.GetOutput(pulumi.String("cloudtrailS3BucketName"))
 
+		// Configure blocking s3 public
+		err = secure_baseline.NewS3AccountBaseline(ctx)
+		if err != nil {
+			return err
+		}
+
 		// Configure cloudtrail
 		err = secure_baseline.NewCloudtrailBaseline(ctx, "shared-ct", &secure_baseline.CloudtrailBaselineArgs{
 			KmsKeyId:     pulumi.Sprintf("%s", ctKMSKeyArn),
