@@ -55,10 +55,14 @@ func main() {
 		}
 
 		// email
+		// send both aggregate (rua) and forensic (ruf) reports to postmaster@fynbos.dev
+		// p=reject - reject all mails that fail DKIM or SPF checks
+		// adkim=s; aspf=s - strict mode for DKIM and SPF checks
+		// pct=100 - check all mails (100%)
 		_, err = cloudflare.NewRecord(ctx, "dmarc", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("_dmarc.fynbos.dev."),
-			Value:  pulumi.String("v=DMARC1; p=reject; rua=mailto:postmaster@fynbos.dev; pct=100; adkim=s; aspf=s"),
+			Value:  pulumi.String("v=DMARC1; p=reject; rua=mailto:postmaster@fynbos.dev; ruf=mailto:postmaster@fynbos.dev; pct=100; adkim=s; aspf=s"),
 			Type:   pulumi.String("TXT"),
 			Ttl:    pulumi.Int(3600),
 		})
@@ -126,6 +130,7 @@ func main() {
 			return err
 		}
 
+		// Legacy SPF record
 		_, err = cloudflare.NewRecord(ctx, "spf", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("fynbos.dev."),
@@ -137,6 +142,8 @@ func main() {
 			return err
 		}
 
+		// Current SPF record - uses TXT
+		// Sending only from Google servers
 		_, err = cloudflare.NewRecord(ctx, "spf_txt", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("fynbos.dev."),
@@ -148,6 +155,8 @@ func main() {
 			return err
 		}
 
+		// DKIM
+		// Key provided by Google Workspaces - https://admin.google.com/ac/apps/gmail/authenticateemail
 		_, err = cloudflare.NewRecord(ctx, "domain_key", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("google._domainkey.fynbos.dev."),
