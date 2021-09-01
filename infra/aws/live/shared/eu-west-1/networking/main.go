@@ -23,13 +23,13 @@ func main() {
 				"10.100.144.0/20",
 				"10.100.160.0/20",
 			},
-			// Public allocated to 10.100.0.0/17
+			// Private allocated to 10.100.0.0/17
 			PrivateSubnets: []string{
 				"10.100.0.0/19",
 				"10.100.32.0/19",
 				"10.100.64.0/19",
 			},
-			// Public allocated to 10.100.192.0/18
+			// Intra allocated to 10.100.192.0/18
 			IntraSubnets: []string{
 				"10.100.192.0/20",
 				"10.100.208.0/20",
@@ -132,6 +132,15 @@ func main() {
 					Protocol:  pulumi.String("tcp"),
 					CidrBlock: pulumi.String("10.100.128.0/18"),
 				},
+				// Allow all comm within Private subnet
+				ec2.NetworkAclIngressArgs{
+					RuleNo:    pulumi.Int(130),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.0.0/17"),
+				},
 			},
 			PrivateOutboundNacls: ec2.NetworkAclEgressArray{
 				// HTTP Access
@@ -151,6 +160,15 @@ func main() {
 					ToPort:    pulumi.Int(443),
 					Protocol:  pulumi.String("tcp"),
 					CidrBlock: pulumi.String("0.0.0.0/0"),
+				},
+				// Allow all comm within Private subnet
+				ec2.NetworkAclEgressArgs{
+					RuleNo:    pulumi.Int(130),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.0.0/17"),
 				},
 				// NAT Gateway Access (May not be needed)
 				ec2.NetworkAclEgressArgs{
