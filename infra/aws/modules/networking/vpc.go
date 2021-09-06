@@ -248,6 +248,10 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 	ctx.Export("privateSubnets", privateSubnetIds)
 	ctx.Export("intraSubnets", intraSubnetIds)
 
+	ctx.Export("publicSubnetsCidrBlocks", subnetArrayToCidrBlockArray(publicSubnets))
+	ctx.Export("privateSubnetsCidrBlocks", subnetArrayToCidrBlockArray(privateSubnets))
+	ctx.Export("intraSubnetsCidrBlocks", subnetArrayToCidrBlockArray(intraSubnets))
+
 	return nil
 }
 
@@ -263,4 +267,18 @@ func subnetArrayToPulumiIDArray(subnets []*ec2.Subnet) pulumi.IDArrayOutput {
 		}
 		return results
 	}).(pulumi.IDArrayOutput)
+}
+
+func subnetArrayToCidrBlockArray(subnets []*ec2.Subnet) pulumi.StringArrayOutput {
+	var outputs []interface{}
+	for _, sn := range subnets {
+		outputs = append(outputs, sn.CidrBlock)
+	}
+	return pulumi.All(outputs...).ApplyT(func(vs []interface{}) []string {
+		var results []string
+		for _, v := range vs {
+			results = append(results, v.(string))
+		}
+		return results
+	}).(pulumi.StringArrayOutput)
 }
