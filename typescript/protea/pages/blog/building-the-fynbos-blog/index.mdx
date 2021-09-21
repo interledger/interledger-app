@@ -1,0 +1,196 @@
+import { BlogLayout } from 'components'
+import { cairin } from '../authors'
+export default ({ children }) => <BlogLayout meta={meta} children={children} />
+
+export const meta = {
+  title: 'Building the Fynbos blog',
+  authors: [cairin],
+  description: 'Hello world!',
+  date: '2021-09-16',
+  slug: 'building-the-fynbos-blog',
+  preview: false
+}
+
+Since the inception of Fynbos, we have been incredibly busy laying foundations
+that will allow us to build solutions to the interesting problems we encounter.
+
+Our team wanted a platform that would allow us to share these solutions, and as
+a team of engineers we naturally built Fynbos a blog.
+
+## Design considerations
+
+Blogs are fairly simple things, so the majority of the structural design
+decisions we made were developer experience focussed.
+
+One of the key constraints is that we wanted our blog to live in the same
+project as our main site. There were a few reasons for this, but the main one
+was to keep things simple as we are a small team. Luckily for us,
+[Nextjs](https://nextjs.org) comes with some pretty neat features for serving
+static pages.
+
+We also didn't want a complicated CMS or have to spin up a database to store the
+blog posts, so we opted to just use [MDX](https://mdxjs.com) files as our data
+source. The Nextjs team wrote a [blog post](https://nextjs.org/blog/markdown) on
+how to achieve this.
+
+## Project setup
+
+A problem we have faced in the past, is dealing with
+[Nextjs's page routing mechanism](https://nextjs.org/docs/basic-features/pages):
+
+> In Next.js, a page is a React Component exported from a .js, .jsx, .ts, or
+> .tsx file in the pages directory. Each page is associated with a route based
+> on its file name.
+
+This is a fantastic mechanism.
+
+However, there are times when you might want to separate out some code into its
+own file. Normally, you would need to place these files in a `components`
+directory (outside the `pages` directory). To get around this, we use
+[custom page extensions](https://nextjs.org/docs/api-reference/next.config.js/custom-page-extensions)
+which allows us to collocate code that we don't reuse elsewhere (we prefer to
+not prematurely abstract code). We use `page.tsx` for standard pages, and
+`blog.mdx` for blog pages.
+
+```
+/components/...
+/pages
+├── blog
+│   ├── authors.ts
+│   ├── building-the-fynbos-blog
+│   │   ├── markdownSnippet.mdx
+│   │   ├── codeSnippet.tsx
+│   │   └── index.blog.mdx
+│   └── index.page.tsx
+├── ...
+├── _app.page.tsx
+├── _document.page.tsx
+└── index.page.tsx
+...
+```
+
+We intentionally gave the blog pages a distinct extension so that we can easily
+search for them. See [the blog list problem](#the-blog-list-problem) for more.
+
+We also exclusively name our routes with directories. That is to say a page will
+always be named `index.page.tsx` and it's route will be defined by the directory
+name. This has the added benefit of allowing us to collocate assets for that
+page in its directory.
+
+In order to load our pages properly, and to load mdx files as pages, we need to
+configure nextjs using
+[@next/mdx](https://github.com/vercel/next.js/tree/canary/packages/next-mdx).
+With our custom page extensions, our `next.config.js` now looks like this:
+
+```typescript
+const withMDX = require('@next/mdx')({
+  extension: /\.blog.mdx?$/
+})
+module.exports = withMDX({
+  pageExtensions: ['page.tsx', 'blog.mdx'],
+  reactStrictMode: true
+})
+```
+
+## Styling and layout
+
+The default way to provide styling to your mdx content once it has been
+converted to html is the
+[MDXProvider](https://mdxjs.com/getting-started/#mdxprovider). This wasn't ideal
+for us because we don't want to provide those styles to our entire app, just the
+blog post content. We could have wrapped just the post content in the
+`MDXProvider`, but we found a better solution.
+
+The mdx loader can use the default export of a mdx file as a wrapper for the
+content. We can use this to also pass metadata to the layout, as well as add
+other elements to the page - such as the author block, header and footer.
+
+```jsx
+import { BlogLayout } from 'components'
+import { cairin } from '../authors'
+export default ({ children }) => <BlogLayout meta={meta} children={children} />
+
+export const meta = {
+  title: 'Building the Fynbos blog',
+  authors: [cairin],
+  description: 'Hello world!',
+  date: '2021-09-16',
+  slug: 'building-the-fynbos-blog',
+  preview: false
+}
+```
+
+We then used
+[tailwindcss-typography](https://github.com/tailwindlabs/tailwindcss-typography)
+to provide styles to the post content. This comes with some nice default
+configuration for prose content. If you want to customise the default styles you
+need to use [cssinjs](https://cssinjs.org/).
+
+Using cssinjs does feel like a bit of a Tailwind anti-pattern, however, there
+are a lot of rules they provide that are contextual, like `h1 + *` for example
+(which overrides the margin on anything following an `h1`). This is not possible
+using the `MDXProvider` and normal tailwind utilities. And considering that we
+only need to tweak the configuration occasionally, this was a fair tradeoff.
+Additionally, we can always add in the `MDXProvider` in the future for specific
+components if we need.
+
+For syntax highlighting of code snippets we used
+[prismjs](https://prismjs.com/). We used the
+[rehype-prism](https://github.com/mapbox/rehype-prism) plugin to ensure the
+correct classes were added to the parsed mdx.
+
+## The blog list problem
+
+The first thing a blog needs is a list of all the posts. Unfortunately for us,
+[@next/mdx](https://github.com/vercel/next.js/tree/canary/packages/next-mdx)
+can't do this for us.
+
+To list all the blog posts, we need to:
+
+1. Search the `pages` directory for files with the `blog.mdx` extension.
+2. Extract the metadata from each file.
+3. Provide the metadata for each post to the blog list page.
+
+Fortunately, we can do all of this from the `getStaticProps` function of the
+list page, which
+[only runs at build time](https://nextjs.org/docs/basic-features/data-fetching#only-runs-at-build-time).
+
+### Extracting metadata
+
+To provide information (such as authors, title, date etc.) to the list page, we
+export a meta-object from each mdx file. However, in order to turn this
+meta-object back into a javascript object, we need to perform some string
+manipulation on the contents of each file.
+
+```typescript
+async function getFileMeta(path: string) {
+  const fileContents = await readFile(path, 'utf8')
+  const metaRegex = /export const meta = \{([\s\S]*?)\}\n\n/g
+  let metaString = fileContents.match(metaRegex)
+  if (metaString) {
+    let newStr = ''
+    // remove leading 'export const meta = '
+    metaString[0] = metaString[0].slice(20)
+    for (let author in authors) {
+      newStr = metaString[0].replace(
+        author as string,
+        // @ts-ignore
+        JSON.stringify(authors[author])
+      )
+    }
+    // test converts string js object (non JSON) to js object
+    let test = new Function('return ' + newStr)
+    return test()
+  }
+  return null
+}
+```
+
+This meta-data for each page can then be passed on to the list page from the
+`getStaticProps` function as mentioned before.
+
+## Conclusion
+
+This was a fun little project, and I'm sure we'll change how some things work
+going forward, as we use it. But as you can see, we now have a blog that loads
+quickly, and meets our design constraints that we set out in the beginning.
