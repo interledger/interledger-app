@@ -15,7 +15,6 @@ const HomePage: NextPage = () => {
               <br />
               economy
             </span>
-            <span className='text-2xl leading-normal'>Coming soon.</span>
           </div>
         </main>
         <Footer />
