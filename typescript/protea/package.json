@@ -10,20 +10,28 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "next": "11.0.1",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "@mapbox/rehype-prism": "^0.7.0",
+    "@mdx-js/loader": "^1.5.1",
+    "@next/mdx": "^9.1.1",
+    "luxon": "^2.0.2",
+    "next": "^11.1.2",
+    "react": "^17.0.2",
+    "react-dom": "17.0.2",
+    "rehype-slug": "^4.0.1"
   },
   "devDependencies": {
-    "@types/node": "^16.6.1",
-    "@types/react": "17.0.17",
-    "autoprefixer": "^10.3.1",
+    "@tailwindcss/typography": "^0.4.1",
+    "@types/luxon": "^2",
+    "@types/node": "^16.9.0",
+    "@types/react": "17.0.20",
+    "autoprefixer": "latest",
     "eslint": "7.32.0",
-    "eslint-config-next": "11.0.1",
+    "eslint-config-next": "11.1.2",
     "eslint-config-prettier": "^8.3.0",
-    "postcss": "^8.3.6",
-    "prettier": "2.3.2",
-    "tailwindcss": "^2.2.7",
-    "typescript": "4.3.5"
+    "postcss": "latest",
+    "prettier": "^2.3.2",
+    "tailwindcss": "latest",
+    "tailwindcss-selection-variant": "^0.1.0",
+    "typescript": "4.4.2"
   }
 }

@@ -1,11 +1,10 @@
 workflow:
   rules:
     - changes:
-      - typescript/protea/**/*
+        - typescript/protea/**/*
 
 stages:
   - lint
-  - test
   - deploy
 
 variables:
@@ -17,7 +16,7 @@ image: node:16-alpine3.11
 # per branch caching of typescript.
 # TODO: update when more packages are added and we move to yarn workspaces.
 cache:
-  key: "$CI_COMMIT_REF_SLUG-typescript"
+  key: '$CI_COMMIT_REF_SLUG-typescript'
   paths:
     - $PROJECT_PATH/.yarn
     - $PROJECT_PATH/yarn.lock
@@ -31,12 +30,6 @@ lint:
   stage: lint
   script:
     - yarn lint
-  interruptible: true
-
-test:
-  stage: test
-  script:
-    - echo "Testing not set up."
   interruptible: true
 
 deploy:

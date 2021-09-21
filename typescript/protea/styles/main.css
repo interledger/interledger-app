@@ -1,0 +1,22 @@
+/* purgecss start ignore */
+@tailwind base;
+/* purgecss end ignore */
+
+@tailwind components;
+@tailwind utilities;
+
+/* Prism syntax highlighting */
+@import 'prism.css';
+
+/* Smooth scrolling to anchor tags */
+html {
+  scroll-behavior: smooth;
+}
+
+:target:before {
+  content: '';
+  display: block;
+  height: 136px;
+  margin: -136px 0 0;
+}
+/* End: smooth scroll*/
