@@ -1,0 +1,26 @@
+#cloud-config
+
+package_upgrade: true
+package_update: true
+
+write_files:
+  - owner: root:root
+    path: /opt/install.sh
+    encoding: b64
+    content: {{ .InstallScript }}
+  - path: /etc/boundary-{{ .BoundaryType }}.hcl
+    encoding: b64
+    content: {{ .Config }}
+  - path: /etc/encrypted-boundary.key.pem
+    encoding: b64
+    content: {{ .EncryptedTlsPrivateKey }}
+  - path: /etc/boundary.crt.pem
+    encoding: b64
+    content: {{ .TlsCert }}
+
+runcmd:
+  - export PRIVATE_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+  - sed -i "s/<private-ip>/$PRIVATE_IP/g" /etc/boundary-{{ .BoundaryType }}.hcl
+  - AWS_DEFAULT_REGION=eu-west-1 aws kms decrypt --ciphertext-blob fileb:///etc/encrypted-boundary.key.pem --key-id {{ .KmsKeyId }} --output text --query Plaintext | base64 --decode > /etc/boundary.key.pem
+  - chmod +x /opt/install.sh
+  - /opt/install.sh {{ .BoundaryType }}
