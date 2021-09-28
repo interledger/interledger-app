@@ -7,9 +7,9 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func NewCrossAccountIamRoles(ctx *pulumi.Context, securityAccountId string) error {
+func NewCrossAccountIamRoles(ctx *pulumi.Context, securityAccountId string) (*iam.Role, error) {
 
-	_, err := iam.NewRole(ctx, "fullAccessRole", &iam.RoleArgs{
+	role, err := iam.NewRole(ctx, "fullAccessRole", &iam.RoleArgs{
 		Name:             pulumi.String("allow-full-access-from-other-accounts"),
 		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId)),
 		ManagedPolicyArns: pulumi.StringArray{
@@ -17,10 +17,10 @@ func NewCrossAccountIamRoles(ctx *pulumi.Context, securityAccountId string) erro
 		},
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return role, nil
 }
 
 func newAssumeRolePolicy(securityAccountId string) string {

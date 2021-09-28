@@ -32,10 +32,18 @@ func main() {
 			return err
 		}
 
-		err = secure_baseline.NewCrossAccountIamRoles(ctx, securityAccountId)
+		role, err := secure_baseline.NewCrossAccountIamRoles(ctx, securityAccountId)
 		if err != nil {
 			return err
 		}
+
+		pulumiKey, err := secure_baseline.NewPulumiSecretsKey(ctx, role.Arn)
+		if err != nil {
+			return err
+		}
+
+		ctx.Export("pulumiSecretsKeyId", pulumiKey.ID())
+		ctx.Export("pulumiSecretsKeyArn", pulumiKey.Arn)
 
 		return nil
 	})

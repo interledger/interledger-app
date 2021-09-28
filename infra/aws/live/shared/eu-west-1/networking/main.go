@@ -141,6 +141,15 @@ func main() {
 					Protocol:  pulumi.String("-1"),
 					CidrBlock: pulumi.String("10.100.0.0/17"),
 				},
+				// Allow comm to intra subnet
+				ec2.NetworkAclIngressArgs{
+					RuleNo:    pulumi.Int(150),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.192.0/18"),
+				},
 			},
 			PrivateOutboundNacls: ec2.NetworkAclEgressArray{
 				// HTTP Access
@@ -177,7 +186,55 @@ func main() {
 					FromPort:  pulumi.Int(1024),
 					ToPort:    pulumi.Int(65535),
 					Protocol:  pulumi.String("tcp"),
-					CidrBlock: pulumi.String("10.100.128.0/18"),
+					CidrBlock: pulumi.String("0.0.0.0/0"),
+				},
+				ec2.NetworkAclEgressArgs{
+					RuleNo:    pulumi.Int(150),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.192.0/18"),
+				},
+			},
+			IntraInboundNacls: ec2.NetworkAclIngressArray{
+				// Allow all traffic from private subnet
+				ec2.NetworkAclIngressArgs{
+					RuleNo:    pulumi.Int(120),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.0.0/17"),
+				},
+				// Allow all traffic within intra
+				ec2.NetworkAclIngressArgs{
+					RuleNo:    pulumi.Int(130),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.192.0/18"),
+				},
+			},
+			IntraOutboundNacls: ec2.NetworkAclEgressArray{
+				// Allow all outbound to private subnet
+				ec2.NetworkAclEgressArgs{
+					RuleNo:    pulumi.Int(120),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.0.0/17"),
+				},
+				// Allow all traffic within intra
+				ec2.NetworkAclEgressArgs{
+					RuleNo:    pulumi.Int(130),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(0),
+					ToPort:    pulumi.Int(0),
+					Protocol:  pulumi.String("-1"),
+					CidrBlock: pulumi.String("10.100.192.0/18"),
 				},
 			},
 		})

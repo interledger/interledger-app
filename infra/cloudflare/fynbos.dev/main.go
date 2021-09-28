@@ -15,6 +15,7 @@ func main() {
 		if err != nil {
 			return err
 		}
+		ctx.Export("dnsZoneId", zone.ID())
 
 		// Vercel landing page
 		_, err = cloudflare.NewRecord(ctx, "vercel_A_record", &cloudflare.RecordArgs{
@@ -175,6 +176,14 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		boundaryPrivateKey, boundaryCert, err := newBoundaryCertificate(ctx)
+		if err != nil { 
+			return nil
+		}
+
+		ctx.Export("boundaryPrivateKey", boundaryPrivateKey.PrivateKeyPem)
+		ctx.Export("boundaryCert", boundaryCert.Certificate)
 
 		return nil
 	})
