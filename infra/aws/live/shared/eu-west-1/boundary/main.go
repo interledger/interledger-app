@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bytes"
-	b64 "encoding/base64"
-	"text/template"
-
+	utils "gitlab.com/fynbos/infra/aws/modules/utils"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/rds"
@@ -27,10 +24,11 @@ func main() {
 		tlsCert := cfStack.GetStringOutput(pulumi.String("boundaryCert"))
 		tlsPrivateKey := cfStack.GetStringOutput(pulumi.String("boundaryPrivateKey"))
 		vpcId := vpcStack.GetStringOutput(pulumi.String("vpcId"))
-		intraSubnets := AnyOutputToStringArrayOutput(vpcStack.GetOutput(pulumi.String("intraSubnets")))
-		privateSubnetsCidrBlocks := AnyOutputToStringArrayOutput(vpcStack.GetOutput(pulumi.String("privateSubnetsCidrBlocks")))
-		privateSubnet := ValueFromStringArrayOutput(vpcStack.GetOutput(pulumi.String("privateSubnets")), 1)
-		publicSubnets := AnyOutputToStringArrayOutput(vpcStack.GetOutput(pulumi.String("publicSubnets")))
+		intraSubnets := utils.AnyOutputToStringArrayOutput(vpcStack.GetOutput(pulumi.String("intraSubnets")))
+		privateSubnetsCidrBlocks := utils.AnyOutputToStringArrayOutput(vpcStack.GetOutput(pulumi.String("privateSubnetsCidrBlocks")))
+		privateSubnet := utils.ValueFromStringArrayOutput(vpcStack.GetOutput(pulumi.String("privateSubnets")), 1)
+		publicSubnets := utils.AnyOutputToStringArrayOutput(vpcStack.GetOutput(pulumi.String("publicSubnets")))
+		vpcCidrBlock := vpcStack.GetStringOutput(pulumi.String("vpcCidrBlock"))
 
 		// Create Postgres
 		pgSg, err := createPostgresSecurityGroup(ctx, vpcId, privateSubnetsCidrBlocks)
@@ -93,7 +91,7 @@ func main() {
 		if err != nil {
 			return err
 		}
-		workerSg, err := createWorkerSecurityGroup(ctx, vpcId)
+		workerSg, err := createWorkerSecurityGroup(ctx, vpcId, vpcCidrBlock)
 		if err != nil {
 			return err
 		}
@@ -108,7 +106,7 @@ func main() {
 			ec2Profile: workerProfile,
 			publicHost: loadBalancer.DnsName,
 			tlsCert: tlsCert,
-			encryptedTlsPrivateKey: tlsPrivateKey,
+			encryptedTlsPrivateKey: encryptedPrivateKey.CiphertextBlob,
 		})
 		if err != nil {
 			return err
@@ -139,20 +137,6 @@ func main() {
 
 		return nil
 	})
-}
-
-func parseTemplate (data interface{}, filePath string) string {
-	tmp, err := template.ParseFiles(filePath)
-	if err != nil {
-		return ""
-	}
-	document := &bytes.Buffer{}
-	err = tmp.Execute(document, data)
-	if err != nil {
-		return ""
-	}
-
-	return b64.StdEncoding.EncodeToString(document.Bytes())
 }
 
 func createPostgresSecurityGroup(ctx *pulumi.Context, vpcId pulumi.StringOutput, privateSubnetsCidrBlocks pulumi.StringArrayOutput) (*ec2.SecurityGroup, error) {
@@ -216,22 +200,4 @@ func createPostgres(ctx *pulumi.Context, sg *ec2.SecurityGroup, intraSubnets pul
 	}
 
 	return instance, password, nil
-}
-
-func ValueFromStringArrayOutput(output pulumi.AnyOutput, index int) pulumi.StringOutput {
-	return output.ApplyT(func(arg interface{}) string {
-		stringArray := arg.([]interface{})
-		return stringArray[index].(string)
-	}).(pulumi.StringOutput)
-}
-
-func AnyOutputToStringArrayOutput(output pulumi.AnyOutput) pulumi.StringArrayOutput {
-	return output.ApplyT(func(arg interface{}) []string {
-		stringArray := arg.([]interface{})
-		var outputs []string
-		for _, s := range stringArray {
-			outputs = append(outputs, s.(string))
-		}
-		return outputs
-	}).(pulumi.StringArrayOutput)
 }

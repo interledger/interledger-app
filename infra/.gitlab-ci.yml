@@ -1,0 +1,19 @@
+workflow:
+  rules:
+    - changes:
+      - infra/**/*
+
+stages:
+  - hello
+
+variables:
+  PROJECT_PATH: $CI_PROJECT_DIR/infra/
+
+image: golang:1.16-bullseye
+
+
+hello:
+  stage: hello
+  script:
+    - echo "Not set up yet"
+  interruptible: true

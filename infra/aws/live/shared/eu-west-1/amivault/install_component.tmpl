@@ -1,0 +1,79 @@
+name: "InstallVault"
+description: "Installs Vault"
+schemaVersion: 1.0
+phases:
+  - name: build
+    steps:
+      - name: InstallDependencies
+        action: ExecuteBash
+        inputs:
+            commands:
+              - sudo yum update -y
+              - sudo yum install -y awscli curl unzip jq
+      - name: CreateVaultUser
+        action: ExecuteBash
+        inputs:
+          commands:
+            - sudo useradd --system "vault"
+      - name: SetUpDirectories
+        action: ExecuteBash
+        inputs:
+          commands:
+            - sudo mkdir -p {{ .InstallPath }}
+            - sudo mkdir -p {{ .InstallPath }}/bin
+            - sudo mkdir -p {{ .InstallPath }}/config
+            - sudo mkdir -p {{ .InstallPath }}/data
+            - sudo mkdir -p {{ .InstallPath }}/tls
+            - sudo mkdir -p {{ .InstallPath }}/scripts
+      - name: CreateVaultDirectories
+        action: CreateFolder
+        inputs:
+          - path: {{ .InstallPath }}
+            permissions: 755
+            owner: vault
+            group: vault
+          - path: {{ .InstallPath }}/bin
+            permissions: 755
+          - path: {{ .InstallPath }}/data
+            permissions: 755
+          - path: {{ .InstallPath }}/config
+          - path: {{ .InstallPath }}/tls
+          - path: {{ .InstallPath }}/scripts
+      - name: DownloadVault
+        action: WebDownload
+        maxAttempts: 3
+        inputs:
+          - source: https://releases.hashicorp.com/vault/{{ .Version }}/vault_{{ .Version }}_linux_amd64.zip
+            destination: /tmp/vault.zip
+      - name: UnzipBinary
+        action: ExecuteBash
+        inputs:
+          commands:
+            - unzip -d /tmp "/tmp/vault.zip"
+      - name: Install
+        action: MoveFile
+        inputs:
+          - source: /tmp/vault
+            destination: {{ .InstallPath }}/bin/vault
+      - name: SetVaultBinaryOwner
+        action: SetFileOwner
+        inputs:
+          - path: {{ .InstallPath }}/bin/vault
+            owner: vault
+            group: vault
+      - name: SetVaultBinaryPermissions
+        action: SetFilePermissions
+        inputs:
+          - path: {{ .InstallPath }}/bin/vault
+            permissions: 755
+      - name: CreatingSymbolicLink
+        action: CreateSymlink
+        inputs:
+          - path: /usr/local/bin/vault
+            target: {{ .InstallPath }}/bin/vault
+      - name: ConfigureMlock
+        action: ExecuteBash
+        inputs:
+          commands:
+            - sudo setcap cap_ipc_lock=+ep $(readlink -f $(which vault))
+      
