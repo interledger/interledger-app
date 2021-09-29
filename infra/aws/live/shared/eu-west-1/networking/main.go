@@ -3,13 +3,14 @@ package main
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"gitlab.com/fynbos/infra/aws/modules/networking"
+	"gitlab.com/fynbos/infra/aws/modules/networking"	
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
 )
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 
-		err := networking.NewVpc(ctx, &networking.VpcArgs{
+		vpc, err := networking.NewVpc(ctx, &networking.VpcArgs{
 			Name:      "shared",
 			CidrBlock: "10.100.0.0/16",
 			AvailabilityZones: []string{
@@ -241,6 +242,20 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		zone, err := route53.NewZone(ctx, "fynbos.cloud", &route53.ZoneArgs{
+			Name: pulumi.String("fynbos.cloud"),
+			Vpcs: route53.ZoneVpcArray{
+				&route53.ZoneVpcArgs{
+					VpcId: vpc.ID(),
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+		ctx.Export("dnsZoneName", zone.Name)
+		ctx.Export("dnsZoneId", zone.ID())
 
 		return nil
 	})

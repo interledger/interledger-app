@@ -4,7 +4,7 @@ readonly TLS_KEY_PATH=/etc/boundary.key.pem
 # Install boundary
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
-sudo yum -y install boundary
+sudo yum -y install boundary-0.6.1-1 # pinning version so that we don't run into db migration errors.
 
 # Installs the boundary as a service for systemd on linux
 TYPE=$1

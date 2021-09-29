@@ -1,0 +1,3 @@
+name: aws-shared-vault-ami
+runtime: go
+description: Vault AMI for Fynbos.

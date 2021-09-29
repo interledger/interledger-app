@@ -23,7 +23,7 @@ type VpcArgs struct {
 	IntraOutboundNacls   ec2.NetworkAclEgressArray
 }
 
-func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
+func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 
 	vpc, err := ec2.NewVpc(ctx, args.Name, &ec2.VpcArgs{
 		CidrBlock:                    pulumi.String(args.CidrBlock),
@@ -33,14 +33,14 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 		InstanceTenancy:              pulumi.String("default"),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	//  Remove all rules from default security group
 	_, err = ec2.NewDefaultSecurityGroup(ctx, "_default", &ec2.DefaultSecurityGroupArgs{
 		VpcId: vpc.ID(),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	//  Remove all rules from default NACL
 	_, err = ec2.NewDefaultNetworkAcl(ctx, "_default", &ec2.DefaultNetworkAclArgs{
@@ -48,7 +48,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 		SubnetIds:           nil,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create public subnets
@@ -62,7 +62,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			AvailabilityZone: pulumi.String(args.AvailabilityZones[i]),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		publicSubnets = append(publicSubnets, subnet)
 	}
@@ -70,7 +70,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 		VpcId: vpc.ID(),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Associate all public subnets to route table
 	for i, s := range publicSubnets {
@@ -81,7 +81,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			RouteTableId: publicRouteTable.ID(),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	// Add internet gateway for public subnets
@@ -105,7 +105,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			AvailabilityZone: pulumi.String(args.AvailabilityZones[i]),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		privateSubnets = append(privateSubnets, subnet)
 	}
@@ -125,14 +125,14 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			Vpc: pulumi.Bool(true),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		natGateway, err := ec2.NewNatGateway(ctx, fmt.Sprintf("%s-%s", args.Name, az), &ec2.NatGatewayArgs{
 			SubnetId:     publicSubnets[i].ID(),
 			AllocationId: ip.ID(),
 		}, pulumi.DependsOn([]pulumi.Resource{ig}))
 		if err != nil {
-			return err
+			return nil, err
 		}
 		natGateways = append(natGateways, natGateway)
 	}
@@ -145,7 +145,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			VpcId: vpc.ID(),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		_, err = ec2.NewRoute(ctx, "nat-route", &ec2.RouteArgs{
@@ -154,7 +154,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			NatGatewayId:         ng.ID(),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		privateRouteTables = append(privateRouteTables, rt)
@@ -188,7 +188,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 				AvailabilityZone: pulumi.String(args.AvailabilityZones[i]),
 			})
 			if err != nil {
-				return err
+				return nil, err
 			}
 			intraSubnets = append(intraSubnets, subnet)
 		}
@@ -196,7 +196,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 			VpcId: vpc.ID(),
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Associate all intra subnets to route table
@@ -208,7 +208,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 				RouteTableId: intraRouteTable.ID(),
 			})
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
@@ -252,7 +252,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) error {
 	ctx.Export("privateSubnetsCidrBlocks", subnetArrayToCidrBlockArray(privateSubnets))
 	ctx.Export("intraSubnetsCidrBlocks", subnetArrayToCidrBlockArray(intraSubnets))
 
-	return nil
+	return vpc, nil
 }
 
 func subnetArrayToPulumiIDArray(subnets []*ec2.Subnet) pulumi.IDArrayOutput {

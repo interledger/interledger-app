@@ -8,6 +8,7 @@ import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/rds"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	utils "gitlab.com/fynbos/infra/aws/modules/utils"
 
 	b64 "encoding/base64"
 )
@@ -45,27 +46,17 @@ func createKeys(ctx *pulumi.Context) (*kms.Key, *kms.Key, *kms.Key, error) {
 }
 
 func createControllerSecurityGroup(ctx *pulumi.Context, vpcId pulumi.StringOutput, privateSubnetsCidrBlocks pulumi.StringArrayOutput) (*ec2.SecurityGroup, error) {
-	// TODO Cleanup the SG
 	return ec2.NewSecurityGroup(ctx, "boundary-controller", &ec2.SecurityGroupArgs{
 		Name:        pulumi.String("boundary-controller"),
 		VpcId:       vpcId,
 		Description: pulumi.String("Boundary Controller"),
 		Ingress: ec2.SecurityGroupIngressArray{
-			// Allow ssh inbound communication from all
-			&ec2.SecurityGroupIngressArgs{
-				FromPort: pulumi.Int(22),
-				ToPort:   pulumi.Int(22),
-				Protocol: pulumi.String("tcp"),
-				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"),
-				},
-			},
-			&ec2.SecurityGroupIngressArgs{
+			&ec2.SecurityGroupIngressArgs{ // controller api endpoint
 				FromPort: pulumi.Int(9200),
 				ToPort:   pulumi.Int(9200),
 				Protocol: pulumi.String("tcp"),
 				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"),
+					pulumi.String("0.0.0.0/0"), // allow from anywhere as users will use cli on their local machines. i.e. network load balancer does not adjust src ip address.
 				},
 			},
 			&ec2.SecurityGroupIngressArgs{ // allow inbound communication from worker
@@ -85,7 +76,7 @@ func createControllerSecurityGroup(ctx *pulumi.Context, vpcId pulumi.StringOutpu
 					pulumi.String("0.0.0.0/0"),
 				},
 			},
-			&ec2.SecurityGroupEgressArgs{
+			&ec2.SecurityGroupEgressArgs{ // allow https out so that instance can speak to AWS KMS and install Boundary
 				FromPort: pulumi.Int(443),
 				ToPort:   pulumi.Int(443),
 				Protocol: pulumi.String("tcp"),
@@ -109,63 +100,38 @@ func createControllerSecurityGroup(ctx *pulumi.Context, vpcId pulumi.StringOutpu
 	})
 }
 
-func createWorkerSecurityGroup(ctx *pulumi.Context, vpcId pulumi.StringOutput) (*ec2.SecurityGroup, error) {
-	// TODO Cleanup the SG
+func createWorkerSecurityGroup(ctx *pulumi.Context, vpcId pulumi.StringOutput, vpcCidrBlock pulumi.StringOutput) (*ec2.SecurityGroup, error) {
 	return ec2.NewSecurityGroup(ctx, "boundary-worker-sg", &ec2.SecurityGroupArgs{
 		Name:        pulumi.String("boundary-worker"),
 		VpcId:       vpcId,
 		Description: pulumi.String("Boundary Worker Sg"),
 		Ingress: ec2.SecurityGroupIngressArray{
-			// Allow ssh inbound communication from all
+			// allow inbound whilst acting as proxy
 			&ec2.SecurityGroupIngressArgs{
-				FromPort: pulumi.Int(22),
-				ToPort:   pulumi.Int(22),
-				Protocol: pulumi.String("tcp"),
-				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"),
-				},
-			},
-			&ec2.SecurityGroupIngressArgs{
-				FromPort: pulumi.Int(8000),
-				ToPort:   pulumi.Int(8000),
-				Protocol: pulumi.String("tcp"),
-				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"),
-				},
-			},
-			&ec2.SecurityGroupIngressArgs{ // allow inbound whilst acting as proxy
 				FromPort: pulumi.Int(9202),
 				ToPort:   pulumi.Int(9202),
 				Protocol: pulumi.String("tcp"),
 				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"), // TODO: tighten this up
+					pulumi.String("0.0.0.0/0"), // allow from anywhere as users will use cli on their local machines. i.e. network load balancer does not adjust src ip address.
 				},
 			},
 		},
 		Egress: ec2.SecurityGroupEgressArray{
-			// Allow outbound communication to postgres.
+			// Allow outbound communication to entire VPC
 			&ec2.SecurityGroupEgressArgs{
-				FromPort: pulumi.Int(5432),
-				ToPort:   pulumi.Int(5432),
+				FromPort: pulumi.Int(0),
+				ToPort:   pulumi.Int(65535),
 				Protocol: pulumi.String("tcp"),
 				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"), // TODO: set to intra subnet
+					vpcCidrBlock,
 				},
 			},
-			&ec2.SecurityGroupEgressArgs{
+			&ec2.SecurityGroupEgressArgs{ // allow https out so that instance can speak to AWS KMS and install Boundary
 				FromPort: pulumi.Int(443),
 				ToPort:   pulumi.Int(443),
 				Protocol: pulumi.String("tcp"),
 				CidrBlocks: pulumi.StringArray{
 					pulumi.String("0.0.0.0/0"),
-				},
-			},
-			&ec2.SecurityGroupEgressArgs{ // Allow outbound to controller
-				FromPort: pulumi.Int(9201),
-				ToPort:   pulumi.Int(9201),
-				Protocol: pulumi.String("tcp"),
-				CidrBlocks: pulumi.StringArray{
-					pulumi.String("0.0.0.0/0"), // TODO: set to private
 				},
 			},
 		},
@@ -198,14 +164,14 @@ func workerCloudInitData(workerKeyId pulumi.IDOutput, controllerIps pulumi.Strin
 
 		data := CloudInitData{
 			BoundaryType: "worker",
-			Config:        parseTemplate(config, "./install/worker.hcl"),
-			InstallScript: parseTemplate(config, "./install/install.sh"),
+			Config:        utils.ParseTemplate(config, "./install/worker.hcl"),
+			InstallScript: utils.ParseTemplate(config, "./install/install.sh"),
 			TlsCert: 	   b64.StdEncoding.EncodeToString([]byte(args[3].(string))),
 			EncryptedTlsPrivateKey:  args[4].(string),
 			KmsKeyId:      args[0],
 		}
 
-		return parseTemplate(data, "./install/cloudinit.yaml"), nil
+		return utils.ParseTemplate(data, "./install/cloudinit.yaml"), nil
 	}).(pulumi.StringOutput)
 }
 
@@ -230,14 +196,14 @@ func controllerCloudInitData(dbEndpoint pulumi.StringOutput, dbPassword pulumi.S
 
 		data := CloudInitData{
 			BoundaryType: "controller",
-			Config:        parseTemplate(config, "./install/controller.hcl"),
-			InstallScript: parseTemplate(config, "./install/install.sh"),
+			Config:        utils.ParseTemplate(config, "./install/controller.hcl"),
+			InstallScript: utils.ParseTemplate(config, "./install/install.sh"),
 			TlsCert: b64.StdEncoding.EncodeToString([]byte(args[5].(string))),
 			EncryptedTlsPrivateKey: args[6].(string),
 			KmsKeyId: args[4],
 		}
 
-		return parseTemplate(data, "./install/cloudinit.yaml"), nil
+		return utils.ParseTemplate(data, "./install/cloudinit.yaml"), nil
 	}).(pulumi.StringOutput)
 }
 
@@ -343,7 +309,6 @@ func createWorkerInstance(args CreateWorkerArgs) (*ec2.Instance, error) {
 		VpcSecurityGroupIds: pulumi.StringArray{
 			args.sg.ID(),
 		},
-		KeyName: pulumi.String("don"), // TODO: clean up
 		UserDataBase64: workerCloudInitData(args.workerKey.ID(), args.controllerIps, args.publicHost, args.tlsCert, args.encryptedTlsPrivateKey),
 		IamInstanceProfile: args.ec2Profile,
 		Tags:         pulumi.StringMap{"Name": pulumi.String("Boundary Worker")},
@@ -392,7 +357,6 @@ func createControllerInstance(args CreateControllerArgs) (*ec2.Instance, error) 
 		VpcSecurityGroupIds: pulumi.StringArray{
 			args.sg.ID(),
 		},
-		KeyName: pulumi.String("don"), // TODO: clean up
 		UserDataBase64: controllerCloudInitData(args.postgres.Endpoint, args.dbPassword, args.recoveryKey.ID(), args.rootKey.ID(), args.workerKey.ID(), args.tlsCert, args.encryptedTlsPrivateKey),
 		IamInstanceProfile: args.ec2Profile,
 		Tags:         pulumi.StringMap{"Name": pulumi.String("Boundary Controller")},

@@ -9,3 +9,12 @@ trigger_protea:
   rules:
     - changes:
         - typescript/protea/**/*
+
+trigger_infra:
+  stage: triggers
+  trigger:
+    include: infra/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - infra/**/*
