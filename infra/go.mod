@@ -9,5 +9,6 @@ require (
 	github.com/pulumi/pulumi-cloudflare/sdk/v3 v3.4.0
 	github.com/pulumi/pulumi-random/sdk/v4 v4.2.0
 	github.com/pulumi/pulumi-tls/sdk/v4 v4.0.0
+	github.com/pulumi/pulumi-vault/sdk/v4 v4.5.0 // indirect
 	github.com/pulumi/pulumi/sdk/v3 v3.3.1
 )
