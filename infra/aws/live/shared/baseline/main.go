@@ -9,6 +9,7 @@ import (
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		conf := config.New(ctx, "fynbos")
+		accountId := conf.Require("accountId")
 		securityAccountId := conf.Require("securityAccountId")
 		rootStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-root/baseline", nil)
 		if err != nil {
@@ -33,7 +34,7 @@ func main() {
 		}
 
 		// invoke default encryption on ebs volumes
-		_, err = secure_baseline.EbsBaseline(ctx, "shared-ebs")
+		_, err = secure_baseline.EbsBaseline(ctx, "shared-ebs", accountId)
 		if err != nil {
 			return err
 		}
