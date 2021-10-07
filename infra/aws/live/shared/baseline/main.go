@@ -32,6 +32,12 @@ func main() {
 			return err
 		}
 
+		// invoke default encryption on ebs volumes
+		_, err = secure_baseline.EbsBaseline(ctx, "shared-ebs")
+		if err != nil {
+			return err
+		}
+
 		role, err := secure_baseline.NewCrossAccountIamRoles(ctx, securityAccountId)
 		if err != nil {
 			return err
