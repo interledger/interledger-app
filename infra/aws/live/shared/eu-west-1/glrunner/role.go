@@ -6,11 +6,11 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-// CreateRole
+// CreateManagerRole
 // creates the required role for the gitlab runner manager
 // ensures ec2 instances can assume the role
 // adds the necessary policies for the role for ec2 management
-func CreateRole(ctx *pulumi.Context) (*iam.Role, error) {
+func CreateRole(ctx *pulumi.Context, ebsKmsKeyArn pulumi.StringOutput) (*iam.Role, error) {
 	instanceAssumeRolePolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
 		Statements: []iam.GetPolicyDocumentStatement{
 			{
@@ -35,6 +35,12 @@ func CreateRole(ctx *pulumi.Context) (*iam.Role, error) {
 	role, err := iam.NewRole(ctx, "gl-runner-manager", &iam.RoleArgs{
 		Path:             pulumi.String("/"),
 		AssumeRolePolicy: pulumi.String(instanceAssumeRolePolicy.Json),
+		InlinePolicies: iam.RoleInlinePolicyArray{
+			iam.RoleInlinePolicyArgs{
+				Name: pulumi.String("ebsKmsKeyAccessPolicy"),
+				Policy: ebsEncryptionKeyAccessPolicy(ctx, ebsKmsKeyArn),
+			},
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -89,4 +95,53 @@ func policy() pulumi.String {
 	policy, _ := json.Marshal(rawPolicy)
 
 	return pulumi.String(policy)
+}
+
+// Our ebs volumes are encrypted by default. This will allow the provisioning of a root
+// ebs volume for ec2 instances.
+// https://docs.aws.amazon.com/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html
+func ebsEncryptionKeyAccessPolicy (ctx *pulumi.Context, keyArn pulumi.StringOutput) pulumi.StringOutput {
+	effect := "Allow"
+	return pulumi.All(keyArn).ApplyT(func(args []interface{}) (string, error) {
+		keyArn := args[0].(string)
+
+		kmsAccess, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+			Statements: []iam.GetPolicyDocumentStatement{
+				{
+					Effect: &effect,
+					Actions: []string{
+						"kms:Encrypt",
+						"kms:Decrypt",
+						"kms:ReEncrypt*",
+						"kms:GenerateDataKey*",
+						"kms:DescribeKey",
+					},
+					Resources: []string{
+						keyArn,
+					},
+				},
+				{
+					Effect: &effect,
+					Actions: []string{
+						"kms:CreateGrant",
+					},
+					Resources: []string{
+						keyArn,
+					},
+					// allow the user to create grants on the KMS key only when the grant is created on the user's behalf by an AWS service
+					// This follows the principle of least priviledge.
+					Conditions: []iam.GetPolicyDocumentStatementCondition{
+						{
+							Test: "Bool",
+							Variable: "kms:GrantIsForAWSResource",
+							Values: []string{"true"},
+						},
+					},
+				},
+			},
+		})
+		if err != nil { return "", err }
+
+		return kmsAccess.Json, err
+	}).(pulumi.StringOutput)
 }

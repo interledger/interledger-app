@@ -18,6 +18,11 @@ func main() {
 		if gitlabToken == "" {
 			return fmt.Errorf("gitlab token was not provided")
 		}
+		baselineStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-baseline/main", nil)
+		if err != nil {
+			return err
+		}
+		ebsKmsKeyArn := baselineStack.GetStringOutput(pulumi.String("ebsEncryptionKeyArn"))
 		vpcStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-euwest1-networking/main", nil)
 		if err != nil {
 			return err
@@ -38,7 +43,7 @@ func main() {
 		}).(pulumi.StringArrayOutput)
 
 		// Create a Role and instance profile
-		role, err := CreateRole(ctx)
+		role, err := CreateRole(ctx, ebsKmsKeyArn)
 		if err != nil {
 			return err
 		}
@@ -151,6 +156,7 @@ func main() {
 			VpcSecurityGroupIds: pulumi.StringArray{
 				managerSg.ID(),
 			},
+			Tags:		pulumi.StringMap{"Name": pulumi.String("gl-manager")},
 		})
 		if err != nil {
 			return err
