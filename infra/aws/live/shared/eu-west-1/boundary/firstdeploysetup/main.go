@@ -10,8 +10,12 @@ func main () {
 	orgName := "infra"
 	projectName := "euwest-1"
 	orgAdminUsername := "admin"
+
+	// see README for info on required environment variables.
 	orgAdminPassword := os.Getenv("ADMIN_PASSWORD")
 	kmsKeyId := os.Getenv("KMS_KEY_ID")
+	oidcClientId := os.Getenv("OIDC_CLIENT_ID")
+	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
 
 	client, ctx, err := createApiClientFromRecoveryKey(kmsKeyId)
 	if err != nil {
@@ -28,14 +32,20 @@ func main () {
 	}
 	log.Println(org)
 
-	// TODO: change this to managed groups and connect to Google
-	passwordAuth, err := createAuthMethod(client, ctx, org.Id, "password", orgName + "-password-auth", "Password auth for Fynbos")
+	oidcAuth, err := createOIDCAuthMethod(client, ctx, org.Id, "Google", "https://accounts.google.com", "https://boundary.fynbos.dev", oidcClientId, oidcClientSecret)
 	if err != nil {
-		log.Fatalln("Failed to create password auth for organisation.")
+		log.Fatalln("Failed to create oidc auth for organisation.")
 		log.Fatalln(err)
 		return
 	}
-	log.Println(passwordAuth)
+	log.Println(oidcAuth)
+
+	err = setPrimaryAuthMethod(client, ctx, org, oidcAuth.Id)
+	if err != nil {
+		log.Fatalln("Failed to make oidc auth primary auth method for organisation.")
+		log.Fatalln(err)
+		return
+	}
 
 	orgAdminRole, err := createOrgAdminRole(client, ctx, org.Id, orgName + "-admin")
 	if err != nil {
@@ -63,7 +73,7 @@ func main () {
 	log.Fatalln(projectAdminRole)
 
 	// create admin group and assign to admin role
-	usr, acc, err := createUserAndAccount(client, ctx, org.Id, passwordAuth.Id, orgAdminUsername, orgAdminPassword)
+	usr, acc, err := createUserAndAccount(client, ctx, org.Id, oidcAuth.Id, orgAdminUsername, orgAdminPassword)
 	if err != nil {
 		log.Fatalln("Failed to create admin user.")
 		log.Fatalln(err)

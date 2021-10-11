@@ -34,6 +34,10 @@ Our configuration scripts are in `./firstdeploysetup`. You will need the followi
 | KMS_KEY_ID           | <recovery key id>                                   |
 | ADMIN_PASSWORD       | <secure password>                                   |
 | CLOUDFLARE_API_TOKEN | <cloudflare token with permission to edit dns zone> |
+| OIDC_CLIENT_ID 	   | <Google OIDC client id>                             |
+| OIDC_CLIENT_SECRET   | <Google OIDC client secret>                         |
+
+We use Google as the OIDC provider to log into Boundary. A provider has been setup and can be found at `https://console.cloud.google.com/apis/credentials?project=high-ace-321809`.
 
 Then run 
 ```sh
@@ -45,4 +49,27 @@ At the moment the Go sdk for boundary fails to add principals to roles. So the s
 Export those variables and then run the following script
 ```sh
 aws-vault exec <account that assumes shared role> -- bash ./assign-roles.sh
+```
+
+## Adding a user to the admin group
+Ensure the user has a Fynbos Google account. Then get the user to login at https://boundary.fynbos.dev. They will go through the OIDC login flow be logged into Boundary without any priviledges.
+
+You then need to manually add this person to the admin group for the `infra` organisation using the Boundary cli.
+```sh
+# lookup the infra organisation id
+aws-vault exec shared-from-don -- boundary scopes list -recovery-config=config.hcl
+# export the ORG_ID
+
+# look up the admin group
+aws-vault exec shared-from-don -- boundary scopes list -recovery-config=config.hcl
+# lok for the infra-admin group and export the GROUP_ID
+
+# look up the user that was created when they logged in via Google
+aws-vault exec shared-from-don -- boundary users list -scope-id $ORG_ID -recovery-config=config.hcl
+# find the user id from the list. Or get the user id out of the browser local storage and export the USER_ID
+
+# add the user to the admin group
+aws-vault exec shared-from-don -- boundary groups add-members -id $GROUP_ID -member $USER_ID -recovery-config config.hcl
+
+
 ```
