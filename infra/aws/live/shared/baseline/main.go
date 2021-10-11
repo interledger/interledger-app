@@ -34,7 +34,10 @@ func main() {
 		}
 
 		// invoke default encryption on ebs volumes
-		ebsKey, err := secure_baseline.EbsBaseline(ctx, "shared-ebs", accountId)
+		ebsKeyPolicy, err := secure_baseline.DefaultEbsEncryptionKeyPolicy(ctx, accountId)
+		if err != nil { return err }
+
+		ebsKey, err := secure_baseline.EbsBaseline(ctx, "shared-ebs", accountId, ebsKeyPolicy)
 		if err != nil {
 			return err
 		}
