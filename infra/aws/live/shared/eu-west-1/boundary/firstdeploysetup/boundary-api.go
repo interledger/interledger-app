@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/boundary/api/accounts"
 	"github.com/hashicorp/boundary/api/authmethods"
 	"github.com/hashicorp/boundary/api/groups"
-	"github.com/hashicorp/boundary/api/roles"
-	"github.com/hashicorp/boundary/api/scopes"
-	"github.com/hashicorp/boundary/api/users"
-	"github.com/hashicorp/boundary/sdk/wrapper"
 	"github.com/hashicorp/boundary/api/hostcatalogs"
 	"github.com/hashicorp/boundary/api/hosts"
 	"github.com/hashicorp/boundary/api/hostsets"
+	"github.com/hashicorp/boundary/api/roles"
+	"github.com/hashicorp/boundary/api/scopes"
 	"github.com/hashicorp/boundary/api/targets"
+	"github.com/hashicorp/boundary/api/users"
+	"github.com/hashicorp/boundary/sdk/wrapper"
 )
 
 
@@ -83,12 +83,35 @@ func listScopes (client *api.Client, ctx context.Context, name string) ([]*scope
 	return result.Items, nil
 }
 
-func createAuthMethod(client *api.Client, ctx context.Context, orgId string, resourceType string, name string, description string) (*authmethods.AuthMethod ,error) {
+func createOIDCAuthMethod(client *api.Client, ctx context.Context, orgId string, name string, issuerUrl string, apiUrlPrefix string, clientId string, clientSecret string) (*authmethods.AuthMethod ,error) {
 	authClient := authmethods.NewClient(client)
-	result, err := authClient.Create(ctx, "password", orgId, authmethods.WithName(name), authmethods.WithDescription(description))
+	result, err := authClient.Create(
+		ctx,
+		"oidc",
+		orgId,
+		authmethods.WithName(name),
+		authmethods.WithOidcAuthMethodIssuer(issuerUrl),
+		authmethods.WithOidcAuthMethodClientId(clientId),
+		authmethods.WithOidcAuthMethodClientSecret(clientSecret),
+		authmethods.WithOidcAuthMethodApiUrlPrefix(apiUrlPrefix),
+		authmethods.WithOidcAuthMethodSigningAlgorithms([]string{"RS256"}),
+	)
+	if err != nil {return nil, err }
+	authMethod := result.Item
+
+	_, err = authClient.ChangeState(ctx, authMethod.Id, authMethod.Version, "active-public")
 	if err != nil { return nil, err }
 
-	return result.Item, err
+	return authMethod, err
+}
+
+func setPrimaryAuthMethod(client *api.Client, ctx context.Context, org *scopes.Scope, authMethodId string) error {
+	scopesClient := scopes.NewClient(client)
+
+	_, err := scopesClient.Update(ctx, org.Id, org.Version, scopes.WithPrimaryAuthMethodId(authMethodId))
+	if err != nil { return err }
+
+	return nil
 }
 
 func deleteAuthMethod(client *api.Client, ctx context.Context, orgId string) error {
