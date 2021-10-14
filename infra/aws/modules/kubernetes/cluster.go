@@ -4,6 +4,9 @@ import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-eks/sdk/go/eks"
+	policyV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/policy/v1beta1"
+	rbacV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
+	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -83,4 +86,194 @@ func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Clu
 	if err != nil { return nil, err }	
 
 	return cluster, nil
+}
+
+// This sets up a rescticted pod security policy and applies it to service accounts, using cluster role bindings,
+// running in the kube-system namespace as well as the automation group.
+func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
+	_, err := policyV1.NewPodSecurityPolicy(ctx, "resitricted-psp", &policyV1.PodSecurityPolicyArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Name: pulumi.String("restricted"),
+		},
+		Spec: policyV1.PodSecurityPolicySpecArgs{
+			Privileged: pulumi.Bool(false),
+			AllowPrivilegeEscalation: pulumi.Bool(false),
+			DefaultAllowPrivilegeEscalation: pulumi.Bool(false),
+			HostPID: pulumi.Bool(false),
+			HostIPC: pulumi.Bool(false),
+			HostNetwork: pulumi.Bool(false),
+			Volumes: pulumi.StringArray{
+				pulumi.String("configMap"),
+				pulumi.String("emptyDir"),
+				pulumi.String("projected"),
+				pulumi.String("secret"),
+				pulumi.String("downwardAPI"),
+				pulumi.String("persistentVolumeClaim"),
+			},
+			RequiredDropCapabilities: pulumi.StringArray{
+				pulumi.String("ALL"),
+			},
+			RunAsUser: policyV1.RunAsUserStrategyOptionsArgs{
+				Rule: pulumi.String("MustRunAsNonRoot"),
+			},
+			SeLinux: policyV1.SELinuxStrategyOptionsArgs{
+				Rule: pulumi.String("RunAsAny"),
+			},
+			SupplementalGroups: policyV1.SupplementalGroupsStrategyOptionsArgs{
+				Rule: pulumi.String("MustRunAs"),
+				Ranges: policyV1.IDRangeArray{
+					policyV1.IDRangeArgs{
+						Min: pulumi.Int(1),
+						Max: pulumi.Int(65535),
+					},
+				},
+			},
+			FsGroup: policyV1.FSGroupStrategyOptionsArgs{
+				Rule: pulumi.String("MustRunAs"),
+				Ranges: policyV1.IDRangeArray{
+					policyV1.IDRangeArgs{
+						Min: pulumi.Int(1),
+						Max: pulumi.Int(65535),
+					},
+				},
+			},
+		},
+	})
+	if err != nil { return err }
+
+	_, err = rbacV1.NewClusterRole(ctx, "restricted-cluster-role", &rbacV1.ClusterRoleArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Name: pulumi.String("restricted"),
+		},
+		Rules: rbacV1.PolicyRuleArray{
+			rbacV1.PolicyRuleArgs{
+				ApiGroups: pulumi.StringArray{
+					pulumi.String("policy"),
+				},
+				ResourceNames: pulumi.StringArray{
+					pulumi.String("restricted"),
+				},
+				Resources: pulumi.StringArray{
+					pulumi.String("podsecuritypolicies"),
+				},
+				Verbs: pulumi.StringArray{
+					pulumi.String("use"),
+				},
+			},
+		},
+	})
+	if err != nil { return err }
+
+	// Create a ClusterRoleBinding for the ServiceAccounts of Namespace kube-system
+	// to the ClusterRole that uses the restrictive PodSecurityPolicy.
+	_, err = rbacV1.NewClusterRoleBinding(ctx, "allow-restricted-kube-system-crb", &rbacV1.ClusterRoleBindingArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Name: pulumi.String("allow-restricted-kube-system"),
+		},
+		RoleRef: rbacV1.RoleRefArgs{
+			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
+			Kind: pulumi.String("ClusterRole"),
+			Name: pulumi.String("restricted"),
+		},
+		Subjects: rbacV1.SubjectArray{
+			rbacV1.SubjectArgs{
+				Kind: pulumi.String("Group"),
+				Name: pulumi.String("system:serviceaccounts"),
+				Namespace: pulumi.String("kube-system"),
+			},
+		},
+	})
+
+	// Create a ClusterRoleBinding for the RBAC group automation
+	// to the ClusterRole that uses the restrictive PodSecurityPolicy.
+	_, err = rbacV1.NewClusterRoleBinding(ctx, "allow-restricted-apps-crb", &rbacV1.ClusterRoleBindingArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Name: pulumi.String("allow-restricted-apps"),
+		},
+		RoleRef: rbacV1.RoleRefArgs{
+			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
+			Kind: pulumi.String("ClusterRole"),
+			Name: pulumi.String("restricted"),
+		},
+		Subjects: rbacV1.SubjectArray{
+			rbacV1.SubjectArgs{
+				Kind: pulumi.String("Group"),
+				Name: pulumi.String("automation"),
+			},
+		},
+	})
+	return nil
+}
+
+func ConfigureAutomationRole(ctx *pulumi.Context) error {
+	_, err := rbacV1.NewRole(ctx, "k8s-automation-role", &rbacV1.RoleArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Namespace: pulumi.String("apps"),
+			Name: pulumi.String("automation-role"),
+		},
+		Rules: rbacV1.PolicyRuleArray{
+			rbacV1.PolicyRuleArgs{
+				ApiGroups: pulumi.StringArray{
+					pulumi.String(""),
+				},
+				Resources: pulumi.StringArray{
+					pulumi.String("pods"),
+					pulumi.String("secrets"),
+					pulumi.String("services"),
+					pulumi.String("persistentvolumeclaims"),
+				},
+				Verbs: pulumi.StringArray{
+					pulumi.String("get"),
+					pulumi.String("list"),
+					pulumi.String("watch"),
+					pulumi.String("create"),
+					pulumi.String("update"),
+					pulumi.String("delete"),
+				},
+			},
+			rbacV1.PolicyRuleArgs{
+				ApiGroups: pulumi.StringArray{
+					pulumi.String("extensions"),
+					pulumi.String("apps"),
+				},
+				Resources: pulumi.StringArray{
+					pulumi.String("replicasets"),
+					pulumi.String("deployments"),
+				},
+				Verbs: pulumi.StringArray{
+					pulumi.String("get"),
+					pulumi.String("list"),
+					pulumi.String("watch"),
+					pulumi.String("create"),
+					pulumi.String("update"),
+					pulumi.String("delete"),
+				},
+			},
+		},
+	})
+	if err != nil { return err }
+
+	return nil
+}
+
+func ApplyAutomationRoleBindingToNamespace(ctx *pulumi.Context, namespace string) error {
+	_, err := rbacV1.NewRoleBinding(ctx, "k8s-automation-role-binding", &rbacV1.RoleBindingArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Namespace: pulumi.String(namespace),
+		},
+		RoleRef: rbacV1.RoleRefArgs{
+			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
+			Kind: pulumi.String("Role"),
+			Name: pulumi.String("automation-role"),
+		},
+		Subjects: rbacV1.SubjectArray{
+			rbacV1.SubjectArgs{
+				Kind: pulumi.String("Group"),
+				Name: pulumi.String("automation"),
+			},
+		},
+	})
+	if err != nil { return err }
+
+	return nil
 }
