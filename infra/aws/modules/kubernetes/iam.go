@@ -1,8 +1,13 @@
 package kubernetes
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
+	appsV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
+	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
+	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
@@ -132,9 +137,9 @@ func NewEksNodeGroupRoleTrustPolicy(ctx *pulumi.Context) string {
 }
 
 type EksIamRoles struct {
-	Admin *iam.Role
-	Automation *iam.Role
-	NodeGroup *iam.Role
+	Admin 		*iam.Role
+	Automation  *iam.Role
+	NodeGroup   *iam.Role
 }
 func NewEksRoles(ctx *pulumi.Context, accountId string) (EksIamRoles, error) {
 	var ret EksIamRoles
@@ -180,4 +185,410 @@ func NewEksRoles(ctx *pulumi.Context, accountId string) (EksIamRoles, error) {
 	ret.Automation = automationRole
 	ret.NodeGroup = nodeGroupRole
 	return ret, nil
+}
+
+// This follows the EKS best practices of enabling IRSA for aws-node by:
+// 1. Updating the aws-node cni service account to use an AWS IAM role that has the aws managed EKS_CNI policy.
+// 2. Enable IRSA on the aws-node daemon-set.
+//
+// Note that the aws-node service account and aws-node daemon-set first have to be imported using the pulumi cli as it is created by EKS.
+// See readme on how to do this. Note that these resources must therefore remain protected.
+func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
+	trustPolicy, err := NewAwsNodeDaemonSetTrustPolicy(ctx, oidcId)
+	if err != nil { return err }
+	role, err := iam.NewRole(ctx, "eks-cluster-aws-node-role", &iam.RoleArgs{
+		Name: pulumi.String("eksAwsNodeRole"),
+		Description: pulumi.String("Role for aws-node daemon set"),
+		AssumeRolePolicy: pulumi.String(trustPolicy),
+		ManagedPolicyArns: pulumi.StringArray{
+			pulumi.String("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"),
+		},
+	})
+	if err != nil { return err }
+
+	// This resource s deployed by EKS and has to be imported using the pulumi cli. See readme on how to do this. 
+	// It is critical that this resource remain protected as it wasn't deployed by pulumi.
+	_, err = coreV1.NewServiceAccount(ctx, "aws-node-sa", &coreV1.ServiceAccountArgs{
+		ApiVersion: pulumi.String("v1"),
+		Kind: pulumi.String("ServiceAccount"),
+		Metadata: metaV1.ObjectMetaArgs{
+			Annotations: pulumi.StringMap{
+				"eks.amazonaws.com/role-arn": role.Arn,
+			},
+			Name: pulumi.String("aws-node"),
+			Namespace: pulumi.String("kube-system"),
+		},
+	}, pulumi.Protect(true)) // NB: leave protected. see above comment.
+	if err != nil { return err }
+
+	// This resource s deployed by EKS and has to be imported using the pulumi cli. See readme on how to do this.
+	// It is critical that this resource remain protected as it wasn't deployed by pulumi.
+	_, err = appsV1.NewDaemonSet(ctx, "aws-node-ds", &appsV1.DaemonSetArgs{
+		ApiVersion: pulumi.String("apps/v1"),
+		Kind:       pulumi.String("DaemonSet"),
+		Metadata: &metaV1.ObjectMetaArgs{
+			Annotations: pulumi.StringMap{
+				"irsa": pulumi.String("enabled"),
+			},
+			Labels: pulumi.StringMap{
+				"k8s-app": pulumi.String("aws-node"),
+			},
+			Name:            pulumi.String("aws-node"),
+			Namespace:       pulumi.String("kube-system"),
+		},
+		Spec: &appsV1.DaemonSetSpecArgs{
+			Selector: &metaV1.LabelSelectorArgs{
+				MatchLabels: pulumi.StringMap{
+					"k8s-app": pulumi.String("aws-node"),
+				},
+			},
+			Template: &coreV1.PodTemplateSpecArgs{
+				Metadata: &metaV1.ObjectMetaArgs{
+					CreationTimestamp: nil,
+					Labels: pulumi.StringMap{
+						"k8s-app": pulumi.String("aws-node"),
+					},
+				},
+				Spec: &coreV1.PodSpecArgs{
+					Affinity: &coreV1.AffinityArgs{
+						NodeAffinity: &coreV1.NodeAffinityArgs{
+							RequiredDuringSchedulingIgnoredDuringExecution: &coreV1.NodeSelectorArgs{
+								NodeSelectorTerms: coreV1.NodeSelectorTermArray{
+									&coreV1.NodeSelectorTermArgs{
+										MatchExpressions: coreV1.NodeSelectorRequirementArray{
+											&coreV1.NodeSelectorRequirementArgs{
+												Key:      pulumi.String("beta.kubernetes.io/os"),
+												Operator: pulumi.String("In"),
+												Values: pulumi.StringArray{
+													pulumi.String("linux"),
+												},
+											},
+											&coreV1.NodeSelectorRequirementArgs{
+												Key:      pulumi.String("beta.kubernetes.io/arch"),
+												Operator: pulumi.String("In"),
+												Values: pulumi.StringArray{
+													pulumi.String("amd64"),
+													pulumi.String("arm64"),
+												},
+											},
+											&coreV1.NodeSelectorRequirementArgs{
+												Key:      pulumi.String("eks.amazonaws.com/compute-type"),
+												Operator: pulumi.String("NotIn"),
+												Values: pulumi.StringArray{
+													pulumi.String("fargate"),
+												},
+											},
+										},
+									},
+									&coreV1.NodeSelectorTermArgs{
+										MatchExpressions: coreV1.NodeSelectorRequirementArray{
+											&coreV1.NodeSelectorRequirementArgs{
+												Key:      pulumi.String("kubernetes.io/os"),
+												Operator: pulumi.String("In"),
+												Values: pulumi.StringArray{
+													pulumi.String("linux"),
+												},
+											},
+											&coreV1.NodeSelectorRequirementArgs{
+												Key:      pulumi.String("kubernetes.io/arch"),
+												Operator: pulumi.String("In"),
+												Values: pulumi.StringArray{
+													pulumi.String("amd64"),
+													pulumi.String("arm64"),
+												},
+											},
+											&coreV1.NodeSelectorRequirementArgs{
+												Key:      pulumi.String("eks.amazonaws.com/compute-type"),
+												Operator: pulumi.String("NotIn"),
+												Values: pulumi.StringArray{
+													pulumi.String("fargate"),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Containers: coreV1.ContainerArray{
+						&coreV1.ContainerArgs{
+							Env: coreV1.EnvVarArray{								
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_CNI_NODE_PORT_SUPPORT"),
+									Value: pulumi.String("true"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_ENI_MTU"),
+									Value: pulumi.String("9001"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_CONFIGURE_RPFILTER"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_EXTERNALSNAT"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_LOGLEVEL"),
+									Value: pulumi.String("DEBUG"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_LOG_FILE"),
+									Value: pulumi.String("/host/var/log/aws-routed-eni/ipamd.log"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_RANDOMIZESNAT"),
+									Value: pulumi.String("prng"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_CNI_VETHPREFIX"),
+									Value: pulumi.String("eni"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_PLUGIN_LOG_FILE"),
+									Value: pulumi.String("/var/log/aws-routed-eni/plugin.log"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("AWS_VPC_K8S_PLUGIN_LOG_LEVEL"),
+									Value: pulumi.String("DEBUG"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("DISABLE_INTROSPECTION"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("DISABLE_METRICS"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("DISABLE_NETWORK_RESOURCE_PROVISIONING"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("ENABLE_POD_ENI"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("ENABLE_PREFIX_DELEGATION"),
+									Value: pulumi.String("false"),
+								},
+								&coreV1.EnvVarArgs{
+									Name: pulumi.String("MY_NODE_NAME"),
+									ValueFrom: &coreV1.EnvVarSourceArgs{
+										FieldRef: &coreV1.ObjectFieldSelectorArgs{
+											FieldPath:  pulumi.String("spec.nodeName"),
+										},
+									},
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("WARM_ENI_TARGET"),
+									Value: pulumi.String("1"),
+								},
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("WARM_PREFIX_TARGET"),
+									Value: pulumi.String("1"),
+								},
+							},
+							Image:           pulumi.String("602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.9.3"),
+							ImagePullPolicy: pulumi.String("Always"),
+							LivenessProbe: &coreV1.ProbeArgs{
+								Exec: &coreV1.ExecActionArgs{
+									Command: pulumi.StringArray{
+										pulumi.String("/app/grpc-health-probe"),
+										pulumi.String("-addr=:50051"),
+										pulumi.String("-connect-timeout=2s"),
+										pulumi.String("-rpc-timeout=2s"),
+									},
+								},
+								InitialDelaySeconds: pulumi.Int(60),
+							},
+							Name: pulumi.String("aws-node"),
+							Ports: coreV1.ContainerPortArray{
+								&coreV1.ContainerPortArgs{
+									ContainerPort: pulumi.Int(61678),
+									Name:          pulumi.String("metrics"),
+								},
+							},
+							ReadinessProbe: &coreV1.ProbeArgs{
+								Exec: &coreV1.ExecActionArgs{
+									Command: pulumi.StringArray{
+										pulumi.String("/app/grpc-health-probe"),
+										pulumi.String("-addr=:50051"),
+										pulumi.String("-connect-timeout=2s"),
+										pulumi.String("-rpc-timeout=2s"),
+									},
+								},
+								InitialDelaySeconds: pulumi.Int(1),
+							},
+							Resources: &coreV1.ResourceRequirementsArgs{
+								Requests: pulumi.StringMap{
+									"cpu": pulumi.String("10m"),
+								},
+							},
+							SecurityContext: &coreV1.SecurityContextArgs{
+								Capabilities: &coreV1.CapabilitiesArgs{
+									Add: pulumi.StringArray{
+										pulumi.String("NET_ADMIN"),
+									},
+								},
+							},
+							VolumeMounts: coreV1.VolumeMountArray{
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/host/opt/cni/bin"),
+									Name:      pulumi.String("cni-bin-dir"),
+								},
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/host/etc/cni/net.d"),
+									Name:      pulumi.String("cni-net-dir"),
+								},
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/host/var/log/aws-routed-eni"),
+									Name:      pulumi.String("log-dir"),
+								},
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/var/run/aws-node"),
+									Name:      pulumi.String("run-dir"),
+								},
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/var/run/dockershim.sock"),
+									Name:      pulumi.String("dockershim"),
+								},
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/run/xtables.lock"),
+									Name:      pulumi.String("xtables-lock"),
+								},
+							},
+						},
+					},
+					HostNetwork: pulumi.Bool(true),
+					InitContainers: coreV1.ContainerArray{
+						&coreV1.ContainerArgs{
+							Env: coreV1.EnvVarArray{
+								&coreV1.EnvVarArgs{
+									Name:  pulumi.String("DISABLE_TCP_EARLY_DEMUX"),
+									Value: pulumi.String("false"),
+								},
+							},
+							Image:           pulumi.String("602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.9.3"),
+							ImagePullPolicy: pulumi.String("Always"),
+							Name:            pulumi.String("aws-vpc-cni-init"),
+							Resources:       nil,
+							SecurityContext: &coreV1.SecurityContextArgs{
+								Privileged: pulumi.Bool(true),
+							},
+							VolumeMounts: coreV1.VolumeMountArray{
+								&coreV1.VolumeMountArgs{
+									MountPath: pulumi.String("/host/opt/cni/bin"),
+									Name:      pulumi.String("cni-bin-dir"),
+								},
+							},
+						},
+					},
+					PriorityClassName:             pulumi.String("system-node-critical"),
+					SecurityContext:               nil,
+					ServiceAccountName:            pulumi.String("aws-node"),
+					TerminationGracePeriodSeconds: pulumi.Int(10),
+					Tolerations: coreV1.TolerationArray{
+						&coreV1.TolerationArgs{
+							Operator: pulumi.String("Exists"),
+						},
+					},
+					Volumes: coreV1.VolumeArray{
+						&coreV1.VolumeArgs{
+							HostPath: &coreV1.HostPathVolumeSourceArgs{
+								Path: pulumi.String("/opt/cni/bin"),
+							},
+							Name: pulumi.String("cni-bin-dir"),
+						},
+						&coreV1.VolumeArgs{
+							HostPath: &coreV1.HostPathVolumeSourceArgs{
+								Path: pulumi.String("/etc/cni/net.d"),
+							},
+							Name: pulumi.String("cni-net-dir"),
+						},
+						&coreV1.VolumeArgs{
+							HostPath: &coreV1.HostPathVolumeSourceArgs{
+								Path: pulumi.String("/var/run/dockershim.sock"),
+							},
+							Name: pulumi.String("dockershim"),
+						},
+						&coreV1.VolumeArgs{
+							HostPath: &coreV1.HostPathVolumeSourceArgs{
+								Path: pulumi.String("/run/xtables.lock"),
+							},
+							Name: pulumi.String("xtables-lock"),
+						},
+						&coreV1.VolumeArgs{
+							HostPath: &coreV1.HostPathVolumeSourceArgs{
+								Path: pulumi.String("/var/log/aws-routed-eni"),
+								Type: pulumi.String("DirectoryOrCreate"),
+							},
+							Name: pulumi.String("log-dir"),
+						},
+						&coreV1.VolumeArgs{
+							HostPath: &coreV1.HostPathVolumeSourceArgs{
+								Path: pulumi.String("/var/run/aws-node"),
+								Type: pulumi.String("DirectoryOrCreate"),
+							},
+							Name: pulumi.String("run-dir"),
+						},
+					},
+				},
+			},
+			UpdateStrategy: &appsV1.DaemonSetUpdateStrategyArgs{
+				RollingUpdate: &appsV1.RollingUpdateDaemonSetArgs{
+					MaxUnavailable: pulumi.String(fmt.Sprintf("%v%v", "10", "%")),
+				},
+				Type: pulumi.String("RollingUpdate"),
+			},
+		},
+	}, pulumi.Import(pulumi.ID("kube-system/aws-node")), pulumi.Protect(true))
+	if err != nil { return err }
+
+	return nil
+}
+
+func NewAwsNodeDaemonSetTrustPolicy(ctx *pulumi.Context, oidcId string) (string, error) {
+	splits := strings.Split(oidcId, "oidc-provider/")
+	if len(splits) != 2 {
+		return "", errors.New("Could not parse OIDC url.")
+	}
+
+	oidcUrl := splits[1]
+	policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Effect: utils.StringPtr("Allow"),
+				Actions: []string{
+					"sts:AssumeRoleWithWebIdentity",
+				},
+				Principals: []iam.GetPolicyDocumentStatementPrincipal{
+					{
+						Type: "Federated",
+						Identifiers: []string{oidcId},
+					},
+				},
+				Conditions: []iam.GetPolicyDocumentStatementCondition{
+					{
+						Test: "StringEquals",
+						Values: []string{"sts.amazonaws.com"},
+						Variable: oidcUrl + ":aud",
+					},
+					{
+						Test: "StringEquals",
+						Values: []string{"system:serviceaccount:kube-system:aws-node"},
+						Variable: oidcUrl + ":sub",
+					},
+				},
+			},
+		},
+	})
+	if err != nil { return "", err }
+
+	return policy.Json, nil
 }
