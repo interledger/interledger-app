@@ -7,6 +7,7 @@ import (
 	policyV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/policy/v1beta1"
 	rbacV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
 	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
+	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -274,6 +275,25 @@ func ApplyAutomationRoleBindingToNamespace(ctx *pulumi.Context, namespace string
 		},
 	})
 	if err != nil { return err }
+
+	return nil
+}
+
+func DeployLoggingAndMonitoring(ctx *pulumi.Context, clusterName string, region string) error {
+	_, err := coreV1.NewNamespace(ctx, "logging-namespace", &coreV1.NamespaceArgs{
+		Metadata: metaV1.ObjectMetaArgs{
+			Name: pulumi.String("logging"),
+		},
+	})
+	if err != nil { return err }
+
+	// logging to cloudwatch
+	err = DeployFluentbit(ctx, clusterName, region, "logging")
+	if err != nil { return nil }
+
+	// cluster metrics to cloudwatch
+	err = DeployCloudwatchAgent(ctx, clusterName, region, "logging")
+	if err != nil { return nil }
 
 	return nil
 }
