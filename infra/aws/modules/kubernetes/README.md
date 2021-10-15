@@ -45,3 +45,24 @@ We use fluentbit as a log aggregator to send logs to cloudwatch. Fluentbit is mo
 recommended by AWS.
 
 We also use cloudwatch agent to send cluster metrics to cloudwatch.
+
+### Networking
+The k8s network model is as follows
+- Every pod gets its own IP address.
+- Containers in a pod share the pod IP address and can communicate freely with eachother.
+- Pods can communicate with all other pods in the cluster using IP addresses.
+- Network policies are used to restrict traffic
+
+The above essentially creates a flat network which is dangerous as an attacker just needs to be able to
+breach the cluster network. As such we adopt the *Zero Trust Networking* approach where we assume the
+network is always hostile. We apply a global deny all network policy and then explicitly open up communication
+between our services. We codify these network policies and manage them using Calico (recommended by AWS for EKS).
+
+Technically, Calico works at the host network level by setting up a network that uses BGP to route packets between hosts.
+This offers performance gains over overlay networks.
+
+Our default network policies are to globally deny all ingress and egress but allow CoreDns queries.
+
+**Encyrption in Transit**
+TODO: Decide on a service mesh to encrypt traffic between services. Istio is an option as it integrates with Calico
+which would allow us to manage host and service mesh network policies in one place.

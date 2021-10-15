@@ -206,10 +206,10 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 	return nil
 }
 
-func ConfigureAutomationRole(ctx *pulumi.Context) error {
+func ConfigureAutomationRole(ctx *pulumi.Context, namespace string) error {
 	_, err := rbacV1.NewRole(ctx, "k8s-automation-role", &rbacV1.RoleArgs{
 		Metadata: metaV1.ObjectMetaArgs{
-			Namespace: pulumi.String("apps"),
+			Namespace: pulumi.String(namespace),
 			Name: pulumi.String("automation-role"),
 		},
 		Rules: rbacV1.PolicyRuleArray{
