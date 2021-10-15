@@ -1,0 +1,14 @@
+{
+  "logs": {
+    "metrics_collected": {
+      "kubernetes": {
+        "cluster_name": "{{ .CLUSTER_NAME }}",
+        "metrics_collection_interval": 60
+      }
+    },
+    "force_flush_interval": 5
+  },
+  "agent": {
+    "region": "{{ .REGION }}"
+  }
+}

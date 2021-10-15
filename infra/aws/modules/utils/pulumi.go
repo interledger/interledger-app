@@ -33,6 +33,17 @@ func ParseTemplate (data interface{}, filePath string) string {
 	return b64.StdEncoding.EncodeToString(document.Bytes())
 }
 
+func ParseTemplateAsBytes (data interface{}, filePath string) (*bytes.Buffer, error) {
+	tmp, err := template.ParseFiles(filePath)
+	if err != nil { return nil, err	}
+	
+	document := &bytes.Buffer{}
+	err = tmp.Execute(document, data)
+	if err != nil {	return nil, err }
+
+	return document, nil
+}
+
 
 func ValueFromStringArrayOutput(output pulumi.AnyOutput, index int) pulumi.StringOutput {
 	return output.ApplyT(func(arg interface{}) string {
@@ -50,4 +61,8 @@ func AnyOutputToStringArrayOutput(output pulumi.AnyOutput) pulumi.StringArrayOut
 		}
 		return outputs
 	}).(pulumi.StringArrayOutput)
+}
+
+func StringPtr(input string) *string {
+	return &input
 }
