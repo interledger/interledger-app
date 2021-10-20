@@ -115,91 +115,12 @@ module.exports = {
               }
             }
           ]
-        },
-        dark: {
-          css: [
-            {
-              h1: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium'),
-                color: theme('colors.gray.50')
-              },
-              h2: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium'),
-                color: theme('colors.gray.50')
-              },
-              h3: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium'),
-                color: theme('colors.gray.50')
-              },
-              h4: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium'),
-                color: theme('colors.gray.50')
-              },
-              color: theme('colors.gray.50'),
-              '[class~="lead"]': {
-                color: theme('colors.gray.300')
-              },
-              a: {
-                color: theme('colors.secondary')
-              },
-              strong: {
-                color: theme('colors.white')
-              },
-              'ol > li::before': {
-                color: theme('colors.gray.400')
-              },
-              'ul > li::before': {
-                backgroundColor: theme('colors.gray.600')
-              },
-              hr: {
-                borderColor: theme('colors.gray.200')
-              },
-              blockquote: {
-                fontWeight: 400,
-                color: theme('colors.gray.200'),
-                borderLeftColor: theme('colors.gray.600')
-              },
-              'blockquote p:first-of-type::before': {
-                content: ''
-              },
-              'blockquote p:first-of-type::after': {
-                content: ''
-              },
-              'figure figcaption': {
-                color: theme('colors.gray.50')
-              },
-              code: {
-                color: theme('colors.gray.50'),
-                fontWeight: '500'
-              },
-              'a code': {
-                color: theme('colors.secondary')
-              },
-              pre: {
-                color: theme('colors.gray.50'),
-                backgroundColor: theme('colors.gray.800'),
-                borderRadius: 0
-              },
-              thead: {
-                color: theme('colors.white'),
-                borderBottomColor: theme('colors.gray.400')
-              },
-              'tbody tr': {
-                borderBottomColor: theme('colors.gray.600')
-              }
-            }
-          ]
         }
       })
     }
   },
   variants: {
     extend: {
-      typography: ['dark'],
       textColor: ['selection'],
       backgroundColor: ['selection']
     }

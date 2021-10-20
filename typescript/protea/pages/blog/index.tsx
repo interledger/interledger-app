@@ -34,7 +34,7 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
               key={post.slug}
             >
               <ListItem>
-                <span className='text-lg text-gray-700 dark:text-gray-100'>
+                <span className='text-lg text-gray-700'>
                   {DateTime.fromISO(post.date).toFormat('dd LLLL yyyy')}
                   {' | '}
                   {post.authors.map((author, index, array) => {
@@ -44,7 +44,7 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
                 <span className='text-4xl font-display font-medium my-2'>
                   {post.title}
                 </span>
-                <span className='text-2xl text-gray-700 dark:text-gray-100'>
+                <span className='text-2xl text-gray-700'>
                   {post.description}
                 </span>
               </ListItem>
@@ -73,7 +73,7 @@ const List: FC = ({ children }) => {
 
 const ListItem: FC = ({ children }) => {
   return (
-    <li className='flex flex-col justify-start p-4 sm:p-8 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'>
+    <li className='flex flex-col justify-start p-4 sm:p-8 hover:bg-gray-50 cursor-pointer'>
       {children}
     </li>
   )
