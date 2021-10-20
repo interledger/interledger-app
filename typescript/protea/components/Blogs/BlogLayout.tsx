@@ -23,7 +23,7 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
         </div>
         <div className='flex flex-col sm:flex-row justify-start'>
           <div className='sm:mr-20 sm:w-60'>
-            <div className='sticky top-[112px] border-t-2 border-b-2 sm:border-b-0 border-black dark:border-white'>
+            <div className='sticky top-[112px] border-t-2 border-b-2 sm:border-b-0 border-black'>
               <div className='mt-6 mb-12'>
                 {DateTime.fromISO(meta.date).toFormat('dd LLLL yyyy')}
               </div>
@@ -36,14 +36,14 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
                 />
               ))}
               <Router href={Routes.blog}>
-                <span className='text-primary dark:text-secondary hidden sm:flex items-center mt-12'>
+                <span className='text-primary hidden sm:flex items-center mt-12'>
                   <span className='material-icons-sharp mr-2'>arrow_back</span>{' '}
                   Back to blogs
                 </span>
               </Router>
             </div>
           </div>
-          <article className='prose dark:prose-dark max-w-full sm:max-w-sm md:max-w-md lg:max-w-prose mt-12 sm:mt-6'>
+          <article className='prose max-w-full sm:max-w-sm md:max-w-md lg:max-w-prose mt-12 sm:mt-6'>
             {children}
           </article>
         </div>
@@ -66,9 +66,7 @@ const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
           }}
           aria-label='Author twitter'
         >
-          <span className='text-primary dark:text-secondary'>
-            @{twitterHandle}
-          </span>
+          <span className='text-primary'>@{twitterHandle}</span>
         </Router>
       </div>
     </div>

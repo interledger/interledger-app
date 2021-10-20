@@ -82,7 +82,5 @@ the body of the post (in both the list and post views):
 - The meta object type can be found in `lib/blog/types`.
 - There must be a blank line after the meta object. We use a regex to extract
   the meta object from the file for the list view.
-- The blog renders in both dark and light mode, make sure images/diagrams are
-  visible in both.
 - The top level header in your post should be a markdown level 2 header
   (`## Header`).
