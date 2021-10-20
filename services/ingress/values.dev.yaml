@@ -1,0 +1,104 @@
+emissary-ingress:
+  nameOverride: ''
+  fullnameOverride: ''
+  namespaceOverride: ''
+
+  replicaCount: 1
+
+  namespace:
+    # Explicitly set the AMBASSADOR_NAMESPACE environment variable
+    name:
+
+  security:
+    podSecurityContext:
+      runAsUser: 8888
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+    podSecurityPolicy: {}
+
+  image:
+    repository: docker.io/datawire/emissary
+    tag: 2.0.4-rc.2
+    pullPolicy: IfNotPresent
+
+  # Dns policy, when hostNetwork set to ClusterFirstWithHostNet
+  dnsPolicy: ClusterFirst
+  hostNetwork: false
+
+  service:
+    type: NodePort
+
+    ports:
+      - name: http
+        port: 8080
+        hostPort: 8080
+        targetPort: 8080
+          # protocol: TCP
+          # nodePort: 30080
+        # hostPort: 80
+      - name: https
+        port: 8443
+        hostPort: 8443
+        targetPort: 8443
+          # protocol: TCP
+          # nodePort: 30443
+          # hostPort: 443
+          # TCPMapping_Port
+          # port: 2222
+          # targetPort: 2222
+          # protocol: TCP
+        # nodePort: 30222
+
+  rbac:
+    create: true
+    podSecurityPolicies: []
+    nameOverride:
+
+  scope:
+    singleNamespace: false
+
+  serviceAccount:
+    create: true
+    name:
+
+  deploymentStrategy:
+    type: RollingUpdate
+
+  progressDeadlines:
+    ambassador: 600
+    agent: 600
+
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 3
+    failureThreshold: 3
+
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 3
+    failureThreshold: 3
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 600Mi
+    requests:
+      cpu: 200m
+      memory: 300Mi
+
+  crds:
+    enabled: true
+    create: true
+    keep: true
+
+  agent:
+    enabled: false
+
+
+  deploymentTool: ''
+  createNamespace: false
+
+  # Whether Emissary should be created with default listeners:
+  # - HTTP on port 8080
+  # - HTTPS on port 8443
+  createDefaultListeners: false
