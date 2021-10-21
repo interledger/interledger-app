@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
-import Link from 'next/link'
 import { getAllPosts, BlogMeta } from 'lib/blog'
-import { Container, Footer, Header } from '../../components'
+import { Container, Footer, Header, Router, Routes } from '../../components'
 import { FC } from 'react'
 import { DateTime } from 'luxon'
 
@@ -27,33 +26,29 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
         </div>
         <List>
           {posts.map((post) => (
-            <Link
+            <Router
               href={{
-                pathname: '/blog/[slug]',
+                pathname: Routes.blogPost,
                 query: { slug: post.slug }
               }}
               key={post.slug}
             >
-              <a>
-                <ListItem>
-                  <span className='text-lg text-gray-700 dark:text-gray-100'>
-                    {DateTime.fromISO(post.date).toFormat('dd LLLL yyyy')}
-                    {' | '}
-                    {post.authors.map((author, index, array) => {
-                      return (
-                        author.name + (index == array.length - 1 ? '' : ', ')
-                      )
-                    })}
-                  </span>
-                  <span className='text-4xl font-display font-medium my-2'>
-                    {post.title}
-                  </span>
-                  <span className='text-2xl text-gray-700 dark:text-gray-100'>
-                    {post.description}
-                  </span>
-                </ListItem>
-              </a>
-            </Link>
+              <ListItem>
+                <span className='text-lg text-gray-700 dark:text-gray-100'>
+                  {DateTime.fromISO(post.date).toFormat('dd LLLL yyyy')}
+                  {' | '}
+                  {post.authors.map((author, index, array) => {
+                    return author.name + (index == array.length - 1 ? '' : ', ')
+                  })}
+                </span>
+                <span className='text-4xl font-display font-medium my-2'>
+                  {post.title}
+                </span>
+                <span className='text-2xl text-gray-700 dark:text-gray-100'>
+                  {post.description}
+                </span>
+              </ListItem>
+            </Router>
           ))}
         </List>
       </main>

@@ -1,9 +1,8 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { FC } from 'react'
 import Head from 'next/head'
 import { Header } from '../Header'
-import { Container, Footer } from 'components'
+import { Container, Footer, Router, Routes } from 'components'
 import type { Author, BlogMeta } from 'lib/blog'
 import { DateTime } from 'luxon'
 
@@ -36,12 +35,12 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
                   twitterHandle={author.twitterHandle}
                 />
               ))}
-              <Link href='/blog'>
-                <a className='text-primary dark:text-secondary hidden sm:flex items-center mt-12'>
+              <Router href={Routes.blog}>
+                <span className='text-primary dark:text-secondary hidden sm:flex items-center mt-12'>
                   <span className='material-icons-sharp mr-2'>arrow_back</span>{' '}
                   Back to blogs
-                </a>
-              </Link>
+                </span>
+              </Router>
             </div>
           </div>
           <article className='prose dark:prose-dark max-w-full sm:max-w-sm md:max-w-md lg:max-w-prose mt-12 sm:mt-6'>
@@ -60,9 +59,17 @@ const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
       <Image alt='Author profile image.' src={avatar} width='48' height='48' />
       <div className='flex flex-col flex-grow ml-3'>
         <div className='font-medium'>{name}</div>
-        <Link href={`https://twitter.com/${twitterHandle}`}>
-          <a className='text-primary dark:text-secondary'>@{twitterHandle}</a>
-        </Link>
+        <Router
+          href={{
+            pathname: Routes.twitter,
+            query: { handle: twitterHandle }
+          }}
+          aria-label='Author twitter'
+        >
+          <span className='text-primary dark:text-secondary'>
+            @{twitterHandle}
+          </span>
+        </Router>
       </div>
     </div>
   )
