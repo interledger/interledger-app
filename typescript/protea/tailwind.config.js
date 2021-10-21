@@ -19,8 +19,7 @@ module.exports = {
     fontFamily: {
       display: ['Poppins'],
       sans: ['Inter'],
-      mono: ['"Overpass Mono"', '"Source Code Pro"'],
-      icon: ['"Material Icons Sharp"']
+      mono: ['"Overpass Mono"', '"Source Code Pro"']
     },
     colors: {
       transparent: 'transparent',
