@@ -10,6 +10,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@headlessui/react": "^1.4.1",
     "@mapbox/rehype-prism": "^0.7.0",
     "@mdx-js/loader": "^1.5.1",
     "@next/mdx": "^9.1.1",
