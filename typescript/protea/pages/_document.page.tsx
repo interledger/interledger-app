@@ -23,10 +23,6 @@ class MyDocument extends Document {
             href='https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Overpass+Mono&family=Inter:wght@400;500&family=Poppins:wght@400;500&display=swap'
             rel='stylesheet'
           />
-          <link
-            href='https://fonts.googleapis.com/icon?family=Material+Icons+Sharp'
-            rel='stylesheet'
-          />
         </Head>
         <body className='antialiased font-body bg-white text-black selection:bg-primary/50'>
           <Main />

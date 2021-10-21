@@ -1,0 +1,122 @@
+import { FC } from 'react'
+
+type IconProps = {
+  className?: string
+}
+
+const IconBase: FC<IconProps> = ({ className, children }) => {
+  className = [className, 'h-6 fill-current'].filter(Boolean).join(' ')
+  return (
+    <svg
+      className={className}
+      viewBox='0 0 24 24'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      {children}
+    </svg>
+  )
+}
+
+export type Icon = typeof IconBase
+
+export const AccountIcon = () => (
+  <IconBase>
+    <path d='M3 21H21V3H3V21ZM15 9C15 10.66 13.66 12 12 12C10.34 12 9 10.66 9 9C9 7.34 10.34 6 12 6C13.66 6 15 7.34 15 9ZM6 17C6 15 10 13.9 12 13.9C14 13.9 18 15 18 17V18H6V17Z' />
+  </IconBase>
+)
+
+export const AddIcon = () => (
+  <IconBase>
+    <path d='M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z' />
+  </IconBase>
+)
+
+export const BackIcon = () => (
+  <IconBase>
+    <path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z"/>
+  </IconBase>
+)
+
+export const CheckIcon = () => (
+  <IconBase>
+    <path d='M8.99997 16.1698L4.82997 11.9998L3.40997 13.4098L8.99997 18.9998L21 6.99984L19.59 5.58984L8.99997 16.1698Z' />
+  </IconBase>
+)
+
+export const CheckboxIcon = () => (
+  <IconBase>
+    <path d='M19 5V19H5V5H19ZM21 3H3V21H21V3Z' />
+  </IconBase>
+)
+
+export const CheckboxActiveIcon = () => (
+  <IconBase>
+    <path d='M21 3H3V21H21V3ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z' />
+  </IconBase>
+)
+
+export const CheckboxIndeterminateIcon = () => (
+  <IconBase>
+    <path d='M21 3H3V21H21V3ZM17 13H7V11H17V13Z' />
+  </IconBase>
+)
+
+export const DashboardIcon = () => (
+  <IconBase>
+    <path d='M19 5V7H15V5H19ZM9 5V11H5V5H9ZM19 13V19H15V13H19ZM9 17V19H5V17H9ZM21 3H13V9H21V3ZM11 3H3V13H11V3ZM21 11H13V21H21V11ZM11 15H3V21H11V15Z' />
+  </IconBase>
+)
+
+export const GatewayIcon = () => (
+  <IconBase>
+    <path d='M7.77001 6.75998L6.23001 5.47998L0.820007 12L6.23001 18.52L7.77001 17.24L3.42001 12L7.77001 6.75998ZM7.00001 13H9.00001V11H7.00001V13ZM17 11H15V13H17V11ZM11 13H13V11H11V13ZM17.77 5.47998L16.23 6.75998L20.58 12L16.23 17.24L17.77 18.52L23.18 12L17.77 5.47998Z' />
+  </IconBase>
+)
+
+export const IntegrationIcon = () => (
+  <IconBase>
+    <path d='M20 14C21.1046 14 22 13.1046 22 12C22 10.8954 21.1046 10 20 10C18.8954 10 18 10.8954 18 12C18 13.1046 18.8954 14 20 14Z' />
+    <path d='M4 14C5.10457 14 6 13.1046 6 12C6 10.8954 5.10457 10 4 10C2.89543 10 2 10.8954 2 12C2 13.1046 2.89543 14 4 14Z' />
+    <path d='M12 22C13.1046 22 14 21.1046 14 20C14 18.8954 13.1046 18 12 18C10.8954 18 10 18.8954 10 20C10 21.1046 10.8954 22 12 22Z' />
+    <path d='M18.3475 4.2272L13.9431 8.61914L15.3553 10.0353L19.7597 5.6434L18.3475 4.2272Z' />
+    <path d='M8.31998 9.67998L8.62998 9.99998L10.05 8.58998L6.02998 4.54998H6.01998L5.70998 4.22998L4.28998 5.63998L8.30998 9.68998L8.31998 9.67998Z' />
+    <path d='M15.41 13.9399L14 15.3499L17.99 19.3599L18.34 19.7099L19.76 18.2999L15.77 14.2899L15.41 13.9399Z' />
+    <path d='M8.58999 13.9502L4.55999 17.9602L4.23999 18.2902L5.64999 19.7002L9.67999 15.6802L10.01 15.3602L8.58999 13.9502Z' />
+    <path d='M12 6C13.1046 6 14 5.10457 14 4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4C10 5.10457 10.8954 6 12 6Z' />
+  </IconBase>
+)
+
+export const RadioIcon = () => (
+  <IconBase>
+    <path d='M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z' />
+  </IconBase>
+)
+
+export const RadioActiveIcon = () => (
+  <IconBase>
+    <path d='M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z' />
+    <path d='M12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17Z' />
+  </IconBase>
+)
+
+export const SelectIcon = () => (
+  <IconBase>
+    <path d='M12 5.83L15.17 9L16.58 7.59L12 3L7.40997 7.59L8.82997 9L12 5.83ZM12 18.17L8.82997 15L7.41997 16.41L12 21L16.59 16.41L15.17 15L12 18.17Z' />
+  </IconBase>
+)
+
+export const SettingsIcon = () => (
+  <IconBase>
+    <path d='M3 17V19H9V17H3ZM3 5V7H13V5H3ZM13 21V19H21V17H13V15H11V21H13ZM7 9V11H3V13H7V15H9V9H7ZM21 13V11H11V13H21ZM15 9H17V7H21V5H17V3H15V9Z' />
+  </IconBase>
+)
+
+export const WalletIcon = () => (
+  <IconBase>
+    <path
+      d='M15 10C15 9.45 15.45 9 16 9C16.55 9 17 9.45 17 10C17 10.55 16.55 11 16 11C15.45 11 15 10.55 15 10ZM8 9H13V7H8V9ZM22 7.5V14.47L19.18 15.41L17.5 21H12V19H10V21H4.5C4.5 21 2 12.54 2 9.5C2 6.46 4.46 4 7.5 4H12.5C13.41 2.79 14.86 2 16.5 2C17.33 2 18 2.67 18 3.5C18 3.71 17.96 3.9 17.88 4.08C17.74 4.42 17.62 4.81 17.56 5.23L19.83 7.5H22ZM20 9.5H19L15.5 6C15.5 5.35 15.59 4.71 15.76 4.09C14.79 4.34 14 5.06 13.67 6H7.5C5.57 6 4 7.57 4 9.5C4 11.38 5.22 16.15 6.01 19H8V17H14V19H16.01L17.56 13.85L20 13.03V9.5Z'
+      fill='#374151'
+    />
+  </IconBase>
+)

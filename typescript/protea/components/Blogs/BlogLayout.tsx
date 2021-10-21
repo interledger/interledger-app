@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { FC } from 'react'
 import Head from 'next/head'
 import { Header } from '../Header'
-import { Container, Footer, Router, Routes } from 'components'
+import { BackIcon, Container, Footer, Router, Routes } from 'components'
 import type { Author, BlogMeta } from 'lib/blog'
 import { DateTime } from 'luxon'
 
@@ -37,7 +37,7 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
               ))}
               <Router href={Routes.blog}>
                 <span className='text-primary hidden sm:flex items-center mt-12'>
-                  <span className='material-icons-sharp mr-2'>arrow_back</span>{' '}
+                  <span className='mr-2'><BackIcon/></span>{' '}
                   Back to blogs
                 </span>
               </Router>
