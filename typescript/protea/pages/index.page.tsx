@@ -7,8 +7,8 @@ const HomePage: NextPage = () => {
       <Container className=' overflow-x-hidden'>
         <Header />
         <main className='flex-grow'>
-          <div className='flex flex-col px-4 sm:p-8 mt-20 sm:mt-44 mb-12 sm:mb-20 space-y-8 leading-normal w-[340px]'>
-            <span className='font-display text-[40px] leading-normal font-medium'>
+          <div className='flex flex-col px-4 sm:p-8 mt-20 sm:mt-44 mb-12 sm:mb-20 space-y-8 w-[340px]'>
+            <span className='font-display text-4xl leading-normal font-medium'>
               Connecting
               <br />
               the Internet
