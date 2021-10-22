@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
 import { getAllPosts, BlogMeta } from 'lib/blog'
-import { Container, Footer, Header, Router, Routes } from '../../components'
+import { Container, Footer, Header, Router, Routes } from 'components'
 import { FC } from 'react'
 import { DateTime } from 'luxon'
 

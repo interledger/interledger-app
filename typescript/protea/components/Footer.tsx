@@ -7,7 +7,7 @@ export const Footer: FC = () => {
     <footer className='grid grid-cols-2 sm:grid-cols-4 gap-8 justify-start items-start p-4 sm:p-8 mb-12 mt-60 2xl:mt-80'>
       <div className='flex col-span-2 h-20 sm:h-40 sm:justify-between flex-col'>
         <Router href={Routes.home} aria-label='Fynbos logo'>
-          <Logo className='h-6 sm:h-12 mb-2' />
+          <Logo className='h-6 sm:h-8 mb-2' />
         </Router>
         <span>&copy; Fynbos</span>
       </div>
