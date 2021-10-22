@@ -1,6 +1,16 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
 const colors = require('tailwindcss/colors')
 
+// This function ensures tailwind opacity utilities work with tokens.
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgba(var(${variableName}), ${opacityValue})`
+    }
+    return `rgb(var(${variableName}))`
+  }
+}
+
 module.exports = {
   mode: 'jit',
   purge: ['./pages/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
@@ -12,21 +22,52 @@ module.exports = {
       mono: ['"Overpass Mono"', '"Source Code Pro"'],
       icon: ['"Material Icons Sharp"']
     },
+    colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
+      white: colors.white,
+      black: colors.black,
+      gray: colors.coolGray,
+      red: colors.red,
+      orange: colors.orange,
+      yellow: colors.yellow,
+      green: colors.emerald,
+      sky: colors.sky,
+      blue: colors.blue,
+      indigo: colors.indigo,
+      purple: colors.purple,
+      pink: colors.pink
+    },
     extend: {
       colors: {
         primary: '#F35167',
         secondary: '#7DD043',
         'secondary-dark': '#4F971C',
-        gray: colors.coolGray,
 
+        // for syntax highlighting TODO: Update colors to match palette
         teal: colors.cyan,
-        // for syntax highlighting
         fuchsia: colors.fuchsia,
         lime: colors.lime,
         sky: colors.sky,
         rose: colors.rose,
         emerald: colors.emerald
       },
+      // Token colours
+      textColor: {
+        strong: withOpacity('--text-strong'),
+        medium: withOpacity('--text-medium'),
+        weak: withOpacity('--text-weak'),
+        primary: withOpacity('--text-primary')
+      },
+      backgroundColor: {
+        base: withOpacity('--bg-base'),
+        'base-hover': withOpacity('--bg-base-hover'),
+        strong: withOpacity('--bg-strong'),
+        primary: withOpacity('--bg-primary'),
+        secondary: withOpacity('--bg-secondary'),
+        'secondary-dark': withOpacity('--bg-secondary-dark')
+      },
+      // End token colours
       typography: (theme) => ({
         DEFAULT: {
           css: [
