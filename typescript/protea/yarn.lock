@@ -646,6 +646,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ory/kratos-client@npm:0.0.0-next.059ed9c9cacb":
+  version: 0.0.0-next.059ed9c9cacb
+  resolution: "@ory/kratos-client@npm:0.0.0-next.059ed9c9cacb"
+  dependencies:
+    axios: ^0.21.1
+  checksum: 4d1563ad5a35986231aadcc3c1dbcd7654d8c9a7413734874225393e3f772d8cf6258dfdd01cc5d27040e35037307b8a3322fa4a9e0d630f77b4803cb4714196
+  languageName: node
+  linkType: hard
+
 "@rushstack/eslint-patch@npm:^1.0.6":
   version: 1.0.6
   resolution: "@rushstack/eslint-patch@npm:1.0.6"
@@ -1158,6 +1167,15 @@ __metadata:
   version: 4.3.3
   resolution: "axe-core@npm:4.3.3"
   checksum: ac349d0b5341ad0859052d843717a1f596adf2efaa85ed9796581aa2f8fea74fda0f68b300363da8a0fb50f4b41b381c4f0b53dd14052205b9a082be0ca388b7
+  languageName: node
+  linkType: hard
+
+"axios@npm:^0.21.1":
+  version: 0.21.4
+  resolution: "axios@npm:0.21.4"
+  dependencies:
+    follow-redirects: ^1.14.0
+  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
   languageName: node
   linkType: hard
 
@@ -2661,6 +2679,16 @@ __metadata:
   version: 3.2.2
   resolution: "flatted@npm:3.2.2"
   checksum: 9d5e03fd9309b9103f345cf6d0cef4fa46201baa053b0ca3d57fa489449b0bee687b7355407898f630afbb1a1286d2a6658e7e77dea3b85c3cd6c6ce2894a5c3
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.14.0":
+  version: 1.14.4
+  resolution: "follow-redirects@npm:1.14.4"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: d4ce74cf5c6f363168b97e706b914eb9ffb6bf4d4c6d8f8330b93088d9b90e566611ddbcf0e42c8ed5fd17598dfeda1d19230d3e9d6d6c6b4d1c10ec3a0b99be
   languageName: node
   linkType: hard
 
@@ -4999,6 +5027,7 @@ __metadata:
     "@mapbox/rehype-prism": ^0.7.0
     "@mdx-js/loader": ^1.5.1
     "@next/mdx": ^9.1.1
+    "@ory/kratos-client": 0.0.0-next.059ed9c9cacb
     "@tailwindcss/typography": ^0.4.1
     "@types/luxon": ^2
     "@types/node": ^16.9.0
@@ -5013,6 +5042,7 @@ __metadata:
     prettier: ^2.3.2
     react: ^17.0.2
     react-dom: 17.0.2
+    react-hook-form: ^7.17.5
     rehype-slug: ^4.0.1
     tailwindcss: latest
     tailwindcss-selection-variant: ^0.1.0
@@ -5154,6 +5184,15 @@ __metadata:
   peerDependencies:
     react: 17.0.2
   checksum: 1c1eaa3bca7c7228d24b70932e3d7c99e70d1d04e13bb0843bbf321582bc25d7961d6b8a6978a58a598af2af496d1cedcfb1bf65f6b0960a0a8161cb8dab743c
+  languageName: node
+  linkType: hard
+
+"react-hook-form@npm:^7.17.5":
+  version: 7.17.5
+  resolution: "react-hook-form@npm:7.17.5"
+  peerDependencies:
+    react: ^16.8.0 || ^17
+  checksum: 1948be28cbcaee76899720ae8ead6f6bcc58c9678364c69590d15a0d7c50884f5f8f3b1034a5bc91495bedd05b0fb07048d88cc6c93b3fa8aacf32c50f2bfda7
   languageName: node
   linkType: hard
 
