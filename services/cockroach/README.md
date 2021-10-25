@@ -48,23 +48,17 @@ below command. If it fails, just wait for pods to be ready before running again
 ./init.sh
 ```
 
-### Configure Admin User
-To configure an admin user of the cluster you need to deploy a client and run some sql against the DB.
+### Configure
+To configure the cluster you need to run some commands against it. Ensure you are port-forwarding the cluster
+first
 
-Deploy a client to run sql commands within
 ```shell
-kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/bring-your-own-certs/client.yaml
+kubectl port-forward service/cockroachdb 26257
 ```
 
-Run a shell within the client to be able to run `sql` commands
+Then run
 ```shell
-kubectl exec -it cockroachdb-client-secure -- ./cockroach sql --certs-dir=/cockroach-certs --host=cockroachdb-public
-```
-
-Create user and grant admin in the postgres shell
-```postgresql
-CREATE USER roach WITH PASSWORD 'roach';
-GRANT admin TO roach;
+cockroach sql --certs-dir=certs --host=localhost:26257 -f dbinit.sql -u root
 ```
 
 ### Access UI
@@ -73,6 +67,3 @@ To access the cockroach ui you need to port-forward to the service and use the a
 `user: roach`
 `password: roach`
 
-```shell
-kubectl port-forward service/cockroachdb 8080
-```
