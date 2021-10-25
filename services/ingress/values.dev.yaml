@@ -17,8 +17,8 @@ emissary-ingress:
     podSecurityPolicy: {}
 
   image:
-    repository: docker.io/datawire/emissary
-    tag: 2.0.4-rc.2
+    repository: docker.io/emissaryingress/emissary
+    tag: 2.0.4
     pullPolicy: IfNotPresent
 
   # Dns policy, when hostNetwork set to ClusterFirstWithHostNet
