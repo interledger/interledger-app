@@ -21,7 +21,7 @@ export enum Routes {
   login = '/login',
   signup = '/signup',
   verify = '/verify',
-  signout = '/signout',
+  logout = '/logout',
   profile = '/profile',
   recovery = '/recovery',
 
