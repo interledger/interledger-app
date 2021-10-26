@@ -1,11 +1,11 @@
-import { FunctionComponent } from 'react'
+import React, { FC, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { AxiosError } from 'axios'
 import { SubmitSelfServiceRecoveryFlowBody } from '@ory/kratos-client'
 import { getCsrfTokenFromFlow, handleGetFlowError, kratos } from 'lib/kratos'
 import { useRecoveryFlow } from 'hooks/useRecoveryFlow'
-import { Routes } from 'components'
+import { Button, Routes, TextField, Notification } from 'components'
 
 type RecoveryInputs = {
   email: string
@@ -23,10 +23,17 @@ const transformToFlowBody = ({
   }
 }
 
-export const RecoveryForm: FunctionComponent = () => {
+export const RecoveryForm: FC = () => {
+  const [showNotification, setShowNotification] = useState<boolean>(false)
   const [flow, setFlow] = useRecoveryFlow()
-  const { register, handleSubmit } = useForm<RecoveryInputs>()
   const router = useRouter()
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isValid }
+  } = useForm<RecoveryInputs>()
 
   const onSubmit = (values: RecoveryInputs) =>
     router
@@ -51,6 +58,7 @@ export const RecoveryForm: FunctionComponent = () => {
           )
           .then(({ data }) => {
             // Form submission was successful, show the message to the user!
+            setShowNotification(true)
             setFlow(data)
           })
           .catch(handleGetFlowError(router, Routes.recovery, setFlow))
@@ -69,20 +77,39 @@ export const RecoveryForm: FunctionComponent = () => {
   // TODO: Kratos will return error / success messages that our ui will need to display.
   // this needs to be dug out of the flow object
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <label>Email</label>
-      <input
-        {...register('email', { required: true })}
-        type='text'
-        className='border-2'
-      />
+    <>
+      <form
+        className='flex flex-col min-w-full space-y-4 items-end'
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <TextField
+          {...register('email', { required: 'Email is required.' })}
+          id='email'
+          label='Email'
+          type='email'
+          isValid={isValid}
+          errorMessage={errors.email?.message}
+        />
 
-      <input
-        {...register('csrf_token', { value: getCsrfTokenFromFlow(flow) })}
-        type='hidden'
-      />
+        {/* flow might still be loading when page loads */}
+        {flow && (
+          <input
+            {...register('csrf_token', { value: getCsrfTokenFromFlow(flow) })}
+            type='hidden'
+          />
+        )}
 
-      <input type='submit' value='Send link' />
-    </form>
+        <Button disabled={showNotification} type='submit'>
+          Recover account
+        </Button>
+      </form>
+      <Notification
+        show={showNotification}
+        setShow={setShowNotification}
+        header='Recovery email sent'
+        body='View email to complete recovery.'
+        action='Done'
+      />
+    </>
   )
 }
