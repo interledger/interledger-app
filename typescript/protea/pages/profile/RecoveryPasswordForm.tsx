@@ -1,13 +1,13 @@
-import { FunctionComponent } from 'react'
+import React, { FunctionComponent, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { AxiosError } from 'axios'
 import { SubmitSelfServiceSettingsFlowBody } from '@ory/kratos-client'
 import { getCsrfTokenFromFlow, handleGetFlowError, kratos } from 'lib/kratos'
 import { useProfileSettingsFlow } from 'hooks'
-import { Routes } from 'components'
+import { Button, Routes, TextField, Notification } from 'components'
 
-type ProfileInputs = {
+type RecoveryPasswordInputs = {
   password: string
   csrf_token: string
 }
@@ -15,7 +15,7 @@ type ProfileInputs = {
 const transformToFlowBody = ({
   csrf_token,
   password
-}: ProfileInputs): SubmitSelfServiceSettingsFlowBody => {
+}: RecoveryPasswordInputs): SubmitSelfServiceSettingsFlowBody => {
   // TODO: only doing password for now
   // webauthn/totp etc is being released in 0.8.0-alpha.1
   return {
@@ -25,12 +25,19 @@ const transformToFlowBody = ({
   }
 }
 
-export const ProfileForm: FunctionComponent = () => {
+export const RecoveryPasswordForm: FunctionComponent = () => {
+  const [showNotification, setShowNotification] = useState<boolean>(false)
   const [flow, setFlow] = useProfileSettingsFlow()
-  const { register, handleSubmit } = useForm<ProfileInputs>()
   const router = useRouter()
 
-  const onSubmit = (values: ProfileInputs) =>
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isValid }
+  } = useForm<RecoveryPasswordInputs>()
+
+  const onSubmit = (values: RecoveryPasswordInputs) =>
     router
       // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
       // his data when she/he reloads the page.
@@ -53,6 +60,7 @@ export const ProfileForm: FunctionComponent = () => {
           )
           .then(({ data }) => {
             // The settings have been saved and the flow was updated. Let's show it to the user!
+            setShowNotification(true)
             setFlow(data)
           })
           .catch(handleGetFlowError(router, Routes.profile, setFlow))
@@ -73,20 +81,42 @@ export const ProfileForm: FunctionComponent = () => {
 
   // TODO: webauthn/totp being released in 0.8.0-alpha.1
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <label>New password</label>
-      <input
-        {...register('password', { required: true })}
-        type='text'
-        className='border-2'
-      />
+    <>
+      <form
+        className='flex flex-col min-w-full space-y-4 items-end'
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <TextField
+          {...register('password', {
+            required: 'Password is required.',
+            minLength: { value: 8, message: 'Min length is 8.' }
+          })}
+          id='password'
+          label='Password'
+          type='password'
+          isValid={isValid}
+          errorMessage={errors.password?.message}
+        />
 
-      <input
-        {...register('csrf_token', { value: getCsrfTokenFromFlow(flow) })}
-        type='hidden'
-      />
+        {/* flow might still be loading when page loads */}
+        {flow && (
+          <input
+            {...register('csrf_token', { value: getCsrfTokenFromFlow(flow) })}
+            type='hidden'
+          />
+        )}
 
-      <input type='submit' value='Send link' />
-    </form>
+        <Button disabled={showNotification} type='submit'>
+          Save password
+        </Button>
+      </form>
+      <Notification
+        show={showNotification}
+        setShow={setShowNotification}
+        header='Password saved'
+        body='Account recovery successful.'
+        action='Done'
+      />
+    </>
   )
 }
