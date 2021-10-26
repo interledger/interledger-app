@@ -3,6 +3,7 @@ import {
   SelfServiceRegistrationFlow,
   SelfServiceLoginFlow,
   SelfServiceVerificationFlow,
+  SelfServiceSettingsFlow,
   UiNodeInputAttributes,
   V0alpha2Api
 } from '@ory/kratos-client'
@@ -24,8 +25,12 @@ export const kratos = new V0alpha2Api(
 )
 
 export const getCsrfTokenFromFlow = (
-  flow: SelfServiceRegistrationFlow | SelfServiceLoginFlow  | SelfServiceVerificationFlow
-  | undefined
+  flow:
+    | SelfServiceRegistrationFlow
+    | SelfServiceLoginFlow
+    | SelfServiceVerificationFlow
+    | SelfServiceSettingsFlow
+    | undefined
 ): string => {
   const node = flow?.ui.nodes.find(
     (node) => (node.attributes as UiNodeInputAttributes).name === 'csrf_token'
@@ -36,7 +41,7 @@ export const getCsrfTokenFromFlow = (
 
 export function handleGetFlowError<S>(
   router: NextRouter,
-  flowType: Routes.signup | Routes.login | Routes.verify,
+  flowType: Routes.signup | Routes.login | Routes.verify | Routes.profile,
   resetFlow: Dispatch<SetStateAction<S | undefined>>
 ) {
   return async (err: AxiosError) => {
