@@ -64,7 +64,12 @@ export type RouterProps = {
 export const Router: FC<RouterProps> = ({ children, href, ...rest }) => {
   return (
     <Link href={href}>
-      <a {...rest}>{children}</a>
+      <a
+        className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary'
+        {...rest}
+      >
+        {children}
+      </a>
     </Link>
   )
 }

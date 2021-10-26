@@ -56,7 +56,8 @@ module.exports = {
         strong: withOpacity('--text-strong'),
         medium: withOpacity('--text-medium'),
         weak: withOpacity('--text-weak'),
-        primary: withOpacity('--text-primary')
+        primary: withOpacity('--text-primary'),
+        error: withOpacity('--text-error')
       },
       backgroundColor: {
         base: withOpacity('--bg-base'),
@@ -65,6 +66,11 @@ module.exports = {
         primary: withOpacity('--bg-primary'),
         secondary: withOpacity('--bg-secondary'),
         'secondary-dark': withOpacity('--bg-secondary-dark')
+      },
+      borderColor: {
+        base: withOpacity('--border-base'),
+        focus: withOpacity('--border-focus'),
+        error: withOpacity('--border-error')
       },
       // End token colours
       typography: (theme) => ({
