@@ -23,6 +23,7 @@
     "rehype-slug": "^4.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.3.4",
     "@tailwindcss/typography": "^0.4.1",
     "@types/luxon": "^2",
     "@types/node": "^16.9.0",
