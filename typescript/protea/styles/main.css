@@ -12,18 +12,23 @@
     --text-medium: 55, 65, 81;
     --text-weak: 75, 85, 99;
     --text-primary: 243, 81, 103;
+    --text-error: 185, 28, 28;
     --bg-base: 243, 244, 246;
     --bg-base-hover: 229, 231, 235;
     --bg-strong: 156, 163, 175;
     --bg-primary: 243, 81, 103;
     --bg-secondary: 125, 208, 67;
     --bg-secondary-dark: 79, 151, 28;
+    --border-base: 209, 213, 219;
+    --border-focus: 243, 81, 103;
+    --border-error: 185, 28, 28;
   }
   .theme-test {
     --text-primary: 249, 115, 22;
     --bg-base: 255, 247, 237;
     --bg-base-hover: 255, 237, 213;
     --bg-primary: 249, 115, 22;
+    --border-focus: 249, 115, 22;
   }
 }
 
