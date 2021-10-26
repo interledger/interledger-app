@@ -1,4 +1,4 @@
-export const Decor = () => {
+export const HomeDecor = () => {
   return (
     <div className='overflow-x-hidden'>
       <svg
