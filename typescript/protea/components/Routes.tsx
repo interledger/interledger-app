@@ -23,6 +23,7 @@ export enum Routes {
   verify = '/verify',
   signout = '/signout',
   profile = '/profile',
+  recovery = '/recovery',
 
   //
   // Organisation
