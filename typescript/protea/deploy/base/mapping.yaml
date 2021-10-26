@@ -7,3 +7,5 @@ spec:
   prefix: /
   rewrite: /
   service: protea
+  allow_upgrade:
+    - websocket
