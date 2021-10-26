@@ -43,7 +43,12 @@ export const getCsrfTokenFromFlow = (
 
 export function handleGetFlowError<S>(
   router: NextRouter,
-  flowType: Routes.signup | Routes.login | Routes.verify | Routes.profile | Routes.recovery,
+  flowType:
+    | Routes.signup
+    | Routes.login
+    | Routes.verify
+    | Routes.profile
+    | Routes.recovery,
   resetFlow: Dispatch<SetStateAction<S | undefined>>
 ) {
   return async (err: AxiosError) => {

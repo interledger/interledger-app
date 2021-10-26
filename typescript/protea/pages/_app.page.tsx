@@ -59,36 +59,39 @@ function MyApp({ Component, pageProps, session }: AppProps) {
 MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext)
 
-  if (process.env.KRATOS_ENABLED === "true") {
+  if (process.env.KRATOS_ENABLED === 'true') {
     // forward cookie to Kratos since this is now happening server side.
     const cookie = appContext.ctx.req?.headers.cookie
-    const session = await kratos.toSession(undefined, cookie).then(res => res.data).catch((err: AxiosError) => {
-      switch (err.response?.status) {
-        case 403:
-        // This is a legacy error code thrown. See code 422 for
-        // more details.
-        case 422:
-          // This status code is returned when we are trying to
-          // validate a session which has not yet completed
-          // it's second factor
-          redirect(Routes.login + '?aal=aal2', appContext)
-          return undefined
-        case 401:
-          if (isProtected(appContext.ctx.pathname)) {
-            redirect(Routes.login, appContext)
-          }
-          return undefined
-      }
+    const session = await kratos
+      .toSession(undefined, cookie)
+      .then((res) => res.data)
+      .catch((err: AxiosError) => {
+        switch (err.response?.status) {
+          case 403:
+          // This is a legacy error code thrown. See code 422 for
+          // more details.
+          case 422:
+            // This status code is returned when we are trying to
+            // validate a session which has not yet completed
+            // it's second factor
+            redirect(Routes.login + '?aal=aal2', appContext)
+            return undefined
+          case 401:
+            if (isProtected(appContext.ctx.pathname)) {
+              redirect(Routes.login, appContext)
+            }
+            return undefined
+        }
 
-      // Something else happened!
-      redirect('/error', appContext)
-      return undefined
-    })
+        // Something else happened!
+        throw new Error(err.response?.status.toString())
+        return undefined
+      })
   }
 
   // Temp till we deploy Kratos in prod
-  if (appContext.ctx.pathname !== "" && appContext.ctx.pathname !== "/") {
-    redirect("/", appContext)
+  if (appContext.ctx.pathname !== '' && appContext.ctx.pathname !== '/') {
+    redirect(Routes.home, appContext)
     return undefined
   }
 
@@ -97,13 +100,13 @@ MyApp.getInitialProps = async (appContext: AppContext) => {
 
 // TODO: pattern for protected routes
 const isProtected = (path: string): boolean => {
-  return path.includes("/organisation")
+  return path.includes(Routes.organisation)
 }
 
 const redirect = (path: string, appContext: AppContext): void => {
   if (appContext.ctx.res) {
     appContext.ctx.res?.writeHead(302, {
-      Location: path,
+      Location: path
     })
     appContext.ctx.res.end()
     return

@@ -3,8 +3,10 @@
 Fynbos frontend.
 
 ## Get started
-We use [Kratos](https://www.ory.sh/kratos/docs/) as our user identity service. This will need to be
-running before the frontend can be started.
+
+We use [Kratos](https://www.ory.sh/kratos/docs/) as our user identity service.
+This will need to be running before the frontend can be started.
+
 ```shell
 docker-compose -f ../../services/kratos/docker-compose-dev.yaml up -d --force-recreate
 ```

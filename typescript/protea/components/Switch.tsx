@@ -1,13 +1,13 @@
-import { FC, useState } from 'react'
+import { FC } from 'react'
 import { Switch as HeadlessSwitch } from '@headlessui/react'
 
-type ContainerProps = {
+type SwitchProps = {
   className?: string
   enabled: boolean
   onChange: any
 }
 
-export const Switch: FC<ContainerProps> = ({
+export const Switch: FC<SwitchProps> = ({
   children,
   className,
   enabled,

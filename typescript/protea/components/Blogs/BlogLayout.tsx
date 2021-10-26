@@ -37,7 +37,9 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
               ))}
               <Router href={Routes.blog}>
                 <span className='text-primary hidden sm:flex items-center mt-12'>
-                  <span className='mr-2'><BackIcon/></span>{' '}
+                  <span className='mr-2'>
+                    <BackIcon />
+                  </span>{' '}
                   Back to blogs
                 </span>
               </Router>
