@@ -1,11 +1,11 @@
 import { SubmitSelfServiceRegistrationFlowBody } from '@ory/kratos-client'
 import { AxiosError } from 'axios'
 import { useRouter } from 'next/router'
-import { FunctionComponent } from 'react'
+import React, { FC } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSignupFlow } from 'hooks'
 import { getCsrfTokenFromFlow, handleGetFlowError, kratos } from 'lib/kratos'
-import { Routes } from 'components'
+import { Button, Routes, TextField } from 'components'
 
 type SignupInputs = {
   email: string
@@ -28,14 +28,17 @@ const transformToFlowBody = ({
   }
 }
 
-export const SignupForm: FunctionComponent = () => {
+export const SignupForm: FC = () => {
   const [flow, setFlow] = useSignupFlow()
   const router = useRouter()
+
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    setError,
+    formState: { errors, isValid }
   } = useForm<SignupInputs>()
+
   const onSubmit = (values: SignupInputs) =>
     router
       // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
@@ -62,8 +65,9 @@ export const SignupForm: FunctionComponent = () => {
             // You can do cool stuff here, like having access to the identity which just signed up:
             console.log('This is the user session: ', data, data.identity)
 
+            // TODO: catch expired session case. Currently just routes to organisation
             // For now however we just want to redirect to organisation page
-            return router.push(flow?.return_to || Routes.organisation)
+            return router.push(flow?.return_to || Routes.profile)
           })
           .catch(handleGetFlowError(router, Routes.signup, setFlow))
           .catch((err: AxiosError) => {
@@ -71,40 +75,53 @@ export const SignupForm: FunctionComponent = () => {
             if (err.response?.status === 400) {
               // Yup, it is!
               setFlow(err.response?.data)
+              setError('password', {
+                type: 'manual',
+                message: 'The provided credentials are invalid.'
+              })
               return
             }
 
             return Promise.reject(err)
           })
       )
-  // flow might still be loading
-  if (!flow) return null
 
   // TODO: Kratos will return validation errors (e.g. password has been pwned) in the flow data.
   // our frontend will need to display these errors as returned from Kratos
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <label>Email</label>
-      <input
-        {...register('email', { required: true })}
-        type='text'
-        className='border-2'
+    <form
+      className='flex flex-col min-w-full space-y-4 items-end'
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <TextField
+        {...register('email', { required: 'Email is required.' })}
+        id='email'
+        label='Email'
+        type='email'
+        isValid={isValid}
+        errorMessage={errors.email?.message}
+      />
+      <TextField
+        {...register('password', {
+          required: 'Password is required.',
+          minLength: { value: 8, message: 'Min length is 8.' }
+        })}
+        id='password'
+        label='Password'
+        type='password'
+        isValid={isValid}
+        errorMessage={errors.password?.message}
       />
 
-      <label>Password</label>
-      <input
-        {...register('password', { required: true, minLength: 6 })}
-        className='border-2'
-      />
-      {/* errors will return when field validation fails  */}
-      {errors.password && <span>This field is required</span>}
+      {/* flow might still be loading when page loads */}
+      {flow && (
+        <input
+          {...register('csrf_token', { value: getCsrfTokenFromFlow(flow) })}
+          type='hidden'
+        />
+      )}
 
-      <input
-        {...register('csrf_token', { value: getCsrfTokenFromFlow(flow) })}
-        type='hidden'
-      />
-
-      <input type='submit' value='Signup' />
+      <Button type='submit'>Create account</Button>
     </form>
   )
 }
