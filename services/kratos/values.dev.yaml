@@ -85,7 +85,7 @@ kratos:
             enabled: true
             ui_url: http://fynbos.test/verify
             after:
-              default_browser_return_url: http://fynbos.test/organisation
+              default_browser_return_url: http://fynbos.test/profile
 
           logout:
             after:
@@ -95,7 +95,7 @@ kratos:
             ui_url: http://fynbos.test/login
             lifespan: 10m
             after:
-              default_browser_return_url: http://fynbos.test/organisation
+              default_browser_return_url: http://fynbos.test/profile
 
           registration:
             lifespan: 10m

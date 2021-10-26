@@ -48,7 +48,7 @@ selfservice:
       enabled: true
       ui_url: http://127.0.0.1:3000/verify
       after:
-        default_browser_return_url: http://127.0.0.1:3000/organisation
+        default_browser_return_url: http://127.0.0.1:3000/profile
 
     logout:
       after:
@@ -58,7 +58,7 @@ selfservice:
       ui_url: http://127.0.0.1:3000/login
       lifespan: 10m
       after:
-        default_browser_return_url: http://127.0.0.1:3000/organisation
+        default_browser_return_url: http://127.0.0.1:3000/profile
 
     registration:
       lifespan: 10m
