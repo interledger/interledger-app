@@ -59,32 +59,40 @@ function MyApp({ Component, pageProps, session }: AppProps) {
 MyApp.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext)
 
-  // forward cookie to Kratos since this is now happening server side.
-  const cookie = appContext.ctx.req?.headers.cookie
-  const session = await kratos.toSession(undefined, cookie).then(res => res.data).catch((err: AxiosError) => {
-    switch (err.response?.status) {
-      case 403:
-      // This is a legacy error code thrown. See code 422 for
-      // more details.
-      case 422:
-        // This status code is returned when we are trying to
-        // validate a session which has not yet completed
-        // it's second factor
-        redirect(Routes.login + '?aal=aal2', appContext)
-        return undefined
-      case 401:
-        if (isProtected(appContext.ctx.pathname)) {
-          redirect(Routes.login, appContext)
-        }
-        return undefined
-    }
+  if (process.env.KRATOS_ENABLED === "true") {
+    // forward cookie to Kratos since this is now happening server side.
+    const cookie = appContext.ctx.req?.headers.cookie
+    const session = await kratos.toSession(undefined, cookie).then(res => res.data).catch((err: AxiosError) => {
+      switch (err.response?.status) {
+        case 403:
+        // This is a legacy error code thrown. See code 422 for
+        // more details.
+        case 422:
+          // This status code is returned when we are trying to
+          // validate a session which has not yet completed
+          // it's second factor
+          redirect(Routes.login + '?aal=aal2', appContext)
+          return undefined
+        case 401:
+          if (isProtected(appContext.ctx.pathname)) {
+            redirect(Routes.login, appContext)
+          }
+          return undefined
+      }
 
-    // Something else happened!
-    redirect('/error', appContext)
+      // Something else happened!
+      redirect('/error', appContext)
+      return undefined
+    })
+  }
+
+  // Temp till we deploy Kratos in prod
+  if (appContext.ctx.pathname !== "" && appContext.ctx.pathname !== "/") {
+    redirect("/", appContext)
     return undefined
-  })
+  }
 
-  return { ...appProps, session }
+  return { ...appProps, session: undefined }
 }
 
 // TODO: pattern for protected routes
