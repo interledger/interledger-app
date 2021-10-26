@@ -32,12 +32,16 @@ export const RecoveryForm: FunctionComponent = () => {
     router
       // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
       // his data when she/he reloads the page.
-      .push({
-        pathname: Routes.recovery,
-        query: {
-          flow: flow?.id,
+      .push(
+        {
+          pathname: Routes.recovery,
+          query: {
+            flow: flow?.id
+          }
         },
-      }, undefined, { shallow: true })
+        undefined,
+        { shallow: true }
+      )
       .then(() =>
         kratos
           .submitSelfServiceRecoveryFlow(

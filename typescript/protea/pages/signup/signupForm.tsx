@@ -40,15 +40,22 @@ export const SignupForm: FunctionComponent = () => {
     router
       // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
       // his data when she/he reloads the page.
-      .push({
-        pathname: Routes.signup,
-        query: {
-          flow: flow?.id,
-        }
-      }, undefined, { shallow: true })
+      .push(
+        {
+          pathname: Routes.signup,
+          query: {
+            flow: flow?.id
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
       .then(() =>
         kratos
-          .submitSelfServiceRegistrationFlow(String(flow?.id), transformToFlowBody(values))
+          .submitSelfServiceRegistrationFlow(
+            String(flow?.id),
+            transformToFlowBody(values)
+          )
           .then(({ data }) => {
             // If we ended up here, it means we are successfully signed up!
             //

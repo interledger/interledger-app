@@ -34,12 +34,16 @@ export const ProfileForm: FunctionComponent = () => {
     router
       // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
       // his data when she/he reloads the page.
-      .push({
-        pathname: Routes.profile,
-        query: {
-          flow: flow?.id,
-        }
-      }, undefined, { shallow: true })
+      .push(
+        {
+          pathname: Routes.profile,
+          query: {
+            flow: flow?.id
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
       .then(() =>
         kratos
           .submitSelfServiceSettingsFlow(
