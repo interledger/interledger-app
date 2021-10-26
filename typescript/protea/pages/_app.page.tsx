@@ -83,6 +83,7 @@ MyApp.getInitialProps = async (appContext: AppContext) => {
     redirect('/error', appContext)
     return undefined
   })
+
   return { ...appProps, session }
 }
 
