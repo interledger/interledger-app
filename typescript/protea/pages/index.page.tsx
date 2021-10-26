@@ -1,10 +1,10 @@
-import { Container, Decor, Footer, Header } from 'components'
+import { Container, HomeDecor, Footer, Header } from 'components'
 import { NextPage } from 'next'
 
 const HomePage: NextPage = () => {
   return (
     <div className='relative overflow-hidden w-full'>
-      <Container className=' overflow-x-hidden'>
+      <Container className='overflow-x-hidden'>
         <Header />
         <main className='flex-grow'>
           <div className='flex flex-col px-4 sm:p-8 mt-20 sm:mt-44 mb-12 sm:mb-20 space-y-8 w-[340px]'>
@@ -18,7 +18,7 @@ const HomePage: NextPage = () => {
           </div>
         </main>
         <Footer />
-        <Decor />
+        <HomeDecor />
       </Container>
     </div>
   )
