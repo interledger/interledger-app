@@ -1,11 +1,11 @@
 import { FC, Fragment } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, SelectIcon } from './icons'
+import { AddIcon, CheckIcon, SelectIcon } from './icons'
 
 // TODO: update options to allow routing.
 type Option = {
   name: string
-  id: number
+  id: string
 }
 
 type SelectProps = {
@@ -25,7 +25,7 @@ export const Select: FC<SelectProps> = ({
   return (
     <Listbox value={selected} onChange={onChange}>
       <div className='relative font-display'>
-        <Listbox.Button className='text-strong relative w-full h-12 bg-base hover:bg-base-hover text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black'>
+        <Listbox.Button className='text-strong relative w-full h-12 bg-base hover:bg-base-hover text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'>
           <span className='flex items-center'>
             <span className='ml-2 block truncate'>{selected.name}</span>
           </span>
@@ -73,6 +73,27 @@ export const Select: FC<SelectProps> = ({
                 )}
               </Listbox.Option>
             ))}
+            <Listbox.Option
+              key='AddOrg'
+              className={({ active }) =>
+                classNames(
+                  active ? 'bg-base-hover' : 'bg-base',
+                  'cursor-pointer select-none relative py-2 pl-1 pr-9 h-12 flex items-center'
+                )
+              }
+              value={{
+                id: 'add-organisation'
+              }}
+            >
+              <div className='flex items-center'>
+                <span className='text-medium ml-3 block truncate'>
+                  Add organisation
+                </span>
+              </div>
+              <span className='absolute inset-y-0 right-3 flex items-center pr-1'>
+                <AddIcon />
+              </span>
+            </Listbox.Option>
           </Listbox.Options>
         </Transition>
       </div>

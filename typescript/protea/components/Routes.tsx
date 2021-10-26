@@ -29,11 +29,11 @@ export enum Routes {
   // Organisation
   //
   organisation = '/organisation',
-  organisationOverview = '/organisation/[id]',
-  organisationIntegration = '/organisation/[id]/integration',
-  organisationSettings = '/organisation/[id]/settings',
-  organisationGateway = '/organisation/[id]/gateway',
-  organisationWallet = '/organisation/[id]/wallet',
+  organisationOverview = '/organisation/[orgId]',
+  organisationIntegration = '/organisation/[orgId]/integration',
+  organisationSettings = '/organisation/[orgId]/settings',
+  organisationGateway = '/organisation/[orgId]/gateway',
+  organisationWallet = '/organisation/[orgId]/wallet',
 
   //
   // External
