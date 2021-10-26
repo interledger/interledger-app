@@ -1,0 +1,97 @@
+version: v0.7.1-alpha.1
+
+dsn: sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc
+
+serve:
+  public:
+    base_url: http://127.0.0.1:4433/
+    cors:
+      enabled: true
+      allowed_origins:
+        - http://localhost:3000
+        - http://127.0.0.1:3000
+      allow_credentials: true
+  admin:
+    base_url: http://kratos:4434/
+
+selfservice:
+  default_browser_return_url: http://127.0.0.1:3000/
+  whitelisted_return_urls:
+    - http://127.0.0.1:3000
+    - http://localhost:3000
+
+  methods:
+    password:
+      enabled: true
+
+    link:
+      enabled: true
+      config:
+        # Defines how long a recovery link is valid for (default 1h)
+        lifespan: 1h
+
+  flows:
+    error:
+      ui_url: http://127.0.0.1:3000/error
+
+    settings:
+      ui_url: http://127.0.0.1:3000/profile
+      privileged_session_max_age: 15m
+
+    recovery:
+      enabled: true
+      ui_url: http://127.0.0.1:3000/recovery
+      # how long ui flow is valid for
+      lifespan: 15m
+
+    verification:
+      enabled: true
+      ui_url: http://127.0.0.1:3000/verify
+      after:
+        default_browser_return_url: http://127.0.0.1:3000/organisation
+
+    logout:
+      after:
+        default_browser_return_url: http://127.0.0.1:3000/login
+
+    login:
+      ui_url: http://127.0.0.1:3000/login
+      lifespan: 10m
+      after:
+        default_browser_return_url: http://127.0.0.1:3000/organisation
+
+    registration:
+      lifespan: 10m
+      ui_url: http://localhost:3000/signup
+      after:
+        password:
+          hooks:
+            -
+              hook: session # this will sign the user in immediately
+
+log:
+  level: debug
+  format: text
+  leak_sensitive_values: true
+
+secrets:
+  cookie:
+    - PLEASE-CHANGE-ME-I-AM-VERY-INSECURE # The first entry will be used to sign and verify session cookies
+     # All other entries will be used to verify session cookies that were signed before "PLEASE-CHANGE-ME-I-AM-VERY-INSECURE" became
+     # the current signing secret.
+
+hashers:
+  argon2:
+    parallelism: 1
+    memory: 128MB
+    iterations: 2
+    salt_length: 16
+    key_length: 16
+
+identity:
+  default_schema_url: file:///etc/config/kratos/identity.schema.json
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true&legacy_ssl=true
+    from_address: no-reply@fynbos.dev
