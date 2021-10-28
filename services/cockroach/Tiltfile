@@ -1,0 +1,10 @@
+
+load('ext://secret', 'secret_yaml_generic')
+k8s_yaml(secret_yaml_generic('cockroachdb.client.root', from_file='certs'))
+k8s_yaml(secret_yaml_generic('cockroachdb.node', from_file='certs'))
+
+yaml = kustomize('./deploy/overlays/dev')
+
+k8s_yaml(yaml)
+
+local_resource('Init db', cmd='bash initdb.sh', resource_deps=['cockroachdb'])
