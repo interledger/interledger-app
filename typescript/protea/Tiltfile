@@ -1,0 +1,15 @@
+sync_components = sync('./components', '/app/components')
+sync_contexts = sync('./contexts', '/app/contexts')
+sync_hooks = sync('./hooks', '/app/hooks')
+sync_lib = sync('./lib', '/app/lib')
+sync_pages = sync('./pages', '/app/pages')
+sync_public = sync('./public', '/app/public')
+sync_styles = sync('./styles', '/app/styles')
+
+docker_build('protea', '.', target="dev", live_update=[
+sync_components,sync_contexts,sync_hooks,sync_lib,sync_pages,sync_public,sync_styles
+], ignore=["deploy/"])
+
+yaml = kustomize('./deploy/base')
+
+k8s_yaml(yaml)

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: protea
+  labels:
+    app: protea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: protea
+  template:
+    metadata:
+      labels:
+        app: protea
+    spec:
+      containers:
+        - name: protea
+          image: protea
+          ports:
+            - containerPort: 3000
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
