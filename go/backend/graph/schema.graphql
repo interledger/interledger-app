@@ -1,0 +1,10 @@
+# GraphQL schema for Fynbos control plane
+
+type Organisation {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  organisation: Organisation
+}
