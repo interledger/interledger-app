@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      serviceAccountName: backend
+      containers:
+        - name: backend
+          image: fynbos/backend
+          imagePullPolicy: Always
+          # TODO: Change these to appropriate values for the hardware that you're running. You can see
+          # the resources that can be allocated on each of your Kubernetes nodes by running:
+          #   kubectl describe nodes
+          # Note that requests and limits should have identical values.
+#          resources:
+#            requests:
+#              cpu: "2"
+#              memory: "8Gi"
+#            limits:
+#              cpu: "2"
+#              memory: "8Gi"
+          ports:
+            - containerPort: 8080
+              name: http
+          # we use the same endpoint for liveness and readiness as we are only running a graphql server
+          livenessProbe:
+            httpGet:
+              path: "/graphql"
+              port: http
+              scheme: HTTP
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: "/graphql"
+              port: http
+              scheme: HTTP
+            periodSeconds: 5
+            failureThreshold: 2
+          volumeMounts:
+          env:
+          command:
+      # No pre-stop hook is required, a SIGTERM plus some time is all that's
+      # needed for graceful shutdown of a node.
+      terminationGracePeriodSeconds: 30
+      volumes:
+  volumeClaimTemplates:

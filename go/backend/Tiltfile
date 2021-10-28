@@ -1,0 +1,7 @@
+
+load('ext://ko', 'ko_build')
+ko_build('fynbos/backend', 'gitlab.com/fynbos/backend', ["./"])
+
+yaml = kustomize('./deploy/dev')
+
+k8s_yaml(yaml)

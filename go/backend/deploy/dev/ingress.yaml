@@ -1,0 +1,10 @@
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: backend-playground
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /playground
+  rewrite: /playground
+  service: backend

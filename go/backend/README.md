@@ -23,5 +23,22 @@ go generate ./...
 ```
 
 ## Deployment
+Dependencies:
+
+* [Kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/)
+* [ko](https://github.com/google/ko)
+* [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+
+This uses `ko` to build docker images and push to the appropriate
+registry. This will use the `distroless/static:nonroot` image as the 
+base image which is stripped of unnecessary packages such as a shell. It
+then builds a statically linked go binary on the local machine and 
+copies it to the image.
+
+`Kustomize` is then used to generate yaml files to deploy. The Tiltfile
+handles using `ko` and `Kustomize` to deploy to the kind cluster. It is
+setup to watch the folder and kick off a rebuild.
+
+Local deployment is done using [tilt](../../dev/tilt).
 
 ### Gotchas
