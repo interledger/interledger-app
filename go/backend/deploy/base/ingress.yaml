@@ -1,0 +1,10 @@
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
+metadata:
+  name: backend-graphql
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /graphql
+  rewrite: /graphql
+  service: backend
