@@ -1,57 +1,112 @@
 kratos:
+  image:
+    tag: v0.7.6-alpha.1
   autoscaling:
     enabled: false
   kratos:
     autoMigrate: true
     identitySchemas:
-      "identity.default.schema.json": |
+      "identity.schema.json": |
         {
-           "$id": "https://schemas.ory.sh/presets/kratos/identity.email.schema.json",
-           "$schema": "http://json-schema.org/draft-07/schema#",
-           "title": "Person",
-           "type": "object",
-           "properties": {
-              "traits": {
-                 "type": "object",
-                 "properties": {
-                    "email": {
-                       "type": "string",
-                       "format": "email",
-                       "title": "E-Mail",
-                       "ory.sh/kratos": {
-                          "credentials": {
-                             "password": {
-                                "identifier": true
-                             }
-                          },
-                          "recovery": {
-                             "via": "email"
-                          },
-                          "verification": {
-                             "via": "email"
-                          }
-                       }
+          "$id": "https://fynbos.dev/users/email-password/identity.schema.json",
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "title": "User",
+          "type": "object",
+          "properties": {
+            "traits": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "title": "E-Mail",
+                  "ory.sh/kratos": {
+                    "credentials": {
+                      "password": {
+                        "identifier": true
+                      }
+                    },
+                    "verification": {
+                      "via": "email"
+                    },
+                    "recovery": {
+                      "via": "email"
                     }
-                 },
-                 "required": [
-                    "email"
-                 ],
-                 "additionalProperties": false
-              }
-           }
+                  }
+                }
+              },
+              "required": [
+                "email"
+              ],
+              "additionalProperties": false
+            }
+          }
         }
     config:
       dsn: "cockroach://kratos@cockroachdb-public:26257/kratos?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslcert=/cockroach-certs/client.kratos.crt&sslkey=/cockroach-certs/client.kratos.key&sslrootcert=/cockroach-certs/ca.crt"
+
       selfservice:
-        default_browser_return_url: http://127.0.0.1:4455/
+        default_browser_return_url: http://fynbos.test
+
+        whitelisted_return_urls:
+          - http://fynbos.test
+
         methods:
           password:
             enabled: true
+          link:
+            enabled: true
+            config:
+              # Defines how long a recovery link is valid for (default 1h)
+              lifespan: 1h
+
+        flows:
+          error:
+            ui_url: http://fynbos.test/error
+
+          settings:
+            ui_url: http://fynbos.test/profile
+            privileged_session_max_age: 15m
+
+          recovery:
+            enabled: true
+            ui_url: http://fynbos.test/recovery
+            # how long ui flow is valid for
+            lifespan: 15m
+
+          verification:
+            enabled: true
+            ui_url: http://fynbos.test/verify
+            after:
+              default_browser_return_url: http://fynbos.test/organisation
+
+          logout:
+            after:
+              default_browser_return_url: http://fynbos.test/login
+
+          login:
+            ui_url: http://fynbos.test/login
+            lifespan: 10m
+            after:
+              default_browser_return_url: http://fynbos.test/organisation
+
+          registration:
+            lifespan: 10m
+            ui_url: http://fynbos.test/signup
+            after:
+              password:
+                hooks:
+                  - hook: session # this will sign the user in immediately
+
       log:
         level: debug
+        format: text
+        leak_sensitive_values: true
+
       secrets:
         session:
           - PLEASE-CHANGE-ME-I-AM-VERY-INSECURE
+
       hashers:
         argon2:
           parallelism: 1
@@ -59,11 +114,14 @@ kratos:
           iterations: 2
           salt_length: 16
           key_length: 16
+
       identity:
-        default_schema_url: file:///etc/config/kratos/identity.default.schema.json
+        default_schema_url: file:///etc/config/kratos/identity.schema.json
+
       courier:
         smtp:
           connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
+          from_address: no-reply@fynbos.test
   ingress:
     admin:
       enabled: true
