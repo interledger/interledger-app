@@ -1,0 +1,9 @@
+apiVersion: getambassador.io/v3alpha1
+kind:  Mapping
+metadata:
+  name:  protea-mapping
+spec:
+  hostname: "*"
+  prefix: /
+  rewrite: /
+  service: protea

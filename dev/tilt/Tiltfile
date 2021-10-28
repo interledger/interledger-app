@@ -2,3 +2,5 @@
 include('./../../services/cockroach/Tiltfile')
 include('./../../services/ingress/Tiltfile')
 include('./../../services/kratos/Tiltfile')
+
+include('./../../typescript/protea/Tiltfile')
