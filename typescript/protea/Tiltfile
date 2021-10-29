@@ -10,6 +10,6 @@ docker_build('protea', '.', target="dev", live_update=[
 sync_components,sync_contexts,sync_hooks,sync_lib,sync_pages,sync_public,sync_styles
 ], ignore=["deploy/"])
 
-yaml = kustomize('./deploy/base')
+yaml = kustomize('./deploy/overlays/dev')
 
 k8s_yaml(yaml)
