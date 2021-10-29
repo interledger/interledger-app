@@ -13,7 +13,7 @@ import { Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Routes } from 'components'
 
-const KRATOS_URL = process.env.NEXT_PUBLIC_ORY_KRATOS_PUBLIC || "http://127.0.0.1:4433"
+const KRATOS_URL = process.env.NEXT_PUBLIC_ORY_KRATOS_PUBLIC || "http://fynbos.test"
 
 export const kratos = new V0alpha2Api(
   new Configuration({
