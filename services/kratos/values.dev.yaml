@@ -5,6 +5,7 @@ kratos:
     enabled: false
   kratos:
     autoMigrate: true
+    development: true
     identitySchemas:
       "identity.schema.json": |
         {
@@ -44,6 +45,12 @@ kratos:
         }
     config:
       dsn: "cockroach://kratos@cockroachdb-public:26257/kratos?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslcert=/cockroach-certs/client.kratos.crt&sslkey=/cockroach-certs/client.kratos.key&sslrootcert=/cockroach-certs/ca.crt"
+
+      serve:
+        public:
+          base_url: http://fynbos.test
+          cors:
+            enabled: true
 
       selfservice:
         default_browser_return_url: http://fynbos.test
@@ -116,11 +123,11 @@ kratos:
           key_length: 16
 
       identity:
-        default_schema_url: file:///etc/config/kratos/identity.schema.json
+        default_schema_url: file:///etc/config/identity.schema.json
 
       courier:
         smtp:
-          connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
+          connection_uri: smtp://mailhog:1025/
           from_address: no-reply@fynbos.test
   ingress:
     admin:
