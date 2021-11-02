@@ -6,3 +6,8 @@ GRANT admin TO roach;
 CREATE DATABASE IF NOT EXISTS kratos;
 CREATE USER IF NOT EXISTS kratos;
 GRANT ALL ON DATABASE kratos TO kratos;
+
+-- Create backend user and DB
+CREATE DATABASE IF NOT EXISTS backend;
+CREATE USER IF NOT EXISTS backend;
+GRANT ALL ON DATABASE backend TO backend;
