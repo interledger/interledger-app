@@ -8,6 +8,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.3
+	github.com/testcontainers/testcontainers-go v0.11.1
 	github.com/vektah/gqlparser/v2 v2.2.0
 )
 
@@ -49,7 +50,6 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/testcontainers/testcontainers-go v0.11.1 // indirect
 	github.com/urfave/cli/v2 v2.1.1 // indirect
 	github.com/vektah/dataloaden v0.2.1-0.20190515034641-a19b9a6e7c9e // indirect
 	go.opencensus.io v0.23.0 // indirect

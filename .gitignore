@@ -7,3 +7,6 @@
 
 # in case someone exports kubeconfig for cluster from pulumi inside repo
 *kubeconfig.yaml
+
+# don't commit the certs created for cockroachdb
+**/certs
