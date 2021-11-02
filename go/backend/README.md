@@ -22,24 +22,22 @@ To update the auto-generated files, run
 go generate ./...
 ```
 
-## Deployment
+## Deployment to Fynbos Kind
 Dependencies:
 
 * [Kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/binaries/)
 * [ko](https://github.com/google/ko)
 * [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+* [CockroachDb](https://www.cockroachlabs.com/docs/stable/install-cockroachdb-linux.html)
 
-This uses `ko` to build docker images and push to the appropriate
-registry. This will use the `distroless/static:nonroot` image as the 
-base image which is stripped of unnecessary packages such as a shell. It
-then builds a statically linked go binary on the local machine and 
-copies it to the image.
+This will create and provision the certs required to access CRDB. `ko` is then used to build docker images and push them to the `kind` registry. The `distroless/static:nonroot` image is used as the 
+base image which is stripped of unnecessary packages such as a shell. 
 
 `Kustomize` is then used to generate yaml files to deploy. The Tiltfile
 handles using `ko` and `Kustomize` to deploy to the kind cluster. It is
 setup to watch the folder and kick off a rebuild.
 
-Local deployment is done using [tilt](../../dev/tilt).
+Deployment is done using [tilt](../../dev/tilt).
 
 ### Migrations
 Dependencies:
