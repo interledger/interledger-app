@@ -13,7 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"gitlab.com/fynbos/backend/graph/model"
+	"gitlab.com/fynbos/backend/models"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -34,6 +34,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Mutation() MutationResolver
 	Query() QueryResolver
 }
 
@@ -41,18 +42,25 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Mutation struct {
+		CreateOrganisation func(childComplexity int, name string) int
+	}
+
 	Organisation struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
 	}
 
 	Query struct {
-		Organisation func(childComplexity int) int
+		Organisation func(childComplexity int, id string) int
 	}
 }
 
+type MutationResolver interface {
+	CreateOrganisation(ctx context.Context, name string) (*models.Organisation, error)
+}
 type QueryResolver interface {
-	Organisation(ctx context.Context) (*model.Organisation, error)
+	Organisation(ctx context.Context, id string) (*models.Organisation, error)
 }
 
 type executableSchema struct {
@@ -69,6 +77,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.createOrganisation":
+		if e.complexity.Mutation.CreateOrganisation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOrganisation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOrganisation(childComplexity, args["name"].(string)), true
 
 	case "Organisation.id":
 		if e.complexity.Organisation.ID == nil {
@@ -89,7 +109,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Organisation(childComplexity), true
+		args, err := ec.field_Query_organisation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Organisation(childComplexity, args["id"].(string)), true
 
 	}
 	return 0, false
@@ -108,6 +133,20 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			}
 			first = false
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -149,7 +188,11 @@ type Organisation {
 }
 
 type Query {
-  organisation: Organisation
+  organisation (id: String!): Organisation
+}
+
+type Mutation {
+  createOrganisation (name: String!): Organisation
 }
 `, BuiltIn: false},
 }
@@ -158,6 +201,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createOrganisation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -171,6 +229,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_organisation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -212,7 +285,46 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.CollectedField, obj *model.Organisation) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createOrganisation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createOrganisation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOrganisation(rctx, args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Organisation)
+	fc.Result = res
+	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋmodelsᚐOrganisation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.CollectedField, obj *models.Organisation) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -247,7 +359,7 @@ func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Organisation_name(ctx context.Context, field graphql.CollectedField, obj *model.Organisation) (ret graphql.Marshaler) {
+func (ec *executionContext) _Organisation_name(ctx context.Context, field graphql.CollectedField, obj *models.Organisation) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -298,9 +410,16 @@ func (ec *executionContext) _Query_organisation(ctx context.Context, field graph
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_organisation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Organisation(rctx)
+		return ec.resolvers.Query().Organisation(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -309,9 +428,9 @@ func (ec *executionContext) _Query_organisation(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Organisation)
+	res := resTmp.(*models.Organisation)
 	fc.Result = res
-	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋmodelᚐOrganisation(ctx, field.Selections, res)
+	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋmodelsᚐOrganisation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1515,9 +1634,37 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** object.gotpl ****************************
 
+var mutationImplementors = []string{"Mutation"}
+
+func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Mutation",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createOrganisation":
+			out.Values[i] = ec._Mutation_createOrganisation(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var organisationImplementors = []string{"Organisation"}
 
-func (ec *executionContext) _Organisation(ctx context.Context, sel ast.SelectionSet, obj *model.Organisation) graphql.Marshaler {
+func (ec *executionContext) _Organisation(ctx context.Context, sel ast.SelectionSet, obj *models.Organisation) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, organisationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2164,7 +2311,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋmodelᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v *model.Organisation) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋmodelsᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v *models.Organisation) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

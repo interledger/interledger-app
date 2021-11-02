@@ -69,4 +69,5 @@ go test ./...
 go test ./... -run "Organisation"
 ```
 
+We test the graphql server using the go test http server and use an actual graphql client to make requests against it.
 ### Gotchas
