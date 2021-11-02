@@ -41,4 +41,32 @@ setup to watch the folder and kick off a rebuild.
 
 Local deployment is done using [tilt](../../dev/tilt).
 
+### Migrations
+Dependencies:
+* [golang-migrate](https://github.com/golang-migrate/migrate)
+* [CRDB driver](https://github.com/golang-migrate/migrate/tree/master/database/cockroachdb)
+* [File driver](github.com/golang-migrate/migrate/tree/master/source/file)
+
+Create migrations with
+```sh
+migrate create -ext sql -dir db/kodata -seq <migration name>
+```
+This will place it in the `db/kodata` folder. We name it such so that `ko` will add the migration files into the docker image.
+
+If you need to manually perform migrations first make sure that you have the required certs in the `certs` folder. Also ensure that you have access to the db. i.e. if it running in k8s then remember to port-forward. Then run
+```sh
+# from ./backend
+migrate -source file://db/kodata -database "cockroach://backend@localhost:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslkey=certs/client.backend.key&sslcert=certs/client.backend.crt&sslrootcert=certs/ca.crt" up
+```
+
+### Testing
+We use testcontainers to spin up a single-node Cockroach DB instance running with ssl disabled for **each** test file. The `backend` database is created and the migrations are applied. You can then run tests with
+
+```sh
+go test ./...
+
+# or a specific tests
+go test ./... -run "Organisation"
+```
+
 ### Gotchas
