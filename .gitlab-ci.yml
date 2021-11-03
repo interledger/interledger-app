@@ -1,3 +1,16 @@
+include:
+  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+
+# this will switch between branch and merge request pipelines
+# https://docs.gitlab.com/ee/ci/yaml/index.html#workflowrules-templates
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
 stages:
   - triggers
 
@@ -9,6 +22,9 @@ trigger_protea:
   rules:
     - changes:
         - typescript/protea/**/*
+    # we need to set the trigger job to run on merge requests
+    # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
+    - if: $CI_MERGE_REQUEST_ID
 
 trigger_infra:
   stage: triggers
@@ -18,3 +34,4 @@ trigger_infra:
   rules:
     - changes:
         - infra/**/*
+    - if: $CI_MERGE_REQUEST_ID

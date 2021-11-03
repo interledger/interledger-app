@@ -2,6 +2,8 @@ workflow:
   rules:
     - changes:
       - infra/**/*
+    # we need to configure this pipeline to run on merge requests
+    - if: $CI_MERGE_REQUEST_ID
 
 stages:
   - hello
