@@ -2,6 +2,9 @@ workflow:
   rules:
     - changes:
         - typescript/protea/**/*
+    # we need to configure this pipeline to run on merge requests
+    # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
+    - if: $CI_MERGE_REQUEST_ID
 
 stages:
   - lint
