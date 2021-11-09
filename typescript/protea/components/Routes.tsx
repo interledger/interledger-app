@@ -41,7 +41,7 @@ export enum Routes {
   interledger = 'https://interledger.org',
   openPayments = 'https://openpayments.dev',
   email = 'mailto:hello@fynbos.dev',
-  twitter = 'https://twitter.com/[handle]'
+  twitter = 'https://twitter.com/'
 }
 
 export type RouterProps = {
