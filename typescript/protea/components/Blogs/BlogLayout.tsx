@@ -5,6 +5,7 @@ import { Header } from '../Header'
 import { BackIcon, Container, Footer, Router, Routes } from 'components'
 import type { Author, BlogMeta } from 'lib/blog'
 import { DateTime } from 'luxon'
+import Link from 'next/link'
 
 type BlogLayoutProps = {
   meta: BlogMeta
@@ -61,15 +62,14 @@ const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
       <Image alt='Author profile image.' src={avatar} width='48' height='48' />
       <div className='flex flex-col flex-grow ml-3'>
         <div className='font-medium'>{name}</div>
-        <Router
-          href={{
-            pathname: Routes.twitter,
-            query: { handle: twitterHandle }
-          }}
-          aria-label='Author twitter'
-        >
-          <span className='text-primary'>@{twitterHandle}</span>
-        </Router>
+        <Link href={Routes.twitter + twitterHandle}>
+          <a
+            className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary'
+            aria-label='Author twitter'
+          >
+            <span className='text-primary'>@{twitterHandle}</span>
+          </a>
+        </Link>
       </div>
     </div>
   )
