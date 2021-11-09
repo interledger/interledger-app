@@ -8,7 +8,8 @@ k8s_yaml(secret_yaml_generic('cockroachdb.client.backend', from_file='./certs'))
 # This will make ko bundle the sql migrations as static files inside the image.
 # It is relative to the <import path> we give to ko which is "./db" folder
 ko_build('fynbos/backend-init', 'gitlab.com/fynbos/backend/db', ["./db"])
-ko_build('fynbos/backend', 'gitlab.com/fynbos/backend', ["./"])
+
+docker_build('fynbos/backend', '../', dockerfile="./Dockerfile")
 
 yaml = kustomize('./deploy/dev')
 k8s_yaml(yaml)
