@@ -22,6 +22,9 @@ export const Footer: FC = () => {
       </div>
       <div className='flex sm:h-40 flex-col space-y-2'>
         <span className='font-display font-medium mb-3'>Resources</span>
+        <Router href={Routes.blog} aria-label='Contact us'>
+          Blog
+        </Router>
         <Router href={Routes.email} aria-label='Contact us'>
           Contact us
         </Router>

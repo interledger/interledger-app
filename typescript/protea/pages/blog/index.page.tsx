@@ -4,8 +4,6 @@ import { Container, Footer, Header, Router, Routes } from 'components'
 import { FC } from 'react'
 import { DateTime } from 'luxon'
 
-// TODO: Rename file to index.page.tsx when we launch the blog
-
 type BlogPageProps = {
   posts: BlogMeta[]
 }
@@ -63,7 +61,7 @@ export const getStaticProps = async () => {
   const content = await getAllPosts()
 
   return {
-    props: { posts: content }
+    props: { posts: content || null}
   }
 }
 
