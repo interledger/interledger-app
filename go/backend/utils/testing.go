@@ -1,4 +1,4 @@
-package utils
+package test_utils
 
 import (
 	"context"
@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
@@ -68,7 +70,7 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 		return nil, err
 	}
 
-	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../kodata")
+	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../db/kodata")
 	fmt.Println("Applying migrations from file://" + migrationsPath)
 
 	m, err := migrate.New(
@@ -84,6 +86,53 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 	}
 
 	return &CockroachDBContainer{Container: container, URI: connString}, nil
+}
+
+// We use docker compose as the migrations need to be run using another container.
+func SetupKratos() (string, error) {
+	fmt.Println("Creating kratos.")
+
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", errors.New("Could not get directory path for utils/testing.")
+	}
+
+	composeFilePaths := []string{
+		filepath.Join(filepath.Dir(moduleDir), "../../../services/kratos/docker-compose-dev.yaml"),
+	}
+	identifier := strings.ToLower(uuid.New().String())
+
+	compose := testcontainers.NewLocalDockerCompose(composeFilePaths, identifier)
+	execError := compose.
+		WithCommand([]string{"up", "-d"}).
+		Invoke()
+	err := execError.Error
+	if err != nil {
+		return "", fmt.Errorf("Could not run compose file: %v - %v", composeFilePaths, err)
+	}
+
+	return identifier, nil
+}
+
+func TeardownKratos(identifier string) error {
+	fmt.Println("Tearing down kratos.")
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("Could not get directory path for utils/testing.")
+	}
+
+	composeFilePaths := []string{
+		filepath.Join(filepath.Dir(moduleDir), "../../../services/kratos/docker-compose-dev.yaml"),
+	}
+
+	compose := testcontainers.NewLocalDockerCompose(composeFilePaths, identifier)
+	execError := compose.Down()
+	err := execError.Error
+	if err != nil {
+		return fmt.Errorf("Could not run compose file: %v - %v", composeFilePaths, err)
+	}
+
+	return nil
 }
 
 func TruncateDb(ctx context.Context, db *sqlx.DB) error {
