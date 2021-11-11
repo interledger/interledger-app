@@ -6,24 +6,61 @@ package graph
 import (
 	"context"
 
+	osoErrors "github.com/osohq/go-oso/errors"
 	"gitlab.com/fynbos/backend/graph/generated"
-	"gitlab.com/fynbos/backend/models"
+	"gitlab.com/fynbos/backend/organisation"
 )
 
-func (r *mutationResolver) CreateOrganisation(ctx context.Context, name string) (*models.Organisation, error) {
-	org, err := r.Organisations.Create(name)
+func (r *mutationResolver) CreateOrganisation(ctx context.Context, name string) (*generated.OrganisationMutationResponse, error) {
+	user, err := r.User.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		ForbiddenError(ctx)
+		return nil, nil
 	}
 
-	return org, nil
+	org, err := r.Organisations.Create(name, *user)
+	if err != nil {
+		switch err.(type) {
+		case *osoErrors.NotFoundError:
+			NotFoundError(ctx)
+			return nil, nil
+		case *osoErrors.ForbiddenError:
+			ForbiddenError(ctx)
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	return &generated.OrganisationMutationResponse{
+		Code:         "200",
+		Success:      true,
+		Message:      "Created organisation.",
+		Organisation: org,
+	}, nil
 }
 
-func (r *queryResolver) Organisation(ctx context.Context, id string) (*models.Organisation, error) {
-	org, err := r.Organisations.Get(id)
-	// TODO: error handling
+func (r *queryResolver) Organisation(ctx context.Context, id string) (*organisation.Organisation, error) {
+	user, err := r.User.ForContext(ctx)
 	if err != nil {
-		return nil, err
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	org, err := r.Organisations.Get(id, *user)
+	if err != nil {
+		switch err.(type) {
+		case *osoErrors.NotFoundError:
+			NotFoundError(ctx)
+			return nil, nil
+		case *osoErrors.ForbiddenError:
+			ForbiddenError(ctx)
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
 	}
 
 	return org, nil
