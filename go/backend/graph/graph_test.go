@@ -2,28 +2,28 @@ package graph
 
 import (
 	"context"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 
-	// "github.com/stretchr/testify/assert"
-
-	"gitlab.com/fynbos/backend/db/utils"
+	"gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/graph/generated"
-	"gitlab.com/fynbos/backend/services"
+	"gitlab.com/fynbos/backend/organisation"
+	userLib "gitlab.com/fynbos/backend/user"
+	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
-func TestGraphql(t *testing.T) {
+func TestGraphql(s *testing.T) {
 	ctx := context.Background()
-	crdb, err := utils.SetupTestCockroachDB(ctx)
+	crdb, err := test_utils.SetupTestCockroachDB(ctx)
 	if err != nil {
-		t.Fatal(err)
+		s.Fatal(err)
 	}
 	defer crdb.Container.Terminate(ctx)
 
@@ -32,48 +32,101 @@ func TestGraphql(t *testing.T) {
 	db, err := sqlx.Connect("postgres", crdb.URI)
 	defer db.Close()
 
-	organisations, err := services.NewOrganisationsService(db)
+	authz, err := authorization.NewService()
 	if err != nil {
-		t.Fatal(err)
+		s.Fatal(err)
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
-		Organisations: organisations,
-	}}))
-	http.Handle("/graphql", srv)
-	server := httptest.NewServer(srv)
+	org, err := organisation.NewService(db, authz)
+	if err != nil {
+		s.Fatal(err)
+	}
+
+	users := userLib.NewMockService()
+
+	router := chi.NewRouter()
+	router.Use(userLib.MakeMiddleware(users))
+	router.Handle("/graphql", MakeHandler(org, users))
+	server := httptest.NewServer(router)
 	defer server.Close()
 
 	client := graphql.NewClient(server.URL + "/graphql")
 
-	t.Run("can create an organisation", func(tt *testing.T) {
+	s.Run("authenticated user can create an organisation", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		user := userLib.User{
+			ID: uuid.New().String(),
+		}
 		req := graphql.NewRequest(`
 		    mutation ($name: String!) {
 		        createOrganisation (name: $name) {
-		            id
-		            name
+		            code
+		            success
+		            message
+		            organisation {
+		            	id
+		            	name
+		            }
 		        }
 		    }
 		`)
 		req.Var("name", "My first graphql organisation.")
+		userLib.ActingAs(req, &user)
 
-		var respData map[string]map[string]string
+		var respData map[string]generated.OrganisationMutationResponse
 		if err := client.Run(ctx, req, &respData); err != nil {
-			tt.Fatal(err)
+			t.Fatal(err)
 		}
 
-		org, err := organisations.Get(respData["createOrganisation"]["id"])
+		org, err := org.Get(respData["createOrganisation"].Organisation.ID, user)
 		if err != nil {
-			tt.Fatal(err)
+			t.Fatal(err)
 		}
-		assert.Equal(tt, respData["createOrganisation"]["name"], "My first graphql organisation.")
-		assert.Equal(tt, org.Name, "My first graphql organisation.")
+		assert.Equal(t, "200", respData["createOrganisation"].Code)
+		assert.Equal(t, "Created organisation.", respData["createOrganisation"].Message)
+		assert.Equal(t, true, respData["createOrganisation"].Success)
+		assert.Equal(t, respData["createOrganisation"].Organisation.Name, "My first graphql organisation.")
+		assert.Equal(t, org.Name, "My first graphql organisation.")
 	})
 
-	t.Run("can get an organisation", func(tt *testing.T) {
-		org, err := organisations.Create("My second graphql organisation.")
+	s.Run("unauthenticated user can't create an organisation", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		req := graphql.NewRequest(`
+		    mutation ($name: String!) {
+		        createOrganisation (name: $name) {
+		            code
+		            success
+		            message
+		            organisation {
+		            	id
+		            	name
+		            }
+		        }
+		    }
+		`)
+		req.Var("name", "My first graphql organisation.")
+		userLib.ActingAs(req, nil)
+
+		var respData map[string]generated.OrganisationMutationResponse
+		err := client.Run(ctx, req, &respData)
+
+		assert.Error(t, err)
+	})
+
+	s.Run("user can get their organisation", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		user := userLib.User{
+			ID: uuid.New().String(),
+		}
+		org, err := org.Create("My second graphql organisation.", user)
 		if err != nil {
-			tt.Fatal(err)
+			t.Fatal(err)
 		}
 		req := graphql.NewRequest(`
 		    query ($id: String!) {
@@ -84,12 +137,45 @@ func TestGraphql(t *testing.T) {
 		    }
 		`)
 		req.Var("id", org.ID)
+		userLib.ActingAs(req, &user)
 
-		var respData map[string]map[string]string
+		var respData map[string]organisation.Organisation
 		if err := client.Run(ctx, req, &respData); err != nil {
-			tt.Fatal(err)
+			t.Fatal(err)
 		}
-		assert.Equal(tt, respData["organisation"]["name"], "My second graphql organisation.")
-		assert.Equal(tt, respData["organisation"]["id"], org.ID)
+		assert.Equal(t, respData["organisation"].Name, "My second graphql organisation.")
+		assert.Equal(t, respData["organisation"].ID, org.ID)
+	})
+
+	s.Run("user can only get their own organisation", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		me := userLib.User{
+			ID: uuid.New().String(),
+		}
+		otherUser := userLib.User{
+			ID: uuid.New().String(),
+		}
+		notMyOrg, err := org.Create("Not my organisation.", otherUser)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req := graphql.NewRequest(`
+		    query ($id: String!) {
+		        organisation (id: $id) {
+		            id
+		            name
+		        }
+		    }
+		`)
+		req.Var("id", notMyOrg.ID)
+		userLib.ActingAs(req, &me)
+
+		var respData map[string]organisation.Organisation
+		err = client.Run(ctx, req, &respData)
+
+		// oso recommends returning a not found error.
+		assert.EqualError(t, err, "graphql: Not found.")
 	})
 }

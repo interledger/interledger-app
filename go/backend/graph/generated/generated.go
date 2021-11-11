@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"gitlab.com/fynbos/backend/models"
+	"gitlab.com/fynbos/backend/organisation"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -51,16 +52,23 @@ type ComplexityRoot struct {
 		Name func(childComplexity int) int
 	}
 
+	OrganisationMutationResponse struct {
+		Code         func(childComplexity int) int
+		Message      func(childComplexity int) int
+		Organisation func(childComplexity int) int
+		Success      func(childComplexity int) int
+	}
+
 	Query struct {
 		Organisation func(childComplexity int, id string) int
 	}
 }
 
 type MutationResolver interface {
-	CreateOrganisation(ctx context.Context, name string) (*models.Organisation, error)
+	CreateOrganisation(ctx context.Context, name string) (*OrganisationMutationResponse, error)
 }
 type QueryResolver interface {
-	Organisation(ctx context.Context, id string) (*models.Organisation, error)
+	Organisation(ctx context.Context, id string) (*organisation.Organisation, error)
 }
 
 type executableSchema struct {
@@ -103,6 +111,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organisation.Name(childComplexity), true
+
+	case "OrganisationMutationResponse.code":
+		if e.complexity.OrganisationMutationResponse.Code == nil {
+			break
+		}
+
+		return e.complexity.OrganisationMutationResponse.Code(childComplexity), true
+
+	case "OrganisationMutationResponse.message":
+		if e.complexity.OrganisationMutationResponse.Message == nil {
+			break
+		}
+
+		return e.complexity.OrganisationMutationResponse.Message(childComplexity), true
+
+	case "OrganisationMutationResponse.organisation":
+		if e.complexity.OrganisationMutationResponse.Organisation == nil {
+			break
+		}
+
+		return e.complexity.OrganisationMutationResponse.Organisation(childComplexity), true
+
+	case "OrganisationMutationResponse.success":
+		if e.complexity.OrganisationMutationResponse.Success == nil {
+			break
+		}
+
+		return e.complexity.OrganisationMutationResponse.Success(childComplexity), true
 
 	case "Query.organisation":
 		if e.complexity.Query.Organisation == nil {
@@ -180,8 +216,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphql", Input: `# GraphQL schema for Fynbos control plane
-
+	{Name: "graph/schema.graphql", Input: `
 type Organisation {
   id: ID!
   name: String!
@@ -192,9 +227,21 @@ type Query {
 }
 
 type Mutation {
-  createOrganisation (name: String!): Organisation
+  createOrganisation (name: String!): OrganisationMutationResponse!
 }
-`, BuiltIn: false},
+
+interface MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type OrganisationMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  organisation: Organisation
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -317,14 +364,17 @@ func (ec *executionContext) _Mutation_createOrganisation(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.Organisation)
+	res := resTmp.(*OrganisationMutationResponse)
 	fc.Result = res
-	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋmodelsᚐOrganisation(ctx, field.Selections, res)
+	return ec.marshalNOrganisationMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐOrganisationMutationResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.CollectedField, obj *models.Organisation) (ret graphql.Marshaler) {
+func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.CollectedField, obj *organisation.Organisation) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -359,7 +409,7 @@ func (ec *executionContext) _Organisation_id(ctx context.Context, field graphql.
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Organisation_name(ctx context.Context, field graphql.CollectedField, obj *models.Organisation) (ret graphql.Marshaler) {
+func (ec *executionContext) _Organisation_name(ctx context.Context, field graphql.CollectedField, obj *organisation.Organisation) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -392,6 +442,143 @@ func (ec *executionContext) _Organisation_name(ctx context.Context, field graphq
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganisationMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *OrganisationMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganisationMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganisationMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *OrganisationMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganisationMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganisationMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *OrganisationMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganisationMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganisationMutationResponse_organisation(ctx context.Context, field graphql.CollectedField, obj *OrganisationMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganisationMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Organisation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*organisation.Organisation)
+	fc.Result = res
+	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋorganisationᚐOrganisation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organisation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -428,9 +615,9 @@ func (ec *executionContext) _Query_organisation(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Organisation)
+	res := resTmp.(*organisation.Organisation)
 	fc.Result = res
-	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋmodelsᚐOrganisation(ctx, field.Selections, res)
+	return ec.marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋorganisationᚐOrganisation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1630,6 +1817,15 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.SelectionSet, obj MutationResponse) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -1651,6 +1847,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createOrganisation":
 			out.Values[i] = ec._Mutation_createOrganisation(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -1664,7 +1863,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 var organisationImplementors = []string{"Organisation"}
 
-func (ec *executionContext) _Organisation(ctx context.Context, sel ast.SelectionSet, obj *models.Organisation) graphql.Marshaler {
+func (ec *executionContext) _Organisation(ctx context.Context, sel ast.SelectionSet, obj *organisation.Organisation) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, organisationImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -1683,6 +1882,45 @@ func (ec *executionContext) _Organisation(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organisationMutationResponseImplementors = []string{"OrganisationMutationResponse"}
+
+func (ec *executionContext) _OrganisationMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *OrganisationMutationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organisationMutationResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganisationMutationResponse")
+		case "code":
+			out.Values[i] = ec._OrganisationMutationResponse_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "success":
+			out.Values[i] = ec._OrganisationMutationResponse_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "message":
+			out.Values[i] = ec._OrganisationMutationResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "organisation":
+			out.Values[i] = ec._OrganisationMutationResponse_organisation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2015,6 +2253,20 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) marshalNOrganisationMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐOrganisationMutationResponse(ctx context.Context, sel ast.SelectionSet, v OrganisationMutationResponse) graphql.Marshaler {
+	return ec._OrganisationMutationResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOrganisationMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐOrganisationMutationResponse(ctx context.Context, sel ast.SelectionSet, v *OrganisationMutationResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._OrganisationMutationResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2311,7 +2563,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋmodelsᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v *models.Organisation) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganisation2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋorganisationᚐOrganisation(ctx context.Context, sel ast.SelectionSet, v *organisation.Organisation) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -7,9 +7,11 @@ package graph
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 import (
-	"gitlab.com/fynbos/backend/services"
+	org "gitlab.com/fynbos/backend/organisation"
+	"gitlab.com/fynbos/backend/user"
 )
 
 type Resolver struct {
-	Organisations *services.Organisations
+	Organisations org.Service
+	User          user.Service
 }

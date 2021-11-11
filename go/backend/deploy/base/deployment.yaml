@@ -66,13 +66,13 @@ spec:
           # we use the same endpoint for liveness and readiness as we are only running a graphql server
           livenessProbe:
             httpGet:
-              path: "/graphql"
+              path: "/healthz"
               port: http
               scheme: HTTP
             periodSeconds: 5
           readinessProbe:
             httpGet:
-              path: "/graphql"
+              path: "/healthz"
               port: http
               scheme: HTTP
             periodSeconds: 5

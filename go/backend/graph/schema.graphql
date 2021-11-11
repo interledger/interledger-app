@@ -1,4 +1,3 @@
-# GraphQL schema for Fynbos control plane
 
 type Organisation {
   id: ID!
@@ -10,5 +9,18 @@ type Query {
 }
 
 type Mutation {
-  createOrganisation (name: String!): Organisation
+  createOrganisation (name: String!): OrganisationMutationResponse!
+}
+
+interface MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type OrganisationMutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  organisation: Organisation
 }
