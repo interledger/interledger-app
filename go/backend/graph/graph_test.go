@@ -45,9 +45,14 @@ func TestGraphql(s *testing.T) {
 
 	users := userLib.NewMockService()
 
+	graph, err := NewService(GraphqlOpts{
+		Organisation: org,
+		User:         users,
+	})
+
 	router := chi.NewRouter()
 	router.Use(userLib.MakeMiddleware(users))
-	router.Handle("/graphql", MakeHandler(org, users))
+	router.Handle("/graphql", MakeHandler(graph, GraphqlHttpHandlerOpts{}))
 	server := httptest.NewServer(router)
 	defer server.Close()
 

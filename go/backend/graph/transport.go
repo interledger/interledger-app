@@ -2,16 +2,29 @@ package graph
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
-	"gitlab.com/fynbos/backend/graph/generated"
-	org "gitlab.com/fynbos/backend/organisation"
-	"gitlab.com/fynbos/backend/user"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 )
 
-func MakeHandler(org org.Service, user user.Service) http.Handler {
-	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
-		Org:  org,
-		User: user,
-	}}))
+type GraphqlHttpHandlerOpts struct {
+	WebSocketKeepAlivePingInterval time.Duration
+}
+
+func MakeHandler(gs *handler.Server, opts GraphqlHttpHandlerOpts) http.Handler {
+	webSocketKeepAlivePingInterval := 10 * time.Second
+	if opts.WebSocketKeepAlivePingInterval != 0 {
+		webSocketKeepAlivePingInterval = opts.WebSocketKeepAlivePingInterval
+	}
+
+	gs.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: webSocketKeepAlivePingInterval,
+	})
+	gs.AddTransport(transport.Options{})
+	gs.AddTransport(transport.GET{})
+	gs.AddTransport(transport.POST{})
+	gs.AddTransport(transport.MultipartForm{})
+
+	return gs
 }

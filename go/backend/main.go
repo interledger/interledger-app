@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
@@ -74,9 +75,21 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	graphql, err := graph.NewService(graph.GraphqlOpts{
+		Organisation:                     org,
+		User:                             users,
+		QueryCacheSize:                   1000,
+		AutomaticPersistedQueryCacheSize: 100,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	router := chi.NewRouter()
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
-	router.Handle("/graphql", user.MakeMiddleware(users)(graph.MakeHandler(org, users)))
+	router.Handle("/graphql", user.MakeMiddleware(users)(graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
+		WebSocketKeepAlivePingInterval: 10 * time.Second,
+	})))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
