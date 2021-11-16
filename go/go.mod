@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/99designs/gqlgen v0.14.0
+	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1
 	github.com/go-chi/chi v1.5.4
 	github.com/golang-migrate/migrate/v4 v4.15.1
@@ -16,7 +17,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.11.1
 	github.com/vektah/gqlparser/v2 v2.2.0
-	gotest.tools/v3 v3.0.3
 )
 
 require (
@@ -36,7 +36,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect

@@ -6,6 +6,7 @@ type Organisation {
 
 type Query {
   organisation (id: String!): Organisation
+  organisations: [Organisation]!
 }
 
 type Mutation {

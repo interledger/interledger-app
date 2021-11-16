@@ -12,6 +12,6 @@ import (
 )
 
 type Resolver struct {
-	Organisations org.Service
-	User          user.Service
+	Org  org.Service
+	User user.Service
 }

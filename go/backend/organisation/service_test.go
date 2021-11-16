@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -121,5 +122,50 @@ func TestOrganisationService(s *testing.T) {
 		}
 
 		assert.Nil(t, org)
+	})
+
+	s.Run("user can get an index of their organisations", func(t *testing.T) {
+		// TODO: pagination
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		user := user.User{
+			ID: uuid.New().String(),
+		}
+
+		// has no orgs
+		userOrgs, err := organisations.GetAllOwnedBy(user)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, 0, len(userOrgs))
+
+		// has 1 org
+		org1, err := organisations.Create(faker.Name(), user)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		userOrgs, err = organisations.GetAllOwnedBy(user)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, 1, len(userOrgs))
+		assert.Equal(t, org1.ID, userOrgs[0].ID)
+
+		// has multiple orgs
+		org2, err := organisations.Create(faker.Name(), user)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		userOrgs, err = organisations.GetAllOwnedBy(user)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, 2, len(userOrgs))
+		// ordered by created_at desc
+		assert.Equal(t, org2.ID, userOrgs[0].ID)
+		assert.Equal(t, org1.ID, userOrgs[1].ID)
 	})
 }

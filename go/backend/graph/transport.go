@@ -11,7 +11,7 @@ import (
 
 func MakeHandler(org org.Service, user user.Service) http.Handler {
 	return handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
-		Organisations: org,
-		User:          user,
+		Org:  org,
+		User: user,
 	}}))
 }

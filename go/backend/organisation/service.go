@@ -13,6 +13,7 @@ import (
 type Service interface {
 	Create(name string, user user.User) (*Organisation, error)
 	Get(id string, user user.User) (*Organisation, error)
+	GetAllOwnedBy(user user.User) ([]*Organisation, error)
 }
 
 type service struct {
@@ -77,6 +78,16 @@ func (self *service) Get(id string, user user.User) (*Organisation, error) {
 	}
 
 	return &org, nil
+}
+
+func (self service) GetAllOwnedBy(user user.User) ([]*Organisation, error) {
+	var orgs []*Organisation
+	err := self.db.Select(&orgs, "SELECT * FROM organisations WHERE owner_id=$1 ORDER BY created_at DESC", user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return orgs, nil
 }
 
 // Model
