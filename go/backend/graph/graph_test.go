@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -177,5 +178,77 @@ func TestGraphql(s *testing.T) {
 
 		// oso recommends returning a not found error.
 		assert.EqualError(t, err, "graphql: Not found.")
+	})
+
+	s.Run("user can get an index of their organisations", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		user := userLib.User{
+			ID: uuid.New().String(),
+		}
+		req := graphql.NewRequest(`
+		    query {
+		        organisations {
+		            id
+		            name
+		        }
+		    }
+		`)
+		userLib.ActingAs(req, &user)
+		var respData map[string][]organisation.Organisation
+		// no orgs
+		if err := client.Run(ctx, req, &respData); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Len(t, respData["organisations"], 0)
+
+		// multiple orgs
+		org1, err := org.Create(faker.Name(), user)
+		org2, err := org.Create(faker.Name(), user)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := client.Run(ctx, req, &respData); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Len(t, respData["organisations"], 2)
+		assert.Equal(t, respData["organisations"][0].ID, org2.ID)
+		assert.Equal(t, respData["organisations"][1].ID, org1.ID)
+	})
+
+	s.Run("user cannot only get an index of their own organisations", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		me := userLib.User{
+			ID: uuid.New().String(),
+		}
+		otherUser := userLib.User{
+			ID: uuid.New().String(),
+		}
+		_, err := org.Create("Not my organisation.", otherUser)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req := graphql.NewRequest(`
+		    query {
+		        organisations {
+		            id
+		            name
+		        }
+		    }
+		`)
+		userLib.ActingAs(req, &me)
+
+		var respData map[string][]organisation.Organisation
+		if err := client.Run(ctx, req, &respData); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Len(t, respData["organisations"], 0)
 	})
 }

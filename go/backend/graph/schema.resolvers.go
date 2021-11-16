@@ -18,7 +18,7 @@ func (r *mutationResolver) CreateOrganisation(ctx context.Context, name string) 
 		return nil, nil
 	}
 
-	org, err := r.Organisations.Create(name, *user)
+	org, err := r.Org.Create(name, *user)
 	if err != nil {
 		switch err.(type) {
 		case *osoErrors.NotFoundError:
@@ -48,7 +48,7 @@ func (r *queryResolver) Organisation(ctx context.Context, id string) (*organisat
 		return nil, nil
 	}
 
-	org, err := r.Organisations.Get(id, *user)
+	org, err := r.Org.Get(id, *user)
 	if err != nil {
 		switch err.(type) {
 		case *osoErrors.NotFoundError:
@@ -64,6 +64,22 @@ func (r *queryResolver) Organisation(ctx context.Context, id string) (*organisat
 	}
 
 	return org, nil
+}
+
+func (r *queryResolver) Organisations(ctx context.Context) ([]*organisation.Organisation, error) {
+	user, err := r.User.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	orgs, err := r.Org.GetAllOwnedBy(*user)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
+
+	return orgs, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
