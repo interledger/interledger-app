@@ -3,5 +3,13 @@ kind: Kustomization
 bases:
   - ../base
 
+patches:
+  - path: env.yaml
+    target:
+      group: "apps"
+      version: v1
+      kind: Deployment
+      name: backend
+
 resources:
 - ingress.yaml

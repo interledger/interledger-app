@@ -17,6 +17,7 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/stretchr/testify/assert"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.uber.org/zap"
 )
 
 func TestAuthenticationService(s *testing.T) {
@@ -43,10 +44,17 @@ func TestAuthenticationService(s *testing.T) {
 	}
 	apiClient := kratos.NewAPIClient(configuration)
 
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		s.Fatal(err)
+	}
+	defer logger.Sync()
+
 	user, err := NewService(apiClient)
 	if err != nil {
 		s.Fatal(err)
 	}
+	user = NewLoggingService(user, logger)
 
 	kratosCookie, identity, err := _testRegisterUser(context.Background(), "http://127.0.0.1:4433")
 	if err != nil {

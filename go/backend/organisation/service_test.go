@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.uber.org/zap"
 )
 
 // Here to avoid circular deps
@@ -58,10 +59,17 @@ func TestOrganisationService(s *testing.T) {
 		s.Fatal(err)
 	}
 
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		s.Fatal(err)
+	}
+	defer logger.Sync()
+
 	organisations, err := NewService(db, authz)
 	if err != nil {
 		s.Fatal(err)
 	}
+	organisations = NewLoggingService(organisations, logger)
 
 	s.Run("user can create an organisation", func(t *testing.T) {
 		t.Cleanup(func() {

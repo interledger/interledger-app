@@ -12,11 +12,12 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/organisation"
-	userLib "gitlab.com/fynbos/backend/user"
+	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
@@ -27,6 +28,12 @@ func TestGraphql(s *testing.T) {
 		s.Fatal(err)
 	}
 	defer crdb.Container.Terminate(ctx)
+
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		s.Fatal(err)
+	}
+	defer logger.Sync()
 
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.
@@ -42,16 +49,19 @@ func TestGraphql(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+	org = organisation.NewLoggingService(org, logger)
 
-	users := userLib.NewMockService()
+	users := _user.NewMockService()
+	users = _user.NewLoggingService(users, logger)
 
 	graph, err := NewService(GraphqlOpts{
 		Organisation: org,
 		User:         users,
 	})
+	graph = NewLoggingService(graph, logger)
 
 	router := chi.NewRouter()
-	router.Use(userLib.MakeMiddleware(users))
+	router.Use(_user.MakeMiddleware(users))
 	router.Handle("/graphql", MakeHandler(graph, GraphqlHttpHandlerOpts{}))
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -62,7 +72,7 @@ func TestGraphql(s *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
 		})
-		user := userLib.User{
+		user := _user.User{
 			ID: uuid.New().String(),
 		}
 		req := graphql.NewRequest(`
@@ -79,7 +89,7 @@ func TestGraphql(s *testing.T) {
 		    }
 		`)
 		req.Var("name", "My first graphql organisation.")
-		userLib.ActingAs(req, &user)
+		_user.ActingAs(req, &user)
 
 		var respData map[string]generated.OrganisationMutationResponse
 		if err := client.Run(ctx, req, &respData); err != nil {
@@ -115,7 +125,7 @@ func TestGraphql(s *testing.T) {
 		    }
 		`)
 		req.Var("name", "My first graphql organisation.")
-		userLib.ActingAs(req, nil)
+		_user.ActingAs(req, nil)
 
 		var respData map[string]generated.OrganisationMutationResponse
 		err := client.Run(ctx, req, &respData)
@@ -127,7 +137,7 @@ func TestGraphql(s *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
 		})
-		user := userLib.User{
+		user := _user.User{
 			ID: uuid.New().String(),
 		}
 		org, err := org.Create("My second graphql organisation.", user)
@@ -143,7 +153,7 @@ func TestGraphql(s *testing.T) {
 		    }
 		`)
 		req.Var("id", org.ID)
-		userLib.ActingAs(req, &user)
+		_user.ActingAs(req, &user)
 
 		var respData map[string]organisation.Organisation
 		if err := client.Run(ctx, req, &respData); err != nil {
@@ -157,10 +167,10 @@ func TestGraphql(s *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
 		})
-		me := userLib.User{
+		me := _user.User{
 			ID: uuid.New().String(),
 		}
-		otherUser := userLib.User{
+		otherUser := _user.User{
 			ID: uuid.New().String(),
 		}
 		notMyOrg, err := org.Create("Not my organisation.", otherUser)
@@ -176,7 +186,7 @@ func TestGraphql(s *testing.T) {
 		    }
 		`)
 		req.Var("id", notMyOrg.ID)
-		userLib.ActingAs(req, &me)
+		_user.ActingAs(req, &me)
 
 		var respData map[string]organisation.Organisation
 		err = client.Run(ctx, req, &respData)
@@ -189,7 +199,7 @@ func TestGraphql(s *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
 		})
-		user := userLib.User{
+		user := _user.User{
 			ID: uuid.New().String(),
 		}
 		req := graphql.NewRequest(`
@@ -200,7 +210,7 @@ func TestGraphql(s *testing.T) {
 		        }
 		    }
 		`)
-		userLib.ActingAs(req, &user)
+		_user.ActingAs(req, &user)
 		var respData map[string][]organisation.Organisation
 		// no orgs
 		if err := client.Run(ctx, req, &respData); err != nil {
@@ -229,10 +239,10 @@ func TestGraphql(s *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
 		})
-		me := userLib.User{
+		me := _user.User{
 			ID: uuid.New().String(),
 		}
-		otherUser := userLib.User{
+		otherUser := _user.User{
 			ID: uuid.New().String(),
 		}
 		_, err := org.Create("Not my organisation.", otherUser)
@@ -247,7 +257,7 @@ func TestGraphql(s *testing.T) {
 		        }
 		    }
 		`)
-		userLib.ActingAs(req, &me)
+		_user.ActingAs(req, &me)
 
 		var respData map[string][]organisation.Organisation
 		if err := client.Run(ctx, req, &respData); err != nil {
