@@ -38,8 +38,8 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 	}
 
 	svc := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
-		Organisations: opts.Organisation,
-		User:          opts.User,
+		Org:  opts.Organisation,
+		User: opts.User,
 	}}))
 	svc.SetQueryCache(lru.New(int(queryCacheSize)))
 	svc.Use(extension.Introspection{})

@@ -83,6 +83,10 @@ spec:
               value: "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"
             - name: KRATOS_URL
               value: "http://kratos-public"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: LOG_OUTPUT_PATH
+              value: "./logs.txt"
           volumeMounts:
           - name: cockroach-certs
             mountPath: "/cockroach-certs"
