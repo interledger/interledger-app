@@ -81,6 +81,8 @@ spec:
             - name: DB_URL
               # don't specify the ssl certs here. The application will read them in from file and inline them.
               value: "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"
+            - name: KRATOS_URL
+              value: "http://kratos-public"
           volumeMounts:
           - name: cockroach-certs
             mountPath: "/cockroach-certs"
