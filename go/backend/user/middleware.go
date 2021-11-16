@@ -2,26 +2,22 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 )
 
 func MakeMiddleware(us Service) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			c, err := r.Cookie("cookie")
-
-			// Don't allow unauthorised requests.
-			if err != nil || c == nil {
-				w.WriteHeader(401)
-				fmt.Fprintf(w, "Unauthorized.")
-				return
-			}
-
-			user, err := us.GetUser(c)
+			user, err := us.GetUser(*r)
 			if err != nil {
-				http.Error(w, "Invalid cookie", http.StatusForbidden)
-				return
+				switch err.(type) {
+				case *NoCookieError:
+					http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+					return
+				default:
+					http.Error(w, "Invalid cookie.", http.StatusForbidden)
+					return
+				}
 			}
 
 			// put it in context

@@ -17,19 +17,21 @@ type contextKey struct {
 }
 
 type Service interface {
-	GetUser(cookie *http.Cookie) (*User, error)
+	GetUser(request http.Request) (*User, error)
 	ForContext(ctx context.Context) (*User, error)
 }
 
 type service struct {
-	kratos        *kratos.APIClient
-	kratosTimeout time.Duration
+	kratos           *kratos.APIClient
+	kratosTimeout    time.Duration
+	kratosCookieName string
 }
 
 func NewService(kratosClient *kratos.APIClient) (Service, error) {
 	return &service{
-		kratos:        kratosClient,
-		kratosTimeout: 500 * time.Millisecond,
+		kratos:           kratosClient,
+		kratosTimeout:    500 * time.Millisecond,
+		kratosCookieName: "ory_kratos_session",
 	}, nil
 }
 
@@ -43,22 +45,23 @@ func (self *service) ForContext(ctx context.Context) (*User, error) {
 }
 
 // This will call out to Kratos to check if the session is valid.
-func (self *service) GetUser(cookie *http.Cookie) (*User, error) {
-	if cookie != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(self.kratosTimeout))
-		defer cancel()
-
-		session, _, err := self.kratos.V0alpha2Api.ToSession(ctx).Cookie(cookie.Value).Execute()
-		if err != nil {
-			return nil, err
-		}
-		user := User{
-			ID: session.Identity.Id,
-		}
-		return &user, nil
+func (self *service) GetUser(r http.Request) (*User, error) {
+	c, err := r.Cookie(self.kratosCookieName)
+	if err != nil || c == nil {
+		return nil, &NoCookieError{}
 	}
 
-	return nil, nil
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(self.kratosTimeout))
+	defer cancel()
+
+	session, _, err := self.kratos.V0alpha2Api.ToSession(ctx).Cookie(self.kratosCookieName + "=" + c.Value).Execute()
+	if err != nil {
+		return nil, err
+	}
+	user := User{
+		ID: session.Identity.Id,
+	}
+	return &user, nil
 }
 
 // Model
@@ -71,4 +74,16 @@ type NoUserFoundError struct{}
 
 func (r NoUserFoundError) Error() string {
 	return "No user found."
+}
+
+type NoCookieError struct{}
+
+func (e NoCookieError) Error() string {
+	return "Cookie not found."
+}
+
+type InvalidCookieError struct{}
+
+func (e InvalidCookieError) Error() string {
+	return "Invalid cookie."
 }

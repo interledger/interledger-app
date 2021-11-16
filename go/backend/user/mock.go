@@ -11,9 +11,16 @@ import (
 
 type mockService struct{}
 
-func (self *mockService) GetUser(cookie *http.Cookie) (*User, error) {
+var _testCookieName string = "test-cookie"
+
+func (self *mockService) GetUser(r http.Request) (*User, error) {
+	c, err := r.Cookie(_testCookieName)
+	if err != nil || c == nil {
+		return nil, &NoCookieError{}
+	}
+
 	user := User{}
-	unescapedCookie, err := url.QueryUnescape(cookie.Value)
+	unescapedCookie, err := url.QueryUnescape(c.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +51,10 @@ func ActingAs(req *graphql.Request, user *User) error {
 		}
 
 		cookie := http.Cookie{
-			Name:  "cookie",
+			Name:  _testCookieName,
 			Value: url.QueryEscape(string(b)),
 		}
-		req.Header.Set("cookie", cookie.String())
+		req.Header.Add("Cookie", cookie.String())
 
 		return nil
 	}
