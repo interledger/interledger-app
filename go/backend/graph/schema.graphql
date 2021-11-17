@@ -2,6 +2,7 @@
 type Organisation {
   id: ID!
   name: String!
+  verified: Boolean!
 }
 
 type Query {

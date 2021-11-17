@@ -94,6 +94,7 @@ func (self service) GetAllOwnedBy(user user.User) ([]*Organisation, error) {
 type Organisation struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
+	Verified  bool   `json:"verified"`
 	OwnerID   string `db:"owner_id"` // for simplicity we store the owner here for now
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
