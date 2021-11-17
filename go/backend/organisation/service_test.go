@@ -84,6 +84,7 @@ func TestOrganisationService(s *testing.T) {
 
 		assert.Equal(t, "My first organisation.", org.Name)
 		assert.Equal(t, user.ID, org.OwnerID) // ensure the owner is set.
+		assert.Equal(t, false, org.Verified)  // ensure verified is false by default.
 		assert.Equal(t, org, &orgFromDb)
 	})
 

@@ -49,8 +49,9 @@ type ComplexityRoot struct {
 	}
 
 	Organisation struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Verified func(childComplexity int) int
 	}
 
 	OrganisationMutationResponse struct {
@@ -114,6 +115,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organisation.Name(childComplexity), true
+
+	case "Organisation.verified":
+		if e.complexity.Organisation.Verified == nil {
+			break
+		}
+
+		return e.complexity.Organisation.Verified(childComplexity), true
 
 	case "OrganisationMutationResponse.code":
 		if e.complexity.OrganisationMutationResponse.Code == nil {
@@ -230,6 +238,7 @@ var sources = []*ast.Source{
 type Organisation {
   id: ID!
   name: String!
+  verified: Boolean!
 }
 
 type Query {
@@ -296,7 +305,7 @@ func (ec *executionContext) field_Query_organisation_args(ctx context.Context, r
 	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -453,6 +462,41 @@ func (ec *executionContext) _Organisation_name(ctx context.Context, field graphq
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organisation_verified(ctx context.Context, field graphql.CollectedField, obj *organisation.Organisation) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organisation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Verified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OrganisationMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *OrganisationMutationResponse) (ret graphql.Marshaler) {
@@ -1925,6 +1969,11 @@ func (ec *executionContext) _Organisation(ctx context.Context, sel ast.Selection
 			}
 		case "name":
 			out.Values[i] = ec._Organisation_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verified":
+			out.Values[i] = ec._Organisation_verified(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
