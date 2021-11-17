@@ -233,7 +233,7 @@ type Organisation {
 }
 
 type Query {
-  organisation (id: String!): Organisation
+  organisation (id: ID!): Organisation
   organisations: [Organisation]!
 }
 
