@@ -130,7 +130,7 @@ func TestGraphql(s *testing.T) {
 			t.Fatal(err)
 		}
 		req := graphql.NewRequest(`
-		    query ($id: String!) {
+		    query ($id: ID!) {
 		        organisation (id: $id) {
 		            id
 		            name
@@ -163,7 +163,7 @@ func TestGraphql(s *testing.T) {
 			t.Fatal(err)
 		}
 		req := graphql.NewRequest(`
-		    query ($id: String!) {
+		    query ($id: ID!) {
 		        organisation (id: $id) {
 		            id
 		            name
