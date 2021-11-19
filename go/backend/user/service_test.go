@@ -8,6 +8,7 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 
 	"time"
@@ -19,6 +20,12 @@ import (
 )
 
 func TestAuthenticationService(s *testing.T) {
+	// Adding this flag so that this test can be
+	// disabled in CI. Our docker image doesn't have
+	// docker-compose and so will fail in CI.
+	if os.Getenv("TEST_INTEGRATION") == "" {
+		s.SkipNow()
+	}
 	identifier, err := test_utils.SetupKratos()
 	if err != nil {
 		s.Fatal(err)

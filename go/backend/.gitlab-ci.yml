@@ -1,0 +1,42 @@
+variables:
+  BACKEND_PATH: $CI_PROJECT_DIR/go/backend
+  DOCKER_CONTEXT: $CI_PROJECT_DIR/go
+  BACKEND_IMAGE: fynbos/backend
+
+before_script:
+  - docker info
+
+# TODO: enable when we have container registry
+# install-backend:
+#   stage: install
+#   script:
+#     - DOCKER_BUILDKIT=1 docker build -t $BACKEND_IMAGE:dev --target dev -f $BACKEND_PATH/Dockerfile $DOCKER_CONTEXT
+#   interruptible: true
+
+# lint-backend:
+#   stage: lint
+#   script:
+#     - docker run $BACKEND_IMAGE:dev lint
+#   interruptible: true
+#   needs:
+#     - install-backend
+
+test-backend:
+  stage: test
+  script:
+    - DIND_IP=$(cat /etc/hosts | awk '{if ($2 == "docker") print $1;}')
+    # performing all steps here for now until ecr is set up
+    - DOCKER_BUILDKIT=1 docker build -t $BACKEND_IMAGE:dev --target dev -f $BACKEND_PATH/Dockerfile $DOCKER_CONTEXT
+    - docker run $BACKEND_IMAGE:dev lint
+    # connect to docker dind network and tell Testcontainers to use dind as remote host.
+    - docker run --network host --env DOCKER_HOST=tcp://$DIND_IP:2375 $BACKEND_IMAGE:dev test
+    - DOCKER_BUILDKIT=1 docker build -t $BACKEND_IMAGE -f $BACKEND_PATH/Dockerfile $DOCKER_CONTEXT
+  interruptible: true
+
+# build-backend:
+#   stage: build
+#   script:
+#     - DOCKER_BUILDKIT=1 docker build -t $BACKEND_IMAGE -f $BACKEND_PATH/Dockerfile $DOCKER_CONTEXT
+#   interruptible: true
+#   needs:
+#     - test-backend

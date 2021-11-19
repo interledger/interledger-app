@@ -35,3 +35,13 @@ trigger_infra:
     - changes:
         - infra/**/*
     - if: $CI_MERGE_REQUEST_ID
+
+trigger_go:
+  stage: triggers
+  trigger:
+    include: go/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+        - go/**/*
+    - if: $CI_MERGE_REQUEST_ID
