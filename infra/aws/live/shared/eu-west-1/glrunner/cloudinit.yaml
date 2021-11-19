@@ -20,9 +20,13 @@ write_files:
         executor = "docker+machine"
         limit = 3
         [runners.docker]
-          image = "alpine"
+          tls_verify = false
+          image = "docker:19.03.12"
           privileged = true
-          disable_cache = true
+          disable_cache = false
+          volumes = ["/cache"]
+        [runners.cache]
+          Insecure = false
         [runners.machine]
             IdleCount = 0
             IdleTime = 60
