@@ -4,12 +4,13 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
+	"os"
+	"text/template"
+
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/autoscaling"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"os"
-	"text/template"
 )
 
 func main() {
@@ -42,13 +43,25 @@ func main() {
 			return outputs
 		}).(pulumi.StringArrayOutput)
 
-		// Create a Role and instance profile
-		role, err := CreateRole(ctx, ebsKmsKeyArn)
+		// Create a runner role and instance profile
+		runnerRole, err := CreateRunnerRole(ctx)
 		if err != nil {
 			return err
 		}
-		instanceProfile, err := iam.NewInstanceProfile(ctx, "gl-runner-manager", &iam.InstanceProfileArgs{
-			Role: role.Name,
+		runnerInstanceProfile, err := iam.NewInstanceProfile(ctx, "gl-runner-instance", &iam.InstanceProfileArgs{
+			Role: runnerRole.Name,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Create a manager role and instance profile
+		managerRole, err := CreateManagerRole(ctx, ebsKmsKeyArn, runnerRole)
+		if err != nil {
+			return err
+		}
+		managerInstanceProfile, err := iam.NewInstanceProfile(ctx, "gl-runner-manager", &iam.InstanceProfileArgs{
+			Role: managerRole.Name,
 		})
 		if err != nil {
 			return err
@@ -150,13 +163,19 @@ func main() {
 			ImageId:      pulumi.String(ami.ImageId),
 			InstanceType: pulumi.String("t2.nano"),
 			IamInstanceProfile: &ec2.LaunchTemplateIamInstanceProfileArgs{
-				Arn: instanceProfile.Arn,
+				Arn: managerInstanceProfile.Arn,
 			},
-			UserData: cloudInitData(gitlabToken, vpcId, privateSubnet, sg.Name),
+			UserData: cloudInitData(cloudInitDataArgs{
+				Token:             gitlabToken,
+				VpcId:             vpcId,
+				SubnetId:          privateSubnet,
+				SgName:            sg.Name,
+				RunnerProfileName: runnerInstanceProfile.Name,
+			}),
 			VpcSecurityGroupIds: pulumi.StringArray{
 				managerSg.ID(),
 			},
-			Tags:		pulumi.StringMap{"Name": pulumi.String("gl-manager")},
+			Tags: pulumi.StringMap{"Name": pulumi.String("gl-manager")},
 		})
 		if err != nil {
 			return err
@@ -178,34 +197,51 @@ func main() {
 	})
 }
 
-func cloudInitData(token string, vpcId pulumi.StringOutput, subnetId pulumi.StringOutput, sgName pulumi.StringOutput) pulumi.StringOutput {
+type cloudInitDataArgs struct {
+	Token             string
+	VpcId             pulumi.StringOutput
+	SubnetId          pulumi.StringOutput
+	SgName            pulumi.StringOutput
+	RunnerProfileName pulumi.StringOutput
+}
+
+func cloudInitData(
+	opts cloudInitDataArgs,
+) pulumi.StringOutput {
 	type Data struct {
-		GitlabToken string
-		AwsRegion   string
-		AwsVpcId    string
-		AwsSubnetId string
-		SgName      string
+		GitlabToken       string
+		AwsRegion         string
+		AwsVpcId          string
+		AwsSubnetId       string
+		SgName            string
+		RunnerProfileName string
 	}
-	return pulumi.All(vpcId, subnetId, sgName).ApplyT(func(args []interface{}) (string, error) {
+	return pulumi.All(
+		opts.VpcId,
+		opts.SubnetId,
+		opts.SgName,
+		opts.RunnerProfileName,
+	).ApplyT(
+		func(args []interface{}) (string, error) {
+			data := Data{
+				GitlabToken:       opts.Token,
+				AwsRegion:         "eu-west-1",
+				AwsVpcId:          args[0].(string),
+				AwsSubnetId:       args[1].(string),
+				SgName:            args[2].(string),
+				RunnerProfileName: args[3].(string),
+			}
 
-		data := Data{
-			GitlabToken: token,
-			AwsRegion:   "eu-west-1",
-			AwsVpcId:    args[0].(string),
-			AwsSubnetId: args[1].(string),
-			SgName:      args[2].(string),
-		}
+			tmp, err := template.ParseFiles("./cloudinit.yaml")
+			if err != nil {
+				return "", err
+			}
+			document := &bytes.Buffer{}
+			err = tmp.Execute(document, data)
+			if err != nil {
+				return "", err
+			}
 
-		tmp, err := template.ParseFiles("./cloudinit.yaml")
-		if err != nil {
-			return "", err
-		}
-		document := &bytes.Buffer{}
-		err = tmp.Execute(document, data)
-		if err != nil {
-			return "", err
-		}
-
-		return b64.StdEncoding.EncodeToString(document.Bytes()), nil
-	}).(pulumi.StringOutput)
+			return b64.StdEncoding.EncodeToString(document.Bytes()), nil
+		}).(pulumi.StringOutput)
 }
