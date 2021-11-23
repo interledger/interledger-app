@@ -43,6 +43,7 @@ write_files:
               "amazonec2-private-address-only=true",
               "amazonec2-tags=runner-manager-name,gitlab-aws-autoscaler,gitlab,true,gitlab-runner-autoscale,true",
               "amazonec2-instance-type=m5d.large",
+              "amazonec2-iam-instance-profile={{.RunnerProfileName}}",
               "engine-install-url=https://releases.rancher.com/install-docker/19.03.15.sh",
             ]
 
