@@ -19,12 +19,13 @@ write_files:
         token = "{{.GitlabToken}}"
         executor = "docker+machine"
         limit = 3
+        environment = ["DOCKER_AUTH_CONFIG={ \"credsStore\": \"ecr-login\" }"]
         [runners.docker]
           tls_verify = false
           image = "docker:19.03.12"
           privileged = true
           disable_cache = false
-          volumes = ["/cache"]
+          volumes = ["/cache", "/usr/bin/docker-credential-ecr-login:/usr/bin/docker-credential-ecr-login"]
         [runners.cache]
           Insecure = false
         [runners.machine]
@@ -46,9 +47,20 @@ write_files:
               "amazonec2-iam-instance-profile={{.RunnerProfileName}}",
               "engine-install-url=https://releases.rancher.com/install-docker/19.03.15.sh",
             ]
+  - owner: root:root
+    path: /root/.docker/config.json
+    content: |
+      { "credsStore": "ecr-login" }
+  - owner: root:root
+    path: /root/.aws/config
+    content: |
+      [default]
+      region={{.AwsRegion}}
+    append: true
 
 runcmd:
   - 'amazon-linux-extras install docker'
+  - 'yum -y install amazon-ecr-credential-helper'
   - 'usermod -a -G docker ec2-user'
   - 'systemctl enable docker'
   - 'systemctl start docker'
