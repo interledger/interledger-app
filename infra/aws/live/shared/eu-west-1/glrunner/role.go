@@ -36,6 +36,9 @@ func CreateManagerRole(ctx *pulumi.Context, ebsKmsKeyArn pulumi.StringOutput, ru
 	role, err := iam.NewRole(ctx, "gl-runner-manager", &iam.RoleArgs{
 		Path:             pulumi.String("/"),
 		AssumeRolePolicy: pulumi.String(instanceAssumeRolePolicy.Json),
+		ManagedPolicyArns: pulumi.StringArray{
+			pulumi.String("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"),
+		},
 		InlinePolicies: iam.RoleInlinePolicyArray{
 			iam.RoleInlinePolicyArgs{
 				Name:   pulumi.String("ebsKmsKeyAccessPolicy"),

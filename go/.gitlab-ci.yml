@@ -6,12 +6,9 @@ workflow:
     - if: $CI_MERGE_REQUEST_ID
 
 stages:
-  - install
-  - lint
-  - test
-  - build
-
-image: docker:19.03.12
+  - build-base
+  - validate-base
+  - publish
 
 # DinD service is required for Testcontainers
 services:

@@ -1,0 +1,8 @@
+FROM docker:19.03.12 as builder
+
+RUN apk add go git
+RUN go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
+RUN mv ~/go/bin/docker-credential-ecr-login /bin/docker-credential-ecr-login
+
+FROM docker:19.03.12
+COPY --from=builder /bin/docker-credential-ecr-login /bin

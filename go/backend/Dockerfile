@@ -1,18 +1,15 @@
 # cant use alpine as we need glibc for CGO
-FROM golang:1.17 AS deps
+FROM golang:1.17 AS base
 
 WORKDIR /build
 
 # Fetch dependencies.
 COPY go.mod go.sum ./
 RUN go mod download
-
-FROM deps as dev
-
 COPY backend ./backend
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
-FROM dev as builder
+FROM base as builder
 
 RUN go build -o main ./backend/main.go
 
