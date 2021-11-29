@@ -1,6 +1,7 @@
 import {
   ApolloClient,
   HttpLink,
+  ApolloLink,
   InMemoryCache,
   from
 } from '@apollo/client'
@@ -22,11 +23,23 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (networkError) console.log(`[Network error]: ${networkError}`)
 })
 
+const previewMiddleware = new ApolloLink((operation, forward) => {
+  const context = operation.getContext()
+  operation.setContext(({ headers = {} }) => ({
+    headers: {
+      ...headers,
+      'fynbos-preview': context.preview || true
+    }
+  }))
+
+  return forward(operation)
+})
+
 const Link = new HttpLink({
   uri: typeof window === 'undefined' ? APOLLO_URL_SERVER : APOLLO_URL
 })
 
 export const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
-  link: from([errorLink, Link])
+  link: from([errorLink, previewMiddleware, Link])
 })
