@@ -7,10 +7,11 @@ import type {
 import { getSession } from 'lib/kratos'
 import { Session } from '@ory/kratos-client'
 import { Dashboard, redirect, Routes } from 'components'
+import { getOrgsForDashboard, OrgsForDashboard } from 'lib/dashboard'
 
 const ProfilePage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ session }) => {
+> = ({ session, orgsForDashboard, preview }) => {
   return (
     <Dashboard route={Routes.profile}>
       <span className='text-4xl font-display font-medium'>Overview</span>
@@ -39,6 +40,8 @@ export default ProfilePage
 
 type ProfilePageProps = {
   session: Session
+  orgsForDashboard: OrgsForDashboard
+  preview: boolean
 }
 
 export const getServerSideProps: GetServerSideProps = async (
@@ -52,9 +55,19 @@ export const getServerSideProps: GetServerSideProps = async (
   const { flow: flowId } = context.query
   if (flowId) return redirect(`${Routes.profilePassword}?flow=${flowId}`)
 
+  const orgsForDashboard = await getOrgsForDashboard(context)
+  if ('redirect' in orgsForDashboard) {
+    return orgsForDashboard
+  }
+
+  // Profile page can't be in preview as it's not under an org.
+  const preview = false
+
   return {
     props: {
       session,
+      orgsForDashboard,
+      preview
     }
   }
 }
