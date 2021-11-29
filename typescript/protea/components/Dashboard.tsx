@@ -61,15 +61,22 @@ type SideNavProps = {
   preview: boolean
 }
 
-// TODO: Get options from backend.
-const options = [
+const WalletSubPages = [
   {
-    id: '1234',
-    name: 'GateHub'
+    name: 'Accounts',
+    pathname: Routes.organisationWalletAccounts
   },
   {
-    id: '2341',
-    name: "Bob's biscuits"
+    name: 'Transactions',
+    pathname: Routes.organisationWalletTransactions
+  },
+  {
+    name: 'Risk',
+    pathname: Routes.organisationWalletRisk
+  },
+  {
+    name: 'Operations',
+    pathname: Routes.organisationWalletOperations
   }
 ]
 
@@ -147,6 +154,20 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
             >
               Wallet
             </NavListItem>
+            <SubNavList>
+              {WalletSubPages.map((item, index) => (
+                <SubNavListItem
+                  key={index}
+                  orgId={orgsForDashboard.currentOrg!.id}
+                  route={route}
+                  pathname={item.pathname}
+                  icon={<ListItemActiveIcon />}
+                  lastItem={index == WalletSubPages.length - 1}
+                >
+                  {item.name}
+                </SubNavListItem>
+              ))}
+            </SubNavList>
           </>
         )}
         {!orgsForDashboard.currentOrg && (
@@ -226,6 +247,64 @@ const NavListItem: FC<NavListItemProps> = ({
       >
         {icon && <div className='mr-2'>{icon}</div>}
         {children}
+      </li>
+    </Router>
+  )
+}
+
+const SubNavList: FC = ({ children }) => {
+  return <ul className='flex flex-col'>{children}</ul>
+}
+
+type SubNavListItemProps = {
+  icon?: React.ReactNode
+  pathname: Routes
+  orgId?: string
+  route?: Routes
+  lastItem?: boolean
+}
+
+const SubNavListItem: FC<SubNavListItemProps> = ({
+  children,
+  icon,
+  route,
+  pathname,
+  orgId,
+  lastItem
+}) => {
+  const href =
+    typeof orgId == 'string'
+      ? { pathname: pathname, query: { orgId: orgId } }
+      : pathname
+  return (
+    <Router href={href}>
+      <li
+        className={`relative flex justify-start items-center h-12 p-2 mb-0 hover:bg-base-hover cursor-pointer ${
+          route == pathname ? 'text-primary' : 'text-medium'
+        }`}
+      >
+        {icon && (
+          <div
+            className={`mr-2 z-20 ${
+              route == pathname ? 'text-primary' : 'text-transparent'
+            }`}
+          >
+            {icon}
+          </div>
+        )}
+        {children}
+        {!lastItem && (
+          <span
+            className='absolute top-[14px] left-5 -ml-px h-full w-0.5 bg-gray-300 z-10'
+            aria-hidden='true'
+          />
+        )}
+        {lastItem && (
+          <span
+            className='absolute bottom-[14px] left-5 -ml-px h-full w-0.5 bg-gray-300 z-10'
+            aria-hidden='true'
+          />
+        )}
       </li>
     </Router>
   )
