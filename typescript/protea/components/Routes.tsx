@@ -35,7 +35,12 @@ export enum Routes {
   organisationIntegration = '/organisation/[orgId]/integration',
   organisationSettings = '/organisation/[orgId]/settings',
   organisationGateway = '/organisation/[orgId]/gateway',
+
   organisationWallet = '/organisation/[orgId]/wallet',
+  organisationWalletAccounts = '/organisation/[orgId]/wallet/accounts',
+  organisationWalletTransactions = '/organisation/[orgId]/wallet/transactions',
+  organisationWalletRisk = '/organisation/[orgId]/wallet/risk',
+  organisationWalletOperations = '/organisation/[orgId]/wallet/operations',
 
   //
   // External

@@ -74,6 +74,11 @@ export const GatewayIcon = () => (
   </IconBase>
 )
 
+export const ListItemActiveIcon = () => (
+  <IconBase>
+    <rect width='2' height='20' transform='matrix(-1 0 0 1 13 2)' />
+  </IconBase>
+)
 
 export const NextIcon = () => (
   <IconBase>
