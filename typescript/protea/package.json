@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "generate": "graphql-codegen --config codegen.yml",
+    "generate:watch": "graphql-codegen --watch --config codegen.yml"
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",

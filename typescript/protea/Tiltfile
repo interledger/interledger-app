@@ -5,9 +5,12 @@ sync_lib = sync('./lib', '/app/lib')
 sync_pages = sync('./pages', '/app/pages')
 sync_public = sync('./public', '/app/public')
 sync_styles = sync('./styles', '/app/styles')
+sync_generated = sync('./generated', '/app/generated')
+
+local_resource('generate watch', serve_cmd='yarn generate:watch')
 
 docker_build('protea', '.', target="dev", live_update=[
-sync_components,sync_contexts,sync_hooks,sync_lib,sync_pages,sync_public,sync_styles
+sync_components,sync_contexts,sync_hooks,sync_lib,sync_pages,sync_public,sync_styles,sync_generated
 ], ignore=["deploy/"])
 
 yaml = kustomize('./deploy/overlays/dev')
