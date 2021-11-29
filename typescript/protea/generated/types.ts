@@ -55,6 +55,13 @@ export type QueryOrganisationArgs = {
   id: Scalars['ID'];
 };
 
+export type GetOrgsForDashboardQueryVariables = Exact<{
+  id: Scalars['ID'];
+}>;
+
+
+export type GetOrgsForDashboardQuery = { __typename?: 'Query', organisation?: { __typename?: 'Organisation', id: string, name: string, verified: boolean } | null | undefined, organisations: Array<{ __typename?: 'Organisation', id: string, name: string } | null | undefined> };
+
 export type CreateOrganisationMutationVariables = Exact<{
   name: Scalars['String'];
 }>;
@@ -68,6 +75,20 @@ export type GetOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
 export type GetOrganisationsQuery = { __typename?: 'Query', organisations: Array<{ __typename?: 'Organisation', id: string, name: string } | null | undefined> };
 
 
+export const GetOrgsForDashboardDocument = gql`
+    query GetOrgsForDashboard($id: ID!) {
+  organisation(id: $id) {
+    id
+    name
+    verified
+  }
+  organisations {
+    id
+    name
+  }
+}
+    `;
+export type GetOrgsForDashboardQueryResult = Apollo.QueryResult<GetOrgsForDashboardQuery, GetOrgsForDashboardQueryVariables>;
 export const CreateOrganisationDocument = gql`
     mutation CreateOrganisation($name: String!) {
   createOrganisation(name: $name) {
