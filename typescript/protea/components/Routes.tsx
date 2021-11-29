@@ -1,6 +1,7 @@
 import { ParsedUrlQueryInput } from 'querystring'
 import { FC } from 'react'
 import Link from 'next/link'
+import { Redirect } from 'next'
 
 /**
  * Predefined routes that allow for consistent routing.
@@ -72,4 +73,18 @@ export const Router: FC<RouterProps> = ({ children, href, ...rest }) => {
       </a>
     </Link>
   )
+}
+
+/**
+ * Redirects to the given route. To be used in getServerSideProps.
+ * @param destination The destination of the redirect.
+ * @returns A redirect to the destination.
+ */
+export const redirect = (destination: string): { redirect: Redirect } => {
+  return {
+    redirect: {
+      destination,
+      permanent: false
+    }
+  }
 }
