@@ -74,6 +74,13 @@ export const GatewayIcon = () => (
   </IconBase>
 )
 
+
+export const NextIcon = () => (
+  <IconBase>
+    <path d='M10.0201 6L8.61011 7.41L13.1901 12L8.61011 16.59L10.0201 18L16.0201 12L10.0201 6Z' />
+  </IconBase>
+)
+
 export const IntegrationIcon = () => (
   <IconBase>
     <path d='M20 14C21.1046 14 22 13.1046 22 12C22 10.8954 21.1046 10 20 10C18.8954 10 18 10.8954 18 12C18 13.1046 18.8954 14 20 14Z' />
