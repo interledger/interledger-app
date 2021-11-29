@@ -15,29 +15,29 @@ import {
   WalletIcon
 } from './icons'
 import { Switch } from './Switch'
+import type { OrgsForDashboard } from 'lib/dashboard'
 
 type DashboardProps = {
   className?: string
   route?: Routes
-  orgId?: string
+  orgsForDashboard: OrgsForDashboard
   isTest?: boolean
 }
 
 export const Dashboard: FC<DashboardProps> = ({
   children,
-  className,
-  orgId,
   route,
-  isTest
+  orgsForDashboard,
 }) => {
   return (
     <>
       <div className='hidden sm:flex'>
-        <SideNav route={route} orgId={orgId} />
-        <div className='grid grid-cols-6 p-6 w-full h-screen overflow-auto gap-6'>
-          <div className='col-start-1 col-span-full row-span-full bg-base'>
-            {children}
-          </div>
+        <SideNav
+          route={route}
+          orgsForDashboard={orgsForDashboard}
+        />
+        <div className='flex flex-col max-w-3xl p-8 w-full h-screen overflow-auto'>
+          {children}
         </div>
       </div>
       {/* Hide the dashboard on mobile. */}
@@ -54,7 +54,7 @@ export const Dashboard: FC<DashboardProps> = ({
 
 type SideNavProps = {
   route?: Routes
-  orgId?: string
+  orgsForDashboard: OrgsForDashboard
 }
 
 // TODO: Get options from backend.
@@ -69,7 +69,7 @@ const options = [
   }
 ]
 
-const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
+const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard }) => {
   const router = useRouter()
   const [enabled, setEnabled] = useState(false)
   const [selected, setSelected] = useState(
@@ -87,25 +87,11 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
           <Logo className='h-8 mb-4 ml-2 mt-2' />
         </Router>
         {/* If on an org page */}
-        {orgId && (
+        {orgsForDashboard.currentOrg && (
           <>
-            <Select
-              selected={selected}
-              options={options}
-              onChange={(selected: any) => {
-                if (selected.id === 'add-organisation') {
-                  router.push(Routes.organisation)
-                } else {
-                  router.push({
-                    pathname: route,
-                    query: { orgId: selected.id }
-                  })
-                }
-                setSelected(selected)
-              }}
-            />
+            <Select route={route} orgsForDashboard={orgsForDashboard} />
             <NavListItem
-              orgId={orgId}
+              orgId={orgsForDashboard.currentOrg.id}
               route={route}
               pathname={Routes.organisationOverview}
               icon={<DashboardIcon />}
@@ -113,7 +99,7 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
               Overview
             </NavListItem>
             <NavListItem
-              orgId={orgId}
+              orgId={orgsForDashboard.currentOrg.id}
               route={route}
               pathname={Routes.organisationIntegration}
               icon={<IntegrationIcon />}
@@ -121,7 +107,7 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
               Integration
             </NavListItem>
             <NavListItem
-              orgId={orgId}
+              orgId={orgsForDashboard.currentOrg.id}
               route={route}
               pathname={Routes.organisationSettings}
               icon={<SettingsIcon />}
@@ -132,7 +118,7 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
               products
             </li>
             <NavListItem
-              orgId={orgId}
+              orgId={orgsForDashboard.currentOrg.id}
               route={route}
               pathname={Routes.organisationGateway}
               icon={<GatewayIcon />}
@@ -140,7 +126,7 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
               Gateway
             </NavListItem>
             <NavListItem
-              orgId={orgId}
+              orgId={orgsForDashboard.currentOrg.id}
               route={route}
               pathname={Routes.organisationWallet}
               icon={<WalletIcon />}
@@ -149,20 +135,21 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
             </NavListItem>
           </>
         )}
-        {!orgId && (
+        {!orgsForDashboard.currentOrg && (
           <>
-            {options.map((option) => {
-              return (
-                <NavListItem
-                  key={option.id}
-                  orgId={option.id}
-                  route={route}
-                  pathname={Routes.organisationOverview}
-                >
-                  {option.name}
-                </NavListItem>
-              )
-            })}
+            {orgsForDashboard.organisations &&
+              orgsForDashboard.organisations.map((option) => {
+                return (
+                  <NavListItem
+                    key={option?.id}
+                    orgId={option?.id}
+                    route={route}
+                    pathname={Routes.organisationOverview}
+                  >
+                    {option?.name}
+                  </NavListItem>
+                )
+              })}
             <Router href={Routes.organisation}>
               <li className='flex justify-between items-center h-12 p-2 hover:bg-base-hover text-medium cursor-pointer'>
                 Add organisation <AddIcon />
@@ -172,7 +159,7 @@ const SideNav: FC<SideNavProps> = ({ orgId, route }) => {
         )}
       </NavList>
       <NavList>
-        {orgId && (
+        {orgsForDashboard.currentOrg && (
           <li className='flex items-center h-12 p-2 text-medium justify-between'>
             Test data <Switch enabled={enabled} onChange={setEnabled} />
           </li>

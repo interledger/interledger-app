@@ -1,33 +1,49 @@
-import { FC, Fragment } from 'react'
+import { FC, Fragment, useEffect, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { AddIcon, CheckIcon, SelectIcon } from './icons'
-
-// TODO: update options to allow routing.
-type Option = {
-  name: string
-  id: string
-}
+import { OrgsForDashboard } from 'lib/dashboard'
+import { useRouter } from 'next/router'
+import { Routes } from 'components'
 
 type SelectProps = {
-  selected: Option
-  className?: string
-  options: Option[]
-  onChange: any
+  route?: Routes
+  orgsForDashboard: OrgsForDashboard
 }
 
-export const Select: FC<SelectProps> = ({
-  children,
-  className,
-  selected,
-  options,
-  onChange
-}) => {
+export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
+  const router = useRouter()
+  const temp = orgsForDashboard.organisations.find(
+    (item: any) => item?.id == orgsForDashboard.currentOrg!.id
+  )
+  const [currentOrg, setCurrentOrg] = useState(temp)
+
+  // implicitly set slected on routing change.
+  useEffect(() => {
+    setCurrentOrg(
+      orgsForDashboard.organisations.find(
+        (item: any) => item?.id == orgsForDashboard.currentOrg!.id
+      )
+    )
+  }, [orgsForDashboard])
+
   return (
-    <Listbox value={selected} onChange={onChange}>
+    <Listbox
+      value={currentOrg}
+      onChange={(select: any) => {
+        if (select.id === 'add-organisation') {
+          router.push(Routes.organisation)
+        } else {
+          router.push({
+            pathname: route,
+            query: { orgId: select.id }
+          })
+        }
+      }}
+    >
       <div className='relative font-display'>
         <Listbox.Button className='text-strong relative w-full h-12 bg-base hover:bg-base-hover text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'>
           <span className='flex items-center'>
-            <span className='ml-2 block truncate'>{selected.name}</span>
+            <span className='ml-2 block truncate'>{currentOrg?.name}</span>
           </span>
           <span className='absolute inset-y-0 right-0 flex items-center pointer-events-none pr-2'>
             <SelectIcon />
@@ -41,9 +57,9 @@ export const Select: FC<SelectProps> = ({
           leaveTo='opacity-0'
         >
           <Listbox.Options className='absolute z-10 mt-1 w-full bg-base shadow-2xl max-h-56 py-1 text-medium ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none'>
-            {options.map((option) => (
+            {orgsForDashboard.organisations.map((option) => (
               <Listbox.Option
-                key={option.id}
+                key={option?.id}
                 className={({ active }) =>
                   classNames(
                     active ? 'bg-base-hover' : 'bg-base',
@@ -61,7 +77,7 @@ export const Select: FC<SelectProps> = ({
                           'ml-3 block truncate'
                         )}
                       >
-                        {option.name}
+                        {option?.name}
                       </span>
                     </div>
                     {selected && (
