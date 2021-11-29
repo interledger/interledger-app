@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	appsV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
-	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
 )
@@ -28,13 +28,15 @@ func NewEksClusterAdminPolicy(ctx *pulumi.Context) string {
 				Resources: []string{"*"},
 			},
 			{
-				Effect: utils.StringPtr("Allow"),
-				Actions: []string{"iam:PassRole"},
+				Effect:    utils.StringPtr("Allow"),
+				Actions:   []string{"iam:PassRole"},
 				Resources: []string{"*"},
 			},
 		},
 	})
-	if err != nil { return "" }
+	if err != nil {
+		return ""
+	}
 
 	return policy.Json
 }
@@ -51,9 +53,9 @@ func NewEksClusterAdminRoleTrustPolicy(ctx *pulumi.Context, accountId string) st
 					{
 						Type: "AWS",
 						Identifiers: []string{
-							//The suffix root in the policy’s Principal attribute equates to 
-							// “authenticated and authorized principals in the account,” 
-							// not the special and all-powerful root user principal that is created 
+							//The suffix root in the policy’s Principal attribute equates to
+							// “authenticated and authorized principals in the account,”
+							// not the special and all-powerful root user principal that is created
 							// when an AWS account is created.
 							// TODO: this needs to be more tightly scoped once we have more users.  e.g. arn:aws:iam::%s:user/xxx
 							fmt.Sprintf("arn:aws:iam::%s:root", accountId),
@@ -62,15 +64,17 @@ func NewEksClusterAdminRoleTrustPolicy(ctx *pulumi.Context, accountId string) st
 				},
 				Conditions: []iam.GetPolicyDocumentStatementCondition{
 					{
-						Test: "Bool",
-						Values: []string{"true"},
+						Test:     "Bool",
+						Values:   []string{"true"},
 						Variable: "aws:MultiFactorAuthPresent",
 					},
 				},
 			},
 		},
 	})
-	if err != nil { return "" }
+	if err != nil {
+		return ""
+	}
 
 	return policy.Json
 }
@@ -87,31 +91,62 @@ func NewFluentdCloudwatchPolicy(ctx *pulumi.Context) string {
 			},
 		},
 	})
-	if err != nil { return "" }
+	if err != nil {
+		return ""
+	}
 
 	return policy.Json
 }
 
-func NewEksAutomationRoleTrustPolicy(ctx *pulumi.Context, accountId string) string {
+func NewEksAutomationRoleTrustPolicy(ctx *pulumi.Context, accountId string, glRunnerRoleArn pulumi.StringOutput) pulumi.StringOutput {
+	return pulumi.All(glRunnerRoleArn).ApplyT(func(args []interface{}) (string, error) {
+		runnerRole := args[0].(string)
+
+		policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+			Statements: []iam.GetPolicyDocumentStatement{
+				{
+					Effect: utils.StringPtr("Allow"),
+					Actions: []string{
+						"sts:AssumeRole",
+					},
+					Principals: []iam.GetPolicyDocumentStatementPrincipal{
+						{
+							Type:        "AWS",
+							Identifiers: []string{runnerRole},
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			return "", err
+		}
+
+		return policy.Json, nil
+	}).(pulumi.StringOutput)
+}
+
+// Creates a policy definition that will allow access to ALL EKS cluster admin endpoints
+// in the specified account. The RBAC for the actual k8s resources will be defined inside
+// the cluster through the use of ClusterRoles and ClusterRoleBindings.
+func NewEksAutomationRolePolicy(ctx *pulumi.Context, accountId string) (string, error) {
 	policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
 		Statements: []iam.GetPolicyDocumentStatement{
 			{
 				Effect: utils.StringPtr("Allow"),
 				Actions: []string{
-					"sts:AssumeRole",
+					"eks:AccessKubernetesApi",
+					"eks:DescribeCluster",
 				},
-				Principals: []iam.GetPolicyDocumentStatementPrincipal{ // our Gitlab runners are currently run on ec2 instances.
-					{
-						Type: "Service",
-						Identifiers: []string{"ec2.amazonaws.com"},
-					},
-				},
+				Resources: []string{"arn:aws:eks:*:" + accountId + ":cluster/*"},
 			},
 		},
 	})
-	if err != nil { return "" }
+	if err != nil {
+		return "", err
+	}
 
-	return policy.Json
+	return policy.Json, nil
 }
 
 func NewEksNodeGroupRoleTrustPolicy(ctx *pulumi.Context) string {
@@ -124,28 +159,31 @@ func NewEksNodeGroupRoleTrustPolicy(ctx *pulumi.Context) string {
 				},
 				Principals: []iam.GetPolicyDocumentStatementPrincipal{
 					{
-						Type: "Service",
+						Type:        "Service",
 						Identifiers: []string{"ec2.amazonaws.com"},
 					},
 				},
 			},
 		},
 	})
-	if err != nil { return "" }
+	if err != nil {
+		return ""
+	}
 
 	return policy.Json
 }
 
 type EksIamRoles struct {
-	Admin 		*iam.Role
-	Automation  *iam.Role
-	NodeGroup   *iam.Role
+	Admin      *iam.Role
+	Automation *iam.Role
+	NodeGroup  *iam.Role
 }
-func NewEksRoles(ctx *pulumi.Context, accountId string) (EksIamRoles, error) {
+
+func NewEksRoles(ctx *pulumi.Context, accountId string, glRunnerRoleArn pulumi.StringOutput) (EksIamRoles, error) {
 	var ret EksIamRoles
 	adminRole, err := iam.NewRole(ctx, "eks-cluster-admin-role", &iam.RoleArgs{
-		Name: pulumi.String("eksClusterAdminRole"),
-		Description: pulumi.String("Admin role for eks cluster"),
+		Name:             pulumi.String("eksClusterAdminRole"),
+		Description:      pulumi.String("Admin role for eks cluster"),
 		AssumeRolePolicy: pulumi.String(NewEksClusterAdminRoleTrustPolicy(ctx, accountId)),
 		InlinePolicies: iam.RoleInlinePolicyArray{
 			iam.RoleInlinePolicyArgs{
@@ -154,18 +192,32 @@ func NewEksRoles(ctx *pulumi.Context, accountId string) (EksIamRoles, error) {
 			},
 		},
 	})
-	if err != nil { return ret, err }
+	if err != nil {
+		return ret, err
+	}
 
+	automationPolicy, err := NewEksAutomationRolePolicy(ctx, accountId)
+	if err != nil {
+		return ret, err
+	}
 	automationRole, err := iam.NewRole(ctx, "eks-automation-role", &iam.RoleArgs{
-		Name: pulumi.String("eksAutomationRole"),
-		Description: pulumi.String("Automation role for eks cluster"),
-		AssumeRolePolicy: pulumi.String(NewEksAutomationRoleTrustPolicy(ctx, accountId)),
+		Name:             pulumi.String("eksAutomationRole"),
+		Description:      pulumi.String("Automation role for eks cluster"),
+		AssumeRolePolicy: NewEksAutomationRoleTrustPolicy(ctx, accountId, glRunnerRoleArn),
+		InlinePolicies: iam.RoleInlinePolicyArray{
+			iam.RoleInlinePolicyArgs{
+				Name:   pulumi.String("eksReadClusters"),
+				Policy: pulumi.String(automationPolicy),
+			},
+		},
 	})
-	if err != nil { return ret, err }
+	if err != nil {
+		return ret, err
+	}
 
 	nodeGroupRole, err := iam.NewRole(ctx, "eks-cluster-node-group-role", &iam.RoleArgs{
-		Name: pulumi.String("eksNodeGroupRole"),
-		Description: pulumi.String("Node group role for eks cluster"),
+		Name:             pulumi.String("eksNodeGroupRole"),
+		Description:      pulumi.String("Node group role for eks cluster"),
 		AssumeRolePolicy: pulumi.String(NewEksNodeGroupRoleTrustPolicy(ctx)),
 		ManagedPolicyArns: pulumi.StringArray{
 			pulumi.String("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"),
@@ -179,7 +231,9 @@ func NewEksRoles(ctx *pulumi.Context, accountId string) (EksIamRoles, error) {
 			},
 		},
 	})
-	if err != nil { return ret, err }
+	if err != nil {
+		return ret, err
+	}
 
 	ret.Admin = adminRole
 	ret.Automation = automationRole
@@ -195,31 +249,37 @@ func NewEksRoles(ctx *pulumi.Context, accountId string) (EksIamRoles, error) {
 // See readme on how to do this. Note that these resources must therefore remain protected.
 func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
 	trustPolicy, err := NewAwsNodeDaemonSetTrustPolicy(ctx, oidcId)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	role, err := iam.NewRole(ctx, "eks-cluster-aws-node-role", &iam.RoleArgs{
-		Name: pulumi.String("eksAwsNodeRole"),
-		Description: pulumi.String("Role for aws-node daemon set"),
+		Name:             pulumi.String("eksAwsNodeRole"),
+		Description:      pulumi.String("Role for aws-node daemon set"),
 		AssumeRolePolicy: pulumi.String(trustPolicy),
 		ManagedPolicyArns: pulumi.StringArray{
 			pulumi.String("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"),
 		},
 	})
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
-	// This resource s deployed by EKS and has to be imported using the pulumi cli. See readme on how to do this. 
+	// This resource s deployed by EKS and has to be imported using the pulumi cli. See readme on how to do this.
 	// It is critical that this resource remain protected as it wasn't deployed by pulumi.
 	_, err = coreV1.NewServiceAccount(ctx, "aws-node-sa", &coreV1.ServiceAccountArgs{
 		ApiVersion: pulumi.String("v1"),
-		Kind: pulumi.String("ServiceAccount"),
+		Kind:       pulumi.String("ServiceAccount"),
 		Metadata: metaV1.ObjectMetaArgs{
 			Annotations: pulumi.StringMap{
 				"eks.amazonaws.com/role-arn": role.Arn,
 			},
-			Name: pulumi.String("aws-node"),
+			Name:      pulumi.String("aws-node"),
 			Namespace: pulumi.String("kube-system"),
 		},
 	}, pulumi.Protect(true)) // NB: leave protected. see above comment.
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	// This resource s deployed by EKS and has to be imported using the pulumi cli. See readme on how to do this.
 	// It is critical that this resource remain protected as it wasn't deployed by pulumi.
@@ -233,8 +293,8 @@ func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
 			Labels: pulumi.StringMap{
 				"k8s-app": pulumi.String("aws-node"),
 			},
-			Name:            pulumi.String("aws-node"),
-			Namespace:       pulumi.String("kube-system"),
+			Name:      pulumi.String("aws-node"),
+			Namespace: pulumi.String("kube-system"),
 		},
 		Spec: &appsV1.DaemonSetSpecArgs{
 			Selector: &metaV1.LabelSelectorArgs{
@@ -312,7 +372,7 @@ func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
 					},
 					Containers: coreV1.ContainerArray{
 						&coreV1.ContainerArgs{
-							Env: coreV1.EnvVarArray{								
+							Env: coreV1.EnvVarArray{
 								&coreV1.EnvVarArgs{
 									Name:  pulumi.String("AWS_VPC_CNI_NODE_PORT_SUPPORT"),
 									Value: pulumi.String("true"),
@@ -381,7 +441,7 @@ func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
 									Name: pulumi.String("MY_NODE_NAME"),
 									ValueFrom: &coreV1.EnvVarSourceArgs{
 										FieldRef: &coreV1.ObjectFieldSelectorArgs{
-											FieldPath:  pulumi.String("spec.nodeName"),
+											FieldPath: pulumi.String("spec.nodeName"),
 										},
 									},
 								},
@@ -548,7 +608,9 @@ func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
 			},
 		},
 	}, pulumi.Import(pulumi.ID("kube-system/aws-node")), pulumi.Protect(true))
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -569,26 +631,28 @@ func NewAwsNodeDaemonSetTrustPolicy(ctx *pulumi.Context, oidcId string) (string,
 				},
 				Principals: []iam.GetPolicyDocumentStatementPrincipal{
 					{
-						Type: "Federated",
+						Type:        "Federated",
 						Identifiers: []string{oidcId},
 					},
 				},
 				Conditions: []iam.GetPolicyDocumentStatementCondition{
 					{
-						Test: "StringEquals",
-						Values: []string{"sts.amazonaws.com"},
+						Test:     "StringEquals",
+						Values:   []string{"sts.amazonaws.com"},
 						Variable: oidcUrl + ":aud",
 					},
 					{
-						Test: "StringEquals",
-						Values: []string{"system:serviceaccount:kube-system:aws-node"},
+						Test:     "StringEquals",
+						Values:   []string{"system:serviceaccount:kube-system:aws-node"},
 						Variable: oidcUrl + ":sub",
 					},
 				},
 			},
 		},
 	})
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 
 	return policy.Json, nil
 }

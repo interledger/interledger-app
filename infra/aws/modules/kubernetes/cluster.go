@@ -4,23 +4,24 @@ import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-eks/sdk/go/eks"
+	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
+	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	policyV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/policy/v1beta1"
 	rbacV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
-	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
-	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
 type EksControlPlaneArgs struct {
-	Version 		string
-	Name 			string
-	PublicSubnets 	pulumi.StringArrayOutput
-	PrivateSubnets 	pulumi.StringArrayOutput
-	VpcId			pulumi.IDOutput
-	AccountId       string
-	IamRoles        EksIamRoles
+	Version             string
+	Name                string
+	PublicSubnets       pulumi.StringArrayOutput
+	PrivateSubnets      pulumi.StringArrayOutput
+	VpcId               pulumi.IDOutput
+	AccountId           string
+	IamRoles            EksIamRoles
 	ExposeAdminEndpoint bool
 }
+
 func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Cluster, error) {
 	// This key will be used to create an encrypted envelope around K8s secrets and config.
 	// Although k8s already generates its own encryption key to encrypt data it stores in etcd, we use envelope encryption
@@ -31,47 +32,49 @@ func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Clu
 			"name": pulumi.String(args.Name + "-encryption-key"),
 		},
 	}, pulumi.Protect(true))
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	cluster, err := eks.NewCluster(ctx, args.Name, &eks.ClusterArgs{
-		Name: 						  pulumi.String(args.Name),
-		Version: 					  pulumi.String(args.Version),
-		VpcId:                        args.VpcId,
-		PublicSubnetIds:              args.PublicSubnets, // Pulumi will manage the tagging of the subnets
-		PrivateSubnetIds:             args.PrivateSubnets,
-		// **NB** The role used to create the cluster (allow-full-access-from-other-accounts in this case) is mapped to the k8s 
+		Name:             pulumi.String(args.Name),
+		Version:          pulumi.String(args.Version),
+		VpcId:            args.VpcId,
+		PublicSubnetIds:  args.PublicSubnets, // Pulumi will manage the tagging of the subnets
+		PrivateSubnetIds: args.PrivateSubnets,
+		// **NB** The role used to create the cluster (allow-full-access-from-other-accounts in this case) is mapped to the k8s
 		// cluster-admin automatically and won't show up in the role mappings. We will not override this as we want to be able to
 		// manage eks provisioning using pulumi.
 		RoleMappings: eks.RoleMappingArray{
 			// Provides full administrator cluster access to the k8s cluster
 			eks.RoleMappingArgs{
-				RoleArn: args.IamRoles.Admin.Arn,
-				Groups: pulumi.StringArray{pulumi.String("system:masters")},
+				RoleArn:  args.IamRoles.Admin.Arn,
+				Groups:   pulumi.StringArray{pulumi.String("system:masters")},
 				Username: args.IamRoles.Admin.Arn,
 			},
 			// Map IAM automation role arn to the k8s automation group. The role bindings are set up in `ConfigureAutomationRole`.
 			eks.RoleMappingArgs{
-				RoleArn: args.IamRoles.Automation.Arn,
-				Groups: pulumi.StringArray{pulumi.String("automation")},
+				RoleArn:  args.IamRoles.Automation.Arn,
+				Groups:   pulumi.StringArray{pulumi.String("automation")},
 				Username: args.IamRoles.Automation.Arn,
 			},
 		},
 		StorageClasses: eks.StorageClassArgs{ // Defaults to immediate volume binding
-			Type: 					pulumi.String("gp2"),
-			Encrypted: 				pulumi.Bool(true),
-			Default: 				pulumi.Bool(true),
+			Type:      pulumi.String("gp2"),
+			Encrypted: pulumi.Bool(true),
+			Default:   pulumi.Bool(true),
 		},
-		SkipDefaultNodeGroup: 		pulumi.Bool(true),	// We will manage the node group separately from the control plane
-		EndpointPublicAccess: 		pulumi.Bool(args.ExposeAdminEndpoint),
-		EndpointPrivateAccess: 		pulumi.Bool(true),
+		SkipDefaultNodeGroup:         pulumi.Bool(true), // We will manage the node group separately from the control plane
+		EndpointPublicAccess:         pulumi.Bool(args.ExposeAdminEndpoint),
+		EndpointPrivateAccess:        pulumi.Bool(true),
 		NodeAssociatePublicIpAddress: pulumi.Bool(false),
-		InstanceRoles: 				iam.RoleArray{      // IAM roles to register with the cluster auth.
+		InstanceRoles: iam.RoleArray{ // IAM roles to register with the cluster auth.
 			args.IamRoles.NodeGroup,
 		},
-		NodeSecurityGroupTags:     pulumi.StringMap{ 	// Run with default node security group for now.
+		NodeSecurityGroupTags: pulumi.StringMap{ // Run with default node security group for now.
 			"Name": pulumi.String("eksNodeSecurityGroup"),
 		},
-		ClusterSecurityGroupTags: pulumi.StringMap{ 	// Run with default cluster security group for now. This will enable full internet egress and ingress from node groups
+		ClusterSecurityGroupTags: pulumi.StringMap{ // Run with default cluster security group for now. This will enable full internet egress and ingress from node groups
 			"Name": pulumi.String("eksNodeSecurityGroup"),
 		},
 		EnabledClusterLogTypes: pulumi.StringArray{
@@ -82,9 +85,11 @@ func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Clu
 			pulumi.String("scheduler"),
 		},
 		EncryptionConfigKeyArn: key.Arn, // enable envelope encyption https://aws.amazon.com/about-aws/whats-new/2020/03/amazon-eks-adds-envelope-encryption-for-secrets-with-aws-kms/
-		CreateOidcProvider: pulumi.Bool(true),
+		CreateOidcProvider:     pulumi.Bool(true),
 	})
-	if err != nil { return nil, err }	
+	if err != nil {
+		return nil, err
+	}
 
 	return cluster, nil
 }
@@ -97,12 +102,12 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 			Name: pulumi.String("restricted"),
 		},
 		Spec: policyV1.PodSecurityPolicySpecArgs{
-			Privileged: pulumi.Bool(false),
-			AllowPrivilegeEscalation: pulumi.Bool(false),
+			Privileged:                      pulumi.Bool(false),
+			AllowPrivilegeEscalation:        pulumi.Bool(false),
 			DefaultAllowPrivilegeEscalation: pulumi.Bool(false),
-			HostPID: pulumi.Bool(false),
-			HostIPC: pulumi.Bool(false),
-			HostNetwork: pulumi.Bool(false),
+			HostPID:                         pulumi.Bool(false),
+			HostIPC:                         pulumi.Bool(false),
+			HostNetwork:                     pulumi.Bool(false),
 			Volumes: pulumi.StringArray{
 				pulumi.String("configMap"),
 				pulumi.String("emptyDir"),
@@ -140,7 +145,9 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 			},
 		},
 	})
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	_, err = rbacV1.NewClusterRole(ctx, "restricted-cluster-role", &rbacV1.ClusterRoleArgs{
 		Metadata: metaV1.ObjectMetaArgs{
@@ -163,7 +170,9 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 			},
 		},
 	})
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	// Create a ClusterRoleBinding for the ServiceAccounts of Namespace kube-system
 	// to the ClusterRole that uses the restrictive PodSecurityPolicy.
@@ -173,13 +182,13 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 		},
 		RoleRef: rbacV1.RoleRefArgs{
 			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
-			Kind: pulumi.String("ClusterRole"),
-			Name: pulumi.String("restricted"),
+			Kind:     pulumi.String("ClusterRole"),
+			Name:     pulumi.String("restricted"),
 		},
 		Subjects: rbacV1.SubjectArray{
 			rbacV1.SubjectArgs{
-				Kind: pulumi.String("Group"),
-				Name: pulumi.String("system:serviceaccounts"),
+				Kind:      pulumi.String("Group"),
+				Name:      pulumi.String("system:serviceaccounts"),
 				Namespace: pulumi.String("kube-system"),
 			},
 		},
@@ -193,8 +202,8 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 		},
 		RoleRef: rbacV1.RoleRefArgs{
 			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
-			Kind: pulumi.String("ClusterRole"),
-			Name: pulumi.String("restricted"),
+			Kind:     pulumi.String("ClusterRole"),
+			Name:     pulumi.String("restricted"),
 		},
 		Subjects: rbacV1.SubjectArray{
 			rbacV1.SubjectArgs{
@@ -210,7 +219,7 @@ func ConfigureAutomationRole(ctx *pulumi.Context, namespace string) error {
 	_, err := rbacV1.NewRole(ctx, "k8s-automation-role", &rbacV1.RoleArgs{
 		Metadata: metaV1.ObjectMetaArgs{
 			Namespace: pulumi.String(namespace),
-			Name: pulumi.String("automation-role"),
+			Name:      pulumi.String("automation-role"),
 		},
 		Rules: rbacV1.PolicyRuleArray{
 			rbacV1.PolicyRuleArgs{
@@ -252,7 +261,9 @@ func ConfigureAutomationRole(ctx *pulumi.Context, namespace string) error {
 			},
 		},
 	})
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -264,8 +275,8 @@ func ApplyAutomationRoleBindingToNamespace(ctx *pulumi.Context, namespace string
 		},
 		RoleRef: rbacV1.RoleRefArgs{
 			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
-			Kind: pulumi.String("Role"),
-			Name: pulumi.String("automation-role"),
+			Kind:     pulumi.String("Role"),
+			Name:     pulumi.String("automation-role"),
 		},
 		Subjects: rbacV1.SubjectArray{
 			rbacV1.SubjectArgs{
@@ -274,7 +285,9 @@ func ApplyAutomationRoleBindingToNamespace(ctx *pulumi.Context, namespace string
 			},
 		},
 	})
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -285,15 +298,21 @@ func DeployLoggingAndMonitoring(ctx *pulumi.Context, clusterName string, region 
 			Name: pulumi.String("logging"),
 		},
 	})
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	// logging to cloudwatch
 	err = DeployFluentbit(ctx, clusterName, region, "logging")
-	if err != nil { return nil }
+	if err != nil {
+		return nil
+	}
 
 	// cluster metrics to cloudwatch
 	err = DeployCloudwatchAgent(ctx, clusterName, region, "logging")
-	if err != nil { return nil }
+	if err != nil {
+		return nil
+	}
 
 	return nil
 }

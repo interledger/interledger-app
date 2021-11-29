@@ -48,6 +48,8 @@ func main() {
 		if err != nil {
 			return err
 		}
+		// export so that we can configure eksAutomationRole to be assumeable by the gl-runner role.
+		ctx.Export("glRunnerRoleArn", runnerRole.Arn)
 		runnerInstanceProfile, err := iam.NewInstanceProfile(ctx, "gl-runner-instance", &iam.InstanceProfileArgs{
 			Role: runnerRole.Name,
 		})
