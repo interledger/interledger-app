@@ -19,41 +19,52 @@ func main() {
 		fynbosConf := config.New(ctx, "fynbos")
 		awsAccountId := fynbosConf.Get("accountId")
 		vpcStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-euwest1-networking/main", nil)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
+		glRunnerStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-euwest1-glrunner/main", nil)
+		if err != nil {
+			return err
+		}
 
 		vpcId := vpcStack.GetIDOutput(pulumi.String("vpcId"))
 		publicSubnetIds := utils.StringArrayOutputFromStack(vpcStack, "publicSubnets")
 		privateSubnetIds := utils.StringArrayOutputFromStack(vpcStack, "privateSubnets")
+		glRunnerRoleArn := glRunnerStack.GetStringOutput(pulumi.String("glRunnerRoleArn"))
 
-		roles, err := k8s.NewEksRoles(ctx, awsAccountId)
-		if err != nil { return err }
+		roles, err := k8s.NewEksRoles(ctx, awsAccountId, glRunnerRoleArn)
+		if err != nil {
+			return err
+		}
 		ctx.Export("adminRoleArn", roles.Admin.Arn)
 		ctx.Export("automationRoleArn", roles.Automation.Arn)
 
 		cluster, err := k8s.NewEksControlPlane(ctx, k8s.EksControlPlaneArgs{
-			Name: clusterName,
-			Version: "1.21",
-			VpcId: vpcId,
-			PublicSubnets: publicSubnetIds,
-			PrivateSubnets: privateSubnetIds,
-			AccountId: awsAccountId,
-			IamRoles: roles,
+			Name:                clusterName,
+			Version:             "1.21",
+			VpcId:               vpcId,
+			PublicSubnets:       publicSubnetIds,
+			PrivateSubnets:      privateSubnetIds,
+			AccountId:           awsAccountId,
+			IamRoles:            roles,
 			ExposeAdminEndpoint: allowPublicConfiguration,
 		})
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		ctx.Export("kubeconfig", cluster.Kubeconfig)
 		ctx.Export("oidcProvider", cluster.Core.OidcProvider())
 		ctx.Export("clusterEndpoint", cluster.Core.Endpoint())
 
 		_, err = k8s.NewManagedNodeGroup(ctx, k8s.ManagedNodeGroupArgs{
-			Name: "managed-ng-0",
-			Cluster: cluster,
-			NodeRole: roles.NodeGroup,
+			Name:          "managed-ng-0",
+			Cluster:       cluster,
+			NodeRole:      roles.NodeGroup,
 			InstanceTypes: pulumi.StringArray{pulumi.String("t2.medium")},
-			MinSize: 0,
-			MaxSize: 2,
-			DesiredSize: 1,
-			SubnetIds: privateSubnetIds,
+			MinSize:       0,
+			MaxSize:       2,
+			DesiredSize:   1,
+			SubnetIds:     privateSubnetIds,
 		})
 
 		return nil
