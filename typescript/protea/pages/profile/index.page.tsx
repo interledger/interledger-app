@@ -1,10 +1,14 @@
-import type { NextPage } from 'next'
-import { Routes, Dashboard } from 'components'
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import type {
+  GetServerSidePropsResult,
+  NextPage,
+  GetServerSideProps,
+  InferGetServerSidePropsType
+} from 'next'
 import { getSession } from 'lib/kratos'
-import { RecoveryPasswordForm } from './RecoveryPasswordForm'
+import { Session } from '@ory/kratos-client'
+import { Dashboard, Routes } from 'components'
 
-const OverviewPage: NextPage<
+const ProfilePage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = ({ session }) => {
   return (
@@ -31,6 +35,23 @@ const OverviewPage: NextPage<
   )
 }
 
-export default OverviewPage
+export default ProfilePage
 
-export const getServerSideProps: GetServerSideProps = getSession
+type ProfilePageProps = {
+  session: Session
+}
+
+export const getServerSideProps: GetServerSideProps = async (
+  context
+): Promise<GetServerSidePropsResult<ProfilePageProps>> => {
+  const session = await getSession(context, true)
+  if ('redirect' in session) {
+    return session
+  }
+
+  return {
+    props: {
+      session,
+    }
+  }
+}

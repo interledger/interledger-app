@@ -7,7 +7,7 @@ import {
 import { Logo, Router, Routes } from 'components'
 import { VerifyForm } from './VerifyForm'
 import React from 'react'
-import { kratosSSR } from 'lib/kratos'
+import { kratos } from 'lib/kratos'
 import { AxiosError } from 'axios'
 
 const VerifyPage: NextPage<
@@ -37,7 +37,7 @@ export const getServerSideProps: GetServerSideProps = async (
   // Check if the user has a session already.
   const cookie = context.req?.headers.cookie
   try {
-    const session = await kratosSSR
+    const session = await kratos
       .toSession(undefined, cookie)
       .then((res) => res.data)
     // TODO: Check the status of the session and pass as prop to render form or not. enum: ["pending","sent","completed"]

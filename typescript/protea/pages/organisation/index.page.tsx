@@ -1,9 +1,17 @@
-import { GetServerSideProps, NextPage } from 'next'
-import React from 'react'
-import { Container, LeavesDecor, Router, Routes } from 'components'
-import { getSession } from '../../lib/kratos'
+import {
+  GetServerSideProps,
+  GetServerSidePropsResult,
+  InferGetServerSidePropsType,
+  NextPage
+} from 'next'
+import React, { FC } from 'react'
+import { Router, Routes, Logo } from 'components'
+import { getSessionOrRedirect } from 'lib/kratos'
+import { Session } from '@ory/kratos-client'
 
-const ErrorPage: NextPage = () => {
+const OverviewPage: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = ({}) => {
   return (
     <div className='relative overflow-hidden w-full'>
       <Container className='overflow-x-hidden'>
@@ -31,6 +39,23 @@ const ErrorPage: NextPage = () => {
   )
 }
 
-export default ErrorPage
+export default OverviewPage
 
-export const getServerSideProps: GetServerSideProps = getSession
+type OverviewPageProps = {
+  session: Session
+}
+
+export const getServerSideProps: GetServerSideProps = async (
+  context
+): Promise<GetServerSidePropsResult<OverviewPageProps>> => {
+  const session = await getSessionOrRedirect(context, true)
+  if ('redirect' in session) {
+    return session
+  }
+
+  return {
+    props: {
+      session: session,
+    }
+  }
+}
