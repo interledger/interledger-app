@@ -72,6 +72,9 @@ module.exports = {
         focus: withOpacity('--border-focus'),
         error: withOpacity('--border-error')
       },
+      ringColor: {
+        primary: withOpacity('--ring-primary')
+      },
       // End token colours
       typography: (theme) => ({
         DEFAULT: {
@@ -127,7 +130,8 @@ module.exports = {
   variants: {
     extend: {
       textColor: ['selection'],
-      backgroundColor: ['selection']
+      backgroundColor: ['selection'],
+      ringColor: ['focus-visible']
     }
   },
   plugins: [

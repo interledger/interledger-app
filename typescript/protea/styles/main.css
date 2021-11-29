@@ -22,6 +22,7 @@
     --border-base: 209, 213, 219;
     --border-focus: 243, 81, 103;
     --border-error: 185, 28, 28;
+    --ring-primary: 243, 81, 103;
   }
   .theme-test {
     --text-primary: 249, 115, 22;
@@ -29,6 +30,7 @@
     --bg-base-hover: 255, 237, 213;
     --bg-primary: 249, 115, 22;
     --border-focus: 249, 115, 22;
+    --ring-primary: 249, 115, 22;
   }
 }
 
