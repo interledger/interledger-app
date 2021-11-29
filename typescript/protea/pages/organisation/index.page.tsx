@@ -8,34 +8,51 @@ import React, { FC } from 'react'
 import { Router, Routes, Logo } from 'components'
 import { getSessionOrRedirect } from 'lib/kratos'
 import { Session } from '@ory/kratos-client'
+import { apolloClient } from 'lib/apollo'
+import {
+  GetOrganisationsQuery,
+  GetOrganisationsQueryVariables,
+  GetOrganisationsDocument,
+  Organisation
+} from 'generated/types'
+import { CreateOrganisationForm } from './CreateOrganisationForm'
 
 const OverviewPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({}) => {
+> = ({ organisations }) => {
   return (
-    <div className='relative overflow-hidden w-full'>
-      <Container className='overflow-x-hidden'>
-        <main className='flex flex-grow flex-col px-4 sm:p-8 justify-center items-start'>
-          <p className='text-9xl font-medium font-display text-primary'>404</p>
-          <div className='sm:mt-12'>
-            <div>
-              <h1 className='text-4xl font-medium font-display text-medium'>
-                Page not found
-              </h1>
-              <p className='mt-2 text-weak font-sans'>
-                Please check the URL in the address bar and try again.
-              </p>
-            </div>
-            <div className='mt-10'>
-              <Router href={Routes.home}>
-                <span className='text-primary'>Go back home</span>
-              </Router>
-            </div>
-          </div>
-        </main>
-        <LeavesDecor />
-      </Container>
-    </div>
+    <main className='flex flex-col items-start justify-center max-w-sm mx-auto h-screen px-4'>
+      <Router href={Routes.home} aria-label='Fynbos logo'>
+        <Logo className='h-8' />
+      </Router>
+      <h1 className='text-4xl font-display font-medium text-strong mt-6 mb-1 leading-normal'>
+        {organisations.length == 0 && 'Create an organisation'}
+        {organisations.length > 0 && 'Your organisations'}
+      </h1>
+      <p className='text-medium mb-10'>
+        {organisations.length == 0 &&
+          'Create a new organisation to get started.'}
+        {(organisations.length == 1 || organisations.length == 2) &&
+          'Select an organisation, or create a new one.'}
+        {organisations.length > 2 && 'Select an organisation.'}
+      </p>
+      {organisations.length > 0 && (
+        <NavList>
+          {organisations.map((option: Organisation) => {
+            return (
+              <NavListItem
+                key={option.id}
+                orgId={option.id}
+                pathname={Routes.organisationOverview}
+              >
+                {option.name}
+              </NavListItem>
+            )
+          })}
+        </NavList>
+      )}
+      {organisations.length < 3 && <CreateOrganisationForm />}
+    </main>
   )
 }
 
@@ -43,6 +60,7 @@ export default OverviewPage
 
 type OverviewPageProps = {
   session: Session
+  organisations: GetOrganisationsQuery['organisations']
 }
 
 export const getServerSideProps: GetServerSideProps = async (
@@ -53,9 +71,64 @@ export const getServerSideProps: GetServerSideProps = async (
     return session
   }
 
+  let data
+  try {
+    data = await apolloClient
+      .query<GetOrganisationsQuery, GetOrganisationsQueryVariables>({
+        query: GetOrganisationsDocument,
+        context: {
+          headers: {
+            cookie: context.req?.headers.cookie
+          }
+        }
+      })
+      .then((val) => val.data)
+  } catch (e) {
+    data = { organisations: [] }
+  }
+
   return {
     props: {
       session: session,
+      organisations: data.organisations
     }
   }
+}
+
+const NavList: FC = ({ children }) => {
+  return (
+    <ul className='flex flex-col space-y-2 min-w-full mb-12'>{children}</ul>
+  )
+}
+
+type NavListItemProps = {
+  icon?: React.ReactNode
+  pathname: Routes
+  orgId?: string
+  route?: Routes
+}
+
+const NavListItem: FC<NavListItemProps> = ({
+  children,
+  icon,
+  route,
+  pathname,
+  orgId
+}) => {
+  const href =
+    typeof orgId == 'string'
+      ? { pathname: pathname, query: { orgId: orgId } }
+      : pathname
+  return (
+    <Router href={href}>
+      <li
+        className={`flex justify-start items-center h-12 p-2 hover:bg-base-hover cursor-pointer ${
+          route == pathname ? 'text-primary' : 'text-medium'
+        }`}
+      >
+        {icon && <div className='mr-2'>{icon}</div>}
+        {children}
+      </li>
+    </Router>
+  )
 }
