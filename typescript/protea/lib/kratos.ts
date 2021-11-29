@@ -12,13 +12,10 @@ import {
 import { NextRouter } from 'next/router'
 import { Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Routes } from 'components'
+import { Routes, redirect } from 'components'
 
-import {
-  GetServerSideProps,
-  GetServerSidePropsContext,
-  GetServerSidePropsResult
-} from 'next'
+import { GetServerSidePropsContext, PreviewData, Redirect } from 'next'
+import { ParsedUrlQuery } from 'querystring'
 
 const KRATOS_URL =
   process.env.NEXT_PUBLIC_ORY_KRATOS_PUBLIC || 'http://fynbos.test'
@@ -27,17 +24,7 @@ const KRATOS_URL_SERVER =
 
 export const kratos = new V0alpha2Api(
   new Configuration({
-    basePath: KRATOS_URL,
-    baseOptions: {
-      // Ensure we send credentials over CORSs
-      withCredentials: true
-    }
-  })
-)
-
-export const kratosSSR = new V0alpha2Api(
-  new Configuration({
-    basePath: KRATOS_URL_SERVER,
+    basePath: typeof window === 'undefined' ? KRATOS_URL_SERVER : KRATOS_URL,
     baseOptions: {
       // Ensure we send credentials over CORSs
       withCredentials: true
@@ -61,138 +48,60 @@ export const getCsrfTokenFromFlow = (
   return node ? (node.attributes as UiNodeInputAttributes).value : ''
 }
 
-/**
- * Returns a redirect if the user has a session already.
- * @param context The context object passed to getServerSideProps
- */
-export const checkSession: GetServerSideProps = async (
-  context
-): Promise<GetServerSidePropsResult<any>> => {
-  // Temporarily block all pages if kratos not enabled
-  if (process.env.KRATOS_ENABLED !== 'true') {
-    return {
-      redirect: {
-        destination: Routes.home,
-        permanent: false
-      }
-    }
-  }
+type SessionResult<isProtected extends boolean> = isProtected extends true
+  ? Session | { redirect: Redirect }
+  : Session | { redirect: Redirect } | null
 
-  // Check if the user has a session already.
-  const cookie = context.req?.headers.cookie
-  try {
-    const session = await kratosSSR
-      .toSession(undefined, cookie)
-      .then((res) => res.data)
+// This uses function overloads to basically note that this function has two different call signatures, and makes the type system try to use the call signature that works on each usage site.
+export async function getSessionOrRedirect<E extends boolean>(
+  context: GetServerSidePropsContext<ParsedUrlQuery, PreviewData>,
+  isProtected: E
+): Promise<SessionResult<typeof isProtected>>
 
-    if (
-      session.identity.verifiable_addresses &&
-      !session.identity.verifiable_addresses[0].verified
-    )
-      return {
-        redirect: {
-          destination: Routes.verify,
-          permanent: false
-        }
-      }
-
-    return {
-      redirect: {
-        destination: Routes.organisation,
-        permanent: false
-      }
-    }
-  } catch (error) {
-    switch ((error as AxiosError)?.response?.status) {
-      case 403:
-      // This is a legacy error code thrown. See code 422 for
-      // more details.
-      case 422:
-        // This status code is returned when we are trying to
-        // validate a session which has not yet completed
-        // it's second factor
-        // redirect(Routes.login + '?aal=aal2', appContext)
-        return {
-          redirect: {
-            destination: Routes.login + '?aal=aal2',
-            permanent: false
-          }
-        }
-    }
-    return { props: {} }
-  }
-}
-
-type OrganisationProps = {
-  session: Session
-  orgId: string | string[]
-}
 /**
  * Returns a redirect if the user doesn't have session.
  * Returns the session if the user has a session.
+ * Can return null on pages that don't need to be authed.
  * @param context The context object passed to getServerSideProps
+ * @param isProtected Does the route need to be authed?
  */
-export const getSession: GetServerSideProps = async (
-  context
-): Promise<GetServerSidePropsResult<OrganisationProps>> => {
+export async function getSessionOrRedirect(
+  context: GetServerSidePropsContext<ParsedUrlQuery, PreviewData>,
+  isProtected: boolean
+): Promise<SessionResult<typeof isProtected>> {
   // Temporarily block all pages if kratos not enabled
   if (process.env.KRATOS_ENABLED !== 'true') {
-    return {
-      redirect: {
-        destination: Routes.home,
-        permanent: false
-      }
-    }
+    return redirect(Routes.home)
   }
 
   const cookie = context.req?.headers.cookie
-  const orgId = context.params?.orgId || ''
-  // TODO: fetch necessary info of orgId from backend
   try {
-    const session = await kratosSSR
+    const session = await kratos
       .toSession(undefined, cookie)
       .then((res) => res.data)
 
+    // Always redirect if the users email isn't verified
     if (
       session.identity.verifiable_addresses &&
       !session.identity.verifiable_addresses[0].verified
-    )
-      return {
-        redirect: {
-          destination: Routes.verify,
-          permanent: false
-        }
-      }
-
-    return {
-      props: {
-        session: session,
-        orgId: orgId
-      }
+    ) {
+      return redirect(Routes.verify)
     }
+
+    if (isProtected) {
+      return session
+    }
+    return redirect(Routes.organisation)
   } catch (error) {
     switch ((error as AxiosError)?.response?.status) {
       case 403:
-      // This is a legacy error code thrown. See code 422 for
-      // more details.
-      case 422:
-        // This status code is returned when we are trying to
-        // validate a session which has not yet completed
-        // it's second factor
-        // redirect(Routes.login + '?aal=aal2', appContext)
-        return {
-          redirect: {
-            destination: Routes.login + '?aal=aal2',
-            permanent: false
-          }
-        }
+      case 422: // Need to complete 2FA.
+        return redirect(Routes.login + '?aal=aal2')
     }
-    return {
-      redirect: {
-        destination: Routes.login,
-        permanent: false
-      }
+    if (isProtected) {
+      return redirect(Routes.login)
     }
+    return null
   }
 }
 
