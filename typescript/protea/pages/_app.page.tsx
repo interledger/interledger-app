@@ -1,6 +1,8 @@
 import 'styles/main.css'
 import { AppProps as NextAppProps } from 'next/app'
 import Head from 'next/head'
+import { ApolloProvider } from '@apollo/client'
+import { apolloClient } from 'lib/apollo'
 
 function MyApp({ Component, pageProps }: NextAppProps) {
   const metaContent = {
@@ -37,7 +39,9 @@ function MyApp({ Component, pageProps }: NextAppProps) {
           content='minimum-scale=1, initial-scale=1, width=device-width'
         />
       </Head>
-      <Component {...pageProps} />
+      <ApolloProvider client={apolloClient}>
+        <Component {...pageProps} />
+      </ApolloProvider>
     </>
   )
 }
