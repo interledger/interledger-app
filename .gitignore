@@ -10,3 +10,6 @@
 
 # don't commit the certs created for cockroachdb
 **/certs
+
+# VScode workspace files
+*.code-workspace
