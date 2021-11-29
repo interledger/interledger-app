@@ -6,7 +6,7 @@ import type {
 } from 'next'
 import { getSession } from 'lib/kratos'
 import { Session } from '@ory/kratos-client'
-import { Dashboard, Routes } from 'components'
+import { Dashboard, redirect, Routes } from 'components'
 
 const ProfilePage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -48,6 +48,9 @@ export const getServerSideProps: GetServerSideProps = async (
   if ('redirect' in session) {
     return session
   }
+
+  const { flow: flowId } = context.query
+  if (flowId) return redirect(`${Routes.profilePassword}?flow=${flowId}`)
 
   return {
     props: {

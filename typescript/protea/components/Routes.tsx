@@ -24,6 +24,7 @@ export enum Routes {
   verify = '/verify',
   logout = '/logout',
   profile = '/profile',
+  profilePassword = '/profile/password',
   recovery = '/recovery',
 
   //
