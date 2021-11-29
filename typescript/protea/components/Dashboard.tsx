@@ -1,8 +1,7 @@
 import { Router, Routes } from './Routes'
-import { FC, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 import { Header } from './Header'
 import { Footer } from './Footer'
-import { useRouter } from 'next/router'
 import { Logo } from './Logo'
 import { Select } from './Select'
 import {
@@ -11,28 +10,32 @@ import {
   DashboardIcon,
   GatewayIcon,
   IntegrationIcon,
+  ListItemActiveIcon,
   SettingsIcon,
   WalletIcon
 } from './icons'
 import { Switch } from './Switch'
 import type { OrgsForDashboard } from 'lib/dashboard'
+import { setPreview, usePreview } from 'lib/preview'
 
 type DashboardProps = {
   className?: string
   route?: Routes
   orgsForDashboard: OrgsForDashboard
-  isTest?: boolean
+  preview: boolean
 }
 
 export const Dashboard: FC<DashboardProps> = ({
   children,
   route,
   orgsForDashboard,
+  preview
 }) => {
   return (
     <>
       <div className='hidden sm:flex'>
         <SideNav
+          preview={preview}
           route={route}
           orgsForDashboard={orgsForDashboard}
         />
@@ -55,6 +58,7 @@ export const Dashboard: FC<DashboardProps> = ({
 type SideNavProps = {
   route?: Routes
   orgsForDashboard: OrgsForDashboard
+  preview: boolean
 }
 
 // TODO: Get options from backend.
@@ -69,17 +73,27 @@ const options = [
   }
 ]
 
-const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard }) => {
-  const router = useRouter()
-  const [enabled, setEnabled] = useState(false)
-  const [selected, setSelected] = useState(
-    options.filter((item) => item.id === orgId)[0]
+const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
+  const previewDisabledInitial = orgsForDashboard.currentOrg?.verified
+
+  const [isPreview, setIsPreview] = usePreview(preview)
+  const [previewSwitchEnabled, setSwitchPreviewEnabled] = useState<boolean>(
+    Boolean(previewDisabledInitial)
   )
+
+  const togglePreview = async () => {
+    const prev = await setPreview(!isPreview)
+    setIsPreview(prev)
+  }
+
+  useEffect(() => {
+    setSwitchPreviewEnabled(Boolean(orgsForDashboard.currentOrg?.verified))
+  }, [orgsForDashboard.currentOrg?.verified])
 
   return (
     <div
       className={`${
-        enabled ? 'theme-test' : ''
+        isPreview ? 'theme-test' : ''
       } font-display select-none bg-base sticky top-0 flex flex-col justify-between min-w-[300px] min-h-screen p-4`}
     >
       <NavList>
@@ -161,7 +175,12 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard }) => {
       <NavList>
         {orgsForDashboard.currentOrg && (
           <li className='flex items-center h-12 p-2 text-medium justify-between'>
-            Test data <Switch enabled={enabled} onChange={setEnabled} />
+            Test data{' '}
+            <Switch
+              disabled={!previewSwitchEnabled}
+              checked={isPreview}
+              onChange={togglePreview}
+            />
           </li>
         )}
         <NavListItem
