@@ -1,13 +1,13 @@
-import React, { FunctionComponent, useState } from 'react'
+import React, { FC } from 'react'
 import { useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { AxiosError } from 'axios'
 import { SubmitSelfServiceSettingsFlowBody } from '@ory/kratos-client'
 import { getCsrfTokenFromFlow, handleGetFlowError, kratos } from 'lib/kratos'
 import { useProfileSettingsFlow } from 'hooks'
-import { Button, Routes, TextField, Notification } from 'components'
+import { Button, Routes, TextField } from 'components'
 
-type RecoveryPasswordInputs = {
+type PasswordInputs = {
   password: string
   csrf_token: string
 }
@@ -15,7 +15,7 @@ type RecoveryPasswordInputs = {
 const transformToFlowBody = ({
   csrf_token,
   password
-}: RecoveryPasswordInputs): SubmitSelfServiceSettingsFlowBody => {
+}: PasswordInputs): SubmitSelfServiceSettingsFlowBody => {
   // TODO: only doing password for now
   // webauthn/totp etc is being released in 0.8.0-alpha.1
   return {
@@ -25,8 +25,7 @@ const transformToFlowBody = ({
   }
 }
 
-export const RecoveryPasswordForm: FunctionComponent = () => {
-  const [showNotification, setShowNotification] = useState<boolean>(false)
+export const PasswordForm: FC = () => {
   const [flow, setFlow] = useProfileSettingsFlow()
   const router = useRouter()
 
@@ -35,15 +34,15 @@ export const RecoveryPasswordForm: FunctionComponent = () => {
     handleSubmit,
     setError,
     formState: { errors, isValid }
-  } = useForm<RecoveryPasswordInputs>()
+  } = useForm<PasswordInputs>()
 
-  const onSubmit = (values: RecoveryPasswordInputs) =>
+  const onSubmit = (values: PasswordInputs) =>
     router
       // On submission, add the flow ID to the URL but do not navigate. This prevents the user loosing
       // his data when she/he reloads the page.
       .push(
         {
-          pathname: Routes.profile,
+          pathname: Routes.profilePassword,
           query: {
             flow: flow?.id
           }
@@ -59,9 +58,7 @@ export const RecoveryPasswordForm: FunctionComponent = () => {
             transformToFlowBody(values)
           )
           .then(({ data }) => {
-            // The settings have been saved and the flow was updated. Let's show it to the user!
-            setShowNotification(true)
-            setFlow(data)
+            router.push(Routes.profile)
           })
           .catch(handleGetFlowError(router, Routes.profile, setFlow))
           .catch(async (err: AxiosError) => {
@@ -92,7 +89,7 @@ export const RecoveryPasswordForm: FunctionComponent = () => {
             minLength: { value: 8, message: 'Min length is 8.' }
           })}
           id='password'
-          label='Password'
+          label='New password'
           type='password'
           isValid={isValid}
           errorMessage={errors.password?.message}
@@ -106,17 +103,8 @@ export const RecoveryPasswordForm: FunctionComponent = () => {
           />
         )}
 
-        <Button disabled={showNotification} type='submit'>
-          Save password
-        </Button>
+        <Button type='submit'>Save password</Button>
       </form>
-      <Notification
-        show={showNotification}
-        setShow={setShowNotification}
-        header='Password saved'
-        body='Account recovery successful.'
-        action='Done'
-      />
     </>
   )
 }
