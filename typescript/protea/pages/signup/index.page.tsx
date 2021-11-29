@@ -1,8 +1,13 @@
-import { GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next'
+import {
+  GetServerSideProps,
+  GetServerSidePropsResult,
+  InferGetServerSidePropsType,
+  NextPage
+} from 'next'
 import { Logo, Router, Routes } from 'components'
 import { SignupForm } from './SignupForm'
 import React from 'react'
-import { checkSession } from 'lib/kratos'
+import { getSessionOrRedirect } from 'lib/kratos'
 
 const SignupPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -28,4 +33,15 @@ const SignupPage: NextPage<
 
 export default SignupPage
 
-export const getServerSideProps: GetServerSideProps = checkSession
+export const getServerSideProps: GetServerSideProps = async (
+  context
+): Promise<GetServerSidePropsResult<any>> => {
+  const session = await getSessionOrRedirect(context, false)
+  if (session && 'redirect' in session) {
+    return session
+  }
+
+  return {
+    props: {}
+  }
+}

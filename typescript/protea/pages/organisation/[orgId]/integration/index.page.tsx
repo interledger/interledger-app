@@ -1,11 +1,16 @@
-import type { NextPage } from 'next'
+import type {
+  GetServerSidePropsResult,
+  NextPage,
+  GetServerSideProps,
+  InferGetServerSidePropsType
+} from 'next'
 import { Routes, Dashboard } from 'components'
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
-import { getSession } from 'lib/kratos'
+import { getSessionOrRedirect } from 'lib/kratos'
+import { Session } from '@ory/kratos-client'
 
 const IntegrationPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ orgId, session }) => {
+> = ({}) => {
   return (
     <Dashboard orgId={orgId} route={Routes.organisationIntegration}>
       Hello there
@@ -15,4 +20,21 @@ const IntegrationPage: NextPage<
 
 export default IntegrationPage
 
-export const getServerSideProps: GetServerSideProps = getSession
+type IntegrationPageProps = {
+  session: Session
+}
+
+export const getServerSideProps: GetServerSideProps = async (
+  context
+): Promise<GetServerSidePropsResult<IntegrationPageProps>> => {
+  const session = await getSessionOrRedirect(context, true)
+  if ('redirect' in session) {
+    return session
+  }
+
+  return {
+    props: {
+      session,
+    }
+  }
+}

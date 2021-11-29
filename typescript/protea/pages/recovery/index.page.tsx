@@ -1,8 +1,13 @@
-import { GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next'
+import {
+  GetServerSideProps,
+  GetServerSidePropsResult,
+  InferGetServerSidePropsType,
+  NextPage
+} from 'next'
 import { RecoveryForm } from './RecoveryForm'
 import { Logo, Router, Routes } from 'components'
 import React from 'react'
-import { checkSession } from 'lib/kratos'
+import { getSessionOrRedirect } from 'lib/kratos'
 
 const RecoveryPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -25,4 +30,15 @@ const RecoveryPage: NextPage<
 
 export default RecoveryPage
 
-export const getServerSideProps: GetServerSideProps = checkSession
+export const getServerSideProps: GetServerSideProps = async (
+  context
+): Promise<GetServerSidePropsResult<any>> => {
+  const session = await getSessionOrRedirect(context, false)
+  if (session && 'redirect' in session) {
+    return session
+  }
+
+  return {
+    props: {}
+  }
+}

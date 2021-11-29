@@ -1,11 +1,16 @@
-import type { NextPage } from 'next'
 import { Routes, Dashboard } from 'components'
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
-import { getSession } from 'lib/kratos'
+import {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  GetServerSidePropsResult,
+  NextPage
+} from 'next'
+import { getSessionOrRedirect } from 'lib/kratos'
+import { Session } from '@ory/kratos-client'
 
 const OverviewPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ orgId, session }) => {
+> = ({}) => {
   return (
     <Dashboard orgId={orgId} route={Routes.organisationOverview}>
       <span className='text-4xl font-medium'>
@@ -17,4 +22,21 @@ const OverviewPage: NextPage<
 
 export default OverviewPage
 
-export const getServerSideProps: GetServerSideProps = getSession
+type OverviewPageProps = {
+  session: Session
+}
+
+export const getServerSideProps: GetServerSideProps = async (
+  context
+): Promise<GetServerSidePropsResult<OverviewPageProps>> => {
+  const session = await getSessionOrRedirect(context, true)
+  if ('redirect' in session) {
+    return session
+  }
+
+  return {
+    props: {
+      session,
+    }
+  }
+}
