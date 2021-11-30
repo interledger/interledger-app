@@ -1,14 +1,15 @@
-workflow:
-  rules:
+include:
+  - //.gitlab-refs.yaml
+
+.job_rules:
+  rules:  
     - changes:
         - typescript/protea/**/*
     # we need to configure this pipeline to run on merge requests
     # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
     - if: $CI_MERGE_REQUEST_ID
 
-stages:
-  - lint
-  - deploy
+stages: !reference [.stages, stages]
 
 variables:
   PROJECT_PATH: $CI_PROJECT_DIR/typescript/protea
@@ -20,16 +21,18 @@ default:
     - echo "changing directory to $PROJECT_PATH"
     - cd $PROJECT_PATH
 
-deploy:
-  stage: deploy
-  only:
-    - main
-  script:
-    - yarn dlx vercel --prod -t $VERCEL_CLI_TOKEN
-
-deploy_preview:
-  stage: deploy
-  except:
-    - main
+deploy_preview_protea:
+  stage: deploy_preview
   script:
     - yarn dlx vercel -t $VERCEL_CLI_TOKEN
+  extends: .job_rules
+  rules:
+    - if: '$TRIGGER_STAGE == "deploy_preview" && $CI_COMMIT_BRANCH != "main"'
+
+deploy_live_protea:
+  stage: deploy_live
+  script:
+    - yarn dlx vercel --prod -t $VERCEL_CLI_TOKEN
+  extends: .job_rules
+  rules:
+    - if: '$TRIGGER_STAGE == "deploy_live" && $CI_COMMIT_BRANCH == "main"'

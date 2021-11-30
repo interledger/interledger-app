@@ -1,0 +1,25 @@
+include:
+  - /////.gitlab-refs.yaml
+
+.job_rules:
+  rules:
+    - changes:
+      - services/cockroach/deploy/*
+    # we need to configure this pipeline to run on merge requests
+    - if: $CI_MERGE_REQUEST_ID
+
+stages: !reference [.stages, stages]
+
+deploy_live_backend:
+  environment: !reference [.live_environment, environment]
+  stage: deploy_live
+  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/eks
+  before_script: !reference [.assume_role, before_script]
+  script:
+    - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
+    - aws sts get-caller-identity
+    - aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+    - kubectl version
+  extends: .job_rules
+  rules:
+    - if: '$TRIGGER_STAGE == "deploy_live"'

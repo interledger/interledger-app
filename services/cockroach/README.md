@@ -66,4 +66,3 @@ To access the cockroach ui you need to port-forward to the service and use the a
 
 `user: roach`
 `password: roach`
-

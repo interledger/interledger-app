@@ -23,14 +23,34 @@ func main() {
 			return err
 		}
 
-		image, err := docker.NewImage(ctx, "docker-ecr", &docker.ImageArgs{
-			Build:     &docker.DockerBuildArgs{Context: pulumi.String("./")},
+		dockerImage, err := docker.NewImage(ctx, "docker-ecr", &docker.ImageArgs{
+			Build: &docker.DockerBuildArgs{
+				Context:    pulumi.String("./"),
+				Dockerfile: pulumi.String("./DockerfileEcr"),
+			},
 			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12"),
 			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
 		})
 
+		// used to store the custom image for deploying to eks
+		eksRepo, err := ecr.NewPrivateRepository(ctx, "eks", accountID)
+		if err != nil {
+			return err
+		}
+
+		eksImage, err := docker.NewImage(ctx, "eks", &docker.ImageArgs{
+			Build: &docker.DockerBuildArgs{
+				Context:    pulumi.String("./"),
+				Dockerfile: pulumi.String("./DockerfileEks"),
+			},
+			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/eks"),
+			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
+		})
+
+		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
+		ctx.Export("eksImage", eksImage.ImageName)
 		ctx.Export("dockerRepoUri", dockerRepo.RepositoryUri)
-		ctx.Export("dockerImage", image.ImageName)
+		ctx.Export("dockerImage", dockerImage.ImageName)
 		ctx.Export("backendEcrRepoUri", backendEcrRepo.RepositoryUri)
 		return nil
 	})
