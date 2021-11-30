@@ -1,6 +1,7 @@
 include:
   - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
   - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+  - /.gitlab-refs.yaml
 
 # this will switch between branch and merge request pipelines
 # https://docs.gitlab.com/ee/ci/yaml/index.html#workflowrules-templates
@@ -11,37 +12,61 @@ workflow:
       when: never
     - if: '$CI_COMMIT_BRANCH'
 
-stages:
-  - triggers
+.include_services: &include_services
+  include:
+    - go/**/.gitlab-ci.yml
+    - services/**/.gitlab-ci.yml
 
-trigger_protea:
-  stage: triggers
+stages: !reference [.stages, stages]
+
+trigger_build_base:
+  stage: build_base
   trigger:
-    include: typescript/protea/.gitlab-ci.yml
+    <<: *include_services
+    strategy: depend
+  variables:
+    TRIGGER_STAGE: build_base
+
+trigger_test_base:
+  stage: test_base
+  trigger:
+    <<: *include_services
+    strategy: depend
+  variables:
+    TRIGGER_STAGE: test_base
+
+trigger_publish:
+  stage: publish
+  trigger:
+    <<: *include_services
+    strategy: depend
+  variables:
+    TRIGGER_STAGE: publish
+
+trigger_deploy_preview:
+  stage: deploy_preview
+  trigger:
+    include:
+      # only protea supports preview at the moment.
+      - typescript/protea/.gitlab-ci.yml
     strategy: depend
   rules:
     - changes:
         - typescript/protea/**/*
-    # we need to set the trigger job to run on merge requests
-    # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
     - if: $CI_MERGE_REQUEST_ID
+  variables:
+    TRIGGER_STAGE: deploy_preview
 
-trigger_infra:
-  stage: triggers
+trigger_deploy_live:
+  stage: deploy_live
   trigger:
-    include: infra/.gitlab-ci.yml
+    <<: *include_services
     strategy: depend
-  rules:
-    - changes:
-        - infra/**/*
-    - if: $CI_MERGE_REQUEST_ID
-
-trigger_go:
-  stage: triggers
-  trigger:
-    include: go/.gitlab-ci.yml
-    strategy: depend
-  rules:
-    - changes:
-        - go/**/*
-    - if: $CI_MERGE_REQUEST_ID
+  when: manual
+  variables:
+    TRIGGER_STAGE: deploy_live
+    AWS_REGION: eu-west-1
+    # we use the IAM automation role that is mapped to the k8s automation group.
+    # this will allow read only access from ECR and 
+    AWS_DEPLOY_ROLE_ARN: arn:aws:iam::823058932981:role/eksAutomationRole
+    CLUSTER_NAME: live-eu-west-1-eks-cluster
