@@ -37,6 +37,14 @@ type TransactionType struct {
 	UpdatedAt                 string `db:"updated_at"`
 }
 
+type Ledger struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	TenantID  string `db:"tenant_id"`
+	CreatedAt string `db:"created_at"`
+	UpdatedAt string `db:"updated_at"`
+}
+
 type Service interface {
 	GetTenant(id string) (*Tenant, error)
 	CreateTenant(identifier string) (*Tenant, error)
@@ -44,6 +52,8 @@ type Service interface {
 	CreateAccountCategory(tenantID string, args AccountCategoryArgs) (*AccountCategory, error)
 	GetTransactionType(tenantID string, transactionTypeID string) (*TransactionType, error)
 	CreateTransactionType(tenantID string, args TransactionTypeArgs) (*TransactionType, error)
+	GetLedger(tenantID string, ledgerID string) (*Ledger, error)
+	CreateLedger(tenantID string, name string) (*Ledger, error)
 }
 
 type service struct {
@@ -295,6 +305,51 @@ func (s *service) CreateTransactionType(tenantID string, args TransactionTypeArg
 	}
 
 	return &ret, nil
+}
+
+func (s *service) CreateLedger(tenantID string, name string) (*Ledger, error) {
+	tenant, err := s.GetTenant(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret Ledger
+	stmt, err := s.db.PrepareNamed("INSERT INTO ledgers (name, tenant_id) VALUES (:name, :tenantid) RETURNING *")
+	if err != nil {
+		return nil, err
+	}
+
+	err = stmt.Stmt.Get(&ret, name, tenant.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+// Will only return the ledger if it exists and belongs to the specified tenant. Otherwise will
+// return ErrNotFound.
+func (s service) GetLedger(tenantID string, id string) (*Ledger, error) {
+	var ledger Ledger
+	err := s.db.Get(&ledger, "SELECT * FROM ledgers WHERE id=$1 LIMIT 1", id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound{
+				Err: "Ledger not found.",
+			}
+		default:
+			return nil, err
+		}
+	}
+
+	if ledger.TenantID != tenantID {
+		return nil, ErrNotFound{
+			Err: "Ledger not found.",
+		}
+	}
+
+	return &ledger, nil
 }
 
 // Error set

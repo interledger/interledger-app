@@ -344,4 +344,60 @@ func TestPacioliService(s *testing.T) {
 		})
 	})
 
+	s.Run("ledger", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		me, err := ps.CreateTenant(faker.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run("tenant must exist to create ledger", func(tt *testing.T) {
+			tenantID := uuid.NewString()
+			ledger, err := ps.CreateLedger(tenantID, "my first ledger")
+			if err == nil {
+				tt.Fatal("Tenant must exist to create ledger.")
+			}
+
+			assert.Nil(tt, ledger)
+			assert.Equal(tt, "Tenant not found.", err.Error())
+		})
+
+		t.Run("tenant can create a ledger", func(tt *testing.T) {
+			ledger, err := ps.CreateLedger(me.ID, "my first ledger")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.NotNil(tt, ledger.ID)
+			assert.Equal(tt, "my first ledger", ledger.Name)
+			assert.Equal(tt, me.ID, ledger.TenantID)
+		})
+
+		t.Run("tenants can only get their own ledgers", func(tt *testing.T) {
+			otherTenant, err := ps.CreateTenant(faker.Name())
+			if err != nil {
+				tt.Fatal(err)
+			}
+			ledger1, err := ps.CreateLedger(me.ID, "my first ledger")
+			if err != nil {
+				t.Fatal(err)
+			}
+			ledger2, err := ps.CreateLedger(otherTenant.ID, "other tenant's first ledger")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			myLedger, err := ps.GetLedger(me.ID, ledger1.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, "my first ledger", myLedger.Name)
+
+			otherLedger, err := ps.GetLedger(me.ID, ledger2.ID)
+			assert.Nil(tt, otherLedger)
+			assert.Equal(tt, "Ledger not found.", err.Error())
+		})
+	})
 }
