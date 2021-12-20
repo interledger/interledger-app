@@ -1,3 +1,3 @@
 config:
   aws:region: eu-west-1
-  cluster:oidcId: arn:aws:iam::823058932981:oidc-provider/oidc.eks.eu-west-1.amazonaws.com/id/411264E23045C45A6C81741D429A0AFE
+  cluster:oidcId: arn:aws:iam::823058932981:oidc-provider/oidc.eks.eu-west-1.amazonaws.com/id/63D788C045B4A68C6DF3F6C6F816CF53

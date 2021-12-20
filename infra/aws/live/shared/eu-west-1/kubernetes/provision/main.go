@@ -31,6 +31,7 @@ func main() {
 		publicSubnetIds := utils.StringArrayOutputFromStack(vpcStack, "publicSubnets")
 		privateSubnetIds := utils.StringArrayOutputFromStack(vpcStack, "privateSubnets")
 		glRunnerRoleArn := glRunnerStack.GetStringOutput(pulumi.String("glRunnerRoleArn"))
+		glRunnerSg := glRunnerStack.GetIDOutput(pulumi.String("glRunnerSecurityGroupID"))
 
 		roles, err := k8s.NewEksRoles(ctx, awsAccountId, glRunnerRoleArn)
 		if err != nil {
@@ -40,14 +41,15 @@ func main() {
 		ctx.Export("automationRoleArn", roles.Automation.Arn)
 
 		cluster, err := k8s.NewEksControlPlane(ctx, k8s.EksControlPlaneArgs{
-			Name:                clusterName,
-			Version:             "1.21",
-			VpcId:               vpcId,
-			PublicSubnets:       publicSubnetIds,
-			PrivateSubnets:      privateSubnetIds,
-			AccountId:           awsAccountId,
-			IamRoles:            roles,
-			ExposeAdminEndpoint: allowPublicConfiguration,
+			Name:                         clusterName,
+			Version:                      "1.21",
+			VpcId:                        vpcId,
+			PublicSubnets:                publicSubnetIds,
+			PrivateSubnets:               privateSubnetIds,
+			AccountId:                    awsAccountId,
+			IamRoles:                     roles,
+			ExposeAdminEndpoint:          allowPublicConfiguration,
+			ClusterAllowedSecurityGroups: pulumi.StringArray{glRunnerSg},
 		})
 		if err != nil {
 			return err
