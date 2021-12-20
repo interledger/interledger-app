@@ -12,14 +12,15 @@ import (
 )
 
 type EksControlPlaneArgs struct {
-	Version             string
-	Name                string
-	PublicSubnets       pulumi.StringArrayOutput
-	PrivateSubnets      pulumi.StringArrayOutput
-	VpcId               pulumi.IDOutput
-	AccountId           string
-	IamRoles            EksIamRoles
-	ExposeAdminEndpoint bool
+	Version                      string
+	Name                         string
+	PublicSubnets                pulumi.StringArrayOutput
+	PrivateSubnets               pulumi.StringArrayOutput
+	VpcId                        pulumi.IDOutput
+	AccountId                    string
+	IamRoles                     EksIamRoles
+	ExposeAdminEndpoint          bool
+	ClusterAllowedSecurityGroups pulumi.StringArray
 }
 
 func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Cluster, error) {
@@ -35,6 +36,13 @@ func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Clu
 	if err != nil {
 		return nil, err
 	}
+
+	clusterSg, err := NewClusterSecurityGroup(EksClusterSecurityGroupOpts{
+		Ctx:                   ctx,
+		Name:                  args.Name,
+		VpcId:                 args.VpcId,
+		AllowedSecurityGroups: args.ClusterAllowedSecurityGroups,
+	})
 
 	cluster, err := eks.NewCluster(ctx, args.Name, &eks.ClusterArgs{
 		Name:             pulumi.String(args.Name),
@@ -74,9 +82,7 @@ func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Clu
 		NodeSecurityGroupTags: pulumi.StringMap{ // Run with default node security group for now.
 			"Name": pulumi.String("eksNodeSecurityGroup"),
 		},
-		ClusterSecurityGroupTags: pulumi.StringMap{ // Run with default cluster security group for now. This will enable full internet egress and ingress from node groups
-			"Name": pulumi.String("eksNodeSecurityGroup"),
-		},
+		ClusterSecurityGroup: clusterSg,
 		EnabledClusterLogTypes: pulumi.StringArray{
 			pulumi.String("api"),
 			pulumi.String("audit"),

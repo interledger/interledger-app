@@ -159,6 +159,8 @@ func main() {
 		if err != nil {
 			return err
 		}
+		// export runner sg so that the k8s cluster sg can be configured to allow inbound tcp from it.
+		ctx.Export("glRunnerSecurityGroupID", sg.ID())
 
 		tmplt, err := ec2.NewLaunchTemplate(ctx, "gl-runner-manager", &ec2.LaunchTemplateArgs{
 			NamePrefix:   pulumi.String("gl-runner-manager"),
