@@ -10,7 +10,12 @@ import (
 )
 
 func DeployCockroach(ctx *pulumi.Context) error {
-	err := rbac(ctx)
+	_, err := createNodeCert(ctx, "ca-issuer", "default", "cockroachdb")
+	if err != nil {
+		return err
+	}
+
+	err = rbac(ctx)
 	if err != nil {
 		return err
 	}
@@ -171,13 +176,13 @@ func statefulSet(ctx *pulumi.Context) error {
 								pulumi.String("/bin/bash"),
 								pulumi.String("-ecx"),
 								pulumi.String("exec " +
-									"/cockroach/cockroach start-single-node" +
+									"/cockroach/cockroach start-single-node " +
 									"--logtostderr " +
-									"--certs-dir /cockroach/cockroach-certs" +
-									"--advertise-host $(hostname -f)" +
-									"--http-addr 0.0.0.0" +
-									"--cache $(expr $MEMORY_LIMIT_MIB / 4)MiB" +
-									"--max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB"),
+									"--certs-dir /cockroach/cockroach-certs " +
+									"--advertise-host $(hostname -f) " +
+									"--http-addr 0.0.0.0 " +
+									"--cache $(expr $MEMORY_LIMIT_MIB / 4)MiB " +
+									"--max-sql-memory $(expr $MEMORY_LIMIT_MIB / 4)MiB "),
 							},
 						},
 					},
@@ -191,9 +196,31 @@ func statefulSet(ctx *pulumi.Context) error {
 						},
 						&corev1.VolumeArgs{
 							Name: pulumi.String("certs"),
-							Secret: &corev1.SecretVolumeSourceArgs{
-								SecretName:  pulumi.String("cockroachdb.node"),
-								DefaultMode: pulumi.Int(256),
+							Projected: &corev1.ProjectedVolumeSourceArgs{
+								Sources: &corev1.VolumeProjectionArray{
+									&corev1.VolumeProjectionArgs{
+										Secret: corev1.SecretProjectionArgs{
+											Name: pulumi.String("cockroachdb-node"),
+											Items: corev1.KeyToPathArray{
+												corev1.KeyToPathArgs{
+													Key:  pulumi.String("ca.crt"),
+													Path: pulumi.String("ca.crt"),
+													Mode: pulumi.Int(256),
+												},
+												corev1.KeyToPathArgs{
+													Key:  pulumi.String("tls.crt"),
+													Path: pulumi.String("node.crt"),
+													Mode: pulumi.Int(256),
+												},
+												corev1.KeyToPathArgs{
+													Key:  pulumi.String("tls.key"),
+													Path: pulumi.String("node.key"),
+													Mode: pulumi.Int(256),
+												},
+											},
+										},
+									},
+								},
 							},
 						},
 					},
