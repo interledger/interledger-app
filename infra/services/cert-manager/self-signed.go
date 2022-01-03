@@ -7,26 +7,26 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func BootstrapCA(ctx *pulumi.Context) error {
-	_, err := createClusterIssuer(ctx)
+func BootstrapCA(ctx *pulumi.Context, opts ...pulumi.ResourceOption) (*apiextensions.CustomResource, error) {
+	_, err := createClusterIssuer(ctx, opts...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = createCert(ctx)
+	err = createCert(ctx, opts...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = createIssuer(ctx)
+	cr, err := createIssuer(ctx, opts...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return cr, nil
 }
 
-func createClusterIssuer(ctx *pulumi.Context) (*apiextensions.CustomResource, error) {
+func createClusterIssuer(ctx *pulumi.Context, opts ...pulumi.ResourceOption) (*apiextensions.CustomResource, error) {
 	cr, err := apiextensions.NewCustomResource(ctx, "cluster-issuer", &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("cert-manager.io/v1"),
 		Kind:       pulumi.String("ClusterIssuer"),
@@ -38,7 +38,7 @@ func createClusterIssuer(ctx *pulumi.Context) (*apiextensions.CustomResource, er
 				"selfSigned": pulumi.Map{},
 			},
 		},
-	})
+	}, opts...)
 
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func createClusterIssuer(ctx *pulumi.Context) (*apiextensions.CustomResource, er
 	return cr, nil
 }
 
-func createCert(ctx *pulumi.Context) error {
+func createCert(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	_, err := apiextensions.NewCustomResource(ctx, "selfsigned-ca", &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("cert-manager.io/v1"),
 		Kind:       pulumi.String("Certificate"),
@@ -70,7 +70,7 @@ func createCert(ctx *pulumi.Context) error {
 				},
 			},
 		},
-	})
+	}, opts...)
 
 	if err != nil {
 		return err
@@ -79,8 +79,8 @@ func createCert(ctx *pulumi.Context) error {
 	return nil
 }
 
-func createIssuer(ctx *pulumi.Context) error {
-	_, err := apiextensions.NewCustomResource(ctx, "ca-issuer", &apiextensions.CustomResourceArgs{
+func createIssuer(ctx *pulumi.Context, opts ...pulumi.ResourceOption) (*apiextensions.CustomResource, error) {
+	cr, err := apiextensions.NewCustomResource(ctx, "ca-issuer", &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("cert-manager.io/v1"),
 		Kind:       pulumi.String("Issuer"),
 		Metadata: v1.ObjectMetaArgs{
@@ -93,10 +93,10 @@ func createIssuer(ctx *pulumi.Context) error {
 				},
 			},
 		},
-	})
-
+	}, opts...)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return cr, nil
 }

@@ -9,8 +9,12 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func DeployCockroach(ctx *pulumi.Context) error {
-	_, err := createNodeCert(ctx, "ca-issuer", "default", "cockroachdb")
+func DeployCockroach(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
+	nc, err := createNodeCert(ctx, &NodeCertArgs{
+		Issuer:      "ca-issuer",
+		Namespace:   "default",
+		ServiceName: "cockroachdb",
+	}, opts...)
 	if err != nil {
 		return err
 	}
@@ -20,7 +24,7 @@ func DeployCockroach(ctx *pulumi.Context) error {
 		return err
 	}
 
-	err = statefulSet(ctx)
+	err = statefulSet(ctx, pulumi.DependsOn([]pulumi.Resource{nc}))
 	if err != nil {
 		return err
 	}
@@ -67,7 +71,7 @@ func podDistributionBudget(ctx *pulumi.Context) error {
 	return nil
 }
 
-func statefulSet(ctx *pulumi.Context) error {
+func statefulSet(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	_, err := appsv1.NewStatefulSet(ctx, "statefulSet", &appsv1.StatefulSetArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("StatefulSet"),
@@ -248,7 +252,8 @@ func statefulSet(ctx *pulumi.Context) error {
 				},
 			},
 		},
-	})
+	}, opts...)
+
 	if err != nil {
 		return err
 	}

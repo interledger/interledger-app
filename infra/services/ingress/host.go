@@ -7,7 +7,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func DeployHost(ctx *pulumi.Context) error {
+func DeployHost(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 
 	_, err := apiextensions.NewCustomResource(ctx, "ingress-host", &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
@@ -25,7 +25,7 @@ func DeployHost(ctx *pulumi.Context) error {
 				},
 			},
 		},
-	})
+	}, opts...)
 
 	if err != nil {
 		return err

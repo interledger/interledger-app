@@ -1,18 +1,26 @@
 package cert_manager
 
 import (
-	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/yaml"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func DeployCertManager(ctx *pulumi.Context) error {
-	// TODO this didn't work :/
-	_, err := yaml.NewConfigFile(ctx, "cert-manager", &yaml.ConfigFileArgs{
-		File: "https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml",
+func DeployCertManager(ctx *pulumi.Context) (*helm.Chart, error) {
+
+	chart, err := helm.NewChart(ctx, "cert-manager", helm.ChartArgs{
+		Version: pulumi.String("1.6.1"),
+		Chart:   pulumi.String("cert-manager"),
+		FetchArgs: &helm.FetchArgs{
+			Repo: pulumi.String("https://charts.jetstack.io"),
+		},
+		Values: pulumi.Map{
+			"installCRDs": pulumi.Bool(true),
+		},
 	})
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return chart, nil
 }

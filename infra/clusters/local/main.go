@@ -10,31 +10,32 @@ import (
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 
-		//err := cert_manager.DeployCertManager(ctx)
-		//if err != nil {
-		//	return err
-		//}
-
-		err := cert_manager.BootstrapCA(ctx)
+		cmChart, err := cert_manager.DeployCertManager(ctx)
 		if err != nil {
 			return err
 		}
 
-		err = ingress.DeployEmissaryIngress(ctx)
+		caResource, err := cert_manager.BootstrapCA(ctx, pulumi.DependsOnInputs(cmChart.Ready))
 		if err != nil {
 			return err
 		}
 
-		err = ingress.DeployHost(ctx)
-		if err != nil {
-			return err
-		}
-		err = ingress.DeployListeners(ctx)
+		ingressChart, err := ingress.DeployEmissaryIngress(ctx)
 		if err != nil {
 			return err
 		}
 
-		err = cockroach.DeployCockroach(ctx)
+		// Depends on here is a workaround due to gremlins https://github.com/pulumi/pulumi-kubernetes/issues/861
+		err = ingress.DeployHost(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+		err = ingress.DeployListeners(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+
+		err = cockroach.DeployCockroach(ctx, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}

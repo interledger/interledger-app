@@ -5,9 +5,9 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func DeployEmissaryIngress(ctx *pulumi.Context) error {
+func DeployEmissaryIngress(ctx *pulumi.Context) (*helm.Chart, error) {
 
-	_, err := helm.NewChart(ctx, "emissary", helm.ChartArgs{
+	chart, err := helm.NewChart(ctx, "emissary", helm.ChartArgs{
 		Version: pulumi.String("7.1.9"),
 		Chart:   pulumi.String("emissary-ingress"),
 		FetchArgs: &helm.FetchArgs{
@@ -36,8 +36,8 @@ func DeployEmissaryIngress(ctx *pulumi.Context) error {
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return chart, nil
 }
