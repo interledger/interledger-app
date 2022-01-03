@@ -5,6 +5,7 @@ import (
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
+	"gitlab.com/fynbos/infra/services/kratos"
 )
 
 func main() {
@@ -39,6 +40,8 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		_, err = kratos.DeployKratos(ctx)
 
 		return nil
 	})
