@@ -1,12 +1,17 @@
 package cockroach
 
 import (
+	"errors"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
+	batchv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/batch/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	policyv1beta1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/policy/v1beta1"
 	rbacv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"io/ioutil"
+	"path/filepath"
+	"runtime"
 )
 
 func DeployCockroach(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
@@ -24,7 +29,7 @@ func DeployCockroach(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 		return err
 	}
 
-	err = statefulSet(ctx, pulumi.DependsOn([]pulumi.Resource{nc}))
+	ss, err := statefulSet(ctx, pulumi.DependsOn([]pulumi.Resource{nc}))
 	if err != nil {
 		return err
 	}
@@ -39,6 +44,20 @@ func DeployCockroach(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	}
 
 	err = podDistributionBudget(ctx)
+	if err != nil {
+		return err
+	}
+
+	cc, err := CreateClientCert(ctx, &ClientCertArgs{
+		Issuer:    "ca-issuer",
+		Namespace: "default",
+		Name:      "root",
+	}, opts...)
+	if err != nil {
+		return err
+	}
+
+	err = initCockroachJob(ctx, pulumi.DependsOn([]pulumi.Resource{cc, ss}))
 	if err != nil {
 		return err
 	}
@@ -71,8 +90,8 @@ func podDistributionBudget(ctx *pulumi.Context) error {
 	return nil
 }
 
-func statefulSet(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
-	_, err := appsv1.NewStatefulSet(ctx, "statefulSet", &appsv1.StatefulSetArgs{
+func statefulSet(ctx *pulumi.Context, opts ...pulumi.ResourceOption) (*appsv1.StatefulSet, error) {
+	ss, err := appsv1.NewStatefulSet(ctx, "statefulSet", &appsv1.StatefulSetArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("StatefulSet"),
 		Metadata: &metav1.ObjectMetaArgs{
@@ -255,9 +274,9 @@ func statefulSet(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	}, opts...)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return ss, nil
 }
 
 func publicService(ctx *pulumi.Context) error {
@@ -400,6 +419,115 @@ func rbac(ctx *pulumi.Context) error {
 			},
 		},
 	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func initCockroachJob(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
+
+	// cockroach init file read from `dbinit.sql` file.
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("Could not get directory path for cockroach module.")
+	}
+
+	dat, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "dbinit.sql"))
+	if err != nil {
+		return err
+	}
+
+	sqlInitConfig, err := corev1.NewConfigMap(ctx, "crdb-init-sql", &corev1.ConfigMapArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name: pulumi.String("cockroachdb-init"),
+		},
+		Data: pulumi.StringMap{"dbinit.sql": pulumi.String(dat)},
+	})
+
+	_, err = batchv1.NewJob(ctx, "cockroachdb-init", &batchv1.JobArgs{
+		ApiVersion: pulumi.String("v1"),
+		Kind:       pulumi.String("Job"),
+		Metadata: &metav1.ObjectMetaArgs{
+			Name: pulumi.String("cockroachdb-init"),
+		},
+		Spec: &batchv1.JobSpecArgs{
+			Template: &corev1.PodTemplateSpecArgs{
+				Spec: &corev1.PodSpecArgs{
+					Containers: corev1.ContainerArray{
+						&corev1.ContainerArgs{
+							Name:            pulumi.String("cockroachdb-client"),
+							Image:           pulumi.String("cockroachdb/cockroach:v21.1.11"),
+							ImagePullPolicy: pulumi.String("IfNotPresent"),
+							VolumeMounts: corev1.VolumeMountArray{
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("sql-init-config"),
+									MountPath: pulumi.String("/cockroach/init/"),
+								},
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("certs"),
+									MountPath: pulumi.String("/cockroach/cockroach-certs/"),
+								},
+							},
+							Command: pulumi.StringArray{
+								pulumi.String("./cockroach"),
+								pulumi.String("sql"),
+								pulumi.String("--certs-dir=/cockroach/cockroach-certs"),
+								pulumi.String("--file=/cockroach/init/dbinit.sql"),
+								pulumi.String("--user=root"),
+								pulumi.String("--host=cockroachdb-public"),
+							},
+						},
+					},
+					Volumes: corev1.VolumeArray{
+						&corev1.VolumeArgs{
+							Name: pulumi.String("sql-init-config"),
+							ConfigMap: &corev1.ConfigMapVolumeSourceArgs{
+								Name: sqlInitConfig.Metadata.Name(),
+							},
+						},
+						&corev1.VolumeArgs{
+							Name: pulumi.String("certs"),
+							Projected: &corev1.ProjectedVolumeSourceArgs{
+								Sources: &corev1.VolumeProjectionArray{
+									&corev1.VolumeProjectionArgs{
+										Secret: corev1.SecretProjectionArgs{
+											Name: pulumi.String("cockroachdb-node"),
+											Items: corev1.KeyToPathArray{
+												corev1.KeyToPathArgs{
+													Key:  pulumi.String("ca.crt"),
+													Path: pulumi.String("ca.crt"),
+													Mode: pulumi.Int(256),
+												},
+											},
+										},
+									},
+									&corev1.VolumeProjectionArgs{
+										Secret: corev1.SecretProjectionArgs{
+											Name: pulumi.String("cockroachdb-root"),
+											Items: corev1.KeyToPathArray{
+												corev1.KeyToPathArgs{
+													Key:  pulumi.String("tls.crt"),
+													Path: pulumi.String("client.root.crt"),
+													Mode: pulumi.Int(256),
+												},
+												corev1.KeyToPathArgs{
+													Key:  pulumi.String("tls.key"),
+													Path: pulumi.String("client.root.key"),
+													Mode: pulumi.Int(256),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					RestartPolicy: pulumi.String("OnFailure"),
+				},
+			},
+		},
+	}, opts...)
 	if err != nil {
 		return err
 	}

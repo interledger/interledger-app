@@ -2,6 +2,7 @@ package kratos
 
 import (
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/yaml"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/cockroach"
 )
@@ -15,10 +16,21 @@ func DeployKratos(ctx *pulumi.Context) (*helm.Chart, error) {
 	})
 
 	chart, err := helm.NewChart(ctx, "kratos", helm.ChartArgs{
-		Version: pulumi.String("0.19.6"),
+		Version: pulumi.String("0.21.5"),
 		Chart:   pulumi.String("kratos"),
 		FetchArgs: &helm.FetchArgs{
 			Repo: pulumi.String("https://k8s.ory.sh/helm/charts"),
+		},
+		Transformations: []yaml.Transformation{
+			// Omit a resource from the Chart by transforming the specified resource definition
+			// to an empty List.
+			func(state map[string]interface{}, opts ...pulumi.ResourceOption) {
+				name := state["metadata"].(map[string]interface{})["name"]
+				if state["kind"] == "Service" && name == "kratos-courier" {
+					state["apiVersion"] = "v1"
+					state["kind"] = "List"
+				}
+			},
 		},
 		Values: pulumi.Map{
 			"image": pulumi.Map{
