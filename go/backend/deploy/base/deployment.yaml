@@ -22,17 +22,16 @@ spec:
       securityContext:
         runAsUser: 65532
       volumes:
-      - name: cockroach-certs
-        secret:
-          secretName: cockroachdb.client.backend
-          # items:
-          #   - key: client.backend.key
-          #     path: client.backend.key
-          #     mode: 0600
-          #   - key: client.backend.crt
-          #     path: client.backend.crt
-          #   - key: ca.crt
-          #     path: ca.crt
+        - name: cockroach-certs
+          secret:
+            secretName: cockroachdb-backend
+            items:
+              - key: tls.key
+                path: client.backend.key
+              - key: tls.crt
+                path: client.backend.crt
+              - key: ca.crt
+                path: ca.crt
       serviceAccountName: backend
       initContainers:
         - name: init-db
@@ -43,8 +42,8 @@ spec:
               # don't specify the ssl certs here. The application will read them in from file and inline them.
               value: "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"
           volumeMounts:
-          - name: cockroach-certs
-            mountPath: "/cockroach-certs"
+            - name: cockroach-certs
+              mountPath: "/cockroach-certs"
       containers:
         - name: backend
           image: fynbos/backend
@@ -53,13 +52,13 @@ spec:
           # the resources that can be allocated on each of your Kubernetes nodes by running:
           #   kubectl describe nodes
           # Note that requests and limits should have identical values.
-#          resources:
-#            requests:
-#              cpu: "2"
-#              memory: "8Gi"
-#            limits:
-#              cpu: "2"
-#              memory: "8Gi"
+          #          resources:
+          #            requests:
+          #              cpu: "2"
+          #              memory: "8Gi"
+          #            limits:
+          #              cpu: "2"
+          #              memory: "8Gi"
           ports:
             - containerPort: 8080
               name: http
@@ -88,8 +87,8 @@ spec:
             - name: LOG_OUTPUT_PATH
               value: "./logs.txt"
           volumeMounts:
-          - name: cockroach-certs
-            mountPath: "/cockroach-certs"
+            - name: cockroach-certs
+              mountPath: "/cockroach-certs"
       # No pre-stop hook is required, a SIGTERM plus some time is all that's
       # needed for graceful shutdown of a node.
       terminationGracePeriodSeconds: 30

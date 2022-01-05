@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
+	"gitlab.com/fynbos/infra/services/mailhog"
 )
 
 func main() {
@@ -42,6 +43,23 @@ func main() {
 		}
 
 		_, err = kratos.DeployKratos(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = mailhog.DeployMailHog(ctx)
+		if err != nil {
+			return err
+		}
+
+		_, err = cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+			Name:      "backend",
+		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})

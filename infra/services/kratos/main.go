@@ -5,6 +5,7 @@ import (
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/yaml"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/cockroach"
+	"gitlab.com/fynbos/infra/services/ingress"
 )
 
 func DeployKratos(ctx *pulumi.Context) (*helm.Chart, error) {
@@ -197,6 +198,19 @@ func DeployKratos(ctx *pulumi.Context) (*helm.Chart, error) {
 			},
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{crCert}))
+
+	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
+		Name:     "kratos-self-service",
+		Hostname: "*",
+		Prefix:   "/self-service/",
+		Service:  "kratos-public",
+	})
+	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
+		Name:     "kratos-sessions",
+		Hostname: "*",
+		Prefix:   "/sessions/",
+		Service:  "kratos-public",
+	})
 
 	return chart, err
 }
