@@ -2,13 +2,17 @@ package pacioli
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
+	"gitlab.com/fynbos/tigerbeetle_go"
 )
 
 func TestPacioliService(s *testing.T) {
@@ -24,10 +28,37 @@ func TestPacioliService(s *testing.T) {
 	}
 	defer db.Close()
 
-	ps, err := NewPacioliService(db)
+	var tbClusterID uint32 = 0
+	tb, err := test_utils.SetupTigerBeetle(ctx, tbClusterID)
 	if err != nil {
 		s.Fatal(err)
 	}
+	fmt.Println("URI", tb.URI)
+	tbClient, err := tigerbeetle_go.NewClient(tbClusterID, []string{tb.URI})
+	if err != nil {
+		s.Fatal(err)
+	}
+	// drive the TB client.
+	go func() {
+		tick := time.Tick(20 * time.Millisecond)
+		for range tick {
+			tbClient.Tick()
+		}
+	}()
+
+	ps, err := NewPacioliService(db, tbClient)
+	if err != nil {
+		s.Fatal(err)
+	}
+
+	s.Cleanup(func() {
+		// tbClient.Deinit()
+		os.RemoveAll(tb.DataDir)
+		// tb.Container.Terminate(ctx)
+
+		db.Close()
+		crdb.Container.Terminate(ctx)
+	})
 
 	s.Run("tenant", func(t *testing.T) {
 		t.Cleanup(func() {
@@ -397,6 +428,64 @@ func TestPacioliService(s *testing.T) {
 
 			otherLedger, err := ps.GetLedger(me.ID, ledger2.ID)
 			assert.Nil(tt, otherLedger)
+			assert.Equal(tt, "Ledger not found.", err.Error())
+		})
+	})
+	s.Run("accounts and transfers", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		me, err := ps.CreateTenant(faker.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		ledger, err := ps.CreateLedger(me.ID, faker.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		liability, err := ps.CreateAccountCategory(me.ID, AccountCategoryArgs{
+			Name: faker.Name(),
+			Type: "LIABILITY",
+			Code: 1,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run("tenant can create accounts", func(tt *testing.T) {
+			acc, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     liability.Code,
+				Unit:     1,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			assert.Equal(tt, ledger.ID, acc.LedgerID)
+			assert.Equal(tt, liability.Code, acc.Code)
+			assert.Equal(tt, uint16(1), acc.Unit)
+			assert.Equal(tt, uint64(0), acc.DebitsAccepted)
+			assert.Equal(tt, uint64(0), acc.DebitsReserved)
+			assert.Equal(tt, uint64(0), acc.CreditsAccepted)
+			assert.Equal(tt, uint64(0), acc.CreditsReserved)
+		})
+
+		t.Run("tenant can only create accounts for their own ledger", func(tt *testing.T) {
+			otherTenant, err := ps.CreateTenant(faker.Name())
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			_, err = ps.CreateAccount(otherTenant.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     1,
+				Unit:     1,
+			})
+			if err == nil {
+				tt.Fatal("Tenant should not be able to create account in ledger it doesn't own.")
+			}
+
 			assert.Equal(tt, "Ledger not found.", err.Error())
 		})
 	})
