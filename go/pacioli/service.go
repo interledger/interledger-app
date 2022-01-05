@@ -26,11 +26,24 @@ type AccountCategory struct {
 	UpdatedAt   string `db:"updated_at"`
 }
 
+type TransactionType struct {
+	ID                        string
+	TenantID                  string `db:"tenant_id"`
+	Name                      string
+	Description               string
+	CreditAccountCategoryCode uint16 `db:"credit_account_category_code"`
+	DebitAccountCategoryCode  uint16 `db:"debit_account_category_code"`
+	CreatedAt                 string `db:"created_at"`
+	UpdatedAt                 string `db:"updated_at"`
+}
+
 type Service interface {
 	GetTenant(id string) (*Tenant, error)
 	CreateTenant(identifier string) (*Tenant, error)
-	GetAccountCategory(tenantID string, categoryID string) (*AccountCategory, error)
+	GetAccountCategoryByCode(tenantID string, code uint16) (*AccountCategory, error)
 	CreateAccountCategory(tenantID string, args AccountCategoryArgs) (*AccountCategory, error)
+	GetTransactionType(tenantID string, transactionTypeID string) (*TransactionType, error)
+	CreateTransactionType(tenantID string, args TransactionTypeArgs) (*TransactionType, error)
 }
 
 type service struct {
@@ -100,12 +113,12 @@ type AccountCategoryArgs struct {
 
 // Will only return the account category if it exists and belongs to the specified tenant. Otherwise
 // will return ErrNotFound.
-func (s service) GetAccountCategory(tenantID string, id string) (*AccountCategory, error) {
+func (s service) GetAccountCategoryByCode(tenantID string, code uint16) (*AccountCategory, error) {
 	var category AccountCategory
 	err := s.db.Get(
 		&category,
-		"SELECT * FROM account_categories WHERE id=$1 AND tenant_id=$2 LIMIT 1",
-		id,
+		"SELECT * FROM account_categories WHERE code=$1 AND tenant_id=$2 LIMIT 1",
+		code,
 		tenantID,
 	)
 	if err != nil {
@@ -124,7 +137,7 @@ func (s service) GetAccountCategory(tenantID string, id string) (*AccountCategor
 
 // Creates a uniquely named account category for the specified LedgerID.
 // - Type matches ^(ASSET|EQUITY|LIABILITY)$
-// - Name is required
+// - Code is unique
 func (s *service) CreateAccountCategory(tenantID string, args AccountCategoryArgs) (*AccountCategory, error) {
 	err := validateAccountCategoryArgs(args)
 	if err != nil {
@@ -139,8 +152,8 @@ func (s *service) CreateAccountCategory(tenantID string, args AccountCategoryArg
 	duplicate := AccountCategory{
 		ID: "-1",
 	}
-	err = s.db.Get(&duplicate, "SELECT * FROM account_categories WHERE name=$1 AND tenant_id=$2",
-		args.Name,
+	err = s.db.Get(&duplicate, "SELECT * FROM account_categories WHERE code=$1 AND tenant_id=$2",
+		args.Code,
 		tenant.ID,
 	)
 	if err != nil {
@@ -189,6 +202,99 @@ func validateAccountCategoryArgs(args AccountCategoryArgs) error {
 	}
 
 	return nil
+}
+
+type TransactionTypeArgs struct {
+	Name                      string
+	Description               string
+	CreditAccountCategoryCode uint16
+	DebitAccountCategoryCode  uint16
+}
+
+func (s service) GetTransactionType(tenantID string, transactionTypeID string) (*TransactionType, error) {
+	var ret TransactionType
+	err := s.db.Get(
+		&ret,
+		"SELECT * FROM transaction_types WHERE tenant_id=$1 AND id=$2 LIMIT 1",
+		tenantID,
+		transactionTypeID,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound{
+				Err: "Transaction type not found.",
+			}
+		default:
+			return nil, err
+		}
+	}
+
+	return &ret, nil
+}
+
+func (s *service) CreateTransactionType(tenantID string, args TransactionTypeArgs) (*TransactionType, error) {
+	tenant, err := s.GetTenant(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	duplicate := TransactionType{
+		ID: "-1",
+	}
+	err = s.db.Get(
+		&duplicate,
+		"SELECT * FROM transaction_types WHERE tenant_id=$1 AND name=$2 LIMIT 1",
+		tenant.ID,
+		args.Name,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			// no duplicate
+		default:
+			return nil, err
+		}
+	}
+	if duplicate.ID != "-1" {
+		return nil, ErrDuplicate{Err: "Duplicate transaction type."}
+	}
+
+	debitAccountCategory, err := s.GetAccountCategoryByCode(tenant.ID, args.DebitAccountCategoryCode)
+	if err != nil {
+		return nil, err
+	}
+
+	creditAccountCategory, err := s.GetAccountCategoryByCode(tenant.ID, args.CreditAccountCategoryCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if creditAccountCategory.ID == debitAccountCategory.ID {
+		return nil, ErrInvalidArg{Err: "Account category codes must be different."}
+	}
+
+	var ret TransactionType
+	stmt, err := s.db.PrepareNamed(
+		"INSERT INTO transaction_types (name, tenant_id, description, credit_account_category_code, debit_account_category_code)" +
+			"VALUES (:name, :tenantid, :description, :credit_account_category_code, :debit_account_category_code) RETURNING *;",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = stmt.Stmt.Get(&ret,
+		args.Name,
+		tenant.ID,
+		args.Description,
+		creditAccountCategory.Code,
+		debitAccountCategory.Code,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
 }
 
 // Error set

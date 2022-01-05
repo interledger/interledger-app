@@ -85,33 +85,33 @@ func TestPacioliService(s *testing.T) {
 			assert.Equal(tt, uint16(101), category.Code)
 		})
 
-		t.Run("account category name must be unique for tenant", func(tt *testing.T) {
+		t.Run("account category code must be unique for tenant", func(tt *testing.T) {
 			otherTenant, err := ps.CreateTenant(faker.Name())
 			if err != nil {
 				tt.Fatal(err)
 			}
-			categoryName := faker.Name()
+			code := uint16(102)
 			_, err = ps.CreateAccountCategory(me.ID, AccountCategoryArgs{
-				Name: categoryName,
+				Name: faker.Name(),
 				Type: "ASSET",
-				Code: 101,
+				Code: code,
 			})
 			if err != nil {
 				tt.Fatal(err)
 			}
 			_, err = ps.CreateAccountCategory(otherTenant.ID, AccountCategoryArgs{
-				Name: categoryName,
+				Name: faker.Name(),
 				Type: "ASSET",
-				Code: 101,
+				Code: code,
 			})
 			if err != nil {
 				tt.Fatal(err)
 			}
 
 			_, err = ps.CreateAccountCategory(me.ID, AccountCategoryArgs{
-				Name: categoryName,
+				Name: faker.Name(),
 				Type: "ASSET",
-				Code: 101,
+				Code: code,
 			})
 			if err == nil {
 				tt.Fatal("Expected duplicate account category error.")
@@ -171,7 +171,7 @@ func TestPacioliService(s *testing.T) {
 				Name:        "Equity",
 				Type:        "ASSET",
 				Description: "My Equity account",
-				Code:        1,
+				Code:        203,
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -184,25 +184,163 @@ func TestPacioliService(s *testing.T) {
 				Name:        "Equity",
 				Type:        "ASSET",
 				Description: "Other Tenant's Equity account",
-				Code:        1,
+				Code:        204,
 			})
 			if err != nil {
 				tt.Fatal(err)
 			}
 
 			// tenant can get own account category
-			category, err := ps.GetAccountCategory(me.ID, myCategory.ID)
+			category, err := ps.GetAccountCategoryByCode(me.ID, myCategory.Code)
 			if err != nil {
 				tt.Fatal(err)
 			}
 			assert.Equal(tt, myCategory.ID, category.ID)
 
-			category, err = ps.GetAccountCategory(me.ID, otherTenantCategory.ID)
+			category, err = ps.GetAccountCategoryByCode(me.ID, otherTenantCategory.Code)
 			if err == nil {
 				tt.Fatal("Tenant must only be allowed to get their own account category.")
 			}
 			assert.Nil(tt, category)
 			assert.Equal(tt, "Account category not found.", err.Error())
+		})
+	})
+
+	s.Run("transaction type", func(t *testing.T) {
+		me, err := ps.CreateTenant(faker.Name())
+		myEquityAccountCategory, err := ps.CreateAccountCategory(me.ID, AccountCategoryArgs{
+			Name:        "Equity",
+			Type:        "ASSET",
+			Description: "My Equity account",
+			Code:        1,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		myAccountHolderAccountCategory, err := ps.CreateAccountCategory(me.ID, AccountCategoryArgs{
+			Name:        "Account Holder Funds",
+			Type:        "LIABILITY",
+			Description: "My account holder funds",
+			Code:        2,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run("tenant must exist to create transaction type", func(tt *testing.T) {
+			tenantID := uuid.NewString()
+
+			transaction, err := ps.CreateTransactionType(tenantID, TransactionTypeArgs{
+				Name:                      faker.Name(),
+				Description:               "Deposit by account holder.",
+				CreditAccountCategoryCode: myAccountHolderAccountCategory.Code,
+				DebitAccountCategoryCode:  myEquityAccountCategory.Code,
+			})
+			if err == nil {
+				tt.Fatal("Tenant must exist to create transaction type.")
+			}
+
+			assert.Nil(tt, transaction)
+			assert.Equal(tt, "Tenant not found.", err.Error())
+		})
+
+		t.Run("transaction type name must be unique per tenant", func(tt *testing.T) {
+			transactionName := faker.Name()
+			transaction, err := ps.CreateTransactionType(me.ID, TransactionTypeArgs{
+				Name:                      transactionName,
+				Description:               "Deposit by account holder.",
+				CreditAccountCategoryCode: myAccountHolderAccountCategory.Code,
+				DebitAccountCategoryCode:  myEquityAccountCategory.Code,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, transactionName, transaction.Name)
+			assert.Equal(tt, "Deposit by account holder.", transaction.Description)
+			assert.Equal(tt, myAccountHolderAccountCategory.Code, transaction.CreditAccountCategoryCode)
+			assert.Equal(tt, myEquityAccountCategory.Code, transaction.DebitAccountCategoryCode)
+
+			duplicateTransaction, err := ps.CreateTransactionType(me.ID, TransactionTypeArgs{
+				Name:                      transactionName,
+				Description:               "Deposit by account holder.",
+				CreditAccountCategoryCode: myAccountHolderAccountCategory.Code,
+				DebitAccountCategoryCode:  myEquityAccountCategory.Code,
+			})
+			if err == nil {
+				tt.Fatal("Transaction type must be unique per tenant.")
+			}
+			assert.Nil(tt, duplicateTransaction)
+		})
+
+		t.Run("account category must belong to tenant", func(tt *testing.T) {
+			transactionName := faker.Name()
+			otherTenant, err := ps.CreateTenant(faker.Name())
+			if err != nil {
+				tt.Fatal(err)
+			}
+			otherCategory, err := ps.CreateAccountCategory(otherTenant.ID, AccountCategoryArgs{
+				Name:        faker.Name(),
+				Type:        "ASSET",
+				Description: "other tenant's account category",
+				Code:        301,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			transaction, err := ps.CreateTransactionType(me.ID, TransactionTypeArgs{
+				Name:                      transactionName,
+				Description:               "Deposit by account holder.",
+				CreditAccountCategoryCode: myAccountHolderAccountCategory.Code,
+				DebitAccountCategoryCode:  otherCategory.Code,
+			})
+			if err == nil {
+				tt.Fatal("Tenants can only create transaction type using their own account categories.")
+			}
+
+			assert.Nil(tt, transaction)
+			assert.Equal(tt, "Account category not found.", err.Error())
+		})
+
+		t.Run("account category codes must be different", func(tt *testing.T) {
+			transactionName := faker.Name()
+
+			transaction, err := ps.CreateTransactionType(me.ID, TransactionTypeArgs{
+				Name:                      transactionName,
+				Description:               "Deposit by account holder.",
+				CreditAccountCategoryCode: myAccountHolderAccountCategory.Code,
+				DebitAccountCategoryCode:  myAccountHolderAccountCategory.Code,
+			})
+			if err == nil {
+				tt.Fatal("Should fail if account code categories aren't different.")
+			}
+
+			assert.Nil(tt, transaction)
+			assert.Equal(tt, "Account category codes must be different.", err.Error())
+		})
+
+		s.Run("tenant can only get their own transaction type", func(tt *testing.T) {
+			myTransactionType, err := ps.CreateTransactionType(me.ID, TransactionTypeArgs{
+				Name:                      faker.Name(),
+				Description:               "Deposit by account holder.",
+				CreditAccountCategoryCode: myAccountHolderAccountCategory.Code,
+				DebitAccountCategoryCode:  myEquityAccountCategory.Code,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			otherTenant, err := ps.CreateTenant(faker.Name())
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			transactionType, err := ps.GetTransactionType(otherTenant.ID, myTransactionType.ID)
+			if err == nil {
+				tt.Fatal("Tenants must only be able to get their own transaciton types.")
+			}
+
+			assert.Nil(tt, transactionType)
+			assert.Equal(tt, "Transaction type not found.", err.Error())
 		})
 	})
 
