@@ -431,6 +431,7 @@ func TestPacioliService(s *testing.T) {
 			assert.Equal(tt, "Ledger not found.", err.Error())
 		})
 	})
+
 	s.Run("accounts and transfers", func(t *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
@@ -447,6 +448,23 @@ func TestPacioliService(s *testing.T) {
 			Name: faker.Name(),
 			Type: "LIABILITY",
 			Code: 1,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		equity, err := ps.CreateAccountCategory(me.ID, AccountCategoryArgs{
+			Name: faker.Name(),
+			Type: "EQUITY",
+			Code: 2,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		depositTransaction, err := ps.CreateTransactionType(me.ID, TransactionTypeArgs{
+			Name:                      faker.Name(),
+			Description:               "Deposit by account holder.",
+			CreditAccountCategoryCode: liability.Code,
+			DebitAccountCategoryCode:  equity.Code,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -487,6 +505,112 @@ func TestPacioliService(s *testing.T) {
 			}
 
 			assert.Equal(tt, "Ledger not found.", err.Error())
+		})
+
+		t.Run("tenant can create a transfer", func(tt *testing.T) {
+			acc1, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     equity.Code,
+				Unit:     1,
+			})
+			acc2, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     liability.Code,
+				Unit:     1,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			transfer, err := ps.CreateTransfer(me.ID, CreateTransferArgs{
+				Amount:            100,
+				DebitAccountID:    acc1.ID,
+				CreditAccountID:   acc2.ID,
+				TransactionTypeID: depositTransaction.ID,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, uint64(100), transfer.Amount)
+			assert.Equal(tt, acc1.ID, transfer.DebitAccountID)
+			assert.Equal(tt, acc2.ID, transfer.CreditAccountID)
+
+			freshAcc1, err := ps.GetAccount(me.ID, acc1.ID)
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, uint64(100), freshAcc1.DebitsAccepted)
+			assert.Equal(tt, uint64(0), freshAcc1.DebitsReserved)
+			assert.Equal(tt, uint64(0), freshAcc1.CreditsAccepted)
+			assert.Equal(tt, uint64(0), freshAcc1.CreditsReserved)
+
+			freshAcc2, err := ps.GetAccount(me.ID, acc2.ID)
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, uint64(0), freshAcc2.DebitsAccepted)
+			assert.Equal(tt, uint64(0), freshAcc2.DebitsReserved)
+			assert.Equal(tt, uint64(100), freshAcc2.CreditsAccepted)
+			assert.Equal(tt, uint64(0), freshAcc2.CreditsReserved)
+		})
+
+		t.Run("can only transfer between accounts in the same ledger", func(tt *testing.T) {
+			otherLedger, err := ps.CreateLedger(me.ID, faker.Name())
+			if err != nil {
+				tt.Fatal(err)
+			}
+			acc1, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: otherLedger.ID,
+				Code:     equity.Code,
+				Unit:     1,
+			})
+			acc2, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     liability.Code,
+				Unit:     1,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			transfer, err := ps.CreateTransfer(me.ID, CreateTransferArgs{
+				Amount:            100,
+				DebitAccountID:    acc1.ID,
+				CreditAccountID:   acc2.ID,
+				TransactionTypeID: depositTransaction.ID,
+			})
+			if err == nil {
+				tt.Fatal("Should fail if trying to do cross ledger transfer.")
+			}
+
+			assert.Nil(tt, transfer)
+			assert.Error(tt, err, "Accounts don't belong to the same ledger.")
+		})
+
+		t.Run("account codes must match those described in transaction type", func(tt *testing.T) {
+			acc1, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     33,
+				Unit:     1,
+			})
+			acc2, err := ps.CreateAccount(me.ID, CreateAccountArgs{
+				LedgerID: ledger.ID,
+				Code:     liability.Code,
+				Unit:     1,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			transfer, err := ps.CreateTransfer(me.ID, CreateTransferArgs{
+				Amount:            100,
+				DebitAccountID:    acc1.ID,
+				CreditAccountID:   acc2.ID,
+				TransactionTypeID: depositTransaction.ID,
+			})
+			if err == nil {
+				tt.Fatal("Should fail if account codes don't match those in transaction type.")
+			}
+
+			assert.Nil(tt, transfer)
+			assert.Error(tt, err, "Incorrect debit account category for transfer.")
 		})
 	})
 }
