@@ -62,6 +62,18 @@ type Account struct {
 	CreditsReserved uint64
 	CreditsAccepted uint64
 }
+
+type Transfer struct {
+	ID                string
+	DebitAccountID    string
+	CreditAccountID   string
+	TransactionTypeID string
+	Amount            uint64
+	Flags             TransferFlags
+}
+
+type TransferFlags = tigerbeetleTypes.TransferFlags
+
 type Service interface {
 	GetTenant(id string) (*Tenant, error)
 	CreateTenant(identifier string) (*Tenant, error)
@@ -73,6 +85,10 @@ type Service interface {
 	CreateLedger(tenantID string, name string) (*Ledger, error)
 	CreateAccount(tenantID string, args CreateAccountArgs) (*Account, error)
 	GetAccount(tenantID string, accountID string) (*Account, error)
+	// The transfer api only allows creating a single non-two-phase transfer for now.
+	// The underlying TB client supports batching, two-phase transfers and linking so this
+	// API can be adjusted as we know more about the requirements.
+	CreateTransfer(tenantID string, args CreateTransferArgs) (*Transfer, error)
 }
 
 type service struct {
@@ -484,7 +500,101 @@ func (s *service) GetAccount(tenantID string, accountID string) (*Account, error
 		CreditsAccepted: results[0].CreditsAccepted,
 	}, nil
 }
-// Error set
+
+type CreateTransferArgs struct {
+	Amount            uint64
+	DebitAccountID    string
+	CreditAccountID   string
+	TransactionTypeID string
+	Flags             TransferFlags
+}
+
+// The transfer api only allows creating a single non-two-phase transfer for now.
+// The underlying TB client supports batching, two-phase transfers and linking so this
+// API can be adjusted as we know more about the requirements.
+func (s *service) CreateTransfer(tenantID string, args CreateTransferArgs) (*Transfer, error) {
+	// TODO: function to get an array of accounts
+	creditAccount, err := s.GetAccount(tenantID, args.CreditAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	debitAccount, err := s.GetAccount(tenantID, args.DebitAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	if creditAccount.LedgerID != debitAccount.LedgerID {
+		return nil, ErrCrossLedger{Err: "Accounts don't belong to the same ledger."}
+	}
+
+	// this will make sure that the tenant owns the ledger.
+	_, err = s.GetLedger(tenantID, creditAccount.LedgerID)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionType, err := s.GetTransactionType(tenantID, args.TransactionTypeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if transactionType.CreditAccountCategoryCode != creditAccount.Code {
+		return nil, ErrInvalidTransfer{Err: "Incorrect credit account category for transfer."}
+	}
+
+	if transactionType.DebitAccountCategoryCode != debitAccount.Code {
+		return nil, ErrInvalidTransfer{Err: "Incorrect debit account category for transfer."}
+	}
+
+	transferID := uuid.NewString()
+	tbTransferID, err := UuidToU128(transferID)
+	if err != nil {
+		return nil, err
+	}
+	tbDebitAccountID, err := UuidToU128(debitAccount.ID)
+	if err != nil {
+		return nil, err
+	}
+	tbCreditAccountID, err := UuidToU128(creditAccount.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	eventErrors, err := s.tb.CreateTransfers([]tigerbeetleTypes.Transfer{
+		{
+			ID:              *tbTransferID,
+			DebitAccountID:  *tbDebitAccountID,
+			CreditAccountID: *tbCreditAccountID,
+			Amount:          args.Amount,
+			Flags:           args.Flags.ToUint32(),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(eventErrors) != 0 {
+		result := eventErrors[0]
+		switch result.Code {
+		case tigerbeetleTypes.TransferExists:
+			return nil, ErrDuplicate{Err: "Transfer exists."}
+		// TODO: exhaustive switch
+		default:
+			return nil, errors.New(fmt.Sprintf("Failed to create transfer. tigerbeetle error code: %d", result.Code))
+		}
+	}
+
+	return &Transfer{
+		ID:                transferID,
+		DebitAccountID:    debitAccount.ID,
+		CreditAccountID:   creditAccount.ID,
+		TransactionTypeID: transactionType.ID,
+		Amount:            args.Amount,
+		Flags:             args.Flags,
+	}, nil
+}
+
+// Error setargs.F
 type ErrInvalidArg struct {
 	Err string
 }
@@ -506,5 +616,21 @@ type ErrNotFound struct {
 }
 
 func (s ErrNotFound) Error() string {
+	return s.Err
+}
+
+type ErrCrossLedger struct {
+	Err string
+}
+
+func (s ErrCrossLedger) Error() string {
+	return s.Err
+}
+
+type ErrInvalidTransfer struct {
+	Err string
+}
+
+func (s ErrInvalidTransfer) Error() string {
 	return s.Err
 }
