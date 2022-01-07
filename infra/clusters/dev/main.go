@@ -5,8 +5,6 @@ import (
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
-	"gitlab.com/fynbos/infra/services/kratos"
-	"gitlab.com/fynbos/infra/services/mailhog"
 )
 
 func main() {
@@ -25,20 +23,22 @@ func main() {
 		ingressChart, err := ingress.DeployEmissaryIngress(ctx, ingress.EmissaryIngressArgs{
 			ReplicaCount: 1,
 			Service: pulumi.Map{
-				"type": pulumi.String("NodePort"),
+				"type": pulumi.String("LoadBalancer"),
 				"ports": pulumi.Array{
 					pulumi.Map{
 						"name":       pulumi.String("http"),
-						"port":       pulumi.Int(8080),
-						"hostPort":   pulumi.Int(8080),
+						"port":       pulumi.Int(80),
 						"targetPort": pulumi.Int(8080),
 					},
 					pulumi.Map{
 						"name":       pulumi.String("https"),
-						"port":       pulumi.Int(8443),
-						"hostPort":   pulumi.Int(8443),
+						"port":       pulumi.Int(443),
 						"targetPort": pulumi.Int(8443),
 					},
+				},
+				"annotations": pulumi.Map{
+					"service.beta.kubernetes.io/aws-load-balancer-type":                              pulumi.String("nlb"),
+					"service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled": pulumi.String("true"),
 				},
 			},
 		})
@@ -46,7 +46,6 @@ func main() {
 			return err
 		}
 
-		// Depends on here is a workaround due to gremlins https://github.com/pulumi/pulumi-kubernetes/issues/861
 		err = ingress.DeployHost(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
 		if err != nil {
 			return err
@@ -57,31 +56,6 @@ func main() {
 		}
 
 		err = cockroach.DeployCockroach(ctx, pulumi.DependsOn([]pulumi.Resource{caResource}))
-		if err != nil {
-			return err
-		}
-
-		crCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
-			Issuer:    "ca-issuer",
-			Namespace: "default",
-			Name:      "kratos",
-		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
-		_, err = kratos.DeployKratos(ctx, crCert)
-		if err != nil {
-			return err
-		}
-		err = kratos.DeployKratosIngress(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
-
-		err = mailhog.DeployMailHog(ctx)
-		if err != nil {
-			return err
-		}
-
-		_, err = cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
-			Issuer:    "ca-issuer",
-			Namespace: "default",
-			Name:      "backend",
-		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}

@@ -1,20 +1,14 @@
 package kratos
 
 import (
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/yaml"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
 )
 
-func DeployKratos(ctx *pulumi.Context) (*helm.Chart, error) {
-
-	crCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
-		Issuer:    "ca-issuer",
-		Namespace: "default",
-		Name:      "kratos",
-	})
+func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource) (*helm.Chart, error) {
 
 	chart, err := helm.NewChart(ctx, "kratos", helm.ChartArgs{
 		Version: pulumi.String("0.21.5"),
@@ -197,20 +191,31 @@ func DeployKratos(ctx *pulumi.Context) (*helm.Chart, error) {
 				},
 			},
 		},
-	}, pulumi.DependsOn([]pulumi.Resource{crCert}))
+	}, pulumi.DependsOn([]pulumi.Resource{cert}))
 
-	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
+	return chart, err
+}
+
+func DeployKratosIngress(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
+	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
 		Name:     "kratos-self-service",
 		Hostname: "*",
 		Prefix:   "/self-service/",
 		Service:  "kratos-public",
-	})
+	}, opts...)
+	if err != nil {
+		return err
+	}
+
 	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
 		Name:     "kratos-sessions",
 		Hostname: "*",
 		Prefix:   "/sessions/",
 		Service:  "kratos-public",
-	})
+	}, opts...)
+	if err != nil {
+		return err
+	}
 
-	return chart, err
+	return nil
 }

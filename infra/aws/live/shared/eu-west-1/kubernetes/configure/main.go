@@ -1,7 +1,6 @@
 package main
 
 import (
-
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	k8s "gitlab.com/fynbos/infra/aws/modules/kubernetes"
@@ -21,16 +20,20 @@ func main() {
 		}
 
 		err = k8s.ConfigureClusterRolesAndPsp(ctx)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
 		err = k8s.DeployLoggingAndMonitoring(ctx, clusterName, "eu-west-1")
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
-		calicoOperator, calicoCrds, err := k8s.DeployCalico(ctx)
-		if err != nil { return err }
-
-		err = k8s.ConfigureDefaultNetworkPolicy(ctx, []pulumi.Resource{calicoOperator, calicoCrds})
-		if err != nil { return err }		
+		//calicoOperator, calicoCrds, err := k8s.DeployCalico(ctx)
+		//if err != nil { return err }
+		//
+		//err = k8s.ConfigureDefaultNetworkPolicy(ctx, []pulumi.Resource{calicoOperator, calicoCrds})
+		//if err != nil { return err }
 
 		return nil
 	})

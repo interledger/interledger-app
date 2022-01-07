@@ -5,8 +5,12 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func DeployEmissaryIngress(ctx *pulumi.Context) (*helm.Chart, error) {
+type EmissaryIngressArgs struct {
+	ReplicaCount int
+	Service      pulumi.Map
+}
 
+func DeployEmissaryIngress(ctx *pulumi.Context, args EmissaryIngressArgs) (*helm.Chart, error) {
 	chart, err := helm.NewChart(ctx, "emissary", helm.ChartArgs{
 		Version: pulumi.String("7.1.9"),
 		Chart:   pulumi.String("emissary-ingress"),
@@ -14,24 +18,8 @@ func DeployEmissaryIngress(ctx *pulumi.Context) (*helm.Chart, error) {
 			Repo: pulumi.String("https://app.getambassador.io"),
 		},
 		Values: pulumi.Map{
-			"replicaCount": pulumi.Int(1),
-			"service": pulumi.Map{
-				"type": pulumi.String("NodePort"),
-				"ports": pulumi.Array{
-					pulumi.Map{
-						"name":       pulumi.String("http"),
-						"port":       pulumi.Int(8080),
-						"hostPort":   pulumi.Int(8080),
-						"targetPort": pulumi.Int(8080),
-					},
-					pulumi.Map{
-						"name":       pulumi.String("https"),
-						"port":       pulumi.Int(8443),
-						"hostPort":   pulumi.Int(8443),
-						"targetPort": pulumi.Int(8443),
-					},
-				},
-			},
+			"replicaCount": pulumi.Int(args.ReplicaCount),
+			"service":      args.Service,
 		},
 	})
 
