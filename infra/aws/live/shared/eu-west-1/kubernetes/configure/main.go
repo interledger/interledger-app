@@ -8,13 +8,16 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
-		clusterName := "live-eu-west-1-eks-cluster"
 		conf := config.New(ctx, "cluster")
 		// TODO: figure out how to extract oidcID from OidcProviderOutput exported in kubernetes stack.
-		oidcId := conf.Get("oidcId")
+		oidcProvider := conf.Get("oidcProvider")
+		clusterName := conf.Get("name")
+
+		fynbosConf := config.New(ctx, "fynbos")
+		accountId := fynbosConf.Get("accountId")
 
 		// TODO: Figure out why we can't import kubeconfig from provision stack and create an eks provider without it erroring out.
-		err := k8s.UpdateAwsNodeDaemonSetToUseIrsa(ctx, oidcId)
+		err := k8s.UpdateAwsNodeDaemonSetToUseIrsa(ctx, accountId, oidcProvider)
 		if err != nil {
 			return err
 		}
@@ -35,7 +38,21 @@ func main() {
 		}
 		ebsKmsKeyArn := baselineStack.GetStringOutput(pulumi.String("ebsEncryptionKeyArn"))
 
-		err = k8s.DeployEbsCsi(ctx)
+		err = k8s.DeployEbsCsi(ctx, k8s.EbsCsiArgs{
+			ClusterName:  clusterName,
+			EbsKmsKeyArn: ebsKmsKeyArn,
+			OidcProvider: oidcProvider,
+			AccountId:    accountId,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = k8s.DeployDefaultCSIStorageClass(ctx)
+		if err != nil {
+			return err
+		}
+
 		//calicoOperator, calicoCrds, err := k8s.DeployCalico(ctx)
 		//if err != nil { return err }
 		//
