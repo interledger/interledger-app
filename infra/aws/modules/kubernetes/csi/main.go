@@ -6,10 +6,14 @@ import (
 	"gitlab.com/fynbos/infra/aws/modules/utils"
 )
 
-func DeployAwsEbsCsi(ctx *pulumi.Context) error {
+type EbsCsiArgs struct {
+	EbsKmsKeyArn pulumi.StringOutput
+}
+
+func DeployEbsCsi(ctx *pulumi.Context, args EbsCsiArgs) error {
 
 	// Create Policy/ServiceAccount
-	_, err := newPolicy(ctx, "")
+	_, err := newPolicy(ctx, args.ebsKmsKeyArn)
 
 	//_, err := eks.NewAddon(ctx, "aws-ebs-csi", &eks.AddonArgs{
 	//	ClusterName: pulumi.Any(aws_eks_cluster.Example.Name),
@@ -26,7 +30,7 @@ func DeployAwsEbsCsi(ctx *pulumi.Context) error {
 Generates a policy for CSI to be able to manage volumes for EKS as well as Encrypt and Decrypt with KMS key for EBS
 See https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html for more info
 */
-func newPolicy(ctx *pulumi.Context, ebsKmsKey string) (*iam.Policy, error) {
+func newPolicy(ctx *pulumi.Context, ebsKmsKey pulumi.StringArrayOutput) (*iam.Policy, error) {
 
 	policyDoc, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
 		Version: utils.StringPtr("2012-10-17"),

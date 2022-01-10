@@ -29,6 +29,13 @@ func main() {
 			return err
 		}
 
+		baselineStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-baseline/main", nil)
+		if err != nil {
+			return err
+		}
+		ebsKmsKeyArn := baselineStack.GetStringOutput(pulumi.String("ebsEncryptionKeyArn"))
+
+		err = k8s.DeployEbsCsi(ctx)
 		//calicoOperator, calicoCrds, err := k8s.DeployCalico(ctx)
 		//if err != nil { return err }
 		//
