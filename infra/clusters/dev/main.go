@@ -5,6 +5,7 @@ import (
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
+	"gitlab.com/fynbos/infra/services/kratos"
 )
 
 func main() {
@@ -56,6 +57,23 @@ func main() {
 		}
 
 		err = cockroach.DeployCockroach(ctx, pulumi.DependsOn([]pulumi.Resource{caResource}))
+		if err != nil {
+			return err
+		}
+
+		crCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+			Name:      "kratos",
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
+		if err != nil {
+			return err
+		}
+		_, err = kratos.DeployKratos(ctx, crCert)
+		if err != nil {
+			return err
+		}
+		err = kratos.DeployKratosIngress(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
 		if err != nil {
 			return err
 		}
