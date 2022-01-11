@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
+	"gitlab.com/fynbos/infra/services/protea"
 )
 
 func main() {
@@ -74,6 +75,11 @@ func main() {
 			return err
 		}
 		err = kratos.DeployKratosIngress(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+
+		err = protea.DeployProtea(ctx)
 		if err != nil {
 			return err
 		}
