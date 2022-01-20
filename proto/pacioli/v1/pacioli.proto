@@ -14,10 +14,12 @@ service PacioliService {
 message Ledger {
   string id = 1;
   string name = 2;
+  uint32 code = 3;
 }
 
 message CreateLedgerRequest {
   string name = 1;
+  uint32 code = 2;
 }
 
 message Account {

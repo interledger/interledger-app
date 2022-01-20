@@ -18,7 +18,7 @@ import (
 type Ledger struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
-	TenantID  string `db:"tenant_id"`
+	Code      uint16 `json:"code"`
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
 }
@@ -46,7 +46,7 @@ type TransferFlags = tigerbeetleTypes.TransferFlags
 
 type Service interface {
 	GetLedger(ledgerID string) (*Ledger, error)
-	CreateLedger(name string) (*Ledger, error)
+	CreateLedger(name string, code uint16) (*Ledger, error)
 	CreateAccount(args CreateAccountArgs) (*Account, error)
 	GetAccount(accountID string) (*Account, error)
 	// The transfer api only allows creating a single non-two-phase transfer for now.
@@ -64,23 +64,25 @@ func NewLedgerService(db *sqlx.DB, tb tigerbeetle_go.Client) (Service, error) {
 	return &service{db: db, tb: tb}, nil
 }
 
-func (s *service) CreateLedger(name string) (*Ledger, error) {
+func (s *service) CreateLedger(name string, code uint16) (*Ledger, error) {
 	var ret Ledger
-	stmt, err := s.db.PrepareNamed("INSERT INTO ledgers (name, tenant_id) VALUES (:name) RETURNING *")
+	stmt, err := s.db.PrepareNamed("INSERT INTO ledgers (name, code) VALUES (:name, :code) RETURNING *")
 	if err != nil {
 		return nil, err
 	}
 
-	err = stmt.Stmt.Get(&ret, name)
+	err = stmt.Stmt.Get(&ret, name, code)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"ledgers_code_key\"") {
+			return nil, ErrInvalidArg{Err: "Code must be unique."}
+		}
 		return nil, err
 	}
 
 	return &ret, nil
 }
 
-// Will only return the ledger if it exists and belongs to the specified tenant. Otherwise will
-// return ErrNotFound.
+// Will only return the ledger if it exists otherwise will return ErrNotFound.
 func (s service) GetLedger(id string) (*Ledger, error) {
 	var ledger Ledger
 	err := s.db.Get(&ledger, "SELECT * FROM ledgers WHERE id=$1 LIMIT 1", id)
