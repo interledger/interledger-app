@@ -10,7 +10,7 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/pacioli/pacioli"
+	ledger "gitlab.com/fynbos/pacioli/ledger"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 	"gitlab.com/fynbos/tigerbeetle_go"
 	"gotest.tools/assert"
@@ -50,7 +50,7 @@ func TestPacioliService(s *testing.T) {
 		}
 	}()
 
-	ps, err := pacioli.NewPacioliService(db, tbClient)
+	ps, err := ledger.NewLedgerService(db, tbClient)
 	if err != nil {
 		s.Fatal(err)
 	}
