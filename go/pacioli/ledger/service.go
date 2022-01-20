@@ -60,7 +60,7 @@ type service struct {
 	tb tigerbeetle_go.Client
 }
 
-func NewPacioliService(db *sqlx.DB, tb tigerbeetle_go.Client) (Service, error) {
+func NewLedgerService(db *sqlx.DB, tb tigerbeetle_go.Client) (Service, error) {
 	return &service{db: db, tb: tb}, nil
 }
 

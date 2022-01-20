@@ -45,7 +45,7 @@ func TestPacioliService(s *testing.T) {
 		}
 	}()
 
-	ps, err := NewPacioliService(db, tbClient)
+	ps, err := NewLedgerService(db, tbClient)
 	if err != nil {
 		s.Fatal(err)
 	}

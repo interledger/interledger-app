@@ -12,7 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/pacioli/db/utils"
-	"gitlab.com/fynbos/pacioli/pacioli"
+	pacioli "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/tigerbeetle_go"
 )
@@ -68,7 +68,7 @@ func main() {
 		}
 	}()
 
-	ps, err := pacioli.NewPacioliService(db, tbClient)
+	ps, err := pacioli.NewLedgerService(db, tbClient)
 	if err != nil {
 		log.Fatalln(err)
 	}

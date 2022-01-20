@@ -8,24 +8,24 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	"gitlab.com/fynbos/pacioli/pacioli"
+	ledger "gitlab.com/fynbos/pacioli/ledger"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
-func NewServer(ps pacioli.Service) *grpc.Server {
+func NewServer(ps ledger.Service) *grpc.Server {
 	server := grpc.NewServer()
-	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{ps: ps})
+	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{ledger: ps})
 	reflection.Register(server)
 	return server
 }
 
 type rpcServer struct {
 	pacioliv1.UnimplementedPacioliServiceServer
-	ps pacioli.Service
+	ledger ledger.Service
 }
 
 func (s *rpcServer) CreateLedger(ctx context.Context, req *pacioliv1.CreateLedgerRequest) (*pacioliv1.Ledger, error) {
-	ledger, err := s.ps.CreateLedger(req.GetName())
+	ledger, err := s.ledger.CreateLedger(req.GetName())
 	if err != nil {
 		// TODO: switch on err
 		return nil, status.Error(codes.Internal, "Failed to create ledger.")
@@ -38,7 +38,7 @@ func (s *rpcServer) CreateLedger(ctx context.Context, req *pacioliv1.CreateLedge
 }
 
 func (s *rpcServer) CreateAccount(ctx context.Context, req *pacioliv1.CreateAccountRequest) (*pacioliv1.Account, error) {
-	account, err := s.ps.CreateAccount(pacioli.CreateAccountArgs{
+	account, err := s.ledger.CreateAccount(ledger.CreateAccountArgs{
 		LedgerID: req.GetLedgerId(),
 		Code:     uint16(req.GetCode()),
 		Unit:     uint16(req.GetUnit()),
@@ -61,10 +61,10 @@ func (s *rpcServer) CreateAccount(ctx context.Context, req *pacioliv1.CreateAcco
 }
 
 func (s *rpcServer) GetAccount(ctx context.Context, req *pacioliv1.GetAccountRequest) (*pacioliv1.Account, error) {
-	account, err := s.ps.GetAccount(req.GetId())
+	account, err := s.ledger.GetAccount(req.GetId())
 	if err != nil {
 		switch err.(type) {
-		case *pacioli.ErrNotFound:
+		case *ledger.ErrNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			// TODO: exhaustive switch on err
@@ -85,7 +85,7 @@ func (s *rpcServer) GetAccount(ctx context.Context, req *pacioliv1.GetAccountReq
 }
 
 func (s *rpcServer) CreateTransfer(ctx context.Context, req *pacioliv1.CreateTransferRequest) (*pacioliv1.Transfer, error) {
-	transfer, err := s.ps.CreateTransfer(pacioli.CreateTransferArgs{
+	transfer, err := s.ledger.CreateTransfer(ledger.CreateTransferArgs{
 		Amount:            req.GetAmount(),
 		DebitAccountID:    req.GetDebitAccountId(),
 		CreditAccountID:   req.GetCreditAccountId(),
