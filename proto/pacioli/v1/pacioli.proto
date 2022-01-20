@@ -5,24 +5,10 @@ package pacioli.v1;
 option go_package = "./pacioli/v1;pacioli";
 
 service PacioliService {
-  rpc CreateTenant(CreateTenantRequest) returns (Tenant);
   rpc CreateLedger(CreateLedgerRequest) returns (Ledger);
-  rpc CreateAccountCategory(CreateAccountCategoryRequest) returns (AccountCategory);
-  rpc GetAccountCategoryByCode(GetAccountCategoryByCodeRequest) returns (AccountCategory);
   rpc CreateAccount(CreateAccountRequest) returns (Account);
   rpc GetAccount(GetAccountRequest) returns (Account);
-  rpc CreateTransactionType(CreateTransactionTypeRequest) returns (TransactionType);
-  rpc GetTransactionType(GetTransactionTypeRequest) returns (TransactionType);
   rpc CreateTransfer(CreateTransferRequest) returns (Transfer);
-}
-
-message Tenant {
-  string id = 1;
-  string identifier = 2;
-}
-
-message CreateTenantRequest {
-  string identifier = 1;
 }
 
 message Ledger {
@@ -31,32 +17,7 @@ message Ledger {
 }
 
 message CreateLedgerRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string name = 2;
-}
-
-message AccountCategory {
-  string id = 1;
-  string name = 2;
-  string type = 4;
-  string description = 5;
-  uint32 code = 6;
-}
-
-message CreateAccountCategoryRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string name = 2;
-  string type = 3;
-  string description = 4;
-  uint32 code = 5; // this is actually a uint16 which is unsupported for protobufs
-}
-
-message GetAccountCategoryByCodeRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  uint32 code = 2;
+  string name = 1;
 }
 
 message Account {
@@ -71,40 +32,13 @@ message Account {
 }
 
 message CreateAccountRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string ledgerId = 2;
-  uint32 unit = 3;
-  uint32 code = 4;
+  string ledgerId = 1;
+  uint32 unit = 2;
+  uint32 code = 3;
 }
 
 message GetAccountRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string id = 2;
-}
-
-message TransactionType {
   string id = 1;
-  string name = 2;
-  string description = 3;
-  uint32 creditAccountCategoryCode = 4;
-  uint32 debitAccountCategoryCode = 5;
-}
-
-message CreateTransactionTypeRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string name = 2;
-  string description = 3;
-  uint32 creditAccountCategoryCode = 4;
-  uint32 debitAccountCategoryCode = 5;
-}
-
-message GetTransactionTypeRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string id = 2;
 }
 
 message Transfer {
@@ -116,10 +50,8 @@ message Transfer {
 }
 
 message CreateTransferRequest {
-  // Adding tenant here for now until auth is sorted out or we remove multi-tenancy.
-  string tenantId = 1;
-  string debitAccountId = 2;
-  string creditAccountId = 3;
-  string transactionTypeId = 4;
-  uint64 amount = 5;
+  string debitAccountId = 1;
+  string creditAccountId = 2;
+  string transactionTypeId = 3;
+  uint64 amount = 4;
 }

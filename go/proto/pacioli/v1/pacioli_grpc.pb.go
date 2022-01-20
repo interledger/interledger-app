@@ -22,14 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PacioliServiceClient interface {
-	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*Tenant, error)
-	CreateAccountCategory(ctx context.Context, in *CreateAccountCategoryRequest, opts ...grpc.CallOption) (*AccountCategory, error)
 	CreateLedger(ctx context.Context, in *CreateLedgerRequest, opts ...grpc.CallOption) (*Ledger, error)
-	GetAccountCategoryByCode(ctx context.Context, in *GetAccountCategoryByCodeRequest, opts ...grpc.CallOption) (*AccountCategory, error)
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*Account, error)
 	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*Account, error)
-	CreateTransactionType(ctx context.Context, in *CreateTransactionTypeRequest, opts ...grpc.CallOption) (*TransactionType, error)
-	GetTransactionType(ctx context.Context, in *GetTransactionTypeRequest, opts ...grpc.CallOption) (*TransactionType, error)
 	CreateTransfer(ctx context.Context, in *CreateTransferRequest, opts ...grpc.CallOption) (*Transfer, error)
 }
 
@@ -41,36 +36,9 @@ func NewPacioliServiceClient(cc grpc.ClientConnInterface) PacioliServiceClient {
 	return &pacioliServiceClient{cc}
 }
 
-func (c *pacioliServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*Tenant, error) {
-	out := new(Tenant)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateTenant", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pacioliServiceClient) CreateAccountCategory(ctx context.Context, in *CreateAccountCategoryRequest, opts ...grpc.CallOption) (*AccountCategory, error) {
-	out := new(AccountCategory)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateAccountCategory", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *pacioliServiceClient) CreateLedger(ctx context.Context, in *CreateLedgerRequest, opts ...grpc.CallOption) (*Ledger, error) {
 	out := new(Ledger)
 	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateLedger", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pacioliServiceClient) GetAccountCategoryByCode(ctx context.Context, in *GetAccountCategoryByCodeRequest, opts ...grpc.CallOption) (*AccountCategory, error) {
-	out := new(AccountCategory)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetAccountCategoryByCode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,24 +63,6 @@ func (c *pacioliServiceClient) GetAccount(ctx context.Context, in *GetAccountReq
 	return out, nil
 }
 
-func (c *pacioliServiceClient) CreateTransactionType(ctx context.Context, in *CreateTransactionTypeRequest, opts ...grpc.CallOption) (*TransactionType, error) {
-	out := new(TransactionType)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateTransactionType", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pacioliServiceClient) GetTransactionType(ctx context.Context, in *GetTransactionTypeRequest, opts ...grpc.CallOption) (*TransactionType, error) {
-	out := new(TransactionType)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetTransactionType", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *pacioliServiceClient) CreateTransfer(ctx context.Context, in *CreateTransferRequest, opts ...grpc.CallOption) (*Transfer, error) {
 	out := new(Transfer)
 	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateTransfer", in, out, opts...)
@@ -126,14 +76,9 @@ func (c *pacioliServiceClient) CreateTransfer(ctx context.Context, in *CreateTra
 // All implementations should embed UnimplementedPacioliServiceServer
 // for forward compatibility
 type PacioliServiceServer interface {
-	CreateTenant(context.Context, *CreateTenantRequest) (*Tenant, error)
-	CreateAccountCategory(context.Context, *CreateAccountCategoryRequest) (*AccountCategory, error)
 	CreateLedger(context.Context, *CreateLedgerRequest) (*Ledger, error)
-	GetAccountCategoryByCode(context.Context, *GetAccountCategoryByCodeRequest) (*AccountCategory, error)
 	CreateAccount(context.Context, *CreateAccountRequest) (*Account, error)
 	GetAccount(context.Context, *GetAccountRequest) (*Account, error)
-	CreateTransactionType(context.Context, *CreateTransactionTypeRequest) (*TransactionType, error)
-	GetTransactionType(context.Context, *GetTransactionTypeRequest) (*TransactionType, error)
 	CreateTransfer(context.Context, *CreateTransferRequest) (*Transfer, error)
 }
 
@@ -141,29 +86,14 @@ type PacioliServiceServer interface {
 type UnimplementedPacioliServiceServer struct {
 }
 
-func (UnimplementedPacioliServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*Tenant, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
-}
-func (UnimplementedPacioliServiceServer) CreateAccountCategory(context.Context, *CreateAccountCategoryRequest) (*AccountCategory, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAccountCategory not implemented")
-}
 func (UnimplementedPacioliServiceServer) CreateLedger(context.Context, *CreateLedgerRequest) (*Ledger, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLedger not implemented")
-}
-func (UnimplementedPacioliServiceServer) GetAccountCategoryByCode(context.Context, *GetAccountCategoryByCodeRequest) (*AccountCategory, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAccountCategoryByCode not implemented")
 }
 func (UnimplementedPacioliServiceServer) CreateAccount(context.Context, *CreateAccountRequest) (*Account, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
 }
 func (UnimplementedPacioliServiceServer) GetAccount(context.Context, *GetAccountRequest) (*Account, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccount not implemented")
-}
-func (UnimplementedPacioliServiceServer) CreateTransactionType(context.Context, *CreateTransactionTypeRequest) (*TransactionType, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTransactionType not implemented")
-}
-func (UnimplementedPacioliServiceServer) GetTransactionType(context.Context, *GetTransactionTypeRequest) (*TransactionType, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetTransactionType not implemented")
 }
 func (UnimplementedPacioliServiceServer) CreateTransfer(context.Context, *CreateTransferRequest) (*Transfer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTransfer not implemented")
@@ -180,42 +110,6 @@ func RegisterPacioliServiceServer(s grpc.ServiceRegistrar, srv PacioliServiceSer
 	s.RegisterService(&PacioliService_ServiceDesc, srv)
 }
 
-func _PacioliService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateTenantRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).CreateTenant(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CreateTenant",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PacioliService_CreateAccountCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAccountCategoryRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).CreateAccountCategory(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CreateAccountCategory",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CreateAccountCategory(ctx, req.(*CreateAccountCategoryRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _PacioliService_CreateLedger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateLedgerRequest)
 	if err := dec(in); err != nil {
@@ -230,24 +124,6 @@ func _PacioliService_CreateLedger_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PacioliServiceServer).CreateLedger(ctx, req.(*CreateLedgerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PacioliService_GetAccountCategoryByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAccountCategoryByCodeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).GetAccountCategoryByCode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/GetAccountCategoryByCode",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).GetAccountCategoryByCode(ctx, req.(*GetAccountCategoryByCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -288,42 +164,6 @@ func _PacioliService_GetAccount_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PacioliService_CreateTransactionType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateTransactionTypeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).CreateTransactionType(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CreateTransactionType",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CreateTransactionType(ctx, req.(*CreateTransactionTypeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PacioliService_GetTransactionType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTransactionTypeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).GetTransactionType(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/GetTransactionType",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).GetTransactionType(ctx, req.(*GetTransactionTypeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _PacioliService_CreateTransfer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateTransferRequest)
 	if err := dec(in); err != nil {
@@ -350,20 +190,8 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PacioliServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateTenant",
-			Handler:    _PacioliService_CreateTenant_Handler,
-		},
-		{
-			MethodName: "CreateAccountCategory",
-			Handler:    _PacioliService_CreateAccountCategory_Handler,
-		},
-		{
 			MethodName: "CreateLedger",
 			Handler:    _PacioliService_CreateLedger_Handler,
-		},
-		{
-			MethodName: "GetAccountCategoryByCode",
-			Handler:    _PacioliService_GetAccountCategoryByCode_Handler,
 		},
 		{
 			MethodName: "CreateAccount",
@@ -372,14 +200,6 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccount",
 			Handler:    _PacioliService_GetAccount_Handler,
-		},
-		{
-			MethodName: "CreateTransactionType",
-			Handler:    _PacioliService_CreateTransactionType_Handler,
-		},
-		{
-			MethodName: "GetTransactionType",
-			Handler:    _PacioliService_GetTransactionType_Handler,
 		},
 		{
 			MethodName: "CreateTransfer",
