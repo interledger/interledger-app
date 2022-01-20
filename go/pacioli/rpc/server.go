@@ -25,7 +25,7 @@ type rpcServer struct {
 }
 
 func (s *rpcServer) CreateLedger(ctx context.Context, req *pacioliv1.CreateLedgerRequest) (*pacioliv1.Ledger, error) {
-	ledger, err := s.ledger.CreateLedger(req.GetName())
+	ledger, err := s.ledger.CreateLedger(req.GetName(), uint16(req.GetCode()))
 	if err != nil {
 		// TODO: switch on err
 		return nil, status.Error(codes.Internal, "Failed to create ledger.")

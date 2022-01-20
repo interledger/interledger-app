@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"testing"
@@ -86,8 +87,10 @@ func TestPacioliService(s *testing.T) {
 
 	s.Run("can create a ledger", func(t *testing.T) {
 		name := faker.Name()
+		code := uint32(rand.Intn(65535))
 		ledger, err := client.CreateLedger(ctx, &pacioliv1.CreateLedgerRequest{
 			Name: name,
+			Code: code,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -108,6 +111,7 @@ func TestPacioliService(s *testing.T) {
 		account, err := client.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
 			LedgerId: ledger.Id,
 			Unit:     1,
+			Code:     1,
 		})
 		if err != nil {
 			t.Fatal(err)
