@@ -24,23 +24,23 @@ message CreateLedgerRequest {
 
 message Account {
   string id = 1;
-  string ledgerId = 2;
-  uint32 unit = 3;
-  uint32 code = 4;
-  uint64 debitsReserved = 5;
-  uint64 debitsAccepted = 6;
-  uint64 creditsReserved = 7;
-  uint64 creditsAccepted = 8;
+  uint32 ledgerCode = 2;
+  uint32 code = 3;
+  uint64 debitsReserved = 4;
+  uint64 debitsAccepted = 5;
+  uint64 creditsReserved = 6;
+  uint64 creditsAccepted = 7;
 }
 
 message CreateAccountRequest {
-  string ledgerId = 1;
+  string ledgerID = 1;
   uint32 unit = 2;
   uint32 code = 3;
 }
 
 message GetAccountRequest {
   string id = 1;
+  string ledgerID = 2;
 }
 
 message Transfer {

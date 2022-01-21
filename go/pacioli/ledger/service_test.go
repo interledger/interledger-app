@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
@@ -106,8 +107,45 @@ func TestLedgerService(s *testing.T) {
 			}
 
 			assert.Nil(tt, dup)
-			assert.Equal(tt, ErrInvalidArg{Err: "Code must be unique."}, err)
+			assert.Equal(tt, ErrInvalidArg{Err: "Ledger Code must be unique."}, err)
 		})
+	})
+
+	s.Run("can create accounts for a ledger", func(t *testing.T) {
+		ledger, err := ps.CreateLedger(faker.Name(), uint16(rand.Intn(65535)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		accAArgs := CreateAccountArgs{
+			ID:   uuid.NewString(),
+			Code: uint16(rand.Intn(65535)),
+		}
+		accBArgs := CreateAccountArgs{
+			ID:   uuid.NewString(),
+			Code: uint16(rand.Intn(65535)),
+		}
+
+		eventErrors, err := ps.CreateAccounts(ledger.ID, []CreateAccountArgs{accAArgs, accBArgs})
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Empty(t, eventErrors)
+
+		accounts, err := ps.GetAccounts(ledger.ID, []string{accAArgs.ID, accBArgs.ID})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Len(t, accounts, 2)
+		accA := accounts[0]
+		assert.Equal(t, accAArgs.ID, accA.ID) // make sure our uuid -> u128 conversion is correct.
+		assert.Equal(t, ledger.Code, accA.LedgerCode)
+		assert.Equal(t, accAArgs.Code, accA.Code)
+
+		accB := accounts[1]
+		assert.Equal(t, accBArgs.ID, accB.ID) // make sure our uuid -> u128 conversion is correct.
+		assert.Equal(t, ledger.Code, accB.LedgerCode)
+		assert.Equal(t, accBArgs.Code, accB.Code)
 	})
 
 	// s.Run("accounts and transfers", func(t *testing.T) {
