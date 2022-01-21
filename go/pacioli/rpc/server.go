@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -34,53 +35,74 @@ func (s *rpcServer) CreateLedger(ctx context.Context, req *pacioliv1.CreateLedge
 	return &pacioliv1.Ledger{
 		Id:   ledger.ID,
 		Name: ledger.Name,
+		Code: uint32(ledger.Code),
 	}, nil
 }
 
 func (s *rpcServer) CreateAccount(ctx context.Context, req *pacioliv1.CreateAccountRequest) (*pacioliv1.Account, error) {
-	account, err := s.ledger.CreateAccount(ledger.CreateAccountArgs{
-		LedgerID: req.GetLedgerId(),
-		Code:     uint16(req.GetCode()),
-		Unit:     uint16(req.GetUnit()),
+	accountId := uuid.NewString()
+	errors, err := s.ledger.CreateAccounts(req.GetLedgerID(), []ledger.CreateAccountArgs{
+		{
+			ID:   accountId,
+			Code: uint16(req.GetCode()),
+		},
 	})
+	// This error will be due to connection / io / validation  issues
 	if err != nil {
-		// TODO: switch on err
-		return nil, status.Error(codes.Internal, "Failed to create account category.")
+		switch err.(type) {
+		case ledger.ErrInvalidArg:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "Failed to create account.")
+		}
+	}
+	// This will be application errors
+	if len(errors) != 0 {
+		// TODO: exhaustive switch on err
+		return nil, status.Error(codes.Internal, "Failed to create account.")
+	}
+
+	accounts, err := s.ledger.GetAccounts(req.GetLedgerID(), []string{accountId})
+	if err != nil || len(accounts) != 1 {
+		return nil, status.Error(codes.Internal, "Failed to create account.")
 	}
 
 	return &pacioliv1.Account{
-		Id:              account.ID,
-		LedgerId:        account.LedgerID,
-		Unit:            uint32(account.Unit),
-		Code:            uint32(account.Code),
-		DebitsReserved:  account.DebitsReserved,
-		DebitsAccepted:  account.DebitsAccepted,
-		CreditsReserved: account.CreditsReserved,
-		CreditsAccepted: account.CreditsAccepted,
+		Id:              accountId,
+		LedgerCode:      uint32(accounts[0].LedgerCode),
+		Code:            uint32(accounts[0].Code),
+		DebitsReserved:  accounts[0].DebitsReserved,
+		DebitsAccepted:  accounts[0].DebitsAccepted,
+		CreditsReserved: accounts[0].CreditsReserved,
+		CreditsAccepted: accounts[0].CreditsAccepted,
 	}, nil
 }
 
 func (s *rpcServer) GetAccount(ctx context.Context, req *pacioliv1.GetAccountRequest) (*pacioliv1.Account, error) {
-	account, err := s.ledger.GetAccount(req.GetId())
+	accounts, err := s.ledger.GetAccounts(req.GetLedgerID(), []string{req.GetId()})
+	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
-		case *ledger.ErrNotFound:
+		case ledger.ErrInvalidArg:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case ledger.ErrNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
-			// TODO: exhaustive switch on err
 			return nil, status.Error(codes.Internal, "Failed to get account.")
 		}
 	}
+	if len(accounts) != 1 {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
 
 	return &pacioliv1.Account{
-		Id:              account.ID,
-		LedgerId:        account.LedgerID,
-		Unit:            uint32(account.Unit),
-		Code:            uint32(account.Code),
-		DebitsReserved:  account.DebitsReserved,
-		DebitsAccepted:  account.DebitsAccepted,
-		CreditsReserved: account.CreditsReserved,
-		CreditsAccepted: account.CreditsAccepted,
+		Id:              accounts[0].ID,
+		LedgerCode:      uint32(accounts[0].LedgerCode),
+		Code:            uint32(accounts[0].Code),
+		DebitsReserved:  accounts[0].DebitsReserved,
+		DebitsAccepted:  accounts[0].DebitsAccepted,
+		CreditsReserved: accounts[0].CreditsReserved,
+		CreditsAccepted: accounts[0].CreditsAccepted,
 	}, nil
 }
 
