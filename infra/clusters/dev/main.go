@@ -6,6 +6,7 @@ import (
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
+	"gitlab.com/fynbos/infra/services/backend"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
@@ -114,6 +115,22 @@ func main() {
 
 		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
 			ImageRepo: ecrRepo,
+		})
+		if err != nil {
+			return err
+		}
+
+		beCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+			Name:      "backend",
+		})
+		if err != nil {
+			return err
+		}
+		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
+			ImageRepo: ecrRepo,
+			Cert:      beCert,
 		})
 		if err != nil {
 			return err
