@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 	"gitlab.com/fynbos/tigerbeetle_go"
+	tigerbeetle_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 func TestLedgerService(s *testing.T) {
@@ -148,128 +149,86 @@ func TestLedgerService(s *testing.T) {
 		assert.Equal(t, accBArgs.Code, accB.Code)
 	})
 
-	// s.Run("accounts and transfers", func(t *testing.T) {
-	// 	t.Cleanup(func() {
-	// 		test_utils.TruncateDb(ctx, db)
-	// 	})
-	// 	ledger, err := ps.CreateLedger(faker.Name())
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
+	s.Run("transfers", func(t *testing.T) {
+		ledger, err := ps.CreateLedger(faker.Name(), uint16(rand.Intn(65535)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		accA := CreateAccountArgs{
+			ID:   uuid.NewString(),
+			Code: uint16(rand.Intn(65535)),
+		}
+		accB := CreateAccountArgs{
+			ID:   uuid.NewString(),
+			Code: uint16(rand.Intn(65535)),
+		}
+		eventErrors, err := ps.CreateAccounts(ledger.ID, []CreateAccountArgs{accA, accB})
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Empty(t, eventErrors)
 
-	// 	t.Run("can create accounts", func(tt *testing.T) {
-	// 		acc, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: ledger.ID,
-	// 			Unit:     1,
-	// 		})
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
+		t.Run("can send a transfer between two accounts on the same ledger", func(tt *testing.T) {
+			transferID := uuid.NewString()
+			transferArgs := CreateTransferArgs{
+				ID:              transferID,
+				DebitAccountID:  accA.ID,
+				CreditAccountID: accB.ID,
+				Amount:          100,
+				Code:            5,
+			}
 
-	// 		assert.Equal(tt, ledger.ID, acc.LedgerID)
-	// 		assert.Equal(tt, uint16(1), acc.Unit)
-	// 		assert.Equal(tt, uint64(0), acc.DebitsAccepted)
-	// 		assert.Equal(tt, uint64(0), acc.DebitsReserved)
-	// 		assert.Equal(tt, uint64(0), acc.CreditsAccepted)
-	// 		assert.Equal(tt, uint64(0), acc.CreditsReserved)
-	// 	})
+			eventErrors, err := ps.CreateTransfers(ledger.ID, []CreateTransferArgs{transferArgs})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Empty(tt, eventErrors)
 
-	// 	t.Run("tenant can create a transfer", func(tt *testing.T) {
-	// 		acc1, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: ledger.ID,
-	// 			Unit:     1,
-	// 		})
-	// 		acc2, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: ledger.ID,
-	// 			Unit:     1,
-	// 		})
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		transfer, err := ps.CreateTransfer(CreateTransferArgs{
-	// 			Amount:          100,
-	// 			DebitAccountID:  acc1.ID,
-	// 			CreditAccountID: acc2.ID,
-	// 		})
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		assert.Equal(tt, uint64(100), transfer.Amount)
-	// 		assert.Equal(tt, acc1.ID, transfer.DebitAccountID)
-	// 		assert.Equal(tt, acc2.ID, transfer.CreditAccountID)
+			results, err := ps.GetTransfers(ledger.ID, []string{transferID})
+			if err != nil {
+				tt.Fatal(err)
+			}
 
-	// 		freshAcc1, err := ps.GetAccount(acc1.ID)
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		assert.Equal(tt, uint64(100), freshAcc1.DebitsAccepted)
-	// 		assert.Equal(tt, uint64(0), freshAcc1.DebitsReserved)
-	// 		assert.Equal(tt, uint64(0), freshAcc1.CreditsAccepted)
-	// 		assert.Equal(tt, uint64(0), freshAcc1.CreditsReserved)
+			assert.Len(tt, results, 1)
+			assert.Equal(tt, transferID, results[0].ID)           // make sure uuid encoding is correct
+			assert.Equal(tt, accA.ID, results[0].DebitAccountID)  // make sure uuid encoding is correct
+			assert.Equal(tt, accB.ID, results[0].CreditAccountID) // make sure uuid encoding is correct
+			assert.Equal(tt, uint64(100), results[0].Amount)
+			assert.Equal(tt, uint32(5), results[0].Code)
+		})
 
-	// 		freshAcc2, err := ps.GetAccount(acc2.ID)
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		assert.Equal(tt, uint64(0), freshAcc2.DebitsAccepted)
-	// 		assert.Equal(tt, uint64(0), freshAcc2.DebitsReserved)
-	// 		assert.Equal(tt, uint64(100), freshAcc2.CreditsAccepted)
-	// 		assert.Equal(tt, uint64(0), freshAcc2.CreditsReserved)
-	// 	})
+		t.Run("prohibits cross-ledger transfers", func(tt *testing.T) {
+			otherLedger, err := ps.CreateLedger("other ledger", 1)
+			if err != nil {
+				tt.Fatal(err)
+			}
+			otherAcc := CreateAccountArgs{
+				ID:   uuid.NewString(),
+				Code: uint16(rand.Intn(65535)),
+			}
+			results, err := ps.CreateAccounts(otherLedger.ID, []CreateAccountArgs{otherAcc})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Empty(tt, results)
 
-	// 	t.Run("can only transfer between accounts in the same ledger", func(tt *testing.T) {
-	// 		otherLedger, err := ps.CreateLedger(faker.Name())
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		acc1, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: otherLedger.ID,
-	// 			Unit:     1,
-	// 		})
-	// 		acc2, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: ledger.ID,
-	// 			Unit:     1,
-	// 		})
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		transfer, err := ps.CreateTransfer(CreateTransferArgs{
-	// 			Amount:          100,
-	// 			DebitAccountID:  acc1.ID,
-	// 			CreditAccountID: acc2.ID,
-	// 		})
-	// 		if err == nil {
-	// 			tt.Fatal("Should fail if trying to do cross ledger transfer.")
-	// 		}
+			transferID := uuid.NewString()
+			transferArgs := CreateTransferArgs{
+				ID:              transferID,
+				DebitAccountID:  accA.ID,
+				CreditAccountID: otherAcc.ID,
+				Amount:          100,
+				Code:            5,
+			}
 
-	// 		assert.Nil(tt, transfer)
-	// 		assert.Error(tt, err, "Accounts don't belong to the same ledger.")
-	// 	})
-
-	// 	t.Run("account codes must match those described in transaction type", func(tt *testing.T) {
-	// 		acc1, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: ledger.ID,
-	// 			Code:     33,
-	// 			Unit:     1,
-	// 		})
-	// 		acc2, err := ps.CreateAccount(CreateAccountArgs{
-	// 			LedgerID: ledger.ID,
-	// 			Unit:     1,
-	// 		})
-	// 		if err != nil {
-	// 			tt.Fatal(err)
-	// 		}
-	// 		transfer, err := ps.CreateTransfer(CreateTransferArgs{
-	// 			Amount:          100,
-	// 			DebitAccountID:  acc1.ID,
-	// 			CreditAccountID: acc2.ID,
-	// 		})
-	// 		if err == nil {
-	// 			tt.Fatal("Should fail if account codes don't match those in transaction type.")
-	// 		}
-
-	// 		assert.Nil(tt, transfer)
-	// 		assert.Error(tt, err, "Incorrect debit account category for transfer.")
-	// 	})
-	// })
+			eventErrors, err := ps.CreateTransfers(ledger.ID, []CreateTransferArgs{transferArgs})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Len(tt, eventErrors, 1)
+			assert.Equal(tt, uint32(0), eventErrors[0].Index)
+			// ledger code is used as `Unit` on the account. TB is planning to rename `Unit` to `Ledger`.
+			assert.Equal(tt, tigerbeetle_types.TransferAccountsHaveDifferentUnits, eventErrors[0].Code)
+		})
+	})
 }

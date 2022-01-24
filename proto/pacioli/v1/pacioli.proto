@@ -8,7 +8,8 @@ service PacioliService {
   rpc CreateLedger(CreateLedgerRequest) returns (Ledger);
   rpc CreateAccount(CreateAccountRequest) returns (Account);
   rpc GetAccount(GetAccountRequest) returns (Account);
-  rpc CreateTransfer(CreateTransferRequest) returns (Transfer);
+  rpc CreateTransfers(CreateTransfersRequest) returns (CreateTransfersResponse);
+  rpc GetTransfers(GetTransfersRequest) returns (GetTransfersResponse);
 }
 
 message Ledger {
@@ -47,13 +48,36 @@ message Transfer {
   string id = 1;
   string debitAccountId = 2;
   string creditAccountId = 3;
-  string transactionTypeId = 4;
-  uint64 amount = 5;
+  uint64 amount = 4;
+  uint32 code = 5;
+  TransferFlags flags = 6;
 }
 
-message CreateTransferRequest {
-  string debitAccountId = 1;
-  string creditAccountId = 2;
-  string transactionTypeId = 3;
-  uint64 amount = 4;
+message TransferFlags {
+  bool linked = 1;
+  bool twoPhaseCommit = 2;
+  bool condition = 3;
+}
+
+message CreateTransfersRequest {
+  string ledgerID = 1;
+  repeated Transfer transfers = 2;
+}
+
+message EventError {
+  uint32 index = 1;
+  uint32 code = 2;
+}
+
+message CreateTransfersResponse {
+  repeated EventError errors = 1;
+}
+
+message GetTransfersRequest {
+  string ledgerID = 1;
+  repeated string TransferIDs = 2;
+}
+
+message GetTransfersResponse {
+  repeated Transfer transfers = 1;
 }
