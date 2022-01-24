@@ -1,7 +1,11 @@
 package main
 
 import (
+	b64 "encoding/base64"
+	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
+	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
@@ -11,7 +15,8 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
-
+		cfg := config.New(ctx, "fynbos")
+		ecrRepo := cfg.Get("ecrRepo")
 		cmChart, err := cert_manager.DeployCertManager(ctx)
 		if err != nil {
 			return err
@@ -48,7 +53,35 @@ func main() {
 			return err
 		}
 
-		err = ingress.DeployHost(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
+		cf, err := pulumi.NewStackReference(ctx, "fynbos/cf-fynbos.dev/main", nil)
+		if err != nil {
+			return err
+		}
+
+		pulumi.All(cf.GetStringOutput(pulumi.String("devClusterCert")), cf.GetStringOutput(pulumi.String("devClusterPrivateKey"))).ApplyT(
+			func(args []interface{}) (*v1.Secret, error) {
+				cert := args[0].(string)
+				key := args[1].(string)
+
+				b64Cert := b64.StdEncoding.EncodeToString([]byte(cert))
+				b64Key := b64.StdEncoding.EncodeToString([]byte(key))
+				return v1.NewSecret(ctx, "tls-secret", &v1.SecretArgs{
+					Metadata: metav1.ObjectMetaArgs{
+						Name: pulumi.String("tls-secret"),
+					},
+					Type: pulumi.String("kubernetes.io/tls"),
+					Data: pulumi.StringMap{
+						"tls.crt": pulumi.String(b64Cert),
+						"tls.key": pulumi.String(b64Key),
+					},
+				})
+			},
+		)
+
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Hostname:  "dev.fynbos.dev",
+			TlsSecret: "tls-secret",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
 		if err != nil {
 			return err
 		}
@@ -79,7 +112,9 @@ func main() {
 			return err
 		}
 
-		err = protea.DeployProtea(ctx)
+		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
+			ImageRepo: ecrRepo,
+		})
 		if err != nil {
 			return err
 		}

@@ -9,7 +9,11 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 )
 
-func DeployProtea(ctx *pulumi.Context) error {
+type DeployProteaArgs struct {
+	ImageRepo string
+}
+
+func DeployProtea(ctx *pulumi.Context, args DeployProteaArgs) error {
 
 	err := deployService(ctx)
 	if err != nil {
@@ -23,7 +27,7 @@ func DeployProtea(ctx *pulumi.Context) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx)
+	err = deployDeployment(ctx, args.ImageRepo)
 	if err != nil {
 		return err
 	}
@@ -60,7 +64,7 @@ func deployService(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context) error {
+func deployDeployment(ctx *pulumi.Context, imageRepo string) error {
 	_, err := appsv1.NewDeployment(ctx, "protea-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -87,7 +91,7 @@ func deployDeployment(ctx *pulumi.Context) error {
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:  pulumi.String("protea"),
-							Image: pulumi.String("protea"),
+							Image: pulumi.Sprintf("%s/protea", imageRepo),
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{
 									ContainerPort: pulumi.Int(3000),
@@ -166,7 +170,7 @@ func deployIngress(ctx *pulumi.Context) error {
 		Name:     "protea-mapping",
 		Hostname: "*",
 		Prefix:   "/",
-		Service:  "/",
+		Service:  "protea",
 	})
 	if err != nil {
 		return err
