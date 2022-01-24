@@ -12,10 +12,11 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/assert"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 	"gitlab.com/fynbos/tigerbeetle_go"
-	"gotest.tools/assert"
+	tigerbeetleTypes "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"google.golang.org/grpc"
@@ -142,61 +143,78 @@ func TestPacioliService(s *testing.T) {
 		assert.Equal(t, uint64(0), freshAccount.CreditsReserved)
 	})
 
-	// s.Run("can create transfer", func(t *testing.T) {
-	// 	ledger, err := client.CreateLedger(ctx, &pacioliv1.CreateLedgerRequest{
-	// 		Name: faker.Name(),
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
+	s.Run("can create a batch of transfers", func(t *testing.T) {
+		ledger, err := client.CreateLedger(ctx, &pacioliv1.CreateLedgerRequest{
+			Name: faker.Name(),
+			Code: uint32(rand.Intn(65535)),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		accountA, err := client.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
+			LedgerID: ledger.Id,
+			Unit:     1,
+			Code:     1,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		accountB, err := client.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
+			LedgerID: ledger.Id,
+			Unit:     1,
+			Code:     1,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		transferA := uuid.NewString()
+		transferB := uuid.NewString()
 
-	// 	acc1, err := client.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
-	// 		LedgerId: ledger.Id,
-	// 		Unit:     1,
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	acc2, err := client.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
-	// 		LedgerId: ledger.Id,
-	// 		Unit:     1,
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
+		response, err := client.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
+			LedgerID: ledger.Id,
+			Transfers: []*pacioliv1.Transfer{
+				{
+					Id:              transferA,
+					DebitAccountId:  accountA.Id,
+					CreditAccountId: accountB.Id,
+					Amount:          100,
+					Code:            1,
+				},
+				{ // This one will fail as the account IDs are the same.
+					Id:              transferB,
+					DebitAccountId:  accountA.Id,
+					CreditAccountId: accountA.Id,
+					Amount:          101,
+					Code:            2,
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		errors := response.GetErrors()
+		assert.Len(t, errors, 1)
+		assert.Equal(t, uint32(1), errors[0].Index)
+		assert.Equal(t, tigerbeetleTypes.TransferAccountsAreTheSame, errors[0].Code)
 
-	// 	transfer, err := client.CreateTransfer(ctx, &pacioliv1.CreateTransferRequest{
-	// 		DebitAccountId:  acc1.Id,
-	// 		CreditAccountId: acc2.Id,
-	// 		Amount:          100,
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	assert.Equal(t, uint64(100), transfer.Amount)
-	// 	assert.Equal(t, acc1.Id, transfer.DebitAccountId)
-	// 	assert.Equal(t, acc2.Id, transfer.CreditAccountId)
+		lookupResponse, err := client.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
+			LedgerID:    ledger.Id,
+			TransferIDs: []string{transferA, transferB},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		transfers := lookupResponse.GetTransfers()
+		assert.Len(t, transfers, 1)
+		assert.Equal(t, accountA.Id, transfers[0].GetDebitAccountId())
+		assert.Equal(t, accountB.Id, transfers[0].GetCreditAccountId())
+		assert.Equal(t, uint64(100), transfers[0].GetAmount())
+		assert.Equal(t, uint32(1), transfers[0].GetCode())
 
-	// 	freshAcc1, err := client.GetAccount(ctx, &pacioliv1.GetAccountRequest{
-	// 		Id: acc1.Id,
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	assert.Equal(t, uint64(100), freshAcc1.DebitsAccepted)
-	// 	assert.Equal(t, uint64(0), freshAcc1.DebitsReserved)
-	// 	assert.Equal(t, uint64(0), freshAcc1.CreditsAccepted)
-	// 	assert.Equal(t, uint64(0), freshAcc1.CreditsReserved)
+		flags := transfers[0].GetFlags()
+		assert.Equal(t, false, flags.GetCondition())
+		assert.Equal(t, false, flags.GetLinked())
+		assert.Equal(t, false, flags.GetTwoPhaseCommit())
+	})
 
-	// 	freshAcc2, err := client.GetAccount(ctx, &pacioliv1.GetAccountRequest{
-	// 		Id: acc2.Id,
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	assert.Equal(t, uint64(0), freshAcc2.DebitsAccepted)
-	// 	assert.Equal(t, uint64(0), freshAcc2.DebitsReserved)
-	// 	assert.Equal(t, uint64(100), freshAcc2.CreditsAccepted)
-	// 	assert.Equal(t, uint64(0), freshAcc2.CreditsReserved)
-	// })
 }
