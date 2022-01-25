@@ -13,8 +13,8 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
     <Container>
       <Header />
       <main className='flex-grow'>
-        <div className='flex flex-col px-4 sm:p-8 mt-12 sm:mt-28 mb-12 sm:mb-20 space-y-4 leading-normal w-[340px]'>
-          <span className='text-3xl font-display font-medium '>
+        <div className='mt-12 mb-12 flex w-[340px] flex-col space-y-4 px-4 leading-normal sm:mt-28 sm:mb-20 sm:p-8'>
+          <span className='font-display text-3xl font-medium '>
             Follow our progress
           </span>
           <span>
@@ -39,7 +39,7 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
                     return author.name + (index == array.length - 1 ? '' : ', ')
                   })}
                 </span>
-                <span className='text-4xl font-display font-medium my-2'>
+                <span className='my-2 font-display text-4xl font-medium'>
                   {post.title}
                 </span>
                 <span className='text-2xl text-gray-700'>
@@ -71,7 +71,7 @@ const List: FC = ({ children }) => {
 
 const ListItem: FC = ({ children }) => {
   return (
-    <li className='flex flex-col justify-start p-4 sm:p-8 hover:bg-gray-50 cursor-pointer'>
+    <li className='flex cursor-pointer flex-col justify-start p-4 hover:bg-gray-50 sm:p-8'>
       {children}
     </li>
   )

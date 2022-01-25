@@ -4,16 +4,16 @@ import { Container, LeavesDecor, Router, Routes } from '../components'
 
 const ErrorPage: NextPage = () => {
   return (
-    <div className='relative overflow-hidden w-full'>
+    <div className='relative w-full overflow-hidden'>
       <Container className='overflow-x-hidden'>
-        <main className='flex flex-grow flex-col px-4 sm:p-8 justify-center items-start'>
-          <p className='text-9xl font-medium font-display text-primary'>404</p>
+        <main className='flex flex-grow flex-col items-start justify-center px-4 sm:p-8'>
+          <p className='font-display text-9xl font-medium text-primary'>404</p>
           <div className='sm:mt-12'>
             <div>
-              <h1 className='text-4xl font-medium font-display text-medium'>
+              <h1 className='font-display text-4xl font-medium text-medium'>
                 Page not found
               </h1>
-              <p className='mt-2 text-weak font-sans'>
+              <p className='mt-2 font-sans text-weak'>
                 Please check the URL in the address bar and try again.
               </p>
             </div>

@@ -3,12 +3,12 @@ import { NextPage } from 'next'
 
 const HomePage: NextPage = () => {
   return (
-    <div className='relative overflow-hidden w-full'>
+    <div className='relative w-full overflow-hidden'>
       <Container className='overflow-x-hidden'>
         <Header />
         <main className='flex-grow'>
-          <div className='flex flex-col px-4 sm:p-8 mt-20 sm:mt-44 mb-12 sm:mb-20 space-y-8 w-[340px]'>
-            <span className='font-display text-4xl leading-normal font-medium'>
+          <div className='mt-20 mb-12 flex w-[340px] flex-col space-y-8 px-4 sm:mt-44 sm:mb-20 sm:p-8'>
+            <span className='font-display text-4xl font-medium leading-normal'>
               Connecting
               <br />
               the Internet

@@ -18,8 +18,8 @@ const WalletRiskPage: NextPage<
       orgsForDashboard={orgsForDashboard}
       route={Routes.organisationWalletRisk}
     >
-      <div className='pt-4 mb-10'>
-        <span className='text-4xl font-display font-medium'>Risk</span>
+      <div className='mb-10 pt-4'>
+        <span className='font-display text-4xl font-medium'>Risk</span>
       </div>
     </Dashboard>
   )

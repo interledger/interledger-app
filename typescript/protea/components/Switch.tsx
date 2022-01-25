@@ -23,13 +23,13 @@ export const Switch: FC<SwitchProps> = ({
       disabled={disabled}
       onChange={onChange}
       className={`${checked ? 'bg-primary' : 'bg-strong'}
-          inline-flex flex-shrink-0 h-[24px] w-[46px] p-[2px] rounded-full cursor-pointer disabled:cursor-not-allowed transition-colors ease-in-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:bg-opacity-40`}
+          focus:outline-none inline-flex h-[24px] w-[46px] flex-shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:bg-opacity-40`}
     >
       <span className='sr-only'>Test data</span>
       <span
         aria-hidden='true'
         className={`${checked ? 'translate-x-[22px]' : 'translate-x-0'}
-            pointer-events-none inline-block h-[20px] w-[20px] rounded-full bg-white shadow-lg transform transition ease-in-out duration-200`}
+            pointer-events-none inline-block h-[20px] w-[20px] transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out`}
       />
     </HeadlessSwitch>
   )

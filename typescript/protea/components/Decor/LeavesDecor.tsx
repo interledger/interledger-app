@@ -2,7 +2,7 @@ export const LeavesDecor = () => {
   return (
     <div className='overflow-x-hidden'>
       <svg
-        className='absolute overflow-x-hidden top-[-150px] opacity-30 sm:opacity-100 left-[25vw] sm:left-[50vw] z-[-50]'
+        className='absolute top-[-150px] left-[25vw] z-[-50] overflow-x-hidden opacity-30 sm:left-[50vw] sm:opacity-100'
         width='1663'
         height='2201'
         viewBox='0 0 1663 2201'

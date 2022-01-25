@@ -7773,6 +7773,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prettier-plugin-tailwindcss@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "prettier-plugin-tailwindcss@npm:0.1.3"
+  peerDependencies:
+    prettier: ">=2.2.0"
+  checksum: 27a11cab356362ec46420e12744df9d40d7f6e8cb4fc18493e04936ada92ae971ee5ce3c92d28a2849ba59f2f8d9f393f27d70d51db2a0106fa296183a189137
+  languageName: node
+  linkType: hard
+
 "prettier@npm:^2.3.2":
   version: 2.3.2
   resolution: "prettier@npm:2.3.2"
@@ -7892,6 +7901,7 @@ __metadata:
     next: canary
     postcss: latest
     prettier: ^2.3.2
+    prettier-plugin-tailwindcss: ^0.1.3
     react: ^17.0.2
     react-dom: 17.0.2
     react-hook-form: ^7.17.5

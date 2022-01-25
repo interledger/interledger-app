@@ -87,7 +87,7 @@ export const LoginForm: FC = () => {
   // our frontend will need to display these errors as returned from Kratos
   return (
     <form
-      className='flex flex-col min-w-full space-y-4'
+      className='flex min-w-full flex-col space-y-4'
       onSubmit={handleSubmit(onSubmit)}
     >
       <TextField
@@ -118,7 +118,7 @@ export const LoginForm: FC = () => {
         />
       )}
 
-      <div className='flex justify-between items-center'>
+      <div className='flex items-center justify-between'>
         <Router href={Routes.recovery} aria-label='Forgot password?'>
           <span className='text-primary'>Forgot password?</span>
         </Router>

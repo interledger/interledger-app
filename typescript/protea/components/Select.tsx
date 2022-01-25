@@ -41,11 +41,11 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
       }}
     >
       <div className='relative font-display'>
-        <Listbox.Button className='text-strong relative w-full h-12 bg-base hover:bg-base-hover text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary'>
+        <Listbox.Button className='focus:outline-none relative h-12 w-full cursor-pointer bg-base text-left text-strong hover:bg-base-hover focus-visible:ring-2 focus-visible:ring-primary'>
           <span className='flex items-center'>
             <span className='ml-2 block truncate'>{currentOrg?.name}</span>
           </span>
-          <span className='absolute inset-y-0 right-0 flex items-center pointer-events-none pr-2'>
+          <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2'>
             <SelectIcon />
           </span>
         </Listbox.Button>
@@ -56,14 +56,14 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <Listbox.Options className='absolute z-10 mt-1 w-full bg-base shadow-2xl max-h-56 py-1 text-medium ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none'>
+          <Listbox.Options className='focus:outline-none absolute z-10 mt-1 max-h-56 w-full overflow-auto bg-base py-1 text-medium shadow-2xl ring-1 ring-black ring-opacity-5'>
             {orgsForDashboard.organisations.map((option) => (
               <Listbox.Option
                 key={option?.id}
                 className={({ active }) =>
                   classNames(
                     active ? 'bg-base-hover' : 'bg-base',
-                    'cursor-pointer select-none relative py-2 pl-1 pr-9 h-12 flex items-center'
+                    'relative flex h-12 cursor-pointer select-none items-center py-2 pl-1 pr-9'
                   )
                 }
                 value={option}
@@ -94,7 +94,7 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
               className={({ active }) =>
                 classNames(
                   active ? 'bg-base-hover' : 'bg-base',
-                  'cursor-pointer select-none relative py-2 pl-1 pr-9 h-12 flex items-center'
+                  'relative flex h-12 cursor-pointer select-none items-center py-2 pl-1 pr-9'
                 )
               }
               value={{
@@ -102,7 +102,7 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
               }}
             >
               <div className='flex items-center'>
-                <span className='text-medium ml-3 block truncate'>
+                <span className='ml-3 block truncate text-medium'>
                   Add organisation
                 </span>
               </div>
