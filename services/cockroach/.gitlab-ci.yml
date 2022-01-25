@@ -10,7 +10,7 @@ include:
 
 stages: !reference [.stages, stages]
 
-deploy_dev_backend:
+deploy_dev_cockroach:
   environment: !reference [.dev_environment, environment]
   stage: deploy_dev
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/eks
