@@ -26,9 +26,9 @@ export const Notification: FC<NotificationProps> = ({
       {/* Global notification live region, render this permanently at the end of the document */}
       <div
         aria-live='assertive'
-        className='fixed inset-0 flex items-end px-4 py-6 pointer-events-none sm:p-6 sm:items-start'
+        className='pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6'
       >
-        <div className='w-full flex flex-col items-center space-y-4 sm:items-end'>
+        <div className='flex w-full flex-col items-center space-y-4 sm:items-end'>
           {/* Notification panel, dynamically insert this into the live region when it needs to be displayed */}
           <Transition
             show={show}
@@ -40,7 +40,7 @@ export const Notification: FC<NotificationProps> = ({
             leaveFrom='opacity-100'
             leaveTo='opacity-0'
           >
-            <div className='max-w-md w-full bg-base shadow-lg pointer-events-auto flex'>
+            <div className='pointer-events-auto flex w-full max-w-md bg-base shadow-lg'>
               <div className='w-0 flex-1 p-4'>
                 <div className='flex items-start'>
                   <div className='ml-3 w-0 flex-1'>
@@ -53,7 +53,7 @@ export const Notification: FC<NotificationProps> = ({
               </div>
               <div className='flex border-l border-base'>
                 <button
-                  className='w-full border border-transparent p-4 flex items-center justify-center text-sm font-medium text-primary focus:outline-none focus:ring-2 focus:ring-black'
+                  className='focus:outline-none flex w-full items-center justify-center border border-transparent p-4 text-sm font-medium text-primary focus:ring-2 focus:ring-black'
                   onClick={() => {
                     setShow(false)
                   }}

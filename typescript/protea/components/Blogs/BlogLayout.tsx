@@ -19,12 +19,12 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
       </Head>
       <Header />
       <main className='px-4 sm:px-8'>
-        <div className='my-20 sm:mt-28 text-5xl font-medium font-display leading-normal'>
+        <div className='my-20 font-display text-5xl font-medium leading-normal sm:mt-28'>
           {meta.title}
         </div>
-        <div className='flex flex-col sm:flex-row justify-start'>
+        <div className='flex flex-col justify-start sm:flex-row'>
           <div className='sm:mr-20 sm:w-60'>
-            <div className='sticky top-[112px] border-t-2 border-b-2 sm:border-b-0 border-black'>
+            <div className='sticky top-[112px] border-t-2 border-b-2 border-black sm:border-b-0'>
               <div className='mt-6 mb-12'>
                 {DateTime.fromISO(meta.date).toFormat('dd LLLL yyyy')}
               </div>
@@ -37,7 +37,7 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
                 />
               ))}
               <Router href={Routes.blog}>
-                <span className='text-primary hidden sm:flex items-center mt-12'>
+                <span className='mt-12 hidden items-center text-primary sm:flex'>
                   <span className='mr-2'>
                     <BackIcon />
                   </span>{' '}
@@ -46,7 +46,7 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
               </Router>
             </div>
           </div>
-          <article className='prose max-w-full sm:max-w-sm md:max-w-md lg:max-w-prose mt-12 sm:mt-6'>
+          <article className='prose mt-12 max-w-full sm:mt-6 sm:max-w-sm md:max-w-md lg:max-w-prose'>
             {children}
           </article>
         </div>
@@ -58,13 +58,13 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
 
 const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
   return (
-    <div className='flex mb-6'>
+    <div className='mb-6 flex'>
       <Image alt='Author profile image.' src={avatar} width='48' height='48' />
-      <div className='flex flex-col flex-grow ml-3'>
+      <div className='ml-3 flex flex-grow flex-col'>
         <div className='font-medium'>{name}</div>
         <Link href={Routes.twitter + twitterHandle}>
           <a
-            className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary'
+            className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1'
             aria-label='Author twitter'
           >
             <span className='text-primary'>@{twitterHandle}</span>

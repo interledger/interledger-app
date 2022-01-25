@@ -2,7 +2,7 @@ export const HomeDecor = () => {
   return (
     <div className='overflow-x-hidden'>
       <svg
-        className='absolute overflow-x-hidden top-[112px] opacity-30 sm:opacity-100 left-[25vw] sm:left-[50vw] z-[-50]'
+        className='absolute top-[112px] left-[25vw] z-[-50] overflow-x-hidden opacity-30 sm:left-[50vw] sm:opacity-100'
         width='1601'
         height='800'
         viewBox='0 0 1601 800'

@@ -13,14 +13,14 @@ const LoginPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = () => {
   return (
-    <main className='flex flex-col items-start justify-center max-w-sm mx-auto h-screen px-4'>
+    <main className='mx-auto flex h-screen max-w-sm flex-col items-start justify-center px-4'>
       <Router href={Routes.home} aria-label='Fynbos logo'>
         <Logo className='h-8' />
       </Router>
-      <h1 className='text-4xl font-display font-medium text-strong mt-6 mb-1 leading-normal'>
+      <h1 className='mt-6 mb-1 font-display text-4xl font-medium leading-normal text-strong'>
         Sign in to your account
       </h1>
-      <p className='text-medium mb-10'>
+      <p className='mb-10 text-medium'>
         Or{' '}
         <Router href={Routes.signup}>
           <span className='text-primary'>create a new account.</span>

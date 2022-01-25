@@ -21,15 +21,15 @@ const OverviewPage: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = ({ organisations }) => {
   return (
-    <main className='flex flex-col items-start justify-center max-w-sm mx-auto h-screen px-4'>
+    <main className='mx-auto flex h-screen max-w-sm flex-col items-start justify-center px-4'>
       <Router href={Routes.home} aria-label='Fynbos logo'>
         <Logo className='h-8' />
       </Router>
-      <h1 className='text-4xl font-display font-medium text-strong mt-6 mb-1 leading-normal'>
+      <h1 className='mt-6 mb-1 font-display text-4xl font-medium leading-normal text-strong'>
         {organisations.length == 0 && 'Create an organisation'}
         {organisations.length > 0 && 'Your organisations'}
       </h1>
-      <p className='text-medium mb-10'>
+      <p className='mb-10 text-medium'>
         {organisations.length == 0 &&
           'Create a new organisation to get started.'}
         {(organisations.length == 1 || organisations.length == 2) &&
@@ -97,7 +97,7 @@ export const getServerSideProps: GetServerSideProps = async (
 
 const NavList: FC = ({ children }) => {
   return (
-    <ul className='flex flex-col space-y-2 min-w-full mb-12'>{children}</ul>
+    <ul className='mb-12 flex min-w-full flex-col space-y-2'>{children}</ul>
   )
 }
 
@@ -122,7 +122,7 @@ const NavListItem: FC<NavListItemProps> = ({
   return (
     <Router href={href}>
       <li
-        className={`flex justify-start items-center h-12 p-2 hover:bg-base-hover cursor-pointer ${
+        className={`flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-base-hover ${
           route == pathname ? 'text-primary' : 'text-medium'
         }`}
       >

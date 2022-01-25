@@ -18,8 +18,8 @@ const WalletTransactionsPage: NextPage<
       orgsForDashboard={orgsForDashboard}
       route={Routes.organisationWalletTransactions}
     >
-      <div className='pt-4 mb-10'>
-        <span className='text-4xl font-display font-medium'>Transactions</span>
+      <div className='mb-10 pt-4'>
+        <span className='font-display text-4xl font-medium'>Transactions</span>
       </div>
     </Dashboard>
   )

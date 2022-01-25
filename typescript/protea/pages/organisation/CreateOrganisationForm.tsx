@@ -47,7 +47,7 @@ export const CreateOrganisationForm: FC = () => {
 
   return (
     <form
-      className='flex flex-col min-w-full space-y-4'
+      className='flex min-w-full flex-col space-y-4'
       onSubmit={handleSubmit(onSubmit)}
     >
       <TextField
@@ -59,7 +59,7 @@ export const CreateOrganisationForm: FC = () => {
         errorMessage={errors.name?.message}
       />
 
-      <div className='flex justify-end items-center'>
+      <div className='flex items-center justify-end'>
         <Button type='submit'>Create organisation</Button>
       </div>
     </form>

@@ -39,7 +39,7 @@ export const Dashboard: FC<DashboardProps> = ({
           route={route}
           orgsForDashboard={orgsForDashboard}
         />
-        <div className='flex flex-col max-w-3xl p-8 w-full h-screen overflow-auto'>
+        <div className='flex h-screen w-full max-w-3xl flex-col overflow-auto p-8'>
           {children}
         </div>
       </div>
@@ -101,11 +101,11 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
     <div
       className={`${
         isPreview ? 'theme-test' : ''
-      } font-display select-none bg-base sticky top-0 flex flex-col justify-between min-w-[300px] min-h-screen p-4`}
+      } sticky top-0 flex min-h-screen min-w-[300px] select-none flex-col justify-between bg-base p-4 font-display`}
     >
       <NavList>
         <Router href={Routes.home} aria-label='Fynbos logo'>
-          <Logo className='h-8 mb-4 ml-2 mt-2' />
+          <Logo className='mb-4 ml-2 mt-2 h-8' />
         </Router>
         {/* If on an org page */}
         {orgsForDashboard.currentOrg && (
@@ -135,7 +135,7 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
             >
               Settings
             </NavListItem>
-            <li className='flex justify-start items-center pt-4 px-2 text-medium uppercase font-medium text-xs'>
+            <li className='flex items-center justify-start px-2 pt-4 text-xs font-medium uppercase text-medium'>
               products
             </li>
             <NavListItem
@@ -186,7 +186,7 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
                 )
               })}
             <Router href={Routes.organisation}>
-              <li className='flex justify-between items-center h-12 p-2 hover:bg-base-hover text-medium cursor-pointer'>
+              <li className='flex h-12 cursor-pointer items-center justify-between p-2 text-medium hover:bg-base-hover'>
                 Add organisation <AddIcon />
               </li>
             </Router>
@@ -195,7 +195,7 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
       </NavList>
       <NavList>
         {orgsForDashboard.currentOrg && (
-          <li className='flex items-center h-12 p-2 text-medium justify-between'>
+          <li className='flex h-12 items-center justify-between p-2 text-medium'>
             Test data{' '}
             <Switch
               disabled={!previewSwitchEnabled}
@@ -241,7 +241,7 @@ const NavListItem: FC<NavListItemProps> = ({
   return (
     <Router href={href}>
       <li
-        className={`flex justify-start items-center h-12 p-2 hover:bg-base-hover cursor-pointer ${
+        className={`flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-base-hover ${
           route == pathname ? 'text-primary' : 'text-medium'
         }`}
       >
@@ -279,13 +279,13 @@ const SubNavListItem: FC<SubNavListItemProps> = ({
   return (
     <Router href={href}>
       <li
-        className={`relative flex justify-start items-center h-12 p-2 mb-0 hover:bg-base-hover cursor-pointer ${
+        className={`relative mb-0 flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-base-hover ${
           route == pathname ? 'text-primary' : 'text-medium'
         }`}
       >
         {icon && (
           <div
-            className={`mr-2 z-20 ${
+            className={`z-20 mr-2 ${
               route == pathname ? 'text-primary' : 'text-transparent'
             }`}
           >
@@ -295,13 +295,13 @@ const SubNavListItem: FC<SubNavListItemProps> = ({
         {children}
         {!lastItem && (
           <span
-            className='absolute top-[14px] left-5 -ml-px h-full w-0.5 bg-gray-300 z-10'
+            className='absolute top-[14px] left-5 z-10 -ml-px h-full w-0.5 bg-gray-300'
             aria-hidden='true'
           />
         )}
         {lastItem && (
           <span
-            className='absolute bottom-[14px] left-5 -ml-px h-full w-0.5 bg-gray-300 z-10'
+            className='absolute bottom-[14px] left-5 z-10 -ml-px h-full w-0.5 bg-gray-300'
             aria-hidden='true'
           />
         )}

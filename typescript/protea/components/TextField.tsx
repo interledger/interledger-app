@@ -17,14 +17,14 @@ export const TextField = React.forwardRef<any, TextFieldProps>(
       <div className={className || 'min-w-full'}>
         <label
           htmlFor={inputProps.id}
-          className='block text-sm font-medium text-medium ml-2'
+          className='ml-2 block text-sm font-medium text-medium'
         >
           {label}
         </label>
         <input
           ref={ref}
           {...inputProps}
-          className='focus:ring-primary focus:border-primary h-12 block w-full border-base border-2 mt-1'
+          className='mt-1 block h-12 w-full border-2 border-base focus:border-primary focus:ring-primary'
         />
         <div className='h-7 pt-2 pl-2'>
           {!isValid && <p className='text-sm text-error'>{errorMessage}</p>}

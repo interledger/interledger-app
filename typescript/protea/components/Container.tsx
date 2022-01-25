@@ -7,7 +7,7 @@ type ContainerProps = {
 export const Container: FC<ContainerProps> = ({ children, className }) => {
   return (
     <div
-      className={`flex flex-col max-w-full sm:max-w-[1080px] mx-auto min-h-screen ${className}`}
+      className={`mx-auto flex min-h-screen max-w-full flex-col sm:max-w-[1080px] ${className}`}
     >
       {children}
     </div>

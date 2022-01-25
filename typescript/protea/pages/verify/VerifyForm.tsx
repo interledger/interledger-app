@@ -70,7 +70,7 @@ export const VerifyForm: FC<VerifyProps> = ({ email }) => {
   // our frontend will need to display these errors as returned from Kratos
   return (
     <form
-      className='flex flex-col min-w-full space-y-4 items-end'
+      className='flex min-w-full flex-col items-end space-y-4'
       onSubmit={handleSubmit(onSubmit)}
     >
       <Button disabled={disabled} type='submit'>

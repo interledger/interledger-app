@@ -18,39 +18,39 @@ const ProfilePage: NextPage<
       route={Routes.profile}
       orgsForDashboard={orgsForDashboard}
     >
-      <div className='pt-4 mb-10'>
-        <span className='text-4xl font-display font-medium'>Profile</span>
+      <div className='mb-10 pt-4'>
+        <span className='font-display text-4xl font-medium'>Profile</span>
       </div>
-      <div className='flex flex-col text-medium border-2 border-base'>
-        <span className='text-2xl font-normal font-display p-6'>
+      <div className='flex flex-col border-2 border-base text-medium'>
+        <span className='p-6 font-display text-2xl font-normal'>
           Personal info
         </span>
-        <div className='grid grid-cols-12 gap-4 items-center py-5 px-6'>
+        <div className='grid grid-cols-12 items-center gap-4 py-5 px-6'>
           <div className='col-span-3'>
-            <span className='uppercase text-xs text-medium font-medium font-sans'>
+            <span className='font-sans text-xs font-medium uppercase text-medium'>
               email
             </span>
           </div>
           <div className='col-span-8'>
-            <span className='text-base font-normal font-sans'>
+            <span className='font-sans text-base font-normal'>
               {session?.identity.traits.email}
             </span>
           </div>
         </div>
         <div className='border-b border-base' />
         <Router href={Routes.profilePassword}>
-          <div className='grid grid-cols-12 gap-4 items-center py-5 px-6'>
+          <div className='grid grid-cols-12 items-center gap-4 py-5 px-6'>
             <div className='col-span-3'>
-              <span className='uppercase text-xs text-medium font-medium font-sans'>
+              <span className='font-sans text-xs font-medium uppercase text-medium'>
                 password
               </span>
             </div>
             <div className='col-span-8'>
-              <span className='text-base font-normal font-sans'>
+              <span className='font-sans text-base font-normal'>
                 &#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;
               </span>
             </div>
-            <div className='justify-self-end col-span-1'>
+            <div className='col-span-1 justify-self-end'>
               <span>
                 <NextIcon />
               </span>
