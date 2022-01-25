@@ -12,10 +12,16 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/protea"
+	"os/exec"
+	"strings"
 )
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
+		hash, err := getShortHash()
+		if err != nil {
+			return err
+		}
 		cfg := config.New(ctx, "fynbos")
 		ecrRepo := cfg.Get("ecrRepo")
 		cmChart, err := cert_manager.DeployCertManager(ctx)
@@ -115,6 +121,7 @@ func main() {
 
 		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
 			ImageRepo: ecrRepo,
+			ImageTag:  hash,
 		})
 		if err != nil {
 			return err
@@ -131,6 +138,7 @@ func main() {
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
 			ImageRepo: ecrRepo,
 			Cert:      beCert,
+			ImageTag:  hash,
 		})
 		if err != nil {
 			return err
@@ -138,4 +146,13 @@ func main() {
 
 		return nil
 	})
+}
+
+func getShortHash() (string, error) {
+	out, err := exec.Command("git", "log", "-1", "--pretty=%h").Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSuffix(string(out), "\n"), nil
 }

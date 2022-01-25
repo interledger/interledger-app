@@ -11,6 +11,7 @@ import (
 
 type DeployProteaArgs struct {
 	ImageRepo string
+	ImageTag  string
 }
 
 func DeployProtea(ctx *pulumi.Context, args DeployProteaArgs) error {
@@ -27,7 +28,7 @@ func DeployProtea(ctx *pulumi.Context, args DeployProteaArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx, args.ImageRepo)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag)
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func deployService(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string) error {
+func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string) error {
 	_, err := appsv1.NewDeployment(ctx, "protea-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -91,7 +92,7 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string) error {
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:  pulumi.String("protea"),
-							Image: pulumi.Sprintf("%s/protea", imageRepo),
+							Image: pulumi.Sprintf("%s/protea:%s", imageRepo, imageTag),
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{
 									ContainerPort: pulumi.Int(3000),

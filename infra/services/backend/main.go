@@ -13,6 +13,7 @@ import (
 type DeployBackendArgs struct {
 	Cert      *apiextensions.CustomResource
 	ImageRepo string
+	ImageTag  string
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -29,7 +30,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx, args.ImageRepo, args.Cert)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert)
 	if err != nil {
 		return err
 	}
@@ -66,7 +67,7 @@ func deployService(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string, cert *apiextensions.CustomResource) error {
+func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource) error {
 	_, err := appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -145,7 +146,7 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, cert *apiextensions
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:            pulumi.String("backend"),
-							Image:           pulumi.Sprintf("%s/backend:3ec7bcc0", imageRepo),
+							Image:           pulumi.Sprintf("%s/backend:%s", imageRepo, imageTag),
 							ImagePullPolicy: pulumi.String("Always"),
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{

@@ -57,14 +57,14 @@ trigger_deploy_preview:
   variables:
     TRIGGER_STAGE: deploy_preview
 
-trigger_deploy_live:
-  stage: deploy_live
+trigger_deploy_dev:
+  stage: deploy_dev
   trigger:
     <<: *include_services
     strategy: depend
   when: manual
   variables:
-    TRIGGER_STAGE: deploy_live
+    TRIGGER_STAGE: deploy_dev
     AWS_REGION: eu-west-1
     # we use the IAM automation role that is mapped to the k8s automation group.
     # this will allow read only access from ECR and 
