@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pacioli-budget
+  labels:
+    app: pacioli
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  maxUnavailable: 1
