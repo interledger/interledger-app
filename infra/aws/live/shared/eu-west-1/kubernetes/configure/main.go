@@ -59,6 +59,16 @@ func main() {
 		//err = k8s.ConfigureDefaultNetworkPolicy(ctx, []pulumi.Resource{calicoOperator, calicoCrds})
 		//if err != nil { return err }
 
+		// Configure Automation roles
+		err = k8s.ConfigureAutomationRole(ctx, "default")
+		if err != nil {
+			return err
+		}
+		err = k8s.ApplyAutomationRoleBindingToNamespace(ctx, "default")
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
