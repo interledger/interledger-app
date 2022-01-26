@@ -69,7 +69,6 @@ trigger_deploy_dev:
     - aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
     - kubectl set image deployment/backend backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA
     - kubectl set image deployment/backend protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA
-  extends: .job_rules
   variables:
     AWS_REGION: eu-west-1
     # we use the IAM automation role that is mapped to the k8s automation group.
