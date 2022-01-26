@@ -1,0 +1,1 @@
+DROP IF TABLE NOT EXISTS tenants;
