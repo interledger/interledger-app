@@ -63,9 +63,9 @@ func main() {
 			Cluster:       cluster,
 			NodeRole:      roles.NodeGroup,
 			InstanceTypes: pulumi.StringArray{pulumi.String("t2.medium")},
-			MinSize:       0,
-			MaxSize:       2,
-			DesiredSize:   1,
+			MinSize:       1,
+			MaxSize:       5,
+			DesiredSize:   2,
 			SubnetIds:     privateSubnetIds,
 		})
 
