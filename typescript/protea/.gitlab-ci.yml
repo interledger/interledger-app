@@ -29,10 +29,10 @@ deploy_preview_protea:
   rules:
     - if: '$TRIGGER_STAGE == "deploy_preview" && $CI_COMMIT_BRANCH != "main"'
 
-deploy_live_protea:
-  stage: deploy_live
+deploy_dev_protea:
+  stage: deploy_dev
   script:
     - yarn dlx vercel --prod -t $VERCEL_CLI_TOKEN
   extends: .job_rules
   rules:
-    - if: '$TRIGGER_STAGE == "deploy_live" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$TRIGGER_STAGE == "deploy_dev" && $CI_COMMIT_BRANCH == "main"'

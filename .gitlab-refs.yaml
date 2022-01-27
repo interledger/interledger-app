@@ -15,7 +15,7 @@
 # This will start docker-in-docker to which TestContainers can connect.
 .docker_services:
   services:
-      - name: docker:19.03.12-dind
+      - name: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12-dind
         alias: docker
   variables:
     # Instruct docker to use dind service
@@ -25,10 +25,10 @@
     # Improve performance with overlayfs.
     DOCKER_DRIVER: overlay2
 
-.live_environment:
+.dev_environment:
   environment:
-    name: live
-    url: https://fynbos.dev
+    name: Dev
+    url: https://dev.fynbos.dev
 
 .stages:
   stages:
@@ -36,4 +36,4 @@
   - test_base
   - publish
   - deploy_preview
-  - deploy_live
+  - deploy_dev

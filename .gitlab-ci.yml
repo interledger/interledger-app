@@ -57,14 +57,19 @@ trigger_deploy_preview:
   variables:
     TRIGGER_STAGE: deploy_preview
 
-trigger_deploy_live:
-  stage: deploy_live
-  trigger:
-    <<: *include_services
-    strategy: depend
+trigger_deploy_dev:
+  environment: !reference [ .dev_environment, environment ]
+  stage: deploy_dev
   when: manual
+  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/eks
+  before_script: !reference [ .assume_role, before_script ]
+  script:
+    - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
+    - aws sts get-caller-identity
+    - aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
+    - kubectl set image deployment/backend backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/protea protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA
   variables:
-    TRIGGER_STAGE: deploy_live
     AWS_REGION: eu-west-1
     # we use the IAM automation role that is mapped to the k8s automation group.
     # this will allow read only access from ECR and 
