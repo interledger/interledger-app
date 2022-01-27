@@ -58,15 +58,22 @@ func (self *service) GetUser(r http.Request) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	traits := session.Identity.Traits.(traits)
 	user := User{
-		ID: session.Identity.Id,
+		ID:    session.Identity.Id,
+		Email: traits.Email,
 	}
 	return &user, nil
 }
 
 // Model
 type User struct {
-	ID string
+	ID    string
+	Email string
+}
+
+type traits struct {
+	Email string
 }
 
 // Error set
