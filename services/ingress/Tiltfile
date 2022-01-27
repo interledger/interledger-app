@@ -1,3 +1,0 @@
-yaml =  helm('./' , name='ingress' , values=['./values.dev.yaml'])
-
-k8s_yaml(yaml)

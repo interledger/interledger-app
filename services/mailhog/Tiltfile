@@ -1,8 +1,0 @@
-yaml = kustomize('./deploy/base')
-
-k8s_yaml(yaml)
-
-k8s_resource(
-   workload='mailhog',
-   port_forwards=8025
-)
