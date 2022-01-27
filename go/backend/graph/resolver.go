@@ -7,11 +7,12 @@ package graph
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 import (
-	org "gitlab.com/fynbos/backend/organisation"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/user"
 )
 
 type Resolver struct {
-	Org  org.Service
-	User user.Service
+	// appending service to avoid name clashed with function names.
+	IdentityService identity.Service
+	UserService     user.Service
 }

@@ -14,10 +14,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/db/utils"
 	"gitlab.com/fynbos/backend/graph"
-	_org "gitlab.com/fynbos/backend/organisation"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -53,9 +52,9 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	db, err := sqlx.Connect("postgres", connString)
 	defer db.Close()
-
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -68,11 +67,6 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	authz, err := authorization.NewService()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	configuration := kratos.NewConfiguration()
 	configuration.Servers = kratos.ServerConfigurations{
 		{
@@ -81,19 +75,21 @@ func main() {
 		},
 	}
 	kratosClient := kratos.NewAPIClient(configuration)
+
 	users, err := user.NewService(kratosClient)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	users = user.NewLoggingService(users, logger)
 
-	org, err := _org.NewService(db, authz)
+	id, err := identity.NewService(db)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	org = _org.NewLoggingService(org, logger)
+	id = identity.NewLoggingService(id, logger)
 
 	graphql, err := graph.NewService(graph.GraphqlOpts{
-		Organisation:                     org,
+		Identity:                         id,
 		User:                             users,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,

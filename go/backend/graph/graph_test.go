@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/graph/generated"
-	"gitlab.com/fynbos/backend/organisation"
+	"gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 )
@@ -40,23 +39,18 @@ func TestGraphql(s *testing.T) {
 	db, err := sqlx.Connect("postgres", crdb.URI)
 	defer db.Close()
 
-	authz, err := authorization.NewService()
+	ah, err := identity.NewService(db)
 	if err != nil {
 		s.Fatal(err)
 	}
-
-	org, err := organisation.NewService(db, authz)
-	if err != nil {
-		s.Fatal(err)
-	}
-	org = organisation.NewLoggingService(org, logger)
+	ah = identity.NewLoggingService(ah, logger)
 
 	users := _user.NewMockService()
 	users = _user.NewLoggingService(users, logger)
 
 	graph, err := NewService(GraphqlOpts{
-		Organisation: org,
-		User:         users,
+		Identity: ah,
+		User:     users,
 	})
 	graph = NewLoggingService(graph, logger)
 
@@ -68,202 +62,218 @@ func TestGraphql(s *testing.T) {
 
 	client := graphql.NewClient(server.URL + "/graphql")
 
-	s.Run("authenticated user can create an organisation", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
+	s.Run("create identity", func(t *testing.T) {
+		t.Run("requires authenticated user", func(tt *testing.T) {
+			req := graphql.NewRequest(`
+			    mutation ($input: IdentityInput!) {
+			        createIdentity (input: $input) {
+			            code
+			            success
+			            message
+			            identity {
+			            	id
+			            	email
+			            	legalName
+			            	country
+			            }
+			        }
+			    }
+			`)
+			req.Var("input", generated.IdentityInput{
+				LegalName: faker.Name(),
+				Country:   "USA",
+			})
+			_user.ActingAs(req, nil)
+
+			var respData map[string]generated.CreateIdentityMutationResponse
+			err = client.Run(ctx, req, &respData)
+
+			assert.Error(tt, err)
 		})
-		user := _user.User{
-			ID: uuid.New().String(),
-		}
-		req := graphql.NewRequest(`
-		    mutation ($name: String!) {
-		        createOrganisation (name: $name) {
-		            code
-		            success
-		            message
-		            organisation {
-		            	id
-		            	name
-		            }
-		        }
-		    }
-		`)
-		req.Var("name", "My first graphql organisation.")
-		_user.ActingAs(req, &user)
 
-		var respData map[string]generated.OrganisationMutationResponse
-		if err := client.Run(ctx, req, &respData); err != nil {
-			t.Fatal(err)
-		}
+		t.Run("user can create an identity", func(tt *testing.T) {
+			tt.Cleanup(func() {
+				test_utils.TruncateDb(ctx, db)
+			})
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Email(),
+			}
+			name := faker.Name()
+			req := graphql.NewRequest(`
+			    mutation ($input: IdentityInput!) {
+			        createIdentity (input: $input) {
+			            code
+			            success
+			            message
+			            identity {
+			            	id
+			            	email
+			            	legalName
+			            	country
+			            }
+			        }
+			    }
+			`)
+			req.Var("input", generated.IdentityInput{
+				LegalName: name,
+				Country:   "USA",
+			})
+			_user.ActingAs(req, user)
 
-		org, err := org.Get(respData["createOrganisation"].Organisation.ID, user)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, "200", respData["createOrganisation"].Code)
-		assert.Equal(t, "Created organisation.", respData["createOrganisation"].Message)
-		assert.Equal(t, true, respData["createOrganisation"].Success)
-		assert.Equal(t, respData["createOrganisation"].Organisation.Name, "My first graphql organisation.")
-		assert.Equal(t, org.Name, "My first graphql organisation.")
+			var respData map[string]generated.CreateIdentityMutationResponse
+			if err := client.Run(ctx, req, &respData); err != nil {
+				tt.Fatal(err)
+			}
+
+			response := respData["createIdentity"]
+			assert.Equal(tt, "200", response.Code)
+			assert.Equal(tt, "Created account holder.", response.Message)
+			assert.Equal(tt, true, response.Success)
+			assert.Equal(tt, response.Identity.LegalName, name)
+			assert.Equal(tt, response.Identity.Country, "USA")
+			assert.Equal(tt, response.Identity.Email, user.Email)
+			assert.Equal(tt, response.Identity.ID, user.ID)
+
+			identity, err := ah.Get(user.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(tt, identity.LegalName, name)
+			assert.Equal(tt, identity.Country, "USA")
+			assert.Equal(tt, identity.Email, user.Email)
+			assert.Equal(tt, identity.ID, user.ID)
+		})
+
+		t.Run("user can only create 1 identity", func(tt *testing.T) {
+			tt.Cleanup(func() {
+				test_utils.TruncateDb(ctx, db)
+			})
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Email(),
+			}
+			name := faker.Name()
+			req := graphql.NewRequest(`
+			    mutation ($input: IdentityInput!) {
+			        createIdentity (input: $input) {
+			            code
+			            success
+			            message
+			            identity {
+			            	id
+			            	email
+			            	legalName
+			            	country
+			            }
+			        }
+			    }
+			`)
+			req.Var("input", generated.IdentityInput{
+				LegalName: name,
+				Country:   "USA",
+			})
+			_user.ActingAs(req, user)
+			var respData map[string]generated.CreateIdentityMutationResponse
+			if err := client.Run(ctx, req, &respData); err != nil {
+				tt.Fatal(err)
+			}
+			response := respData["createIdentity"]
+			assert.Equal(tt, true, response.Success)
+
+			req.Var("input", generated.IdentityInput{
+				LegalName: name,
+				Country:   "ZAR",
+			})
+			err = client.Run(ctx, req, &respData)
+			assert.EqualError(tt, err, "graphql: Unable to process request.")
+		})
 	})
 
-	s.Run("unauthenticated user can't create an organisation", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
+	s.Run("get identity", func(t *testing.T) {
+		t.Run("requires authenticated user", func(tt *testing.T) {
+			req := graphql.NewRequest(`
+			    query {
+			        identity {
+			            id
+			            legalName
+			            email
+			            country
+			        }
+			    }
+			`)
+			_user.ActingAs(req, nil)
+
+			var respData map[string]identity.Identity
+			err := client.Run(ctx, req, &respData)
+
+			assert.Error(tt, err)
 		})
-		req := graphql.NewRequest(`
-		    mutation ($name: String!) {
-		        createOrganisation (name: $name) {
-		            code
-		            success
-		            message
-		            organisation {
-		            	id
-		            	name
-		            }
-		        }
-		    }
-		`)
-		req.Var("name", "My first graphql organisation.")
-		_user.ActingAs(req, nil)
 
-		var respData map[string]generated.OrganisationMutationResponse
-		err := client.Run(ctx, req, &respData)
+		t.Run("returns not found if there is no identity", func(tt *testing.T) {
+			tt.Cleanup(func() {
+				test_utils.TruncateDb(ctx, db)
+			})
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Name(),
+			}
+			req := graphql.NewRequest(`
+			    query {
+			        identity {
+			            id
+			            legalName
+			            email
+			            country
+			        }
+			    }
+			`)
+			_user.ActingAs(req, user)
 
-		assert.Error(t, err)
-	})
+			var respData map[string]identity.Identity
+			err := client.Run(ctx, req, &respData)
 
-	s.Run("user can get their organisation", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
+			assert.EqualError(tt, err, "graphql: Not found.")
 		})
-		user := _user.User{
-			ID: uuid.New().String(),
-		}
-		org, err := org.Create("My second graphql organisation.", user)
-		if err != nil {
-			t.Fatal(err)
-		}
-		req := graphql.NewRequest(`
-		    query ($id: ID!) {
-		        organisation (id: $id) {
-		            id
-		            name
-		        }
-		    }
-		`)
-		req.Var("id", org.ID)
-		_user.ActingAs(req, &user)
 
-		var respData map[string]organisation.Organisation
-		if err := client.Run(ctx, req, &respData); err != nil {
-			t.Fatal(err)
-		}
-		assert.Equal(t, respData["organisation"].Name, "My second graphql organisation.")
-		assert.Equal(t, respData["organisation"].ID, org.ID)
-	})
+		t.Run("user can get their identity", func(tt *testing.T) {
+			tt.Cleanup(func() {
+				test_utils.TruncateDb(ctx, db)
+			})
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Name(),
+			}
+			id, err := ah.Create(identity.CreateArgs{
+				Country:   "USA",
+				LegalName: faker.Name(),
+				User:      user,
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			req := graphql.NewRequest(`
+			    query {
+			        identity {
+			            id
+			            legalName
+			            email
+			            country
+			        }
+			    }
+			`)
+			_user.ActingAs(req, user)
 
-	s.Run("user can only get their own organisation", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
+			var respData map[string]identity.Identity
+			if err := client.Run(ctx, req, &respData); err != nil {
+				tt.Fatal(err)
+			}
+
+			response := respData["identity"]
+			assert.Equal(tt, response.LegalName, id.LegalName)
+			assert.Equal(tt, response.Country, id.Country)
+			assert.Equal(tt, response.Email, id.Email)
+			assert.Equal(tt, response.ID, id.ID)
 		})
-		me := _user.User{
-			ID: uuid.New().String(),
-		}
-		otherUser := _user.User{
-			ID: uuid.New().String(),
-		}
-		notMyOrg, err := org.Create("Not my organisation.", otherUser)
-		if err != nil {
-			t.Fatal(err)
-		}
-		req := graphql.NewRequest(`
-		    query ($id: ID!) {
-		        organisation (id: $id) {
-		            id
-		            name
-		        }
-		    }
-		`)
-		req.Var("id", notMyOrg.ID)
-		_user.ActingAs(req, &me)
-
-		var respData map[string]organisation.Organisation
-		err = client.Run(ctx, req, &respData)
-
-		// oso recommends returning a not found error.
-		assert.EqualError(t, err, "graphql: Not found.")
-	})
-
-	s.Run("user can get an index of their organisations", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
-		})
-		user := _user.User{
-			ID: uuid.New().String(),
-		}
-		req := graphql.NewRequest(`
-		    query {
-		        organisations {
-		            id
-		            name
-		        }
-		    }
-		`)
-		_user.ActingAs(req, &user)
-		var respData map[string][]organisation.Organisation
-		// no orgs
-		if err := client.Run(ctx, req, &respData); err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Len(t, respData["organisations"], 0)
-
-		// multiple orgs
-		org1, err := org.Create(faker.Name(), user)
-		org2, err := org.Create(faker.Name(), user)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err := client.Run(ctx, req, &respData); err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Len(t, respData["organisations"], 2)
-		assert.Equal(t, respData["organisations"][0].ID, org2.ID)
-		assert.Equal(t, respData["organisations"][1].ID, org1.ID)
-	})
-
-	s.Run("user cannot only get an index of their own organisations", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
-		})
-		me := _user.User{
-			ID: uuid.New().String(),
-		}
-		otherUser := _user.User{
-			ID: uuid.New().String(),
-		}
-		_, err := org.Create("Not my organisation.", otherUser)
-		if err != nil {
-			t.Fatal(err)
-		}
-		req := graphql.NewRequest(`
-		    query {
-		        organisations {
-		            id
-		            name
-		        }
-		    }
-		`)
-		_user.ActingAs(req, &me)
-
-		var respData map[string][]organisation.Organisation
-		if err := client.Run(ctx, req, &respData); err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Len(t, respData["organisations"], 0)
 	})
 }
