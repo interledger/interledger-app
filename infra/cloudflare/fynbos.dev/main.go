@@ -19,11 +19,11 @@ func main() {
 
 		// Vercel landing page
 		_, err = cloudflare.NewRecord(ctx, "vercel_A_record", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev"),
-			Value:  pulumi.String("76.76.21.21"),
-			Type:   pulumi.String("A"),
-			Ttl:    pulumi.Int(1),
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("fynbos.dev"),
+			Value:   pulumi.String("76.76.21.21"),
+			Type:    pulumi.String("A"),
+			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
@@ -31,11 +31,24 @@ func main() {
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "vercel_CNAME", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("www.fynbos.dev"),
-			Value:  pulumi.String("cname.vercel-dns.com"),
-			Type:   pulumi.String("CNAME"),
-			Ttl:    pulumi.Int(1),
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("www.fynbos.dev"),
+			Value:   pulumi.String("cname.vercel-dns.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
+		// Dev Cluster
+		_, err = cloudflare.NewRecord(ctx, "dev-cluster", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("dev.fynbos.dev"),
+			Value:   pulumi.String("a3975af75c60c4a1197c33dade9480dd-8bd81ab13ea4f740.elb.eu-west-1.amazonaws.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
@@ -44,11 +57,11 @@ func main() {
 
 		// google
 		_, err = cloudflare.NewRecord(ctx, "_domainconnect", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("_domainconnect"),
-			Value:  pulumi.String("connect.domains.google.com"),
-			Type:   pulumi.String("CNAME"),
-			Ttl:    pulumi.Int(1),
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("_domainconnect"),
+			Value:   pulumi.String("connect.domains.google.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
@@ -72,60 +85,60 @@ func main() {
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "mx1", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("aspmx.l.google.com"),
+			ZoneId:   zone.ID().ToStringOutput(),
+			Name:     pulumi.String("fynbos.dev."),
+			Value:    pulumi.String("aspmx.l.google.com"),
 			Priority: pulumi.Int(1),
-			Type:   pulumi.String("MX"),
-			Ttl:    pulumi.Int(3600),
+			Type:     pulumi.String("MX"),
+			Ttl:      pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "mx2", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("alt1.aspmx.l.google.com"),
+			ZoneId:   zone.ID().ToStringOutput(),
+			Name:     pulumi.String("fynbos.dev."),
+			Value:    pulumi.String("alt1.aspmx.l.google.com"),
 			Priority: pulumi.Int(5),
-			Type:   pulumi.String("MX"),
-			Ttl:    pulumi.Int(3600),
+			Type:     pulumi.String("MX"),
+			Ttl:      pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "mx3", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("alt2.aspmx.l.google.com"),
+			ZoneId:   zone.ID().ToStringOutput(),
+			Name:     pulumi.String("fynbos.dev."),
+			Value:    pulumi.String("alt2.aspmx.l.google.com"),
 			Priority: pulumi.Int(5),
-			Type:   pulumi.String("MX"),
-			Ttl:    pulumi.Int(3600),
+			Type:     pulumi.String("MX"),
+			Ttl:      pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "mx4", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("alt3.aspmx.l.google.com"),
+			ZoneId:   zone.ID().ToStringOutput(),
+			Name:     pulumi.String("fynbos.dev."),
+			Value:    pulumi.String("alt3.aspmx.l.google.com"),
 			Priority: pulumi.Int(10),
-			Type:   pulumi.String("MX"),
-			Ttl:    pulumi.Int(3600),
+			Type:     pulumi.String("MX"),
+			Ttl:      pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "mx5", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("alt4.aspmx.l.google.com"),
+			ZoneId:   zone.ID().ToStringOutput(),
+			Name:     pulumi.String("fynbos.dev."),
+			Value:    pulumi.String("alt4.aspmx.l.google.com"),
 			Priority: pulumi.Int(10),
-			Type:   pulumi.String("MX"),
-			Ttl:    pulumi.Int(3600),
+			Type:     pulumi.String("MX"),
+			Ttl:      pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
@@ -178,13 +191,25 @@ func main() {
 		}
 
 		boundaryPrivateKey, boundaryCert, err := newBoundaryCertificate(ctx)
-		if err != nil { 
+		if err != nil {
 			return nil
 		}
 
 		ctx.Export("boundaryPrivateKey", boundaryPrivateKey.PrivateKeyPem)
 		ctx.Export("boundaryCert", boundaryCert.Certificate)
 
+		devClusterPK, devClusterCert, err := newDevClusterCertificate(ctx)
+		if err != nil {
+			return nil
+		}
+		ctx.Export("devClusterPrivateKey", devClusterPK.PrivateKeyPem)
+		ctx.Export("devClusterCert", devClusterCert.Certificate)
+
+		// Create CF Applications
+		err = CreateDevClusterAccess(ctx, zone.ID())
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 }
