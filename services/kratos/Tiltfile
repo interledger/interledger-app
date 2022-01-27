@@ -1,6 +1,0 @@
-load('ext://secret', 'secret_yaml_generic')
-k8s_yaml(secret_yaml_generic('cockroachdb.client.kratos', from_file='certs'))
-
-yaml =  helm('./' , name='kratos' , values=['./values.dev.yaml'])
-
-k8s_yaml(yaml)
