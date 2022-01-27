@@ -228,28 +228,28 @@ func ConfigureAutomationRole(ctx *pulumi.Context, namespace string) error {
 			Name:      pulumi.String("automation-role"),
 		},
 		Rules: rbacV1.PolicyRuleArray{
+			// Disabled for now until needed
+			//rbacV1.PolicyRuleArgs{
+			//	ApiGroups: pulumi.StringArray{
+			//		pulumi.String(""),
+			//	},
+			//	Resources: pulumi.StringArray{
+			//		pulumi.String("pods"),
+			//		pulumi.String("secrets"),
+			//		pulumi.String("services"),
+			//		pulumi.String("persistentvolumeclaims"),
+			//	},
+			//	Verbs: pulumi.StringArray{
+			//		pulumi.String("get"),
+			//		pulumi.String("list"),
+			//		pulumi.String("watch"),
+			//		pulumi.String("create"),
+			//		pulumi.String("update"),
+			//		pulumi.String("delete"),
+			//	},
+			//},
 			rbacV1.PolicyRuleArgs{
 				ApiGroups: pulumi.StringArray{
-					pulumi.String(""),
-				},
-				Resources: pulumi.StringArray{
-					pulumi.String("pods"),
-					pulumi.String("secrets"),
-					pulumi.String("services"),
-					pulumi.String("persistentvolumeclaims"),
-				},
-				Verbs: pulumi.StringArray{
-					pulumi.String("get"),
-					pulumi.String("list"),
-					pulumi.String("watch"),
-					pulumi.String("create"),
-					pulumi.String("update"),
-					pulumi.String("delete"),
-				},
-			},
-			rbacV1.PolicyRuleArgs{
-				ApiGroups: pulumi.StringArray{
-					pulumi.String("extensions"),
 					pulumi.String("apps"),
 				},
 				Resources: pulumi.StringArray{
@@ -258,11 +258,7 @@ func ConfigureAutomationRole(ctx *pulumi.Context, namespace string) error {
 				},
 				Verbs: pulumi.StringArray{
 					pulumi.String("get"),
-					pulumi.String("list"),
-					pulumi.String("watch"),
-					pulumi.String("create"),
-					pulumi.String("update"),
-					pulumi.String("delete"),
+					pulumi.String("patch"),
 				},
 			},
 		},

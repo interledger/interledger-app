@@ -1,10 +1,7 @@
 package kubernetes
 
 import (
-	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	appsV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
@@ -247,8 +244,8 @@ func NewEksRoles(ctx *pulumi.Context, accountId string, glRunnerRoleArn pulumi.S
 //
 // Note that the aws-node service account and aws-node daemon-set first have to be imported using the pulumi cli as it is created by EKS.
 // See readme on how to do this. Note that these resources must therefore remain protected.
-func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
-	trustPolicy, err := NewAwsNodeDaemonSetTrustPolicy(ctx, oidcId)
+func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, accountId string, oidcProvider string) error {
+	trustPolicy, err := NewIamTrustPolicyDocument(ctx, accountId, oidcProvider, "kube-system", "aws-node")
 	if err != nil {
 		return err
 	}
@@ -615,13 +612,26 @@ func UpdateAwsNodeDaemonSetToUseIrsa(ctx *pulumi.Context, oidcId string) error {
 	return nil
 }
 
-func NewAwsNodeDaemonSetTrustPolicy(ctx *pulumi.Context, oidcId string) (string, error) {
-	splits := strings.Split(oidcId, "oidc-provider/")
-	if len(splits) != 2 {
-		return "", errors.New("Could not parse OIDC url.")
+func NewIamTrustPolicyDocument(ctx *pulumi.Context, accountId string, oidcProvider string, namespace string, serviceAccount string) (string, error) {
+
+	conditions := []iam.GetPolicyDocumentStatementCondition{
+		{
+			Test:     "StringEquals",
+			Values:   []string{"sts.amazonaws.com"},
+			Variable: fmt.Sprintf("%s:aud", oidcProvider),
+		},
 	}
 
-	oidcUrl := splits[1]
+	if namespace != "" && serviceAccount != "" {
+		conditions = append(conditions, iam.GetPolicyDocumentStatementCondition{
+			Test: "StringEquals",
+			Values: []string{
+				fmt.Sprintf("system:serviceaccount:%s:%s", namespace, serviceAccount),
+			},
+			Variable: fmt.Sprintf("%s:sub", oidcProvider),
+		})
+	}
+
 	policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
 		Statements: []iam.GetPolicyDocumentStatement{
 			{
@@ -631,22 +641,13 @@ func NewAwsNodeDaemonSetTrustPolicy(ctx *pulumi.Context, oidcId string) (string,
 				},
 				Principals: []iam.GetPolicyDocumentStatementPrincipal{
 					{
-						Type:        "Federated",
-						Identifiers: []string{oidcId},
+						Type: "Federated",
+						Identifiers: []string{
+							fmt.Sprintf("arn:aws:iam::%s:oidc-provider/%s", accountId, oidcProvider),
+						},
 					},
 				},
-				Conditions: []iam.GetPolicyDocumentStatementCondition{
-					{
-						Test:     "StringEquals",
-						Values:   []string{"sts.amazonaws.com"},
-						Variable: oidcUrl + ":aud",
-					},
-					{
-						Test:     "StringEquals",
-						Values:   []string{"system:serviceaccount:kube-system:aws-node"},
-						Variable: oidcUrl + ":sub",
-					},
-				},
+				Conditions: conditions,
 			},
 		},
 	})
