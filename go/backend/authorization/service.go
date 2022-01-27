@@ -2,8 +2,8 @@ package authorization
 
 import (
 	_ "embed"
+
 	"github.com/osohq/go-oso"
-	org "gitlab.com/fynbos/backend/organisation"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -16,7 +16,6 @@ func NewService() (*oso.Oso, error) {
 		return nil, err
 	}
 
-	o.RegisterClass(org.Organisation{}, nil)
 	o.RegisterClass(user.User{}, nil)
 
 	err = o.LoadString(string(policy))

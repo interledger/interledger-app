@@ -1,5 +1,5 @@
-allow(user: User, action: String, org: Organisation) if
-	org.OwnerID = user.ID and
+allow(user: User, action: String, accHolder: AccountHolder) if
+	accHolder.ProfileID = user.ID and
 	action in ["read"];
 
 actor User {}
