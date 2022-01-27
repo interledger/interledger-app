@@ -16,6 +16,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+		proteaRepo, err := ecr.NewPrivateRepository(ctx, "protea", accountID)
+		if err != nil {
+			return err
+		}
 
 		// used to store our custom docker image that has the aws credential helper.
 		dockerRepo, err := ecr.NewPrivateRepository(ctx, "docker", accountID)
@@ -52,6 +56,7 @@ func main() {
 		ctx.Export("dockerRepoUri", dockerRepo.RepositoryUri)
 		ctx.Export("dockerImage", dockerImage.ImageName)
 		ctx.Export("backendEcrRepoUri", backendEcrRepo.RepositoryUri)
+		ctx.Export("proteaEcrRepoUri", proteaRepo.RepositoryUri)
 		return nil
 	})
 }
