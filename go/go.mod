@@ -19,6 +19,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.2.0
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
+	go.uber.org/zap v1.19.1
 )
 
 require (
@@ -63,7 +64,6 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20211108170745-6635138e15ea // indirect
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914 // indirect
