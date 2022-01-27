@@ -6,26 +6,26 @@ package graph
 import (
 	"context"
 
-	osoErrors "github.com/osohq/go-oso/errors"
 	"gitlab.com/fynbos/backend/graph/generated"
-	"gitlab.com/fynbos/backend/organisation"
+	_identity "gitlab.com/fynbos/backend/identity"
 )
 
-func (r *mutationResolver) CreateOrganisation(ctx context.Context, name string) (*generated.OrganisationMutationResponse, error) {
-	user, err := r.User.ForContext(ctx)
+func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.IdentityInput) (*generated.CreateIdentityMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
 	}
 
-	org, err := r.Org.Create(name, *user)
+	identity, err := r.IdentityService.Create(_identity.CreateArgs{
+		Country:   input.Country,
+		LegalName: input.LegalName,
+		User:      user,
+	})
 	if err != nil {
 		switch err.(type) {
-		case *osoErrors.NotFoundError:
-			NotFoundError(ctx)
-			return nil, nil
-		case *osoErrors.ForbiddenError:
-			ForbiddenError(ctx)
+		case *_identity.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
 			InternalServerError(ctx)
@@ -33,29 +33,26 @@ func (r *mutationResolver) CreateOrganisation(ctx context.Context, name string) 
 		}
 	}
 
-	return &generated.OrganisationMutationResponse{
-		Code:         "200",
-		Success:      true,
-		Message:      "Created organisation.",
-		Organisation: org,
+	return &generated.CreateIdentityMutationResponse{
+		Code:     "200",
+		Success:  true,
+		Message:  "Created account holder.",
+		Identity: identity,
 	}, nil
 }
 
-func (r *queryResolver) Organisation(ctx context.Context, id string) (*organisation.Organisation, error) {
-	user, err := r.User.ForContext(ctx)
+func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, error) {
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
 	}
 
-	org, err := r.Org.Get(id, *user)
+	identity, err := r.IdentityService.Get(user.ID)
 	if err != nil {
 		switch err.(type) {
-		case *osoErrors.NotFoundError:
+		case *_identity.ErrNotFound:
 			NotFoundError(ctx)
-			return nil, nil
-		case *osoErrors.ForbiddenError:
-			ForbiddenError(ctx)
 			return nil, nil
 		default:
 			InternalServerError(ctx)
@@ -63,23 +60,7 @@ func (r *queryResolver) Organisation(ctx context.Context, id string) (*organisat
 		}
 	}
 
-	return org, nil
-}
-
-func (r *queryResolver) Organisations(ctx context.Context) ([]*organisation.Organisation, error) {
-	user, err := r.User.ForContext(ctx)
-	if err != nil {
-		ForbiddenError(ctx)
-		return nil, nil
-	}
-
-	orgs, err := r.Org.GetAllOwnedBy(*user)
-	if err != nil {
-		InternalServerError(ctx)
-		return nil, nil
-	}
-
-	return orgs, nil
+	return identity, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

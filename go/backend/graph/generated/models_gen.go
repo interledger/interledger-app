@@ -3,16 +3,23 @@
 package generated
 
 import (
-	"gitlab.com/fynbos/backend/organisation"
+	"gitlab.com/fynbos/backend/identity"
 )
 
 type MutationResponse interface {
 	IsMutationResponse()
 }
 
-type OrganisationMutationResponse struct {
-	Code         string                     `json:"code"`
-	Success      bool                       `json:"success"`
-	Message      string                     `json:"message"`
-	Organisation *organisation.Organisation `json:"organisation"`
+type CreateIdentityMutationResponse struct {
+	Code     string             `json:"code"`
+	Success  bool               `json:"success"`
+	Message  string             `json:"message"`
+	Identity *identity.Identity `json:"identity"`
+}
+
+func (CreateIdentityMutationResponse) IsMutationResponse() {}
+
+type IdentityInput struct {
+	LegalName string `json:"legalName"`
+	Country   string `json:"country"`
 }

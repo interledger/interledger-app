@@ -1,17 +1,9 @@
-
-type Organisation {
-  id: ID!
-  name: String!
-  verified: Boolean!
-}
-
-type Query {
-  organisation (id: ID!): Organisation
-  organisations: [Organisation]!
+type Query{
+  identity: Identity
 }
 
 type Mutation {
-  createOrganisation (name: String!): OrganisationMutationResponse!
+  createIdentity(input: IdentityInput!): CreateIdentityMutationResponse!
 }
 
 interface MutationResponse {
@@ -20,9 +12,21 @@ interface MutationResponse {
   message: String!
 }
 
-type OrganisationMutationResponse {
+type Identity {
+  id: ID!
+  legalName: String!
+  country: String!
+  email: String!
+}
+
+input IdentityInput {
+  legalName: String!
+  country: String!
+}
+
+type CreateIdentityMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  organisation: Organisation
+  identity: Identity
 }

@@ -40,3 +40,15 @@ func InternalServerError(ctx context.Context) {
 		},
 	})
 }
+
+// Argument validation has failed. Argument may have passed
+// graphql validation but has now failed at the service level.
+func InvalidArgument(ctx context.Context, message string) {
+	graphql.AddError(ctx, &gqlerror.Error{
+		Path:    graphql.GetPath(ctx),
+		Message: "Bad input: " + message,
+		Extensions: map[string]interface{}{
+			"code": "BAD_USER_INPUT",
+		},
+	})
+}
