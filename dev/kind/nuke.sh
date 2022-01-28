@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-ctlptl delete -f config.yaml
+ctlptl delete -f "$(dirname "$0")/config.yaml"

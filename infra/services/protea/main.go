@@ -168,10 +168,11 @@ func deployRbac(ctx *pulumi.Context) error {
 
 func deployIngress(ctx *pulumi.Context) error {
 	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
-		Name:     "protea-mapping",
-		Hostname: "*",
-		Prefix:   "/",
-		Service:  "protea",
+		Name:            "protea-mapping",
+		Hostname:        "*",
+		Prefix:          "/",
+		Service:         "protea",
+		EnableWebsocket: true,
 	})
 	if err != nil {
 		return err

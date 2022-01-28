@@ -9,13 +9,27 @@ import (
 )
 
 type MappingArgs struct {
-	Name     string
-	Hostname string
-	Prefix   string
-	Service  string
+	Name            string
+	Hostname        string
+	Prefix          string
+	Service         string
+	EnableWebsocket bool
 }
 
 func DeployMapping(ctx *pulumi.Context, args *MappingArgs, opts ...pulumi.ResourceOption) error {
+
+	spec := pulumi.Map{
+		"hostname": pulumi.String(args.Hostname),
+		"prefix":   pulumi.String(args.Prefix),
+		"rewrite":  pulumi.String(args.Prefix),
+		"service":  pulumi.String(args.Service),
+	}
+
+	if args.EnableWebsocket {
+		spec["allow_upgrade"] = pulumi.StringArray{
+			pulumi.String("websocket"),
+		}
+	}
 
 	_, err := apiextensions.NewCustomResource(ctx, fmt.Sprintf("mapping-%s", args.Name), &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
@@ -24,12 +38,7 @@ func DeployMapping(ctx *pulumi.Context, args *MappingArgs, opts ...pulumi.Resour
 			Name: pulumi.String(args.Name),
 		},
 		OtherFields: kubernetes.UntypedArgs{
-			"spec": pulumi.Map{
-				"hostname": pulumi.String(args.Hostname),
-				"prefix":   pulumi.String(args.Prefix),
-				"rewrite":  pulumi.String(args.Prefix),
-				"service":  pulumi.String(args.Service),
-			},
+			"spec": spec,
 		},
 	}, opts...)
 	if err != nil {

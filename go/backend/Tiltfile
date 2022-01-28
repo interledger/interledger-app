@@ -1,15 +1,10 @@
 
-load('ext://ko', 'ko_build')
-load('ext://secret', 'secret_yaml_generic')
-
-local_resource('create-certs', cmd='./create_certs.sh', auto_init=True)
-k8s_yaml(secret_yaml_generic('cockroachdb.client.backend', from_file='./certs'))
-
-# This will make ko bundle the sql migrations as static files inside the image.
-# It is relative to the <import path> we give to ko which is "./db" folder
-ko_build('fynbos/backend-init', 'gitlab.com/fynbos/backend/db', ["./db"])
-
 docker_build('fynbos/backend', '../', dockerfile="./Dockerfile")
 
-yaml = kustomize('./deploy/dev')
-k8s_yaml(yaml)
+k8s_custom_deploy(
+  "backend",
+  apply_cmd="kubectl set image deployment/backend backend=$TILT_IMAGE_0 && kubectl get deployment/backend -o yaml",
+  delete_cmd="echo backend managed outside of Tilt",
+  image_deps=["fynbos/backend"],
+  deps=[],
+)

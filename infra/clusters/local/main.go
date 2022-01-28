@@ -2,11 +2,13 @@ package main
 
 import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"gitlab.com/fynbos/infra/services/backend"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
+	"gitlab.com/fynbos/infra/services/protea"
 )
 
 func main() {
@@ -79,11 +81,27 @@ func main() {
 			return err
 		}
 
-		_, err = cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
+		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
+			ImageRepo: "localhost:5005",
+			ImageTag:  "latest",
+		})
+		if err != nil {
+			return err
+		}
+
+		beCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
 			Issuer:    "ca-issuer",
 			Namespace: "default",
 			Name:      "backend",
 		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
+		if err != nil {
+			return err
+		}
+		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
+			ImageRepo: "localhost:5005",
+			Cert:      beCert,
+			ImageTag:  "latest",
+		})
 		if err != nil {
 			return err
 		}
