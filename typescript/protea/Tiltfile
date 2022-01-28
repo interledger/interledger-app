@@ -13,6 +13,10 @@ docker_build('protea', '.', target="dev", live_update=[
 sync_components,sync_contexts,sync_hooks,sync_lib,sync_pages,sync_public,sync_styles,sync_generated
 ], ignore=["deploy/"])
 
-yaml = kustomize('./deploy/overlays/dev')
-
-k8s_yaml(yaml)
+k8s_custom_deploy(
+  "protea",
+  apply_cmd="kubectl set image deployment/protea protea=$TILT_IMAGE_0 && kubectl get deployment/protea -o yaml",
+  delete_cmd="echo protea managed outside of Tilt",
+  image_deps=["protea"],
+  deps=[],
+)

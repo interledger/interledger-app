@@ -13,3 +13,5 @@
 
 # VScode workspace files
 *.code-workspace
+
+.fynbos/**

@@ -131,7 +131,7 @@ func main() {
 			Issuer:    "ca-issuer",
 			Namespace: "default",
 			Name:      "backend",
-		})
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}
