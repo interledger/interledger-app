@@ -1,18 +1,18 @@
 # this will switch between branch and merge request pipelines
 # https://docs.gitlab.com/ee/ci/yaml/index.html#workflowrules-templates
-workflow:
-  rules:
-    - if: '$CI_COMMIT_BRANCH'
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
-      when: never
-
 include:
   - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
   - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
   - local: /.gitlab-refs.yaml
   - local: go/**/.gitlab-ci.yml
   - local: typescript/**/.gitlab-ci.yml
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+
 
 test-job:
   script:
