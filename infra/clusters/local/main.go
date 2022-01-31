@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
+	pacioli "gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/protea"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
 )
@@ -109,6 +110,24 @@ func main() {
 
 		err = tigerbeetle.DeployTigerBeetle(ctx, tigerbeetle.DeployTigerBeetleArgs{
 			IsLocal: true,
+		})
+		if err != nil {
+			return err
+		}
+
+		pcCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
+			Name:      "pacioli",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
+		if err != nil {
+			return err
+		}
+		err = pacioli.DeployPacioli(ctx, &pacioli.DeployPacioliArgs{
+			Cert:      pcCert,
+			ImageRepo: "localhost:5005",
+			ImageTag:  "latest",
+			Namespace: "default",
 		})
 		if err != nil {
 			return err

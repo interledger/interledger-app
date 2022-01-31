@@ -54,6 +54,7 @@ func start() {
 	if tbUrl == "" {
 		tbUrl = "tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"
 	}
+	// TODO: look up TB_URL IP using net package.
 	tbClusterID := os.Getenv("TB_CLUSTER_ID")
 	if tbClusterID == "" {
 		log.Fatalln("TigerBeetle cluster ID not specified.")
