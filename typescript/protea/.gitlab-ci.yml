@@ -9,8 +9,6 @@ include:
     # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
     - if: $CI_MERGE_REQUEST_ID
 
-stages: !reference [.stages, stages]
-
 variables:
   PROJECT_PATH: $CI_PROJECT_DIR/typescript/protea
 

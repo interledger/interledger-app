@@ -14,8 +14,6 @@ variables:
   BACKEND_REPO: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
   BACKEND_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
-stages: !reference [.stages, stages]
-
 build_backend_base:
   stage: build_base
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
