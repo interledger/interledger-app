@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 	"gitlab.com/fynbos/tigerbeetle_go"
@@ -20,6 +21,7 @@ import (
 
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func TestPacioliService(s *testing.T) {
@@ -62,7 +64,12 @@ func TestPacioliService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	server := NewServer(ps)
+
+	hs, err := healthcheck.NewService()
+	if err != nil {
+		s.Fatal(err)
+	}
+	server := NewServer(ps, hs)
 	go func() {
 		if err := server.Serve(listener); err != nil {
 			panic(err)
@@ -85,6 +92,19 @@ func TestPacioliService(s *testing.T) {
 
 		db.Close()
 		crdb.Container.Terminate(ctx)
+	})
+
+	s.Run("can perform a health check", func(t *testing.T) {
+		healthClient := grpc_health_v1.NewHealthClient(conn)
+
+		response, err := healthClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{
+			Service: "pacioli",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, response.Status)
 	})
 
 	s.Run("can create a ledger", func(t *testing.T) {

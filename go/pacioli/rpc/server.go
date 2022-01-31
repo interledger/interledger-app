@@ -6,16 +6,19 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
-func NewServer(ps ledger.Service) *grpc.Server {
+func NewServer(ps ledger.Service, hs healthcheck.Service) *grpc.Server {
 	server := grpc.NewServer()
 	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{ledger: ps})
+	grpc_health_v1.RegisterHealthServer(server, hs)
 	reflection.Register(server)
 	return server
 }
