@@ -13,6 +13,10 @@ include:
   - local: go/**/.gitlab-ci.yml
   - local: typescript/**/.gitlab-ci.yml
 
+test-job:
+  script:
+    - echo "test"
+
 trigger_deploy_dev:
   environment: !reference [ .dev_environment, environment ]
   when: manual
