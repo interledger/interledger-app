@@ -1,8 +1,3 @@
-include:
-  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
-  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
-  - /.gitlab-refs.yaml
-
 # this will switch between branch and merge request pipelines
 # https://docs.gitlab.com/ee/ci/yaml/index.html#workflowrules-templates
 workflow:
@@ -10,56 +5,16 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
-    - if: '$CI_COMMIT_BRANCH'
 
-.include_services: &include_services
-  include:
-    - go/**/.gitlab-ci.yml
-    - services/**/.gitlab-ci.yml
-
-stages: !reference [.stages, stages]
-
-trigger_build_base:
-  stage: build_base
-  trigger:
-    <<: *include_services
-    strategy: depend
-  variables:
-    TRIGGER_STAGE: build_base
-
-trigger_test_base:
-  stage: test_base
-  trigger:
-    <<: *include_services
-    strategy: depend
-  variables:
-    TRIGGER_STAGE: test_base
-
-trigger_publish:
-  stage: publish
-  trigger:
-    <<: *include_services
-    strategy: depend
-  variables:
-    TRIGGER_STAGE: publish
-
-trigger_deploy_preview:
-  stage: deploy_preview
-  trigger:
-    include:
-      # only protea supports preview at the moment.
-      - typescript/protea/.gitlab-ci.yml
-    strategy: depend
-  rules:
-    - changes:
-        - typescript/protea/**/*
-    - if: $CI_MERGE_REQUEST_ID
-  variables:
-    TRIGGER_STAGE: deploy_preview
+include:
+  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+  - local: /.gitlab-refs.yaml
+  - local: go/**/.gitlab-ci.yml
+  - local: typescript/**/.gitlab-ci.yml
 
 trigger_deploy_dev:
   environment: !reference [ .dev_environment, environment ]
-  stage: deploy_dev
   when: manual
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/eks
   before_script: !reference [ .assume_role, before_script ]
