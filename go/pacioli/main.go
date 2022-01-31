@@ -12,7 +12,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	pacioli "gitlab.com/fynbos/pacioli/ledger"
+	"gitlab.com/fynbos/pacioli/healthcheck"
+	ledger "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/tigerbeetle_go"
@@ -89,7 +90,12 @@ func start() {
 		}
 	}()
 
-	ps, err := pacioli.NewLedgerService(db, tbClient)
+	ls, err := ledger.NewLedgerService(db, tbClient)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	hs, err := healthcheck.NewService()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -99,7 +105,7 @@ func start() {
 		log.Fatalln(err)
 	}
 	log.Printf("grpc server: 0.0.0.0:%s", defaultPort)
-	server := rpc.NewServer(ps)
+	server := rpc.NewServer(ls, hs)
 	err = server.Serve(listener)
 	if err != nil {
 		log.Fatalln(err)
