@@ -20,7 +20,6 @@ default:
     - cd $PROJECT_PATH
 
 deploy_preview_protea:
-  stage: deploy_preview
   script:
     - yarn dlx vercel -t $VERCEL_CLI_TOKEN
   extends: .job_rules
@@ -28,7 +27,6 @@ deploy_preview_protea:
     - if: '$TRIGGER_STAGE == "deploy_preview" && $CI_COMMIT_BRANCH != "main"'
 
 deploy_dev_protea:
-  stage: deploy_dev
   script:
     - yarn dlx vercel --prod -t $VERCEL_CLI_TOKEN
   extends: .job_rules
