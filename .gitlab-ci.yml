@@ -15,7 +15,7 @@ include:
 
 test-job:
   script:
-    - echo "test"
+    - echo "test 1"
 
 trigger_deploy_dev:
   environment: !reference [ .dev_environment, environment ]
