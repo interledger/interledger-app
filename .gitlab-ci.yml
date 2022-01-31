@@ -9,14 +9,10 @@ include:
 
 workflow:
   rules:
+    - if: '$CI_COMMIT_BRANCH'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
-
-
-test-job:
-  script:
-    - echo "test 1"
 
 trigger_deploy_dev:
   environment: !reference [ .dev_environment, environment ]
