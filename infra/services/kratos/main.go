@@ -137,7 +137,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource) (*hel
 					},
 					"courier": pulumi.Map{
 						"smtp": pulumi.Map{
-							"connection_uri": pulumi.String("smtp://mailhog:1025/"),
+							"connection_uri": pulumi.String("smtp://mailhog:1025/?disable_starttls=true"),
 							"from_address":   pulumi.String("no-reply@fynbos.test"),
 						},
 					},
