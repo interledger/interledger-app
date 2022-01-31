@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"log"
 	"net"
@@ -11,15 +12,35 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gitlab.com/fynbos/pacioli/db/utils"
 	pacioli "gitlab.com/fynbos/pacioli/ledger"
+	"gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/tigerbeetle_go"
 )
 
 const defaultPort = "8080"
 
+//go:embed migrations/**.*.sql
+var fs embed.FS
+
 func main() {
+	args := os.Args
+	if len(args) < 2 {
+		log.Fatalln("Expected 'start' or 'migrate'.")
+	}
+
+	command := args[1]
+	switch command {
+	case "start":
+		start()
+	case "migrate":
+		migrations.Migrate(fs)
+	default:
+		log.Fatalln("Unknown command: ", command)
+	}
+}
+
+func start() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -37,7 +58,7 @@ func main() {
 		log.Fatalln("TigerBeetle cluster ID not specified.")
 	}
 
-	connString, err := utils.InlineSslCreds(
+	connString, err := migrations.InlineSslCreds(
 		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
 		"/cockroach-certs/client.pacioli.key",
 		"/cockroach-certs/client.pacioli.crt",

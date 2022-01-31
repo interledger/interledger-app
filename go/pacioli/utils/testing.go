@@ -71,7 +71,7 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 		return nil, err
 	}
 
-	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../db/kodata")
+	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../migrations")
 	fmt.Println("Applying migrations from file://" + migrationsPath)
 
 	m, err := migrate.New(
