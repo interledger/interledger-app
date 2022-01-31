@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
 	"gitlab.com/fynbos/infra/services/protea"
+	"gitlab.com/fynbos/infra/services/tigerbeetle"
 )
 
 func main() {
@@ -101,6 +102,13 @@ func main() {
 			ImageRepo: "localhost:5005",
 			Cert:      beCert,
 			ImageTag:  "latest",
+		})
+		if err != nil {
+			return err
+		}
+
+		err = tigerbeetle.DeployTigerBeetle(ctx, tigerbeetle.DeployTigerBeetleArgs{
+			IsLocal: true,
 		})
 		if err != nil {
 			return err
