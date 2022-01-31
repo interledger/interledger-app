@@ -184,10 +184,6 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 									Name:  pulumi.String("LOG_LEVEL"),
 									Value: pulumi.String("info"),
 								},
-								&corev1.EnvVarArgs{
-									Name:  pulumi.String("LOG_OUTPUT_PATH"),
-									Value: pulumi.String("./logs.txt"),
-								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
