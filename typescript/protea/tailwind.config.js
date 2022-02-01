@@ -26,7 +26,7 @@ module.exports = {
       current: 'currentColor',
       white: colors.white,
       black: colors.black,
-      gray: colors.coolGray,
+      gray: colors.gray,
       red: colors.red,
       orange: colors.orange,
       yellow: colors.yellow,
@@ -56,24 +56,40 @@ module.exports = {
         strong: withOpacity('--text-strong'),
         medium: withOpacity('--text-medium'),
         weak: withOpacity('--text-weak'),
+        disabled: withOpacity('--text-disabled'),
         primary: withOpacity('--text-primary'),
         error: withOpacity('--text-error')
       },
       backgroundColor: {
-        base: withOpacity('--bg-base'),
-        'base-hover': withOpacity('--bg-base-hover'),
+        container: withOpacity('--bg-container'),
+        'container-hover': withOpacity('--bg-container-hover'),
         strong: withOpacity('--bg-strong'),
+        disabled: withOpacity('--bg-disabled'),
         primary: withOpacity('--bg-primary'),
-        secondary: withOpacity('--bg-secondary'),
-        'secondary-dark': withOpacity('--bg-secondary-dark')
+        'container-primary': withOpacity('--bg-container-primary'),
+        'container-primary-hover': withOpacity('--bg-container-primary-hover'),
+        'container-primary-active': withOpacity('--bg-container-primary-active')
       },
       borderColor: {
         base: withOpacity('--border-base'),
         focus: withOpacity('--border-focus'),
+        hover: withOpacity('--border-hover'),
+        active: withOpacity('--border-active'),
         error: withOpacity('--border-error')
       },
       ringColor: {
-        primary: withOpacity('--ring-primary')
+        base: withOpacity('--border-base'),
+        focus: withOpacity('--border-focus'),
+        hover: withOpacity('--border-hover'),
+        active: withOpacity('--border-active'),
+        error: withOpacity('--border-error')
+      },
+      divideColor: {
+        base: withOpacity('--border-base'),
+        focus: withOpacity('--border-focus'),
+        hover: withOpacity('--border-hover'),
+        active: withOpacity('--border-active'),
+        error: withOpacity('--border-error')
       },
       // End token colours
       typography: (theme) => ({

@@ -101,7 +101,7 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
     <div
       className={`${
         isPreview ? 'theme-test' : ''
-      } sticky top-0 flex min-h-screen min-w-[300px] select-none flex-col justify-between bg-base p-4 font-display`}
+      } sticky top-0 flex min-h-screen min-w-[300px] select-none flex-col justify-between bg-container p-4 font-display`}
     >
       <NavList>
         <Router href={Routes.home} aria-label='Fynbos logo'>
@@ -186,7 +186,7 @@ const SideNav: FC<SideNavProps> = ({ route, orgsForDashboard, preview }) => {
                 )
               })}
             <Router href={Routes.organisation}>
-              <li className='flex h-12 cursor-pointer items-center justify-between p-2 text-medium hover:bg-base-hover'>
+              <li className='flex h-12 cursor-pointer items-center justify-between p-2 text-medium hover:bg-container-hover'>
                 Add organisation <AddIcon />
               </li>
             </Router>
@@ -241,7 +241,7 @@ const NavListItem: FC<NavListItemProps> = ({
   return (
     <Router href={href}>
       <li
-        className={`flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-base-hover ${
+        className={`flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-container-hover ${
           route == pathname ? 'text-primary' : 'text-medium'
         }`}
       >
@@ -279,7 +279,7 @@ const SubNavListItem: FC<SubNavListItemProps> = ({
   return (
     <Router href={href}>
       <li
-        className={`relative mb-0 flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-base-hover ${
+        className={`relative mb-0 flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-container-hover ${
           route == pathname ? 'text-primary' : 'text-medium'
         }`}
       >

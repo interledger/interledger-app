@@ -9,7 +9,7 @@ export const Button: FC<ButtonProps> = ({ children, ...buttonProps }, ref) => {
       className={`h-12 max-w-max px-6 ${
         buttonProps.disabled
           ? 'focus:outline-none cursor-not-allowed bg-strong text-medium'
-          : 'focus:outline-none cursor-pointer bg-primary focus:ring-2 focus:ring-black'
+          : 'focus:outline-none cursor-pointer bg-primary focus:ring-2 focus:ring-focus'
       }`}
     >
       {children}

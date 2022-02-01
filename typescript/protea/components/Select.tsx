@@ -41,7 +41,7 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
       }}
     >
       <div className='relative font-display'>
-        <Listbox.Button className='focus:outline-none relative h-12 w-full cursor-pointer bg-base text-left text-strong hover:bg-base-hover focus-visible:ring-2 focus-visible:ring-primary'>
+        <Listbox.Button className='focus:outline-none relative h-12 w-full cursor-pointer bg-container text-left text-strong hover:bg-container-hover focus-visible:ring-2 focus-visible:ring-focus'>
           <span className='flex items-center'>
             <span className='ml-2 block truncate'>{currentOrg?.name}</span>
           </span>
@@ -56,13 +56,13 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <Listbox.Options className='focus:outline-none absolute z-10 mt-1 max-h-56 w-full overflow-auto bg-base py-1 text-medium shadow-2xl ring-1 ring-black ring-opacity-5'>
+          <Listbox.Options className='focus:outline-none absolute z-10 mt-1 max-h-56 w-full overflow-auto bg-container py-1 text-medium shadow-2xl ring-1 ring-black ring-opacity-5'>
             {orgsForDashboard.organisations.map((option) => (
               <Listbox.Option
                 key={option?.id}
                 className={({ active }) =>
                   classNames(
-                    active ? 'bg-base-hover' : 'bg-base',
+                    active ? 'bg-container-hover' : 'bg-container',
                     'relative flex h-12 cursor-pointer select-none items-center py-2 pl-1 pr-9'
                   )
                 }
@@ -93,7 +93,7 @@ export const Select: FC<SelectProps> = ({ route, orgsForDashboard }) => {
               key='AddOrg'
               className={({ active }) =>
                 classNames(
-                  active ? 'bg-base-hover' : 'bg-base',
+                  active ? 'bg-container-hover' : 'bg-container',
                   'relative flex h-12 cursor-pointer select-none items-center py-2 pl-1 pr-9'
                 )
               }
