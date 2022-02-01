@@ -8,29 +8,30 @@
 /* Implement colour tokens as css variables */
 @layer base {
   :root {
+    /* Text */
     --text-strong: 0, 0, 0;
     --text-medium: 55, 65, 81;
     --text-weak: 75, 85, 99;
+    --text-disabled: 156, 163, 175;
     --text-primary: 243, 81, 103;
     --text-error: 185, 28, 28;
-    --bg-base: 243, 244, 246;
-    --bg-base-hover: 229, 231, 235;
+
+    /* Background */
+    --bg-container: 243, 244, 246;
+    --bg-container-hover: 229, 231, 235;
     --bg-strong: 156, 163, 175;
+    --bg-disabled: 229, 231, 235;
     --bg-primary: 243, 81, 103;
-    --bg-secondary: 125, 208, 67;
-    --bg-secondary-dark: 79, 151, 28;
+    --bg-container-primary: 253, 226, 230;
+    --bg-container-primary-hover: 252, 207, 214;
+    --bg-container-primary-active: 252, 207, 214;
+
+    /* Border */
     --border-base: 209, 213, 219;
     --border-focus: 243, 81, 103;
+    --border-hover: 247, 140, 155;
+    --border-active: 247, 140, 155;
     --border-error: 185, 28, 28;
-    --ring-primary: 243, 81, 103;
-  }
-  .theme-test {
-    --text-primary: 249, 115, 22;
-    --bg-base: 255, 247, 237;
-    --bg-base-hover: 255, 237, 213;
-    --bg-primary: 249, 115, 22;
-    --border-focus: 249, 115, 22;
-    --ring-primary: 249, 115, 22;
   }
 }
 

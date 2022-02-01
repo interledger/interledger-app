@@ -40,7 +40,7 @@ export const Notification: FC<NotificationProps> = ({
             leaveFrom='opacity-100'
             leaveTo='opacity-0'
           >
-            <div className='pointer-events-auto flex w-full max-w-md bg-base shadow-lg'>
+            <div className='pointer-events-auto flex w-full max-w-md bg-container shadow-lg'>
               <div className='w-0 flex-1 p-4'>
                 <div className='flex items-start'>
                   <div className='ml-3 w-0 flex-1'>

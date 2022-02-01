@@ -122,7 +122,7 @@ const NavListItem: FC<NavListItemProps> = ({
   return (
     <Router href={href}>
       <li
-        className={`flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-base-hover ${
+        className={`flex h-12 cursor-pointer items-center justify-start p-2 hover:bg-container-hover ${
           route == pathname ? 'text-primary' : 'text-medium'
         }`}
       >

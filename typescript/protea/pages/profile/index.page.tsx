@@ -57,7 +57,7 @@ const ProfilePage: NextPage<
             </div>
           </div>
         </Router>
-        <div className='flex items-center justify-end bg-base py-5 px-6'>
+        <div className='flex items-center justify-end bg-container py-5 px-6'>
           <Router href={Routes.logout}>
             <span className='text-primary'>Logout</span>
           </Router>

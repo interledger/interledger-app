@@ -64,7 +64,7 @@ const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
         <div className='font-medium'>{name}</div>
         <Link href={Routes.twitter + twitterHandle}>
           <a
-            className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1'
+            className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1'
             aria-label='Author twitter'
           >
             <span className='text-primary'>@{twitterHandle}</span>
