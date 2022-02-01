@@ -19,7 +19,7 @@ include:
       - go/go.mod
       - go/backend/*
     # we need to configure this pipeline to run on merge requests
-    - if: $CI_MERGE_REQUEST_ID
+#    - if: $CI_MERGE_REQUEST_ID
 
 variables:
   BACKEND_PATH: $CI_PROJECT_DIR/go/backend
