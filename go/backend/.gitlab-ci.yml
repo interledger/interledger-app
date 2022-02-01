@@ -1,9 +1,22 @@
 include:
   - //////.gitlab-refs.yaml
 
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    key:
+      files:
+        - go/go.mod
+    paths:
+      - .go/pkg/mod/
+
 .job_rules:
   rules:
     - changes:
+      - go/go.mod
       - go/backend/*
     # we need to configure this pipeline to run on merge requests
     - if: $CI_MERGE_REQUEST_ID
@@ -13,6 +26,17 @@ variables:
   DOCKER_CONTEXT: $CI_PROJECT_DIR/go
   BACKEND_REPO: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
   BACKEND_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
+
+build_backend:
+  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
+  services: !reference [.docker_services, services]
+  variables: !reference [.docker_services, variables]
+  extends:
+    - .job_rules
+    - .go-cache
+  interruptible: true
+  script:
+    - echo "Here"
 
 build_backend_base:
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
