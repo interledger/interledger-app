@@ -27,7 +27,13 @@ write_files:
           disable_cache = false
           volumes = ["/cache", "/usr/bin/docker-credential-ecr-login:/usr/bin/docker-credential-ecr-login"]
         [runners.cache]
-          Insecure = false
+          Type = "s3"
+          Shared = true
+          [runners.cache.s3]
+            AuthenticationType = "iam"
+            BucketName = "{{.S3Bucket}}"
+            BucketLocation = "{{.AwsRegion}}"
+            Insecure = false
         [runners.machine]
             IdleCount = 0
             IdleTime = 60

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/s3"
 	"os"
 	"text/template"
 
@@ -43,6 +44,15 @@ func main() {
 			return outputs
 		}).(pulumi.StringArrayOutput)
 
+		// Create cache s3 bucket
+		cacheBucket, err := s3.NewBucket(ctx, "cache-bucket", &s3.BucketArgs{
+			Acl:    pulumi.String("private"),
+			Bucket: pulumi.StringPtr("fynbos-gl-cache"),
+		})
+		if err != nil {
+			return err
+		}
+
 		// Create a runner role and instance profile
 		runnerRole, err := CreateRunnerRole(ctx)
 		if err != nil {
@@ -58,7 +68,7 @@ func main() {
 		}
 
 		// Create a manager role and instance profile
-		managerRole, err := CreateManagerRole(ctx, ebsKmsKeyArn, runnerRole)
+		managerRole, err := CreateManagerRole(ctx, ebsKmsKeyArn, runnerRole, cacheBucket.Bucket)
 		if err != nil {
 			return err
 		}
@@ -175,6 +185,7 @@ func main() {
 				SubnetId:          privateSubnet,
 				SgName:            sg.Name,
 				RunnerProfileName: runnerInstanceProfile.Name,
+				S3Bucket:          cacheBucket.Bucket,
 			}),
 			VpcSecurityGroupIds: pulumi.StringArray{
 				managerSg.ID(),
@@ -207,6 +218,7 @@ type cloudInitDataArgs struct {
 	SubnetId          pulumi.StringOutput
 	SgName            pulumi.StringOutput
 	RunnerProfileName pulumi.StringOutput
+	S3Bucket          pulumi.StringOutput
 }
 
 func cloudInitData(
@@ -219,12 +231,14 @@ func cloudInitData(
 		AwsSubnetId       string
 		SgName            string
 		RunnerProfileName string
+		S3Bucket          string
 	}
 	return pulumi.All(
 		opts.VpcId,
 		opts.SubnetId,
 		opts.SgName,
 		opts.RunnerProfileName,
+		opts.S3Bucket,
 	).ApplyT(
 		func(args []interface{}) (string, error) {
 			data := Data{
@@ -234,6 +248,7 @@ func cloudInitData(
 				AwsSubnetId:       args[1].(string),
 				SgName:            args[2].(string),
 				RunnerProfileName: args[3].(string),
+				S3Bucket:          args[4].(string),
 			}
 
 			tmp, err := template.ParseFiles("./cloudinit.yaml")
