@@ -32,7 +32,6 @@ build_backend:
   services: !reference [.docker_services, services]
   variables: !reference [.docker_services, variables]
   extends:
-    - .job_rules
     - .go-cache
   interruptible: true
   script:
