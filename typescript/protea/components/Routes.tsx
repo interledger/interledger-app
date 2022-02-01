@@ -21,11 +21,29 @@ export enum Routes {
   //
   login = '/login',
   signup = '/signup',
+  waitlist = '/waitlist',
   verify = '/verify',
+  verifyDetails = '/verify/details',
   logout = '/logout',
-  profile = '/profile',
-  profilePassword = '/profile/password',
   recovery = '/recovery',
+
+  settings = '/settings',
+  settingsPassword = '/settings/password',
+
+  //
+  // Wallet
+  //
+
+  walletHome = '/home',
+  deposit = '/deposit',
+  withdraw = '/withdraw',
+  activity = '/activity',
+  activityFilter = '/activity/filter',
+  activityTransaction = '/activity/transaction/[id]',
+  transact = '/transact',
+  transactReceive = '/transact/receive',
+  transactPreview = '/transact/preview',
+  connect = '/connect',
 
   //
   // Organisation
