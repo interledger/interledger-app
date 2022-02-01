@@ -34,6 +34,8 @@ build_backend:
   variables: !reference [.docker_services, variables]
   extends:
     - .go-cache
+  needs:
+    - go-mod
   interruptible: true
   script:
     - echo "Here"
