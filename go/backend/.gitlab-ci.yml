@@ -7,6 +7,7 @@ include:
   before_script:
     - mkdir -p .go
   cache:
+    policy: pull
     key:
       files:
         - go/go.mod
@@ -36,6 +37,10 @@ build_backend:
   interruptible: true
   script:
     - echo "Here"
+    - cd $BACKEND_PATH
+    - echo "Running tests"
+    - go test
+    - echo "Test finished"
 
 build_backend_base:
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
