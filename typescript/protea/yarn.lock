@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 4
+  version: 5
   cacheKey: 8
 
 "@apollo/client@npm:^3.4.17":
@@ -92,7 +92,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:7.16.0, @babel/core@npm:^7.14.0":
+"@babel/core@npm:^7.14.0":
   version: 7.16.0
   resolution: "@babel/core@npm:7.16.0"
   dependencies:
@@ -1730,77 +1730,77 @@ __metadata:
 "@next/swc-android-arm64@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-android-arm64@npm:12.0.3-canary.9"
-  checksum: 205372281e910fbb29f69d09eac578504ef552ba2afda3d9f2e0fa5180a7e9ce7684c43e8c4010a76f3a11c20e96f4d139711e6fa492a2f8623140d962b82598
+  conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
 
 "@next/swc-darwin-arm64@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-darwin-arm64@npm:12.0.3-canary.9"
-  checksum: 49f19bea60ac2a6485a73aa2307f53e4feac5ab5d81f41046f84a7eb4d5521e7e8b603cc1fb74366f3fca1ae574c3dbbe959b3e676f6bb15010739afc7204dc9
+  conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
 "@next/swc-darwin-x64@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-darwin-x64@npm:12.0.3-canary.9"
-  checksum: 9e3d3b5a9f588e0ce6b46c6dacac1079ac9dd918545271030a44f82816613ae7656ed4dd140e5cadec1ea524a31675dbc555fcf6ee651249687b7afdf325c46b
+  conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
 "@next/swc-linux-arm-gnueabihf@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-linux-arm-gnueabihf@npm:12.0.3-canary.9"
-  checksum: 5ac53036db3e94c07a97ec734192e4857042b8ce1529a26093b890ec70e2ca3ff7c6a1abb86f21838a29deeabf3ff44947cbf0dd686c359dff88e46a86a806bf
+  conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
 "@next/swc-linux-arm64-gnu@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-linux-arm64-gnu@npm:12.0.3-canary.9"
-  checksum: 1b511cea9b88c9af2829dac8c7224c10bb685a8f53967789f955d2244882f57cea09addd932e6ca47d3d688fa690d7ffc98153280761108ccd14b5fdcba58f18
+  conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
 "@next/swc-linux-arm64-musl@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-linux-arm64-musl@npm:12.0.3-canary.9"
-  checksum: e5a07b441dd3c7425ff7ab738f0fdb2ccaab86451b76b747f1719535609b867c77cc08f6ffd08406f74e8ca65ab751bc5875a6caaecec5f10fd878e4e9395a92
+  conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
 "@next/swc-linux-x64-gnu@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-linux-x64-gnu@npm:12.0.3-canary.9"
-  checksum: 072fe444a2483362f6cdf782f262690199597cc3138d603b62e19f794cb06136ccca778aa052c8df72291c254a0f61397df83249ad805740b4295a0b4b56a943
+  conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
 "@next/swc-linux-x64-musl@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-linux-x64-musl@npm:12.0.3-canary.9"
-  checksum: bd58dcd5ffe386ef8932b48cdcce16f0e5d83176564fdd0d7050112cfab8962ea7cfd502663c7840e6fa20a72227edcd9bf763158ac09ab5789800b8840d5c10
+  conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
 "@next/swc-win32-arm64-msvc@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-win32-arm64-msvc@npm:12.0.3-canary.9"
-  checksum: b40bbf2791ea75638bad20ad006004b7de580c7676b701f54bad24623e131d1b1d1b570374466c83572d5df190aa90d11f2ef0764de35547ef6455f7e15e9bc8
+  conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
 "@next/swc-win32-ia32-msvc@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-win32-ia32-msvc@npm:12.0.3-canary.9"
-  checksum: 5b7edde77282af914c46688197e131f66b1880fa0f3bf3e6f28002485a312fda02ca7cdbfebaaa37daf3d6d3b0c21cd496c1ae9c8dc3397a07a631c45fcf6f87
+  conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
 "@next/swc-win32-x64-msvc@npm:12.0.3-canary.9":
   version: 12.0.3-canary.9
   resolution: "@next/swc-win32-x64-msvc@npm:12.0.3-canary.9"
-  checksum: 86b75fb9a5d65fb441bc30f08fecdd307f8b83c90972a06551b74c547e0ac1e5b32c90337818740718d7d4ec48b390d2b158b492c212bd574644db055b5c2b7c
+  conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
@@ -4737,10 +4737,10 @@ __metadata:
 
 "fsevents@patch:fsevents@~2.3.1#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=1cc4b2"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
   dependencies:
     node-gyp: latest
-  checksum: 78db9daf1f6526a49cefee3917cc988f62dc7f25b5dd80ad6de4ffc4af7f0cab7491ac737626ff53e482a111bc53aac9e411fe3602458eca36f6a003ecf69c16
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
@@ -4750,6 +4750,7 @@ __metadata:
   dependencies:
     node-gyp: latest
   checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
@@ -6278,7 +6279,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"listr@npm:0.14.3, listr@npm:^0.14.3":
+"listr@npm:^0.14.3":
   version: 0.14.3
   resolution: "listr@npm:0.14.3"
   dependencies:
@@ -8421,21 +8422,21 @@ resolve@^2.0.0-next.3:
 
 "resolve@patch:resolve@^1.10.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.17.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.3.2#~builtin<compat/resolve>":
   version: 1.20.0
-  resolution: "resolve@patch:resolve@npm%3A1.20.0#~builtin<compat/resolve>::version=1.20.0&hash=00b1ff"
+  resolution: "resolve@patch:resolve@npm%3A1.20.0#~builtin<compat/resolve>::version=1.20.0&hash=07638b"
   dependencies:
     is-core-module: ^2.2.0
     path-parse: ^1.0.6
-  checksum: bed00be983cd20a8af0e7840664f655c4b269786dbd9595c5f156cd9d8a0050e65cdbbbdafc30ee9b6245b230c78a2c8ab6447a52545b582f476c29adb188cc5
+  checksum: a0dd7d16a8e47af23afa9386df2dff10e3e0debb2c7299a42e581d9d9b04d7ad5d2c53f24f1e043f7b3c250cbdc71150063e53d0b6559683d37f790b7c8c3cd5
   languageName: node
   linkType: hard
 
 "resolve@patch:resolve@^2.0.0-next.3#~builtin<compat/resolve>":
   version: 2.0.0-next.3
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.3#~builtin<compat/resolve>::version=2.0.0-next.3&hash=00b1ff"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.3#~builtin<compat/resolve>::version=2.0.0-next.3&hash=07638b"
   dependencies:
     is-core-module: ^2.2.0
     path-parse: ^1.0.6
-  checksum: eb88c5e53843bc022215744307a5f5664446c0fdb8f43c33456dce98d5ee6b3162d0cd0a177bb6f1c3d5c8bf01391ac7ab2de0e936e35318725fb40ba7efdaf6
+  checksum: 21684b4d99a4877337cdbd5484311c811b3e8910edb5d868eec85c6e6550b0f570d911f9a384f9e176172d6713f2715bd0b0887fa512cb8c6aeece018de6a9f8
   languageName: node
   linkType: hard
 
@@ -9564,11 +9565,11 @@ typescript@4.4.2:
 
 "typescript@patch:typescript@4.4.2#~builtin<compat/typescript>":
   version: 4.4.2
-  resolution: "typescript@patch:typescript@npm%3A4.4.2#~builtin<compat/typescript>::version=4.4.2&hash=32657b"
+  resolution: "typescript@patch:typescript@npm%3A4.4.2#~builtin<compat/typescript>::version=4.4.2&hash=493e53"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 3109ae25705746996007161cdd3271857db4f40356b894e34d4cabc216bf9e251f53e0bb6e48df2450b5e3fd948dcbee716a616a4ad4cf7251292025e6163cb1
+  checksum: 1f30617046271a94d6821fe9da9c4705111e0a2f5479269c82f65aa76b2421ff90def8838dd35b1aa464d015248b06c89ff867bd282f4822b5ee18b7f92f95ee
   languageName: node
   linkType: hard
 
