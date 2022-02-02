@@ -29,7 +29,8 @@ variables:
   BACKEND_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
 build_backend:
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
+  image: go:lastest
+#  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
   services: !reference [.docker_services, services]
   variables: !reference [.docker_services, variables]
   extends:
@@ -38,7 +39,7 @@ build_backend:
     - go-mod
   interruptible: true
   script:
-    - echo "Here"
+    - echo $GOPATH
     - cd $BACKEND_PATH
     - echo "Running tests"
     - go test
