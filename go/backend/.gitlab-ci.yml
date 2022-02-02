@@ -37,14 +37,6 @@ build_backend:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     - cd $BACKEND_PATH
-    - echo "Running tests"
-    - go test ./...
-    - echo "Test finished"
-    - echo "Building Image"
-    - >-
-      DOCKER_BUILDKIT=1 docker build
-      -t ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
-      -f $BACKEND_PATH/Dockerfile
-      ./../
-    - docker push ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
-    - echo "Build Finished"
+    - make test
+    - make build IMAGE_HASH=${BACKEND_IMAGE_HASH}
+    - make push IMAGE_HASH=${BACKEND_IMAGE_HASH}
