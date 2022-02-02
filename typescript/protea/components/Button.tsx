@@ -28,3 +28,29 @@ export const Button: FC<ButtonProps> = (
     </button>
   )
 }
+
+interface FABProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: React.ReactNode
+  hasNav?: boolean
+}
+
+export const FAB: FC<FABProps> = (
+  { children, icon, hasNav, ...buttonProps },
+  ref
+) => {
+  return (
+    <button
+      {...buttonProps}
+      className={`focus:outline-none fixed right-4 flex h-14 w-min items-center space-x-3 rounded-2xl p-4 font-display text-sm font-medium text-medium lg:hidden ${
+        hasNav ? 'bottom-24 sm:bottom-4' : 'bottom-4'
+      } ${children ? 'pr-5' : ''} ${
+        buttonProps.disabled
+          ? 'cursor-not-allowed bg-disabled text-disabled'
+          : `cursor-pointer bg-container-primary shadow-lg hover:bg-container-primary-hover focus:ring-2 focus:ring-focus active:bg-container-primary-active`
+      }`}
+    >
+      <div>{icon}</div>
+      {children && <div>{children}</div>}
+    </button>
+  )
+}
