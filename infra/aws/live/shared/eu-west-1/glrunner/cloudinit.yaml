@@ -23,9 +23,9 @@ write_files:
         [runners.docker]
           tls_verify = false
           image = "docker:19.03.12"
-          privileged = true
+          privileged = false
           disable_cache = false
-          volumes = ["/cache", "/usr/bin/docker-credential-ecr-login:/usr/bin/docker-credential-ecr-login"]
+          volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]
         [runners.cache]
           Type = "s3"
           Shared = true
@@ -36,7 +36,7 @@ write_files:
             Insecure = false
         [runners.machine]
             IdleCount = 0
-            IdleTime = 60
+            IdleTime = 600
             MaxBuilds = 10
             MachineDriver = "amazonec2"
             MachineName = "gitlab-docker-machine-%s"
