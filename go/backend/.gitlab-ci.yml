@@ -34,6 +34,8 @@ build_backend:
     - go-mod
   interruptible: true
   script:
+    - mkdir -p ~/.docker
+    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     - cd $BACKEND_PATH
     - echo "Running tests"
     - go test ./...
