@@ -70,6 +70,7 @@ export enum Routes {
 }
 
 export type RouterProps = {
+  className?: string
   href:
     | Routes
     | {
@@ -86,11 +87,16 @@ export type RouterProps = {
  * @param href - Routes or Routes object with params
  * @param rest The props passed through to the anchor tag.
  */
-export const Router: FC<RouterProps> = ({ children, href, ...rest }) => {
+export const Router: FC<RouterProps> = ({
+  className,
+  children,
+  href,
+  ...rest
+}) => {
   return (
     <Link href={href}>
       <a
-        className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1'
+        className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${className}`}
         {...rest}
       >
         {children}
