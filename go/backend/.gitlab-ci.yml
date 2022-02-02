@@ -33,12 +33,9 @@ build_backend:
 #  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
   services: !reference [.docker_services, services]
   variables:
-    # Instruct docker to use dind service
-    DOCKER_HOST: "tcp://docker:2375"
-    # Instruct Docker not to start over TLS.
-    DOCKER_TLS_CERTDIR: ""
-    # Improve performance with overlayfs.
-    DOCKER_DRIVER: overlay2
+     DOCKER_HOST: !reference [.docker_services, variables, DOCKER_HOST]
+     DOCKER_TLS_CERTDIR: !reference [.docker_services, variables, DOCKER_TLS_CERTDIR]
+     DOCKER_DRIVER: !reference [.docker_services, variables, DOCKER_DRIVER]
   extends:
     - .go-cache
   needs:
@@ -48,7 +45,7 @@ build_backend:
     - echo $GOPATH
     - cd $BACKEND_PATH
     - echo "Running tests"
-    - go test
+    - go test ./...
     - echo "Test finished"
 
 build_backend_base:
