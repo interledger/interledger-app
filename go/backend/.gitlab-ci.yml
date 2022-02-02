@@ -43,6 +43,6 @@ build_backend:
       DOCKER_BUILDKIT=1 docker build
       -t ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
       -f $BACKEND_PATH/Dockerfile
-      $DOCKER_CONTEXT
+      ./../
     - docker push ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
     - echo "Build Finished"
