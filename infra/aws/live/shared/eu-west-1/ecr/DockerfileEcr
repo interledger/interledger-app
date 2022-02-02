@@ -5,5 +5,6 @@ RUN go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/dock
 RUN mv ~/go/bin/docker-credential-ecr-login /bin/docker-credential-ecr-login
 
 FROM docker:19.03.12
-RUN apk add go
+COPY --from=golang:1.17 /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
 COPY --from=builder /bin/docker-credential-ecr-login /bin
