@@ -1,10 +1,14 @@
-FROM docker:19.03.12 as builder
+FROM ubuntu:20.04
 
-RUN apk add go git
-RUN go get -u github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login
-RUN mv ~/go/bin/docker-credential-ecr-login /bin/docker-credential-ecr-login
+# Update to local SA mirror for building
+RUN sed -E -i 's#http://[^\s]*archive\.ubuntu\.com/ubuntu#http://ftp.leg.uct.ac.za/ubuntu#g' /etc/apt/sources.list
+RUN apt-get update && apt-get install -y curl gcc
 
-FROM docker:19.03.12
-COPY --from=golang:1.17 /usr/local/go/ /usr/local/go/
-ENV PATH="/usr/local/go/bin:${PATH}"
-COPY --from=builder /bin/docker-credential-ecr-login /bin
+# Install docker v19.03.15 which is required for our GL Runner
+RUN (curl -sSL https://releases.rancher.com/install-docker/19.03.15.sh | sh)
+
+# Install golang
+RUN curl -OL https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
+RUN tar -C /usr/local -xvf go1.17.6.linux-amd64.tar.gz
+RUN rm -f go1.17.6.linux-amd64.tar.gz
+ENV PATH="$PATH:/usr/local/go/bin"

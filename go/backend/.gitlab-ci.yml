@@ -41,9 +41,8 @@ build_backend:
     - echo "Building Image"
     - >-
       DOCKER_BUILDKIT=1 docker build
-      --cache-from ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}-base
       -t ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
       -f $BACKEND_PATH/Dockerfile
       $DOCKER_CONTEXT
-      - docker push ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
+    - docker push ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
     - echo "Build Finished"
