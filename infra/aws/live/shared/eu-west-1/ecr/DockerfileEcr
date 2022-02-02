@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 # Update to local SA mirror for building
 RUN sed -E -i 's#http://[^\s]*archive\.ubuntu\.com/ubuntu#http://ftp.leg.uct.ac.za/ubuntu#g' /etc/apt/sources.list
-RUN apt-get update && apt-get install -y curl gcc
+RUN apt-get update && apt-get install -y curl gcc make
 
 # Install docker v19.03.15 which is required for our GL Runner
 RUN (curl -sSL https://releases.rancher.com/install-docker/19.03.15.sh | sh)
