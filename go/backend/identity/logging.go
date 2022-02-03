@@ -1,8 +1,10 @@
 package identity
 
 import (
+	"context"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +18,7 @@ func NewLoggingService(identityService Service, logger *zap.Logger) Service {
 	return &loggingService{childLogger, identityService}
 }
 
-func (self *loggingService) Create(args CreateArgs) (identity *Identity, err error) {
+func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (identity *Identity, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -33,10 +35,15 @@ func (self *loggingService) Create(args CreateArgs) (identity *Identity, err err
 		)
 	}(time.Now())
 
-	return self.Service.Create(args)
+	self.logger.Error(
+		"Creating identity.",
+		zap.String("legalName", args.LegalName),
+		zap.String("country", args.Country),
+	)
+	return self.Service.Create(ctx, tx, args)
 }
 
-func (self *loggingService) Get(id string) (identity *Identity, err error) {
+func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (identity *Identity, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -55,5 +62,5 @@ func (self *loggingService) Get(id string) (identity *Identity, err error) {
 		)
 	}(time.Now())
 
-	return self.Service.Get(id)
+	return self.Service.Get(ctx, tx, id)
 }

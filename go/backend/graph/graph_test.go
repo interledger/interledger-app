@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -39,7 +40,7 @@ func TestGraphql(s *testing.T) {
 	db, err := sqlx.Connect("postgres", crdb.URI)
 	defer db.Close()
 
-	ah, err := identity.NewService(db)
+	ah, err := identity.NewService()
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -49,6 +50,7 @@ func TestGraphql(s *testing.T) {
 	users = _user.NewLoggingService(users, logger)
 
 	graph, err := NewService(GraphqlOpts{
+		Db:       db,
 		Identity: ah,
 		User:     users,
 	})
@@ -105,14 +107,23 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, response.Identity.Email, user.Email)
 			assert.Equal(tt, response.Identity.ID, user.ID)
 
-			identity, err := ah.Get(user.ID)
+			var userIdentity *identity.Identity
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_identity, err := ah.Get(ctx, tx, user.ID)
+				if err != nil {
+					return err
+				}
+
+				userIdentity = _identity
+				return nil
+			})
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Equal(tt, identity.LegalName, name)
-			assert.Equal(tt, identity.Country, "USA")
-			assert.Equal(tt, identity.Email, user.Email)
-			assert.Equal(tt, identity.ID, user.ID)
+			assert.Equal(tt, userIdentity.LegalName, name)
+			assert.Equal(tt, userIdentity.Country, "USA")
+			assert.Equal(tt, userIdentity.Email, user.Email)
+			assert.Equal(tt, userIdentity.ID, user.ID)
 		})
 
 		t.Run("user can only create 1 identity", func(tt *testing.T) {
@@ -181,10 +192,19 @@ func TestGraphql(s *testing.T) {
 				ID:    uuid.New().String(),
 				Email: faker.Name(),
 			}
-			id, err := ah.Create(identity.CreateArgs{
-				Country:   "USA",
-				LegalName: faker.Name(),
-				User:      user,
+			var id *identity.Identity
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_id, err := ah.Create(ctx, tx, identity.CreateArgs{
+					Country:   "USA",
+					LegalName: faker.Name(),
+					User:      user,
+				})
+				if err != nil {
+					return err
+				}
+
+				id = _id
+				return nil
 			})
 			if err != nil {
 				tt.Fatal(err)

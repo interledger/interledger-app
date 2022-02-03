@@ -38,7 +38,7 @@ func TestAccountsService(s *testing.T) {
 	}
 	defer logger.Sync()
 
-	is, err := _identity.NewService(db)
+	is, err := _identity.NewService()
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -59,10 +59,19 @@ func TestAccountsService(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		identity, err := is.Create(_identity.CreateArgs{
-			Country:   "USA",
-			LegalName: faker.Name(),
-			User:      &user,
+		var identity *_identity.Identity
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+				Country:   "USA",
+				LegalName: faker.Name(),
+				User:      &user,
+			})
+			if err != nil {
+				return err
+			}
+
+			identity = _identity
+			return nil
 		})
 		if err != nil {
 			t.Fatal(err)

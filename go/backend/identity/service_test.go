@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -33,7 +34,7 @@ func TestIdentityService(s *testing.T) {
 	}
 	defer logger.Sync()
 
-	is, err := NewService(db)
+	is, err := NewService()
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -46,20 +47,35 @@ func TestIdentityService(s *testing.T) {
 		}
 		name := faker.Name()
 
-		identity, err := is.Create(CreateArgs{
-			User:      user,
-			Country:   "USA",
-			LegalName: name,
+		var identity *Identity
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_identity, err := is.Create(ctx, tx, CreateArgs{
+				User:      user,
+				Country:   "USA",
+				LegalName: name,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			identity = _identity
+			return nil
 		})
-		if err != nil {
-			t.Fatal(err)
-		}
 		assert.Equal(t, user.ID, identity.ID)
 		assert.Equal(t, user.Email, identity.Email)
 		assert.Equal(t, name, identity.LegalName)
 		assert.Equal(t, "USA", identity.Country)
 
-		fetchedIdentity, err := is.Get(user.ID)
+		var fetchedIdentity *Identity
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_fetchedIdentity, err := is.Get(ctx, tx, user.ID)
+			if err != nil {
+				return err
+			}
+
+			fetchedIdentity = _fetchedIdentity
+			return nil
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -74,19 +90,35 @@ func TestIdentityService(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := is.Create(CreateArgs{
-			User:      usr,
-			Country:   "USA",
-			LegalName: faker.Name(),
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_, err := is.Create(ctx, tx, CreateArgs{
+				User:      usr,
+				Country:   "USA",
+				LegalName: faker.Name(),
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		duplicate, err := is.Create(CreateArgs{
-			User:      usr,
-			Country:   "USA",
-			LegalName: faker.Name(),
+		var duplicate *Identity
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_duplicate, err := is.Create(ctx, tx, CreateArgs{
+				User:      usr,
+				Country:   "USA",
+				LegalName: faker.Name(),
+			})
+			if err != nil {
+				return err
+			}
+
+			duplicate = _duplicate
+			return nil
 		})
 
 		assert.Nil(t, duplicate)
@@ -158,7 +190,16 @@ func TestIdentityService(s *testing.T) {
 		}
 
 		for _, scenario := range scenarios {
-			identity, err := is.Create(scenario.Args)
+			var identity *Identity
+			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_identity, err := is.Create(ctx, tx, scenario.Args)
+				if err != nil {
+					return err
+				}
+
+				identity = _identity
+				return nil
+			})
 			if err == nil {
 				t.Fatal(scenario.Name)
 			}
@@ -169,7 +210,16 @@ func TestIdentityService(s *testing.T) {
 	})
 
 	s.Run("id is required to get identity", func(t *testing.T) {
-		identity, err := is.Get("")
+		var identity *Identity
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_identity, err := is.Get(ctx, tx, "")
+			if err != nil {
+				return err
+			}
+
+			identity = _identity
+			return nil
+		})
 		if err == nil {
 			t.Fatal("User is supposed to be required to get identity.")
 		}
@@ -179,7 +229,16 @@ func TestIdentityService(s *testing.T) {
 	})
 
 	s.Run("returns not found if there is no identity", func(t *testing.T) {
-		identity, err := is.Get(uuid.NewString())
+		var identity *Identity
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_identity, err := is.Get(ctx, tx, uuid.NewString())
+			if err != nil {
+				return err
+			}
+
+			identity = _identity
+			return nil
+		})
 		if err == nil {
 			t.Fatal("Should return not found.")
 		}

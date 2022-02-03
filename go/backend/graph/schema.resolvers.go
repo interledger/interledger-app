@@ -6,6 +6,8 @@ package graph
 import (
 	"context"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
 )
@@ -17,10 +19,19 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.I
 		return nil, nil
 	}
 
-	identity, err := r.IdentityService.Create(_identity.CreateArgs{
-		Country:   input.Country,
-		LegalName: input.LegalName,
-		User:      user,
+	var identity *_identity.Identity
+	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		_identity, err := r.IdentityService.Create(ctx, tx, _identity.CreateArgs{
+			Country:   input.Country,
+			LegalName: input.LegalName,
+			User:      user,
+		})
+		if err != nil {
+			return err
+		}
+
+		identity = _identity
+		return nil
 	})
 	if err != nil {
 		switch err.(type) {
@@ -48,7 +59,16 @@ func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, erro
 		return nil, nil
 	}
 
-	identity, err := r.IdentityService.Get(user.ID)
+	var identity *_identity.Identity
+	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		_identity, err := r.IdentityService.Get(ctx, tx, user.ID)
+		if err != nil {
+			return err
+		}
+
+		identity = _identity
+		return nil
+	})
 	if err != nil {
 		switch err.(type) {
 		case *_identity.ErrNotFound:
