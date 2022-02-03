@@ -5,12 +5,13 @@ import {
   InMemoryCache,
   from
 } from '@apollo/client'
+import getConfig from 'next/config'
 import { onError } from '@apollo/client/link/error'
 
-const APOLLO_URL =
-  process.env.NEXT_PUBLIC_APOLLO_PUBLIC || 'http://fynbos.test/graphql'
-const APOLLO_URL_SERVER =
-  process.env.NEXT_PUBLIC_APOLLO_SERVER_PUBLIC || 'http://backend/graphql'
+const { publicRuntimeConfig } = getConfig()
+
+const APOLLO_URL = publicRuntimeConfig.apolloClient
+const APOLLO_URL_SERVER = publicRuntimeConfig.apolloServer
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors)

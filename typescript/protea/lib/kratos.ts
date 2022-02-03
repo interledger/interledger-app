@@ -10,6 +10,7 @@ import {
   Session
 } from '@ory/kratos-client'
 import { NextRouter } from 'next/router'
+import getConfig from 'next/config'
 import { Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Routes, redirect } from 'components'
@@ -17,10 +18,10 @@ import { Routes, redirect } from 'components'
 import { GetServerSidePropsContext, PreviewData, Redirect } from 'next'
 import { ParsedUrlQuery } from 'querystring'
 
-const KRATOS_URL =
-  process.env.NEXT_PUBLIC_ORY_KRATOS_PUBLIC || 'http://fynbos.test'
-const KRATOS_URL_SERVER =
-  process.env.NEXT_PUBLIC_ORY_KRATOS_SERVER_PUBLIC || 'http://kratos-public'
+const { publicRuntimeConfig } = getConfig()
+
+const KRATOS_URL = publicRuntimeConfig.kratosClient
+const KRATOS_URL_SERVER = publicRuntimeConfig.kratosServer
 
 export const kratos = new V0alpha2Api(
   new Configuration({
