@@ -7,11 +7,6 @@ import {
 } from '@apollo/client'
 import { onError } from '@apollo/client/link/error'
 
-const APOLLO_URL =
-  process.env.NEXT_PUBLIC_APOLLO_PUBLIC || 'http://fynbos.test/graphql'
-const APOLLO_URL_SERVER =
-  process.env.NEXT_PUBLIC_APOLLO_SERVER_PUBLIC || 'http://backend/graphql'
-
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors)
     graphQLErrors.forEach(({ message, locations, path }) =>
@@ -36,7 +31,10 @@ const previewMiddleware = new ApolloLink((operation, forward) => {
 })
 
 const Link = new HttpLink({
-  uri: typeof window === 'undefined' ? APOLLO_URL_SERVER : APOLLO_URL
+  uri:
+    typeof window === 'undefined'
+      ? 'http://backend/graphql'
+      : `${window.origin}/graphql`
 })
 
 export const apolloClient = new ApolloClient({
