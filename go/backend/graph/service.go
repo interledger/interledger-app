@@ -7,6 +7,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/user"
@@ -16,6 +17,7 @@ type GraphqlOpts struct {
 	Db                               *sqlx.DB
 	Identity                         identity.Service
 	User                             user.Service
+	Account                          accounts.Service
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
 }
@@ -42,6 +44,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		Db:              opts.Db,
 		IdentityService: opts.Identity,
 		UserService:     opts.User,
+		AccountService:  opts.Account,
 	}}))
 	svc.SetQueryCache(lru.New(int(queryCacheSize)))
 	svc.Use(extension.Introspection{})
