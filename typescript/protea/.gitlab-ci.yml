@@ -7,10 +7,11 @@ include:
         - typescript/protea/**/*
     # we need to configure this pipeline to run on merge requests
     # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
-    - if: $CI_MERGE_REQUEST_ID
+#    - if: $CI_MERGE_REQUEST_ID
 
 variables:
   PROJECT_PATH: $CI_PROJECT_DIR/typescript/protea
+  PROTEA_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
 image: node:16-alpine3.11
 
@@ -19,16 +20,11 @@ default:
     - echo "changing directory to $PROJECT_PATH"
     - cd $PROJECT_PATH
 
-deploy_preview_protea:
+build_protea:
+  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
+  interruptible: true
   script:
-    - yarn dlx vercel -t $VERCEL_CLI_TOKEN
-  extends: .job_rules
-  rules:
-    - if: '$TRIGGER_STAGE == "deploy_preview" && $CI_COMMIT_BRANCH != "main"'
-
-deploy_dev_protea:
-  script:
-    - yarn dlx vercel --prod -t $VERCEL_CLI_TOKEN
-  extends: .job_rules
-  rules:
-    - if: '$TRIGGER_STAGE == "deploy_dev" && $CI_COMMIT_BRANCH == "main"'
+    - mkdir -p ~/.docker
+    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    - make build IMAGE_HASH=${PROTEA_IMAGE_HASH}
+    - make push IMAGE_HASH=${PROTEA_IMAGE_HASH}
