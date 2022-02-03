@@ -8,7 +8,7 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 )
 
-func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource) (*helm.Chart, error) {
+func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domain string) (*helm.Chart, error) {
 
 	chart, err := helm.NewChart(ctx, "kratos", helm.ChartArgs{
 		Version: pulumi.String("0.21.5"),
@@ -44,16 +44,16 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource) (*hel
 					"dsn": pulumi.String("cockroach://kratos@cockroachdb-public:26257/kratos?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslcert=/cockroach-certs/client.kratos.crt&sslkey=/cockroach-certs/client.kratos.key&sslrootcert=/cockroach-certs/ca.crt"),
 					"serve": pulumi.Map{
 						"public": pulumi.Map{
-							"base_url": pulumi.String("http://fynbos.test"),
+							"base_url": pulumi.String(domain),
 							"cors": pulumi.Map{
 								"enabled": pulumi.Bool(true),
 							},
 						},
 					},
 					"selfservice": pulumi.Map{
-						"default_browser_return_url": pulumi.String("http://fynbos.test"),
+						"default_browser_return_url": pulumi.String(domain),
 						"whitelisted_return_urls": pulumi.StringArray{
-							pulumi.String("http://fynbos.test"),
+							pulumi.String(domain),
 						},
 						"methods": pulumi.Map{
 							"password": pulumi.Map{
@@ -68,38 +68,38 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource) (*hel
 						},
 						"flows": pulumi.Map{
 							"error": pulumi.Map{
-								"ui_url": pulumi.String("http://fynbos.test/error"),
+								"ui_url": pulumi.Sprintf("%s/error", domain),
 							},
 							"settings": pulumi.Map{
-								"ui_url":                     pulumi.String("http://fynbos.test/profile"),
+								"ui_url":                     pulumi.Sprintf("%s/settings", domain),
 								"privileged_session_max_age": pulumi.String("15m"),
 							},
 							"recovery": pulumi.Map{
 								"enabled":  pulumi.Bool(true),
-								"ui_url":   pulumi.String("http://fynbos.test/error"),
+								"ui_url":   pulumi.Sprintf("%s/error", domain),
 								"lifespan": pulumi.String("15m"),
 							},
 							"verification": pulumi.Map{
 								"enabled": pulumi.Bool(true),
-								"ui_url":  pulumi.String("http://fynbos.test/verify"),
+								"ui_url":  pulumi.Sprintf("%s/verify", domain),
 								"after": pulumi.Map{
-									"default_browser_return_url": pulumi.String("http://fynbos.test/profile"),
+									"default_browser_return_url": pulumi.Sprintf("%s/home", domain),
 								},
 							},
 							"logout": pulumi.Map{
 								"after": pulumi.Map{
-									"default_browser_return_url": pulumi.String("http://fynbos.test/"),
+									"default_browser_return_url": pulumi.String(domain),
 								},
 							},
 							"login": pulumi.Map{
-								"ui_url":   pulumi.String("http://fynbos.test/login"),
+								"ui_url":   pulumi.Sprintf("%s/login", domain),
 								"lifespan": pulumi.String("10m"),
 								"after": pulumi.Map{
-									"default_browser_return_url": pulumi.String("http://fynbos.test/profile"),
+									"default_browser_return_url": pulumi.Sprintf("%s/home", domain),
 								},
 							},
 							"registration": pulumi.Map{
-								"ui_url":   pulumi.String("http://fynbos.test/signup"),
+								"ui_url":   pulumi.Sprintf("%s/signup", domain),
 								"lifespan": pulumi.String("10m"),
 								"after": pulumi.Map{
 									"password": pulumi.Map{

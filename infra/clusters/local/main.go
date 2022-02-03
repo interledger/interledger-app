@@ -72,7 +72,7 @@ func main() {
 			Namespace: "default",
 			Name:      "kratos",
 		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
-		_, err = kratos.DeployKratos(ctx, crCert)
+		_, err = kratos.DeployKratos(ctx, crCert, "http://fynbos.test")
 		if err != nil {
 			return err
 		}
