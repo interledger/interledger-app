@@ -46,21 +46,6 @@ export enum Routes {
   connect = '/connect',
 
   //
-  // Organisation
-  //
-  organisation = '/organisation',
-  organisationOverview = '/organisation/[orgId]',
-  organisationIntegration = '/organisation/[orgId]/integration',
-  organisationSettings = '/organisation/[orgId]/settings',
-  organisationGateway = '/organisation/[orgId]/gateway',
-
-  organisationWallet = '/organisation/[orgId]/wallet',
-  organisationWalletAccounts = '/organisation/[orgId]/wallet/accounts',
-  organisationWalletTransactions = '/organisation/[orgId]/wallet/transactions',
-  organisationWalletRisk = '/organisation/[orgId]/wallet/risk',
-  organisationWalletOperations = '/organisation/[orgId]/wallet/operations',
-
-  //
   // External
   //
   interledger = 'https://interledger.org',

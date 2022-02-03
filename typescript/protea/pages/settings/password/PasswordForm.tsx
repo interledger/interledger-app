@@ -42,7 +42,7 @@ export const PasswordForm: FC = () => {
       // his data when she/he reloads the page.
       .push(
         {
-          pathname: Routes.profilePassword,
+          pathname: Routes.settingsPassword,
           query: {
             flow: flow?.id
           }
@@ -58,9 +58,9 @@ export const PasswordForm: FC = () => {
             transformToFlowBody(values)
           )
           .then(({ data }) => {
-            router.push(Routes.profile)
+            router.push(Routes.settings)
           })
-          .catch(handleGetFlowError(router, Routes.profile, setFlow))
+          .catch(handleGetFlowError(router, Routes.settings, setFlow))
           .catch(async (err: AxiosError) => {
             // If the previous handler did not catch the error it's most likely a form validation error
             if (err.response?.status === 400) {

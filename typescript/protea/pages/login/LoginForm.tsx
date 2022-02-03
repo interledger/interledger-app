@@ -62,8 +62,8 @@ export const LoginForm: FC = () => {
               window.location.href = flow?.return_to
               return
             }
-            // TODO: catch expired session case. Currently just routes to organisation
-            router.push(Routes.profile)
+            // TODO: catch expired session case. Currently just routes to settings
+            router.push(Routes.settings)
           })
           .then(() => {})
           .catch(handleGetFlowError(router, Routes.login, setFlow))

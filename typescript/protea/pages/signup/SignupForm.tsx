@@ -65,9 +65,9 @@ export const SignupForm: FC = () => {
             // You can do cool stuff here, like having access to the identity which just signed up:
             console.log('This is the user session: ', data, data.identity)
 
-            // TODO: catch expired session case. Currently just routes to organisation
-            // For now however we just want to redirect to organisation page
-            return router.push(flow?.return_to || Routes.profile)
+            // TODO: catch expired session case. Currently just routes to settings
+            // For now however we just want to redirect to settings page
+            return router.push(flow?.return_to || Routes.settings)
           })
           .catch(handleGetFlowError(router, Routes.signup, setFlow))
           .catch((err: AxiosError) => {
