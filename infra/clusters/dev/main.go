@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/protea"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -110,7 +111,7 @@ func main() {
 		if err != nil {
 			return err
 		}
-		_, err = kratos.DeployKratos(ctx, crCert)
+		_, err = kratos.DeployKratos(ctx, crCert, "https://dev.fynbos.dev")
 		if err != nil {
 			return err
 		}
@@ -149,6 +150,11 @@ func main() {
 }
 
 func getShortHash() (string, error) {
+	envHash, present := os.LookupEnv("GIT_HASH")
+	if present {
+		return envHash, nil
+	}
+
 	out, err := exec.Command("git", "log", "-1", "--pretty=%h").Output()
 	if err != nil {
 		return "", err
