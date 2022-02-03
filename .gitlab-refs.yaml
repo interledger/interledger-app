@@ -29,11 +29,3 @@
   environment:
     name: Dev
     url: https://dev.fynbos.dev
-
-.stages:
-  stages:
-  - build_base
-  - test_base
-  - publish
-  - deploy_preview
-  - deploy_dev

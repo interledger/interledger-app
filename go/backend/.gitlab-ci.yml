@@ -1,77 +1,41 @@
 include:
   - //////.gitlab-refs.yaml
 
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    policy: pull
+    key:
+      files:
+        - go/go.mod
+    paths:
+      - .go/pkg/mod/
+
 .job_rules:
   rules:
     - changes:
+      - go/go.mod
       - go/backend/*
-    # we need to configure this pipeline to run on merge requests
-    - if: $CI_MERGE_REQUEST_ID
 
 variables:
   BACKEND_PATH: $CI_PROJECT_DIR/go/backend
-  DOCKER_CONTEXT: $CI_PROJECT_DIR/go
   BACKEND_REPO: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
   BACKEND_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
-stages: !reference [.stages, stages]
-
-build_backend_base:
-  stage: build_base
+build_backend:
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
-  services: !reference [.docker_services, services]
-  variables: !reference [.docker_services, variables]
+  extends:
+    - .go-cache
+  needs:
+    - go-mod
+  interruptible: true
   script:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - >-
-      DOCKER_BUILDKIT=1 docker build
-      --cache-from ${BACKEND_REPO}:base
-      -t ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}-base
-      -t ${BACKEND_REPO}:base
-      --target base
-      -f $BACKEND_PATH/Dockerfile
-      $DOCKER_CONTEXT
-    - docker push ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}-base
-    - docker push ${BACKEND_REPO}:base
-  extends: .job_rules
-  rules:
-    - if: '$TRIGGER_STAGE == "build_base"'
-  interruptible: true
-
-test_backend_base:
-  stage: test_base
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
-  services: !reference [.docker_services, services]
-  variables: !reference [.docker_services, variables]
-  script:
-    - mkdir -p ~/.docker
-    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - docker run ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}-base lint
-    - DIND_IP=$(cat /etc/hosts | awk '{if ($2 == "docker") print $1;}')
-    # tell container to use the DinD docker daemon.
-    - docker run --network host --env DOCKER_HOST=tcp://$DIND_IP:2375 ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}-base test
-  extends: .job_rules
-  rules:
-    - if: '$TRIGGER_STAGE == "test_base"'
-  interruptible: true
-
-publish_backend:
-  stage: publish
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12
-  services: !reference [.docker_services, services]
-  variables: !reference [.docker_services, variables]
-  script:
-    - mkdir -p ~/.docker
-    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - >-
-      DOCKER_BUILDKIT=1 docker build
-      --cache-from ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}-base
-      -t ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
-      -f $BACKEND_PATH/Dockerfile
-      $DOCKER_CONTEXT
-    - docker push ${BACKEND_REPO}:${BACKEND_IMAGE_HASH}
-  extends: .job_rules    
-  rules:
-    - if: '$TRIGGER_STAGE == "publish"'
-  interruptible: true
+    - cd $BACKEND_PATH
+    - make test
+    - make build IMAGE_HASH=${BACKEND_IMAGE_HASH}
+    - make push IMAGE_HASH=${BACKEND_IMAGE_HASH}
