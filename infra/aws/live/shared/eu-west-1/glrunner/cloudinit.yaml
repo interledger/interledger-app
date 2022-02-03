@@ -23,9 +23,9 @@ write_files:
         [runners.docker]
           tls_verify = false
           image = "docker:19.03.12"
-          privileged = true
+          privileged = false
           disable_cache = false
-          volumes = ["/cache", "/usr/bin/docker-credential-ecr-login:/usr/bin/docker-credential-ecr-login"]
+          volumes = ["/cache", "/var/run/docker.sock:/var/run/docker.sock"]
         [runners.cache]
           Type = "s3"
           Shared = true
