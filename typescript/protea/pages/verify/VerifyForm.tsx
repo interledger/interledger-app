@@ -1,11 +1,10 @@
-import { SubmitSelfServiceVerificationFlowBody } from '@ory/kratos-client'
 import { AxiosError } from 'axios'
 import { useRouter } from 'next/router'
 import React, { FC, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useVerifyFlow } from 'hooks'
 import { getCsrfTokenFromFlow, handleGetFlowError, kratos } from 'lib/kratos'
-import { Button, Routes, TextField } from 'components'
+import { Button, Routes } from 'components'
 
 type VerifyProps = {
   email: string
@@ -51,7 +50,7 @@ export const VerifyForm: FC<VerifyProps> = ({ email }) => {
           })
           .then(({ data }) => {
             setDisabled(true)
-            return router.push(flow?.return_to || Routes.profile)
+            return router.push(flow?.return_to || Routes.settings)
           })
           .catch(handleGetFlowError(router, Routes.signup, setFlow))
           .catch((err: AxiosError) => {

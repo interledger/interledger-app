@@ -86,7 +86,7 @@ export async function getSessionOrRedirect(
     if (isProtected) {
       return session
     }
-    return redirect(Routes.organisation)
+    return redirect(Routes.walletHome)
   } catch (error) {
     switch ((error as AxiosError)?.response?.status) {
       case 403:
@@ -106,7 +106,7 @@ export function handleGetFlowError<S>(
     | Routes.signup
     | Routes.login
     | Routes.verify
-    | Routes.profile
+    | Routes.settings
     | Routes.recovery,
   resetFlow: Dispatch<SetStateAction<S | undefined>>
 ) {

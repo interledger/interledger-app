@@ -27,7 +27,7 @@ export const useProfileSettingsFlow = (): [
         .then(({ data }) => {
           setFlow(data)
         })
-        .catch(handleGetFlowError(router, Routes.profile, setFlow))
+        .catch(handleGetFlowError(router, Routes.settings, setFlow))
       return
     }
 
@@ -39,7 +39,7 @@ export const useProfileSettingsFlow = (): [
       .then(({ data }) => {
         setFlow(data)
       })
-      .catch(handleGetFlowError(router, Routes.profile, setFlow))
+      .catch(handleGetFlowError(router, Routes.settings, setFlow))
   }, [flowId, router, router.isReady, returnTo, flow])
 
   return [flow, setFlow]

@@ -53,7 +53,7 @@ export const getServerSideProps: GetServerSideProps = async (
     if (session.identity.verifiable_addresses[0].verified)
       return {
         redirect: {
-          destination: Routes.profile,
+          destination: Routes.settings,
           permanent: false
         }
       }
