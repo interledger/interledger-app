@@ -69,11 +69,6 @@ export async function getSessionOrRedirect(
   context: GetServerSidePropsContext<ParsedUrlQuery, PreviewData>,
   isProtected: boolean
 ): Promise<SessionResult<typeof isProtected>> {
-  // Temporarily block all pages if kratos not enabled
-  if (process.env.KRATOS_ENABLED !== 'true') {
-    return redirect(Routes.home)
-  }
-
   const cookie = context.req?.headers.cookie
   try {
     const session = await kratos
