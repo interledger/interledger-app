@@ -1,0 +1,18 @@
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    key:
+      files:
+        - go/go.mod
+    paths:
+      - .go/pkg/mod/
+
+go-mod:
+  image: golang:1.17
+  extends: .go-cache
+  script:
+    - cd go
+    - go mod download
