@@ -6,12 +6,14 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/user"
 )
 
 type GraphqlOpts struct {
+	Db                               *sqlx.DB
 	Identity                         identity.Service
 	User                             user.Service
 	QueryCacheSize                   uint
@@ -37,6 +39,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 	}
 
 	svc := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
+		Db:              opts.Db,
 		IdentityService: opts.Identity,
 		UserService:     opts.User,
 	}}))

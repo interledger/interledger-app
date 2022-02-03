@@ -78,13 +78,14 @@ func start(args *cli.StartArgs) {
 	}
 	users = user.NewLoggingService(users, logger)
 
-	id, err := identity.NewService(db)
+	id, err := identity.NewService()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	id = identity.NewLoggingService(id, logger)
 
 	graphql, err := graph.NewService(graph.GraphqlOpts{
+		Db:                               db,
 		Identity:                         id,
 		User:                             users,
 		QueryCacheSize:                   1000,

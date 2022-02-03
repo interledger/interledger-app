@@ -69,7 +69,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: err.Error()}
 	}
-	identity, err := s.identity.Get(args.IdentityID)
+	identity, err := s.identity.Get(ctx, tx, args.IdentityID)
 	// TODO: perhaps a global error set?
 	if err != nil {
 		switch err.(type) {
