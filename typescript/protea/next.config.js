@@ -8,5 +8,12 @@ const withMDX = require('@next/mdx')({
 })
 module.exports = withMDX({
   pageExtensions: ['page.tsx', 'blog.mdx', 'api.ts'],
-  reactStrictMode: true
+  reactStrictMode: true,
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    kratosClient: process.env.KRATOS_CLIENT || 'http://fynbos.test',
+    kratosServer: process.env.KRATOS_SERVER || 'http://kratos-public',
+    apolloClient: process.env.APOLLO_CLIENT || 'http://fynbos.test/graphql',
+    apolloServer: process.env.APOLLO_SERVER || 'http://backend/graphql'
+  }
 })
