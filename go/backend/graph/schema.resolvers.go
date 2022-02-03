@@ -8,6 +8,7 @@ import (
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
 )
@@ -30,12 +31,21 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.I
 			return err
 		}
 
+		_, err = r.AccountService.Create(ctx, tx, &accounts.CreateAccountArgs{
+			IdentityID: _identity.ID,
+			Country:    input.Country,
+		})
+		if err != nil {
+			return err
+		}
+
 		identity = _identity
 		return nil
 	})
 	if err != nil {
 		switch err.(type) {
 		case *_identity.ErrInvalidArgument:
+		case *accounts.ErrInvalidArgument:
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:

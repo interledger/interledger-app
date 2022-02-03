@@ -8,6 +8,7 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-chi/chi"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -15,10 +16,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
+	"gitlab.com/fynbos/backend/accounts"
+	_account "gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
 )
 
 func TestGraphql(s *testing.T) {
@@ -40,19 +45,30 @@ func TestGraphql(s *testing.T) {
 	db, err := sqlx.Connect("postgres", crdb.URI)
 	defer db.Close()
 
-	ah, err := identity.NewService()
+	is, err := identity.NewService()
 	if err != nil {
 		s.Fatal(err)
 	}
-	ah = identity.NewLoggingService(ah, logger)
+	is = identity.NewLoggingService(is, logger)
+
+	ctrl := gomock.NewController(s)
+	defer ctrl.Finish()
+	pacioliLedgerID := uuid.NewString()
+	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
+	as, err := accounts.NewService(is, pacioliLedgerID, pClient)
+	if err != nil {
+		s.Fatal(err)
+	}
+	as = accounts.NewLoggingService(as, logger)
 
 	users := _user.NewMockService()
 	users = _user.NewLoggingService(users, logger)
 
 	graph, err := NewService(GraphqlOpts{
 		Db:       db,
-		Identity: ah,
+		Identity: is,
 		User:     users,
+		Account:  as,
 	})
 	graph = NewLoggingService(graph, logger)
 
@@ -78,7 +94,7 @@ func TestGraphql(s *testing.T) {
 			assert.Error(tt, err)
 		})
 
-		t.Run("user can create an identity", func(tt *testing.T) {
+		t.Run("creates identity and account", func(tt *testing.T) {
 			tt.Cleanup(func() {
 				test_utils.TruncateDb(ctx, db)
 			})
@@ -92,6 +108,10 @@ func TestGraphql(s *testing.T) {
 				Country:   "USA",
 			})
 			_user.ActingAs(req, user)
+			ledgerAccountID := uuid.NewString()
+			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id: ledgerAccountID,
+			}, nil).Times(1)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
 			if err := client.Run(ctx, req, &respData); err != nil {
@@ -109,7 +129,7 @@ func TestGraphql(s *testing.T) {
 
 			var userIdentity *identity.Identity
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_identity, err := ah.Get(ctx, tx, user.ID)
+				_identity, err := is.Get(ctx, tx, user.ID)
 				if err != nil {
 					return err
 				}
@@ -124,14 +144,44 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, userIdentity.Country, "USA")
 			assert.Equal(tt, userIdentity.Email, user.Email)
 			assert.Equal(tt, userIdentity.ID, user.ID)
+
+			pClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id:              ledgerAccountID,
+				DebitsReserved:  1, // return non-zero to make sure default values aren't used.
+				DebitsAccepted:  2,
+				CreditsAccepted: 3,
+				CreditsReserved: 4,
+			}, nil).Times(1)
+			var account *_account.Account
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_acc, err := as.GetByIdentityID(ctx, tx, user.ID)
+				if err != nil {
+					return err
+				}
+
+				account = _acc
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, userIdentity.ID, account.IdentityID)
+			assert.Equal(tt, ledgerAccountID, account.LedgerAccountID)
+			assert.Equal(tt, uint64(1), account.DebitsReserved)
+			assert.Equal(tt, uint64(2), account.DebitsAccepted)
+			assert.Equal(tt, uint64(3), account.CreditsAccepted)
+			assert.Equal(tt, uint64(4), account.CreditsReserved)
 		})
 
 		t.Run("user can only create 1 identity", func(tt *testing.T) {
 			tt.Cleanup(func() {
 				test_utils.TruncateDb(ctx, db)
 			})
+			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id: uuid.NewString(),
+			}, nil).Times(1)
 			user := &_user.User{
-				ID:    uuid.New().String(),
+				ID:    uuid.NewString(),
 				Email: faker.Email(),
 			}
 			name := faker.Name()
@@ -194,7 +244,7 @@ func TestGraphql(s *testing.T) {
 			}
 			var id *identity.Identity
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_id, err := ah.Create(ctx, tx, identity.CreateArgs{
+				_id, err := is.Create(ctx, tx, identity.CreateArgs{
 					Country:   "USA",
 					LegalName: faker.Name(),
 					User:      user,
