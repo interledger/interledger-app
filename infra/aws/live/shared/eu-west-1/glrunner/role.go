@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -11,7 +12,7 @@ import (
 // creates the required role for the gitlab runner manager
 // ensures ec2 instances can assume the role
 // adds the necessary policies for the role for ec2 management
-func CreateManagerRole(ctx *pulumi.Context, ebsKmsKeyArn pulumi.StringOutput, runnerRole *iam.Role) (*iam.Role, error) {
+func CreateManagerRole(ctx *pulumi.Context, ebsKmsKeyArn pulumi.StringOutput, runnerRole *iam.Role, s3CacheBucket pulumi.StringOutput) (*iam.Role, error) {
 	instanceAssumeRolePolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
 		Statements: []iam.GetPolicyDocumentStatement{
 			{
@@ -51,6 +52,10 @@ func CreateManagerRole(ctx *pulumi.Context, ebsKmsKeyArn pulumi.StringOutput, ru
 			iam.RoleInlinePolicyArgs{
 				Name:   pulumi.String("passRunnerRolePolicy"),
 				Policy: passRolePolicy(ctx, runnerRole),
+			},
+			iam.RoleInlinePolicyArgs{
+				Name:   pulumi.String("s3AccessPolicy"),
+				Policy: s3AccessPolicy(ctx, s3CacheBucket),
 			},
 		},
 	})
@@ -216,5 +221,36 @@ func ebsEncryptionKeyAccessPolicy(ctx *pulumi.Context, keyArn pulumi.StringOutpu
 		}
 
 		return kmsAccess.Json, err
+	}).(pulumi.StringOutput)
+}
+
+func s3AccessPolicy(ctx *pulumi.Context, s3Bucket pulumi.StringOutput) pulumi.StringOutput {
+	effect := "Allow"
+	return pulumi.All(s3Bucket).ApplyT(func(args []interface{}) (string, error) {
+		bucket := args[0].(string)
+
+		s3Access, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+			Statements: []iam.GetPolicyDocumentStatement{
+				{
+					Effect: &effect,
+					Actions: []string{
+						"s3:PutObject",
+						"s3:GetObject",
+						"s3:ListBucket",
+						"s3:DeleteObject",
+						"s3:GetBucketLocation",
+					},
+					Resources: []string{
+						fmt.Sprintf("arn:aws:s3:::%s/*", bucket),
+						fmt.Sprintf("arn:aws:s3:::%s", bucket),
+					},
+				},
+			},
+		})
+		if err != nil {
+			return "", err
+		}
+
+		return s3Access.Json, err
 	}).(pulumi.StringOutput)
 }
