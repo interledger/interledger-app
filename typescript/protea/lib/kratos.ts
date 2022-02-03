@@ -17,14 +17,10 @@ import { Routes, redirect } from 'components'
 import { GetServerSidePropsContext, PreviewData, Redirect } from 'next'
 import { ParsedUrlQuery } from 'querystring'
 
-const KRATOS_URL =
-  process.env.NEXT_PUBLIC_ORY_KRATOS_PUBLIC || 'http://fynbos.test'
-const KRATOS_URL_SERVER =
-  process.env.NEXT_PUBLIC_ORY_KRATOS_SERVER_PUBLIC || 'http://kratos-public'
-
 export const kratos = new V0alpha2Api(
   new Configuration({
-    basePath: typeof window === 'undefined' ? KRATOS_URL_SERVER : KRATOS_URL,
+    basePath:
+      typeof window === 'undefined' ? 'http://kratos-public' : window.origin,
     baseOptions: {
       // Ensure we send credentials over CORSs
       withCredentials: true
@@ -70,6 +66,7 @@ export async function getSessionOrRedirect(
   isProtected: boolean
 ): Promise<SessionResult<typeof isProtected>> {
   const cookie = context.req?.headers.cookie
+  const origin = context.req?.headers.origin
   try {
     const session = await kratos
       .toSession(undefined, cookie)
