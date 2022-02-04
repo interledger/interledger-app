@@ -12,6 +12,7 @@ type MappingArgs struct {
 	Name            string
 	Hostname        string
 	Prefix          string
+	Rewrite         string
 	Service         string
 	EnableWebsocket bool
 }
@@ -21,7 +22,7 @@ func DeployMapping(ctx *pulumi.Context, args *MappingArgs, opts ...pulumi.Resour
 	spec := pulumi.Map{
 		"hostname": pulumi.String(args.Hostname),
 		"prefix":   pulumi.String(args.Prefix),
-		"rewrite":  pulumi.String(args.Prefix),
+		"rewrite":  pulumi.String(args.Rewrite),
 		"service":  pulumi.String(args.Service),
 	}
 

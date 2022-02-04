@@ -265,6 +265,7 @@ func deployIngress(ctx *pulumi.Context) error {
 		Name:     "backend-graphql",
 		Hostname: "*",
 		Prefix:   "/graphql",
+		Rewrite:  "/graphql",
 		Service:  "backend",
 	})
 	if err != nil {

@@ -56,3 +56,41 @@ func CreateDevClusterAccess(ctx *pulumi.Context, zoneId pulumi.IDOutput) error {
 
 	return nil
 }
+
+func CreateDevMailAccess(ctx *pulumi.Context, zoneId pulumi.IDOutput) error {
+	app, err := cloudflare.NewAccessApplication(ctx, "dev-mail-app", &cloudflare.AccessApplicationArgs{
+		AutoRedirectToIdentity: pulumi.Bool(true),
+		Domain:                 pulumi.String("mail.fynbos.dev"),
+		Name:                   pulumi.String("Dev Cluster"),
+		SessionDuration:        pulumi.String("24h"),
+		Type:                   pulumi.String("self_hosted"),
+		ZoneId:                 zoneId,
+		// Allowed IDP was manually created so we don't need to store secrets when deploying it
+		AllowedIdps: pulumi.StringArray{
+			pulumi.String("4271ed52-0611-4386-b1f8-f8e8c1c8391d"),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = cloudflare.NewAccessPolicy(ctx, "dev-mail-access-policy", &cloudflare.AccessPolicyArgs{
+		ApplicationId: app.ID(),
+		ZoneId:        zoneId,
+		Name:          pulumi.String("Dev mail policy"),
+		Precedence:    pulumi.Int(1),
+		Decision:      pulumi.String("allow"),
+		Includes: cloudflare.AccessPolicyIncludeArray{
+			&cloudflare.AccessPolicyIncludeArgs{
+				EmailDomains: pulumi.StringArray{
+					pulumi.String("fynbos.dev"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

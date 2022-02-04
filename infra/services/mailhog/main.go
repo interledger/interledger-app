@@ -6,9 +6,10 @@ import (
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	rbacv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"gitlab.com/fynbos/infra/services/ingress"
 )
 
-func DeployMailHog(ctx *pulumi.Context) error {
+func DeployMailHog(ctx *pulumi.Context, domain string) error {
 	_, err := appsv1.NewDeployment(ctx, "mailhog-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -133,6 +134,18 @@ func DeployMailHog(ctx *pulumi.Context) error {
 				"app": pulumi.String("mailhog"),
 			},
 		},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
+		Name:            "mailhog-mapping",
+		Hostname:        domain,
+		Prefix:          "/",
+		Rewrite:         "/",
+		Service:         "mailhog",
+		EnableWebsocket: true,
 	})
 	if err != nil {
 		return err

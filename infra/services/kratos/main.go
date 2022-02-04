@@ -201,6 +201,7 @@ func DeployKratosIngress(ctx *pulumi.Context, opts ...pulumi.ResourceOption) err
 		Name:     "kratos-self-service",
 		Hostname: "*",
 		Prefix:   "/self-service/",
+		Rewrite:  "/self-service/",
 		Service:  "kratos-public",
 	}, opts...)
 	if err != nil {
@@ -211,6 +212,7 @@ func DeployKratosIngress(ctx *pulumi.Context, opts ...pulumi.ResourceOption) err
 		Name:     "kratos-sessions",
 		Hostname: "*",
 		Prefix:   "/sessions/",
+		Rewrite:  "/sessions/",
 		Service:  "kratos-public",
 	}, opts...)
 	if err != nil {

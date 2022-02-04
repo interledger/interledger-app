@@ -52,6 +52,7 @@ func main() {
 
 		// Depends on here is a workaround due to gremlins https://github.com/pulumi/pulumi-kubernetes/issues/861
 		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:     "ingress",
 			Hostname: "fynbos.test",
 		}, pulumi.DependsOnInputs(ingressChart.Ready))
 		if err != nil {
@@ -78,7 +79,7 @@ func main() {
 		}
 		err = kratos.DeployKratosIngress(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
 
-		err = mailhog.DeployMailHog(ctx)
+		err = mailhog.DeployMailHog(ctx, "mail.fynbos.test")
 		if err != nil {
 			return err
 		}

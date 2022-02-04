@@ -1,6 +1,7 @@
 package ingress
 
 import (
+	"fmt"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
@@ -8,6 +9,7 @@ import (
 )
 
 type DeployHostArgs struct {
+	Name      string
 	Hostname  string
 	TlsSecret string
 }
@@ -33,11 +35,11 @@ func DeployHost(ctx *pulumi.Context, args *DeployHostArgs, opts ...pulumi.Resour
 		}
 	}
 
-	_, err := apiextensions.NewCustomResource(ctx, "ingress-host", &apiextensions.CustomResourceArgs{
+	_, err := apiextensions.NewCustomResource(ctx, fmt.Sprintf("%s-host", args.Name), &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
 		Kind:       pulumi.String("Host"),
 		Metadata: v1.ObjectMetaArgs{
-			Name: pulumi.String("host"),
+			Name: pulumi.String(args.Name),
 		},
 		OtherFields: kubernetes.UntypedArgs{
 			"spec": spec,
