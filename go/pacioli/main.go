@@ -13,7 +13,6 @@ import (
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
-	"gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/tigerbeetle_go"
 )
@@ -36,8 +35,16 @@ func main() {
 		}
 
 		start(args)
-	case "migrate":
-		migrations.Migrate(fs)
+	case "init":
+		args, err := cli.ParseInitArgs()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		err = cli.Init(args)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	default:
 		log.Fatalln("Unknown command: ", command)
 	}
