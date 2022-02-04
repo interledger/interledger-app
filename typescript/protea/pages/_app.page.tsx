@@ -14,6 +14,7 @@ function MyApp({ Component, pageProps }: NextAppProps) {
     <>
       <Head>
         <title>{metaContent.title}</title>
+        <meta name="theme-color" content="#FDE2E6" />
         <meta content={metaContent.description} name='description' />
         <meta name='title' content={metaContent.title} />
         <meta name='description' content={metaContent.description} />
