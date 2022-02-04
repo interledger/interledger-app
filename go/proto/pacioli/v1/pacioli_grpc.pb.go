@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PacioliServiceClient interface {
 	CreateLedger(ctx context.Context, in *CreateLedgerRequest, opts ...grpc.CallOption) (*Ledger, error)
+	GetLedgerByCode(ctx context.Context, in *GetLedgerByCodeRequest, opts ...grpc.CallOption) (*Ledger, error)
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*Account, error)
 	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*Account, error)
 	CreateTransfers(ctx context.Context, in *CreateTransfersRequest, opts ...grpc.CallOption) (*CreateTransfersResponse, error)
@@ -40,6 +41,15 @@ func NewPacioliServiceClient(cc grpc.ClientConnInterface) PacioliServiceClient {
 func (c *pacioliServiceClient) CreateLedger(ctx context.Context, in *CreateLedgerRequest, opts ...grpc.CallOption) (*Ledger, error) {
 	out := new(Ledger)
 	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateLedger", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pacioliServiceClient) GetLedgerByCode(ctx context.Context, in *GetLedgerByCodeRequest, opts ...grpc.CallOption) (*Ledger, error) {
+	out := new(Ledger)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetLedgerByCode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +97,7 @@ func (c *pacioliServiceClient) GetTransfers(ctx context.Context, in *GetTransfer
 // for forward compatibility
 type PacioliServiceServer interface {
 	CreateLedger(context.Context, *CreateLedgerRequest) (*Ledger, error)
+	GetLedgerByCode(context.Context, *GetLedgerByCodeRequest) (*Ledger, error)
 	CreateAccount(context.Context, *CreateAccountRequest) (*Account, error)
 	GetAccount(context.Context, *GetAccountRequest) (*Account, error)
 	CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error)
@@ -99,6 +110,9 @@ type UnimplementedPacioliServiceServer struct {
 
 func (UnimplementedPacioliServiceServer) CreateLedger(context.Context, *CreateLedgerRequest) (*Ledger, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateLedger not implemented")
+}
+func (UnimplementedPacioliServiceServer) GetLedgerByCode(context.Context, *GetLedgerByCodeRequest) (*Ledger, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLedgerByCode not implemented")
 }
 func (UnimplementedPacioliServiceServer) CreateAccount(context.Context, *CreateAccountRequest) (*Account, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
@@ -138,6 +152,24 @@ func _PacioliService_CreateLedger_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PacioliServiceServer).CreateLedger(ctx, req.(*CreateLedgerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PacioliService_GetLedgerByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLedgerByCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PacioliServiceServer).GetLedgerByCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pacioli.v1.PacioliService/GetLedgerByCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PacioliServiceServer).GetLedgerByCode(ctx, req.(*GetLedgerByCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -224,6 +256,10 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateLedger",
 			Handler:    _PacioliService_CreateLedger_Handler,
+		},
+		{
+			MethodName: "GetLedgerByCode",
+			Handler:    _PacioliService_GetLedgerByCode_Handler,
 		},
 		{
 			MethodName: "CreateAccount",

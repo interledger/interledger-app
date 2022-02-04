@@ -6,6 +6,7 @@ option go_package = "./pacioli/v1;pacioli";
 
 service PacioliService {
   rpc CreateLedger(CreateLedgerRequest) returns (Ledger);
+  rpc GetLedgerByCode(GetLedgerByCodeRequest) returns (Ledger);
   rpc CreateAccount(CreateAccountRequest) returns (Account);
   rpc GetAccount(GetAccountRequest) returns (Account);
   rpc CreateTransfers(CreateTransfersRequest) returns (CreateTransfersResponse);
@@ -21,6 +22,10 @@ message Ledger {
 message CreateLedgerRequest {
   string name = 1;
   uint32 code = 2;
+}
+
+message GetLedgerByCodeRequest{
+  uint32 code = 1;
 }
 
 message Account {

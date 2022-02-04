@@ -106,7 +106,31 @@ func TestLedgerService(s *testing.T) {
 			}
 
 			assert.Nil(tt, dup)
-			assert.Equal(tt, ErrInvalidArg{Err: "Ledger Code must be unique."}, err)
+			assert.Equal(tt, ErrDuplicate{Err: "Ledger exists."}, err)
+		})
+
+		t.Run("can get ledger by code", func(tt *testing.T) {
+			name := faker.Name()
+			code := uint16(rand.Intn(65535))
+
+			ledger, err := ps.GetLedgerByCode(code)
+			assert.Equal(tt, "Ledger not found.", err.Error())
+			assert.Nil(tt, ledger)
+
+			_, err = ps.CreateLedger(name, code)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			freshLedger, err := ps.GetLedgerByCode(code)
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, code, freshLedger.Code)
+			assert.Equal(tt, name, freshLedger.Name)
 		})
 	})
 

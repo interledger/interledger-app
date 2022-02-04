@@ -105,7 +105,7 @@ func TestPacioliService(s *testing.T) {
 		assert.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, response.Status)
 	})
 
-	s.Run("can create a ledger", func(t *testing.T) {
+	s.Run("can create a ledger and retrieve it by code", func(t *testing.T) {
 		name := faker.Name()
 		code := uint32(rand.Intn(65535))
 		ledger, err := client.CreateLedger(ctx, &pacioliv1.CreateLedgerRequest{
@@ -118,6 +118,14 @@ func TestPacioliService(s *testing.T) {
 
 		assert.Equal(t, name, ledger.Name)
 		assert.Equal(t, code, uint32(ledger.Code))
+
+		freshLedger, err := client.GetLedgerByCode(ctx, &pacioliv1.GetLedgerByCodeRequest{Code: code})
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, code, freshLedger.Code)
+		assert.Equal(t, name, freshLedger.Name)
+		assert.Equal(t, ledger.Id, freshLedger.Id)
 	})
 
 	s.Run("can create an account on a ledger", func(t *testing.T) {

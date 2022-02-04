@@ -45,6 +45,7 @@ type TransferFlags = tigerbeetleTypes.TransferFlags
 
 type Service interface {
 	GetLedger(ledgerID string) (*Ledger, error)
+	GetLedgerByCode(code uint16) (*Ledger, error)
 	CreateLedger(name string, code uint16) (*Ledger, error)
 	CreateAccounts(ledgerID string, args []CreateAccountArgs) ([]tigerbeetleTypes.EventResult, error)
 	GetAccounts(ledgerID string, accountIDs []string) ([]Account, error)
@@ -71,7 +72,7 @@ func (s *service) CreateLedger(name string, code uint16) (*Ledger, error) {
 	err = stmt.Stmt.Get(&ret, name, code)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"ledgers_code_key\"") {
-			return nil, ErrInvalidArg{Err: "Ledger Code must be unique."}
+			return nil, ErrDuplicate{Err: "Ledger exists."}
 		}
 		return nil, err
 	}
@@ -88,6 +89,24 @@ func (s service) GetLedger(id string) (*Ledger, error) {
 
 	var ledger Ledger
 	err = s.db.Get(&ledger, "SELECT * FROM ledgers WHERE id=$1 LIMIT 1", id)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound{
+				Err: "Ledger not found.",
+			}
+		default:
+			return nil, err
+		}
+	}
+
+	return &ledger, nil
+}
+
+// Will only return the ledger if it exists otherwise will return ErrNotFound.
+func (s service) GetLedgerByCode(code uint16) (*Ledger, error) {
+	var ledger Ledger
+	err := s.db.Get(&ledger, "SELECT * FROM ledgers WHERE code=$1 LIMIT 1", code)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

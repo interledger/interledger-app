@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/url"
 	"os"
 
@@ -14,7 +13,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-func Migrate(fs embed.FS) {
+func Migrate(fs *embed.FS) error {
 	serviceName := "pacioli"
 	baseConnString := os.Getenv("DB_URL")
 	if baseConnString == "" {
@@ -34,23 +33,25 @@ func Migrate(fs embed.FS) {
 		"/cockroach-certs/ca.crt",
 	)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	d, err := iofs.New(fs, "migrations")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	m, err := migrate.NewWithSourceInstance("iofs", d, connString)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// The expected behaviour is for it to return ErrNoChange
 	if err := m.Up(); err != migrate.ErrNoChange {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 // We read the ssl certs into memory and add them inline to the connection string.

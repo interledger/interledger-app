@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/status"
 
 	"gitlab.com/fynbos/pacioli/healthcheck"
-	ledger "gitlab.com/fynbos/pacioli/ledger"
+	_ledger "gitlab.com/fynbos/pacioli/ledger"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
-func NewServer(ps ledger.Service, hs healthcheck.Service) *grpc.Server {
+func NewServer(ps _ledger.Service, hs healthcheck.Service) *grpc.Server {
 	server := grpc.NewServer()
 	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{ledger: ps})
 	grpc_health_v1.RegisterHealthServer(server, hs)
@@ -25,7 +25,7 @@ func NewServer(ps ledger.Service, hs healthcheck.Service) *grpc.Server {
 
 type rpcServer struct {
 	pacioliv1.UnimplementedPacioliServiceServer
-	ledger ledger.Service
+	ledger _ledger.Service
 }
 
 func (s *rpcServer) CreateLedger(ctx context.Context, req *pacioliv1.CreateLedgerRequest) (*pacioliv1.Ledger, error) {
@@ -42,9 +42,32 @@ func (s *rpcServer) CreateLedger(ctx context.Context, req *pacioliv1.CreateLedge
 	}, nil
 }
 
+func (s *rpcServer) GetLedgerByCode(ctx context.Context, req *pacioliv1.GetLedgerByCodeRequest) (*pacioliv1.Ledger, error) {
+	code := req.GetCode()
+	if code > 65535 {
+		return nil, status.Error(codes.InvalidArgument, "Code must be a uint16.")
+	}
+
+	ledger, err := s.ledger.GetLedgerByCode(uint16(code))
+	if err != nil {
+		switch err.(type) {
+		case _ledger.ErrInvalidArg:
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, "Failed to get ledger.")
+		}
+	}
+
+	return &pacioliv1.Ledger{
+		Id:   ledger.ID,
+		Name: ledger.Name,
+		Code: uint32(ledger.Code),
+	}, nil
+}
+
 func (s *rpcServer) CreateAccount(ctx context.Context, req *pacioliv1.CreateAccountRequest) (*pacioliv1.Account, error) {
 	accountId := uuid.NewString()
-	errors, err := s.ledger.CreateAccounts(req.GetLedgerID(), []ledger.CreateAccountArgs{
+	errors, err := s.ledger.CreateAccounts(req.GetLedgerID(), []_ledger.CreateAccountArgs{
 		{
 			ID:   accountId,
 			Code: uint16(req.GetCode()),
@@ -53,7 +76,7 @@ func (s *rpcServer) CreateAccount(ctx context.Context, req *pacioliv1.CreateAcco
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
-		case ledger.ErrInvalidArg:
+		case _ledger.ErrInvalidArg:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, "Failed to create account.")
@@ -86,9 +109,9 @@ func (s *rpcServer) GetAccount(ctx context.Context, req *pacioliv1.GetAccountReq
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
-		case ledger.ErrInvalidArg:
+		case _ledger.ErrInvalidArg:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
-		case ledger.ErrNotFound:
+		case _ledger.ErrNotFound:
 			return nil, status.Error(codes.NotFound, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, "Failed to get account.")
@@ -113,16 +136,16 @@ func (s *rpcServer) GetAccount(ctx context.Context, req *pacioliv1.GetAccountReq
 // unopinionated and accept []byte.
 func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTransfersRequest) (*pacioliv1.CreateTransfersResponse, error) {
 	transfers := req.GetTransfers()
-	transferArgs := make([]ledger.CreateTransferArgs, len(transfers))
+	transferArgs := make([]_ledger.CreateTransferArgs, len(transfers))
 	for i, transfer := range transfers {
-		flags := ledger.TransferFlags{}
+		flags := _ledger.TransferFlags{}
 		if transfer.GetFlags() != nil {
 			flags.Linked = transfer.GetFlags().Linked
 			flags.Condition = transfer.GetFlags().Condition
 			flags.TwoPhaseCommit = transfer.GetFlags().TwoPhaseCommit
 		}
 
-		transferArgs[i] = ledger.CreateTransferArgs{
+		transferArgs[i] = _ledger.CreateTransferArgs{
 			ID:              transfer.GetId(),
 			Amount:          transfer.GetAmount(),
 			DebitAccountID:  transfer.GetDebitAccountId(),
@@ -135,7 +158,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	errors, err := s.ledger.CreateTransfers(req.GetLedgerID(), transferArgs)
 	if err != nil {
 		switch err.(type) {
-		case ledger.ErrInvalidArg:
+		case _ledger.ErrInvalidArg:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, "Failed to create transfer.")
@@ -159,7 +182,7 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 	transfers, err := s.ledger.GetTransfers(req.GetLedgerID(), req.GetTransferIDs())
 	if err != nil {
 		switch err.(type) {
-		case ledger.ErrInvalidArg:
+		case _ledger.ErrInvalidArg:
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, "Failed to get transfers.")
