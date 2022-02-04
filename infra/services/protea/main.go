@@ -171,6 +171,7 @@ func deployIngress(ctx *pulumi.Context) error {
 		Name:            "protea-mapping",
 		Hostname:        "*",
 		Prefix:          "/",
+		Rewrite:         "/",
 		Service:         "protea",
 		EnableWebsocket: true,
 	})

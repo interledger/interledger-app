@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/infra/services/cockroach"
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
+	"gitlab.com/fynbos/infra/services/mailhog"
 	"gitlab.com/fynbos/infra/services/protea"
 	"os"
 	"os/exec"
@@ -87,7 +88,13 @@ func main() {
 		)
 
 		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:      "ingress",
 			Hostname:  "dev.fynbos.dev",
+			TlsSecret: "tls-secret",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:      "mail",
+			Hostname:  "mail.fynbos.dev",
 			TlsSecret: "tls-secret",
 		}, pulumi.DependsOnInputs(ingressChart.Ready))
 		if err != nil {
@@ -116,6 +123,11 @@ func main() {
 			return err
 		}
 		err = kratos.DeployKratosIngress(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+
+		err = mailhog.DeployMailHog(ctx, "mail.fynbos.dev")
 		if err != nil {
 			return err
 		}
