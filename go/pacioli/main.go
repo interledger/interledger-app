@@ -6,20 +6,17 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/tigerbeetle_go"
 )
-
-const defaultPort = "8080"
 
 //go:embed migrations/**.*.sql
 var fs embed.FS
@@ -33,7 +30,12 @@ func main() {
 	command := args[1]
 	switch command {
 	case "start":
-		start()
+		args, err := cli.ParseStartArgs()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		start(args)
 	case "migrate":
 		migrations.Migrate(fs)
 	default:
@@ -41,43 +43,15 @@ func main() {
 	}
 }
 
-func start() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-	baseDbUrl := os.Getenv("DB_URL")
-	if baseDbUrl == "" {
-		baseDbUrl = "cockroach://pacioli@cockroachdb-public:26257/pacioli?sslmode=verify-full&max_conns=20&max_idle_conns=4"
-	}
-	tbUrl := os.Getenv("TB_URL")
-	if tbUrl == "" {
-		tbUrl = "tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"
-	}
-	// TODO: look up TB_URL IP using net package.
-	tbClusterID := os.Getenv("TB_CLUSTER_ID")
-	if tbClusterID == "" {
-		log.Fatalln("TigerBeetle cluster ID not specified.")
-	}
-
-	connString, err := migrations.InlineSslCreds(
-		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.pacioli.key",
-		"/cockroach-certs/client.pacioli.crt",
-		"/cockroach-certs/ca.crt",
-	)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	db, err := sqlx.Connect("postgres", connString)
+func start(args *cli.StartArgs) {
+	db, err := sqlx.Connect("postgres", args.DbConnectionString)
 	defer db.Close()
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	clusterID, err := (strconv.ParseUint(tbClusterID, 10, 32))
-	tbClient, err := tigerbeetle_go.NewClient(uint32(clusterID), []string{tbUrl})
+	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, []string{args.TbUrl})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -101,11 +75,11 @@ func start() {
 		log.Fatalln(err)
 	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", defaultPort))
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", args.Port))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("grpc server: 0.0.0.0:%s", defaultPort)
+	log.Printf("grpc server: 0.0.0.0:%s", args.Port)
 	server := rpc.NewServer(ls, hs)
 	err = server.Serve(listener)
 	if err != nil {
