@@ -7,6 +7,7 @@ WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
+COPY proto ./proto
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base as builder
