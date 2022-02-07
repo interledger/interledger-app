@@ -40,6 +40,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+		args.Fs = &fs
 
 		err = cli.Init(args)
 		if err != nil {
