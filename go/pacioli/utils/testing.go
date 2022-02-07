@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -98,8 +97,7 @@ func TruncateDb(ctx context.Context, db *sqlx.DB) error {
 
 type TigerBeetleContainer struct {
 	testcontainers.Container
-	URI     string
-	DataDir string
+	URI string
 }
 
 func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContainer, error) {
@@ -108,48 +106,21 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContai
 		TIGERBEETLE_DIR  = "/var/lib/tigerbeetle"
 	)
 
-	dataDir, err := ioutil.TempDir("", "tb")
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("Initializing TigerBeetle temporary data dir:" + dataDir)
-	initReq := testcontainers.ContainerRequest{
-		Image:        "tigerbeetle", // TODO: host image
-		ExposedPorts: []string{TIGERBEETLE_PORT},
-		WaitingFor:   wait.ForLog("info: initialized data file").WithPollInterval(1 * time.Second),
-		BindMounts: map[string]string{
-			TIGERBEETLE_DIR: dataDir,
-		},
-		Cmd: []string{
-			"init",
-			fmt.Sprintf("--cluster=%d", clusterID),
-			"--replica=0",
-			"--directory=" + TIGERBEETLE_DIR,
-		},
-	}
-	_, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: initReq,
-		Started:          true,
-	})
-	if err != nil {
-		return nil, err
-	}
+	initTbCommand := fmt.Sprintf("./tigerbeetle init --cluster=%d --replica=0 --directory=%s;", clusterID, TIGERBEETLE_DIR)
+	startTbCommand := fmt.Sprintf("./tigerbeetle start --cluster=%d --replica=0 --addresses=0.0.0.0:%s --directory=%s;", clusterID, TIGERBEETLE_PORT, TIGERBEETLE_DIR)
 
 	fmt.Println("Starting TigerBeetle test container.")
 	req := testcontainers.ContainerRequest{
-		Image:        "tigerbeetle", // TODO: host image
+		Image:        "donchangfoot/tigerbeetle", // TODO: host image
 		ExposedPorts: []string{TIGERBEETLE_PORT},
-		BindMounts: map[string]string{
-			TIGERBEETLE_DIR: dataDir,
+		WaitingFor:   wait.ForLog(fmt.Sprintf("init")).WithPollInterval(1 * time.Second),
+		Entrypoint: []string{
+			"/bin/bash",
 		},
-		WaitingFor: wait.ForLog(fmt.Sprintf("info: cluster=%d replica=0: listening on 0.0.0.0:3000", clusterID)).WithPollInterval(1 * time.Second),
+		Privileged: true,
 		Cmd: []string{
-			"start",
-			fmt.Sprintf("--cluster=%d", clusterID),
-			"--replica=0",
-			"--addresses=0.0.0.0:" + TIGERBEETLE_PORT,
-			"--directory=" + TIGERBEETLE_DIR,
+			"-c",
+			fmt.Sprintf("%s %s", initTbCommand, startTbCommand),
 		},
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -160,10 +131,17 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContai
 		return nil, err
 	}
 
+	hostIP, err := container.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	mappedPort, err := container.MappedPort(ctx, TIGERBEETLE_PORT)
 	if err != nil {
 		return nil, err
 	}
 
-	return &TigerBeetleContainer{Container: container, URI: fmt.Sprintf("0.0.0.0:%s", mappedPort.Port()), DataDir: dataDir}, nil
+	connString := fmt.Sprintf("%s:%s", hostIP, mappedPort.Port())
+
+	return &TigerBeetleContainer{Container: container, URI: connString}, nil
 }
