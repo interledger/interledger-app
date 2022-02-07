@@ -20,6 +20,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+		pacioliRepo, err := ecr.NewPrivateRepository(ctx, "pacioli", accountID)
+		if err != nil {
+			return err
+		}
 
 		// used to store our custom docker image that has the aws credential helper.
 		dockerRepo, err := ecr.NewPrivateRepository(ctx, "docker", accountID)
@@ -32,7 +36,7 @@ func main() {
 				Context:    pulumi.String("./"),
 				Dockerfile: pulumi.String("./DockerfileEcr"),
 			},
-			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/docker:19.03.12"),
+			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/docker:20.10"),
 			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
 		})
 
@@ -57,6 +61,7 @@ func main() {
 		ctx.Export("dockerImage", dockerImage.ImageName)
 		ctx.Export("backendEcrRepoUri", backendEcrRepo.RepositoryUri)
 		ctx.Export("proteaEcrRepoUri", proteaRepo.RepositoryUri)
+		ctx.Export("pacioliRepoEcrRepoUri", pacioliRepo.RepositoryUri)
 		return nil
 	})
 }
