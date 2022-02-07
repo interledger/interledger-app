@@ -35,22 +35,32 @@ type service struct {
 
 func NewService(
 	identity _identity.Service,
-	pacioliLederID string,
+	pacioliLedgerCode uint16,
 	pacioliClient pacioliv1.PacioliServiceClient,
 ) (Service, error) {
-	if pacioliLederID == "" {
-		return nil, &ErrInvalidArgument{Err: "Pacioli ledger ID is required."}
-	}
 	if identity == nil {
 		return nil, &ErrInvalidArgument{Err: "Identity is required."}
 	}
 	if pacioliClient == nil {
 		return nil, &ErrInvalidArgument{Err: "Pacioli client is required."}
 	}
+	// we do not use 0 so it can't be confused with default value.
+	if pacioliLedgerCode == 0 {
+		return nil, &ErrInvalidArgument{Err: "Pacioli ledger code is required."}
+	}
+
+	// TODO: re-work configuration when grpc auth is introduced.
+	ctx := context.Background() // TODO: timeout
+	ledger, err := pacioliClient.GetLedgerByCode(ctx, &pacioliv1.GetLedgerByCodeRequest{
+		Code: uint32(pacioliLedgerCode),
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	return &service{
 		identity:        identity,
-		pacioliLedgerID: pacioliLederID,
+		pacioliLedgerID: ledger.Id,
 		pacioliClient:   pacioliClient,
 	}, nil
 }

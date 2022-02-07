@@ -11,14 +11,17 @@ import (
 	"github.com/go-chi/chi"
 	kratos "github.com/ory/kratos-client-go"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/graph"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/user"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 //go:embed migrations/*.sql
@@ -84,9 +87,22 @@ func start(args *cli.StartArgs) {
 	}
 	id = identity.NewLoggingService(id, logger)
 
+	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pClient := pacioliv1.NewPacioliServiceClient(conn)
+	as, err := accounts.NewService(id, args.UsdLedgerCode, pClient)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	as = accounts.NewLoggingService(as, logger)
+
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
 		Identity:                         id,
+		Account:                          as,
 		User:                             users,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,

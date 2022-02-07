@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"gitlab.com/fynbos/backend/migrations"
@@ -40,6 +41,8 @@ type StartArgs struct {
 	TbUrl              string
 	TbClusterID        string
 	KratosUrl          string
+	PacioliUrl         string
+	UsdLedgerCode      uint16
 	LogLevel           string
 	LogOutputPath      string
 }
@@ -73,6 +76,18 @@ func ParseStartArgs() (*StartArgs, error) {
 	if tbClusterID == "" {
 		return nil, errors.New("TigerBeetle cluster ID not specified.")
 	}
+	pacioliUrl := os.Getenv("PACIOLI_URL")
+	if pacioliUrl == "" {
+		pacioliUrl = "pacioli:443"
+	}
+	usdLedgerCodeString := os.Getenv("USD_LEDGER_CODE")
+	if usdLedgerCodeString == "" {
+		return nil, errors.New("USD ledger code not specified.")
+	}
+	usdLedgerCode, err := strconv.ParseUint(usdLedgerCodeString, 10, 16)
+	if err != nil {
+		return nil, errors.New("USD_LEDGER_CODE must be a uint16.")
+	}
 
 	connString, err := migrations.InlineSslCreds(
 		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
@@ -90,6 +105,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		TbUrl:              tbUrl,
 		TbClusterID:        tbClusterID,
 		KratosUrl:          kratosUrl,
+		PacioliUrl:         pacioliUrl,
+		UsdLedgerCode:      uint16(usdLedgerCode),
 		LogLevel:           logLevel,
 		LogOutputPath:      logOutputPath,
 	}, nil

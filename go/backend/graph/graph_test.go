@@ -54,8 +54,13 @@ func TestGraphql(s *testing.T) {
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()
 	pacioliLedgerID := uuid.NewString()
+	ledgerCode := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	as, err := accounts.NewService(is, pacioliLedgerID, pClient)
+	pClient.EXPECT().GetLedgerByCode(gomock.Any(), gomock.Any()).Return(&pacioliv1.Ledger{
+		Id:   pacioliLedgerID,
+		Code: uint32(ledgerCode),
+	}, nil).Times(1)
+	as, err := accounts.NewService(is, ledgerCode, pClient)
 	if err != nil {
 		s.Fatal(err)
 	}
