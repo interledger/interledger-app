@@ -124,6 +124,7 @@ func (self service) Get(id string) (*Identity, error) {
 }
 
 // Error set
+// TODO: wrapping errors instead to preserve stack.
 type ErrInvalidArgument struct {
 	Err string
 }

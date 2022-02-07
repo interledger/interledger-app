@@ -68,4 +68,18 @@ go test ./... -run "Organisation"
 ```
 
 We test the graphql server using the go test http server and use an actual graphql client to make requests against it.
+
+**Mocks**
+We use [`gomock`](https://github.com/golang/mock#running-mockgen) to generate mocks for the dependent services e.g. `pacioli`.
+
+To generate a mock:
+```sh
+# check for latest version
+go install github.com/golang/mock/mockgen@v1.6.0
+
+# from the fynbos root
+mockgen -source=./pacioli/v1/pacioli_grpc.pb.go -destination=./pacioli/v1/mock/mock_grpc.go
+```
+
+
 ### Gotchas
