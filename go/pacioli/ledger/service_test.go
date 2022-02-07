@@ -3,7 +3,6 @@ package pacioli
 import (
 	"context"
 	"math/rand"
-	"os"
 	"testing"
 	"time"
 
@@ -53,7 +52,6 @@ func TestLedgerService(s *testing.T) {
 
 	s.Cleanup(func() {
 		// tbClient.Deinit()
-		os.RemoveAll(tb.DataDir)
 		// tb.Container.Terminate(ctx)
 
 		db.Close()

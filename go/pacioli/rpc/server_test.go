@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
-	"os"
 	"testing"
 	"time"
 
@@ -87,7 +86,6 @@ func TestPacioliService(s *testing.T) {
 		fmt.Println("cleaning up")
 		server.Stop()
 		// tbClient.Deinit()
-		os.RemoveAll(tb.DataDir)
 		// tb.Container.Terminate(ctx)
 
 		db.Close()
