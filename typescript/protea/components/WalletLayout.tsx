@@ -221,7 +221,7 @@ const NavList: FC = ({ children }) => {
 
 const NavBar: FC = ({ children }) => {
   return (
-    <div className='sticky bottom-0 flex h-20 min-w-full select-none justify-between bg-container-primary p-4 pt-3 font-display text-xs sm:hidden'>
+    <div className='fixed bottom-0 flex h-20 min-w-full select-none justify-between bg-container-primary p-4 pt-3 font-display text-xs sm:hidden'>
       {children}
     </div>
   )
