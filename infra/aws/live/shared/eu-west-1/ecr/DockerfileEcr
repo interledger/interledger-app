@@ -1,11 +1,13 @@
-FROM ubuntu:20.04
+FROM ubuntu:21.10
 
 # Update to local SA mirror for building
 RUN sed -E -i 's#http://[^\s]*archive\.ubuntu\.com/ubuntu#http://ftp.leg.uct.ac.za/ubuntu#g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y curl gcc make
 
-# Install docker v19.03.15 which is required for our GL Runner
-RUN (curl -sSL https://releases.rancher.com/install-docker/19.03.15.sh | sh)
+# Install docker v20.10 which is required for our GL Runner
+RUN curl https://download.docker.com/linux/ubuntu/dists/impish/pool/stable/amd64/docker-ce-cli_20.10.12~3-0~ubuntu-impish_amd64.deb -o docker.deb \
+    && dpkg -i docker.deb \
+    && rm -f docker.deb
 
 # Install golang
 RUN curl -OL https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
