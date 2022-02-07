@@ -1,0 +1,42 @@
+include:
+  - //////.gitlab-refs.yaml
+
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    policy: pull
+    key:
+      files:
+        - go/go.mod
+    paths:
+      - .go/pkg/mod/
+
+.job_rules:
+  rules:
+    - changes:
+      - go/go.mod
+      - go/pacioli/*
+
+variables:
+  SERVICE_PATH: $CI_PROJECT_DIR/go/pacioli
+  IMAGE_HASH: $CI_COMMIT_SHORT_SHA
+  LD_LIBRARY_PATH: $LD_LIBRARY_PATH:./../../tigerbeetle_go
+
+build_pacioli:
+  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
+#  extends:
+#    - .go-cache
+#  needs:
+#    - go-mod
+  interruptible: true
+  script:
+    - mkdir -p ~/.docker
+    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+    - cd $SERVICE_PATH
+    - echo $(uname -r)
+    - make test
+    - make build IMAGE_HASH=${IMAGE_HASH}
+    - make push IMAGE_HASH=${IMAGE_HASH}
