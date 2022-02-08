@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/google/uuid"
@@ -16,6 +15,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"gitlab.com/fynbos/backend/migrations"
 )
 
 type CockroachDBContainer struct {
@@ -70,18 +70,10 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 		return nil, err
 	}
 
-	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../db/kodata")
+	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../migrations")
 	fmt.Println("Applying migrations from file://" + migrationsPath)
-
-	m, err := migrate.New(
-		"file://"+migrationsPath,
-		fmt.Sprintf("cockroach://root@%s:%s/backend?sslmode=disable", hostIP, mappedPort.Port()))
+	err = migrations.MigrateFromDir(connString, migrationsPath)
 	if err != nil {
-		return nil, err
-	}
-
-	// The expected behaviour is for it to return ErrNoChange
-	if err := m.Up(); err != nil {
 		return nil, err
 	}
 

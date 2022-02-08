@@ -64,22 +64,7 @@ func TestGraphql(s *testing.T) {
 
 	s.Run("create identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
-			req := graphql.NewRequest(`
-			    mutation ($input: IdentityInput!) {
-			        createIdentity (input: $input) {
-			            code
-			            success
-			            message
-			            identity {
-			            	id
-			            	email
-			            	legalName
-			            	country
-			            }
-			        }
-			    }
-			`)
-			req.Var("input", generated.IdentityInput{
+			req := createIdentityRequest(generated.IdentityInput{
 				LegalName: faker.Name(),
 				Country:   "USA",
 			})
@@ -100,22 +85,7 @@ func TestGraphql(s *testing.T) {
 				Email: faker.Email(),
 			}
 			name := faker.Name()
-			req := graphql.NewRequest(`
-			    mutation ($input: IdentityInput!) {
-			        createIdentity (input: $input) {
-			            code
-			            success
-			            message
-			            identity {
-			            	id
-			            	email
-			            	legalName
-			            	country
-			            }
-			        }
-			    }
-			`)
-			req.Var("input", generated.IdentityInput{
+			req := createIdentityRequest(generated.IdentityInput{
 				LegalName: name,
 				Country:   "USA",
 			})
@@ -154,22 +124,7 @@ func TestGraphql(s *testing.T) {
 				Email: faker.Email(),
 			}
 			name := faker.Name()
-			req := graphql.NewRequest(`
-			    mutation ($input: IdentityInput!) {
-			        createIdentity (input: $input) {
-			            code
-			            success
-			            message
-			            identity {
-			            	id
-			            	email
-			            	legalName
-			            	country
-			            }
-			        }
-			    }
-			`)
-			req.Var("input", generated.IdentityInput{
+			req := createIdentityRequest(generated.IdentityInput{
 				LegalName: name,
 				Country:   "USA",
 			})
@@ -192,16 +147,7 @@ func TestGraphql(s *testing.T) {
 
 	s.Run("get identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
-			req := graphql.NewRequest(`
-			    query {
-			        identity {
-			            id
-			            legalName
-			            email
-			            country
-			        }
-			    }
-			`)
+			req := getIdentityRequest()
 			_user.ActingAs(req, nil)
 
 			var respData map[string]identity.Identity
@@ -218,16 +164,7 @@ func TestGraphql(s *testing.T) {
 				ID:    uuid.New().String(),
 				Email: faker.Name(),
 			}
-			req := graphql.NewRequest(`
-			    query {
-			        identity {
-			            id
-			            legalName
-			            email
-			            country
-			        }
-			    }
-			`)
+			req := getIdentityRequest()
 			_user.ActingAs(req, user)
 
 			var respData map[string]identity.Identity
@@ -252,16 +189,7 @@ func TestGraphql(s *testing.T) {
 			if err != nil {
 				tt.Fatal(err)
 			}
-			req := graphql.NewRequest(`
-			    query {
-			        identity {
-			            id
-			            legalName
-			            email
-			            country
-			        }
-			    }
-			`)
+			req := getIdentityRequest()
 			_user.ActingAs(req, user)
 
 			var respData map[string]identity.Identity
@@ -276,4 +204,50 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, response.ID, id.ID)
 		})
 	})
+}
+
+func createIdentityRequest(input generated.IdentityInput) *graphql.Request {
+	req := graphql.NewRequest(`
+			    mutation ($input: IdentityInput!) {
+			        createIdentity (input: $input) {
+			            code
+			            success
+			            message
+			            identity {
+			            	id
+			            	email
+			            	legalName
+			            	country
+			            }
+			        }
+			    }
+			`)
+	req.Var("input", input)
+
+	return req
+}
+
+func getIdentityRequest() *graphql.Request {
+	return graphql.NewRequest(`
+			    query {
+			        identity {
+			            id
+			            legalName
+			            email
+			            country
+			        }
+			    }
+			`)
+}
+
+func getAccountRequest() *graphql.Request {
+	return graphql.NewRequest(`
+			    query {
+			        account {
+			            id
+			            balance
+			            asset
+			        }
+			    }
+			`)
 }
