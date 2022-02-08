@@ -2,6 +2,10 @@ package main
 
 import (
 	b64 "encoding/base64"
+	"errors"
+	"os/exec"
+	"strings"
+
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -142,6 +146,12 @@ func main() {
 			return err
 		}
 
+		ledgerCodes := pacioli.LocalClusterLedgerCodes()
+		backendLedgerCode, present := ledgerCodes["backend-usd"]
+		if !present {
+			return errors.New("Ledger code for backend-usd does not exist.")
+		}
+
 		beCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
 			Issuer:    "ca-issuer",
 			Namespace: "default",
@@ -151,9 +161,10 @@ func main() {
 			return err
 		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo: ecrRepo,
-			Cert:      beCert,
-			ImageTag:  hash,
+			ImageRepo:     ecrRepo,
+			Cert:          beCert,
+			ImageTag:      hash,
+			UsdLedgerCode: backendLedgerCode,
 		})
 		if err != nil {
 			return err

@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"strconv"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
@@ -11,9 +13,10 @@ import (
 )
 
 type DeployBackendArgs struct {
-	Cert      *apiextensions.CustomResource
-	ImageRepo string
-	ImageTag  string
+	Cert          *apiextensions.CustomResource
+	ImageRepo     string
+	ImageTag      string
+	UsdLedgerCode uint16
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -30,7 +33,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.UsdLedgerCode)
 	if err != nil {
 		return err
 	}
@@ -67,7 +70,13 @@ func deployService(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource) error {
+func deployDeployment(
+	ctx *pulumi.Context,
+	imageRepo string,
+	imageTag string,
+	cert *apiextensions.CustomResource,
+	usdLedgerCode uint16,
+) error {
 	_, err := appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -135,6 +144,10 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 									Name:  pulumi.String("DB_URL"),
 									Value: pulumi.String("cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TB_CLUSTER_ID"),
+									Value: pulumi.String("0"),
+								}
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -185,6 +198,24 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("LOG_LEVEL"),
 									Value: pulumi.String("info"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("USD_LEDGER_CODE"),
+									Value: pulumi.String(strconv.Itoa(int(usdLedgerCode))),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("PACIOLI_URL"),
+									Value: pulumi.String("pacioli:443"),
+								},
+								,
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TB_CLUSTER_ID"),
+									Value: pulumi.String("0"),
+								},
+								,
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TB_URL"),
+									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local"),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
