@@ -1,0 +1,96 @@
+package cli
+
+import (
+	"errors"
+	"log"
+	"os"
+	"strings"
+
+	"gitlab.com/fynbos/backend/migrations"
+)
+
+type MigrationArgs struct {
+	ConnectionString string
+}
+
+func ParseMigrationArgs() (*MigrationArgs, error) {
+	baseDbUrl := os.Getenv("DB_URL")
+	if baseDbUrl == "" {
+		baseDbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"
+	}
+
+	connString, err := migrations.InlineSslCreds(
+		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
+		"/cockroach-certs/client.backend.key",
+		"/cockroach-certs/client.backend.crt",
+		"/cockroach-certs/ca.crt",
+	)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return &MigrationArgs{
+		ConnectionString: connString,
+	}, nil
+}
+
+type StartArgs struct {
+	Port               string
+	DbConnectionString string
+	TbUrl              string
+	TbClusterID        string
+	KratosUrl          string
+	LogLevel           string
+	LogOutputPath      string
+}
+
+func ParseStartArgs() (*StartArgs, error) {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	baseDbUrl := os.Getenv("DB_URL")
+	if baseDbUrl == "" {
+		baseDbUrl = "cockroach://pacioli@cockroachdb-public:26257/pacioli?sslmode=verify-full&max_conns=20&max_idle_conns=4"
+	}
+	kratosUrl := os.Getenv("KRATOS_URL")
+	if kratosUrl == "" {
+		kratosUrl = "http://localhost:4433"
+	}
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
+	}
+	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
+	if logOutputPath == "" {
+		logOutputPath = "stderr"
+	}
+	tbUrl := os.Getenv("TB_URL")
+	if tbUrl == "" {
+		tbUrl = "tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"
+	}
+	tbClusterID := os.Getenv("TB_CLUSTER_ID")
+	if tbClusterID == "" {
+		return nil, errors.New("TigerBeetle cluster ID not specified.")
+	}
+
+	connString, err := migrations.InlineSslCreds(
+		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
+		"/cockroach-certs/client.backend.key",
+		"/cockroach-certs/client.backend.crt",
+		"/cockroach-certs/ca.crt",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &StartArgs{
+		Port:               port,
+		DbConnectionString: connString,
+		TbUrl:              tbUrl,
+		TbClusterID:        tbClusterID,
+		KratosUrl:          kratosUrl,
+		LogLevel:           logLevel,
+		LogOutputPath:      logOutputPath,
+	}, nil
+}

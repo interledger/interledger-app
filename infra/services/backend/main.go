@@ -124,30 +124,32 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 						},
 					},
 					ServiceAccountName: pulumi.String("backend"),
-					//InitContainers: corev1.ContainerArray{
-					//	&corev1.ContainerArgs{
-					//		Name:            pulumi.String("init-db"),
-					//		Image: pulumi.Sprintf("%s/backend", imageRepo),
-					//		ImagePullPolicy: pulumi.String("Always"),
-					//		Env: corev1.EnvVarArray{
-					//			&corev1.EnvVarArgs{
-					//				Name:  pulumi.String("DB_URL"),
-					//				Value: pulumi.String("cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"),
-					//			},
-					//		},
-					//		VolumeMounts: corev1.VolumeMountArray{
-					//			&corev1.VolumeMountArgs{
-					//				Name:      pulumi.String("cockroach-certs"),
-					//				MountPath: pulumi.String("/cockroach-certs"),
-					//			},
-					//		},
-					//	},
-					//},
+					InitContainers: corev1.ContainerArray{
+						&corev1.ContainerArgs{
+							Name:            pulumi.String("backend-migrations"),
+							Image:           pulumi.Sprintf("%s/backend:%s", imageRepo, imageTag),
+							ImagePullPolicy: pulumi.String("Always"),
+							Args:            pulumi.StringArray{pulumi.String("migrate")},
+							Env: corev1.EnvVarArray{
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("DB_URL"),
+									Value: pulumi.String("cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"),
+								},
+							},
+							VolumeMounts: corev1.VolumeMountArray{
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("cockroach-certs"),
+									MountPath: pulumi.String("/cockroach-certs"),
+								},
+							},
+						},
+					},
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:            pulumi.String("backend"),
 							Image:           pulumi.Sprintf("%s/backend:%s", imageRepo, imageTag),
 							ImagePullPolicy: pulumi.String("Always"),
+							Args:            pulumi.StringArray{pulumi.String("start")},
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{
 									ContainerPort: pulumi.Int(8080),

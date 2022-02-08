@@ -1,10 +1,10 @@
 package main
 
 import (
+	"embed"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -14,54 +14,50 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gitlab.com/fynbos/backend/db/utils"
+	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/graph"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/user"
 )
 
-const defaultPort = "8080"
+//go:embed migrations/*.sql
+var fs embed.FS
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-	baseDbUrl := os.Getenv("DB_URL")
-	if baseDbUrl == "" {
-		baseDbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"
-	}
-	kratosUrl := os.Getenv("KRATOS_URL")
-	if kratosUrl == "" {
-		kratosUrl = "http://localhost:4433"
-	}
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "" {
-		logLevel = "info"
-	}
-	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
-	if logOutputPath == "" {
-		logOutputPath = "stderr"
-	}
-	connString, err := utils.InlineSslCreds(
-		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.backend.key",
-		"/cockroach-certs/client.backend.crt",
-		"/cockroach-certs/ca.crt",
-	)
-	if err != nil {
-		log.Fatalln(err)
+	if len(os.Args) < 2 {
+		log.Fatalln("Expected `start` or `migrate`.")
 	}
 
-	db, err := sqlx.Connect("postgres", connString)
+	command := os.Args[1]
+	switch command {
+	case "migrate":
+		args, err := cli.ParseMigrationArgs()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+	case "start":
+		args, err := cli.ParseStartArgs()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		start(args)
+	default:
+		log.Fatalln("Unknown command:", command)
+	}
+}
+
+func start(args *cli.StartArgs) {
+	db, err := sqlx.Connect("postgres", args.DbConnectionString)
 	defer db.Close()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	cfg := zap.NewProductionConfig()
-	cfg.Level.UnmarshalText([]byte(logLevel))
-	cfg.OutputPaths = []string{logOutputPath}
+	cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	cfg.OutputPaths = []string{args.LogOutputPath}
 	logger, err := cfg.Build()
 	if err != nil {
 		log.Fatalln(err)
@@ -70,7 +66,7 @@ func main() {
 	configuration := kratos.NewConfiguration()
 	configuration.Servers = kratos.ServerConfigurations{
 		{
-			URL:         kratosUrl,
+			URL:         args.KratosUrl,
 			Description: "Dev Kratos",
 		},
 	}
@@ -108,6 +104,6 @@ func main() {
 		w.WriteHeader(200)
 	}))
 
-	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)
+	log.Fatal(http.ListenAndServe(":"+args.Port, router))
 }
