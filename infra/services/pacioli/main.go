@@ -1,6 +1,8 @@
 package pacioli
 
 import (
+	"strconv"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
@@ -13,10 +15,11 @@ import (
 const name = "pacioli"
 
 type DeployPacioliArgs struct {
-	Cert      *apiextensions.CustomResource
-	ImageRepo string
-	ImageTag  string
-	Namespace string
+	Cert              *apiextensions.CustomResource
+	ImageRepo         string
+	ImageTag          string
+	Namespace         string
+	BackendLedgerCode uint16
 }
 
 func DeployPacioli(ctx *pulumi.Context, args *DeployPacioliArgs) error {
@@ -35,7 +38,7 @@ func DeployPacioli(ctx *pulumi.Context, args *DeployPacioliArgs) error {
 		return err
 	}
 
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.BackendLedgerCode)
 	if err != nil {
 		return err
 	}
@@ -82,7 +85,7 @@ func deployService(ctx *pulumi.Context) error {
 		Spec: &corev1.ServiceSpecArgs{
 			Ports: corev1.ServicePortArray{
 				&corev1.ServicePortArgs{
-					Port:       pulumi.Int(80),
+					Port:       pulumi.Int(443), // default grpc port.
 					TargetPort: pulumi.Int(8080),
 					Name:       pulumi.String("http"),
 				},
@@ -154,7 +157,7 @@ func deployRbac(ctx *pulumi.Context, namespace string) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource) error {
+func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource, backendLedgerCode uint16) error {
 	_, err := appsv1.NewDeployment(ctx, name+"-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -213,7 +216,7 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 					ServiceAccountName: pulumi.String(name),
 					InitContainers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
-							Name:            pulumi.String(name + "-migrations"),
+							Name:            pulumi.String(name + "-init"),
 							Image:           pulumi.Sprintf("%s/%s:%s", imageRepo, name, imageTag),
 							ImagePullPolicy: pulumi.String("Always"),
 							Env: corev1.EnvVarArray{
@@ -221,8 +224,20 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 									Name:  pulumi.String("DB_URL"),
 									Value: pulumi.Sprintf("cockroach://%s@cockroachdb-public:26257/%s?sslmode=verify-full&max_conns=20&max_idle_conns=4", name, name),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TB_URL"),
+									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TB_CLUSTER_ID"),
+									Value: pulumi.String("0"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("BACKEND_LEDGER_CODE"),
+									Value: pulumi.String(strconv.Itoa(int(backendLedgerCode))),
+								},
 							},
-							Args: pulumi.StringArray{pulumi.String("migrate")},
+							Args: pulumi.StringArray{pulumi.String("init")},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
 									Name:      pulumi.String("cockroach-certs"),
@@ -265,6 +280,10 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 								FailureThreshold: pulumi.Int(2),
 							},
 							Env: corev1.EnvVarArray{
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("PORT"),
+									Value: pulumi.String("8080"),
+								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("DB_URL"),
 									Value: pulumi.Sprintf("cockroach://%s@cockroachdb-public:26257/%s?sslmode=verify-full&max_conns=20&max_idle_conns=4", name, name),
