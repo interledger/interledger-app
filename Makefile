@@ -19,7 +19,17 @@ kindpulumiup:
 
 kindpulumidown:
 	@echo "Deleting pulumi"
-	rm -r ./fynbos/.pulumi
+	rm -r ./.fynbos/.pulumi
+
+kindpulumi:
+	@echo "Running pulumi $(CMD) against Kind cluster"
+	mkdir -p .fynbos
+	PULUMI_K8S_SUPPRESS_HELM_HOOK_WARNINGS=true PULUMI_CONFIG_PASSPHRASE= PULUMI_BACKEND_URL="file://$(current_dir)/.fynbos/" \
+	pulumi $(CMD) -y -s local -C ./infra/clusters/local/
+
+buildgo:
+	DOCKER_BUILDKIT=1 docker build $(current_dir)/go -f $(current_dir)/go/$(target)/Dockerfile -t localhost:5005/$(target):latest
+	docker push localhost:5005/$(target):latest
 
 tiltup:
 	@echo "Running tilt"

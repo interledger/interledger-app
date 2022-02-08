@@ -110,7 +110,8 @@ func statefulSet(ctx *pulumi.Context, isLocal bool) error {
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{
 									ContainerPort: pulumi.Int(8080),
-									Name:          pulumi.String("http"),
+									Name:          pulumi.String("tcp"),
+									Protocol:      pulumi.String("TCP"),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
@@ -187,9 +188,10 @@ func service(ctx *pulumi.Context) error {
 		Spec: &corev1.ServiceSpecArgs{
 			Ports: corev1.ServicePortArray{
 				&corev1.ServicePortArgs{
-					Port:       pulumi.Int(80),
+					Port:       pulumi.Int(80), // TODO: see why port 80 gives `connection refused`
 					TargetPort: pulumi.Int(8080),
-					Name:       pulumi.String("http"),
+					Name:       pulumi.String("tcp"),
+					Protocol:   pulumi.String("TCP"),
 				},
 			},
 			ClusterIP: pulumi.String("None"),

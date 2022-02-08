@@ -226,7 +226,7 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_URL"),
-									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"),
+									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local"),
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_CLUSTER_ID"),
@@ -262,7 +262,7 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 								Exec: &corev1.ExecActionArgs{
 									Command: pulumi.StringArray{
 										pulumi.String("/dist/grpc_health_probe"),
-										pulumi.String("-addr=8080"),
+										pulumi.String("-addr=:8080"),
 										pulumi.String("-service=pacioli"),
 									},
 								},
@@ -290,7 +290,7 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_URL"),
-									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"),
+									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local"),
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_CLUSTER_ID"),
