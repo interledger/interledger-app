@@ -59,7 +59,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, []string{args.TbUrl})
+	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls)
 	if err != nil {
 		log.Fatalln(err)
 	}

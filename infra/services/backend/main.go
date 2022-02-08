@@ -147,7 +147,7 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_CLUSTER_ID"),
 									Value: pulumi.String("0"),
-								}
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -207,12 +207,10 @@ func deployDeployment(
 									Name:  pulumi.String("PACIOLI_URL"),
 									Value: pulumi.String("pacioli:443"),
 								},
-								,
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_CLUSTER_ID"),
 									Value: pulumi.String("0"),
 								},
-								,
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_URL"),
 									Value: pulumi.String("tigerbeetle-0.tigerbeetle.default.svc.cluster.local"),
