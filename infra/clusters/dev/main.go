@@ -20,8 +20,6 @@ import (
 	"gitlab.com/fynbos/infra/services/protea"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
 	"os"
-	"os/exec"
-	"strings"
 )
 
 func main() {
