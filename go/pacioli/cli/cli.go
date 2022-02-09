@@ -185,7 +185,7 @@ func parseTburl(url string) ([]string, error) {
 	}
 	split := strings.Split(url, ":")
 	host := split[0]
-	port := ":80"
+	port := ":8080"
 	if len(split) > 1 {
 		port = split[1]
 	}

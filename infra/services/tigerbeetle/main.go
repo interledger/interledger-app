@@ -188,7 +188,7 @@ func service(ctx *pulumi.Context) error {
 		Spec: &corev1.ServiceSpecArgs{
 			Ports: corev1.ServicePortArray{
 				&corev1.ServicePortArgs{
-					Port:       pulumi.Int(80), // TODO: see why port 80 gives `connection refused`
+					Port:       pulumi.Int(8080), // TODO: see why port 80 gives `connection refused`
 					TargetPort: pulumi.Int(8080),
 					Name:       pulumi.String("tcp"),
 					Protocol:   pulumi.String("TCP"),
