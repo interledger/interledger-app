@@ -144,7 +144,7 @@ func main() {
 			return err
 		}
 
-		ledgerCodes := pacioli.LocalClusterLedgerCodes()
+		ledgerCodes := pacioli.DevClusterLedgerCodes()
 		backendLedgerCode, present := ledgerCodes["backend-usd"]
 		if !present {
 			return errors.New("Ledger code for backend-usd does not exist.")
@@ -184,10 +184,11 @@ func main() {
 			return err
 		}
 		err = pacioli.DeployPacioli(ctx, &pacioli.DeployPacioliArgs{
-			Cert:      pcCert,
-			ImageRepo: ecrRepo,
-			ImageTag:  hash,
-			Namespace: "default",
+			Cert:              pcCert,
+			ImageRepo:         ecrRepo,
+			ImageTag:          hash,
+			Namespace:         "default",
+			BackendLedgerCode: backendLedgerCode,
 		})
 		if err != nil {
 			return err
