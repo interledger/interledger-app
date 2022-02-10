@@ -21,26 +21,25 @@ COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN yarn build
 
-## Production image, copy all the files and run next
+## Production image, copy all the files and run remix
 FROM node:alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+RUN adduser -S remix -u 1001
 
-# You only need to copy next.config.js if you are NOT using the default configuration
-# COPY --from=builder /app/next.config.js ./
+# You only need to copy remix.config.js if you are NOT using the default configuration
+# COPY --from=builder /app/remix.config.js ./
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=remix:nodejs /app/build ./build
+COPY --from=builder --chown=remix:nodejs /app/public/build ./public/build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-USER nextjs
+USER remix
 
 EXPOSE 3000
-
-ENV NEXT_TELEMETRY_DISABLED 1
 
 CMD ["yarn", "start"]
