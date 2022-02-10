@@ -1,6 +1,3 @@
-const defaultTheme = require('tailwindcss/defaultTheme')
-const colors = require('tailwindcss/colors')
-
 // This function ensures tailwind opacity utilities work with tokens.
 function withOpacity(variableName) {
   return ({ opacityValue }) => {
@@ -13,7 +10,7 @@ function withOpacity(variableName) {
 
 module.exports = {
   mode: 'jit',
-  purge: ['./pages/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  content: ['./app/routes/**/*.{ts,tsx}', './app/components/**/*.{ts,tsx}'],
   darkMode: 'media',
   theme: {
     fontFamily: {
@@ -21,35 +18,10 @@ module.exports = {
       sans: ['Inter'],
       mono: ['"Overpass Mono"', '"Source Code Pro"']
     },
-    colors: {
-      transparent: 'transparent',
-      current: 'currentColor',
-      white: colors.white,
-      black: colors.black,
-      gray: colors.gray,
-      red: colors.red,
-      orange: colors.orange,
-      yellow: colors.yellow,
-      green: colors.emerald,
-      sky: colors.sky,
-      blue: colors.blue,
-      indigo: colors.indigo,
-      purple: colors.purple,
-      pink: colors.pink
-    },
     extend: {
       colors: {
         primary: '#F35167',
-        secondary: '#7DD043',
-        'secondary-dark': '#4F971C',
-
-        // for syntax highlighting TODO: Update colors to match palette
-        teal: colors.cyan,
-        fuchsia: colors.fuchsia,
-        lime: colors.lime,
-        sky: colors.sky,
-        rose: colors.rose,
-        emerald: colors.emerald
+        secondary: '#7DD043'
       },
       // Token colours
       textColor: {
@@ -141,13 +113,6 @@ module.exports = {
           ]
         }
       })
-    }
-  },
-  variants: {
-    extend: {
-      textColor: ['selection'],
-      backgroundColor: ['selection'],
-      ringColor: ['focus-visible']
     }
   },
   plugins: [

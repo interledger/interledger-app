@@ -25,21 +25,16 @@ yarn format # Format with prettier
 
 ### Learn more
 
-- [Next.js Documentation](https://nextjs.org/docs)
+- [Remix.run Documentation](https://remix.run/docs/en/v1)
 - [Tailwind documentation](https://tailwindcss.com/docs)
 
 ## Deployment
 
-Currently deploys to Vercel.
+TODO: describe deployment.
 
-Preview branches deploy to
-[protea-don-fynbosdev.vercel.app](https://protea-don-fynbosdev.vercel.app)
-(i.e., not main).
+## Routes
 
-## Pages
-
-Any file in `pages` with the `page.tsx`, or `blog.mdx` extension will be
-rendered as a page by Next.
+Any file in `app/routes` will be rendered as a page by Remix.
 
 ## Blog
 
@@ -54,7 +49,7 @@ rendered appropriately for you. To achieve this place the following code snippet
 at the top of the file:
 
 ```typescript jsx
-import { BlogLayout } from 'components'
+import { BlogLayout } from '~/components'
 import { cairin } from '../authors'
 export default ({ children }) => <BlogLayout meta={meta} children={children} />
 

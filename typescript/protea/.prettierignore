@@ -1,6 +1,7 @@
 .pnp.cjs
-.next
 public
+public/build
+.cache
 generated
 dist
 yarn.lock
@@ -15,10 +16,6 @@ yarn.lock
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
 # production
 /build
 
@@ -32,6 +29,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env.local
 .env.development.local
 .env.test.local
