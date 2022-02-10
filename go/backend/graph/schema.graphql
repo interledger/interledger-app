@@ -3,7 +3,7 @@ type Query{
 }
 
 type Mutation {
-  createIdentity(input: IdentityInput!): CreateIdentityMutationResponse!
+  createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
 }
 
 interface MutationResponse {
@@ -14,13 +14,23 @@ interface MutationResponse {
 
 type Identity {
   id: ID!
-  legalName: String!
-  country: String!
+  firstName: String!
+  lastName: String!
+  mobileNumber: String!
   email: String!
+  dateOfBirth: String!
+  address: [String]!
+  state: String!
+  city: String!
+  postalCode: String!
+  country: String!
+  taxIdNumber: String!
 }
 
-input IdentityInput {
-  legalName: String!
+input CreateIdentityInput {
+  firstName: String!
+  lastName: String!
+  mobileNumber: String!
   country: String!
 }
 

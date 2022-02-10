@@ -6,14 +6,14 @@ package graph
 import (
 	"context"
 
-	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
 )
 
-func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.IdentityInput) (*generated.CreateIdentityMutationResponse, error) {
+func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.CreateIdentityInput) (*generated.CreateIdentityMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -23,9 +23,12 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.I
 	var identity *_identity.Identity
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
 		_identity, err := r.IdentityService.Create(ctx, tx, _identity.CreateArgs{
-			Country:   input.Country,
-			LegalName: input.LegalName,
-			User:      user,
+			ID:           user.ID,
+			FirstName:    input.FirstName,
+			LastName:     input.LastName,
+			MobileNumber: input.MobileNumber,
+			Country:      input.Country,
+			Email:        user.Email,
 		})
 		if err != nil {
 			return err
