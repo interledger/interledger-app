@@ -1,3 +1,12 @@
+.pnp.cjs
+.next
+public
+public/build
+.cache
+generated
+dist
+yarn.lock
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -14,9 +23,6 @@
 
 # production
 /build
-/public/build
-/.cache
-/app/styles
 
 # misc
 .DS_Store
@@ -37,13 +43,8 @@ yarn-error.log*
 # vercel
 .vercel
 
-# yarn 2 (Not zero installs)
 .yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
 .pnp.*
+*.cjs
 
-.idea/
+Tiltfile
