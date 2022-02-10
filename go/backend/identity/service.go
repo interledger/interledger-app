@@ -3,20 +3,60 @@ package identity
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/user"
+	"github.com/lib/pq"
+	_country "gitlab.com/fynbos/backend/country"
 )
 
-// Model
+// DB Model
+type identity struct {
+	ID           string
+	FirstName    string `db:"first_name"`
+	LastName     string `db:"last_name"`
+	MobileNumber string `db:"mobile_number"`
+	Email        string
+	DateOfBirth  string `db:"date_of_birth"`
+	// Array of addresses as forms will generally have multiple lines to
+	// store the address. e.g. line1= street, line2=apartment building name and unit number.
+	Address    pq.StringArray
+	State      string
+	City       string
+	PostalCode string `db:"postal_code"`
+
+	// primary key of country
+	CountryID string `db:"country_id"`
+
+	TaxIDNumber string `db:"tax_id_number"`
+	Provider    string
+	ProviderID  string `db:"provider_id"`
+	CreatedAt   string `db:"created_at"`
+	UpdatedAt   string `db:"updated_at"`
+}
+
+// Application Model
 type Identity struct {
-	ID        string
-	Email     string
-	Country   string
-	LegalName string `db:"legal_name"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
+	ID           string
+	FirstName    string
+	LastName     string
+	MobileNumber string
+	Email        string
+	DateOfBirth  string
+	// Array of addresses as forms will generally have multiple lines to
+	// store the address. e.g. line1= street, line2=apartment building name and unit number.
+	Address     []string
+	State       string
+	City        string
+	PostalCode  string
+	Country     string
+	TaxIDNumber string
+	Provider    string
+	ProviderID  string
+	CreatedAt   string
+	UpdatedAt   string
 }
 
 type Service interface {
@@ -24,57 +64,77 @@ type Service interface {
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error)
 }
 
-type service struct{}
+type service struct {
+	country   _country.Service
+	validator *validator.Validate
+}
 
-func NewService() (Service, error) {
-	return &service{}, nil
+func NewService(cs _country.Service) (Service, error) {
+	return &service{
+		country:   cs,
+		validator: validator.New(),
+	}, nil
 }
 
 type CreateArgs struct {
-	Country   string
-	LegalName string
-	User      *user.User
+	ID           string `validate:"required,uuid"`
+	FirstName    string `validate:"required"`
+	LastName     string `validate:"required"`
+	MobileNumber string `validate:"required"` // TODO: decide on format
+	Email        string `validate:"required,email"`
+	Country      string `validate:"required,iso3166_1_alpha2"`
 }
 
-func validateCreateArgs(args CreateArgs) error {
-	if args.User == nil {
-		return &ErrInvalidArgument{Err: "User is required."}
-	}
-
-	if args.User.ID == "" {
-		return &ErrInvalidArgument{Err: "User ID is required."}
-	}
-
-	if args.User.Email == "" {
-		return &ErrInvalidArgument{Err: "User Email is required."}
-	}
-
-	if args.LegalName == "" {
-		return &ErrInvalidArgument{Err: "LegalName is required."}
-	}
-
-	if args.Country == "" {
-		return &ErrInvalidArgument{Err: "Country is required."}
-	}
-
-	return nil
+// We can control what information is allowed to be logged from here.
+// TODO: decide what is sensitive information. Might be better to implement at Zap level?
+func (args CreateArgs) String() string {
+	return fmt.Sprintf("id=%s,firstName=%s,lastName=%s,mobileNum=%s,email=%s,country=%s",
+		args.ID,
+		args.FirstName,
+		args.LastName,
+		args.MobileNumber,
+		args.Email,
+		args.Country,
+	)
 }
 
 // There is a 1-1 mapping between the identity and user stored in Kratos. The
 // Kratos ID is used as the identity ID.
 func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error) {
-	err := validateCreateArgs(args)
+	err := self.validator.Struct(args)
 	if err != nil {
 		return nil, err
 	}
 
-	var ret Identity
-	stmt, err := tx.PrepareNamed("INSERT INTO identities (id, legal_name, country, email) VALUES (:id, :legalname, :country, :email) RETURNING *")
+	country, err := self.country.GetByAlpha2(ctx, tx, args.Country)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		switch err.(type) {
+		case *_country.ErrNotFound:
+			return nil, &ErrInvalidArgument{Err: err.Error()}
+		default:
+			return nil, &ErrInternalError{Err: err.Error()}
+		}
 	}
 
-	err = stmt.Stmt.Get(&ret, args.User.ID, args.LegalName, args.Country, args.User.Email)
+	var identity identity
+	stmt, err := tx.PrepareNamed(`
+			INSERT INTO identities (id, first_name, last_name, mobile_number, email, country_id)
+			VALUES (:id, :first_name, :last_name, :mobile_number, :email, :country_id)
+			RETURNING *;
+		`)
+	if err != nil {
+		return nil, &ErrInternalError{Err: err.Error()}
+
+	}
+
+	err = stmt.Stmt.Get(&identity,
+		args.ID,
+		args.FirstName,
+		args.LastName,
+		args.MobileNumber,
+		args.Email,
+		country.ID,
+	)
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
 			return nil, &ErrDuplicate{Err: "Identity exists."}
@@ -82,7 +142,31 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 		return nil, &ErrInternalError{Err: err.Error()}
 	}
 
-	return &ret, nil
+	// crdb < v21.2.5 retrieves date as a timestamp.
+	// cut off the hour, day etc
+	parts := strings.Split(identity.DateOfBirth, "T")
+	dob := ""
+	if parts[0] != "0000-01-01" {
+		dob = parts[0]
+	}
+	return &Identity{
+		ID:           identity.ID,
+		FirstName:    identity.FirstName,
+		LastName:     identity.LastName,
+		MobileNumber: identity.MobileNumber,
+		Email:        identity.Email,
+		DateOfBirth:  dob,
+		Address:      identity.Address,
+		State:        identity.State,
+		City:         identity.City,
+		PostalCode:   identity.PostalCode,
+		Country:      country.Alpha_2,
+		TaxIDNumber:  identity.TaxIDNumber,
+		Provider:     identity.Provider,
+		ProviderID:   identity.ProviderID,
+		CreatedAt:    identity.CreatedAt,
+		UpdatedAt:    identity.UpdatedAt,
+	}, nil
 }
 
 func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error) {
@@ -90,8 +174,8 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 		return nil, &ErrInvalidArgument{Err: "ID is required."}
 	}
 
-	var ret Identity
-	err := tx.Get(&ret, "SELECT * FROM identities WHERE id=$1 LIMIT 1", id)
+	var identity identity
+	err := tx.Get(&identity, `SELECT * FROM identities WHERE id=$1 LIMIT 1`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, &ErrNotFound{Err: "Not found."}
@@ -100,7 +184,36 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 		return nil, &ErrInternalError{Err: err.Error()}
 	}
 
-	return &ret, nil
+	country, err := self.country.Get(ctx, tx, identity.CountryID)
+	if err != nil {
+		return nil, &ErrInternalError{Err: err.Error()}
+	}
+
+	// crdb < v21.2.5 retrieves date as a timestamp.
+	// cut off the hour, day etc
+	parts := strings.Split(identity.DateOfBirth, "T")
+	dob := ""
+	if parts[0] != "0000-01-01" {
+		dob = parts[0]
+	}
+	return &Identity{
+		ID:           identity.ID,
+		FirstName:    identity.FirstName,
+		LastName:     identity.LastName,
+		MobileNumber: identity.MobileNumber,
+		Email:        identity.Email,
+		DateOfBirth:  dob,
+		Address:      identity.Address,
+		State:        identity.State,
+		City:         identity.City,
+		PostalCode:   identity.PostalCode,
+		Country:      country.Alpha_2,
+		TaxIDNumber:  identity.TaxIDNumber,
+		Provider:     identity.Provider,
+		ProviderID:   identity.ProviderID,
+		CreatedAt:    identity.CreatedAt,
+		UpdatedAt:    identity.UpdatedAt,
+	}, nil
 }
 
 // Error set

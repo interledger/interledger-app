@@ -35,10 +35,9 @@ func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args Create
 		)
 	}(time.Now())
 
-	self.logger.Error(
+	self.logger.Debug(
 		"Creating identity.",
-		zap.String("legalName", args.LegalName),
-		zap.String("country", args.Country),
+		zap.Stringer("args", args),
 	)
 	return self.Service.Create(ctx, tx, args)
 }
