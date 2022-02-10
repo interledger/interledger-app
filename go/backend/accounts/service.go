@@ -3,9 +3,10 @@ package accounts
 import (
 	"context"
 	"database/sql"
-	"errors"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
@@ -29,12 +30,15 @@ type Service interface {
 
 type service struct {
 	identity        _identity.Service
+	country         _country.Service
+	validator       *validator.Validate
 	pacioliLedgerID string
 	pacioliClient   pacioliv1.PacioliServiceClient
 }
 
 func NewService(
 	identity _identity.Service,
+	country _country.Service,
 	pacioliLedgerCode uint16,
 	pacioliClient pacioliv1.PacioliServiceClient,
 ) (Service, error) {
@@ -60,14 +64,16 @@ func NewService(
 
 	return &service{
 		identity:        identity,
+		country:         country,
 		pacioliLedgerID: ledger.Id,
 		pacioliClient:   pacioliClient,
+		validator:       validator.New(),
 	}, nil
 }
 
 type CreateAccountArgs struct {
-	IdentityID string
-	Country    string // 3-letter ISO 4217 country code
+	IdentityID string `validate:"required,uuid"`
+	Country    string `validate:"iso3166_1_alpha2"`
 }
 
 // This will create the ledger account in Pacioli first and then inserts an account entry into
@@ -75,9 +81,13 @@ type CreateAccountArgs struct {
 // in Pacioli.
 // We create the Pacioli account first so that the account in CRDB will always have a Pacioli ID.
 func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error) {
-	currencyCode, err := currencyCode(args.Country)
+	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: err.Error()}
+	}
+	ctry, err := s.country.GetByAlpha2(ctx, tx, args.Country)
+	if err != nil {
+		return nil, &ErrInvalidArgument{Err: "Unknown or unsupported country: " + args.Country}
 	}
 	identity, err := s.identity.Get(ctx, tx, args.IdentityID)
 	// TODO: perhaps a global error set?
@@ -94,7 +104,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	// pacioli client must be configured with retries and exponential backoff at higher level.
 	ledgerAccount, err := s.pacioliClient.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
 		LedgerID: s.pacioliLedgerID,
-		Unit:     uint32(currencyCode), // grpc does not have uint16 natively
+		Unit:     uint32(ctry.NumericCode), // grpc does not have uint16 natively
 	})
 	if err != nil {
 		return nil, &ErrInternalError{Err: err.Error()}
@@ -148,18 +158,6 @@ func (s *service) GetByIdentityID(ctx context.Context, tx *sqlx.Tx, identityID s
 	ret.DebitsReserved = ledgerAccount.DebitsReserved
 
 	return &ret, nil
-}
-
-// This returns a u16 to match the TigerBeetle type.
-// This maps a 3 letter ISO 3166 code to ISO 4217 currency code.
-// Note countries without currency codes under ISO 4217 https://en.wikipedia.org/wiki/ISO_4217#Currencies_without_ISO_4217_currency_codes.
-func currencyCode(country string) (uint16, error) {
-	switch country {
-	case "USA":
-		return 840, nil
-	default:
-		return 0, errors.New("Unknown or unsupported country: " + country)
-	}
 }
 
 // Error set
