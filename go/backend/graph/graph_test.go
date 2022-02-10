@@ -18,6 +18,7 @@ import (
 
 	"gitlab.com/fynbos/backend/accounts"
 	_account "gitlab.com/fynbos/backend/accounts"
+	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
@@ -45,7 +46,8 @@ func TestGraphql(s *testing.T) {
 	db, err := sqlx.Connect("postgres", crdb.URI)
 	defer db.Close()
 
-	is, err := identity.NewService()
+	cs := _country.NewService()
+	is, err := identity.NewService(cs)
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -60,7 +62,7 @@ func TestGraphql(s *testing.T) {
 		Id:   pacioliLedgerID,
 		Code: uint32(ledgerCode),
 	}, nil).Times(1)
-	as, err := accounts.NewService(is, ledgerCode, pClient)
+	as, err := accounts.NewService(is, cs, ledgerCode, pClient)
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -87,10 +89,7 @@ func TestGraphql(s *testing.T) {
 
 	s.Run("create identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
-			req := createIdentityRequest(generated.IdentityInput{
-				LegalName: faker.Name(),
-				Country:   "USA",
-			})
+			req := createIdentityRequest(generateIdentityInput())
 			_user.ActingAs(req, nil)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
@@ -107,11 +106,8 @@ func TestGraphql(s *testing.T) {
 				ID:    uuid.New().String(),
 				Email: faker.Email(),
 			}
-			name := faker.Name()
-			req := createIdentityRequest(generated.IdentityInput{
-				LegalName: name,
-				Country:   "USA",
-			})
+			input := generateIdentityInput()
+			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
 			ledgerAccountID := uuid.NewString()
 			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
@@ -127,10 +123,18 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, "200", response.Code)
 			assert.Equal(tt, "Created account holder.", response.Message)
 			assert.Equal(tt, true, response.Success)
-			assert.Equal(tt, response.Identity.LegalName, name)
-			assert.Equal(tt, response.Identity.Country, "USA")
-			assert.Equal(tt, response.Identity.Email, user.Email)
-			assert.Equal(tt, response.Identity.ID, user.ID)
+			assert.Equal(tt, user.ID, response.Identity.ID)
+			assert.Equal(tt, input.FirstName, response.Identity.FirstName)
+			assert.Equal(tt, input.LastName, response.Identity.LastName)
+			assert.Equal(tt, input.MobileNumber, response.Identity.MobileNumber)
+			assert.Equal(tt, user.Email, response.Identity.Email)
+			assert.Equal(tt, input.Country, response.Identity.Country)
+			assert.Equal(tt, "", response.Identity.DateOfBirth)
+			assert.Equal(tt, []string{}, response.Identity.Address)
+			assert.Equal(tt, "", response.Identity.City)
+			assert.Equal(tt, "", response.Identity.State)
+			assert.Equal(tt, "", response.Identity.PostalCode)
+			assert.Equal(tt, "", response.Identity.TaxIDNumber)
 
 			var userIdentity *identity.Identity
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
@@ -145,10 +149,18 @@ func TestGraphql(s *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Equal(tt, userIdentity.LegalName, name)
-			assert.Equal(tt, userIdentity.Country, "USA")
-			assert.Equal(tt, userIdentity.Email, user.Email)
-			assert.Equal(tt, userIdentity.ID, user.ID)
+			assert.Equal(tt, user.ID, userIdentity.ID)
+			assert.Equal(tt, input.FirstName, userIdentity.FirstName)
+			assert.Equal(tt, input.LastName, userIdentity.LastName)
+			assert.Equal(tt, input.MobileNumber, userIdentity.MobileNumber)
+			assert.Equal(tt, user.Email, userIdentity.Email)
+			assert.Equal(tt, input.Country, userIdentity.Country)
+			assert.Equal(tt, "", userIdentity.DateOfBirth)
+			assert.Equal(tt, []string{}, userIdentity.Address)
+			assert.Equal(tt, "", userIdentity.City)
+			assert.Equal(tt, "", userIdentity.State)
+			assert.Equal(tt, "", userIdentity.PostalCode)
+			assert.Equal(tt, "", userIdentity.TaxIDNumber)
 
 			pClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id:              ledgerAccountID,
@@ -189,11 +201,8 @@ func TestGraphql(s *testing.T) {
 				ID:    uuid.NewString(),
 				Email: faker.Email(),
 			}
-			name := faker.Name()
-			req := createIdentityRequest(generated.IdentityInput{
-				LegalName: name,
-				Country:   "USA",
-			})
+			input := generateIdentityInput()
+			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
 			var respData map[string]generated.CreateIdentityMutationResponse
 			if err := client.Run(ctx, req, &respData); err != nil {
@@ -202,10 +211,8 @@ func TestGraphql(s *testing.T) {
 			response := respData["createIdentity"]
 			assert.Equal(tt, true, response.Success)
 
-			req.Var("input", generated.IdentityInput{
-				LegalName: name,
-				Country:   "ZAR",
-			})
+			additionalInput := generateIdentityInput(withCountry("ZA"))
+			req.Var("input", additionalInput)
 			err = client.Run(ctx, req, &respData)
 			assert.EqualError(tt, err, "graphql: Unable to process request.")
 		})
@@ -245,54 +252,66 @@ func TestGraphql(s *testing.T) {
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
-				Email: faker.Name(),
+				Email: faker.Email(),
 			}
-			var id *identity.Identity
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_id, err := is.Create(ctx, tx, identity.CreateArgs{
-					Country:   "USA",
-					LegalName: faker.Name(),
-					User:      user,
-				})
-				if err != nil {
-					return err
-				}
-
-				id = _id
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-			req := getIdentityRequest()
+			input := generateIdentityInput()
+			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
+			ledgerAccountID := uuid.NewString()
+			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id: ledgerAccountID,
+			}, nil).Times(1)
 
-			var respData map[string]identity.Identity
+			var respData map[string]generated.CreateIdentityMutationResponse
 			if err := client.Run(ctx, req, &respData); err != nil {
 				tt.Fatal(err)
 			}
 
-			response := respData["identity"]
-			assert.Equal(tt, response.LegalName, id.LegalName)
-			assert.Equal(tt, response.Country, id.Country)
-			assert.Equal(tt, response.Email, id.Email)
-			assert.Equal(tt, response.ID, id.ID)
+			getReq := getIdentityRequest()
+			_user.ActingAs(getReq, user)
+
+			var getResp map[string]identity.Identity
+			if err := client.Run(ctx, getReq, &getResp); err != nil {
+				tt.Fatal(err)
+			}
+
+			response := getResp["identity"]
+			assert.Equal(tt, user.ID, response.ID)
+			assert.Equal(tt, input.FirstName, response.FirstName)
+			assert.Equal(tt, input.LastName, response.LastName)
+			assert.Equal(tt, input.MobileNumber, response.MobileNumber)
+			assert.Equal(tt, user.Email, response.Email)
+			assert.Equal(tt, input.Country, response.Country)
+			assert.Equal(tt, "", response.DateOfBirth)
+			assert.Equal(tt, []string{}, response.Address)
+			assert.Equal(tt, "", response.City)
+			assert.Equal(tt, "", response.State)
+			assert.Equal(tt, "", response.PostalCode)
+			assert.Equal(tt, "", response.TaxIDNumber)
 		})
 	})
 }
 
-func createIdentityRequest(input generated.IdentityInput) *graphql.Request {
+func createIdentityRequest(input *generated.CreateIdentityInput) *graphql.Request {
 	req := graphql.NewRequest(`
-			    mutation ($input: IdentityInput!) {
+			    mutation ($input: CreateIdentityInput!) {
 			        createIdentity (input: $input) {
 			            code
 			            success
 			            message
 			            identity {
 			            	id
+			            	firstName
+			            	lastName
+			            	mobileNumber
 			            	email
-			            	legalName
+			            	dateOfBirth
+			            	address
+			            	city
+			            	state
+			            	postalCode
 			            	country
+			            	taxIdNumber
 			            }
 			        }
 			    }
@@ -307,9 +326,17 @@ func getIdentityRequest() *graphql.Request {
 			    query {
 			        identity {
 			            id
-			            legalName
-			            email
-			            country
+		            	firstName
+		            	lastName
+		            	mobileNumber
+		            	email
+		            	dateOfBirth
+		            	address
+		            	city
+		            	state
+		            	postalCode
+		            	country
+		            	taxIdNumber
 			        }
 			    }
 			`)
@@ -325,4 +352,45 @@ func getAccountRequest() *graphql.Request {
 			        }
 			    }
 			`)
+}
+
+// TODO: auto generate helpers.
+// Factory to generate create args
+func generateIdentityInput(opts ...func(*generated.CreateIdentityInput)) *generated.CreateIdentityInput {
+	args := &generated.CreateIdentityInput{
+		FirstName:    faker.Name(),
+		LastName:     faker.LastName(),
+		MobileNumber: faker.Phonenumber(),
+		Country:      "US",
+	}
+
+	for _, opt := range opts {
+		opt(args)
+	}
+
+	return args
+}
+
+func withFirstName(name string) func(*generated.CreateIdentityInput) {
+	return func(args *generated.CreateIdentityInput) {
+		args.FirstName = name
+	}
+}
+
+func withLastName(name string) func(*generated.CreateIdentityInput) {
+	return func(args *generated.CreateIdentityInput) {
+		args.LastName = name
+	}
+}
+
+func withMobileNumber(number string) func(*generated.CreateIdentityInput) {
+	return func(args *generated.CreateIdentityInput) {
+		args.MobileNumber = number
+	}
+}
+
+func withCountry(country string) func(*generated.CreateIdentityInput) {
+	return func(args *generated.CreateIdentityInput) {
+		args.Country = country
+	}
 }

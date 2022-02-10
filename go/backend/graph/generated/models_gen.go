@@ -10,6 +10,13 @@ type MutationResponse interface {
 	IsMutationResponse()
 }
 
+type CreateIdentityInput struct {
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	MobileNumber string `json:"mobileNumber"`
+	Country      string `json:"country"`
+}
+
 type CreateIdentityMutationResponse struct {
 	Code     string             `json:"code"`
 	Success  bool               `json:"success"`
@@ -18,8 +25,3 @@ type CreateIdentityMutationResponse struct {
 }
 
 func (CreateIdentityMutationResponse) IsMutationResponse() {}
-
-type IdentityInput struct {
-	LegalName string `json:"legalName"`
-	Country   string `json:"country"`
-}

@@ -17,6 +17,7 @@ import (
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/cli"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/graph"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
@@ -81,7 +82,8 @@ func start(args *cli.StartArgs) {
 	}
 	users = user.NewLoggingService(users, logger)
 
-	id, err := identity.NewService()
+	cs := country.NewService()
+	id, err := identity.NewService(cs)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -93,7 +95,7 @@ func start(args *cli.StartArgs) {
 	}
 
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	as, err := accounts.NewService(id, args.UsdLedgerCode, pClient)
+	as, err := accounts.NewService(id, cs, args.UsdLedgerCode, pClient)
 	if err != nil {
 		log.Fatalln(err)
 	}

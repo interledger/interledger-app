@@ -51,14 +51,22 @@ type ComplexityRoot struct {
 	}
 
 	Identity struct {
-		Country   func(childComplexity int) int
-		Email     func(childComplexity int) int
-		ID        func(childComplexity int) int
-		LegalName func(childComplexity int) int
+		Address      func(childComplexity int) int
+		City         func(childComplexity int) int
+		Country      func(childComplexity int) int
+		DateOfBirth  func(childComplexity int) int
+		Email        func(childComplexity int) int
+		FirstName    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastName     func(childComplexity int) int
+		MobileNumber func(childComplexity int) int
+		PostalCode   func(childComplexity int) int
+		State        func(childComplexity int) int
+		TaxIDNumber  func(childComplexity int) int
 	}
 
 	Mutation struct {
-		CreateIdentity func(childComplexity int, input IdentityInput) int
+		CreateIdentity func(childComplexity int, input CreateIdentityInput) int
 	}
 
 	Query struct {
@@ -67,7 +75,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateIdentity(ctx context.Context, input IdentityInput) (*CreateIdentityMutationResponse, error)
+	CreateIdentity(ctx context.Context, input CreateIdentityInput) (*CreateIdentityMutationResponse, error)
 }
 type QueryResolver interface {
 	Identity(ctx context.Context) (*identity.Identity, error)
@@ -116,12 +124,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CreateIdentityMutationResponse.Success(childComplexity), true
 
+	case "Identity.address":
+		if e.complexity.Identity.Address == nil {
+			break
+		}
+
+		return e.complexity.Identity.Address(childComplexity), true
+
+	case "Identity.city":
+		if e.complexity.Identity.City == nil {
+			break
+		}
+
+		return e.complexity.Identity.City(childComplexity), true
+
 	case "Identity.country":
 		if e.complexity.Identity.Country == nil {
 			break
 		}
 
 		return e.complexity.Identity.Country(childComplexity), true
+
+	case "Identity.dateOfBirth":
+		if e.complexity.Identity.DateOfBirth == nil {
+			break
+		}
+
+		return e.complexity.Identity.DateOfBirth(childComplexity), true
 
 	case "Identity.email":
 		if e.complexity.Identity.Email == nil {
@@ -130,6 +159,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Identity.Email(childComplexity), true
 
+	case "Identity.firstName":
+		if e.complexity.Identity.FirstName == nil {
+			break
+		}
+
+		return e.complexity.Identity.FirstName(childComplexity), true
+
 	case "Identity.id":
 		if e.complexity.Identity.ID == nil {
 			break
@@ -137,12 +173,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Identity.ID(childComplexity), true
 
-	case "Identity.legalName":
-		if e.complexity.Identity.LegalName == nil {
+	case "Identity.lastName":
+		if e.complexity.Identity.LastName == nil {
 			break
 		}
 
-		return e.complexity.Identity.LegalName(childComplexity), true
+		return e.complexity.Identity.LastName(childComplexity), true
+
+	case "Identity.mobileNumber":
+		if e.complexity.Identity.MobileNumber == nil {
+			break
+		}
+
+		return e.complexity.Identity.MobileNumber(childComplexity), true
+
+	case "Identity.postalCode":
+		if e.complexity.Identity.PostalCode == nil {
+			break
+		}
+
+		return e.complexity.Identity.PostalCode(childComplexity), true
+
+	case "Identity.state":
+		if e.complexity.Identity.State == nil {
+			break
+		}
+
+		return e.complexity.Identity.State(childComplexity), true
+
+	case "Identity.taxIdNumber":
+		if e.complexity.Identity.TaxIDNumber == nil {
+			break
+		}
+
+		return e.complexity.Identity.TaxIDNumber(childComplexity), true
 
 	case "Mutation.createIdentity":
 		if e.complexity.Mutation.CreateIdentity == nil {
@@ -154,7 +218,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateIdentity(childComplexity, args["input"].(IdentityInput)), true
+		return e.complexity.Mutation.CreateIdentity(childComplexity, args["input"].(CreateIdentityInput)), true
 
 	case "Query.identity":
 		if e.complexity.Query.Identity == nil {
@@ -232,7 +296,7 @@ var sources = []*ast.Source{
 }
 
 type Mutation {
-  createIdentity(input: IdentityInput!): CreateIdentityMutationResponse!
+  createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
 }
 
 interface MutationResponse {
@@ -243,13 +307,23 @@ interface MutationResponse {
 
 type Identity {
   id: ID!
-  legalName: String!
-  country: String!
+  firstName: String!
+  lastName: String!
+  mobileNumber: String!
   email: String!
+  dateOfBirth: String!
+  address: [String]!
+  state: String!
+  city: String!
+  postalCode: String!
+  country: String!
+  taxIdNumber: String!
 }
 
-input IdentityInput {
-  legalName: String!
+input CreateIdentityInput {
+  firstName: String!
+  lastName: String!
+  mobileNumber: String!
   country: String!
 }
 
@@ -269,10 +343,10 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_createIdentity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 IdentityInput
+	var arg0 CreateIdentityInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐIdentityInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -506,7 +580,7 @@ func (ec *executionContext) _Identity_id(ctx context.Context, field graphql.Coll
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Identity_legalName(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+func (ec *executionContext) _Identity_firstName(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -524,7 +598,7 @@ func (ec *executionContext) _Identity_legalName(ctx context.Context, field graph
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LegalName, nil
+		return obj.FirstName, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -541,7 +615,7 @@ func (ec *executionContext) _Identity_legalName(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Identity_country(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+func (ec *executionContext) _Identity_lastName(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -559,7 +633,42 @@ func (ec *executionContext) _Identity_country(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Country, nil
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_mobileNumber(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MobileNumber, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -611,6 +720,251 @@ func (ec *executionContext) _Identity_email(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Identity_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DateOfBirth, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_address(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_state(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_city(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.City, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_postalCode(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PostalCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_country(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Country, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Identity_taxIdNumber(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TaxIDNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -636,7 +990,7 @@ func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateIdentity(rctx, args["input"].(IdentityInput))
+		return ec.resolvers.Mutation().CreateIdentity(rctx, args["input"].(CreateIdentityInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1878,8 +2232,8 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputIdentityInput(ctx context.Context, obj interface{}) (IdentityInput, error) {
-	var it IdentityInput
+func (ec *executionContext) unmarshalInputCreateIdentityInput(ctx context.Context, obj interface{}) (CreateIdentityInput, error) {
+	var it CreateIdentityInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -1887,11 +2241,27 @@ func (ec *executionContext) unmarshalInputIdentityInput(ctx context.Context, obj
 
 	for k, v := range asMap {
 		switch k {
-		case "legalName":
+		case "firstName":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("legalName"))
-			it.LegalName, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "mobileNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mobileNumber"))
+			it.MobileNumber, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1988,8 +2358,48 @@ func (ec *executionContext) _Identity(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "legalName":
-			out.Values[i] = ec._Identity_legalName(ctx, field, obj)
+		case "firstName":
+			out.Values[i] = ec._Identity_firstName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lastName":
+			out.Values[i] = ec._Identity_lastName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "mobileNumber":
+			out.Values[i] = ec._Identity_mobileNumber(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+			out.Values[i] = ec._Identity_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dateOfBirth":
+			out.Values[i] = ec._Identity_dateOfBirth(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "address":
+			out.Values[i] = ec._Identity_address(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "state":
+			out.Values[i] = ec._Identity_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "city":
+			out.Values[i] = ec._Identity_city(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "postalCode":
+			out.Values[i] = ec._Identity_postalCode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -1998,8 +2408,8 @@ func (ec *executionContext) _Identity(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "email":
-			out.Values[i] = ec._Identity_email(ctx, field, obj)
+		case "taxIdNumber":
+			out.Values[i] = ec._Identity_taxIdNumber(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2351,6 +2761,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityInput(ctx context.Context, v interface{}) (CreateIdentityInput, error) {
+	res, err := ec.unmarshalInputCreateIdentityInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNCreateIdentityMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityMutationResponse(ctx context.Context, sel ast.SelectionSet, v CreateIdentityMutationResponse) graphql.Marshaler {
 	return ec._CreateIdentityMutationResponse(ctx, sel, &v)
 }
@@ -2380,11 +2795,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐIdentityInput(ctx context.Context, v interface{}) (IdentityInput, error) {
-	res, err := ec.unmarshalInputIdentityInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2398,6 +2808,36 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
