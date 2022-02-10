@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
-	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
@@ -38,7 +38,8 @@ func TestAccountsService(s *testing.T) {
 	}
 	defer logger.Sync()
 
-	is, err := _identity.NewService()
+	cs := _country.NewService()
+	is, err := _identity.NewService(cs)
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -53,23 +54,22 @@ func TestAccountsService(s *testing.T) {
 		Id:   pacioliLedgerID,
 		Code: uint32(ledgerCode),
 	}, nil).Times(1)
-	as, err := NewService(is, ledgerCode, pClient)
+	as, err := NewService(is, cs, ledgerCode, pClient)
 	if err != nil {
 		s.Fatal(err)
 	}
 	as = NewLoggingService(as, logger)
 
 	s.Run("create account", func(t *testing.T) {
-		user := _user.User{
-			ID:    uuid.NewString(),
-			Email: faker.Email(),
-		}
 		var identity *_identity.Identity
 		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 			_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
-				Country:   "USA",
-				LegalName: faker.Name(),
-				User:      &user,
+				ID:           uuid.NewString(),
+				Email:        faker.Email(),
+				FirstName:    faker.Name(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.Phonenumber(),
+				Country:      "US",
 			})
 			if err != nil {
 				return err
@@ -174,13 +174,13 @@ func TestAccountsService(s *testing.T) {
 						IdentityID: identity.ID,
 						Country:    "XCV",
 					},
-					ExpectedError: "Unknown or unsupported country: XCV",
+					ExpectedError: "Key: 'CreateAccountArgs.Country' Error:Field validation for 'Country' failed on the 'iso3166_1_alpha2' tag",
 				},
 				{
 					Name: "Identity must exist",
 					Args: &CreateAccountArgs{
 						IdentityID: uuid.NewString(),
-						Country:    "USA",
+						Country:    "US",
 					},
 					ExpectedError: "Identity must exist.",
 				},
