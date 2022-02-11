@@ -51,31 +51,41 @@ type ComplexityRoot struct {
 	}
 
 	Identity struct {
-		Address      func(childComplexity int) int
-		City         func(childComplexity int) int
-		Country      func(childComplexity int) int
-		DateOfBirth  func(childComplexity int) int
-		Email        func(childComplexity int) int
-		FirstName    func(childComplexity int) int
-		ID           func(childComplexity int) int
-		LastName     func(childComplexity int) int
-		MobileNumber func(childComplexity int) int
-		PostalCode   func(childComplexity int) int
-		State        func(childComplexity int) int
-		TaxIDNumber  func(childComplexity int) int
+		Address           func(childComplexity int) int
+		City              func(childComplexity int) int
+		Country           func(childComplexity int) int
+		DateOfBirth       func(childComplexity int) int
+		Email             func(childComplexity int) int
+		FirstName         func(childComplexity int) int
+		ID                func(childComplexity int) int
+		LastName          func(childComplexity int) int
+		MobileNumber      func(childComplexity int) int
+		PostalCode        func(childComplexity int) int
+		State             func(childComplexity int) int
+		TaxIDNumber       func(childComplexity int) int
+		VerificationState func(childComplexity int) int
 	}
 
 	Mutation struct {
 		CreateIdentity func(childComplexity int, input CreateIdentityInput) int
+		Verify         func(childComplexity int, input VerificationInput) int
 	}
 
 	Query struct {
 		Identity func(childComplexity int) int
 	}
+
+	VerifyMutationResponse struct {
+		Code     func(childComplexity int) int
+		Identity func(childComplexity int) int
+		Message  func(childComplexity int) int
+		Success  func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	CreateIdentity(ctx context.Context, input CreateIdentityInput) (*CreateIdentityMutationResponse, error)
+	Verify(ctx context.Context, input VerificationInput) (*VerifyMutationResponse, error)
 }
 type QueryResolver interface {
 	Identity(ctx context.Context) (*identity.Identity, error)
@@ -208,6 +218,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Identity.TaxIDNumber(childComplexity), true
 
+	case "Identity.verificationState":
+		if e.complexity.Identity.VerificationState == nil {
+			break
+		}
+
+		return e.complexity.Identity.VerificationState(childComplexity), true
+
 	case "Mutation.createIdentity":
 		if e.complexity.Mutation.CreateIdentity == nil {
 			break
@@ -220,12 +237,52 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateIdentity(childComplexity, args["input"].(CreateIdentityInput)), true
 
+	case "Mutation.verify":
+		if e.complexity.Mutation.Verify == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verify_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Verify(childComplexity, args["input"].(VerificationInput)), true
+
 	case "Query.identity":
 		if e.complexity.Query.Identity == nil {
 			break
 		}
 
 		return e.complexity.Query.Identity(childComplexity), true
+
+	case "VerifyMutationResponse.code":
+		if e.complexity.VerifyMutationResponse.Code == nil {
+			break
+		}
+
+		return e.complexity.VerifyMutationResponse.Code(childComplexity), true
+
+	case "VerifyMutationResponse.identity":
+		if e.complexity.VerifyMutationResponse.Identity == nil {
+			break
+		}
+
+		return e.complexity.VerifyMutationResponse.Identity(childComplexity), true
+
+	case "VerifyMutationResponse.message":
+		if e.complexity.VerifyMutationResponse.Message == nil {
+			break
+		}
+
+		return e.complexity.VerifyMutationResponse.Message(childComplexity), true
+
+	case "VerifyMutationResponse.success":
+		if e.complexity.VerifyMutationResponse.Success == nil {
+			break
+		}
+
+		return e.complexity.VerifyMutationResponse.Success(childComplexity), true
 
 	}
 	return 0, false
@@ -297,6 +354,7 @@ var sources = []*ast.Source{
 
 type Mutation {
   createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
+  verify(input: VerificationInput!): VerifyMutationResponse!
 }
 
 interface MutationResponse {
@@ -318,6 +376,7 @@ type Identity {
   postalCode: String!
   country: String!
   taxIdNumber: String!
+  verificationState: String!
 }
 
 input CreateIdentityInput {
@@ -328,6 +387,22 @@ input CreateIdentityInput {
 }
 
 type CreateIdentityMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  identity: Identity
+}
+
+input VerificationInput {
+  DateOfBirth: String!
+  Address: [String!]!
+  State: String!
+  City: String!
+  PostalCode: String!
+  TaxIdNumber: String!
+}
+
+type VerifyMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
@@ -347,6 +422,21 @@ func (ec *executionContext) field_Mutation_createIdentity_args(ctx context.Conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verify_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 VerificationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNVerificationInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerificationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -965,6 +1055,41 @@ func (ec *executionContext) _Identity_taxIdNumber(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Identity_verificationState(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Identity",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VerificationState, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1005,6 +1130,48 @@ func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field 
 	res := resTmp.(*CreateIdentityMutationResponse)
 	fc.Result = res
 	return ec.marshalNCreateIdentityMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityMutationResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_verify(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verify_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Verify(rctx, args["input"].(VerificationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*VerifyMutationResponse)
+	fc.Result = res
+	return ec.marshalNVerifyMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyMutationResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_identity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1108,6 +1275,143 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyMutationResponse_identity(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*identity.Identity)
+	fc.Result = res
+	return ec.marshalOIdentity2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋidentityᚐIdentity(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2279,6 +2583,69 @@ func (ec *executionContext) unmarshalInputCreateIdentityInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputVerificationInput(ctx context.Context, obj interface{}) (VerificationInput, error) {
+	var it VerificationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "DateOfBirth":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("DateOfBirth"))
+			it.DateOfBirth, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Address":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Address"))
+			it.Address, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "State":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("State"))
+			it.State, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "City":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("City"))
+			it.City, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "PostalCode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("PostalCode"))
+			it.PostalCode, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "TaxIdNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("TaxIdNumber"))
+			it.TaxIDNumber, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2294,6 +2661,13 @@ func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.Selec
 			return graphql.Null
 		}
 		return ec._CreateIdentityMutationResponse(ctx, sel, obj)
+	case VerifyMutationResponse:
+		return ec._VerifyMutationResponse(ctx, sel, &obj)
+	case *VerifyMutationResponse:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._VerifyMutationResponse(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -2413,6 +2787,11 @@ func (ec *executionContext) _Identity(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "verificationState":
+			out.Values[i] = ec._Identity_verificationState(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2441,6 +2820,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createIdentity":
 			out.Values[i] = ec._Mutation_createIdentity(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "verify":
+			out.Values[i] = ec._Mutation_verify(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2485,6 +2869,45 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var verifyMutationResponseImplementors = []string{"VerifyMutationResponse", "MutationResponse"}
+
+func (ec *executionContext) _VerifyMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *VerifyMutationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, verifyMutationResponseImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VerifyMutationResponse")
+		case "code":
+			out.Values[i] = ec._VerifyMutationResponse_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "success":
+			out.Values[i] = ec._VerifyMutationResponse_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "message":
+			out.Values[i] = ec._VerifyMutationResponse_message(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identity":
+			out.Values[i] = ec._VerifyMutationResponse_identity(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2838,6 +3261,61 @@ func (ec *executionContext) marshalNString2ᚕstring(ctx context.Context, sel as
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNVerificationInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerificationInput(ctx context.Context, v interface{}) (VerificationInput, error) {
+	res, err := ec.unmarshalInputVerificationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNVerifyMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyMutationResponse(ctx context.Context, sel ast.SelectionSet, v VerifyMutationResponse) graphql.Marshaler {
+	return ec._VerifyMutationResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNVerifyMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyMutationResponse(ctx context.Context, sel ast.SelectionSet, v *VerifyMutationResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._VerifyMutationResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

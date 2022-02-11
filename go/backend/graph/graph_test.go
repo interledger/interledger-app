@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -21,6 +22,7 @@ import (
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/identity/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -46,15 +48,20 @@ func TestGraphql(s *testing.T) {
 	db, err := sqlx.Connect("postgres", crdb.URI)
 	defer db.Close()
 
+	ctrl := gomock.NewController(s)
+	defer ctrl.Finish()
+
 	cs := _country.NewService()
-	is, err := identity.NewService(cs)
+	provider := noop.NewMockProvider(ctrl)
+	is, err := identity.NewService(identity.ServiceArgs{
+		CountryService: cs,
+		NoopProvider:   provider,
+	})
 	if err != nil {
 		s.Fatal(err)
 	}
 	is = identity.NewLoggingService(is, logger)
 
-	ctrl := gomock.NewController(s)
-	defer ctrl.Finish()
 	pacioliLedgerID := uuid.NewString()
 	ledgerCode := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
@@ -290,6 +297,100 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, "", response.TaxIDNumber)
 		})
 	})
+
+	s.Run("verify", func(t *testing.T) {
+		t.Run("fails if there is no authenticated user", func(tt *testing.T) {
+			req := verifyRequest(generateVerificationInput())
+			_user.ActingAs(req, nil)
+
+			var respData map[string]identity.Identity
+			err := client.Run(ctx, req, &respData)
+
+			assert.Error(tt, err)
+		})
+
+		t.Run("returns not found if there is no identity", func(tt *testing.T) {
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Email(),
+			}
+			req := verifyRequest(generateVerificationInput())
+			_user.ActingAs(req, user)
+
+			var respData map[string]identity.Identity
+			err := client.Run(ctx, req, &respData)
+
+			assert.EqualError(tt, err, "graphql: Not found.")
+		})
+
+		t.Run("fails if call to provider fails", func(tt *testing.T) {
+			tt.Cleanup(func() {
+				test_utils.TruncateDb(ctx, db)
+			})
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Email(),
+			}
+			input := generateIdentityInput()
+			req := createIdentityRequest(input)
+			_user.ActingAs(req, user)
+			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id: uuid.NewString(),
+			}, nil).Times(1)
+			provider.EXPECT().CreateCustomer(gomock.Any()).Return(nil, errors.New("Request failed.")).Times(1)
+
+			var respData map[string]generated.CreateIdentityMutationResponse
+			if err := client.Run(ctx, req, &respData); err != nil {
+				tt.Fatal(err)
+			}
+
+			verifyReq := verifyRequest(generateVerificationInput())
+			_user.ActingAs(verifyReq, user)
+			var verifyResp map[string]generated.VerifyMutationResponse
+			err = client.Run(ctx, verifyReq, &verifyResp)
+
+			assert.EqualError(tt, err, "graphql: Unable to process request.")
+		})
+
+		t.Run("creates customer and stores kyc data", func(tt *testing.T) {
+			tt.Cleanup(func() {
+				test_utils.TruncateDb(ctx, db)
+			})
+			user := &_user.User{
+				ID:    uuid.New().String(),
+				Email: faker.Email(),
+			}
+			input := generateIdentityInput()
+			req := createIdentityRequest(input)
+			_user.ActingAs(req, user)
+			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id: uuid.NewString(),
+			}, nil).Times(1)
+			customerID := uuid.NewString()
+			provider.EXPECT().CreateCustomer(gomock.Any()).Return(&noop.Customer{
+				ID:     customerID,
+				Status: noop.Verified,
+			}, nil).Times(1)
+
+			var respData map[string]generated.CreateIdentityMutationResponse
+			if err := client.Run(ctx, req, &respData); err != nil {
+				tt.Fatal(err)
+			}
+
+			verifyReq := verifyRequest(generateVerificationInput())
+			_user.ActingAs(verifyReq, user)
+			var verifyResp map[string]generated.VerifyMutationResponse
+			if err := client.Run(ctx, verifyReq, &verifyResp); err != nil {
+				tt.Fatal(err)
+			}
+
+			response := verifyResp["verify"]
+			assert.Equal(tt, "200", response.Code)
+			assert.Equal(tt, true, response.Success)
+			assert.Equal(tt, "Verified.", response.Message)
+			assert.Equal(tt, noop.Verified, response.Identity.VerificationState)
+		})
+	})
 }
 
 func createIdentityRequest(input *generated.CreateIdentityInput) *graphql.Request {
@@ -392,5 +493,87 @@ func withMobileNumber(number string) func(*generated.CreateIdentityInput) {
 func withCountry(country string) func(*generated.CreateIdentityInput) {
 	return func(args *generated.CreateIdentityInput) {
 		args.Country = country
+	}
+}
+
+func verifyRequest(input *generated.VerificationInput) *graphql.Request {
+	req := graphql.NewRequest(`
+			    mutation ($input: VerificationInput!) {
+			        verify (input: $input) {
+			            code
+			            success
+			            message
+			            identity{
+			            	id
+			            	firstName
+			            	lastName
+			            	mobileNumber
+			            	email
+			            	dateOfBirth
+			            	address
+			            	city
+			            	state
+			            	postalCode
+			            	country
+			            	taxIdNumber
+			            	verificationState
+			            }
+			        }
+			    }
+			`)
+	req.Var("input", input)
+	return req
+}
+
+func generateVerificationInput(opts ...func(*generated.VerificationInput)) *generated.VerificationInput {
+	args := &generated.VerificationInput{
+		DateOfBirth: faker.Date(),
+		Address:     []string{faker.Name()},
+		State:       faker.FirstName(),
+		City:        faker.FirstName(),
+		PostalCode:  faker.Currency(),
+		TaxIDNumber: faker.CCNumber(),
+	}
+
+	for _, opt := range opts {
+		opt(args)
+	}
+
+	return args
+}
+
+func withDateOfBirth(dob string) func(generated.VerificationInput) {
+	return func(args generated.VerificationInput) {
+		args.DateOfBirth = dob
+	}
+}
+
+func withAddress(address []string) func(generated.VerificationInput) {
+	return func(args generated.VerificationInput) {
+		args.Address = address
+	}
+}
+
+func withState(state string) func(generated.VerificationInput) {
+	return func(args generated.VerificationInput) {
+		args.State = state
+	}
+}
+
+func withCity(city string) func(generated.VerificationInput) {
+	return func(args generated.VerificationInput) {
+		args.City = city
+	}
+}
+
+func withPostalCode(code string) func(generated.VerificationInput) {
+	return func(args generated.VerificationInput) {
+		args.PostalCode = code
+	}
+}
+
+func withTaxIDNumber(tax string) func(generated.VerificationInput) {
+	return func(args generated.VerificationInput) {
+		args.TaxIDNumber = tax
 	}
 }

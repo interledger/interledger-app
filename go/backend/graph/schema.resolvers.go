@@ -65,6 +65,53 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.C
 	}, nil
 }
 
+func (r *mutationResolver) Verify(ctx context.Context, input generated.VerificationInput) (*generated.VerifyMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	var identity *_identity.Identity
+	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		id, err := r.IdentityService.Verify(ctx, tx, &_identity.VerifyArgs{
+			IdentityID:  user.ID,
+			DateOfBirth: input.DateOfBirth,
+			Address:     input.Address,
+			State:       input.State,
+			City:        input.City,
+			PostalCode:  input.PostalCode,
+			TaxIDNumber: input.TaxIDNumber,
+		})
+		if err != nil {
+			return err
+		}
+		identity = id
+
+		return nil
+	})
+	if err != nil {
+		switch err.(type) {
+		case *_identity.ErrNotFound:
+			NotFoundError(ctx)
+			return nil, nil
+		case *_identity.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	return &generated.VerifyMutationResponse{
+		Code:     "200",
+		Success:  true,
+		Message:  "Verified.",
+		Identity: identity,
+	}, nil
+}
+
 func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
