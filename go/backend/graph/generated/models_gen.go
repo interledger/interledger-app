@@ -25,3 +25,21 @@ type CreateIdentityMutationResponse struct {
 }
 
 func (CreateIdentityMutationResponse) IsMutationResponse() {}
+
+type VerificationInput struct {
+	DateOfBirth string   `json:"DateOfBirth"`
+	Address     []string `json:"Address"`
+	State       string   `json:"State"`
+	City        string   `json:"City"`
+	PostalCode  string   `json:"PostalCode"`
+	TaxIDNumber string   `json:"TaxIdNumber"`
+}
+
+type VerifyMutationResponse struct {
+	Code     string             `json:"code"`
+	Success  bool               `json:"success"`
+	Message  string             `json:"message"`
+	Identity *identity.Identity `json:"identity"`
+}
+
+func (VerifyMutationResponse) IsMutationResponse() {}

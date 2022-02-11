@@ -20,6 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/graph"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/identity/noop"
 	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -83,7 +84,11 @@ func start(args *cli.StartArgs) {
 	users = user.NewLoggingService(users, logger)
 
 	cs := country.NewService()
-	id, err := identity.NewService(cs)
+	provider := noop.NewProvider()
+	id, err := identity.NewService(identity.ServiceArgs{
+		CountryService: cs,
+		NoopProvider:   provider,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}

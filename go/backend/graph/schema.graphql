@@ -4,6 +4,7 @@ type Query{
 
 type Mutation {
   createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
+  verify(input: VerificationInput!): VerifyMutationResponse!
 }
 
 interface MutationResponse {
@@ -25,6 +26,7 @@ type Identity {
   postalCode: String!
   country: String!
   taxIdNumber: String!
+  verificationState: String!
 }
 
 input CreateIdentityInput {
@@ -35,6 +37,22 @@ input CreateIdentityInput {
 }
 
 type CreateIdentityMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  identity: Identity
+}
+
+input VerificationInput {
+  DateOfBirth: String!
+  Address: [String!]!
+  State: String!
+  City: String!
+  PostalCode: String!
+  TaxIdNumber: String!
+}
+
+type VerifyMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
