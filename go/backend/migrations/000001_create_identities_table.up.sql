@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS identities (
     tax_id_number               TEXT DEFAULT '',
     provider                    TEXT DEFAULT '',
     provider_id                 TEXT DEFAULT '',
+    verification_state          TEXT DEFAULT '',
     created_at                  TIMESTAMP NOT NULL DEFAULT now(),
     updated_at                  TIMESTAMP NOT NULL DEFAULT now()
 );
