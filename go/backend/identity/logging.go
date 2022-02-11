@@ -63,3 +63,25 @@ func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (id
 
 	return self.Service.Get(ctx, tx, id)
 }
+
+func (self *loggingService) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (identity *Identity, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to verify identity.",
+				zap.String("id", args.IdentityID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Started verifying process.",
+			zap.String("id", identity.ID),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.Verify(ctx, tx, args)
+}
