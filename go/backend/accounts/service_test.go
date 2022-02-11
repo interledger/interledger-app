@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/identity/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
@@ -38,15 +39,20 @@ func TestAccountsService(s *testing.T) {
 	}
 	defer logger.Sync()
 
+	ctrl := gomock.NewController(s)
+	defer ctrl.Finish()
+
 	cs := _country.NewService()
-	is, err := _identity.NewService(cs)
+	provider := noop.NewMockProvider(ctrl)
+	is, err := _identity.NewService(_identity.ServiceArgs{
+		CountryService: cs,
+		NoopProvider:   provider,
+	})
 	if err != nil {
 		s.Fatal(err)
 	}
 	is = _identity.NewLoggingService(is, logger)
 
-	ctrl := gomock.NewController(s)
-	defer ctrl.Finish()
 	pacioliLedgerID := uuid.NewString()
 	ledgerCode := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
