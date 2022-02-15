@@ -69,3 +69,16 @@ type VerifyMutationResponse struct {
 }
 
 func (VerifyMutationResponse) IsMutationResponse() {}
+
+type VerifyUsdBankAccountInput struct {
+	FundingSourceID string `json:"FundingSourceId"`
+}
+
+type VerifyUsdBankAccountMutationResponse struct {
+	Code          string         `json:"code"`
+	Success       bool           `json:"success"`
+	Message       string         `json:"message"`
+	FundingSource *FundingSource `json:"fundingSource"`
+}
+
+func (VerifyUsdBankAccountMutationResponse) IsMutationResponse() {}
