@@ -46,6 +46,9 @@ func TestFundingSources(s *testing.T) {
 	fs = NewLoggingService(fs, logger)
 
 	s.Run("create funding source", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
 		var identity *_identity.Identity
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 			id, err := is.Create(ctx, tx, _identity.CreateArgs{
@@ -178,6 +181,146 @@ func TestFundingSources(s *testing.T) {
 			assert.Equal(tt, args.SubType, fetchedFS.SubType)
 			assert.Equal(tt, args.VerificationState, fetchedFS.VerificationState)
 		})
+	})
+
+	s.Run("verify account", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		var identity *_identity.Identity
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			id, err := is.Create(ctx, tx, _identity.CreateArgs{
+				ID:           uuid.NewString(),
+				FirstName:    faker.Name(),
+				LastName:     faker.Name(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        faker.Email(),
+				Country:      "US",
+			})
+			if err != nil {
+				return err
+			}
+
+			identity = id
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var fundingsource *FundingSource
+		args := generateCreateArgs(withIdentityID(identity.ID))
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_fs, err := fs.Create(ctx, tx, args)
+			if err != nil {
+				return err
+			}
+			fundingsource = _fs
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run("returns not found if funding source does not belong to identity", func(tt *testing.T) {
+			assert.Equal(tt, "pending", fundingsource.VerificationState)
+
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.Verify(ctx, tx, &VerifyArgs{
+					IdentityID:      uuid.NewString(),
+					FundingSourceID: fundingsource.ID,
+				})
+				if err != nil {
+					return err
+				}
+				fundingsource = _fs
+				return nil
+			})
+			if err == nil {
+				tt.Fatal("Verify must check to whom funding source belongs.")
+			}
+			assert.Error(tt, err, "Funding source not found.")
+
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
+				if err != nil {
+					return err
+				}
+				fundingsource = _fs
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			assert.Equal(tt, "pending", fundingsource.VerificationState)
+		})
+
+		t.Run("returns not found if funding source id does not exist", func(tt *testing.T) {
+			assert.Equal(tt, "pending", fundingsource.VerificationState)
+
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.Verify(ctx, tx, &VerifyArgs{
+					IdentityID:      identity.ID,
+					FundingSourceID: uuid.NewString(),
+				})
+				if err != nil {
+					return err
+				}
+				fundingsource = _fs
+				return nil
+			})
+			if err == nil {
+				tt.Fatal("Verify must that funding source exists.")
+			}
+			assert.Error(tt, err, "Funding source not found.")
+
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
+				if err != nil {
+					return err
+				}
+				fundingsource = _fs
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			assert.Equal(tt, "pending", fundingsource.VerificationState)
+		})
+
+		t.Run("sets verification state to verified", func(tt *testing.T) {
+			assert.Equal(tt, "pending", fundingsource.VerificationState)
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.Verify(ctx, tx, &VerifyArgs{
+					IdentityID:      identity.ID,
+					FundingSourceID: fundingsource.ID,
+				})
+				if err != nil {
+					return err
+				}
+				fundingsource = _fs
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
+				if err != nil {
+					return err
+				}
+				fundingsource = _fs
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			assert.Equal(tt, "verified", fundingsource.VerificationState)
+		})
+
 	})
 }
 
