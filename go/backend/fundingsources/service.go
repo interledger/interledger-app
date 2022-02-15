@@ -12,6 +12,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSource, error)
+	Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*FundingSource, error)
 }
 
 type service struct {
@@ -118,6 +119,53 @@ func (s service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSourc
 	}
 
 	return &fundingsource, nil
+}
+
+type VerifyArgs struct {
+	IdentityID      string `validate:"required,uuid4"`
+	FundingSourceID string `validate:"required,uuid4"`
+}
+
+func (s *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*FundingSource, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, &ErrInvalidArgument{Err: err.Error()}
+	}
+
+	identity, err := s.identity.Get(ctx, tx, args.IdentityID)
+	if err != nil {
+		switch err.(type) {
+		case *_identity.ErrInvalidArgument:
+		case *_identity.ErrNotFound:
+			return nil, &ErrInvalidArgument{Err: "Identity must exist to verify funding source."}
+		default:
+			return nil, &ErrInternalError{Err: err.Error()}
+		}
+	}
+
+	var fs FundingSource
+	stmt, err := tx.PrepareNamed(`
+			UPDATE funding_sources SET verification_state=$1 where id=$2 AND identity_id=$3 RETURNING *;
+		`)
+	if err != nil {
+		return nil, &ErrInternalError{Err: err.Error()}
+
+	}
+
+	err = stmt.Stmt.Get(&fs,
+		"verified",
+		args.FundingSourceID,
+		identity.ID,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &ErrNotFound{Err: "Funding source not found."}
+		}
+
+		return nil, &ErrInternalError{Err: err.Error()}
+	}
+
+	return &fs, nil
 }
 
 type ErrInternalError struct {
