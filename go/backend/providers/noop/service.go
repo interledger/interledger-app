@@ -13,6 +13,7 @@ import (
 
 type Service interface {
 	LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error)
+	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
 }
 
 type service struct {
@@ -78,6 +79,42 @@ func (s *service) LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs
 			Type:              "noop",
 			TypeID:            providerAcc.ID,
 			SubType:           args.Type,
+		})
+		if err != nil {
+			return err
+		}
+
+		fundingsource = fs
+		return nil
+	})
+	if err != nil {
+		switch err.(type) {
+		case *fundingsources.ErrInvalidArgument:
+			return nil, &ErrInvalidArgument{Err: err.Error()}
+		default:
+			return nil, &ErrInternalError{Err: err.Error()}
+		}
+	}
+
+	return fundingsource, nil
+}
+
+type VerifyArgs struct {
+	IdentityID      string `validate:"required,uuid4"`
+	FundingSourceID string `validate:"required,uuid4"`
+}
+
+func (s *service) VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, &ErrInvalidArgument{Err: err.Error()}
+	}
+
+	var fundingsource *fundingsources.FundingSource
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		fs, err := s.fs.Verify(ctx, tx, &fundingsources.VerifyArgs{
+			IdentityID:      args.IdentityID,
+			FundingSourceID: args.FundingSourceID,
 		})
 		if err != nil {
 			return err
