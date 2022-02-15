@@ -18,10 +18,12 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/identity/noop"
 	"gitlab.com/fynbos/backend/migrations"
+	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
@@ -106,11 +108,28 @@ func start(args *cli.StartArgs) {
 	}
 	as = accounts.NewLoggingService(as, logger)
 
+	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
+		Identity: id,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fs = fundingsources.NewLoggingService(fs, logger)
+
+	noop, err := _noop.NewService(_noop.ServiceArgs{
+		Db:            db,
+		FundingSource: fs,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
 		Identity:                         id,
 		Account:                          as,
 		User:                             users,
+		Noop:                             noop,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
 	})

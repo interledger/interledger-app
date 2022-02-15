@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -18,5 +19,6 @@ type Resolver struct {
 	IdentityService identity.Service
 	UserService     user.Service
 	AccountService  accounts.Service
+	NoopService     noop.Service
 	Db              *sqlx.DB
 }

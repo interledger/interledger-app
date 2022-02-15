@@ -5,6 +5,7 @@ type Query{
 type Mutation {
   createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
   verify(input: VerificationInput!): VerifyMutationResponse!
+  linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
 }
 
 interface MutationResponse {
@@ -57,4 +58,28 @@ type VerifyMutationResponse implements MutationResponse {
   success: Boolean!
   message: String!
   identity: Identity
+}
+
+input LinkUsdBankAccountInput {
+  name: String!
+  accountNumber: String!
+  routingNumber: String!
+  institution: String!
+  type: String!
+}
+
+type FundingSource {
+  id: ID!
+  name: String!
+  verificationStatus: String!
+  mask: String!
+  type: String!
+  subType: String!
+}
+
+type LinkFundingSourceMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  fundingSource: FundingSource
 }
