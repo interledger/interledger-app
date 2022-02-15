@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
+	_noop "gitlab.com/fynbos/backend/providers/noop"
 )
 
 func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.CreateIdentityInput) (*generated.CreateIdentityMutationResponse, error) {
@@ -109,6 +110,47 @@ func (r *mutationResolver) Verify(ctx context.Context, input generated.Verificat
 		Success:  true,
 		Message:  "Verified.",
 		Identity: identity,
+	}, nil
+}
+
+func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generated.LinkUsdBankAccountInput) (*generated.LinkFundingSourceMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	bankAccount, err := r.NoopService.LinkBankAccount(ctx, &_noop.LinkBankAccountArgs{
+		IdentityID:    user.ID,
+		Name:          input.Name,
+		AccountNumber: input.AccountNumber,
+		RoutingNumber: input.RoutingNumber,
+		Institution:   input.Institution,
+		Type:          input.Type,
+	})
+	if err != nil {
+		switch err.(type) {
+		case *_noop.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	return &generated.LinkFundingSourceMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Linked account.",
+		FundingSource: &generated.FundingSource{
+			ID:                 bankAccount.ID,
+			Name:               bankAccount.Name,
+			VerificationStatus: bankAccount.VerificationState,
+			Mask:               bankAccount.Mask,
+			Type:               bankAccount.Type,
+			SubType:            bankAccount.SubType,
+		},
 	}, nil
 }
 

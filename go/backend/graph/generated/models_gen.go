@@ -26,6 +26,32 @@ type CreateIdentityMutationResponse struct {
 
 func (CreateIdentityMutationResponse) IsMutationResponse() {}
 
+type FundingSource struct {
+	ID                 string `json:"id"`
+	Name               string `json:"name"`
+	VerificationStatus string `json:"verificationStatus"`
+	Mask               string `json:"mask"`
+	Type               string `json:"type"`
+	SubType            string `json:"subType"`
+}
+
+type LinkFundingSourceMutationResponse struct {
+	Code          string         `json:"code"`
+	Success       bool           `json:"success"`
+	Message       string         `json:"message"`
+	FundingSource *FundingSource `json:"fundingSource"`
+}
+
+func (LinkFundingSourceMutationResponse) IsMutationResponse() {}
+
+type LinkUsdBankAccountInput struct {
+	Name          string `json:"name"`
+	AccountNumber string `json:"accountNumber"`
+	RoutingNumber string `json:"routingNumber"`
+	Institution   string `json:"institution"`
+	Type          string `json:"type"`
+}
+
 type VerificationInput struct {
 	DateOfBirth string   `json:"DateOfBirth"`
 	Address     []string `json:"Address"`

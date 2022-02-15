@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -18,6 +19,7 @@ type GraphqlOpts struct {
 	Identity                         identity.Service
 	User                             user.Service
 	Account                          accounts.Service
+	Noop                             noop.Service
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
 }
@@ -45,6 +47,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		IdentityService: opts.Identity,
 		UserService:     opts.User,
 		AccountService:  opts.Account,
+		NoopService:     opts.Noop,
 	}}))
 	svc.SetQueryCache(lru.New(int(queryCacheSize)))
 	svc.Use(extension.Introspection{})

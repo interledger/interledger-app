@@ -20,9 +20,11 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	_account "gitlab.com/fynbos/backend/accounts"
 	_country "gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/identity/noop"
+	_noop "gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -78,11 +80,28 @@ func TestGraphql(s *testing.T) {
 	users := _user.NewMockService()
 	users = _user.NewLoggingService(users, logger)
 
+	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
+		Identity: is,
+	})
+	if err != nil {
+		s.Fatal(err)
+	}
+	fs = fundingsources.NewLoggingService(fs, logger)
+
+	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
+		Db:            db,
+		FundingSource: fs,
+	})
+	if err != nil {
+		s.Fatal(err)
+	}
+
 	graph, err := NewService(GraphqlOpts{
 		Db:       db,
 		Identity: is,
 		User:     users,
 		Account:  as,
+		Noop:     noopProvider,
 	})
 	graph = NewLoggingService(graph, logger)
 
@@ -391,6 +410,79 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, noop.Verified, response.Identity.VerificationState)
 		})
 	})
+
+	s.Run("authenticated user is required to link usd bank account", func(t *testing.T) {
+		args := generateLinkUsdBankAccountInput()
+		req := linkUsdBankAccountRequest(args)
+		_user.ActingAs(req, nil)
+
+		var respData map[string]generated.LinkFundingSourceMutationResponse
+		err := client.Run(ctx, req, &respData)
+
+		assert.Error(t, err)
+	})
+
+	s.Run("user can link usd bank account", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		input := generateIdentityInput()
+		identityReq := createIdentityRequest(input)
+		_user.ActingAs(identityReq, user)
+		ledgerAccountID := uuid.NewString()
+		pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			Id: ledgerAccountID,
+		}, nil).Times(1)
+		var identityData map[string]generated.CreateIdentityMutationResponse
+		if err := client.Run(ctx, identityReq, &identityData); err != nil {
+			t.Fatal(err)
+		}
+
+		args := generateLinkUsdBankAccountInput()
+		req := linkUsdBankAccountRequest(args)
+		err := _user.ActingAs(req, user)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var respData map[string]generated.LinkFundingSourceMutationResponse
+		if err := client.Run(ctx, req, &respData); err != nil {
+			t.Fatal(err)
+		}
+
+		response := respData["linkUsdBankAccount"]
+		assert.Equal(t, "200", response.Code)
+		assert.Equal(t, true, response.Success)
+		assert.Equal(t, args.Name, response.FundingSource.Name)
+		assert.Equal(t, "noop", response.FundingSource.Type)
+		assert.Equal(t, args.Type, response.FundingSource.SubType)
+		assert.NotEqual(t, args.AccountNumber, response.FundingSource.Mask)
+		assert.NotEqual(t, args.RoutingNumber, response.FundingSource.Mask)
+
+		var fundingsource *fundingsources.FundingSource
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_fs, err := fs.Get(ctx, tx, response.FundingSource.ID)
+			if err != nil {
+				return err
+			}
+			fundingsource = _fs
+
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, args.Name, fundingsource.Name)
+		assert.Equal(t, "noop", fundingsource.Type)
+		assert.Equal(t, args.Type, fundingsource.SubType)
+		assert.NotEqual(t, "", fundingsource.TypeID)
+		assert.NotEqual(t, args.AccountNumber, fundingsource.Mask)
+		assert.NotEqual(t, args.RoutingNumber, fundingsource.Mask)
+	})
 }
 
 func createIdentityRequest(input *generated.CreateIdentityInput) *graphql.Request {
@@ -576,4 +668,43 @@ func withTaxIDNumber(tax string) func(generated.VerificationInput) {
 	return func(args generated.VerificationInput) {
 		args.TaxIDNumber = tax
 	}
+}
+
+func linkUsdBankAccountRequest(input *generated.LinkUsdBankAccountInput) *graphql.Request {
+	req := graphql.NewRequest(`
+			    mutation ($input: LinkUsdBankAccountInput!) {
+			        linkUsdBankAccount (input: $input) {
+			            code
+			            success
+			            message
+			            fundingSource {
+				            id
+			            	name
+			            	verificationStatus
+			            	mask
+			            	type
+			            	subType
+			            }
+			        }
+			    }
+			`)
+	req.Var("input", input)
+
+	return req
+}
+
+func generateLinkUsdBankAccountInput(opts ...func(*generated.LinkUsdBankAccountInput)) *generated.LinkUsdBankAccountInput {
+	args := &generated.LinkUsdBankAccountInput{
+		Name:          faker.FirstName(),
+		AccountNumber: faker.CCNumber(),
+		RoutingNumber: faker.CCNumber(),
+		Institution:   faker.Name(),
+		Type:          "cheque",
+	}
+
+	for _, opt := range opts {
+		opt(args)
+	}
+
+	return args
 }
