@@ -83,9 +83,10 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateIdentity     func(childComplexity int, input CreateIdentityInput) int
-		LinkUsdBankAccount func(childComplexity int, input LinkUsdBankAccountInput) int
-		Verify             func(childComplexity int, input VerificationInput) int
+		CreateIdentity       func(childComplexity int, input CreateIdentityInput) int
+		LinkUsdBankAccount   func(childComplexity int, input LinkUsdBankAccountInput) int
+		Verify               func(childComplexity int, input VerificationInput) int
+		VerifyUsdBankAccount func(childComplexity int, input VerifyUsdBankAccountInput) int
 	}
 
 	Query struct {
@@ -98,12 +99,20 @@ type ComplexityRoot struct {
 		Message  func(childComplexity int) int
 		Success  func(childComplexity int) int
 	}
+
+	VerifyUsdBankAccountMutationResponse struct {
+		Code          func(childComplexity int) int
+		FundingSource func(childComplexity int) int
+		Message       func(childComplexity int) int
+		Success       func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	CreateIdentity(ctx context.Context, input CreateIdentityInput) (*CreateIdentityMutationResponse, error)
 	Verify(ctx context.Context, input VerificationInput) (*VerifyMutationResponse, error)
 	LinkUsdBankAccount(ctx context.Context, input LinkUsdBankAccountInput) (*LinkFundingSourceMutationResponse, error)
+	VerifyUsdBankAccount(ctx context.Context, input VerifyUsdBankAccountInput) (*VerifyUsdBankAccountMutationResponse, error)
 }
 type QueryResolver interface {
 	Identity(ctx context.Context) (*identity.Identity, error)
@@ -349,6 +358,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Verify(childComplexity, args["input"].(VerificationInput)), true
 
+	case "Mutation.verifyUsdBankAccount":
+		if e.complexity.Mutation.VerifyUsdBankAccount == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_verifyUsdBankAccount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VerifyUsdBankAccount(childComplexity, args["input"].(VerifyUsdBankAccountInput)), true
+
 	case "Query.identity":
 		if e.complexity.Query.Identity == nil {
 			break
@@ -383,6 +404,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VerifyMutationResponse.Success(childComplexity), true
+
+	case "VerifyUsdBankAccountMutationResponse.code":
+		if e.complexity.VerifyUsdBankAccountMutationResponse.Code == nil {
+			break
+		}
+
+		return e.complexity.VerifyUsdBankAccountMutationResponse.Code(childComplexity), true
+
+	case "VerifyUsdBankAccountMutationResponse.fundingSource":
+		if e.complexity.VerifyUsdBankAccountMutationResponse.FundingSource == nil {
+			break
+		}
+
+		return e.complexity.VerifyUsdBankAccountMutationResponse.FundingSource(childComplexity), true
+
+	case "VerifyUsdBankAccountMutationResponse.message":
+		if e.complexity.VerifyUsdBankAccountMutationResponse.Message == nil {
+			break
+		}
+
+		return e.complexity.VerifyUsdBankAccountMutationResponse.Message(childComplexity), true
+
+	case "VerifyUsdBankAccountMutationResponse.success":
+		if e.complexity.VerifyUsdBankAccountMutationResponse.Success == nil {
+			break
+		}
+
+		return e.complexity.VerifyUsdBankAccountMutationResponse.Success(childComplexity), true
 
 	}
 	return 0, false
@@ -456,6 +505,7 @@ type Mutation {
   createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
   verify(input: VerificationInput!): VerifyMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
+  verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
 }
 
 interface MutationResponse {
@@ -532,6 +582,17 @@ type LinkFundingSourceMutationResponse implements MutationResponse {
   success: Boolean!
   message: String!
   fundingSource: FundingSource
+}
+
+type VerifyUsdBankAccountMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  fundingSource: FundingSource
+}
+
+input VerifyUsdBankAccountInput {
+  FundingSourceId: String!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -562,6 +623,21 @@ func (ec *executionContext) field_Mutation_linkUsdBankAccount_args(ctx context.C
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNLinkUsdBankAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐLinkUsdBankAccountInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_verifyUsdBankAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 VerifyUsdBankAccountInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNVerifyUsdBankAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1703,6 +1779,48 @@ func (ec *executionContext) _Mutation_linkUsdBankAccount(ctx context.Context, fi
 	return ec.marshalNLinkFundingSourceMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐLinkFundingSourceMutationResponse(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_verifyUsdBankAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_verifyUsdBankAccount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VerifyUsdBankAccount(rctx, args["input"].(VerifyUsdBankAccountInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*VerifyUsdBankAccountMutationResponse)
+	fc.Result = res
+	return ec.marshalNVerifyUsdBankAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountMutationResponse(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_identity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1941,6 +2059,143 @@ func (ec *executionContext) _VerifyMutationResponse_identity(ctx context.Context
 	res := resTmp.(*identity.Identity)
 	fc.Result = res
 	return ec.marshalOIdentity2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋidentityᚐIdentity(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyUsdBankAccountMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *VerifyUsdBankAccountMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyUsdBankAccountMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyUsdBankAccountMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *VerifyUsdBankAccountMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyUsdBankAccountMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyUsdBankAccountMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *VerifyUsdBankAccountMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyUsdBankAccountMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _VerifyUsdBankAccountMutationResponse_fundingSource(ctx context.Context, field graphql.CollectedField, obj *VerifyUsdBankAccountMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "VerifyUsdBankAccountMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FundingSource, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*FundingSource)
+	fc.Result = res
+	return ec.marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3230,6 +3485,29 @@ func (ec *executionContext) unmarshalInputVerificationInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputVerifyUsdBankAccountInput(ctx context.Context, obj interface{}) (VerifyUsdBankAccountInput, error) {
+	var it VerifyUsdBankAccountInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "FundingSourceId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("FundingSourceId"))
+			it.FundingSourceID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3259,6 +3537,13 @@ func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.Selec
 			return graphql.Null
 		}
 		return ec._LinkFundingSourceMutationResponse(ctx, sel, obj)
+	case VerifyUsdBankAccountMutationResponse:
+		return ec._VerifyUsdBankAccountMutationResponse(ctx, sel, &obj)
+	case *VerifyUsdBankAccountMutationResponse:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._VerifyUsdBankAccountMutationResponse(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -3665,6 +3950,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "verifyUsdBankAccount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_verifyUsdBankAccount(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3783,6 +4078,64 @@ func (ec *executionContext) _VerifyMutationResponse(ctx context.Context, sel ast
 		case "identity":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._VerifyMutationResponse_identity(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var verifyUsdBankAccountMutationResponseImplementors = []string{"VerifyUsdBankAccountMutationResponse", "MutationResponse"}
+
+func (ec *executionContext) _VerifyUsdBankAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *VerifyUsdBankAccountMutationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, verifyUsdBankAccountMutationResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VerifyUsdBankAccountMutationResponse")
+		case "code":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VerifyUsdBankAccountMutationResponse_code(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "success":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VerifyUsdBankAccountMutationResponse_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "message":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VerifyUsdBankAccountMutationResponse_message(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "fundingSource":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._VerifyUsdBankAccountMutationResponse_fundingSource(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -4365,6 +4718,25 @@ func (ec *executionContext) marshalNVerifyMutationResponse2ᚖgitlabᚗcomᚋfyn
 		return graphql.Null
 	}
 	return ec._VerifyMutationResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNVerifyUsdBankAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountInput(ctx context.Context, v interface{}) (VerifyUsdBankAccountInput, error) {
+	res, err := ec.unmarshalInputVerifyUsdBankAccountInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNVerifyUsdBankAccountMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, v VerifyUsdBankAccountMutationResponse) graphql.Marshaler {
+	return ec._VerifyUsdBankAccountMutationResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNVerifyUsdBankAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, v *VerifyUsdBankAccountMutationResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._VerifyUsdBankAccountMutationResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

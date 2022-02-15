@@ -6,6 +6,7 @@ type Mutation {
   createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
   verify(input: VerificationInput!): VerifyMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
+  verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
 }
 
 interface MutationResponse {
@@ -82,4 +83,15 @@ type LinkFundingSourceMutationResponse implements MutationResponse {
   success: Boolean!
   message: String!
   fundingSource: FundingSource
+}
+
+type VerifyUsdBankAccountMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  fundingSource: FundingSource
+}
+
+input VerifyUsdBankAccountInput {
+  FundingSourceId: String!
 }

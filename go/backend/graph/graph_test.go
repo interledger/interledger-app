@@ -422,7 +422,7 @@ func TestGraphql(s *testing.T) {
 		assert.Error(t, err)
 	})
 
-	s.Run("user can link usd bank account", func(t *testing.T) {
+	s.Run("user can link and verify usd bank account", func(t *testing.T) {
 		t.Cleanup(func() {
 			test_utils.TruncateDb(ctx, db)
 		})
@@ -462,6 +462,7 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, args.Type, response.FundingSource.SubType)
 		assert.NotEqual(t, args.AccountNumber, response.FundingSource.Mask)
 		assert.NotEqual(t, args.RoutingNumber, response.FundingSource.Mask)
+		assert.Equal(t, "pending", response.FundingSource.VerificationStatus)
 
 		var fundingsource *fundingsources.FundingSource
 		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
@@ -482,6 +483,20 @@ func TestGraphql(s *testing.T) {
 		assert.NotEqual(t, "", fundingsource.TypeID)
 		assert.NotEqual(t, args.AccountNumber, fundingsource.Mask)
 		assert.NotEqual(t, args.RoutingNumber, fundingsource.Mask)
+		assert.Equal(t, "pending", fundingsource.VerificationState)
+
+		// verify it
+		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))
+		_user.ActingAs(verifyReq, user)
+		var verifyData map[string]generated.VerifyUsdBankAccountMutationResponse
+		if err := client.Run(ctx, verifyReq, &verifyData); err != nil {
+			t.Fatal(err)
+		}
+		verifyResponse := verifyData["verifyUsdBankAccount"]
+		assert.Equal(t, "200", verifyResponse.Code)
+		assert.Equal(t, "Verified account.", verifyResponse.Message)
+		assert.Equal(t, true, verifyResponse.Success)
+		assert.Equal(t, "verified", verifyResponse.FundingSource.VerificationStatus)
 	})
 }
 
@@ -707,4 +722,41 @@ func generateLinkUsdBankAccountInput(opts ...func(*generated.LinkUsdBankAccountI
 	}
 
 	return args
+}
+
+func verifyUsdBankAccount(input *generated.VerifyUsdBankAccountInput) *graphql.Request {
+	req := graphql.NewRequest(`
+		mutation ($input: VerifyUsdBankAccountInput!){
+			verifyUsdBankAccount (input: $input) {
+				code
+	            success
+	            message
+	            fundingSource {
+		            id
+	            	name
+	            	verificationStatus
+	            	mask
+	            	type
+	            	subType
+	            }
+			}
+		}`)
+	req.Var("input", input)
+
+	return req
+}
+
+func generateVerifyUsdBankAccountInput(opts ...func(*generated.VerifyUsdBankAccountInput)) *generated.VerifyUsdBankAccountInput {
+	args := &generated.VerifyUsdBankAccountInput{}
+	for _, opt := range opts {
+		opt(args)
+	}
+
+	return args
+}
+
+func withFundingSourceID(id string) func(*generated.VerifyUsdBankAccountInput) {
+	return func(args *generated.VerifyUsdBankAccountInput) {
+		args.FundingSourceID = id
+	}
 }

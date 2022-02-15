@@ -154,6 +154,43 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 	}, nil
 }
 
+func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input generated.VerifyUsdBankAccountInput) (*generated.VerifyUsdBankAccountMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	fundingSource, err := r.NoopService.VerifyBankAccount(ctx, &_noop.VerifyArgs{
+		IdentityID:      user.ID,
+		FundingSourceID: input.FundingSourceID,
+	})
+	if err != nil {
+		switch err.(type) {
+		case *_noop.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	return &generated.VerifyUsdBankAccountMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Verified account.",
+		FundingSource: &generated.FundingSource{
+			ID:                 fundingSource.ID,
+			Name:               fundingSource.Name,
+			VerificationStatus: fundingSource.VerificationState,
+			Mask:               fundingSource.Mask,
+			Type:               fundingSource.Type,
+			SubType:            fundingSource.SubType,
+		},
+	}, nil
+}
+
 func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
