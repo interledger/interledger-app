@@ -23,7 +23,7 @@ export const Switch: FC<SwitchProps> = ({
       disabled={disabled}
       onChange={onChange}
       className={`${checked ? 'bg-primary' : 'bg-strong'}
-          focus:outline-none inline-flex h-[24px] w-[46px] flex-shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:bg-opacity-40`}
+          inline-flex h-[24px] w-[46px] flex-shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:bg-opacity-40`}
     >
       <span className='sr-only'>Test data</span>
       <span

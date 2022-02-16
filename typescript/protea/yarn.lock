@@ -1394,12 +1394,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ory/kratos-client@npm:0.0.0-next.059ed9c9cacb":
-  version: 0.0.0-next.059ed9c9cacb
-  resolution: "@ory/kratos-client@npm:0.0.0-next.059ed9c9cacb"
+"@ory/kratos-client@npm:0.8.2-alpha.1":
+  version: 0.8.2-alpha.1
+  resolution: "@ory/kratos-client@npm:0.8.2-alpha.1"
   dependencies:
     axios: ^0.21.1
-  checksum: 4d1563ad5a35986231aadcc3c1dbcd7654d8c9a7413734874225393e3f772d8cf6258dfdd01cc5d27040e35037307b8a3322fa4a9e0d630f77b4803cb4714196
+  checksum: d103ffdf08f76e565622abda8e748b5d17f9829c727e37a74e50b87b6d86431499b2e2f191ad2b6571202c1dea0455840585734c09b8ed923843aa7ca84f107a
   languageName: node
   linkType: hard
 
@@ -1539,6 +1539,17 @@ __metadata:
     estree-walker: ^2.0.1
     picomatch: ^2.2.2
   checksum: 498d67e7b48c707e3e0d9f7ddaa405833d77575b2d9607cd1914be40455ed534235e0512f9d046bf0e4ed1740e7816fd32ab1c673195e897c4fa180bcbfd7283
+  languageName: node
+  linkType: hard
+
+"@routes-gen/remix@npm:^0.2.10":
+  version: 0.2.10
+  resolution: "@routes-gen/remix@npm:0.2.10"
+  dependencies:
+    routes-gen: ^0.3.0
+  peerDependencies:
+    remix: ^1.0.0
+  checksum: 21f69e9f6ba11a6223fded8c69f2345da027acebf95a050f5b0023a5cdf4d978dee012849a49d5feef15347ef40c691a559643329afa6d797e1c167ebc49f9dd
   languageName: node
   linkType: hard
 
@@ -2486,6 +2497,15 @@ autoprefixer@latest:
   dependencies:
     follow-redirects: ^1.14.0
   checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
+  languageName: node
+  linkType: hard
+
+"axios@npm:^0.26.0":
+  version: 0.26.0
+  resolution: "axios@npm:0.26.0"
+  dependencies:
+    follow-redirects: ^1.14.8
+  checksum: d7a8b898f4157bedeb2e06c03b16133b91b354c041205bea732ce58b7a21f373d22057b0eea0d482838145ce6ff482b359750d9bcb8dd19d45e3928e3c65c280
   languageName: node
   linkType: hard
 
@@ -4729,7 +4749,7 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.0":
+"follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.8":
   version: 1.14.8
   resolution: "follow-redirects@npm:1.14.8"
   peerDependenciesMeta:
@@ -8165,11 +8185,12 @@ postcss@latest:
     "@graphql-codegen/typescript-react-apollo": ^3.2.1
     "@headlessui/react": ^1.4.1
     "@mapbox/rehype-prism": ^0.7.0
-    "@ory/kratos-client": 0.0.0-next.059ed9c9cacb
+    "@ory/kratos-client": 0.8.2-alpha.1
     "@remix-run/dev": ^1.1.3
     "@remix-run/eslint-config": ^1.1.3
     "@remix-run/react": ^1.1.3
     "@remix-run/serve": ^1.1.3
+    "@routes-gen/remix": ^0.2.10
     "@tailwindcss/forms": ^0.4.0
     "@tailwindcss/typography": ^0.5.1
     "@types/luxon": ^2
@@ -8179,6 +8200,7 @@ postcss@latest:
     "@typescript-eslint/eslint-plugin": latest
     "@typescript-eslint/parser": latest
     autoprefixer: latest
+    axios: ^0.26.0
     concurrently: ^7.0.0
     eslint: ^8.8.0
     eslint-config-prettier: ^8.3.0
@@ -8193,6 +8215,7 @@ postcss@latest:
     react-hook-form: ^7.17.5
     rehype-slug: ^4.0.1
     remix: ^1.1.3
+    routes-gen: ^0.3.0
     tailwindcss: latest
     tailwindcss-selection-variant: ^0.1.0
     typescript: 4.4.2
@@ -8744,6 +8767,15 @@ postcss@latest:
   bin:
     rimraf: bin.js
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
+  languageName: node
+  linkType: hard
+
+"routes-gen@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "routes-gen@npm:0.3.0"
+  bin:
+    routes-gen: dist/cli.js
+  checksum: 53f3ebe947e463ac57bcbc1926b35b8a4a0b57f3847c7863a14aeed3e7085f57398fbe8f3951ada6fbf4d8fa5b42eff3a2d40f67c74d5e962e97faa9cef59d01
   languageName: node
   linkType: hard
 

@@ -7,18 +7,19 @@ sync_public = sync('./public', '/app/public')
 sync_styles = sync('./app/styles', '/app/app/styles')
 sync_generated = sync('./generated', '/app/generated')
 
-local_resource('generate watch', serve_cmd='yarn generate:watch')
-local_resource('tailwind watch', cmd='yarn dev:css', deps=['./styles/app.css', './styles/prism.css'])
-local_resource('protea port forward', serve_cmd='kubectl port-forward deployment/protea 8002:8002', resource_deps=['protea'])
+local_resource('generate watch', serve_cmd = 'yarn generate:watch')
+local_resource('tailwind watch', cmd = 'yarn dev:css', deps = ['./styles/app.css', './styles/prism.css'])
+local_resource('protea port forward', serve_cmd = 'kubectl port-forward deployment/protea 8002:8002', resource_deps = ['protea'])
+local_resource('mailhog port forward', serve_cmd = 'kubectl port-forward deployment/mailhog 8025:8025', resource_deps = ['protea'])
 
-docker_build('protea', '.', target="dev", live_update=[
-sync_components,sync_contexts,sync_hooks,sync_lib,sync_pages,sync_public,sync_styles,sync_generated
-], ignore=["deploy/"])
+docker_build('protea', '.', target = "dev", live_update = [
+  sync_components, sync_contexts, sync_hooks, sync_lib, sync_pages, sync_public, sync_styles, sync_generated
+], ignore = ["deploy/"])
 
 k8s_custom_deploy(
   "protea",
-  apply_cmd="kubectl set image deployment/protea protea=$TILT_IMAGE_0 && kubectl get deployment/protea -o yaml",
-  delete_cmd="echo protea managed outside of Tilt",
-  image_deps=["protea"],
-  deps=[],
+  apply_cmd = "kubectl set image deployment/protea protea=$TILT_IMAGE_0 && kubectl get deployment/protea -o yaml",
+  delete_cmd = "echo protea managed outside of Tilt",
+  image_deps = ["protea"],
+  deps = [],
 )

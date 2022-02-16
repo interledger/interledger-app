@@ -15,7 +15,7 @@ export const Button: FC<ButtonProps> = (
   return (
     <button
       {...buttonProps}
-      className={`focus:outline-none flex h-10 items-center rounded-full font-display text-sm font-medium text-medium ${
+      className={`flex h-10 items-center rounded-full font-display text-sm font-medium text-medium focus:outline-none ${
         icon ? 'pl-4 pr-6' : 'px-6'
       } ${
         buttonProps.disabled
@@ -41,7 +41,7 @@ export const FAB: FC<FABProps> = (
   return (
     <button
       {...buttonProps}
-      className={`focus:outline-none fixed right-4 flex h-14 w-min items-center space-x-3 rounded-2xl p-4 font-display text-sm font-medium text-medium lg:hidden ${
+      className={`fixed right-4 flex h-14 w-min items-center space-x-3 rounded-2xl p-4 font-display text-sm font-medium text-medium focus:outline-none lg:hidden ${
         hasNav ? 'bottom-24 sm:bottom-4' : 'bottom-4'
       } ${children ? 'pr-5' : ''} ${
         buttonProps.disabled

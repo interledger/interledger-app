@@ -1,5 +1,4 @@
 .pnp.cjs
-.next
 public
 public/build
 .cache
@@ -16,10 +15,6 @@ yarn.lock
 
 # testing
 /coverage
-
-# next.js
-/.next/
-/out/
 
 # production
 /build

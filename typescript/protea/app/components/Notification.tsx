@@ -53,7 +53,7 @@ export const Notification: FC<NotificationProps> = ({
               </div>
               <div className='flex border-l border-base'>
                 <button
-                  className='focus:outline-none flex w-full items-center justify-center border border-transparent p-4 text-sm font-medium text-primary focus:ring-2 focus:ring-black'
+                  className='flex w-full items-center justify-center border border-transparent p-4 text-sm font-medium text-primary focus:outline-none focus:ring-2 focus:ring-black'
                   onClick={() => {
                     setShow(false)
                   }}

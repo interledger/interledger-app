@@ -1,8 +1,10 @@
-import { BlogLayout } from 'components'
+import { BlogLayout } from '~/components'
 import { cairin } from './authors'
-export default ({ children }) => <BlogLayout meta={meta} children={children} />
+export default ({ children }) => (
+  <BlogLayout meta={metaData} children={children} />
+)
 
-export const meta = {
+export const metaData = {
   title: 'Building the Fynbos blog that has a very very long title',
   authors: [
     cairin,

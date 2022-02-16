@@ -1,7 +1,6 @@
-import { Container, HomeDecor, Footer, Header } from 'components'
-import { NextPage } from 'next'
+import { Container, HomeDecor, Footer, Header } from '~/components'
 
-const HomePage: NextPage = () => {
+export default function HomePage() {
   return (
     <div className='relative w-full overflow-hidden'>
       <Container className='overflow-x-hidden'>
@@ -23,5 +22,3 @@ const HomePage: NextPage = () => {
     </div>
   )
 }
-
-export default HomePage

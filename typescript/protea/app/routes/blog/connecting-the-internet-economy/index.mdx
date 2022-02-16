@@ -1,8 +1,10 @@
-import { BlogLayout } from 'components'
-import { adrian } from '../authors'
-export default ({ children }) => <BlogLayout meta={meta} children={children} />
+import { BlogLayout } from '~/components'
+import { adrian } from '~/lib/blog/authors'
+export default ({ children }) => (
+  <BlogLayout meta={metaData} children={children} />
+)
 
-export const meta = {
+export const metaData = {
   title: 'Connecting the Internet economy',
   authors: [adrian],
   description: '',

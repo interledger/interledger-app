@@ -1,6 +1,5 @@
-import type { NextPage } from 'next'
-import { getAllPosts, BlogMeta } from 'lib/blog'
-import { Container, Footer, Header, Router, Routes } from 'components'
+import { getAllPosts, BlogMeta } from '~/lib/blog'
+import { Container, Footer, Header, Router } from '~/components'
 import { FC } from 'react'
 import { DateTime } from 'luxon'
 
@@ -8,7 +7,7 @@ type BlogPageProps = {
   posts: BlogMeta[]
 }
 
-const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
+export default function BlogPage({ posts }: BlogPageProps) {
   return (
     <Container>
       <Header />
@@ -24,13 +23,7 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
         </div>
         <List>
           {posts.map((post) => (
-            <Router
-              href={{
-                pathname: Routes.blogPost,
-                query: { slug: post.slug }
-              }}
-              key={post.slug}
-            >
+            <Router to={`/blog/${post.slug}`} key={post.slug}>
               <ListItem>
                 <span className='text-lg text-gray-700'>
                   {DateTime.fromISO(post.date).toFormat('dd LLLL yyyy')}
@@ -55,8 +48,7 @@ const BlogPage: NextPage<BlogPageProps> = ({ posts }) => {
   )
 }
 
-export default BlogPage
-
+// TODO Refactor blogs
 export const getStaticProps = async () => {
   const content = await getAllPosts()
 

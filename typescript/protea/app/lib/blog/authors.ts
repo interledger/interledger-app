@@ -1,4 +1,4 @@
-import type { Author } from 'lib/blog'
+import type { Author } from '../blog'
 
 export const cairin: Author = {
   name: 'Cairin Michie',
