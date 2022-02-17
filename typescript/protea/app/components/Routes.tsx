@@ -1,72 +1,18 @@
-import { ParsedUrlQueryInput } from 'querystring'
-import { FC } from 'react'
-import Link from 'next/link'
-import { Redirect } from 'next'
+import React, { FC } from 'react'
+import { Link } from 'remix'
 
 /**
  * Predefined routes that allow for consistent routing.
- *
  * Ensure all routes are prefixed with `/` to prevent relative routing.
  */
-export enum Routes {
-  //
-  // Marketing pages
-  //
-  home = '/',
-  blog = '/blog',
-  blogPost = '/blog/[slug]',
-
-  //
-  // User
-  //
-  login = '/login',
-  signup = '/signup',
-  waitlist = '/waitlist',
-  verify = '/verify',
-  verifyDetails = '/verify/details',
-  logout = '/logout',
-  recovery = '/recovery',
-
-  settings = '/settings',
-  settingsPassword = '/settings/password',
-
-  //
-  // Wallet
-  //
-
-  walletHome = '/home',
-  deposit = '/deposit',
-  withdraw = '/withdraw',
-  activity = '/activity',
-  activityFilter = '/activity/filter',
-  activityTransaction = '/activity/transaction/[id]',
-  transact = '/transact',
-  transactReceive = '/transact/receive',
-  transactPreview = '/transact/preview',
-  connect = '/connect',
-
-  //
-  // External
-  //
-  interledger = 'https://interledger.org',
-  openPayments = 'https://openpayments.dev',
-  email = 'mailto:hello@fynbos.dev',
-  twitter = 'https://twitter.com/'
-}
 
 export type RouterProps = {
   className?: string
-  href:
-    | Routes
-    | {
-        pathname: Routes
-        query?: string | null | ParsedUrlQueryInput
-      }
+  to: string
 }
 
 /**
- * Router replaces the next/link with a Link that only accepts predefined Routes.
- * Wraps and passes props to an anchor tag for a11y.
+ * Exposes the remix Link as a styled version.
  *
  * @param children The children of the Link.
  * @param href - Routes or Routes object with params
@@ -75,31 +21,16 @@ export type RouterProps = {
 export const Router: FC<RouterProps> = ({
   className,
   children,
-  href,
+  to,
   ...rest
 }) => {
   return (
-    <Link href={href}>
-      <a
-        className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${className}`}
-        {...rest}
-      >
-        {children}
-      </a>
+    <Link
+      to={to}
+      className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${className}`}
+      {...rest}
+    >
+      {children}
     </Link>
   )
-}
-
-/**
- * Redirects to the given route. To be used in getServerSideProps.
- * @param destination The destination of the redirect.
- * @returns A redirect to the destination.
- */
-export const redirect = (destination: string): { redirect: Redirect } => {
-  return {
-    redirect: {
-      destination,
-      permanent: false
-    }
-  }
 }

@@ -1,11 +1,9 @@
-import Image from 'next/image'
 import { FC } from 'react'
-import Head from 'next/head'
 import { Header } from '../Header'
-import { BackIcon, Container, Footer, Router, Routes } from 'components'
-import type { Author, BlogMeta } from 'lib/blog'
+import { BackIcon, Container, Footer, Router } from '~/components'
+import type { Author, BlogMeta } from '~/lib/blog'
 import { DateTime } from 'luxon'
-import Link from 'next/link'
+import { route } from 'routes-gen'
 
 type BlogLayoutProps = {
   meta: BlogMeta
@@ -14,9 +12,6 @@ type BlogLayoutProps = {
 export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
   return (
     <Container>
-      <Head>
-        <title>{meta.title} | Fynbos</title>
-      </Head>
       <Header />
       <main className='px-4 sm:px-8'>
         <div className='my-20 font-display text-5xl font-medium leading-normal sm:mt-28'>
@@ -36,7 +31,7 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
                   twitterHandle={author.twitterHandle}
                 />
               ))}
-              <Router href={Routes.blog}>
+              <Router to={route('/blog')}>
                 <span className='mt-12 hidden items-center text-primary sm:flex'>
                   <span className='mr-2'>
                     <BackIcon />
@@ -59,17 +54,15 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
 const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
   return (
     <div className='mb-6 flex'>
-      <Image alt='Author profile image.' src={avatar} width='48' height='48' />
+      {/* <image src={avatar} width='48' height='48' /> */}
       <div className='ml-3 flex flex-grow flex-col'>
         <div className='font-medium'>{name}</div>
-        <Link href={Routes.twitter + twitterHandle}>
-          <a
-            className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1'
-            aria-label='Author twitter'
-          >
-            <span className='text-primary'>@{twitterHandle}</span>
-          </a>
-        </Link>
+        <Router
+          to={'https://twitter.com/' + twitterHandle}
+          aria-label='Author twitter'
+        >
+          <span className='text-primary'>@{twitterHandle}</span>
+        </Router>
       </div>
     </div>
   )

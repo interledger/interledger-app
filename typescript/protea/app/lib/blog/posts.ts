@@ -1,6 +1,6 @@
 import path, { join } from 'path'
 import { readdir, readFile, stat } from 'fs/promises'
-import * as authors from 'pages/blog/authors'
+import * as authors from './authors'
 import { DateTime } from 'luxon'
 
 const postsDirectory = join(process.cwd(), './pages/blog')
@@ -43,6 +43,7 @@ async function getFileMeta(path: string) {
       )
     }
     // test converts string js object (non JSON) to js object
+    // eslint-disable-next-line no-new-func
     let test = new Function('return ' + newStr)
     return test()
   }

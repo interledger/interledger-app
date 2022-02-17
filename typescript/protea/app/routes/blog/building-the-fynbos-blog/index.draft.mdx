@@ -1,8 +1,10 @@
-import { BlogLayout } from 'components'
+import { BlogLayout } from '~/components'
 import { cairin } from '../authors'
-export default ({ children }) => <BlogLayout meta={meta} children={children} />
+export default ({ children }) => (
+  <BlogLayout meta={metaData} children={children} />
+)
 
-export const meta = {
+export const metaData = {
   title: 'Building the Fynbos blog',
   authors: [cairin],
   description: 'Hello world!',
@@ -106,7 +108,7 @@ content. We can use this to also pass metadata to the layout, as well as add
 other elements to the page - such as the author block, header and footer.
 
 ```jsx
-import { BlogLayout } from 'components'
+import { BlogLayout } from '~/components'
 import { cairin } from '../authors'
 export default ({ children }) => <BlogLayout meta={meta} children={children} />
 

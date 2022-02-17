@@ -1,34 +1,16 @@
-import React from 'react'
-import {
-  NextPage,
-  InferGetServerSidePropsType,
-  GetServerSideProps,
-  GetServerSidePropsResult
-} from 'next'
-import { Routes, WalletLayout } from 'components'
-import { getSessionOrRedirect } from 'lib/kratos'
+import type { LoaderFunction } from 'remix'
+import { requireUserSession } from '~/lib/kratos'
 
-const DepositPage: NextPage<
-  InferGetServerSidePropsType<typeof getServerSideProps>
-> = () => {
-  return (
-    <WalletLayout backRoute={Routes.transact} header='Deposit' hideNav>
-      {/* TODO insert content */}
-    </WalletLayout>
-  )
+export const loader: LoaderFunction = async ({ request }) => {
+  return requireUserSession(request)
 }
 
-export default DepositPage
-
-export const getServerSideProps: GetServerSideProps = async (
-  context
-): Promise<GetServerSidePropsResult<any>> => {
-  const session = await getSessionOrRedirect(context, true)
-  if (session && 'redirect' in session) {
-    return session
-  }
-
-  return {
-    props: {}
-  }
+export default function DepositPage() {
+  return (
+    // <WalletLayout backRoute={Routes.transact} header='Deposit' hideNav>
+    {
+      /* TODO insert content */
+    }
+    // </WalletLayout>
+  )
 }
