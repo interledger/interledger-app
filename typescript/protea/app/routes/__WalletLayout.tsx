@@ -131,7 +131,25 @@ type NavListItemProps = {
 const NavListItem: FC<NavListItemProps> = ({ children, icon, to }) => {
   return (
     <NavLink prefetch='render' className='w-full' to={to}>
-      <li
+      {({ isActive }) => (
+            <li
+              className={`flex w-full flex-col items-center justify-between space-y-1 rounded-full sm:w-14 sm:space-y-2 lg:h-12 lg:w-56 lg:flex-row lg:justify-start lg:space-y-0 lg:space-x-3 lg:px-4 lg:hover:bg-container-hover ${
+                isActive ? 'ring-focus lg:ring-2' : ''
+              }`}
+            >
+              <div
+                className={`flex h-8 w-16 items-center justify-center rounded-full sm:w-14 lg:h-6 lg:w-6 ${
+                  isActive
+                    ? 'border-2 border-focus text-primary lg:border-0'
+                    : 'text-medium'
+                }`}
+              >
+                {icon}
+              </div>
+              <div>{children}</div>
+            </li>
+          )}
+      {/* <li
         className={`flex w-full flex-col items-center justify-between space-y-1 rounded-full sm:w-14 sm:space-y-2 lg:h-12 lg:w-56 lg:flex-row lg:justify-start lg:space-y-0 lg:space-x-3 lg:px-4 lg:hover:bg-container-hover ${({
           isActive
         }: {
@@ -151,7 +169,7 @@ const NavListItem: FC<NavListItemProps> = ({ children, icon, to }) => {
           {icon}
         </div>
         <div>{children}</div>
-      </li>
+      </li> */}
     </NavLink>
   )
 }

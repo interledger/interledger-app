@@ -1,7 +1,7 @@
 import { NavLink } from 'remix'
 import type { LoaderFunction } from 'remix'
 import { route } from 'routes-gen'
-import { SettingsIcon } from '~/components'
+import { SettingsIcon, WalletIcon } from '~/components'
 import { requireUserSession } from '~/lib/kratos'
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -24,7 +24,7 @@ export default function Home() {
       </header>
       {/* Body */}
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        Some body content
+        Body
       </div>
     </>
   )
