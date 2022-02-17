@@ -9,13 +9,9 @@ import {
   V0alpha2Api,
   Session
 } from '@ory/kratos-client'
-import { NextRouter } from 'next/router'
-import { Dispatch, SetStateAction } from 'react'
+import { json, redirect } from 'remix'
 import { AxiosError } from 'axios'
-import { Routes, redirect } from 'components'
-
-import { GetServerSidePropsContext, PreviewData, Redirect } from 'next'
-import { ParsedUrlQuery } from 'querystring'
+import { route } from 'routes-gen'
 
 export const kratos = new V0alpha2Api(
   new Configuration({
@@ -44,116 +40,111 @@ export const getCsrfTokenFromFlow = (
   return node ? (node.attributes as UiNodeInputAttributes).value : ''
 }
 
-type SessionResult<isProtected extends boolean> = isProtected extends true
-  ? Session | { redirect: Redirect }
-  : Session | { redirect: Redirect } | null
-
-// This uses function overloads to basically note that this function has two different call signatures, and makes the type system try to use the call signature that works on each usage site.
-export async function getSessionOrRedirect<E extends boolean>(
-  context: GetServerSidePropsContext<ParsedUrlQuery, PreviewData>,
-  isProtected: E
-): Promise<SessionResult<typeof isProtected>>
-
 /**
- * Returns a redirect if the user doesn't have session.
- * Returns the session if the user has a session.
- * Can return null on pages that don't need to be authed.
- * @param context The context object passed to getServerSideProps
- * @param isProtected Does the route need to be authed?
- */
-export async function getSessionOrRedirect(
-  context: GetServerSidePropsContext<ParsedUrlQuery, PreviewData>,
-  isProtected: boolean
-): Promise<SessionResult<typeof isProtected>> {
-  const cookie = context.req?.headers.cookie
-  const origin = context.req?.headers.origin
-  try {
-    const session = await kratos
-      .toSession(undefined, cookie)
-      .then((res) => res.data)
+ * requireUserSession allows gating loader functions that require a user to be authenticated.
+ * @param request Request received in a loader function.
+ * @returns the session if the user has a session or else a redirect.
+ */ // TODO: SHOULD THROW - otherwise need to check if session
+export async function requireUserSession(request: Request): Promise<Response> {
+  const cookie = request.headers.get('cookie') || undefined
+  return kratos
+    .toSession(undefined, cookie)
+    .then((res) => {
+      const session = res.data as Session
 
-    // Always redirect if the users email isn't verified
-    if (
-      session.identity.verifiable_addresses &&
-      !session.identity.verifiable_addresses[0].verified
-    ) {
-      return redirect(Routes.verify)
-    }
+      // Always redirect if the users email isn't verified
+      if (
+        session.identity.verifiable_addresses &&
+        !session.identity.verifiable_addresses[0].verified
+      ) {
+        return redirect(route('/verify'))
+      }
 
-    if (isProtected) {
-      return session
-    }
-    return redirect(Routes.walletHome)
-  } catch (error) {
-    switch ((error as AxiosError)?.response?.status) {
-      case 403:
-      case 422: // Need to complete 2FA.
-        return redirect(Routes.login + '?aal=aal2')
-    }
-    if (isProtected) {
-      return redirect(Routes.login)
-    }
-    return null
-  }
+      return json(session)
+    })
+    .catch((err) => {
+      switch ((err as AxiosError)?.response?.status) {
+        case 403:
+        case 422: // Need to complete 2FA.
+          return redirect(route('/login') + '?aal=aal2')
+      }
+      return redirect(route('/login'))
+    })
 }
 
-export function handleGetFlowError<S>(
-  router: NextRouter,
-  flowType:
-    | Routes.signup
-    | Routes.login
-    | Routes.verify
-    | Routes.settings
-    | Routes.recovery,
-  resetFlow: Dispatch<SetStateAction<S | undefined>>
+/**
+ * checkUserSession will ensure the user doesn't already have a session.
+ * @param request Request received in a loader function.
+ * @returns a redirect response.
+ */
+export async function checkUserSession(
+  request: Request
+): Promise<Response | null> {
+  const cookie = request.headers.get('cookie') || undefined
+  return kratos
+    .toSession(undefined, cookie)
+    .then((res) => {
+      const session = res.data as Session
+
+      // Always redirect if the users email isn't verified
+      if (
+        session.identity.verifiable_addresses &&
+        !session.identity.verifiable_addresses[0].verified
+      ) {
+        return redirect(route('/verify'))
+      }
+
+      return redirect(route('/home'))
+    })
+    .catch((err) => {
+      switch ((err as AxiosError)?.response?.status) {
+        // User won't have session/cookies so bypass unauthorised.
+        case 401:
+          return null
+        case 403:
+        case 422: // Need to complete 2FA.
+          return redirect(route('/login') + '?aal=aal2')
+      }
+      return null
+    })
+}
+
+// This will only run on the server so don't need a router.
+export function handleFlowError(
+  flowType: 'login' | 'signup' | 'settings' | 'recovery' | 'verify'
 ) {
   return async (err: AxiosError) => {
     switch (err.response?.data.error?.id) {
-      case 'has_session_already':
+      case 'session_aal2_required':
+        // 2FA is enabled and enforced, but user did not perform 2fa yet!
+        throw redirect(err.response?.data.redirect_browser_to)
+      case 'session_already_available':
         // User is already signed in, let's redirect them home!
-        await router.push(Routes.home)
-        return
-      case 'forbidden_return_to':
-        // The flow expired, let's request a new one.
-        alert('The return_to address is not allowed.')
-        resetFlow(undefined)
-        await router.push(flowType)
-        return
+        throw redirect(route('/'))
+      case 'session_refresh_required':
+        // We need to re-authenticate to perform this action
+        throw redirect(err.response?.data.redirect_browser_to)
+      case 'self_service_flow_return_to_forbidden':
+        // The return_to address is not allowed.
+        throw redirect('/' + flowType)
       case 'self_service_flow_expired':
         // The flow expired, let's request a new one.
-        alert('Your interaction expired, please fill out the form again.')
-        resetFlow(undefined)
-        await router.push(flowType)
-        return
-      case 'csrf_violation':
+        throw redirect('/' + flowType)
+      case 'security_csrf_violation':
         // A CSRF violation occurred. Best to just refresh the flow!
-        alert(
-          'A security violation was detected, please fill out the form again.'
-        )
-        resetFlow(undefined)
-        await router.push(flowType)
-        return
-      case 'intended_for_someone_else':
+        throw redirect('/' + flowType)
+      case 'security_identity_mismatch':
         // The requested item was intended for someone else. Let's request a new flow...
-        resetFlow(undefined)
-        await router.push(flowType)
-        return
+        throw redirect('/' + flowType)
       case 'browser_location_change_required':
         // Ory Kratos asked us to point the user to this URL.
-        window.location.href = err.response.data.redirect_browser_to
-        return
-      case 'needs_privileged_session':
-        // We need to re-authenticate to perform this action
-        window.location.href = err.response?.data.redirect_browser_to
-        return
+        throw redirect(err.response.data.redirect_browser_to)
     }
 
     switch (err.response?.status) {
       case 410:
         // The flow expired, let's request a new one.
-        resetFlow(undefined)
-        await router.push(flowType)
-        return
+        throw redirect('/' + flowType)
     }
 
     // We are not able to handle the error? Return it.
