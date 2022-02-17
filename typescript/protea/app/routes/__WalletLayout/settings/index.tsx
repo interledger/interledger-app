@@ -1,51 +1,30 @@
-import React from 'react'
-import {
-  NextPage,
-  InferGetServerSidePropsType,
-  GetServerSideProps,
-  GetServerSidePropsResult
-} from 'next'
-import { Session } from '@ory/kratos-client'
-import { redirect, Routes, WalletLayout } from 'components'
-import { getSessionOrRedirect } from 'lib/kratos'
+import { LoaderFunction, redirect, useLoaderData } from 'remix'
+import { route } from 'routes-gen'
+import { requireUserSession } from '~/lib/kratos'
 
-const SettingsPage: NextPage<
-  InferGetServerSidePropsType<typeof getServerSideProps>
-> = ({ session }) => {
+export const loader: LoaderFunction = async ({ request }) => {
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+  if (flowId)
+    return redirect(`${route('/settings/password')}?flow=${flowId}`, {
+      headers: request.headers
+    })
+
+  const session = await requireUserSession(request)
+  return session
+}
+
+export default function SettingsPage() {
+  const session = useLoaderData()
   return (
-    <WalletLayout
-      route={Routes.settings}
-      backRoute={Routes.walletHome}
-      header='Settings'
-      hideNav
-    >
-      {/* TODO insert content */}
-      {session?.identity.traits.email}
-      &#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;
-    </WalletLayout>
+    // <WalletLayout
+    //   route={Routes.settings}
+    //   backRoute={Routes.walletHome}
+    //   header='Settings'
+    //   hideNav
+    // >
+    <div>{session?.identity.traits.email}</div>
+    //   &#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;
+    // </WalletLayout>
   )
-}
-
-export default SettingsPage
-
-type SettingsPageProps = {
-  session: Session
-}
-
-export const getServerSideProps: GetServerSideProps = async (
-  context
-): Promise<GetServerSidePropsResult<SettingsPageProps>> => {
-  const session = await getSessionOrRedirect(context, true)
-  if (session && 'redirect' in session) {
-    return session
-  }
-
-  const { flow: flowId } = context.query
-  if (flowId) return redirect(`${Routes.settingsPassword}?flow=${flowId}`)
-
-  return {
-    props: {
-      session
-    }
-  }
 }

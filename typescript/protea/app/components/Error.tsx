@@ -1,7 +1,8 @@
 import React, { FC } from 'react'
 import { Container } from './Container'
-import { Router, Routes } from './Routes'
 import { LeavesDecor } from './Decor'
+import { Link } from 'remix'
+import { route } from 'routes-gen'
 
 type ErrorProps = {
   statusCode?: number
@@ -30,9 +31,9 @@ export const Error: FC<ErrorProps> = ({ reason, statusCode }) => {
               </p>
             </div>
             <div className='mt-10'>
-              <Router href={Routes.home}>
+              <Link to={route('/home')}>
                 <span className='text-primary'>Go back home</span>
-              </Router>
+              </Link>
             </div>
           </div>
         </main>
