@@ -26,6 +26,7 @@ type Account struct {
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error)
 	GetByIdentityID(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
+	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 }
 
 type service struct {
@@ -139,25 +140,60 @@ func (s *service) GetByIdentityID(ctx context.Context, tx *sqlx.Tx, identityID s
 		return nil, &ErrInternalError{Err: err.Error()}
 	}
 
-	// fetch ledger account from pacioli and merge.
-	ledgerAccount, err := s.pacioliClient.GetAccount(ctx, &pacioliv1.GetAccountRequest{
-		LedgerID: s.pacioliLedgerID,
-		Id:       ret.LedgerAccountID,
-	})
+	err = s.fetchFromPacioli(ctx, &ret)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, err
 	}
-	if ledgerAccount.Id != ret.LedgerAccountID {
-		// Panic-ing here as something is wrong - possibly encoding of uuids to byte slice.
-		panic("Ledger account ID does not match that returned from Pacioli.")
-	}
-
-	ret.CreditsAccepted = ledgerAccount.CreditsAccepted
-	ret.CreditsReserved = ledgerAccount.CreditsReserved
-	ret.DebitsAccepted = ledgerAccount.DebitsAccepted
-	ret.DebitsReserved = ledgerAccount.DebitsReserved
 
 	return &ret, nil
+}
+
+func (s *service) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (*Account, error) {
+	if accountID == "" {
+		return nil, &ErrInvalidArgument{Err: "Accounts service: accountID is required."}
+	}
+
+	var ret Account
+	err := tx.Get(&ret, "SELECT * FROM accounts WHERE id=$1 LIMIT 1", accountID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &ErrNotFound{Err: "Accounts service: Not found."}
+		}
+
+		return nil, &ErrInternalError{Err: err.Error()}
+	}
+
+	err = s.fetchFromPacioli(ctx, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ret, nil
+}
+
+// Fetches ledger account from Pacioli and merges with the specified account.
+func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error {
+	if account == nil {
+		return &ErrInternalError{Err: "Accounts service: account needs to specified to fetch from Pacioli."}
+	}
+	ledgerAccount, err := s.pacioliClient.GetAccount(ctx, &pacioliv1.GetAccountRequest{
+		LedgerID: s.pacioliLedgerID,
+		Id:       account.LedgerAccountID,
+	})
+	if err != nil {
+		return &ErrInternalError{Err: err.Error()}
+	}
+	if ledgerAccount.Id != account.LedgerAccountID {
+		// Panic-ing here as something is wrong - possibly encoding of uuids to byte slice.
+		panic("Accounts service: Ledger account ID does not match that returned from Pacioli.")
+	}
+
+	account.CreditsAccepted = ledgerAccount.CreditsAccepted
+	account.CreditsReserved = ledgerAccount.CreditsReserved
+	account.DebitsAccepted = ledgerAccount.DebitsAccepted
+	account.DebitsReserved = ledgerAccount.DebitsReserved
+
+	return nil
 }
 
 // Error set
