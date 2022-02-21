@@ -143,6 +143,33 @@ func TestAccountsService(s *testing.T) {
 			assert.Equal(tt, uint64(3), freshAcc.CreditsAccepted)
 			assert.Equal(tt, uint64(4), freshAcc.CreditsReserved)
 			assert.Equal(tt, identity.ID, freshAcc.IdentityID)
+
+			pClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+				Id:              ledgerAccountID,
+				DebitsReserved:  1, // return non-zero to make sure default values aren't used.
+				DebitsAccepted:  2,
+				CreditsAccepted: 3,
+				CreditsReserved: 4,
+			}, nil).Times(1)
+			var freshAccGottenByID *Account
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_acc, err := as.Get(ctx, tx, acc.ID)
+				if err != nil {
+					return err
+				}
+
+				freshAccGottenByID = _acc
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			assert.Equal(tt, ledgerAccountID, freshAccGottenByID.LedgerAccountID)
+			assert.Equal(tt, uint64(1), freshAccGottenByID.DebitsReserved)
+			assert.Equal(tt, uint64(2), freshAccGottenByID.DebitsAccepted)
+			assert.Equal(tt, uint64(3), freshAccGottenByID.CreditsAccepted)
+			assert.Equal(tt, uint64(4), freshAccGottenByID.CreditsReserved)
+			assert.Equal(tt, identity.ID, freshAccGottenByID.IdentityID)
 		})
 
 		t.Run("fails if not written to pacioli", func(tt *testing.T) {
@@ -210,7 +237,7 @@ func TestAccountsService(s *testing.T) {
 		})
 	})
 
-	s.Run("Get account requires identityID", func(t *testing.T) {
+	s.Run("GetAccountByID requires identityID", func(t *testing.T) {
 		var acc *Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 			_acc, err := as.GetByIdentityID(ctx, tx, "")
@@ -223,6 +250,22 @@ func TestAccountsService(s *testing.T) {
 		})
 
 		assert.Equal(t, "identityID is required.", err.Error())
+		assert.Nil(t, acc)
+	})
+
+	s.Run("Get requires accountID", func(t *testing.T) {
+		var acc *Account
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_acc, err := as.Get(ctx, tx, "")
+			if err != nil {
+				return err
+			}
+
+			acc = _acc
+			return nil
+		})
+
+		assert.Equal(t, "Accounts service: accountID is required.", err.Error())
 		assert.Nil(t, acc)
 	})
 }

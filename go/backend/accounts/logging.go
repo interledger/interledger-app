@@ -64,3 +64,25 @@ func (self *loggingService) GetByIdentityID(ctx context.Context, tx *sqlx.Tx, id
 
 	return self.Service.GetByIdentityID(ctx, tx, identityID)
 }
+
+func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (account *Account, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to get account.",
+				zap.String("accountID", accountID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Got account.",
+			zap.String("id", account.ID),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.Get(ctx, tx, accountID)
+}
