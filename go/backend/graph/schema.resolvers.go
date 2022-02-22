@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -433,6 +434,40 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 	}
 
 	return ret, nil
+}
+
+func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	var account *generated.Account
+	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		identity, err := r.IdentityService.Get(ctx, tx, user.ID)
+		if err != nil {
+			return err
+		}
+
+		acc, err := r.AccountService.GetByIdentityID(ctx, tx, identity.ID)
+		if err != nil {
+			return err
+		}
+
+		balance := acc.CreditsAccepted - acc.DebitsAccepted
+
+		account = &generated.Account{
+			ID:      acc.ID,
+			Balance: fmt.Sprintf("%d", balance),
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil
+	}
+
+	return account, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

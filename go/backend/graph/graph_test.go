@@ -421,6 +421,57 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, "verified", verifyResponse.FundingSource.VerificationStatus)
 	})
 
+	s.Run("account", func(t *testing.T) {
+		t.Run("fails if there is no authenticated user", func(tt *testing.T) {
+			req := verifyRequest(generateVerificationInput())
+			_user.ActingAs(req, nil)
+
+			var respData map[string]identity.Identity
+			err := container.Client.Run(ctx, req, &respData)
+
+			assert.Error(tt, err)
+		})
+
+		t.Run("user can get their account", func(tt *testing.T) {
+			t.Cleanup(func() {
+				test_utils.TruncateDb(ctx, container.Db)
+			})
+			user := &_user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+			input := generateIdentityInput()
+			identityReq := createIdentityRequest(input)
+			_user.ActingAs(identityReq, user)
+			ledgerAccountID := uuid.NewString()
+			container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id: ledgerAccountID,
+			}, nil).Times(1)
+			container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+				Id:              ledgerAccountID,
+				CreditsAccepted: 200,
+				DebitsAccepted:  80,
+			}, nil).Times(1)
+			var identityData map[string]generated.CreateIdentityMutationResponse
+			if err := container.Client.Run(ctx, identityReq, &identityData); err != nil {
+				t.Fatal(err)
+			}
+
+			req := getAccountRequest()
+			err := _user.ActingAs(req, user)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var respData map[string]generated.Account
+			if err := container.Client.Run(ctx, req, &respData); err != nil {
+				t.Fatal(err)
+			}
+
+			response := respData["account"]
+			assert.Equal(t, "120", response.Balance)
+		})
+	})
 }
 
 func createIdentityRequest(input *generated.CreateIdentityInput) *graphql.Request {
@@ -479,7 +530,6 @@ func getAccountRequest() *graphql.Request {
 			        account {
 			            id
 			            balance
-			            asset
 			        }
 			    }
 			`)
