@@ -8,24 +8,39 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/accounts"
+	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/fundingsources"
 )
 
 type Service interface {
 	LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error)
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
+	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
 }
 
 type service struct {
 	validator *validator.Validate
 	fs        fundingsources.Service
+	as        accounts.Service
+	ts        transactions.Service
 	db        *sqlx.DB
 	cache     map[string]*NoopBankAccount
+	// TODO: configuring and management of ledgers and ledger accounts that this provider
+	// acts upon.
+	ledgerID        string
+	equityAccountID string
 }
 
 type ServiceArgs struct {
 	Db            *sqlx.DB               `validate:"required"`
 	FundingSource fundingsources.Service `validate:"required"`
+	Transaction   transactions.Service   `validate:"required"`
+	Account       accounts.Service       `validate:"required"`
+
+	// TODO: configuring and management of ledgers and ledger accounts
+	LedgerID    string `validate:"required"`
+	EquityAccID string `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -36,9 +51,13 @@ func NewService(args ServiceArgs) (Service, error) {
 	}
 
 	return &service{
-		validator: validator,
-		db:        args.Db,
-		fs:        args.FundingSource,
+		validator:       validator,
+		db:              args.Db,
+		fs:              args.FundingSource,
+		ts:              args.Transaction,
+		as:              args.Account,
+		ledgerID:        args.LedgerID,
+		equityAccountID: args.EquityAccID,
 	}, nil
 }
 
@@ -135,6 +154,81 @@ func (s *service) VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fun
 	return fundingsource, nil
 }
 
+type BankDepositArgs struct {
+	IdentityID      string `validate:"required,uuid4"`
+	FundingSourceID string `validate:"required,uuid4"`
+	Amount          uint64 `validate:"gt=0"`
+}
+
+func (s *service) InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error) {
+	var transaction *transactions.AccountTransaction
+	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
+		if err != nil {
+			switch err.(type) {
+			case *fundingsources.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *fundingsources.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+		if fundingSource.IdentityID != args.IdentityID {
+			return &ErrNotFound{Err: "Noop service: Funding source not found."}
+		}
+		if fundingSource.VerificationState != "verified" {
+			return &ErrUnverifiedFundingSource{Err: "Noop service: Funding source is not verified."}
+		}
+
+		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		if err != nil {
+			switch err.(type) {
+			case *accounts.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *accounts.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Type:        "deposit",
+			NetAmount:   args.Amount,
+			Description: "Deposit from " + fundingSource.Name,
+			State:       "completed", // TODO: define states
+			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        s.ledgerID,
+					DebitAccountID:  acc.ID,
+					CreditAccountID: s.equityAccountID,
+					Amount:          args.Amount,
+					// Code: "1", // TODO: define ledger transfer codes.
+					Flags: transactions.LedgerTransferFlags{},
+				},
+			},
+		})
+		if err != nil {
+			switch err.(type) {
+			case *transactions.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *transactions.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+		transaction = trx
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction, nil
+}
+
 type ErrInternalError struct {
 	Err string
 }
@@ -148,5 +242,21 @@ type ErrInvalidArgument struct {
 }
 
 func (e ErrInvalidArgument) Error() string {
+	return e.Err
+}
+
+type ErrNotFound struct {
+	Err string
+}
+
+func (e ErrNotFound) Error() string {
+	return e.Err
+}
+
+type ErrUnverifiedFundingSource struct {
+	Err string
+}
+
+func (e ErrUnverifiedFundingSource) Error() string {
 	return e.Err
 }
