@@ -7,6 +7,7 @@ type Mutation {
   verify(input: VerificationInput!): VerifyMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
   verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
+  initiateDeposit(input: DepositInput!): DepositMutationResponse!
 }
 
 interface MutationResponse {
@@ -94,4 +95,29 @@ type VerifyUsdBankAccountMutationResponse implements MutationResponse {
 
 input VerifyUsdBankAccountInput {
   FundingSourceId: String!
+}
+
+input DepositInput {
+  fundingSourceID: ID!
+  amount: String!
+}
+
+type DepositMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  transaction: Transaction
+}
+
+enum TransactionType {
+  DEPOSIT
+}
+
+type Transaction {
+  id: ID!
+  type: TransactionType!
+  description: String!
+  amount: String!
+  timestamp: String!
+  status: String!
 }

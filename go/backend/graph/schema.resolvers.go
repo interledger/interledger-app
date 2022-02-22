@@ -5,6 +5,8 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
@@ -187,6 +189,57 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 			Mask:               fundingSource.Mask,
 			Type:               fundingSource.Type,
 			SubType:            fundingSource.SubType,
+		},
+	}, nil
+}
+
+func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.DepositInput) (*generated.DepositMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	parsedAmount, err := strconv.ParseUint(input.Amount, 10, 64)
+	if err != nil {
+		InvalidArgument(ctx, err.Error())
+		return nil, nil
+	}
+
+	// TODO: determine provider to use
+	depositTransaction, err := r.NoopService.InitiateBankDeposit(ctx, &_noop.BankDepositArgs{
+		IdentityID:      user.ID,
+		FundingSourceID: input.FundingSourceID,
+		Amount:          parsedAmount,
+	})
+	if err != nil {
+		fmt.Println("error: " + err.Error())
+		switch err.(type) {
+		case *_noop.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		case *_noop.ErrUnverifiedFundingSource:
+			return &generated.DepositMutationResponse{
+				Code:    "403",
+				Success: false,
+				Message: "Deposit failed: Funding source is not verified.",
+			}, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+	return &generated.DepositMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Deposit initiated.",
+		Transaction: &generated.Transaction{
+			ID:          depositTransaction.ID,
+			Timestamp:   depositTransaction.CreatedAt, // TODO: decide format
+			Amount:      strconv.FormatInt(depositTransaction.NetAmount, 10),
+			Type:        generated.TransactionTypeDeposit,
+			Status:      depositTransaction.State,
+			Description: depositTransaction.Description,
 		},
 	}, nil
 }

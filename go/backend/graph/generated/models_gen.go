@@ -3,6 +3,10 @@
 package generated
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
 	"gitlab.com/fynbos/backend/identity"
 )
 
@@ -25,6 +29,20 @@ type CreateIdentityMutationResponse struct {
 }
 
 func (CreateIdentityMutationResponse) IsMutationResponse() {}
+
+type DepositInput struct {
+	FundingSourceID string `json:"fundingSourceID"`
+	Amount          string `json:"amount"`
+}
+
+type DepositMutationResponse struct {
+	Code        string       `json:"code"`
+	Success     bool         `json:"success"`
+	Message     string       `json:"message"`
+	Transaction *Transaction `json:"transaction"`
+}
+
+func (DepositMutationResponse) IsMutationResponse() {}
 
 type FundingSource struct {
 	ID                 string `json:"id"`
@@ -50,6 +68,15 @@ type LinkUsdBankAccountInput struct {
 	RoutingNumber string `json:"routingNumber"`
 	Institution   string `json:"institution"`
 	Type          string `json:"type"`
+}
+
+type Transaction struct {
+	ID          string          `json:"id"`
+	Type        TransactionType `json:"type"`
+	Description string          `json:"description"`
+	Amount      string          `json:"amount"`
+	Timestamp   string          `json:"timestamp"`
+	Status      string          `json:"status"`
 }
 
 type VerificationInput struct {
@@ -82,3 +109,42 @@ type VerifyUsdBankAccountMutationResponse struct {
 }
 
 func (VerifyUsdBankAccountMutationResponse) IsMutationResponse() {}
+
+type TransactionType string
+
+const (
+	TransactionTypeDeposit TransactionType = "DEPOSIT"
+)
+
+var AllTransactionType = []TransactionType{
+	TransactionTypeDeposit,
+}
+
+func (e TransactionType) IsValid() bool {
+	switch e {
+	case TransactionTypeDeposit:
+		return true
+	}
+	return false
+}
+
+func (e TransactionType) String() string {
+	return string(e)
+}
+
+func (e *TransactionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TransactionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TransactionType", str)
+	}
+	return nil
+}
+
+func (e TransactionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

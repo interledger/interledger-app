@@ -49,6 +49,8 @@ type Service interface {
 	CreateLedger(name string, code uint16) (*Ledger, error)
 	CreateAccounts(ledgerID string, args []CreateAccountArgs) ([]tigerbeetleTypes.EventResult, error)
 	GetAccounts(ledgerID string, accountIDs []string) ([]Account, error)
+
+	// TODO: refactor Pacioli so that cross-currency ledger transfers can be linked.
 	CreateTransfers(ledgerID string, args []CreateTransferArgs) ([]tigerbeetleTypes.EventResult, error)
 	GetTransfers(ledgerID string, transferIDs []string) ([]Transfer, error)
 }

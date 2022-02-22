@@ -3,115 +3,37 @@ package graph
 import (
 	"context"
 	"errors"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
-	"github.com/go-chi/chi"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/accounts"
 	_account "gitlab.com/fynbos/backend/accounts"
-	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/identity/noop"
-	_noop "gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
 )
 
 func TestGraphql(s *testing.T) {
 	ctx := context.Background()
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
+	container, err := NewTestContainer(ctx, s)
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer crdb.Container.Terminate(ctx)
 
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		s.Fatal(err)
-	}
-	defer logger.Sync()
-
-	// the tests are run in serial. We use a global connection for
-	// each of the tests.
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	defer db.Close()
-
-	ctrl := gomock.NewController(s)
-	defer ctrl.Finish()
-
-	cs := _country.NewService()
-	provider := noop.NewMockProvider(ctrl)
-	is, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		NoopProvider:   provider,
+	s.Cleanup(func() {
+		container.Cleanup(ctx)
 	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	is = identity.NewLoggingService(is, logger)
-
-	pacioliLedgerID := uuid.NewString()
-	ledgerCode := uint16(1)
-	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	pClient.EXPECT().GetLedgerByCode(gomock.Any(), gomock.Any()).Return(&pacioliv1.Ledger{
-		Id:   pacioliLedgerID,
-		Code: uint32(ledgerCode),
-	}, nil).Times(1)
-	as, err := accounts.NewService(is, cs, ledgerCode, pClient)
-	if err != nil {
-		s.Fatal(err)
-	}
-	as = accounts.NewLoggingService(as, logger)
-
-	users := _user.NewMockService()
-	users = _user.NewLoggingService(users, logger)
-
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Identity: is,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	fs = fundingsources.NewLoggingService(fs, logger)
-
-	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
-		Db:            db,
-		FundingSource: fs,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-
-	graph, err := NewService(GraphqlOpts{
-		Db:       db,
-		Identity: is,
-		User:     users,
-		Account:  as,
-		Noop:     noopProvider,
-	})
-	graph = NewLoggingService(graph, logger)
-
-	router := chi.NewRouter()
-	router.Use(_user.MakeMiddleware(users))
-	router.Handle("/graphql", MakeHandler(graph, GraphqlHttpHandlerOpts{}))
-	server := httptest.NewServer(router)
-	defer server.Close()
-
-	client := graphql.NewClient(server.URL + "/graphql")
 
 	s.Run("create identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
@@ -119,14 +41,14 @@ func TestGraphql(s *testing.T) {
 			_user.ActingAs(req, nil)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
-			err = client.Run(ctx, req, &respData)
+			err = container.Client.Run(container.Ctx, req, &respData)
 
 			assert.Error(tt, err)
 		})
 
 		t.Run("creates identity and account", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, db)
+				test_utils.TruncateDb(ctx, container.Db)
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
@@ -136,12 +58,12 @@ func TestGraphql(s *testing.T) {
 			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
 			ledgerAccountID := uuid.NewString()
-			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id: ledgerAccountID,
 			}, nil).Times(1)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
-			if err := client.Run(ctx, req, &respData); err != nil {
+			if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 				tt.Fatal(err)
 			}
 
@@ -163,8 +85,8 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, "", response.Identity.TaxIDNumber)
 
 			var userIdentity *identity.Identity
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_identity, err := is.Get(ctx, tx, user.ID)
+			err = crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
+				_identity, err := container.IdentityService.Get(ctx, tx, user.ID)
 				if err != nil {
 					return err
 				}
@@ -188,7 +110,7 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, "", userIdentity.PostalCode)
 			assert.Equal(tt, "", userIdentity.TaxIDNumber)
 
-			pClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id:              ledgerAccountID,
 				DebitsReserved:  1, // return non-zero to make sure default values aren't used.
 				DebitsAccepted:  2,
@@ -196,8 +118,8 @@ func TestGraphql(s *testing.T) {
 				CreditsReserved: 4,
 			}, nil).Times(1)
 			var account *_account.Account
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := as.GetByIdentityID(ctx, tx, user.ID)
+			err = crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
+				_acc, err := container.AccountService.GetByIdentityID(ctx, tx, user.ID)
 				if err != nil {
 					return err
 				}
@@ -218,9 +140,9 @@ func TestGraphql(s *testing.T) {
 
 		t.Run("user can only create 1 identity", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, db)
+				test_utils.TruncateDb(ctx, container.Db)
 			})
-			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id: uuid.NewString(),
 			}, nil).Times(1)
 			user := &_user.User{
@@ -231,7 +153,7 @@ func TestGraphql(s *testing.T) {
 			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
 			var respData map[string]generated.CreateIdentityMutationResponse
-			if err := client.Run(ctx, req, &respData); err != nil {
+			if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 				tt.Fatal(err)
 			}
 			response := respData["createIdentity"]
@@ -239,7 +161,7 @@ func TestGraphql(s *testing.T) {
 
 			additionalInput := generateIdentityInput(withCountry("ZA"))
 			req.Var("input", additionalInput)
-			err = client.Run(ctx, req, &respData)
+			err = container.Client.Run(container.Ctx, req, &respData)
 			assert.EqualError(tt, err, "graphql: Unable to process request.")
 		})
 	})
@@ -250,14 +172,14 @@ func TestGraphql(s *testing.T) {
 			_user.ActingAs(req, nil)
 
 			var respData map[string]identity.Identity
-			err := client.Run(ctx, req, &respData)
+			err := container.Client.Run(container.Ctx, req, &respData)
 
 			assert.Error(tt, err)
 		})
 
 		t.Run("returns not found if there is no identity", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, db)
+				test_utils.TruncateDb(ctx, container.Db)
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
@@ -267,14 +189,14 @@ func TestGraphql(s *testing.T) {
 			_user.ActingAs(req, user)
 
 			var respData map[string]identity.Identity
-			err := client.Run(ctx, req, &respData)
+			err := container.Client.Run(container.Ctx, req, &respData)
 
 			assert.EqualError(tt, err, "graphql: Not found.")
 		})
 
 		t.Run("user can get their identity", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, db)
+				test_utils.TruncateDb(ctx, container.Db)
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
@@ -284,12 +206,12 @@ func TestGraphql(s *testing.T) {
 			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
 			ledgerAccountID := uuid.NewString()
-			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id: ledgerAccountID,
 			}, nil).Times(1)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
-			if err := client.Run(ctx, req, &respData); err != nil {
+			if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 				tt.Fatal(err)
 			}
 
@@ -297,7 +219,7 @@ func TestGraphql(s *testing.T) {
 			_user.ActingAs(getReq, user)
 
 			var getResp map[string]identity.Identity
-			if err := client.Run(ctx, getReq, &getResp); err != nil {
+			if err := container.Client.Run(container.Ctx, getReq, &getResp); err != nil {
 				tt.Fatal(err)
 			}
 
@@ -323,7 +245,7 @@ func TestGraphql(s *testing.T) {
 			_user.ActingAs(req, nil)
 
 			var respData map[string]identity.Identity
-			err := client.Run(ctx, req, &respData)
+			err := container.Client.Run(container.Ctx, req, &respData)
 
 			assert.Error(tt, err)
 		})
@@ -337,14 +259,14 @@ func TestGraphql(s *testing.T) {
 			_user.ActingAs(req, user)
 
 			var respData map[string]identity.Identity
-			err := client.Run(ctx, req, &respData)
+			err := container.Client.Run(container.Ctx, req, &respData)
 
 			assert.EqualError(tt, err, "graphql: Not found.")
 		})
 
 		t.Run("fails if call to provider fails", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, db)
+				test_utils.TruncateDb(ctx, container.Db)
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
@@ -353,27 +275,27 @@ func TestGraphql(s *testing.T) {
 			input := generateIdentityInput()
 			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
-			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id: uuid.NewString(),
 			}, nil).Times(1)
-			provider.EXPECT().CreateCustomer(gomock.Any()).Return(nil, errors.New("Request failed.")).Times(1)
+			container.NoopProvider.EXPECT().CreateCustomer(gomock.Any()).Return(nil, errors.New("Request failed.")).Times(1)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
-			if err := client.Run(ctx, req, &respData); err != nil {
+			if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 				tt.Fatal(err)
 			}
 
 			verifyReq := verifyRequest(generateVerificationInput())
 			_user.ActingAs(verifyReq, user)
 			var verifyResp map[string]generated.VerifyMutationResponse
-			err = client.Run(ctx, verifyReq, &verifyResp)
+			err = container.Client.Run(container.Ctx, verifyReq, &verifyResp)
 
 			assert.EqualError(tt, err, "graphql: Unable to process request.")
 		})
 
 		t.Run("creates customer and stores kyc data", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, db)
+				test_utils.TruncateDb(ctx, container.Db)
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
@@ -382,24 +304,24 @@ func TestGraphql(s *testing.T) {
 			input := generateIdentityInput()
 			req := createIdentityRequest(input)
 			_user.ActingAs(req, user)
-			pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id: uuid.NewString(),
 			}, nil).Times(1)
 			customerID := uuid.NewString()
-			provider.EXPECT().CreateCustomer(gomock.Any()).Return(&noop.Customer{
+			container.NoopProvider.EXPECT().CreateCustomer(gomock.Any()).Return(&noop.Customer{
 				ID:     customerID,
 				Status: noop.Verified,
 			}, nil).Times(1)
 
 			var respData map[string]generated.CreateIdentityMutationResponse
-			if err := client.Run(ctx, req, &respData); err != nil {
+			if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 				tt.Fatal(err)
 			}
 
 			verifyReq := verifyRequest(generateVerificationInput())
 			_user.ActingAs(verifyReq, user)
 			var verifyResp map[string]generated.VerifyMutationResponse
-			if err := client.Run(ctx, verifyReq, &verifyResp); err != nil {
+			if err := container.Client.Run(container.Ctx, verifyReq, &verifyResp); err != nil {
 				tt.Fatal(err)
 			}
 
@@ -417,14 +339,14 @@ func TestGraphql(s *testing.T) {
 		_user.ActingAs(req, nil)
 
 		var respData map[string]generated.LinkFundingSourceMutationResponse
-		err := client.Run(ctx, req, &respData)
+		err := container.Client.Run(container.Ctx, req, &respData)
 
 		assert.Error(t, err)
 	})
 
 	s.Run("user can link and verify usd bank account", func(t *testing.T) {
 		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
+			test_utils.TruncateDb(ctx, container.Db)
 		})
 		user := &_user.User{
 			ID:    uuid.NewString(),
@@ -434,11 +356,11 @@ func TestGraphql(s *testing.T) {
 		identityReq := createIdentityRequest(input)
 		_user.ActingAs(identityReq, user)
 		ledgerAccountID := uuid.NewString()
-		pClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+		container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 			Id: ledgerAccountID,
 		}, nil).Times(1)
 		var identityData map[string]generated.CreateIdentityMutationResponse
-		if err := client.Run(ctx, identityReq, &identityData); err != nil {
+		if err := container.Client.Run(container.Ctx, identityReq, &identityData); err != nil {
 			t.Fatal(err)
 		}
 
@@ -450,7 +372,7 @@ func TestGraphql(s *testing.T) {
 		}
 
 		var respData map[string]generated.LinkFundingSourceMutationResponse
-		if err := client.Run(ctx, req, &respData); err != nil {
+		if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 			t.Fatal(err)
 		}
 
@@ -465,8 +387,8 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, "pending", response.FundingSource.VerificationStatus)
 
 		var fundingsource *fundingsources.FundingSource
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_fs, err := fs.Get(ctx, tx, response.FundingSource.ID)
+		err = crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
+			_fs, err := container.FundingSourceService.Get(ctx, tx, response.FundingSource.ID)
 			if err != nil {
 				return err
 			}
@@ -489,7 +411,7 @@ func TestGraphql(s *testing.T) {
 		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))
 		_user.ActingAs(verifyReq, user)
 		var verifyData map[string]generated.VerifyUsdBankAccountMutationResponse
-		if err := client.Run(ctx, verifyReq, &verifyData); err != nil {
+		if err := container.Client.Run(container.Ctx, verifyReq, &verifyData); err != nil {
 			t.Fatal(err)
 		}
 		verifyResponse := verifyData["verifyUsdBankAccount"]
@@ -498,6 +420,7 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, true, verifyResponse.Success)
 		assert.Equal(t, "verified", verifyResponse.FundingSource.VerificationStatus)
 	})
+
 }
 
 func createIdentityRequest(input *generated.CreateIdentityInput) *graphql.Request {
