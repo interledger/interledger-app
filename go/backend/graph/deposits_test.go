@@ -66,17 +66,11 @@ func TestUserDeposits(s *testing.T) {
 				Errors: []*pacioliv1.EventError{},
 			}, nil).Times(1)
 
-		req := initiateDepositRequest(&generated.DepositInput{
+		response, err := initiateDeposit(container, user, &generated.DepositInput{
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars
 		})
-		_user.ActingAs(req, user)
-		var data map[string]generated.DepositMutationResponse
-		if err := container.Client.Run(container.Ctx, req, &data); err != nil {
-			t.Fatal(err)
-		}
 
-		response := data["initiateDeposit"]
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Deposit initiated.", response.Message)
@@ -115,17 +109,14 @@ func TestUserDeposits(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		req := initiateDepositRequest(&generated.DepositInput{
+		response, err := initiateDeposit(container, user, &generated.DepositInput{
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars
 		})
-		_user.ActingAs(req, user)
-		var data map[string]generated.DepositMutationResponse
-		if err := container.Client.Run(container.Ctx, req, &data); err != nil {
+		if err != nil {
 			t.Fatal(err)
 		}
 
-		response := data["initiateDeposit"]
 		assert.Equal(t, "403", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Deposit failed: Funding source is not verified.", response.Message)
@@ -135,7 +126,7 @@ func TestUserDeposits(s *testing.T) {
 	// TODO: does the user need to be verified to allow deposits?
 }
 
-func initiateDepositRequest(input *generated.DepositInput) *graphql.Request {
+func initiateDeposit(container *TestContainer, user *_user.User, input *generated.DepositInput) (*generated.DepositMutationResponse, error) {
 	req := graphql.NewRequest(`
 			    mutation ($input: DepositInput!) {
 			        initiateDeposit (input: $input) {
@@ -154,6 +145,13 @@ func initiateDepositRequest(input *generated.DepositInput) *graphql.Request {
 			    }
 			`)
 	req.Var("input", input)
+	_user.ActingAs(req, user)
+	var data map[string]generated.DepositMutationResponse
+	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
+		return nil, err
+	}
 
-	return req
+	ret := data["initiateDeposit"]
+
+	return &ret, nil
 }
