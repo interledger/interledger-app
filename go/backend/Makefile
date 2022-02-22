@@ -26,3 +26,8 @@ push:
 	@echo "Pushing image"
 	docker push "$(IMAGE_REPO):$(IMAGE_HASH)"
 	@echo "Image pushed"
+
+generate:
+	@echo "Generating graphl"
+	go generate ./...
+	@echo "Graphql generated"

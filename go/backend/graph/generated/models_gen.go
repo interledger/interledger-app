@@ -14,6 +14,11 @@ type MutationResponse interface {
 	IsMutationResponse()
 }
 
+type Account struct {
+	ID      string `json:"id"`
+	Balance string `json:"balance"`
+}
+
 type CreateIdentityInput struct {
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`

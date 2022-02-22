@@ -1,6 +1,7 @@
 type Query{
   identity: Identity
   fundingSources: [FundingSource]!
+  account: Account
 }
 
 type Mutation {
@@ -149,4 +150,9 @@ type OutgoingPaymentMutationResponse implements MutationResponse {
   success: Boolean!
   message: String!
   transaction: Transaction
+}
+
+type Account {
+  id: ID!
+  balance: String!
 }
