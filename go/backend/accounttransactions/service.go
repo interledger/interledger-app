@@ -90,7 +90,7 @@ type CreateLedgerTransferArgs struct {
 type CreateTransactionArgs struct {
 	AccountID       string `validate:"required,uuid4"`
 	Description     string
-	Type            string                     `validate:"oneof=deposit withdrawal"`
+	Type            string                     `validate:"oneof=deposit withdrawal outgoingPayment"`
 	NetAmount       uint64                     `validate:"gt=0"`      // a uint64 as you can't have a negative deposit/withdrawal etc.
 	State           string                     `validate:"required"`  // TODO: decide on transaction states
 	LedgerTransfers []CreateLedgerTransferArgs `validate:"dive,gt=0"` // We assume an account transaction has to backed by at least one ledger transfer

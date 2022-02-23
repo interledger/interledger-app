@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -12,8 +13,12 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/proto/pacioli/v1"
 	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
+
+	// TODO: this needs to be refactored to be part of this provider
+	_noop "gitlab.com/fynbos/backend/identity/noop"
 )
 
 type Service interface {
@@ -21,6 +26,7 @@ type Service interface {
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
 	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) (*transactions.AccountTransaction, error)
+	InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) (*transactions.AccountTransaction, error)
 }
 
 type service struct {
@@ -28,6 +34,7 @@ type service struct {
 	fs        fundingsources.Service
 	as        accounts.Service
 	ts        transactions.Service
+	is        identity.Service
 	db        *sqlx.DB
 	cache     map[string]*NoopBankAccount
 	// TODO: configuring and management of ledgers and ledger accounts that this provider
@@ -41,6 +48,7 @@ type ServiceArgs struct {
 	FundingSource fundingsources.Service `validate:"required"`
 	Transaction   transactions.Service   `validate:"required"`
 	Account       accounts.Service       `validate:"required"`
+	Identity      identity.Service       `validate:"required"`
 
 	// TODO: configuring and management of ledgers and ledger accounts
 	LedgerID    string `validate:"required"`
@@ -60,6 +68,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		fs:              args.FundingSource,
 		ts:              args.Transaction,
 		as:              args.Account,
+		is:              args.Identity,
 		ledgerID:        args.LedgerID,
 		equityAccountID: args.EquityAccID,
 	}, nil
@@ -328,6 +337,100 @@ func parseInvalidBankWithdrawalTransferErrors(transferErrors []*pacioli.EventErr
 	}
 }
 
+type OutgoingPaymentArgs struct {
+	IdentityID string `validate:"required,uuid4"`
+	Amount     uint64 `validate:"required,gt=0"`
+	To         string `validate:"required"`
+}
+
+func (s *service) InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) (*transactions.AccountTransaction, error) {
+	err := s.validator.Struct(args)
+	if err != nil || !isValidIlpAddress(args.To) {
+		return nil, &ErrInvalidArgument{Err: "Noop service: " + err.Error()}
+	}
+
+	var outgoingPayment *transactions.AccountTransaction
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		identity, err := s.is.Get(ctx, tx, args.IdentityID)
+		if err != nil {
+			return &ErrInvalidArgument{Err: "Noop service: Identity not found."}
+		}
+		// TODO: the status consts need to be part of this provider
+		if identity.VerificationState != _noop.Verified {
+			return &ErrUnverifiedIdentity{Err: "Noop service: Identity is unverified."}
+		}
+		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		if err != nil {
+			switch err.(type) {
+			case *accounts.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *accounts.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+
+		transaction, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Sent to " + args.To,
+			Type:        "outgoingPayment",
+			NetAmount:   args.Amount,
+			State:       "completed", // noop provider provides instant payments :)
+			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        s.ledgerID,
+					DebitAccountID:  s.equityAccountID,
+					CreditAccountID: acc.ID,
+					Amount:          args.Amount,
+					// Code: uint16,
+					Flags: transactions.LedgerTransferFlags{},
+				},
+			},
+		})
+		if err != nil {
+			switch err.(type) {
+			case *transactions.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *transactions.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			case *transactions.ErrInvalidTransfers:
+				return parseInvalidOutgoingPaymentErrors(err.(*transactions.ErrInvalidTransfers).TransferErrors)
+			default:
+				return &ErrInternalError{Err: "Noop service: " + err.Error()}
+			}
+		}
+		outgoingPayment = transaction
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return outgoingPayment, nil
+}
+
+// Filter out errors related to user account such as insufficient balance.
+// Otherwise, this returns an internal error if the error is not related to the user's account e.g. fx.
+func parseInvalidOutgoingPaymentErrors(transferErrors []*pacioli.EventError) error {
+	if len(transferErrors) != 1 {
+		panic("Noop service: There should be one ledger transfer error for an outgoing payment.")
+	}
+
+	err := transferErrors[0]
+	switch err.Code {
+	case tb_types.TransferExceedsCredits:
+		return &ErrInsufficientBalance{Err: "Noop service: Insufficient balance to perform outgoing payment."}
+	default:
+		return &ErrInternalError{Err: fmt.Sprintf("Noop service: Unable to perform outgoing payment due to TigerBeetle error: %d ", err.Code)}
+	}
+}
+
+func isValidIlpAddress(address string) bool {
+	return strings.HasPrefix(address, "$")
+}
+
 type ErrInternalError struct {
 	Err string
 }
@@ -365,5 +468,13 @@ type ErrInsufficientBalance struct {
 }
 
 func (e ErrInsufficientBalance) Error() string {
+	return e.Err
+}
+
+type ErrUnverifiedIdentity struct {
+	Err string
+}
+
+func (e ErrUnverifiedIdentity) Error() string {
 	return e.Err
 }
