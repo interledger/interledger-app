@@ -11,11 +11,48 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 )
+
+func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated.Account) ([]*generated.Transaction, error) {
+	var trxs []*generated.Transaction
+	err := crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		dbTrxs, err := r.AccountTransactions.GetByAccount(ctx, tx, &account_transactions.GetByAccountArgs{
+			AccountID: obj.ID,
+			Limit:     3,
+			OrderBy:   "ASC",
+		})
+		if err != nil {
+			return err
+		}
+
+		for _, trx := range dbTrxs {
+			trxs = append(trxs, &generated.Transaction{
+				ID:          trx.ID,
+				Type:        generated.TransactionType(trx.Type),
+				Description: trx.Description,
+				Amount:      fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)),
+				Timestamp:   trx.CreatedAt,
+				Status:      trx.State,
+			})
+		}
+
+		return nil
+	})
+	if err != nil {
+		switch err.(type) {
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	return trxs, nil
+}
 
 func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.CreateIdentityInput) (*generated.CreateIdentityMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
@@ -455,11 +492,11 @@ func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error)
 			return err
 		}
 
-		balance := acc.CreditsAccepted - acc.DebitsAccepted
+		floatBalance := float64(acc.AvailableBalance) / float64(100)
 
 		account = &generated.Account{
 			ID:      acc.ID,
-			Balance: fmt.Sprintf("%d", balance),
+			Balance: fmt.Sprintf("$ %.2f", floatBalance),
 		}
 		return nil
 	})
@@ -470,11 +507,15 @@ func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error)
 	return account, nil
 }
 
+// Account returns generated.AccountResolver implementation.
+func (r *Resolver) Account() generated.AccountResolver { return &accountResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type accountResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

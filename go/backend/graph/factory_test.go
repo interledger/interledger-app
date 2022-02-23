@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"google.golang.org/grpc"
 	"net/http/httptest"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -140,11 +141,12 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.NoopService = noopProvider
 
 	graph, err := NewService(GraphqlOpts{
-		Db:       db,
-		Identity: is,
-		User:     users,
-		Account:  as,
-		Noop:     noopProvider,
+		Db:                  db,
+		Identity:            is,
+		User:                users,
+		Account:             as,
+		Noop:                noopProvider,
+		AccountTransactions: ts,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph
@@ -221,4 +223,27 @@ func NewLinkedUsdBankAccount(
 	}
 
 	return response.FundingSource, nil
+}
+
+func newDeposit(container *TestContainer, user *_user.User, fsId string) (*generated.Transaction, error) {
+	container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+			return &pacioliv1.Account{
+				Id: args.Id,
+			}, nil
+		}).Times(2)
+	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.CreateTransfersResponse{
+			Errors: []*pacioliv1.EventError{},
+		}, nil).Times(1)
+
+	response, err := initiateDeposit(container, user, &generated.DepositInput{
+		FundingSourceID: fsId,
+		Amount:          "10000", // 100 dollars
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Transaction, nil
 }

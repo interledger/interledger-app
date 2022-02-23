@@ -449,8 +449,9 @@ func TestGraphql(s *testing.T) {
 			}, nil).Times(1)
 			container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 				Id:              ledgerAccountID,
-				CreditsAccepted: 200,
-				DebitsAccepted:  80,
+				CreditsAccepted: 80,
+				DebitsAccepted:  200,
+				CreditsReserved: 10,
 			}, nil).Times(1)
 			var identityData map[string]generated.CreateIdentityMutationResponse
 			if err := container.Client.Run(ctx, identityReq, &identityData); err != nil {
@@ -469,7 +470,8 @@ func TestGraphql(s *testing.T) {
 			}
 
 			response := respData["account"]
-			assert.Equal(t, "120", response.Balance)
+			assert.Equal(tt, "$ 1.10", response.Balance)
+			assert.NotNil(tt, response.ID)
 		})
 	})
 }
@@ -519,17 +521,6 @@ func getIdentityRequest() *graphql.Request {
 		            	postalCode
 		            	country
 		            	taxIdNumber
-			        }
-			    }
-			`)
-}
-
-func getAccountRequest() *graphql.Request {
-	return graphql.NewRequest(`
-			    query {
-			        account {
-			            id
-			            balance
 			        }
 			    }
 			`)

@@ -2,6 +2,7 @@ package graph
 
 import (
 	"errors"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -19,6 +20,7 @@ type GraphqlOpts struct {
 	Identity                         identity.Service
 	User                             user.Service
 	Account                          accounts.Service
+	AccountTransactions              account_transactions.Service
 	Noop                             noop.Service
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
@@ -43,11 +45,12 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 	}
 
 	svc := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &Resolver{
-		Db:              opts.Db,
-		IdentityService: opts.Identity,
-		UserService:     opts.User,
-		AccountService:  opts.Account,
-		NoopService:     opts.Noop,
+		Db:                  opts.Db,
+		IdentityService:     opts.Identity,
+		UserService:         opts.User,
+		AccountService:      opts.Account,
+		NoopService:         opts.Noop,
+		AccountTransactions: opts.AccountTransactions,
 	}}))
 	svc.SetQueryCache(lru.New(int(queryCacheSize)))
 	svc.Use(extension.Introspection{})

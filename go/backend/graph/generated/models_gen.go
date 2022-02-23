@@ -15,8 +15,9 @@ type MutationResponse interface {
 }
 
 type Account struct {
-	ID      string `json:"id"`
-	Balance string `json:"balance"`
+	ID                 string         `json:"id"`
+	Balance            string         `json:"balance"`
+	RecentTransactions []*Transaction `json:"recentTransactions"`
 }
 
 type CreateIdentityInput struct {
