@@ -1,5 +1,4 @@
-import { Link, NavLink, Outlet, useLoaderData } from 'remix'
-import type { LoaderFunction } from 'remix'
+import { Link, NavLink, Outlet, useLocation } from 'remix'
 import { route } from 'routes-gen'
 import React, { FC } from 'react'
 import {
@@ -11,21 +10,28 @@ import {
   LogoIcon
 } from '~/components'
 
-export const loader: LoaderFunction = async ({ request }) => {
-  let url = new URL(request.url)
+// Allow us to show/hide the NavRail and NavDrawer on certain pages.
+function showNav(pathname: string) {
   return (
-    // Allow us to show/hide the nav on certain pages.
     ['/home', '/transact', '/connect', '/settings'].findIndex(
-      (val) => val === url.pathname
+      (val) => val === pathname
     ) >= 0
   )
 }
 
+// Allow us to show/hide the NavBar on certain pages.
+function showNavBar(pathname: string) {
+  return (
+    ['/home', '/transact', '/connect'].findIndex((val) => val === pathname) >= 0
+  )
+}
+
 export default function WalletLayout() {
-  const showNav = useLoaderData<boolean>()
+  // We useLocation here as loader only runs on first load of WalletLayout.
+  const location = useLocation()
   return (
     <div className='flex flex-col text-medium sm:flex-row'>
-      {showNav && (
+      {showNav(location.pathname) && (
         <NavRail>
           <NavList>
             <Link to={route('/')} aria-label='Fynbos logo'>
@@ -46,7 +52,7 @@ export default function WalletLayout() {
           </NavList>
         </NavRail>
       )}
-      {showNav && (
+      {showNav(location.pathname) && (
         <NavDrawer>
           <NavList>
             <Link to={route('/')} aria-label='Fynbos logo'>
@@ -69,11 +75,9 @@ export default function WalletLayout() {
           </NavList>
         </NavDrawer>
       )}
-      <div className='w-full'>
-        {/* The header and body of the page should be inserted here by the page. */}
-        <Outlet />
-      </div>
-      {showNav && (
+      {/* The header and body of the page should be inserted here by the page. */}
+      <Outlet />
+      {showNavBar(location.pathname) && (
         <NavBar>
           <NavList>
             <NavListItem icon={<WalletIcon />} to={route('/home')}>
@@ -102,7 +106,7 @@ const NavList: FC = ({ children }) => {
 
 const NavBar: FC = ({ children }) => {
   return (
-    <div className='sticky bottom-0 flex h-20 min-w-full select-none justify-between bg-container-primary p-4 pt-3 font-display text-xs sm:hidden'>
+    <div className='fixed bottom-0 flex h-20 min-w-full select-none justify-between bg-container-primary p-4 pt-3 font-display text-xs sm:hidden'>
       {children}
     </div>
   )
