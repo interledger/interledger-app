@@ -130,6 +130,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		FundingSource: fs,
 		Account:       as,
 		Transaction:   ts,
+		Identity:      is,
 		LedgerID:      ledgerID,
 		EquityAccID:   equityAccID,
 	})
