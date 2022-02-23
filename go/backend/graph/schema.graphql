@@ -155,4 +155,5 @@ type OutgoingPaymentMutationResponse implements MutationResponse {
 type Account {
   id: ID!
   balance: String!
+  recentTransactions: [Transaction!]!
 }

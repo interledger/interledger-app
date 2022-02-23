@@ -12,15 +12,16 @@ import (
 )
 
 type Account struct {
-	ID              string
-	DebitsAccepted  uint64
-	DebitsReserved  uint64
-	CreditsAccepted uint64
-	CreditsReserved uint64
-	IdentityID      string `db:"identity_id"`
-	LedgerAccountID string `db:"ledger_account_id"` // id returned by Pacioli.
-	CreatedAt       string `db:"created_at"`
-	UpdatedAt       string `db:"updated_at"`
+	ID               string
+	DebitsAccepted   uint64
+	DebitsReserved   uint64
+	CreditsAccepted  uint64
+	CreditsReserved  uint64
+	AvailableBalance int64
+	IdentityID       string `db:"identity_id"`
+	LedgerAccountID  string `db:"ledger_account_id"` // id returned by Pacioli.
+	CreatedAt        string `db:"created_at"`
+	UpdatedAt        string `db:"updated_at"`
 }
 
 type Service interface {
@@ -192,6 +193,9 @@ func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error 
 	account.CreditsReserved = ledgerAccount.CreditsReserved
 	account.DebitsAccepted = ledgerAccount.DebitsAccepted
 	account.DebitsReserved = ledgerAccount.DebitsReserved
+
+	// Calculate available balance
+	account.AvailableBalance = int64(account.DebitsAccepted - account.CreditsAccepted - account.CreditsReserved)
 
 	return nil
 }
