@@ -3,9 +3,10 @@
  */
 module.exports = {
   appDirectory: 'app',
+  serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',
   publicPath: '/build/',
-  serverBuildDirectory: 'build',
+  serverBuildPath: 'build',
   devServerPort: 8002,
-  ignoredRouteFiles: ['.*', '**/*.draft.mdx']
+  ignoredRouteFiles: ['.*', '**/*.draft.mdx', '**/*.graphql']
 }
