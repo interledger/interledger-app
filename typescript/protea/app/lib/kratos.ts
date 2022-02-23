@@ -44,32 +44,32 @@ export const getCsrfTokenFromFlow = (
  * requireUserSession allows gating loader functions that require a user to be authenticated.
  * @param request Request received in a loader function.
  * @returns the session if the user has a session or else a redirect.
- */ // TODO: SHOULD THROW - otherwise need to check if session
+ */
 export async function requireUserSession(request: Request): Promise<Response> {
-  const cookie = request.headers.get('cookie') || undefined
-  return kratos
-    .toSession(undefined, cookie)
-    .then((res) => {
-      const session = res.data as Session
+  const session = await fetch('http://kratos-public/sessions/whoami', {
+    headers: request.headers
+  })
 
-      // Always redirect if the users email isn't verified
-      if (
-        session.identity.verifiable_addresses &&
-        !session.identity.verifiable_addresses[0].verified
-      ) {
-        return redirect(route('/verify'))
-      }
+  switch (session.status) {
+    case 401:
+    case 500:
+      throw redirect(route('/login'))
+    case 403:
+    case 422: // Need to complete 2FA.
+      throw redirect(route('/login') + '?aal=aal2')
+  }
 
-      return json(session)
-    })
-    .catch((err) => {
-      switch ((err as AxiosError)?.response?.status) {
-        case 403:
-        case 422: // Need to complete 2FA.
-          return redirect(route('/login') + '?aal=aal2')
-      }
-      return redirect(route('/login'))
-    })
+  const userSession: Session = await session.json()
+
+  // Always redirect if the users email isn't verified
+  if (
+    userSession.identity.verifiable_addresses &&
+    !userSession.identity.verifiable_addresses[0].verified
+  ) {
+    throw redirect(route('/verify'))
+  }
+
+  return json(userSession)
 }
 
 /**
