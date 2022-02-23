@@ -8,6 +8,7 @@ type Mutation {
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
   verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
+  initiateWithdrawal(input: WithdrawalInput!): WithdrawalMutationResponse!
 }
 
 interface MutationResponse {
@@ -111,6 +112,7 @@ type DepositMutationResponse implements MutationResponse {
 
 enum TransactionType {
   DEPOSIT
+  WITHDRAWAL
 }
 
 type Transaction {
@@ -120,4 +122,16 @@ type Transaction {
   amount: String!
   timestamp: String!
   status: String!
+}
+
+input WithdrawalInput {
+  fundingSourceID: ID!
+  amount: String!
+}
+
+type WithdrawalMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  transaction: Transaction
 }

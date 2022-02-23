@@ -110,19 +110,35 @@ type VerifyUsdBankAccountMutationResponse struct {
 
 func (VerifyUsdBankAccountMutationResponse) IsMutationResponse() {}
 
+type WithdrawalInput struct {
+	FundingSourceID string `json:"fundingSourceID"`
+	Amount          string `json:"amount"`
+}
+
+type WithdrawalMutationResponse struct {
+	Code        string       `json:"code"`
+	Success     bool         `json:"success"`
+	Message     string       `json:"message"`
+	Transaction *Transaction `json:"transaction"`
+}
+
+func (WithdrawalMutationResponse) IsMutationResponse() {}
+
 type TransactionType string
 
 const (
-	TransactionTypeDeposit TransactionType = "DEPOSIT"
+	TransactionTypeDeposit    TransactionType = "DEPOSIT"
+	TransactionTypeWithdrawal TransactionType = "WITHDRAWAL"
 )
 
 var AllTransactionType = []TransactionType{
 	TransactionTypeDeposit,
+	TransactionTypeWithdrawal,
 }
 
 func (e TransactionType) IsValid() bool {
 	switch e {
-	case TransactionTypeDeposit:
+	case TransactionTypeDeposit, TransactionTypeWithdrawal:
 		return true
 	}
 	return false

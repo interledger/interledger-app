@@ -3,6 +3,7 @@ package noop
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -11,12 +12,15 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/proto/pacioli/v1"
+	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 type Service interface {
 	LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error)
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
+	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) (*transactions.AccountTransaction, error)
 }
 
 type service struct {
@@ -229,6 +233,101 @@ func (s *service) InitiateBankDeposit(ctx context.Context, args *BankDepositArgs
 	return transaction, nil
 }
 
+type BankWithdrawalArgs struct {
+	IdentityID      string `validate:"required,uuid4"`
+	FundingSourceID string `valdiate:"required,uuid4"`
+	Amount          uint64 `validate:"required,gt=0"` // Min amount can be changed according to provider
+}
+
+func (s *service) InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) (*transactions.AccountTransaction, error) {
+	var transaction *transactions.AccountTransaction
+	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
+		if err != nil {
+			switch err.(type) {
+			case *fundingsources.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *fundingsources.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+		if fundingSource.IdentityID != args.IdentityID {
+			return &ErrNotFound{Err: "Noop service: Funding source not found."}
+		}
+		if fundingSource.VerificationState != "verified" {
+			return &ErrUnverifiedFundingSource{Err: "Noop service: Funding source is not verified."}
+		}
+
+		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		if err != nil {
+			switch err.(type) {
+			case *accounts.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *accounts.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Type:        "withdrawal",
+			NetAmount:   args.Amount,
+			Description: "Withdrawal to " + fundingSource.Name,
+			State:       "completed", // TODO: define states
+			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        s.ledgerID,
+					DebitAccountID:  s.equityAccountID,
+					CreditAccountID: acc.ID,
+					Amount:          args.Amount,
+					// Code: "1", // TODO: define ledger transfer codes.
+					Flags: transactions.LedgerTransferFlags{},
+				},
+			},
+		})
+		if err != nil {
+			switch err.(type) {
+			case *transactions.ErrInvalidArgument:
+				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
+			case *transactions.ErrNotFound:
+				return &ErrNotFound{Err: "Noop service:" + err.Error()}
+			case *transactions.ErrInvalidTransfers:
+				return parseInvalidBankWithdrawalTransferErrors(
+					err.(*transactions.ErrInvalidTransfers).TransferErrors,
+				)
+			default:
+				return &ErrInternalError{Err: "Noop service:" + err.Error()}
+			}
+		}
+		transaction = trx
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction, nil
+}
+
+// Filter out errors related to user account such as insufficient balance.
+// Otherwise, this returns an internal error if the error is not related to the user's account e.g. fx.
+func parseInvalidBankWithdrawalTransferErrors(transferErrors []*pacioli.EventError) error {
+	if len(transferErrors) != 1 {
+		panic("Noop service: There should be one ledger transfer error.")
+	}
+
+	err := transferErrors[0]
+	switch err.Code {
+	case tb_types.TransferExceedsCredits:
+		return &ErrInsufficientBalance{Err: "Noop service: Insufficient balance to perform bank withdrawal."}
+	default:
+		return &ErrInternalError{Err: fmt.Sprintf("Noop service: Unable to perform bank withdrawal due to TigerBeetle error: %d ", err.Code)}
+	}
+}
+
 type ErrInternalError struct {
 	Err string
 }
@@ -258,5 +357,13 @@ type ErrUnverifiedFundingSource struct {
 }
 
 func (e ErrUnverifiedFundingSource) Error() string {
+	return e.Err
+}
+
+type ErrInsufficientBalance struct {
+	Err string
+}
+
+func (e ErrInsufficientBalance) Error() string {
 	return e.Err
 }
