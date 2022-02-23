@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -13,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/noop"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 )
 
@@ -213,7 +213,6 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		Amount:          parsedAmount,
 	})
 	if err != nil {
-		fmt.Println("error: " + err.Error())
 		switch err.(type) {
 		case *_noop.ErrInvalidArgument:
 			InvalidArgument(ctx, err.Error())
@@ -240,6 +239,69 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 			Type:        generated.TransactionTypeDeposit,
 			Status:      depositTransaction.State,
 			Description: depositTransaction.Description,
+		},
+	}, nil
+}
+
+func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generated.WithdrawalInput) (*generated.WithdrawalMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	parsedAmount, err := strconv.ParseUint(input.Amount, 10, 64)
+	if err != nil {
+		InvalidArgument(ctx, err.Error())
+		return nil, nil
+	}
+
+	// TODO: determine provider to use
+	withdrawal, err := r.NoopService.InitiateBankWithdrawal(ctx, &_noop.BankWithdrawalArgs{
+		IdentityID:      user.ID,
+		FundingSourceID: input.FundingSourceID,
+		Amount:          parsedAmount,
+	})
+	if err != nil {
+		switch err.(type) {
+		case *_noop.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		case *_noop.ErrUnverifiedFundingSource:
+			return &generated.WithdrawalMutationResponse{
+				Code:    "403",
+				Success: false,
+				Message: "Withdrawal failed: Destination is unverified.",
+			}, nil
+		case *_noop.ErrInsufficientBalance:
+			return &generated.WithdrawalMutationResponse{
+				Code:    "500",
+				Success: false,
+				Message: "Withdrawal failed: Insufficient balance.",
+			}, nil
+		case *noop.ErrNotFound:
+			return &generated.WithdrawalMutationResponse{
+				Code:    "404",
+				Success: false,
+				Message: "Withdrawal failed: Destination not found.",
+			}, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	return &generated.WithdrawalMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Withdrawal initiated.",
+		Transaction: &generated.Transaction{
+			ID:          withdrawal.ID,
+			Timestamp:   withdrawal.CreatedAt, // TODO: decide format
+			Amount:      strconv.FormatInt(withdrawal.NetAmount, 10),
+			Type:        generated.TransactionTypeWithdrawal,
+			Status:      withdrawal.State,
+			Description: withdrawal.Description,
 		},
 	}, nil
 }
