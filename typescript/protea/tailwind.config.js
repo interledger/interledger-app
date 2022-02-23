@@ -10,7 +10,7 @@ function withOpacity(variableName) {
 
 module.exports = {
   mode: 'jit',
-  content: ['./app/routes/**/*.{ts,tsx}', './app/components/**/*.{ts,tsx}'],
+  content: ['./app/**/*.{ts,tsx}'],
   darkMode: 'media',
   theme: {
     fontFamily: {
@@ -115,9 +115,5 @@ module.exports = {
       })
     }
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('tailwindcss-selection-variant')
-  ]
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]
 }
