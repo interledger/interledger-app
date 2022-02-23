@@ -9,6 +9,7 @@ type Mutation {
   verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
   initiateWithdrawal(input: WithdrawalInput!): WithdrawalMutationResponse!
+  initiateOutgoingPayment(input: OutgoingPaymentInput!): OutgoingPaymentMutationResponse!
 }
 
 interface MutationResponse {
@@ -113,6 +114,7 @@ type DepositMutationResponse implements MutationResponse {
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
+  SENT
 }
 
 type Transaction {
@@ -130,6 +132,18 @@ input WithdrawalInput {
 }
 
 type WithdrawalMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  transaction: Transaction
+}
+
+input OutgoingPaymentInput{
+  amount: String!
+  to: String!
+}
+
+type OutgoingPaymentMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
