@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -107,7 +108,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Identity func(childComplexity int) int
+		FundingSources func(childComplexity int) int
+		Identity       func(childComplexity int) int
 	}
 
 	Transaction struct {
@@ -152,6 +154,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Identity(ctx context.Context) (*identity.Identity, error)
+	FundingSources(ctx context.Context) ([]*FundingSource, error)
 }
 
 type executableSchema struct {
@@ -497,6 +500,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.OutgoingPaymentMutationResponse.Transaction(childComplexity), true
+	case "Query.fundingSources":
+		if e.complexity.Query.FundingSources == nil {
+			break
+		}
+
+		return e.complexity.Query.FundingSources(childComplexity), true
 
 	case "Query.identity":
 		if e.complexity.Query.Identity == nil {
@@ -697,6 +706,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var sources = []*ast.Source{
 	{Name: "graph/schema.graphql", Input: `type Query{
   identity: Identity
+  fundingSources: [FundingSource]!
 }
 
 type Mutation {
@@ -2548,6 +2558,41 @@ func (ec *executionContext) _Query_identity(ctx context.Context, field graphql.C
 	res := resTmp.(*identity.Identity)
 	fc.Result = res
 	return ec.marshalOIdentity2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋidentityᚐIdentity(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_fundingSources(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FundingSources(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*FundingSource)
+	fc.Result = res
+	return ec.marshalNFundingSource2ᚕᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5314,6 +5359,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "fundingSources":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fundingSources(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -6054,6 +6122,44 @@ func (ec *executionContext) marshalNDepositMutationResponse2ᚖgitlabᚗcomᚋfy
 		return graphql.Null
 	}
 	return ec._DepositMutationResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFundingSource2ᚕᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx context.Context, sel ast.SelectionSet, v []*FundingSource) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {

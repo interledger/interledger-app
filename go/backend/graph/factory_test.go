@@ -213,10 +213,11 @@ func NewLinkedUsdBankAccount(
 			generateVerifyUsdBankAccountInput(withFundingSourceID(response.FundingSource.ID)),
 		)
 		_user.ActingAs(verifyReq, user)
-		var verifyData map[string]generated.VerifyMutationResponse
+		var verifyData map[string]generated.VerifyUsdBankAccountMutationResponse
 		if err := container.Client.Run(container.Ctx, verifyReq, &verifyData); err != nil {
 			return nil, errors.New(response.Message)
 		}
+		return verifyData["verifyUsdBankAccount"].FundingSource, nil
 	}
 
 	return response.FundingSource, nil

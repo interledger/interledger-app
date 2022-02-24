@@ -1,0 +1,126 @@
+package graph
+
+import (
+	"context"
+	"testing"
+
+	"github.com/bxcodec/faker/v3"
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
+	"github.com/machinebox/graphql"
+	"github.com/stretchr/testify/assert"
+
+	"gitlab.com/fynbos/backend/graph/generated"
+	_user "gitlab.com/fynbos/backend/user"
+)
+
+func TestUserFundingSources(s *testing.T) {
+	ctx := context.Background()
+	container, err := NewTestContainer(ctx, s)
+	if err != nil {
+		s.Fatal(err)
+	}
+
+	s.Cleanup(func() {
+		container.Cleanup(ctx)
+	})
+
+	/*
+		Scenario: user needs to fetch their funding sources
+		Given a verified user
+		And the user's verified usd bank account
+		Should return the users bank account
+	*/
+	s.Run("user gets their funding sources with a verified USD bank account", func(t *testing.T) {
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		_, err := NewIdentity(container, user, generateIdentityInput())
+		if err != nil {
+			t.Fatal(err)
+		}
+		verifyFundingSource := true
+		fsArgs := generateLinkUsdBankAccountInput()
+		fundingSource, err := NewLinkedUsdBankAccount(
+			container,
+			user,
+			fsArgs,
+			verifyFundingSource,
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		response, err := getFundingSourcesByUserId(container, user)
+
+		assert.Equal(t, 1, len(response))
+		assert.Equal(t, fundingSource.ID, response[0].ID)
+		assert.Equal(t, fundingSource.Name, response[0].Name)
+		assert.Equal(t, fundingSource.VerificationStatus, response[0].VerificationStatus)
+		assert.Equal(t, fundingSource.Mask, response[0].Mask)
+		assert.Equal(t, fundingSource.Type, response[0].Type)
+		assert.Equal(t, fundingSource.SubType, response[0].SubType)
+	})
+
+	/*
+		Scenario: invalid user can't fetch funding sources
+		Given a verified user that has funding sources
+		And a malformed user
+		Should return no funding sources for the malformed user
+	*/
+	s.Run("invalid user can't fetch funding sources", func(t *testing.T) {
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		imposter := &_user.User{
+			ID:    "",
+			Email: faker.Email(),
+		}
+		_, err := NewIdentity(container, user, generateIdentityInput())
+		if err != nil {
+			t.Fatal(err)
+		}
+		verifyFundingSource := true
+		fsArgs := generateLinkUsdBankAccountInput()
+		_, err = NewLinkedUsdBankAccount(
+			container,
+			user,
+			fsArgs,
+			verifyFundingSource,
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		response, err := getFundingSourcesByUserId(container, imposter)
+
+		assert.Error(t, err)
+		assert.Equal(t, 0, len(response))
+	})
+
+}
+
+func getFundingSourcesByUserId(container *TestContainer, user *_user.User) ([]*generated.FundingSource, error) {
+	req := graphql.NewRequest(`
+			    query GetUserFundingSources {
+						fundingSources {
+							id
+							name
+							verificationStatus
+							mask
+							type
+							subType
+			        }
+			    }
+			`)
+	_user.ActingAs(req, user)
+	var data map[string][]*generated.FundingSource
+	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
+		return nil, err
+	}
+	ret := data["fundingSources"]
+
+	return ret, nil
+}

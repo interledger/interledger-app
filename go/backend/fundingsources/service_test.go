@@ -322,6 +322,119 @@ func TestFundingSources(s *testing.T) {
 		})
 
 	})
+
+	s.Run("get user's funding sources", func(t *testing.T) {
+		t.Cleanup(func() {
+			test_utils.TruncateDb(ctx, db)
+		})
+		var identity *_identity.Identity
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			id, err := is.Create(ctx, tx, _identity.CreateArgs{
+				ID:           uuid.NewString(),
+				FirstName:    faker.Name(),
+				LastName:     faker.Name(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        faker.Email(),
+				Country:      "US",
+			})
+			if err != nil {
+				return err
+			}
+
+			identity = id
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var fundingsource *FundingSource
+		args := generateCreateArgs(withIdentityID(identity.ID))
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_fs, err := fs.Create(ctx, tx, args)
+			if err != nil {
+				return err
+			}
+			fundingsource = _fs
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var fundingsource1 *FundingSource
+		args1 := generateCreateArgs(withIdentityID(identity.ID))
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_fs, err := fs.Create(ctx, tx, args1)
+			if err != nil {
+				return err
+			}
+			fundingsource1 = _fs
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run("returns a list of all the users funding sources", func(tt *testing.T) {
+
+			var fundingsources []*FundingSource
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.GetByIdentityId(ctx, tx, identity.ID)
+				if err != nil {
+					return err
+				}
+				fundingsources = _fs
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			fundingSourcesIDs := []string{fundingsources[1].ID, fundingsources[0].ID}
+
+			assert.Equal(tt, 2, len(fundingsources))
+			assert.Contains(tt, fundingSourcesIDs, fundingsource.ID)
+			assert.Contains(tt, fundingSourcesIDs, fundingsource1.ID)
+		})
+
+		t.Run("returns an empty list if a user has no funding sources", func(tt *testing.T) {
+			var tempIdentity *_identity.Identity
+			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				id, err := is.Create(ctx, tx, _identity.CreateArgs{
+					ID:           uuid.NewString(),
+					FirstName:    faker.Name(),
+					LastName:     faker.Name(),
+					MobileNumber: faker.E164PhoneNumber(),
+					Email:        faker.Email(),
+					Country:      "US",
+				})
+				if err != nil {
+					return err
+				}
+
+				tempIdentity = id
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var fundingsources []*FundingSource
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := fs.GetByIdentityId(ctx, tx, tempIdentity.ID)
+				if err != nil {
+					return err
+				}
+				fundingsources = _fs
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			assert.Equal(tt, 0, len(fundingsources))
+		})
+	})
 }
 
 func generateCreateArgs(opts ...func(*CreateArgs)) *CreateArgs {

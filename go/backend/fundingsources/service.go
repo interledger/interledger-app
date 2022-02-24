@@ -12,6 +12,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSource, error)
+	GetByIdentityId(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*FundingSource, error)
 	Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*FundingSource, error)
 }
 
@@ -119,6 +120,36 @@ func (s service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSourc
 	}
 
 	return &fundingsource, nil
+}
+
+func (s service) GetByIdentityId(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*FundingSource, error) {
+	if identityId == "" {
+		return nil, &ErrInvalidArgument{Err: "Identity ID is required to look up funding source."}
+	}
+
+	fundingSources := []FundingSource{}
+	err := tx.SelectContext(ctx, &fundingSources, "SELECT * FROM funding_sources WHERE identity_id=$1;", identityId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &ErrNotFound{Err: "Funding sources not found."}
+		}
+
+		return nil, &ErrInternalError{Err: err.Error()}
+	}
+
+	ret := make([]*FundingSource, len(fundingSources))
+	for i, trx := range fundingSources {
+		ret[i] = &FundingSource{
+			ID:                trx.ID,
+			Name:              trx.Name,
+			VerificationState: trx.VerificationState,
+			Mask:              trx.Mask,
+			Type:              trx.Type,
+			SubType:           trx.SubType,
+		}
+	}
+
+	return ret, nil
 }
 
 type VerifyArgs struct {
