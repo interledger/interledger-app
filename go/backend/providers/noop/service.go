@@ -22,6 +22,7 @@ import (
 )
 
 type Service interface {
+	GetUserFundingSources(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*fundingsources.FundingSource, error)
 	LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error)
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
@@ -72,6 +73,15 @@ func NewService(args ServiceArgs) (Service, error) {
 		ledgerID:        args.LedgerID,
 		equityAccountID: args.EquityAccID,
 	}, nil
+}
+
+func (s *service) GetUserFundingSources(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*fundingsources.FundingSource, error) {
+	fs, err := s.fs.GetByIdentityId(ctx, tx, identityId)
+	if err != nil {
+		return nil, err
+	}
+
+	return fs, nil
 }
 
 type NoopBankAccount struct {

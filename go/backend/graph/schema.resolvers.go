@@ -10,6 +10,7 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
@@ -391,6 +392,47 @@ func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, erro
 	}
 
 	return identity, nil
+}
+
+func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.FundingSource, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+	var fundingSources []*fundingsources.FundingSource
+	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		_fundingSources, err := r.NoopService.GetUserFundingSources(ctx, tx, user.ID)
+		if err != nil {
+			return err
+		}
+
+		fundingSources = _fundingSources
+		return nil
+	})
+	if err != nil {
+		switch err.(type) {
+		case *_identity.ErrNotFound:
+			NotFoundError(ctx)
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+	ret := make([]*generated.FundingSource, len(fundingSources))
+	for i, trx := range fundingSources {
+		ret[i] = &generated.FundingSource{
+			ID:                 trx.ID,
+			Name:               trx.Name,
+			VerificationStatus: trx.VerificationState,
+			Mask:               trx.Mask,
+			Type:               trx.Type,
+			SubType:            trx.SubType,
+		}
+	}
+
+	return ret, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
