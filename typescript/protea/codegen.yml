@@ -2,7 +2,7 @@ overwrite: true
 schema: '../../go/backend/graph/schema.graphql'
 documents: '**/*.graphql'
 generates:
-  generated/types.ts:
+  app/generated/types.ts:
     plugins:
       - 'typescript'
       - 'typescript-operations'
