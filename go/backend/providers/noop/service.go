@@ -28,6 +28,9 @@ type Service interface {
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
 	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) (*transactions.AccountTransaction, error)
 	InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) (*transactions.AccountTransaction, error)
+
+	GetEquityAccountID() string
+	GetLedgerID() string // This shouldn't be necessary - here till pacioli is refactored
 }
 
 type service struct {
@@ -435,6 +438,14 @@ func parseInvalidOutgoingPaymentErrors(transferErrors []*pacioli.EventError) err
 	default:
 		return &ErrInternalError{Err: fmt.Sprintf("Noop service: Unable to perform outgoing payment due to TigerBeetle error: %d ", err.Code)}
 	}
+}
+
+func (s *service) GetEquityAccountID() string {
+	return s.equityAccountID
+}
+
+func (s *service) GetLedgerID() string {
+	return s.ledgerID
 }
 
 func isValidIlpAddress(address string) bool {
