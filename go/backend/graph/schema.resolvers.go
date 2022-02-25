@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -61,6 +62,7 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.C
 		return nil, nil
 	}
 
+	// onboard
 	var identity *_identity.Identity
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
 		_identity, err := r.IdentityService.Create(ctx, tx, _identity.CreateArgs{
@@ -244,8 +246,7 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		return nil, nil
 	}
 
-	// TODO: determine provider to use
-	depositTransaction, err := r.NoopService.InitiateBankDeposit(ctx, &_noop.BankDepositArgs{
+	depositTransaction, err := r.Ds.InitiateDeposit(ctx, &deposits.InitiateDepositArgs{
 		IdentityID:      user.ID,
 		FundingSourceID: input.FundingSourceID,
 		Amount:          parsedAmount,

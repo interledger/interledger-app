@@ -1,12 +1,13 @@
 package graph
 
 import (
-	"errors"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/deposits"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/graph/generated"
@@ -16,22 +17,22 @@ import (
 )
 
 type GraphqlOpts struct {
-	Db                               *sqlx.DB
-	Identity                         identity.Service
-	User                             user.Service
-	Account                          accounts.Service
-	AccountTransactions              account_transactions.Service
-	Noop                             noop.Service
+	Db *sqlx.DB
+	// TODO: refactor Identity -> Is etc.
+	Identity                         identity.Service             `validate:"required"`
+	User                             user.Service                 `validate:"required"`
+	Account                          accounts.Service             `validate:"required"`
+	AccountTransactions              account_transactions.Service `validate:"required"`
+	Noop                             noop.Service                 `validate:"required"`
+	Ds                               deposits.Service             `validate:"required"`
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
 }
 
 func NewService(opts GraphqlOpts) (*handler.Server, error) {
-	if opts.Identity == nil {
-		return nil, errors.New("Identity is required.")
-	}
-	if opts.User == nil {
-		return nil, errors.New("User is required.")
+	validator := validator.New()
+	if err := validator.Struct(opts); err != nil {
+		return nil, err
 	}
 
 	var queryCacheSize uint = 1000
@@ -51,6 +52,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		AccountService:      opts.Account,
 		NoopService:         opts.Noop,
 		AccountTransactions: opts.AccountTransactions,
+		Ds:                  opts.Ds,
 	}}))
 	svc.SetQueryCache(lru.New(int(queryCacheSize)))
 	svc.Use(extension.Introspection{})
