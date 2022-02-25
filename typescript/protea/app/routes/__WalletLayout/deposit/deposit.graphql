@@ -1,0 +1,10 @@
+query GetFundingSources {
+  fundingSources {
+    id
+    name
+    verificationStatus
+    mask
+    type
+    subType
+  }
+}
