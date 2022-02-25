@@ -58,10 +58,10 @@ func (self *service) GetUser(r http.Request) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	traits := session.Identity.Traits.(traits)
+	traits := session.Identity.Traits.(map[string]interface{})
 	user := User{
 		ID:    session.Identity.Id,
-		Email: traits.Email,
+		Email: traits["email"].(string),
 	}
 	return &user, nil
 }
