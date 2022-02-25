@@ -60,7 +60,7 @@ func TestUserDeposits(s *testing.T) {
 				return &pacioliv1.Account{
 					Id: args.Id,
 				}, nil
-			}).Times(2)
+			}).Times(3)
 		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
 			&pacioliv1.CreateTransfersResponse{
 				Errors: []*pacioliv1.EventError{},
@@ -70,6 +70,9 @@ func TestUserDeposits(s *testing.T) {
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars
 		})
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
@@ -109,6 +112,12 @@ func TestUserDeposits(s *testing.T) {
 			t.Fatal(err)
 		}
 
+		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+				return &pacioliv1.Account{
+					Id: args.Id,
+				}, nil
+			}).Times(1)
 		response, err := initiateDeposit(container, user, &generated.DepositInput{
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars

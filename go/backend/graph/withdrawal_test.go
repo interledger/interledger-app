@@ -305,7 +305,7 @@ func NewDeposit(container *TestContainer, user *_user.User, input *generated.Dep
 			return &pacioliv1.Account{
 				Id: args.Id,
 			}, nil
-		}).Times(2)
+		}).Times(3)
 	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
 		&pacioliv1.CreateTransfersResponse{
 			Errors: []*pacioliv1.EventError{},

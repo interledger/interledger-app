@@ -233,7 +233,10 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 	}, nil
 }
 
-func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.DepositInput) (*generated.DepositMutationResponse, error) {
+func (r *mutationResolver) InitiateDeposit(
+	ctx context.Context,
+	input generated.DepositInput,
+) (*generated.DepositMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -246,17 +249,45 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		return nil, nil
 	}
 
+	var acc *accounts.Account
+	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
+		_acc, err := r.AccountService.GetByIdentityID(ctx, tx, user.ID)
+		if err != nil {
+			return err
+		}
+		acc = _acc
+
+		return nil
+	})
+	if err != nil {
+		switch err.(type) {
+		case *accounts.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		case *accounts.ErrNotFound:
+			return &generated.DepositMutationResponse{
+				Code:    "404",
+				Success: false,
+				Message: "Deposit failed: Account not found.",
+			}, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
 	depositTransaction, err := r.Ds.InitiateDeposit(ctx, &deposits.InitiateDepositArgs{
 		IdentityID:      user.ID,
+		AccountID:       acc.ID,
 		FundingSourceID: input.FundingSourceID,
 		Amount:          parsedAmount,
 	})
 	if err != nil {
 		switch err.(type) {
-		case *_noop.ErrInvalidArgument:
+		case *deposits.ErrInvalidArgument:
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *_noop.ErrUnverifiedFundingSource:
+		case *deposits.ErrUnverifiedFundingSource:
 			return &generated.DepositMutationResponse{
 				Code:    "403",
 				Success: false,
