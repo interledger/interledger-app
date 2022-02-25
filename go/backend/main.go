@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"github.com/google/uuid"
+	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"log"
 	"net/http"
 	"os"
@@ -116,9 +118,25 @@ func start(args *cli.StartArgs) {
 	}
 	fs = fundingsources.NewLoggingService(fs, logger)
 
-	noop, err := _noop.NewService(_noop.ServiceArgs{
+	ts, err := transactions.NewService(&transactions.ServiceArgs{
+		AccountService: as,
+		PacioliClient:  pClient,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	ts = transactions.NewLoggingService(ts, logger)
+
+	ledgerID := uuid.NewString()
+	equityAccID := uuid.NewString()
+	nos, err := _noop.NewService(_noop.ServiceArgs{
 		Db:            db,
 		FundingSource: fs,
+		Transaction:   ts,
+		Account:       as,
+		Identity:      id,
+		LedgerID:      ledgerID,
+		EquityAccID:   equityAccID,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -129,7 +147,7 @@ func start(args *cli.StartArgs) {
 		Identity:                         id,
 		Account:                          as,
 		User:                             users,
-		Noop:                             noop,
+		Noop:                             nos,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
 	})
