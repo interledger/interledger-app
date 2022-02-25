@@ -13,14 +13,121 @@ export type Scalars = {
   Float: number;
 };
 
+export type CreateIdentityInput = {
+  country: Scalars['String'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
+  mobileNumber: Scalars['String'];
+};
+
+export type CreateIdentityMutationResponse = MutationResponse & {
+  __typename?: 'CreateIdentityMutationResponse';
+  code: Scalars['String'];
+  identity?: Maybe<Identity>;
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+};
+
+export type DepositInput = {
+  amount: Scalars['String'];
+  fundingSourceID: Scalars['ID'];
+};
+
+export type DepositMutationResponse = MutationResponse & {
+  __typename?: 'DepositMutationResponse';
+  code: Scalars['String'];
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+  transaction?: Maybe<Transaction>;
+};
+
+export type FundingSource = {
+  __typename?: 'FundingSource';
+  id: Scalars['ID'];
+  mask: Scalars['String'];
+  name: Scalars['String'];
+  subType: Scalars['String'];
+  type: Scalars['String'];
+  verificationStatus: Scalars['String'];
+};
+
+export type Identity = {
+  __typename?: 'Identity';
+  address: Array<Maybe<Scalars['String']>>;
+  city: Scalars['String'];
+  country: Scalars['String'];
+  dateOfBirth: Scalars['String'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  id: Scalars['ID'];
+  lastName: Scalars['String'];
+  mobileNumber: Scalars['String'];
+  postalCode: Scalars['String'];
+  state: Scalars['String'];
+  taxIdNumber: Scalars['String'];
+  verificationState: Scalars['String'];
+};
+
+export type LinkFundingSourceMutationResponse = MutationResponse & {
+  __typename?: 'LinkFundingSourceMutationResponse';
+  code: Scalars['String'];
+  fundingSource?: Maybe<FundingSource>;
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+};
+
+export type LinkUsdBankAccountInput = {
+  accountNumber: Scalars['String'];
+  institution: Scalars['String'];
+  name: Scalars['String'];
+  routingNumber: Scalars['String'];
+  type: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
-  createOrganisation: OrganisationMutationResponse;
+  createIdentity: CreateIdentityMutationResponse;
+  initiateDeposit: DepositMutationResponse;
+  initiateOutgoingPayment: OutgoingPaymentMutationResponse;
+  initiateWithdrawal: WithdrawalMutationResponse;
+  linkUsdBankAccount: LinkFundingSourceMutationResponse;
+  verify: VerifyMutationResponse;
+  verifyUsdBankAccount: VerifyUsdBankAccountMutationResponse;
 };
 
 
-export type MutationCreateOrganisationArgs = {
-  name: Scalars['String'];
+export type MutationCreateIdentityArgs = {
+  input: CreateIdentityInput;
+};
+
+
+export type MutationInitiateDepositArgs = {
+  input: DepositInput;
+};
+
+
+export type MutationInitiateOutgoingPaymentArgs = {
+  input: OutgoingPaymentInput;
+};
+
+
+export type MutationInitiateWithdrawalArgs = {
+  input: WithdrawalInput;
+};
+
+
+export type MutationLinkUsdBankAccountArgs = {
+  input: LinkUsdBankAccountInput;
+};
+
+
+export type MutationVerifyArgs = {
+  input: VerificationInput;
+};
+
+
+export type MutationVerifyUsdBankAccountArgs = {
+  input: VerifyUsdBankAccountInput;
 };
 
 export type MutationResponse = {
@@ -29,88 +136,124 @@ export type MutationResponse = {
   success: Scalars['Boolean'];
 };
 
-export type Organisation = {
-  __typename?: 'Organisation';
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  verified: Scalars['Boolean'];
+export type OutgoingPaymentInput = {
+  amount: Scalars['String'];
+  to: Scalars['String'];
 };
 
-export type OrganisationMutationResponse = {
-  __typename?: 'OrganisationMutationResponse';
+export type OutgoingPaymentMutationResponse = MutationResponse & {
+  __typename?: 'OutgoingPaymentMutationResponse';
   code: Scalars['String'];
   message: Scalars['String'];
-  organisation?: Maybe<Organisation>;
   success: Scalars['Boolean'];
+  transaction?: Maybe<Transaction>;
 };
 
 export type Query = {
   __typename?: 'Query';
-  organisation?: Maybe<Organisation>;
-  organisations: Array<Maybe<Organisation>>;
+  fundingSources: Array<Maybe<FundingSource>>;
+  identity?: Maybe<Identity>;
 };
 
-
-export type QueryOrganisationArgs = {
+export type Transaction = {
+  __typename?: 'Transaction';
+  amount: Scalars['String'];
+  description: Scalars['String'];
   id: Scalars['ID'];
+  status: Scalars['String'];
+  timestamp: Scalars['String'];
+  type: TransactionType;
 };
 
-export type GetOrgsForDashboardQueryVariables = Exact<{
-  id: Scalars['ID'];
-}>;
+export enum TransactionType {
+  Deposit = 'DEPOSIT',
+  Sent = 'SENT',
+  Withdrawal = 'WITHDRAWAL'
+}
+
+export type VerificationInput = {
+  Address: Array<Scalars['String']>;
+  City: Scalars['String'];
+  DateOfBirth: Scalars['String'];
+  PostalCode: Scalars['String'];
+  State: Scalars['String'];
+  TaxIdNumber: Scalars['String'];
+};
+
+export type VerifyMutationResponse = MutationResponse & {
+  __typename?: 'VerifyMutationResponse';
+  code: Scalars['String'];
+  identity?: Maybe<Identity>;
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+};
+
+export type VerifyUsdBankAccountInput = {
+  FundingSourceId: Scalars['String'];
+};
+
+export type VerifyUsdBankAccountMutationResponse = MutationResponse & {
+  __typename?: 'VerifyUsdBankAccountMutationResponse';
+  code: Scalars['String'];
+  fundingSource?: Maybe<FundingSource>;
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+};
+
+export type WithdrawalInput = {
+  amount: Scalars['String'];
+  fundingSourceID: Scalars['ID'];
+};
+
+export type WithdrawalMutationResponse = MutationResponse & {
+  __typename?: 'WithdrawalMutationResponse';
+  code: Scalars['String'];
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+  transaction?: Maybe<Transaction>;
+};
+
+export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOrgsForDashboardQuery = { __typename?: 'Query', organisation?: { __typename?: 'Organisation', id: string, name: string, verified: boolean } | null | undefined, organisations: Array<{ __typename?: 'Organisation', id: string, name: string } | null | undefined> };
+export type GetFundingSourcesQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
 
-export type CreateOrganisationMutationVariables = Exact<{
-  name: Scalars['String'];
-}>;
+export type GetHomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreateOrganisationMutation = { __typename?: 'Mutation', createOrganisation: { __typename?: 'OrganisationMutationResponse', code: string, success: boolean, message: string, organisation?: { __typename?: 'Organisation', id: string, name: string } | null | undefined } };
-
-export type GetOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetHomeQuery = { __typename?: 'Query', identity?: { __typename?: 'Identity', id: string, firstName: string, lastName: string, mobileNumber: string, email: string, dateOfBirth: string, address: Array<string | null | undefined>, state: string, city: string, postalCode: string, country: string, taxIdNumber: string, verificationState: string } | null | undefined };
 
 
-export type GetOrganisationsQuery = { __typename?: 'Query', organisations: Array<{ __typename?: 'Organisation', id: string, name: string } | null | undefined> };
-
-
-export const GetOrgsForDashboardDocument = gql`
-    query GetOrgsForDashboard($id: ID!) {
-  organisation(id: $id) {
+export const GetFundingSourcesDocument = gql`
+    query GetFundingSources {
+  fundingSources {
     id
     name
-    verified
-  }
-  organisations {
-    id
-    name
+    verificationStatus
+    mask
+    type
+    subType
   }
 }
     `;
-export type GetOrgsForDashboardQueryResult = Apollo.QueryResult<GetOrgsForDashboardQuery, GetOrgsForDashboardQueryVariables>;
-export const CreateOrganisationDocument = gql`
-    mutation CreateOrganisation($name: String!) {
-  createOrganisation(name: $name) {
-    code
-    success
-    message
-    organisation {
-      id
-      name
-    }
-  }
-}
-    `;
-export type CreateOrganisationMutationFn = Apollo.MutationFunction<CreateOrganisationMutation, CreateOrganisationMutationVariables>;
-export type CreateOrganisationMutationResult = Apollo.MutationResult<CreateOrganisationMutation>;
-export type CreateOrganisationMutationOptions = Apollo.BaseMutationOptions<CreateOrganisationMutation, CreateOrganisationMutationVariables>;
-export const GetOrganisationsDocument = gql`
-    query GetOrganisations {
-  organisations {
+export type GetFundingSourcesQueryResult = Apollo.QueryResult<GetFundingSourcesQuery, GetFundingSourcesQueryVariables>;
+export const GetHomeDocument = gql`
+    query GetHome {
+  identity {
     id
-    name
+    firstName
+    lastName
+    mobileNumber
+    email
+    dateOfBirth
+    address
+    state
+    city
+    postalCode
+    country
+    taxIdNumber
+    verificationState
   }
 }
     `;
-export type GetOrganisationsQueryResult = Apollo.QueryResult<GetOrganisationsQuery, GetOrganisationsQueryVariables>;
+export type GetHomeQueryResult = Apollo.QueryResult<GetHomeQuery, GetHomeQueryVariables>;
