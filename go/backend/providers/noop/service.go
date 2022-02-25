@@ -2,7 +2,6 @@ package noop
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -63,7 +62,7 @@ func NewService(args ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		return nil, err
 	}
 
 	return &service{

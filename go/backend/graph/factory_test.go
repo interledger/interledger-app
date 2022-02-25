@@ -3,8 +3,9 @@ package graph
 import (
 	"context"
 	"errors"
-	"google.golang.org/grpc"
 	"net/http/httptest"
+
+	"google.golang.org/grpc"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
@@ -15,6 +16,7 @@ import (
 	"github.com/machinebox/graphql"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"go.uber.org/zap"
@@ -44,6 +46,7 @@ type TestContainer struct {
 	UserService          _user.Service
 	NoopService          _noop.Service
 	NoopProvider         *noop.MockProvider
+	DepositService       deposits.Service
 	TransactionService   account_transactions.Service
 	MockPacioliClient    *mockPacioliV1.MockPacioliServiceClient
 	Graph                *handler.Server
@@ -140,6 +143,19 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.NoopService = noopProvider
 
+	ds, err := deposits.NewService(&deposits.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   is,
+		Fs:   fs,
+		Ts:   ts,
+		Noop: noopProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.DepositService = ds
+
 	graph, err := NewService(GraphqlOpts{
 		Db:                  db,
 		Identity:            is,
@@ -147,6 +163,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Account:             as,
 		Noop:                noopProvider,
 		AccountTransactions: ts,
+		Ds:                  ds,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph
@@ -231,7 +248,7 @@ func newDeposit(container *TestContainer, user *_user.User, fsId string) (*gener
 			return &pacioliv1.Account{
 				Id: args.Id,
 			}, nil
-		}).Times(2)
+		}).Times(3)
 	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
 		&pacioliv1.CreateTransfersResponse{
 			Errors: []*pacioliv1.EventError{},

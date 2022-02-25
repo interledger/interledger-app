@@ -56,8 +56,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 type InitiateDepositArgs struct {
 	IdentityID      string `validate:"required,uuid4"`
-	FundingSourceID string `validate:"required,uuid4"`
 	AccountID       string `validate:"required,uuid4"`
+	FundingSourceID string `validate:"required,uuid4"`
 	Amount          uint64 `validate:"required,gt=0"`
 }
 
@@ -79,6 +79,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
 			}
 		}
+
 		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
 		if err != nil {
 			switch err.(type) {
@@ -97,7 +98,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			return &ErrUnverifiedFundingSource{Err: "Deposit service: Funding source is not verified."}
 		}
 
-		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		acc, err := s.as.Get(ctx, tx, args.AccountID)
 		if err != nil {
 			switch err.(type) {
 			case *accounts.ErrInvalidArgument:
@@ -109,6 +110,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			}
 		}
 		// TODO: move verification to account and do a check on its verification state
+		// TODO: authz check to see if identity is allowed to perform deposit into account
 
 		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
