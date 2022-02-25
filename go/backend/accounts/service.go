@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_country "gitlab.com/fynbos/backend/country"
@@ -26,50 +27,50 @@ type Account struct {
 
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error)
-	GetByIdentityID(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
+	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
+	GetByIdentityID(ctx context.Context, id string) (*Account, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 }
 
 type service struct {
-	identity        _identity.Service
-	country         _country.Service
+	db              *sqlx.DB
+	is              _identity.Service
+	cs              _country.Service
 	validator       *validator.Validate
 	pacioliLedgerID string
 	pacioliClient   pacioliv1.PacioliServiceClient
 }
 
-func NewService(
-	identity _identity.Service,
-	country _country.Service,
-	pacioliLedgerCode uint16,
-	pacioliClient pacioliv1.PacioliServiceClient,
-) (Service, error) {
-	if identity == nil {
-		return nil, &ErrInvalidArgument{Err: "Identity is required."}
-	}
-	if pacioliClient == nil {
-		return nil, &ErrInvalidArgument{Err: "Pacioli client is required."}
-	}
-	// we do not use 0 so it can't be confused with default value.
-	if pacioliLedgerCode == 0 {
-		return nil, &ErrInvalidArgument{Err: "Pacioli ledger code is required."}
+type ServiceArgs struct {
+	Is                _identity.Service `validate:"required"`
+	Cs                _country.Service  `validate:"required"`
+	PacioliLedgerCode uint16
+	PacioliClient     pacioliv1.PacioliServiceClient `validate:"required"`
+	Db                *sqlx.DB                       `validate:"required"`
+}
+
+func NewService(args *ServiceArgs) (Service, error) {
+	validator := validator.New()
+	if err := validator.Struct(args); err != nil {
+		return nil, err
 	}
 
 	// TODO: re-work configuration when grpc auth is introduced.
 	ctx := context.Background() // TODO: timeout
-	ledger, err := pacioliClient.GetLedgerByCode(ctx, &pacioliv1.GetLedgerByCodeRequest{
-		Code: uint32(pacioliLedgerCode),
+	ledger, err := args.PacioliClient.GetLedgerByCode(ctx, &pacioliv1.GetLedgerByCodeRequest{
+		Code: uint32(args.PacioliLedgerCode),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &service{
-		identity:        identity,
-		country:         country,
+		db:              args.Db,
+		is:              args.Is,
+		cs:              args.Cs,
 		pacioliLedgerID: ledger.Id,
-		pacioliClient:   pacioliClient,
-		validator:       validator.New(),
+		pacioliClient:   args.PacioliClient,
+		validator:       validator,
 	}, nil
 }
 
@@ -87,11 +88,11 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: err.Error()}
 	}
-	ctry, err := s.country.GetByAlpha2(ctx, tx, args.Country)
+	ctry, err := s.cs.GetByAlpha2(ctx, tx, args.Country)
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: "Unknown or unsupported country: " + args.Country}
 	}
-	identity, err := s.identity.Get(ctx, tx, args.IdentityID)
+	identity, err := s.is.Get(ctx, tx, args.IdentityID)
 	// TODO: perhaps a global error set?
 	if err != nil {
 		switch err.(type) {
@@ -126,7 +127,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	return &ret, nil
 }
 
-func (s *service) GetByIdentityID(ctx context.Context, tx *sqlx.Tx, identityID string) (*Account, error) {
+func (s *service) GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, identityID string) (*Account, error) {
 	if identityID == "" {
 		return nil, &ErrInvalidArgument{Err: "identityID is required."}
 	}
@@ -147,6 +148,20 @@ func (s *service) GetByIdentityID(ctx context.Context, tx *sqlx.Tx, identityID s
 	}
 
 	return &ret, nil
+}
+
+func (s *service) GetByIdentityID(ctx context.Context, identityID string) (*Account, error) {
+	var acc *Account
+	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		_acc, err := s.GetByIdentityIDWithTrx(ctx, tx, identityID)
+		if err != nil {
+			return err
+		}
+		acc = _acc
+		return nil
+	})
+
+	return acc, err
 }
 
 func (s *service) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (*Account, error) {

@@ -206,7 +206,7 @@ func (s *service) InitiateBankDeposit(ctx context.Context, args *BankDepositArgs
 			return &ErrUnverifiedFundingSource{Err: "Noop service: Funding source is not verified."}
 		}
 
-		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
 		if err != nil {
 			switch err.(type) {
 			case *accounts.ErrInvalidArgument:
@@ -281,7 +281,7 @@ func (s *service) InitiateBankWithdrawal(ctx context.Context, args *BankWithdraw
 			return &ErrUnverifiedFundingSource{Err: "Noop service: Funding source is not verified."}
 		}
 
-		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
 		if err != nil {
 			switch err.(type) {
 			case *accounts.ErrInvalidArgument:
@@ -371,7 +371,7 @@ func (s *service) InitiateOutgoingPayment(ctx context.Context, args *OutgoingPay
 		if identity.VerificationState != _noop.Verified {
 			return &ErrUnverifiedIdentity{Err: "Noop service: Identity is unverified."}
 		}
-		acc, err := s.as.GetByIdentityID(ctx, tx, args.IdentityID)
+		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
 		if err != nil {
 			switch err.(type) {
 			case *accounts.ErrInvalidArgument:

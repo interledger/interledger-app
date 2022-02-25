@@ -281,7 +281,13 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		Id:   pacioliLedgerID,
 		Code: uint32(ledgerCode),
 	}, nil).Times(1)
-	as, err := _accounts.NewService(is, cs, ledgerCode, pClient)
+	as, err := _accounts.NewService(&accounts.ServiceArgs{
+		Is:                is,
+		Cs:                cs,
+		PacioliLedgerCode: ledgerCode,
+		PacioliClient:     pClient,
+		Db:                db,
+	})
 	if err != nil {
 		return nil, err
 	}

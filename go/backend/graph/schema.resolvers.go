@@ -249,16 +249,7 @@ func (r *mutationResolver) InitiateDeposit(
 		return nil, nil
 	}
 
-	var acc *accounts.Account
-	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		_acc, err := r.AccountService.GetByIdentityID(ctx, tx, user.ID)
-		if err != nil {
-			return err
-		}
-		acc = _acc
-
-		return nil
-	})
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		switch err.(type) {
 		case *accounts.ErrInvalidArgument:
@@ -519,7 +510,7 @@ func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error)
 			return err
 		}
 
-		acc, err := r.AccountService.GetByIdentityID(ctx, tx, identity.ID)
+		acc, err := r.AccountService.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
 		if err != nil {
 			return err
 		}

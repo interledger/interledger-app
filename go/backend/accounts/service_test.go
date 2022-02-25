@@ -60,7 +60,13 @@ func TestAccountsService(s *testing.T) {
 		Id:   pacioliLedgerID,
 		Code: uint32(ledgerCode),
 	}, nil).Times(1)
-	as, err := NewService(is, cs, ledgerCode, pClient)
+	as, err := NewService(&ServiceArgs{
+		Is:                is,
+		Cs:                cs,
+		PacioliLedgerCode: ledgerCode,
+		PacioliClient:     pClient,
+		Db:                db,
+	})
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -126,7 +132,7 @@ func TestAccountsService(s *testing.T) {
 			}, nil).Times(1)
 			var freshAcc *Account
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := as.GetByIdentityID(ctx, tx, identity.ID)
+				_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
 				if err != nil {
 					return err
 				}
@@ -240,7 +246,7 @@ func TestAccountsService(s *testing.T) {
 	s.Run("GetAccountByID requires identityID", func(t *testing.T) {
 		var acc *Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_acc, err := as.GetByIdentityID(ctx, tx, "")
+			_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, "")
 			if err != nil {
 				return err
 			}

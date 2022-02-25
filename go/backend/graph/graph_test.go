@@ -119,7 +119,7 @@ func TestGraphql(s *testing.T) {
 			}, nil).Times(1)
 			var account *_account.Account
 			err = crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := container.AccountService.GetByIdentityID(ctx, tx, user.ID)
+				_acc, err := container.AccountService.GetByIdentityIDWithTrx(ctx, tx, user.ID)
 				if err != nil {
 					return err
 				}
