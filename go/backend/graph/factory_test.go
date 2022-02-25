@@ -100,7 +100,13 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}, nil).Times(1)
 	c.MockPacioliClient = pClient
 
-	as, err := accounts.NewService(is, cs, ledgerCode, pClient)
+	as, err := accounts.NewService(&accounts.ServiceArgs{
+		Is:                is,
+		Cs:                cs,
+		PacioliLedgerCode: ledgerCode,
+		PacioliClient:     pClient,
+		Db:                db,
+	})
 	if err != nil {
 		return nil, err
 	}

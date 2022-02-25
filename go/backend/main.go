@@ -2,12 +2,13 @@ package main
 
 import (
 	"embed"
-	"github.com/google/uuid"
-	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
+	transactions "gitlab.com/fynbos/backend/accounttransactions"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
@@ -104,7 +105,13 @@ func start(args *cli.StartArgs) {
 	}
 
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	as, err := accounts.NewService(id, cs, args.UsdLedgerCode, pClient)
+	as, err := accounts.NewService(&accounts.ServiceArgs{
+		Db:                db,
+		Is:                id,
+		Cs:                cs,
+		PacioliClient:     pClient,
+		PacioliLedgerCode: args.UsdLedgerCode,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
