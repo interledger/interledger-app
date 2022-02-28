@@ -12,6 +12,7 @@ import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/user"
 )
@@ -25,4 +26,5 @@ type Resolver struct {
 	Db                  *sqlx.DB
 	AccountTransactions account_transactions.Service
 	Ds                  deposits.Service
+	Os                  onboarding.Service
 }

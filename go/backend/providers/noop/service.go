@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -15,9 +16,14 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/proto/pacioli/v1"
 	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
+)
 
-	// TODO: this needs to be refactored to be part of this provider
-	_noop "gitlab.com/fynbos/backend/identity/noop"
+const (
+	Verified  string = "verified"
+	Retry     string = "retry"
+	Kba       string = "kba"
+	Document  string = "document"
+	Suspended string = "suspended"
 )
 
 type Service interface {
@@ -30,6 +36,7 @@ type Service interface {
 
 	GetEquityAccountID() string
 	GetLedgerID() string // This shouldn't be necessary - here till pacioli is refactored
+	CreateCustomer(args *CreateCustomerArgs) (*Customer, error)
 }
 
 type service struct {
@@ -368,7 +375,7 @@ func (s *service) InitiateOutgoingPayment(ctx context.Context, args *OutgoingPay
 			return &ErrInvalidArgument{Err: "Noop service: Identity not found."}
 		}
 		// TODO: the status consts need to be part of this provider
-		if identity.VerificationState != _noop.Verified {
+		if identity.VerificationState != Verified {
 			return &ErrUnverifiedIdentity{Err: "Noop service: Identity is unverified."}
 		}
 		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
@@ -445,6 +452,36 @@ func (s *service) GetEquityAccountID() string {
 
 func (s *service) GetLedgerID() string {
 	return s.ledgerID
+}
+
+type CreateCustomerArgs struct {
+	FirstName   string
+	LastName    string
+	Email       string
+	Address1    string
+	Address2    string
+	State       string
+	City        string
+	PostalCode  string
+	DateOfBirth string
+	Ssn         string
+}
+
+type Customer struct {
+	CreateCustomerArgs
+	ID      string
+	Status  string
+	Created string
+	Links   map[string]map[string]string
+}
+
+func (self *service) CreateCustomer(args *CreateCustomerArgs) (*Customer, error) {
+	return &Customer{
+		ID:                 uuid.NewString(),
+		CreateCustomerArgs: *args,
+		Created:            time.Now().String(),
+		Status:             Verified,
+	}, nil
 }
 
 func isValidIlpAddress(address string) bool {
