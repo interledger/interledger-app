@@ -13,6 +13,13 @@ export type Scalars = {
   Float: number;
 };
 
+export type Account = {
+  __typename?: 'Account';
+  balance: Scalars['String'];
+  id: Scalars['ID'];
+  recentTransactions: Array<Transaction>;
+};
+
 export type CreateIdentityInput = {
   country: Scalars['String'];
   firstName: Scalars['String'];
@@ -151,6 +158,7 @@ export type OutgoingPaymentMutationResponse = MutationResponse & {
 
 export type Query = {
   __typename?: 'Query';
+  account?: Maybe<Account>;
   fundingSources: Array<Maybe<FundingSource>>;
   identity?: Maybe<Identity>;
 };
@@ -213,17 +221,39 @@ export type WithdrawalMutationResponse = MutationResponse & {
   transaction?: Maybe<Transaction>;
 };
 
+export type LinkUsdBankAccountMutationVariables = Exact<{
+  input: LinkUsdBankAccountInput;
+}>;
+
+
+export type LinkUsdBankAccountMutation = { __typename?: 'Mutation', linkUsdBankAccount: { __typename?: 'LinkFundingSourceMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
+
 export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetFundingSourcesQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
 
-export type GetHomeQueryVariables = Exact<{ [key: string]: never; }>;
 
-
-export type GetHomeQuery = { __typename?: 'Query', identity?: { __typename?: 'Identity', id: string, firstName: string, lastName: string, mobileNumber: string, email: string, dateOfBirth: string, address: Array<string | null | undefined>, state: string, city: string, postalCode: string, country: string, taxIdNumber: string, verificationState: string } | null | undefined };
-
-
+export const LinkUsdBankAccountDocument = gql`
+    mutation LinkUsdBankAccount($input: LinkUsdBankAccountInput!) {
+  linkUsdBankAccount(input: $input) {
+    code
+    success
+    message
+    fundingSource {
+      id
+      name
+      verificationStatus
+      mask
+      type
+      subType
+    }
+  }
+}
+    `;
+export type LinkUsdBankAccountMutationFn = Apollo.MutationFunction<LinkUsdBankAccountMutation, LinkUsdBankAccountMutationVariables>;
+export type LinkUsdBankAccountMutationResult = Apollo.MutationResult<LinkUsdBankAccountMutation>;
+export type LinkUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<LinkUsdBankAccountMutation, LinkUsdBankAccountMutationVariables>;
 export const GetFundingSourcesDocument = gql`
     query GetFundingSources {
   fundingSources {
@@ -237,23 +267,3 @@ export const GetFundingSourcesDocument = gql`
 }
     `;
 export type GetFundingSourcesQueryResult = Apollo.QueryResult<GetFundingSourcesQuery, GetFundingSourcesQueryVariables>;
-export const GetHomeDocument = gql`
-    query GetHome {
-  identity {
-    id
-    firstName
-    lastName
-    mobileNumber
-    email
-    dateOfBirth
-    address
-    state
-    city
-    postalCode
-    country
-    taxIdNumber
-    verificationState
-  }
-}
-    `;
-export type GetHomeQueryResult = Apollo.QueryResult<GetHomeQuery, GetHomeQueryVariables>;

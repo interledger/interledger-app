@@ -3,16 +3,17 @@ declare module "routes-gen" {
     "/blog/connecting-the-internet-economy": {};
     "/": {};
     "/activity/transaction/:id": { id: string };
+    "/settings/password": {};
     "/transact/preview": {};
     "/transact/receive": {};
     "/activity/filter": {};
-    "/settings/password": {};
     "/activity": {};
     "/settings": {};
     "/transact": {};
     "/withdraw": {};
     "/connect": {};
     "/deposit": {};
+    "/bank": {};
     "/home": {};
     "/blog": {};
     "/recovery": {};
@@ -27,16 +28,17 @@ declare module "routes-gen" {
       | ["/blog/connecting-the-internet-economy"]
       | ["/"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
+      | ["/settings/password"]
       | ["/transact/preview"]
       | ["/transact/receive"]
       | ["/activity/filter"]
-      | ["/settings/password"]
       | ["/activity"]
       | ["/settings"]
       | ["/transact"]
       | ["/withdraw"]
       | ["/connect"]
       | ["/deposit"]
+      | ["/bank"]
       | ["/home"]
       | ["/blog"]
       | ["/recovery"]
