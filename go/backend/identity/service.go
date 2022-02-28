@@ -10,7 +10,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_country "gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/identity/noop"
 )
 
 // DB Model
@@ -69,14 +68,12 @@ type Service interface {
 }
 
 type service struct {
-	country      _country.Service
-	noopProvider noop.Provider
-	validator    *validator.Validate
+	country   _country.Service
+	validator *validator.Validate
 }
 
 type ServiceArgs struct {
 	CountryService _country.Service `validate:"required"`
-	NoopProvider   noop.Provider    `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -87,9 +84,8 @@ func NewService(args ServiceArgs) (Service, error) {
 	}
 
 	return &service{
-		country:      args.CountryService,
-		noopProvider: args.NoopProvider,
-		validator:    validator,
+		country:   args.CountryService,
+		validator: validator,
 	}, nil
 }
 
@@ -218,14 +214,18 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 	}, nil
 }
 
+// TODO: we may not be able to store the user's personal information and will just pass the
+// information through to the provider.
 type VerifyArgs struct {
-	IdentityID  string   `validate:"required,uuid"`
-	DateOfBirth string   `validate:"datetime=2006-01-02"`
-	Address     []string `validate:"min=1,dive,required"`
-	State       string   `validate:"required"`
-	City        string   `validate:"required"`
-	PostalCode  string   `validate:"required"`
-	TaxIDNumber string   `validate:"required"`
+	IdentityID        string   `validate:"required,uuid"`
+	DateOfBirth       string   `validate:"datetime=2006-01-02"`
+	Address           []string `validate:"min=1,dive,required"`
+	State             string   `validate:"required"`
+	City              string   `validate:"required"`
+	PostalCode        string   `validate:"required"`
+	TaxIDNumber       string   `validate:"required"`
+	ProviderID        string   `valdiate:"required"`
+	VerificationState string   `validate:"required"`
 }
 
 func (self *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Identity, error) {
@@ -237,21 +237,6 @@ func (self *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) 
 	id, err := self.Get(ctx, tx, args.IdentityID)
 	if err != nil {
 		return nil, err
-	}
-	// TODO: choosing of provider
-	customer, err := self.noopProvider.CreateCustomer(&noop.CreateCustomerArgs{
-		FirstName:   id.FirstName,
-		LastName:    id.LastName,
-		Email:       id.Email,
-		Address1:    args.Address[0],
-		State:       args.State,
-		City:        args.City,
-		PostalCode:  args.PostalCode,
-		DateOfBirth: args.DateOfBirth,
-		Ssn:         args.TaxIDNumber,
-	})
-	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
 	}
 
 	stmt, err := tx.PrepareNamed(`
@@ -279,8 +264,8 @@ func (self *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) 
 		args.City,
 		args.PostalCode,
 		args.TaxIDNumber,
-		customer.Status,
-		customer.ID,
+		args.VerificationState,
+		args.ProviderID,
 		id.ID,
 	)
 	if err != nil {

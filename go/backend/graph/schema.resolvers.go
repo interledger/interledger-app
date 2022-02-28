@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/onboarding"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 )
 
@@ -62,36 +63,17 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.C
 		return nil, nil
 	}
 
-	// onboard
-	var identity *_identity.Identity
-	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		_identity, err := r.IdentityService.Create(ctx, tx, _identity.CreateArgs{
-			ID:           user.ID,
-			FirstName:    input.FirstName,
-			LastName:     input.LastName,
-			MobileNumber: input.MobileNumber,
-			Country:      input.Country,
-			Email:        user.Email,
-		})
-		if err != nil {
-			return err
-		}
-
-		_, err = r.AccountService.Create(ctx, tx, &accounts.CreateAccountArgs{
-			IdentityID: _identity.ID,
-			Country:    input.Country,
-		})
-		if err != nil {
-			return err
-		}
-
-		identity = _identity
-		return nil
+	identity, _, err := r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
+		IdentityID:   user.ID,
+		FirstName:    input.FirstName,
+		LastName:     input.LastName,
+		MobileNumber: input.MobileNumber,
+		Email:        user.Email,
+		Country:      input.Country,
 	})
 	if err != nil {
 		switch err.(type) {
 		case *_identity.ErrInvalidArgument:
-		case *accounts.ErrInvalidArgument:
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -115,23 +97,33 @@ func (r *mutationResolver) Verify(ctx context.Context, input generated.Verificat
 		return nil, nil
 	}
 
-	var identity *_identity.Identity
-	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		id, err := r.IdentityService.Verify(ctx, tx, &_identity.VerifyArgs{
-			IdentityID:  user.ID,
-			DateOfBirth: input.DateOfBirth,
-			Address:     input.Address,
-			State:       input.State,
-			City:        input.City,
-			PostalCode:  input.PostalCode,
-			TaxIDNumber: input.TaxIDNumber,
-		})
-		if err != nil {
-			return err
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		switch err.(type) {
+		case *accounts.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		case *accounts.ErrNotFound:
+			return &generated.VerifyMutationResponse{
+				Code:    "404",
+				Success: false,
+				Message: "Verification failed: Account not found.",
+			}, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
 		}
-		identity = id
+	}
 
-		return nil
+	identity, err := r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
+		IdentityID:  user.ID,
+		AccountID:   acc.ID,
+		DateOfBirth: input.DateOfBirth,
+		Address:     input.Address,
+		State:       input.State,
+		City:        input.City,
+		PostalCode:  input.PostalCode,
+		TaxIDNumber: input.TaxIDNumber,
 	})
 	if err != nil {
 		switch err.(type) {
