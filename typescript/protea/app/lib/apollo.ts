@@ -1,10 +1,4 @@
-import {
-  ApolloClient,
-  HttpLink,
-  ApolloLink,
-  InMemoryCache,
-  from
-} from '@apollo/client'
+import { ApolloClient, HttpLink, InMemoryCache, from } from '@apollo/client'
 import { onError } from '@apollo/client/link/error'
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -18,26 +12,11 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (networkError) console.log(`[Network error]: ${networkError}`)
 })
 
-const previewMiddleware = new ApolloLink((operation, forward) => {
-  const context = operation.getContext()
-  operation.setContext(({ headers = {} }) => ({
-    headers: {
-      ...headers,
-      'fynbos-preview': context.preview || true
-    }
-  }))
-
-  return forward(operation)
-})
-
 const Link = new HttpLink({
-  uri:
-    typeof window === 'undefined'
-      ? 'http://backend/graphql'
-      : `${window.origin}/graphql`
+  uri: 'http://backend/graphql'
 })
 
 export const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
-  link: from([errorLink, previewMiddleware, Link])
+  link: from([errorLink, Link])
 })
