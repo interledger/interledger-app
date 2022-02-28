@@ -1,0 +1,22 @@
+input LinkUsdBankAccountInput {
+  name: String!
+  accountNumber: String!
+  routingNumber: String!
+  institution: String!
+  type: String!
+}
+mutation LinkUsdBankAccount($input: LinkUsdBankAccountInput!) {
+  linkUsdBankAccount(input: $input) {
+    code
+    success
+    message
+    fundingSource {
+      id
+      name
+      verificationStatus
+      mask
+      type
+      subType
+    }
+  }
+}
