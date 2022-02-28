@@ -1,9 +1,13 @@
 
 docker_build('fynbos/backend', '../', dockerfile="./Dockerfile")
 
+# see https://docs.tilt.dev/snippets.html?k8s_custom_deploy#snip_docker_build_existing_k8s_resource
 k8s_custom_deploy(
   "backend",
-  apply_cmd="kubectl set image deployment/backend backend=$TILT_IMAGE_0 && kubectl get deployment/backend -o yaml",
+  apply_cmd="""
+    kubectl -v=0 set image deployment/backend backend=$TILT_IMAGE_0 > /dev/null && \
+    kubectl get deployment/backend -o yaml
+  """,
   delete_cmd="echo backend managed outside of Tilt",
   image_deps=["fynbos/backend"],
   deps=[],
