@@ -309,14 +309,11 @@ func TestUserWithdrawals(s *testing.T) {
 			FundingSourceID: bobBankAccount.ID,
 			Amount:          "10000", // 100 dollars
 		})
-		if err != nil {
-			t.Fatal(err)
+		if err == nil || response != nil {
+			t.Fatal()
 		}
 
-		assert.Equal(t, "404", response.Code)
-		assert.Equal(t, false, response.Success)
-		assert.Equal(t, "Withdrawal failed: Destination not found.", response.Message)
-		assert.Nil(t, response.Transaction)
+		assert.Contains(t, err.Error(), "Unable to process request")
 	})
 }
 

@@ -3,6 +3,7 @@ package withdrawals
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
@@ -14,11 +15,12 @@ import (
 	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
-var ErrUnverifiedFundingSource = errors.New("unverified funding source")
-var ErrNotFound = errors.New("not found")
-var ErrInvalidArgument = errors.New("invalid arguments")
-var ErrInternalError = errors.New("internal error")
-var ErrInsufficientBalance = errors.New("insufficient balance")
+var (
+	ErrUnverifiedFundingSource = errors.New("withdrawal service: unverified funding source")
+	ErrInvalidArgument         = errors.New("withdrawal service: invalid arguments")
+	ErrInternalError           = errors.New("withdrawal service: internal error")
+	ErrInsufficientBalance     = errors.New("withdrawal service: insufficient balance")
+)
 
 type Service interface {
 	InitiateWithdrawal(ctx context.Context, args *InitiateWithdrawalArgs) (*transactions.AccountTransaction, error)
@@ -67,46 +69,25 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 		// get identity
 		id, err := s.is.Get(ctx, sqlTx, args.IdentityID)
 		if err != nil {
-			switch err.(type) {
-			case *identity.ErrNotFound:
-				return ErrNotFound
-			case *identity.ErrInvalidArgument:
-				return ErrInvalidArgument
-			default:
-				return ErrInternalError
-			}
+			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
 		}
 
 		// get acc
 		acc, err := s.as.Get(ctx, sqlTx, args.AccountID)
 		if err != nil {
-			switch err.(type) {
-			case *accounts.ErrNotFound:
-				return ErrNotFound
-			case *accounts.ErrInvalidArgument:
-				return ErrInvalidArgument
-			default:
-				return ErrInternalError
-			}
+			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
 		}
 		if acc.IdentityID != id.ID {
-			return ErrNotFound
+			return fmt.Errorf("account and identity dont match %w %s", ErrInternalError, err.Error())
 		}
 
 		// get funding source
 		fs, err := s.fs.Get(ctx, sqlTx, args.FundingSourceID)
 		if err != nil {
-			switch err.(type) {
-			case *fundingsources.ErrNotFound:
-				return ErrNotFound
-			case *fundingsources.ErrInvalidArgument:
-				return ErrInvalidArgument
-			default:
-				return ErrInternalError
-			}
+			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
 		}
 		if fs.IdentityID != args.IdentityID {
-			return ErrNotFound
+			return fmt.Errorf("funding source and identity dont match %w", ErrInternalError)
 		}
 		if !fundingsources.IsVerified(fs) {
 			return ErrUnverifiedFundingSource
@@ -135,16 +116,12 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 		})
 		if err != nil {
 			switch err.(type) {
-			case *transactions.ErrNotFound:
-				return ErrNotFound
-			case *transactions.ErrInvalidArgument:
-				return ErrInvalidArgument
 			case *transactions.ErrInvalidTransfers:
 				return parseInvalidBankWithdrawalTransferErrors(
 					err.(*transactions.ErrInvalidTransfers).TransferErrors,
 				)
 			default:
-				return ErrInternalError
+				return fmt.Errorf("transaction failed %w %s", ErrInternalError, err.Error())
 			}
 		}
 

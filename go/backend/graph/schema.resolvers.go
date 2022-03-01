@@ -357,12 +357,6 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 				Success: false,
 				Message: "Withdrawal failed: Insufficient balance.",
 			}, nil
-		case errors.Is(err, withdrawals.ErrNotFound):
-			return &generated.WithdrawalMutationResponse{
-				Code:    "404",
-				Success: false,
-				Message: "Withdrawal failed: Destination not found.",
-			}, nil
 		default:
 			InternalServerError(ctx)
 			return nil, nil
