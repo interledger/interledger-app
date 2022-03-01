@@ -51,11 +51,11 @@ type ComplexityRoot struct {
 		RecentTransactions func(childComplexity int) int
 	}
 
-	CreateIdentityMutationResponse struct {
-		Code     func(childComplexity int) int
-		Identity func(childComplexity int) int
-		Message  func(childComplexity int) int
-		Success  func(childComplexity int) int
+	CreateAccountMutationResponse struct {
+		Account func(childComplexity int) int
+		Code    func(childComplexity int) int
+		Message func(childComplexity int) int
+		Success func(childComplexity int) int
 	}
 
 	DepositMutationResponse struct {
@@ -98,12 +98,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateIdentity          func(childComplexity int, input CreateIdentityInput) int
+		CreateAccount           func(childComplexity int, input CreateAccountInput) int
 		InitiateDeposit         func(childComplexity int, input DepositInput) int
 		InitiateOutgoingPayment func(childComplexity int, input OutgoingPaymentInput) int
 		InitiateWithdrawal      func(childComplexity int, input WithdrawalInput) int
 		LinkUsdBankAccount      func(childComplexity int, input LinkUsdBankAccountInput) int
-		Verify                  func(childComplexity int, input VerificationInput) int
+		VerifyAccount           func(childComplexity int, input VerifyAccountInput) int
 		VerifyUsdBankAccount    func(childComplexity int, input VerifyUsdBankAccountInput) int
 	}
 
@@ -129,11 +129,11 @@ type ComplexityRoot struct {
 		Type        func(childComplexity int) int
 	}
 
-	VerifyMutationResponse struct {
-		Code     func(childComplexity int) int
-		Identity func(childComplexity int) int
-		Message  func(childComplexity int) int
-		Success  func(childComplexity int) int
+	VerifyAccountMutationResponse struct {
+		Account func(childComplexity int) int
+		Code    func(childComplexity int) int
+		Message func(childComplexity int) int
+		Success func(childComplexity int) int
 	}
 
 	VerifyUsdBankAccountMutationResponse struct {
@@ -155,8 +155,8 @@ type AccountResolver interface {
 	RecentTransactions(ctx context.Context, obj *Account) ([]*Transaction, error)
 }
 type MutationResolver interface {
-	CreateIdentity(ctx context.Context, input CreateIdentityInput) (*CreateIdentityMutationResponse, error)
-	Verify(ctx context.Context, input VerificationInput) (*VerifyMutationResponse, error)
+	CreateAccount(ctx context.Context, input CreateAccountInput) (*CreateAccountMutationResponse, error)
+	VerifyAccount(ctx context.Context, input VerifyAccountInput) (*VerifyAccountMutationResponse, error)
 	LinkUsdBankAccount(ctx context.Context, input LinkUsdBankAccountInput) (*LinkFundingSourceMutationResponse, error)
 	VerifyUsdBankAccount(ctx context.Context, input VerifyUsdBankAccountInput) (*VerifyUsdBankAccountMutationResponse, error)
 	InitiateDeposit(ctx context.Context, input DepositInput) (*DepositMutationResponse, error)
@@ -205,33 +205,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Account.RecentTransactions(childComplexity), true
 
-	case "CreateIdentityMutationResponse.code":
-		if e.complexity.CreateIdentityMutationResponse.Code == nil {
+	case "CreateAccountMutationResponse.account":
+		if e.complexity.CreateAccountMutationResponse.Account == nil {
 			break
 		}
 
-		return e.complexity.CreateIdentityMutationResponse.Code(childComplexity), true
+		return e.complexity.CreateAccountMutationResponse.Account(childComplexity), true
 
-	case "CreateIdentityMutationResponse.identity":
-		if e.complexity.CreateIdentityMutationResponse.Identity == nil {
+	case "CreateAccountMutationResponse.code":
+		if e.complexity.CreateAccountMutationResponse.Code == nil {
 			break
 		}
 
-		return e.complexity.CreateIdentityMutationResponse.Identity(childComplexity), true
+		return e.complexity.CreateAccountMutationResponse.Code(childComplexity), true
 
-	case "CreateIdentityMutationResponse.message":
-		if e.complexity.CreateIdentityMutationResponse.Message == nil {
+	case "CreateAccountMutationResponse.message":
+		if e.complexity.CreateAccountMutationResponse.Message == nil {
 			break
 		}
 
-		return e.complexity.CreateIdentityMutationResponse.Message(childComplexity), true
+		return e.complexity.CreateAccountMutationResponse.Message(childComplexity), true
 
-	case "CreateIdentityMutationResponse.success":
-		if e.complexity.CreateIdentityMutationResponse.Success == nil {
+	case "CreateAccountMutationResponse.success":
+		if e.complexity.CreateAccountMutationResponse.Success == nil {
 			break
 		}
 
-		return e.complexity.CreateIdentityMutationResponse.Success(childComplexity), true
+		return e.complexity.CreateAccountMutationResponse.Success(childComplexity), true
 
 	case "DepositMutationResponse.code":
 		if e.complexity.DepositMutationResponse.Code == nil {
@@ -422,17 +422,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LinkFundingSourceMutationResponse.Success(childComplexity), true
 
-	case "Mutation.createIdentity":
-		if e.complexity.Mutation.CreateIdentity == nil {
+	case "Mutation.createAccount":
+		if e.complexity.Mutation.CreateAccount == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createIdentity_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_createAccount_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateIdentity(childComplexity, args["input"].(CreateIdentityInput)), true
+		return e.complexity.Mutation.CreateAccount(childComplexity, args["input"].(CreateAccountInput)), true
 
 	case "Mutation.initiateDeposit":
 		if e.complexity.Mutation.InitiateDeposit == nil {
@@ -482,17 +482,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LinkUsdBankAccount(childComplexity, args["input"].(LinkUsdBankAccountInput)), true
 
-	case "Mutation.verify":
-		if e.complexity.Mutation.Verify == nil {
+	case "Mutation.verifyAccount":
+		if e.complexity.Mutation.VerifyAccount == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_verify_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_verifyAccount_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Verify(childComplexity, args["input"].(VerificationInput)), true
+		return e.complexity.Mutation.VerifyAccount(childComplexity, args["input"].(VerifyAccountInput)), true
 
 	case "Mutation.verifyUsdBankAccount":
 		if e.complexity.Mutation.VerifyUsdBankAccount == nil {
@@ -597,33 +597,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transaction.Type(childComplexity), true
 
-	case "VerifyMutationResponse.code":
-		if e.complexity.VerifyMutationResponse.Code == nil {
+	case "VerifyAccountMutationResponse.account":
+		if e.complexity.VerifyAccountMutationResponse.Account == nil {
 			break
 		}
 
-		return e.complexity.VerifyMutationResponse.Code(childComplexity), true
+		return e.complexity.VerifyAccountMutationResponse.Account(childComplexity), true
 
-	case "VerifyMutationResponse.identity":
-		if e.complexity.VerifyMutationResponse.Identity == nil {
+	case "VerifyAccountMutationResponse.code":
+		if e.complexity.VerifyAccountMutationResponse.Code == nil {
 			break
 		}
 
-		return e.complexity.VerifyMutationResponse.Identity(childComplexity), true
+		return e.complexity.VerifyAccountMutationResponse.Code(childComplexity), true
 
-	case "VerifyMutationResponse.message":
-		if e.complexity.VerifyMutationResponse.Message == nil {
+	case "VerifyAccountMutationResponse.message":
+		if e.complexity.VerifyAccountMutationResponse.Message == nil {
 			break
 		}
 
-		return e.complexity.VerifyMutationResponse.Message(childComplexity), true
+		return e.complexity.VerifyAccountMutationResponse.Message(childComplexity), true
 
-	case "VerifyMutationResponse.success":
-		if e.complexity.VerifyMutationResponse.Success == nil {
+	case "VerifyAccountMutationResponse.success":
+		if e.complexity.VerifyAccountMutationResponse.Success == nil {
 			break
 		}
 
-		return e.complexity.VerifyMutationResponse.Success(childComplexity), true
+		return e.complexity.VerifyAccountMutationResponse.Success(childComplexity), true
 
 	case "VerifyUsdBankAccountMutationResponse.code":
 		if e.complexity.VerifyUsdBankAccountMutationResponse.Code == nil {
@@ -752,8 +752,8 @@ var sources = []*ast.Source{
 }
 
 type Mutation {
-  createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
-  verify(input: VerificationInput!): VerifyMutationResponse!
+  createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
+  verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
   verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
@@ -783,21 +783,21 @@ type Identity {
   verificationState: String!
 }
 
-input CreateIdentityInput {
+input CreateAccountInput {
   firstName: String!
   lastName: String!
   mobileNumber: String!
   country: String!
 }
 
-type CreateIdentityMutationResponse implements MutationResponse {
+type CreateAccountMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  identity: Identity
+  account: Account
 }
 
-input VerificationInput {
+input VerifyAccountInput {
   DateOfBirth: String!
   Address: [String!]!
   State: String!
@@ -806,11 +806,11 @@ input VerificationInput {
   TaxIdNumber: String!
 }
 
-type VerifyMutationResponse implements MutationResponse {
+type VerifyAccountMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  identity: Identity
+  account: Account
 }
 
 input LinkUsdBankAccountInput {
@@ -903,7 +903,8 @@ type Account {
   id: ID!
   balance: String!
   recentTransactions: [Transaction!]!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -911,13 +912,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_createIdentity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 CreateIdentityInput
+	var arg0 CreateAccountInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -986,13 +987,13 @@ func (ec *executionContext) field_Mutation_linkUsdBankAccount_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_verifyUsdBankAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_verifyAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 VerifyUsdBankAccountInput
+	var arg0 VerifyAccountInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNVerifyUsdBankAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountInput(ctx, tmp)
+		arg0, err = ec.unmarshalNVerifyAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyAccountInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1001,13 +1002,13 @@ func (ec *executionContext) field_Mutation_verifyUsdBankAccount_args(ctx context
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_verify_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_verifyUsdBankAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 VerificationInput
+	var arg0 VerifyUsdBankAccountInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNVerificationInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerificationInput(ctx, tmp)
+		arg0, err = ec.unmarshalNVerifyUsdBankAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1174,7 +1175,7 @@ func (ec *executionContext) _Account_recentTransactions(ctx context.Context, fie
 	return ec.marshalNTransaction2ᚕᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CreateIdentityMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *CreateIdentityMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _CreateAccountMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *CreateAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1182,7 +1183,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_code(ctx context.Con
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "CreateIdentityMutationResponse",
+		Object:     "CreateAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1209,7 +1210,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_code(ctx context.Con
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CreateIdentityMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *CreateIdentityMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _CreateAccountMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *CreateAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1217,7 +1218,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_success(ctx context.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "CreateIdentityMutationResponse",
+		Object:     "CreateAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1244,7 +1245,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_success(ctx context.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CreateIdentityMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *CreateIdentityMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _CreateAccountMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *CreateAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1252,7 +1253,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_message(ctx context.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "CreateIdentityMutationResponse",
+		Object:     "CreateAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1279,7 +1280,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_message(ctx context.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CreateIdentityMutationResponse_identity(ctx context.Context, field graphql.CollectedField, obj *CreateIdentityMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _CreateAccountMutationResponse_account(ctx context.Context, field graphql.CollectedField, obj *CreateAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1287,7 +1288,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_identity(ctx context
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "CreateIdentityMutationResponse",
+		Object:     "CreateAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -1297,7 +1298,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse_identity(ctx context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Identity, nil
+		return obj.Account, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1306,9 +1307,9 @@ func (ec *executionContext) _CreateIdentityMutationResponse_identity(ctx context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*identity.Identity)
+	res := resTmp.(*Account)
 	fc.Result = res
-	return ec.marshalOIdentity2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋidentityᚐIdentity(ctx, field.Selections, res)
+	return ec.marshalOAccount2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DepositMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *DepositMutationResponse) (ret graphql.Marshaler) {
@@ -2250,7 +2251,7 @@ func (ec *executionContext) _LinkFundingSourceMutationResponse_fundingSource(ctx
 	return ec.marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2267,7 +2268,7 @@ func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createIdentity_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createAccount_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2275,7 +2276,7 @@ func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateIdentity(rctx, args["input"].(CreateIdentityInput))
+		return ec.resolvers.Mutation().CreateAccount(rctx, args["input"].(CreateAccountInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2287,12 +2288,12 @@ func (ec *executionContext) _Mutation_createIdentity(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*CreateIdentityMutationResponse)
+	res := resTmp.(*CreateAccountMutationResponse)
 	fc.Result = res
-	return ec.marshalNCreateIdentityMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityMutationResponse(ctx, field.Selections, res)
+	return ec.marshalNCreateAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountMutationResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_verify(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_verifyAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2309,7 +2310,7 @@ func (ec *executionContext) _Mutation_verify(ctx context.Context, field graphql.
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_verify_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_verifyAccount_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2317,7 +2318,7 @@ func (ec *executionContext) _Mutation_verify(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Verify(rctx, args["input"].(VerificationInput))
+		return ec.resolvers.Mutation().VerifyAccount(rctx, args["input"].(VerifyAccountInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2329,9 +2330,9 @@ func (ec *executionContext) _Mutation_verify(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*VerifyMutationResponse)
+	res := resTmp.(*VerifyAccountMutationResponse)
 	fc.Result = res
-	return ec.marshalNVerifyMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyMutationResponse(ctx, field.Selections, res)
+	return ec.marshalNVerifyAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyAccountMutationResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_linkUsdBankAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3061,7 +3062,7 @@ func (ec *executionContext) _Transaction_status(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifyMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifyAccountMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *VerifyAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3069,7 +3070,7 @@ func (ec *executionContext) _VerifyMutationResponse_code(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "VerifyMutationResponse",
+		Object:     "VerifyAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -3096,7 +3097,7 @@ func (ec *executionContext) _VerifyMutationResponse_code(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifyMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifyAccountMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *VerifyAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3104,7 +3105,7 @@ func (ec *executionContext) _VerifyMutationResponse_success(ctx context.Context,
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "VerifyMutationResponse",
+		Object:     "VerifyAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -3131,7 +3132,7 @@ func (ec *executionContext) _VerifyMutationResponse_success(ctx context.Context,
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifyMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifyAccountMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *VerifyAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3139,7 +3140,7 @@ func (ec *executionContext) _VerifyMutationResponse_message(ctx context.Context,
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "VerifyMutationResponse",
+		Object:     "VerifyAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -3166,7 +3167,7 @@ func (ec *executionContext) _VerifyMutationResponse_message(ctx context.Context,
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _VerifyMutationResponse_identity(ctx context.Context, field graphql.CollectedField, obj *VerifyMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _VerifyAccountMutationResponse_account(ctx context.Context, field graphql.CollectedField, obj *VerifyAccountMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3174,7 +3175,7 @@ func (ec *executionContext) _VerifyMutationResponse_identity(ctx context.Context
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "VerifyMutationResponse",
+		Object:     "VerifyAccountMutationResponse",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -3184,7 +3185,7 @@ func (ec *executionContext) _VerifyMutationResponse_identity(ctx context.Context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Identity, nil
+		return obj.Account, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3193,9 +3194,9 @@ func (ec *executionContext) _VerifyMutationResponse_identity(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*identity.Identity)
+	res := resTmp.(*Account)
 	fc.Result = res
-	return ec.marshalOIdentity2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋidentityᚐIdentity(ctx, field.Selections, res)
+	return ec.marshalOAccount2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _VerifyUsdBankAccountMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *VerifyUsdBankAccountMutationResponse) (ret graphql.Marshaler) {
@@ -4594,8 +4595,8 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputCreateIdentityInput(ctx context.Context, obj interface{}) (CreateIdentityInput, error) {
-	var it CreateIdentityInput
+func (ec *executionContext) unmarshalInputCreateAccountInput(ctx context.Context, obj interface{}) (CreateAccountInput, error) {
+	var it CreateAccountInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -4758,8 +4759,8 @@ func (ec *executionContext) unmarshalInputOutgoingPaymentInput(ctx context.Conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputVerificationInput(ctx context.Context, obj interface{}) (VerificationInput, error) {
-	var it VerificationInput
+func (ec *executionContext) unmarshalInputVerifyAccountInput(ctx context.Context, obj interface{}) (VerifyAccountInput, error) {
+	var it VerifyAccountInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -4883,20 +4884,20 @@ func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.Selec
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case CreateIdentityMutationResponse:
-		return ec._CreateIdentityMutationResponse(ctx, sel, &obj)
-	case *CreateIdentityMutationResponse:
+	case CreateAccountMutationResponse:
+		return ec._CreateAccountMutationResponse(ctx, sel, &obj)
+	case *CreateAccountMutationResponse:
 		if obj == nil {
 			return graphql.Null
 		}
-		return ec._CreateIdentityMutationResponse(ctx, sel, obj)
-	case VerifyMutationResponse:
-		return ec._VerifyMutationResponse(ctx, sel, &obj)
-	case *VerifyMutationResponse:
+		return ec._CreateAccountMutationResponse(ctx, sel, obj)
+	case VerifyAccountMutationResponse:
+		return ec._VerifyAccountMutationResponse(ctx, sel, &obj)
+	case *VerifyAccountMutationResponse:
 		if obj == nil {
 			return graphql.Null
 		}
-		return ec._VerifyMutationResponse(ctx, sel, obj)
+		return ec._VerifyAccountMutationResponse(ctx, sel, obj)
 	case LinkFundingSourceMutationResponse:
 		return ec._LinkFundingSourceMutationResponse(ctx, sel, &obj)
 	case *LinkFundingSourceMutationResponse:
@@ -5002,19 +5003,19 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
-var createIdentityMutationResponseImplementors = []string{"CreateIdentityMutationResponse", "MutationResponse"}
+var createAccountMutationResponseImplementors = []string{"CreateAccountMutationResponse", "MutationResponse"}
 
-func (ec *executionContext) _CreateIdentityMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *CreateIdentityMutationResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, createIdentityMutationResponseImplementors)
+func (ec *executionContext) _CreateAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *CreateAccountMutationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createAccountMutationResponseImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("CreateIdentityMutationResponse")
+			out.Values[i] = graphql.MarshalString("CreateAccountMutationResponse")
 		case "code":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._CreateIdentityMutationResponse_code(ctx, field, obj)
+				return ec._CreateAccountMutationResponse_code(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5024,7 +5025,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse(ctx context.Context,
 			}
 		case "success":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._CreateIdentityMutationResponse_success(ctx, field, obj)
+				return ec._CreateAccountMutationResponse_success(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5034,7 +5035,7 @@ func (ec *executionContext) _CreateIdentityMutationResponse(ctx context.Context,
 			}
 		case "message":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._CreateIdentityMutationResponse_message(ctx, field, obj)
+				return ec._CreateAccountMutationResponse_message(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5042,9 +5043,9 @@ func (ec *executionContext) _CreateIdentityMutationResponse(ctx context.Context,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "identity":
+		case "account":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._CreateIdentityMutationResponse_identity(ctx, field, obj)
+				return ec._CreateAccountMutationResponse_account(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5427,9 +5428,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createIdentity":
+		case "createAccount":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createIdentity(ctx, field)
+				return ec._Mutation_createAccount(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -5437,9 +5438,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "verify":
+		case "verifyAccount":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_verify(ctx, field)
+				return ec._Mutation_verifyAccount(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -5754,19 +5755,19 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var verifyMutationResponseImplementors = []string{"VerifyMutationResponse", "MutationResponse"}
+var verifyAccountMutationResponseImplementors = []string{"VerifyAccountMutationResponse", "MutationResponse"}
 
-func (ec *executionContext) _VerifyMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *VerifyMutationResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, verifyMutationResponseImplementors)
+func (ec *executionContext) _VerifyAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *VerifyAccountMutationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, verifyAccountMutationResponseImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("VerifyMutationResponse")
+			out.Values[i] = graphql.MarshalString("VerifyAccountMutationResponse")
 		case "code":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._VerifyMutationResponse_code(ctx, field, obj)
+				return ec._VerifyAccountMutationResponse_code(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5776,7 +5777,7 @@ func (ec *executionContext) _VerifyMutationResponse(ctx context.Context, sel ast
 			}
 		case "success":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._VerifyMutationResponse_success(ctx, field, obj)
+				return ec._VerifyAccountMutationResponse_success(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5786,7 +5787,7 @@ func (ec *executionContext) _VerifyMutationResponse(ctx context.Context, sel ast
 			}
 		case "message":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._VerifyMutationResponse_message(ctx, field, obj)
+				return ec._VerifyAccountMutationResponse_message(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -5794,9 +5795,9 @@ func (ec *executionContext) _VerifyMutationResponse(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "identity":
+		case "account":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._VerifyMutationResponse_identity(ctx, field, obj)
+				return ec._VerifyAccountMutationResponse_account(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -6352,23 +6353,23 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateIdentityInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityInput(ctx context.Context, v interface{}) (CreateIdentityInput, error) {
-	res, err := ec.unmarshalInputCreateIdentityInput(ctx, v)
+func (ec *executionContext) unmarshalNCreateAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountInput(ctx context.Context, v interface{}) (CreateAccountInput, error) {
+	res, err := ec.unmarshalInputCreateAccountInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCreateIdentityMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityMutationResponse(ctx context.Context, sel ast.SelectionSet, v CreateIdentityMutationResponse) graphql.Marshaler {
-	return ec._CreateIdentityMutationResponse(ctx, sel, &v)
+func (ec *executionContext) marshalNCreateAccountMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, v CreateAccountMutationResponse) graphql.Marshaler {
+	return ec._CreateAccountMutationResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCreateIdentityMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateIdentityMutationResponse(ctx context.Context, sel ast.SelectionSet, v *CreateIdentityMutationResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNCreateAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, v *CreateAccountMutationResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._CreateIdentityMutationResponse(ctx, sel, v)
+	return ec._CreateAccountMutationResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNDepositInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositInput(ctx context.Context, v interface{}) (DepositInput, error) {
@@ -6618,23 +6619,23 @@ func (ec *executionContext) marshalNTransactionType2gitlabᚗcomᚋfynbosᚋback
 	return v
 }
 
-func (ec *executionContext) unmarshalNVerificationInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerificationInput(ctx context.Context, v interface{}) (VerificationInput, error) {
-	res, err := ec.unmarshalInputVerificationInput(ctx, v)
+func (ec *executionContext) unmarshalNVerifyAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyAccountInput(ctx context.Context, v interface{}) (VerifyAccountInput, error) {
+	res, err := ec.unmarshalInputVerifyAccountInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNVerifyMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyMutationResponse(ctx context.Context, sel ast.SelectionSet, v VerifyMutationResponse) graphql.Marshaler {
-	return ec._VerifyMutationResponse(ctx, sel, &v)
+func (ec *executionContext) marshalNVerifyAccountMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, v VerifyAccountMutationResponse) graphql.Marshaler {
+	return ec._VerifyAccountMutationResponse(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNVerifyMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyMutationResponse(ctx context.Context, sel ast.SelectionSet, v *VerifyMutationResponse) graphql.Marshaler {
+func (ec *executionContext) marshalNVerifyAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyAccountMutationResponse(ctx context.Context, sel ast.SelectionSet, v *VerifyAccountMutationResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._VerifyMutationResponse(ctx, sel, v)
+	return ec._VerifyAccountMutationResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNVerifyUsdBankAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountInput(ctx context.Context, v interface{}) (VerifyUsdBankAccountInput, error) {

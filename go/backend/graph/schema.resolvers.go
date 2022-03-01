@@ -56,14 +56,14 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 	return trxs, nil
 }
 
-func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.CreateIdentityInput) (*generated.CreateIdentityMutationResponse, error) {
+func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
 	}
 
-	identity, _, err := r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
+	acc, err := r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
 		IdentityID:   user.ID,
 		FirstName:    input.FirstName,
 		LastName:     input.LastName,
@@ -82,15 +82,19 @@ func (r *mutationResolver) CreateIdentity(ctx context.Context, input generated.C
 		}
 	}
 
-	return &generated.CreateIdentityMutationResponse{
-		Code:     "200",
-		Success:  true,
-		Message:  "Created account holder.",
-		Identity: identity,
+	floatBalance := float64(acc.AvailableBalance) / float64(100)
+	return &generated.CreateAccountMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Created account.",
+		Account: &generated.Account{
+			ID:      acc.ID,
+			Balance: fmt.Sprintf("$ %.2f", floatBalance),
+		},
 	}, nil
 }
 
-func (r *mutationResolver) Verify(ctx context.Context, input generated.VerificationInput) (*generated.VerifyMutationResponse, error) {
+func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.VerifyAccountInput) (*generated.VerifyAccountMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -104,7 +108,7 @@ func (r *mutationResolver) Verify(ctx context.Context, input generated.Verificat
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		case *accounts.ErrNotFound:
-			return &generated.VerifyMutationResponse{
+			return &generated.VerifyAccountMutationResponse{
 				Code:    "404",
 				Success: false,
 				Message: "Verification failed: Account not found.",
@@ -115,7 +119,7 @@ func (r *mutationResolver) Verify(ctx context.Context, input generated.Verificat
 		}
 	}
 
-	identity, err := r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
+	acc, err = r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
 		IdentityID:  user.ID,
 		AccountID:   acc.ID,
 		DateOfBirth: input.DateOfBirth,
@@ -139,11 +143,15 @@ func (r *mutationResolver) Verify(ctx context.Context, input generated.Verificat
 		}
 	}
 
-	return &generated.VerifyMutationResponse{
-		Code:     "200",
-		Success:  true,
-		Message:  "Verified.",
-		Identity: identity,
+	floatBalance := float64(acc.AvailableBalance) / float64(100)
+	return &generated.VerifyAccountMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Verified.",
+		Account: &generated.Account{
+			ID:      acc.ID,
+			Balance: fmt.Sprintf("$ %.2f", floatBalance),
+		},
 	}, nil
 }
 
@@ -225,10 +233,7 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 	}, nil
 }
 
-func (r *mutationResolver) InitiateDeposit(
-	ctx context.Context,
-	input generated.DepositInput,
-) (*generated.DepositMutationResponse, error) {
+func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.DepositInput) (*generated.DepositMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
