@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"gitlab.com/fynbos/backend/withdrawals"
 	"net/http/httptest"
 
 	"google.golang.org/grpc"
@@ -46,6 +47,7 @@ type TestContainer struct {
 	UserService          _user.Service
 	NoopService          _noop.Service
 	DepositService       deposits.Service
+	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Service
 	Os                   onboarding.Service
 	MockPacioliClient    *mockPacioliV1.MockPacioliServiceClient
@@ -169,6 +171,19 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.Os = os
 
+	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   is,
+		Fs:   fs,
+		Ts:   ts,
+		Noop: noopProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.WithdrawalService = ws
+
 	graph, err := NewService(GraphqlOpts{
 		Db:                  db,
 		Identity:            is,
@@ -178,6 +193,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		AccountTransactions: ts,
 		Ds:                  ds,
 		Os:                  os,
+		Ws:                  ws,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph
