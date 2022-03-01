@@ -2,7 +2,6 @@ package identity
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -13,7 +12,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	_country "gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/identity/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.uber.org/zap"
 )
@@ -41,10 +39,8 @@ func TestIdentityService(s *testing.T) {
 	defer ctrl.Finish()
 
 	cs := _country.NewService()
-	provider := noop.NewMockProvider(ctrl)
 	is, err := NewService(ServiceArgs{
 		CountryService: cs,
-		NoopProvider:   provider,
 	})
 	if err != nil {
 		s.Fatal(err)
@@ -241,167 +237,162 @@ func TestIdentityService(s *testing.T) {
 		assert.Equal(t, "Not found.", err.Error())
 	})
 
-	s.Run("verify identity", func(t *testing.T) {
-		args := generateCreateArgs()
-		var identity *Identity
-		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Create(ctx, tx, *args)
-			if err != nil {
-				t.Fatal(err)
-			}
+	// TODO: this is going to be moved to account
+	// s.Run("verify identity", func(t *testing.T) {
+	// 	args := generateCreateArgs()
+	// 	var identity *Identity
+	// 	err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+	// 		_identity, err := is.Create(ctx, tx, *args)
+	// 		if err != nil {
+	// 			t.Fatal(err)
+	// 		}
 
-			identity = _identity
-			return nil
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
+	// 		identity = _identity
+	// 		return nil
+	// 	})
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
 
-		t.Run("creates customer at provider and updates identity", func(tt *testing.T) {
-			customerID := uuid.NewString()
-			args := generateVerifyArgs(withIdentityID(identity.ID))
-			provider.EXPECT().CreateCustomer(gomock.Any()).Times(1).Return(&noop.Customer{
-				ID:     customerID,
-				Status: noop.Verified,
-			}, nil)
+	// 	t.Run("creates customer at provider and updates identity", func(tt *testing.T) {
+	// 		customerID := uuid.NewString()
+	// 		args := generateVerifyArgs(withIdentityID(identity.ID))
 
-			var id *Identity
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_id, err := is.Verify(ctx, tx, args)
-				if err != nil {
-					return err
-				}
-				id = _id
+	// 		var id *Identity
+	// 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+	// 			_id, err := is.Verify(ctx, tx, args)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			id = _id
 
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
+	// 			return nil
+	// 		})
+	// 		if err != nil {
+	// 			tt.Fatal(err)
+	// 		}
 
-			assert.Equal(tt, customerID, id.ProviderID)
-			assert.Equal(tt, identity.ID, id.ID)
-			assert.Equal(tt, identity.Email, id.Email)
-			assert.Equal(tt, identity.FirstName, id.FirstName)
-			assert.Equal(tt, identity.LastName, id.LastName)
-			assert.Equal(tt, identity.MobileNumber, id.MobileNumber)
-			assert.Equal(tt, identity.Country, id.Country)
-			assert.Equal(tt, args.DateOfBirth, id.DateOfBirth)
-			assert.Equal(tt, args.Address, id.Address)
-			assert.Equal(tt, args.State, id.State)
-			assert.Equal(tt, args.City, id.City)
-			assert.Equal(tt, args.PostalCode, id.PostalCode)
-			assert.Equal(tt, args.TaxIDNumber, id.TaxIDNumber)
-			assert.Equal(tt, identity.Provider, id.Provider)
-			assert.Equal(tt, noop.Verified, id.VerificationState)
-		})
+	// 		assert.Equal(tt, customerID, id.ProviderID)
+	// 		assert.Equal(tt, identity.ID, id.ID)
+	// 		assert.Equal(tt, identity.Email, id.Email)
+	// 		assert.Equal(tt, identity.FirstName, id.FirstName)
+	// 		assert.Equal(tt, identity.LastName, id.LastName)
+	// 		assert.Equal(tt, identity.MobileNumber, id.MobileNumber)
+	// 		assert.Equal(tt, identity.Country, id.Country)
+	// 		assert.Equal(tt, args.DateOfBirth, id.DateOfBirth)
+	// 		assert.Equal(tt, args.Address, id.Address)
+	// 		assert.Equal(tt, args.State, id.State)
+	// 		assert.Equal(tt, args.City, id.City)
+	// 		assert.Equal(tt, args.PostalCode, id.PostalCode)
+	// 		assert.Equal(tt, args.TaxIDNumber, id.TaxIDNumber)
+	// 		assert.Equal(tt, identity.Provider, id.Provider)
+	// 	})
 
-		t.Run("validates arguments", func(tt *testing.T) {
-			type Scenario struct {
-				Name          string
-				Args          *VerifyArgs
-				ExpectedError string
-			}
-			scenarios := []Scenario{
-				{
-					Name:          "IdentityID is required to verify identity to verify identity",
-					Args:          generateVerifyArgs(withIdentityID("")),
-					ExpectedError: "Key: 'VerifyArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
-				},
-				{
-					Name:          "DateOfBirth must be valid date to verify identity",
-					Args:          generateVerifyArgs(withDateOfBirth("")),
-					ExpectedError: "Key: 'VerifyArgs.DateOfBirth' Error:Field validation for 'DateOfBirth' failed on the 'datetime' tag",
-				},
-				{
-					Name:          "At least 1 address is required to verify identity",
-					Args:          generateVerifyArgs(withAddress([]string{})),
-					ExpectedError: "Key: 'VerifyArgs.Address' Error:Field validation for 'Address' failed on the 'min' tag",
-				},
-				{
-					Name:          "State is required to verify identity",
-					Args:          generateVerifyArgs(withState("")),
-					ExpectedError: "Key: 'VerifyArgs.State' Error:Field validation for 'State' failed on the 'required' tag",
-				},
-				{
-					Name:          "City is required to verify identity",
-					Args:          generateVerifyArgs(withCity("")),
-					ExpectedError: "Key: 'VerifyArgs.City' Error:Field validation for 'City' failed on the 'required' tag",
-				},
-				{
-					Name:          "PostalCode is required to verify identity",
-					Args:          generateVerifyArgs(withPostalCode("")),
-					ExpectedError: "Key: 'VerifyArgs.PostalCode' Error:Field validation for 'PostalCode' failed on the 'required' tag",
-				},
-				{
-					Name:          "TaxIDNumber is required to verify identity",
-					Args:          generateVerifyArgs(withTaxIDNumber("")),
-					ExpectedError: "Key: 'VerifyArgs.TaxIDNumber' Error:Field validation for 'TaxIDNumber' failed on the 'required' tag",
-				},
-			}
+	// 	t.Run("validates arguments", func(tt *testing.T) {
+	// 		type Scenario struct {
+	// 			Name          string
+	// 			Args          *VerifyArgs
+	// 			ExpectedError string
+	// 		}
+	// 		scenarios := []Scenario{
+	// 			{
+	// 				Name:          "IdentityID is required to verify identity to verify identity",
+	// 				Args:          generateVerifyArgs(withIdentityID("")),
+	// 				ExpectedError: "Key: 'VerifyArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
+	// 			},
+	// 			{
+	// 				Name:          "DateOfBirth must be valid date to verify identity",
+	// 				Args:          generateVerifyArgs(withDateOfBirth("")),
+	// 				ExpectedError: "Key: 'VerifyArgs.DateOfBirth' Error:Field validation for 'DateOfBirth' failed on the 'datetime' tag",
+	// 			},
+	// 			{
+	// 				Name:          "At least 1 address is required to verify identity",
+	// 				Args:          generateVerifyArgs(withAddress([]string{})),
+	// 				ExpectedError: "Key: 'VerifyArgs.Address' Error:Field validation for 'Address' failed on the 'min' tag",
+	// 			},
+	// 			{
+	// 				Name:          "State is required to verify identity",
+	// 				Args:          generateVerifyArgs(withState("")),
+	// 				ExpectedError: "Key: 'VerifyArgs.State' Error:Field validation for 'State' failed on the 'required' tag",
+	// 			},
+	// 			{
+	// 				Name:          "City is required to verify identity",
+	// 				Args:          generateVerifyArgs(withCity("")),
+	// 				ExpectedError: "Key: 'VerifyArgs.City' Error:Field validation for 'City' failed on the 'required' tag",
+	// 			},
+	// 			{
+	// 				Name:          "PostalCode is required to verify identity",
+	// 				Args:          generateVerifyArgs(withPostalCode("")),
+	// 				ExpectedError: "Key: 'VerifyArgs.PostalCode' Error:Field validation for 'PostalCode' failed on the 'required' tag",
+	// 			},
+	// 			{
+	// 				Name:          "TaxIDNumber is required to verify identity",
+	// 				Args:          generateVerifyArgs(withTaxIDNumber("")),
+	// 				ExpectedError: "Key: 'VerifyArgs.TaxIDNumber' Error:Field validation for 'TaxIDNumber' failed on the 'required' tag",
+	// 			},
+	// 		}
 
-			for _, scenario := range scenarios {
-				var identity *Identity
-				err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_identity, err := is.Verify(ctx, tx, scenario.Args)
-					if err != nil {
-						return err
-					}
+	// 		for _, scenario := range scenarios {
+	// 			var identity *Identity
+	// 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+	// 				_identity, err := is.Verify(ctx, tx, scenario.Args)
+	// 				if err != nil {
+	// 					return err
+	// 				}
 
-					identity = _identity
-					return nil
-				})
-				if err == nil {
-					tt.Fatal(scenario.Name)
-				}
+	// 				identity = _identity
+	// 				return nil
+	// 			})
+	// 			if err == nil {
+	// 				tt.Fatal(scenario.Name)
+	// 			}
 
-				assert.Equal(tt, scenario.ExpectedError, err.Error())
-				assert.Nil(tt, identity)
-			}
-		})
+	// 			assert.Equal(tt, scenario.ExpectedError, err.Error())
+	// 			assert.Nil(tt, identity)
+	// 		}
+	// 	})
 
-		t.Run("does not record data if customer is not created at provider", func(tt *testing.T) {
-			args := generateVerifyArgs(withIdentityID(identity.ID))
-			provider.EXPECT().CreateCustomer(gomock.Any()).Times(1).Return(nil, errors.New("Request failed."))
+	// 	t.Run("does not record data if customer is not created at provider", func(tt *testing.T) {
+	// 		args := generateVerifyArgs(withIdentityID(identity.ID))
 
-			var id *Identity
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_id, err := is.Verify(ctx, tx, args)
-				if err != nil {
-					return err
-				}
-				id = _id
+	// 		var id *Identity
+	// 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+	// 			_id, err := is.Verify(ctx, tx, args)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			id = _id
 
-				return nil
-			})
-			if err == nil {
-				tt.Fatal("Should have returned error when provider call failed.")
-			}
+	// 			return nil
+	// 		})
+	// 		if err == nil {
+	// 			tt.Fatal("Should have returned error when provider call failed.")
+	// 		}
 
-			assert.Nil(tt, id)
-		})
+	// 		assert.Nil(tt, id)
+	// 	})
 
-		t.Run("fails if identity does not exist", func(tt *testing.T) {
-			var id *Identity
-			args := generateVerifyArgs(withIdentityID(uuid.NewString()))
+	// 	t.Run("fails if identity does not exist", func(tt *testing.T) {
+	// 		var id *Identity
+	// 		args := generateVerifyArgs(withIdentityID(uuid.NewString()))
 
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_id, err := is.Verify(ctx, tx, args)
-				if err != nil {
-					return err
-				}
-				id = _id
+	// 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+	// 			_id, err := is.Verify(ctx, tx, args)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			id = _id
 
-				return nil
-			})
-			if err == nil {
-				tt.Fatal("Should have failed with no identity found.")
-			}
+	// 			return nil
+	// 		})
+	// 		if err == nil {
+	// 			tt.Fatal("Should have failed with no identity found.")
+	// 		}
 
-			assert.Nil(tt, id)
-			assert.Equal(tt, "Not found.", err.Error())
-		})
-	})
+	// 		assert.Nil(tt, id)
+	// 		assert.Equal(tt, "Not found.", err.Error())
+	// 	})
+	// })
 }
 
 // TODO: auto generate helpers.

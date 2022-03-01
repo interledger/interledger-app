@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"gitlab.com/fynbos/backend/graph/generated"
+	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 )
 
@@ -36,7 +37,14 @@ func TestUserFundingSources(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -78,7 +86,14 @@ func TestUserFundingSources(s *testing.T) {
 			ID:    "",
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}

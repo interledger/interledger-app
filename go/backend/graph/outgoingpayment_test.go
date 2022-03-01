@@ -11,7 +11,7 @@ import (
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/graph/generated"
-	"gitlab.com/fynbos/backend/identity/noop"
+	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
@@ -43,14 +43,29 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput(withCountry("US")))
+		_, err := NewVerifiedAccount(
+			container,
+			&onboarding.CreateAccountArgs{
+				IdentityID:   user.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        user.Email,
+				Country:      "US",
+			},
+			&onboarding.VerifyAccountArgs{
+				DateOfBirth: faker.Date(),
+				Address:     []string{faker.Name()},
+				State:       faker.Name(),
+				City:        faker.Name(),
+				PostalCode:  faker.CCNumber(),
+				TaxIDNumber: faker.CCNumber(),
+			},
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = VerifyUserIdentity(container, user, generateVerificationInput())
-		if err != nil {
-			t.Fatal(err)
-		}
+		// TODO: assert account verification state
 		err = FundUsersAccount(container, user, "10000") // 100 dollars
 		if err != nil {
 			t.Fatal(err)
@@ -96,14 +111,29 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput(withCountry("US")))
+		_, err := NewVerifiedAccount(
+			container,
+			&onboarding.CreateAccountArgs{
+				IdentityID:   user.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        user.Email,
+				Country:      "US",
+			},
+			&onboarding.VerifyAccountArgs{
+				DateOfBirth: faker.Date(),
+				Address:     []string{faker.Name()},
+				State:       faker.Name(),
+				City:        faker.Name(),
+				PostalCode:  faker.CCNumber(),
+				TaxIDNumber: faker.CCNumber(),
+			},
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = VerifyUserIdentity(container, user, generateVerificationInput())
-		if err != nil {
-			t.Fatal(err)
-		}
+		// TODO: assert account verification state
 
 		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
@@ -135,6 +165,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 	})
 
 	/*
+		TODO: refactor so that account has verification
 		Noop provider does not allow outgoing payments unless user's identity is verified
 		Scenario: user tries to initiate outgoing payment without verifying their identity
 
@@ -149,10 +180,21 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput(withCountry("US")))
+		_, err := NewAccount(
+			container,
+			&onboarding.CreateAccountArgs{
+				IdentityID:   user.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        user.Email,
+				Country:      "US",
+			},
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
+		// TODO: assert account verification state
 		err = FundUsersAccount(container, user, "10000") // 100 dollars
 		if err != nil {
 			t.Fatal(err)
@@ -235,25 +277,4 @@ func InitiateOutgoingPayment(container *TestContainer, user *_user.User, input *
 	}
 
 	return &response, nil
-}
-
-func VerifyUserIdentity(container *TestContainer, user *_user.User, input *generated.VerificationInput) error {
-	req := verifyRequest(input)
-	_user.ActingAs(req, user)
-
-	container.NoopProvider.EXPECT().CreateCustomer(gomock.Any()).Return(&noop.Customer{
-		ID:     uuid.NewString(),
-		Status: noop.Verified,
-	}, nil).Times(1)
-	var data map[string]generated.VerifyMutationResponse
-	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
-		return err
-	}
-
-	response := data["verify"]
-	if response.Code != "200" && response.Success {
-		return errors.New("Failed to verify user identity.")
-	}
-
-	return nil
 }
