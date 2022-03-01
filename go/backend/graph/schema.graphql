@@ -5,8 +5,8 @@ type Query{
 }
 
 type Mutation {
-  createIdentity(input: CreateIdentityInput!): CreateIdentityMutationResponse!
-  verify(input: VerificationInput!): VerifyMutationResponse!
+  createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
+  verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
   verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
@@ -36,21 +36,21 @@ type Identity {
   verificationState: String!
 }
 
-input CreateIdentityInput {
+input CreateAccountInput {
   firstName: String!
   lastName: String!
   mobileNumber: String!
   country: String!
 }
 
-type CreateIdentityMutationResponse implements MutationResponse {
+type CreateAccountMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  identity: Identity
+  account: Account
 }
 
-input VerificationInput {
+input VerifyAccountInput {
   DateOfBirth: String!
   Address: [String!]!
   State: String!
@@ -59,11 +59,11 @@ input VerificationInput {
   TaxIdNumber: String!
 }
 
-type VerifyMutationResponse implements MutationResponse {
+type VerifyAccountMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  identity: Identity
+  account: Account
 }
 
 input LinkUsdBankAccountInput {

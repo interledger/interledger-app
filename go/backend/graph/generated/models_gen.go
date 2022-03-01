@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-
-	"gitlab.com/fynbos/backend/identity"
 )
 
 type MutationResponse interface {
@@ -20,21 +18,21 @@ type Account struct {
 	RecentTransactions []*Transaction `json:"recentTransactions"`
 }
 
-type CreateIdentityInput struct {
+type CreateAccountInput struct {
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
 	MobileNumber string `json:"mobileNumber"`
 	Country      string `json:"country"`
 }
 
-type CreateIdentityMutationResponse struct {
-	Code     string             `json:"code"`
-	Success  bool               `json:"success"`
-	Message  string             `json:"message"`
-	Identity *identity.Identity `json:"identity"`
+type CreateAccountMutationResponse struct {
+	Code    string   `json:"code"`
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Account *Account `json:"account"`
 }
 
-func (CreateIdentityMutationResponse) IsMutationResponse() {}
+func (CreateAccountMutationResponse) IsMutationResponse() {}
 
 type DepositInput struct {
 	FundingSourceID string `json:"fundingSourceID"`
@@ -99,7 +97,7 @@ type Transaction struct {
 	Status      string          `json:"status"`
 }
 
-type VerificationInput struct {
+type VerifyAccountInput struct {
 	DateOfBirth string   `json:"DateOfBirth"`
 	Address     []string `json:"Address"`
 	State       string   `json:"State"`
@@ -108,14 +106,14 @@ type VerificationInput struct {
 	TaxIDNumber string   `json:"TaxIdNumber"`
 }
 
-type VerifyMutationResponse struct {
-	Code     string             `json:"code"`
-	Success  bool               `json:"success"`
-	Message  string             `json:"message"`
-	Identity *identity.Identity `json:"identity"`
+type VerifyAccountMutationResponse struct {
+	Code    string   `json:"code"`
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Account *Account `json:"account"`
 }
 
-func (VerifyMutationResponse) IsMutationResponse() {}
+func (VerifyAccountMutationResponse) IsMutationResponse() {}
 
 type VerifyUsdBankAccountInput struct {
 	FundingSourceID string `json:"FundingSourceId"`

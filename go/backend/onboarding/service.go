@@ -12,8 +12,8 @@ import (
 )
 
 type Service interface {
-	CreateAccount(ctx context.Context, args *CreateAccountArgs) (*_identity.Identity, *accounts.Account, error)
-	VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*_identity.Identity, error) // TODO: refactor to have verification on account
+	CreateAccount(ctx context.Context, args *CreateAccountArgs) (*accounts.Account, error)
+	VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error)
 }
 
 type service struct {
@@ -28,7 +28,7 @@ type ServiceArgs struct {
 	Db   *sqlx.DB          `validate:"required"`
 	As   accounts.Service  `validate:"required"`
 	Is   _identity.Service `validate:"required"`
-	Noop noop.Service      `validate:""required`
+	Noop noop.Service      `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -62,12 +62,11 @@ type CreateAccountArgs struct {
 func (s *service) CreateAccount(
 	ctx context.Context,
 	args *CreateAccountArgs,
-) (*_identity.Identity, *accounts.Account, error) {
+) (*accounts.Account, error) {
 	if err := s.validator.Struct(args); err != nil {
-		return nil, nil, &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
+		return nil, &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
 	}
 
-	var identity *_identity.Identity
 	var account *accounts.Account
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		id, err := s.is.Create(ctx, tx, _identity.CreateArgs{
@@ -86,10 +85,9 @@ func (s *service) CreateAccount(
 				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 			}
 		}
-		identity = id
 
 		acc, err := s.as.Create(ctx, tx, &accounts.CreateAccountArgs{
-			IdentityID: args.IdentityID,
+			IdentityID: id.ID,
 			Country:    args.Country,
 		})
 		if err != nil {
@@ -105,10 +103,10 @@ func (s *service) CreateAccount(
 		return nil
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return identity, account, nil
+	return account, err
 }
 
 type VerifyAccountArgs struct {
@@ -123,12 +121,11 @@ type VerifyAccountArgs struct {
 }
 
 // TODO: refactor to have verification on account
-func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*_identity.Identity, error) {
+func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error) {
 	if err := s.validator.Struct(args); err != nil {
 		return nil, &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
 	}
 
-	var identity *_identity.Identity
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
@@ -156,7 +153,7 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 		}
 
 		// TODO: refactor to have verification on account
-		verifiedIdentity, err := s.is.Verify(ctx, tx, &_identity.VerifyArgs{
+		_, err = s.is.Verify(ctx, tx, &_identity.VerifyArgs{
 			IdentityID:        id.ID,
 			DateOfBirth:       args.DateOfBirth,
 			Address:           args.Address,
@@ -170,7 +167,6 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 		if err != nil {
 			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 		}
-		identity = verifiedIdentity
 
 		return nil
 	})
@@ -178,7 +174,13 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 		return nil, err
 	}
 
-	return identity, nil
+	// TODO: here till verification is moved onto account
+	acc, err := s.as.GetByIdentityID(ctx, args.IdentityID)
+	if err != nil {
+		return nil, &ErrInternal{Err: "Onboarding service: " + err.Error()}
+	}
+
+	return acc, nil
 }
 
 type ErrInvalidArgument struct {

@@ -2,8 +2,8 @@ package graph
 
 import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
-	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/onboarding"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
