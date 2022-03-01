@@ -31,7 +31,7 @@ type Service interface {
 	LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error)
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
-	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) (*transactions.AccountTransaction, error)
+	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) error
 	InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) (*transactions.AccountTransaction, error)
 
 	GetEquityAccountID() string
@@ -262,82 +262,12 @@ func (s *service) InitiateBankDeposit(ctx context.Context, args *BankDepositArgs
 }
 
 type BankWithdrawalArgs struct {
-	IdentityID      string `validate:"required,uuid4"`
-	FundingSourceID string `valdiate:"required,uuid4"`
-	Amount          uint64 `validate:"required,gt=0"` // Min amount can be changed according to provider
+	Amount uint64 `validate:"required,gt=0"` // Min amount can be changed according to provider
 }
 
-func (s *service) InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) (*transactions.AccountTransaction, error) {
-	var transaction *transactions.AccountTransaction
-	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
-		if err != nil {
-			switch err.(type) {
-			case *fundingsources.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
-			case *fundingsources.ErrNotFound:
-				return &ErrNotFound{Err: "Noop service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Noop service:" + err.Error()}
-			}
-		}
-		if fundingSource.IdentityID != args.IdentityID {
-			return &ErrNotFound{Err: "Noop service: Funding source not found."}
-		}
-		if fundingSource.VerificationState != "verified" {
-			return &ErrUnverifiedFundingSource{Err: "Noop service: Funding source is not verified."}
-		}
-
-		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
-		if err != nil {
-			switch err.(type) {
-			case *accounts.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
-			case *accounts.ErrNotFound:
-				return &ErrNotFound{Err: "Noop service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Noop service:" + err.Error()}
-			}
-		}
-		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
-			AccountID:   acc.ID,
-			Type:        "withdrawal",
-			NetAmount:   args.Amount,
-			Description: "Withdrawal to " + fundingSource.Name,
-			State:       "completed", // TODO: define states
-			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
-				{
-					LedgerID:        s.ledgerID,
-					DebitAccountID:  s.equityAccountID,
-					CreditAccountID: acc.ID,
-					Amount:          args.Amount,
-					// Code: "1", // TODO: define ledger transfer codes.
-					Flags: transactions.LedgerTransferFlags{},
-				},
-			},
-		})
-		if err != nil {
-			switch err.(type) {
-			case *transactions.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
-			case *transactions.ErrNotFound:
-				return &ErrNotFound{Err: "Noop service:" + err.Error()}
-			case *transactions.ErrInvalidTransfers:
-				return parseInvalidBankWithdrawalTransferErrors(
-					err.(*transactions.ErrInvalidTransfers).TransferErrors,
-				)
-			default:
-				return &ErrInternalError{Err: "Noop service:" + err.Error()}
-			}
-		}
-		transaction = trx
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return transaction, nil
+func (s *service) InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) error {
+	fmt.Println("Initiating bank withdrawal", args.Amount)
+	return nil
 }
 
 // Filter out errors related to user account such as insufficient balance.

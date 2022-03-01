@@ -5,7 +5,9 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/withdrawals"
 	"strconv"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -313,31 +315,49 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 		InvalidArgument(ctx, err.Error())
 		return nil, nil
 	}
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		switch err.(type) {
+		case *accounts.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		case *accounts.ErrNotFound:
+			return &generated.WithdrawalMutationResponse{
+				Code:    "404",
+				Success: false,
+				Message: "Deposit failed: Account not found.",
+			}, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
 
 	// TODO: determine provider to use
-	withdrawal, err := r.NoopService.InitiateBankWithdrawal(ctx, &_noop.BankWithdrawalArgs{
+	withdrawal, err := r.Ws.InitiateWithdrawal(ctx, &withdrawals.InitiateWithdrawalArgs{
 		IdentityID:      user.ID,
+		AccountID:       acc.ID,
 		FundingSourceID: input.FundingSourceID,
 		Amount:          parsedAmount,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_noop.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, withdrawals.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *_noop.ErrUnverifiedFundingSource:
+		case errors.Is(err, withdrawals.ErrUnverifiedFundingSource):
 			return &generated.WithdrawalMutationResponse{
 				Code:    "403",
 				Success: false,
 				Message: "Withdrawal failed: Destination is unverified.",
 			}, nil
-		case *_noop.ErrInsufficientBalance:
+		case errors.Is(err, withdrawals.ErrInsufficientBalance):
 			return &generated.WithdrawalMutationResponse{
 				Code:    "500",
 				Success: false,
 				Message: "Withdrawal failed: Insufficient balance.",
 			}, nil
-		case *_noop.ErrNotFound:
+		case errors.Is(err, withdrawals.ErrNotFound):
 			return &generated.WithdrawalMutationResponse{
 				Code:    "404",
 				Success: false,

@@ -199,6 +199,10 @@ func (s *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*F
 	return &fs, nil
 }
 
+func IsVerified(fs *FundingSource) bool {
+	return fs.VerificationState == "verified"
+}
+
 type ErrInternalError struct {
 	Err string
 }
