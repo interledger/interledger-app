@@ -11,6 +11,7 @@ import (
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/graph/generated"
+	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
@@ -41,7 +42,14 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -109,7 +117,14 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -168,7 +183,14 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -217,8 +239,25 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, alice, generateIdentityInput())
-		_, err = NewIdentity(container, bob, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   alice.ID,
+			Email:        alice.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   bob.ID,
+			Email:        bob.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}

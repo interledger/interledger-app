@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 
 	"gitlab.com/fynbos/backend/graph/generated"
+	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
@@ -37,7 +38,14 @@ func TestUserAccount(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -72,7 +80,14 @@ func TestUserAccount(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewIdentity(container, user, generateIdentityInput())
+		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -19,13 +19,13 @@ import (
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/onboarding"
 	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/accounts"
 	_account "gitlab.com/fynbos/backend/accounts"
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
-	"gitlab.com/fynbos/backend/identity/noop"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -45,9 +45,9 @@ type TestContainer struct {
 	IdentityService      identity.Service
 	UserService          _user.Service
 	NoopService          _noop.Service
-	NoopProvider         *noop.MockProvider
 	DepositService       deposits.Service
 	TransactionService   account_transactions.Service
+	Os                   onboarding.Service
 	MockPacioliClient    *mockPacioliV1.MockPacioliServiceClient
 	Graph                *handler.Server
 	Client               *graphql.Client
@@ -79,12 +79,8 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	cs := _country.NewService()
 	c.CountryService = cs
 
-	provider := noop.NewMockProvider(ctrl)
-	c.NoopProvider = provider
-
 	is, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
-		NoopProvider:   provider,
 	})
 	if err != nil {
 		return nil, err
@@ -162,6 +158,17 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.DepositService = ds
 
+	os, err := onboarding.NewService(&onboarding.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   is,
+		Noop: noopProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.Os = os
+
 	graph, err := NewService(GraphqlOpts{
 		Db:                  db,
 		Identity:            is,
@@ -170,6 +177,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Noop:                noopProvider,
 		AccountTransactions: ts,
 		Ds:                  ds,
+		Os:                  os,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph
@@ -192,27 +200,51 @@ func (c *TestContainer) Cleanup(ctx context.Context) {
 	c.Crdb.Container.Terminate(ctx)
 }
 
-func NewIdentity(
+func NewAccount(
 	container *TestContainer,
-	user *_user.User,
-	input *generated.CreateIdentityInput,
-) (*identity.Identity, error) {
+	input *onboarding.CreateAccountArgs,
+) (*accounts.Account, error) {
 	container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
 		Id: uuid.NewString(),
 	}, nil).Times(1)
-	req := createIdentityRequest(input)
-	_user.ActingAs(req, user)
-	var data map[string]generated.CreateIdentityMutationResponse
-	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
+
+	acc, err := container.Os.CreateAccount(container.Ctx, input)
+	if err != nil {
 		return nil, err
 	}
 
-	response := data["createIdentity"]
-	if response.Code != "200" && response.Success {
-		return nil, errors.New(response.Message)
+	return acc, nil
+}
+
+// Funcion will set the `AccountID` and `IdentityID` on the `verifyAccountArgs` for you.
+func NewVerifiedAccount(
+	container *TestContainer,
+	createAccountArgs *onboarding.CreateAccountArgs,
+	verifyAccountArgs *onboarding.VerifyAccountArgs,
+) (*accounts.Account, error) {
+	container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+		Id: uuid.NewString(),
+	}, nil).Times(1)
+
+	acc, err := container.Os.CreateAccount(container.Ctx, createAccountArgs)
+	if err != nil {
+		return nil, err
 	}
 
-	return response.Identity, nil
+	verifyAccountArgs.AccountID = acc.ID
+	verifyAccountArgs.IdentityID = acc.IdentityID
+	container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+			return &pacioliv1.Account{
+				Id: args.Id,
+			}, nil
+		}).Times(1)
+	acc, err = container.Os.VerifyAccount(container.Ctx, verifyAccountArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return acc, nil
 }
 
 func NewLinkedUsdBankAccount(

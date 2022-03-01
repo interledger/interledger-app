@@ -15,7 +15,6 @@ import (
 	_accounts "gitlab.com/fynbos/backend/accounts"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/identity/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -216,7 +215,6 @@ type TestContainer struct {
 	AccountService     _accounts.Service
 	CountryService     _country.Service
 	MockPacioliClient  *mockPacioliV1.MockPacioliServiceClient
-	MockNoopProvider   *noop.MockProvider
 	Ctrl               *gomock.Controller
 	TransactionService Service
 	Db                 *sqlx.DB
@@ -262,11 +260,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	cs := _country.NewService()
 	c.CountryService = cs
 
-	provider := noop.NewMockProvider(ctrl)
-	c.MockNoopProvider = provider
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
-		NoopProvider:   provider,
 	})
 	if err != nil {
 		s.Fatal(err)

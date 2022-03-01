@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/identity/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.uber.org/zap"
 )
@@ -37,10 +36,8 @@ func TestFundingSources(s *testing.T) {
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()
 	cs := country.NewService()
-	provider := noop.NewMockProvider(ctrl)
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
-		NoopProvider:   provider,
 	})
 	fs, err := NewService(&ServiceArgs{Identity: is})
 	fs = NewLoggingService(fs, logger)
