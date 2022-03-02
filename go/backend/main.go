@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/payments"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
@@ -126,10 +127,6 @@ func start(args *cli.StartArgs) {
 	ledgerID := uuid.NewString()
 	equityAccID := uuid.NewString()
 	nos, err := _noop.NewService(_noop.ServiceArgs{
-		Db:          db,
-		Transaction: ts,
-		Account:     as,
-		Identity:    id,
 		LedgerID:    ledgerID,
 		EquityAccID: equityAccID,
 	})
@@ -147,6 +144,18 @@ func start(args *cli.StartArgs) {
 	}
 	fs = fundingsources.NewLoggingService(fs, logger)
 
+	ps, err := payments.NewService(&payments.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   id,
+		Ts:   ts,
+		Noop: nos,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	ps = payments.NewLoggingService(ps, logger)
+
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
 		Identity:                         id,
@@ -154,6 +163,7 @@ func start(args *cli.StartArgs) {
 		User:                             users,
 		Noop:                             nos,
 		Fs:                               fs,
+		Ps:                               ps,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
 	})

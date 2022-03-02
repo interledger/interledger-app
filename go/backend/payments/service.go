@@ -1,0 +1,163 @@
+package payments
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/accounts"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/proto/pacioli/v1"
+	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
+)
+
+var (
+	ErrInvalidArgument     = errors.New("payments service: invalid argument.")
+	ErrInternal            = errors.New("payments service: internal error.")
+	ErrUnverifiedAccount   = errors.New("payments service: unverified account.")
+	ErrInsufficientBalance = errors.New("payments service: insufficient balance.")
+)
+
+const (
+	Verified  string = "verified"
+	Retry     string = "retry"
+	Kba       string = "kba"
+	Document  string = "document"
+	Suspended string = "suspended"
+)
+
+type Service interface {
+	InitiateOutgoingPayment(ctx context.Context, args *InitiateOutgoingPaymentArgs) (*account_transactions.AccountTransaction, error)
+}
+
+type service struct {
+	validator *validator.Validate
+	db        *sqlx.DB
+	as        accounts.Service
+	is        identity.Service
+	ts        account_transactions.Service
+	noop      noop.Service
+}
+
+type ServiceArgs struct {
+	Db   *sqlx.DB                     `validate:"required"`
+	As   accounts.Service             `validate:"required"`
+	Is   identity.Service             `validate:"required"`
+	Ts   account_transactions.Service `validate:"required"`
+	Noop noop.Service                 `validate:"required"`
+}
+
+func NewService(args *ServiceArgs) (Service, error) {
+	validator := validator.New()
+	err := validator.Struct(args)
+	if err != nil {
+		return nil, err
+	}
+
+	return &service{
+		validator: validator,
+		db:        args.Db,
+		as:        args.As,
+		is:        args.Is,
+		ts:        args.Ts,
+		noop:      args.Noop,
+	}, nil
+}
+
+type InitiateOutgoingPaymentArgs struct {
+	IdentityID string `validate:"required"`
+	AccountID  string `validate:"required"`
+	Amount     uint64 `validate:"gt=0"`
+	To         string `validate:"required"`
+}
+
+func (s *service) InitiateOutgoingPayment(
+	ctx context.Context,
+	args *InitiateOutgoingPaymentArgs,
+) (*account_transactions.AccountTransaction, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInvalidArgument)
+	}
+
+	var outgoingPayment *account_transactions.AccountTransaction
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		identity, err := s.is.Get(ctx, tx, args.IdentityID)
+		if err != nil {
+			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+		// TODO: verification needs to be on account
+		if identity.VerificationState != Verified {
+			return fmt.Errorf("%w", ErrUnverifiedAccount)
+		}
+		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
+		if err != nil {
+			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+
+		// We would typically create pending transfers here then ask the provider to initiate the
+		// payment. But for the noop case we will create single phase transfers.
+		transaction, err := s.ts.Create(ctx, tx, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Sent to " + args.To,
+			Type:        "outgoingPayment",
+			NetAmount:   args.Amount,
+			State:       "completed", // noop provider provides instant payments :)
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        s.noop.GetLedgerID(),
+					DebitAccountID:  s.noop.GetEquityAccountID(),
+					CreditAccountID: acc.ID,
+					Amount:          args.Amount,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
+			},
+		})
+		if err != nil {
+			switch err.(type) {
+			case *account_transactions.ErrInvalidTransfers:
+				return parseInvalidOutgoingPaymentErrors(err.(*account_transactions.ErrInvalidTransfers).TransferErrors)
+			default:
+				return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+			}
+		}
+		outgoingPayment = transaction
+
+		err = s.noop.InitiateOutgoingPayment(ctx, &noop.OutgoingPaymentArgs{
+			Amount: args.Amount,
+			To:     args.To,
+		})
+		if err != nil {
+			return fmt.Errorf("Provider failed to initiate payment: %s %w", err.Error(), ErrInternal)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return outgoingPayment, nil
+}
+
+// Filter out errors related to user account such as insufficient balance.
+// Otherwise, this returns an internal error if the error is not related to the user's account e.g. fx.
+func parseInvalidOutgoingPaymentErrors(transferErrors []*pacioli.EventError) error {
+	if len(transferErrors) != 1 {
+		panic("Noop service: There should be one ledger transfer error for an outgoing payment.")
+	}
+
+	err := transferErrors[0]
+	switch err.Code {
+	case tb_types.TransferExceedsCredits:
+		return fmt.Errorf("%w", ErrInsufficientBalance)
+	default:
+		return fmt.Errorf("Pacioli error code: %d %w", err.Code, ErrInternal)
+	}
+}

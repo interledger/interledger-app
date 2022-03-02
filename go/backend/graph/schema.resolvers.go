@@ -7,8 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/withdrawals"
 	"strconv"
+
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/withdrawals"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
@@ -19,7 +21,6 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	_noop "gitlab.com/fynbos/backend/providers/noop"
 )
 
 func (r *accountResolver) RecentTransactions(
@@ -417,28 +418,39 @@ func (r *mutationResolver) InitiateOutgoingPayment(
 		return nil, nil
 	}
 
-	// TODO: determine provider to use
-	outgoingPayment, err := r.NoopService.InitiateOutgoingPayment(ctx, &_noop.OutgoingPaymentArgs{
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		switch err.(type) {
+		case *accounts.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+	outgoingPayment, err := r.Ps.InitiateOutgoingPayment(ctx, &payments.InitiateOutgoingPaymentArgs{
 		IdentityID: user.ID,
+		AccountID:  acc.ID,
 		Amount:     parsedAmount,
 		To:         input.To,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_noop.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, payments.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *_noop.ErrInsufficientBalance:
+		case errors.Is(err, payments.ErrInsufficientBalance):
 			return &generated.OutgoingPaymentMutationResponse{
-				Code:    "500",
+				Code:    "422",
 				Success: false,
 				Message: "Outgoing payment failed: Insufficient balance.",
 			}, nil
-		case *_noop.ErrUnverifiedIdentity:
+		case errors.Is(err, payments.ErrUnverifiedAccount):
 			return &generated.OutgoingPaymentMutationResponse{
 				Code:    "403",
 				Success: false,
-				Message: "Outgoing payment failed: Unverified identity.",
+				Message: "Outgoing payment failed: Account unverified.",
 			}, nil
 		default:
 			InternalServerError(ctx)
