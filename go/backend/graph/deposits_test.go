@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
@@ -53,8 +54,15 @@ func TestUserDeposits(s *testing.T) {
 			t.Fatal(err)
 		}
 		verifyFundingSource := true
-		fsArgs := generateLinkUsdBankAccountInput()
-		fundingSource, err := NewLinkedUsdBankAccount(
+		fsArgs := &fundingsources.CreateBankAccountArgs{
+			IdentityID:    user.ID,
+			Name:          faker.Name(),
+			AccountNumber: faker.CCNumber(),
+			RoutingNumber: faker.CCNumber(),
+			Institution:   faker.Name(),
+			Type:          "cheque",
+		}
+		fundingSource, err := NewBankAccount(
 			container,
 			user,
 			fsArgs,
@@ -116,11 +124,17 @@ func TestUserDeposits(s *testing.T) {
 			t.Fatal(err)
 		}
 		verifyFundingSource := false
-		fsArgs := generateLinkUsdBankAccountInput()
-		fundingSource, err := NewLinkedUsdBankAccount(
+		fundingSource, err := NewBankAccount(
 			container,
 			user,
-			fsArgs,
+			&fundingsources.CreateBankAccountArgs{
+				IdentityID:    user.ID,
+				Name:          faker.Name(),
+				AccountNumber: faker.CCNumber(),
+				RoutingNumber: faker.CCNumber(),
+				Institution:   faker.Name(),
+				Type:          "cheque",
+			},
 			verifyFundingSource,
 		)
 		if err != nil {

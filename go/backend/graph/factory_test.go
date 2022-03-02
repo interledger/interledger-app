@@ -2,9 +2,9 @@ package graph
 
 import (
 	"context"
-	"errors"
-	"gitlab.com/fynbos/backend/withdrawals"
 	"net/http/httptest"
+
+	"gitlab.com/fynbos/backend/withdrawals"
 
 	"google.golang.org/grpc"
 
@@ -18,7 +18,6 @@ import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
-	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"go.uber.org/zap"
@@ -113,14 +112,6 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	users := _user.NewMockService()
 	c.UserService = _user.NewLoggingService(users, logger)
 
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Identity: is,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.FundingSourceService = fundingsources.NewLoggingService(fs, logger)
-
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
 		AccountService: as,
 		PacioliClient:  pClient,
@@ -134,18 +125,27 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	ledgerID := uuid.NewString()
 	equityAccID := uuid.NewString()
 	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
-		Db:            db,
-		FundingSource: fs,
-		Account:       as,
-		Transaction:   ts,
-		Identity:      is,
-		LedgerID:      ledgerID,
-		EquityAccID:   equityAccID,
+		Db:          db,
+		Account:     as,
+		Transaction: ts,
+		Identity:    is,
+		LedgerID:    ledgerID,
+		EquityAccID: equityAccID,
 	})
 	if err != nil {
 		return nil, err
 	}
 	c.NoopService = noopProvider
+
+	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
+		Identity: is,
+		Db:       db,
+		Noop:     noopProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.FundingSourceService = fundingsources.NewLoggingService(fs, logger)
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db:   db,
@@ -194,6 +194,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Ds:                  ds,
 		Os:                  os,
 		Ws:                  ws,
+		Fs:                  fs,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph
@@ -263,58 +264,53 @@ func NewVerifiedAccount(
 	return acc, nil
 }
 
-func NewLinkedUsdBankAccount(
+func NewBankAccount(
 	container *TestContainer,
 	user *_user.User,
-	input *generated.LinkUsdBankAccountInput,
-	verifyFundingSource bool,
-) (*generated.FundingSource, error) {
-	req := linkUsdBankAccountRequest(input)
-	_user.ActingAs(req, user)
-	var linkingData map[string]generated.LinkFundingSourceMutationResponse
-	if err := container.Client.Run(container.Ctx, req, &linkingData); err != nil {
-		return nil, err
-	}
-
-	response := linkingData["linkUsdBankAccount"]
-	if response.Code != "200" && response.Success {
-		return nil, errors.New(response.Message)
-	}
-
-	if verifyFundingSource {
-		verifyReq := verifyUsdBankAccount(
-			generateVerifyUsdBankAccountInput(withFundingSourceID(response.FundingSource.ID)),
-		)
-		_user.ActingAs(verifyReq, user)
-		var verifyData map[string]generated.VerifyUsdBankAccountMutationResponse
-		if err := container.Client.Run(container.Ctx, verifyReq, &verifyData); err != nil {
-			return nil, errors.New(response.Message)
-		}
-		return verifyData["verifyUsdBankAccount"].FundingSource, nil
-	}
-
-	return response.FundingSource, nil
-}
-
-func newDeposit(container *TestContainer, user *_user.User, fsId string) (*generated.Transaction, error) {
-	container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-			return &pacioliv1.Account{
-				Id: args.Id,
-			}, nil
-		}).Times(3)
-	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.CreateTransfersResponse{
-			Errors: []*pacioliv1.EventError{},
-		}, nil).Times(1)
-
-	response, err := initiateDeposit(container, user, &generated.DepositInput{
-		FundingSourceID: fsId,
-		Amount:          "10000", // 100 dollars
-	})
+	args *fundingsources.CreateBankAccountArgs,
+	verify bool,
+) (*fundingsources.FundingSource, error) {
+	bankAccount, err := container.FundingSourceService.CreateBankAccount(container.Ctx, args)
 	if err != nil {
 		return nil, err
 	}
 
-	return response.Transaction, nil
+	if verify {
+		bankAccount, err = container.FundingSourceService.Verify(
+			container.Ctx,
+			&fundingsources.VerifyArgs{
+				IdentityID:      user.ID,
+				FundingSourceID: bankAccount.ID,
+			})
+	}
+
+	return bankAccount, nil
+}
+
+func NewDeposit(
+	c *TestContainer,
+	user *_user.User,
+	args *deposits.InitiateDepositArgs,
+) (*account_transactions.AccountTransaction, error) {
+	c.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(
+			_ context.Context,
+			args *pacioliv1.GetAccountRequest,
+			opts ...grpc.CallOption,
+		) (*pacioliv1.Account, error) {
+			return &pacioliv1.Account{
+				Id: args.Id,
+			}, nil
+		}).Times(2)
+	c.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.CreateTransfersResponse{
+			Errors: []*pacioliv1.EventError{},
+		}, nil).Times(1)
+
+	deposit, err := c.DepositService.InitiateDeposit(c.Ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return deposit, nil
 }

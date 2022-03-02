@@ -10,6 +10,7 @@ import (
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
@@ -49,11 +50,17 @@ func TestUserFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 		verifyFundingSource := true
-		fsArgs := generateLinkUsdBankAccountInput()
-		fundingSource, err := NewLinkedUsdBankAccount(
+		fundingSource, err := NewBankAccount(
 			container,
 			user,
-			fsArgs,
+			&fundingsources.CreateBankAccountArgs{
+				IdentityID:    user.ID,
+				Name:          faker.Name(),
+				AccountNumber: faker.CCNumber(),
+				RoutingNumber: faker.CCNumber(),
+				Institution:   faker.Name(),
+				Type:          "cheque",
+			},
 			verifyFundingSource,
 		)
 		if err != nil {
@@ -65,7 +72,7 @@ func TestUserFundingSources(s *testing.T) {
 		assert.Equal(t, 1, len(response))
 		assert.Equal(t, fundingSource.ID, response[0].ID)
 		assert.Equal(t, fundingSource.Name, response[0].Name)
-		assert.Equal(t, fundingSource.VerificationStatus, response[0].VerificationStatus)
+		assert.Equal(t, fundingSource.VerificationState, response[0].VerificationStatus)
 		assert.Equal(t, fundingSource.Mask, response[0].Mask)
 		assert.Equal(t, fundingSource.Type, response[0].Type)
 		assert.Equal(t, fundingSource.SubType, response[0].SubType)
@@ -98,11 +105,17 @@ func TestUserFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 		verifyFundingSource := true
-		fsArgs := generateLinkUsdBankAccountInput()
-		_, err = NewLinkedUsdBankAccount(
+		_, err = NewBankAccount(
 			container,
 			user,
-			fsArgs,
+			&fundingsources.CreateBankAccountArgs{
+				IdentityID:    user.ID,
+				Name:          faker.Name(),
+				AccountNumber: faker.CCNumber(),
+				RoutingNumber: faker.CCNumber(),
+				Institution:   faker.Name(),
+				Type:          "cheque",
+			},
 			verifyFundingSource,
 		)
 		if err != nil {
