@@ -114,14 +114,6 @@ func start(args *cli.StartArgs) {
 	}
 	as = accounts.NewLoggingService(as, logger)
 
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Identity: id,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fs = fundingsources.NewLoggingService(fs, logger)
-
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
 		AccountService: as,
 		PacioliClient:  pClient,
@@ -134,17 +126,26 @@ func start(args *cli.StartArgs) {
 	ledgerID := uuid.NewString()
 	equityAccID := uuid.NewString()
 	nos, err := _noop.NewService(_noop.ServiceArgs{
-		Db:            db,
-		FundingSource: fs,
-		Transaction:   ts,
-		Account:       as,
-		Identity:      id,
-		LedgerID:      ledgerID,
-		EquityAccID:   equityAccID,
+		Db:          db,
+		Transaction: ts,
+		Account:     as,
+		Identity:    id,
+		LedgerID:    ledgerID,
+		EquityAccID: equityAccID,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
+		Identity: id,
+		Db:       db,
+		Noop:     nos,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fs = fundingsources.NewLoggingService(fs, logger)
 
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
@@ -152,6 +153,7 @@ func start(args *cli.StartArgs) {
 		Account:                          as,
 		User:                             users,
 		Noop:                             nos,
+		Fs:                               fs,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
 	})

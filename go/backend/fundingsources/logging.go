@@ -80,7 +80,7 @@ func (self *loggingService) GetByIdentityId(ctx context.Context, tx *sqlx.Tx, id
 	return self.Service.GetByIdentityId(ctx, tx, identityId)
 }
 
-func (self *loggingService) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (fs *FundingSource, err error) {
+func (self *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -100,5 +100,27 @@ func (self *loggingService) Verify(ctx context.Context, tx *sqlx.Tx, args *Verif
 		)
 	}(time.Now())
 
-	return self.Service.Verify(ctx, tx, args)
+	return self.Service.Verify(ctx, args)
+}
+
+func (self *loggingService) CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (fs *FundingSource, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to link bank account.",
+				zap.String("identityID", args.IdentityID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Linked Bank account",
+			zap.String("id", fs.ID),
+			zap.String("identityID", args.IdentityID),
+		)
+	}(time.Now())
+
+	return self.Service.CreateBankAccount(ctx, args)
 }

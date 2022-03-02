@@ -12,7 +12,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
-	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/proto/pacioli/v1"
 	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
@@ -27,9 +26,7 @@ const (
 )
 
 type Service interface {
-	GetUserFundingSources(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*fundingsources.FundingSource, error)
-	LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error)
-	VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error)
+	VerifyBankAccount(ctx context.Context, args *VerifyArgs) error
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error)
 	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) error
 	InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) (*transactions.AccountTransaction, error)
@@ -41,7 +38,6 @@ type Service interface {
 
 type service struct {
 	validator *validator.Validate
-	fs        fundingsources.Service
 	as        accounts.Service
 	ts        transactions.Service
 	is        identity.Service
@@ -54,11 +50,10 @@ type service struct {
 }
 
 type ServiceArgs struct {
-	Db            *sqlx.DB               `validate:"required"`
-	FundingSource fundingsources.Service `validate:"required"`
-	Transaction   transactions.Service   `validate:"required"`
-	Account       accounts.Service       `validate:"required"`
-	Identity      identity.Service       `validate:"required"`
+	Db          *sqlx.DB             `validate:"required"`
+	Transaction transactions.Service `validate:"required"`
+	Account     accounts.Service     `validate:"required"`
+	Identity    identity.Service     `validate:"required"`
 
 	// TODO: configuring and management of ledgers and ledger accounts
 	LedgerID    string `validate:"required"`
@@ -75,22 +70,12 @@ func NewService(args ServiceArgs) (Service, error) {
 	return &service{
 		validator:       validator,
 		db:              args.Db,
-		fs:              args.FundingSource,
 		ts:              args.Transaction,
 		as:              args.Account,
 		is:              args.Identity,
 		ledgerID:        args.LedgerID,
 		equityAccountID: args.EquityAccID,
 	}, nil
-}
-
-func (s *service) GetUserFundingSources(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*fundingsources.FundingSource, error) {
-	fs, err := s.fs.GetByIdentityId(ctx, tx, identityId)
-	if err != nil {
-		return nil, err
-	}
-
-	return fs, nil
 }
 
 type NoopBankAccount struct {
@@ -101,89 +86,14 @@ type NoopBankAccount struct {
 	Type               string
 }
 
-type LinkBankAccountArgs struct {
-	IdentityID    string `validate:"required,uuid4"`
-	Name          string `validate:"required"`
-	AccountNumber string `validate:"required"`
-	RoutingNumber string `validate:"required"`
-	Institution   string `validate:"required"`
-	Type          string `validate:"required"`
-}
-
-func (s *service) LinkBankAccount(ctx context.Context, args *LinkBankAccountArgs) (*fundingsources.FundingSource, error) {
-	var fundingsource *fundingsources.FundingSource
-	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		// TODO: decide how to store this. In jsonb column on fundingsources or different table per provider.
-		providerAcc := NoopBankAccount{
-			ID:                 uuid.NewString(),
-			Name:               args.Name,
-			Mask:               "****" + args.AccountNumber[:4],
-			VerificationStatus: "verified",
-			Type:               args.Type,
-		}
-
-		fs, err := s.fs.Create(ctx, tx, &fundingsources.CreateArgs{
-			IdentityID:        args.IdentityID,
-			Name:              args.Name,
-			Mask:              providerAcc.Mask,
-			VerificationState: "pending",
-			Type:              "noop",
-			TypeID:            providerAcc.ID,
-			SubType:           args.Type,
-		})
-		if err != nil {
-			return err
-		}
-
-		fundingsource = fs
-		return nil
-	})
-	if err != nil {
-		switch err.(type) {
-		case *fundingsources.ErrInvalidArgument:
-			return nil, &ErrInvalidArgument{Err: err.Error()}
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
-	}
-
-	return fundingsource, nil
-}
-
 type VerifyArgs struct {
-	IdentityID      string `validate:"required,uuid4"`
-	FundingSourceID string `validate:"required,uuid4"`
+	// place holder
 }
 
-func (s *service) VerifyBankAccount(ctx context.Context, args *VerifyArgs) (*fundingsources.FundingSource, error) {
-	err := s.validator.Struct(args)
-	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
-	}
+func (s *service) VerifyBankAccount(ctx context.Context, args *VerifyArgs) error {
+	fmt.Println("Noop verifying bank account.")
 
-	var fundingsource *fundingsources.FundingSource
-	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		fs, err := s.fs.Verify(ctx, tx, &fundingsources.VerifyArgs{
-			IdentityID:      args.IdentityID,
-			FundingSourceID: args.FundingSourceID,
-		})
-		if err != nil {
-			return err
-		}
-
-		fundingsource = fs
-		return nil
-	})
-	if err != nil {
-		switch err.(type) {
-		case *fundingsources.ErrInvalidArgument:
-			return nil, &ErrInvalidArgument{Err: err.Error()}
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
-	}
-
-	return fundingsource, nil
+	return nil
 }
 
 type BankDepositArgs struct {
@@ -193,72 +103,7 @@ type BankDepositArgs struct {
 }
 
 func (s *service) InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) (*transactions.AccountTransaction, error) {
-	var transaction *transactions.AccountTransaction
-	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
-		if err != nil {
-			switch err.(type) {
-			case *fundingsources.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
-			case *fundingsources.ErrNotFound:
-				return &ErrNotFound{Err: "Noop service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Noop service:" + err.Error()}
-			}
-		}
-		if fundingSource.IdentityID != args.IdentityID {
-			return &ErrNotFound{Err: "Noop service: Funding source not found."}
-		}
-		if fundingSource.VerificationState != "verified" {
-			return &ErrUnverifiedFundingSource{Err: "Noop service: Funding source is not verified."}
-		}
-
-		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
-		if err != nil {
-			switch err.(type) {
-			case *accounts.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
-			case *accounts.ErrNotFound:
-				return &ErrNotFound{Err: "Noop service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Noop service:" + err.Error()}
-			}
-		}
-		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
-			AccountID:   acc.ID,
-			Type:        "deposit",
-			NetAmount:   args.Amount,
-			Description: "Deposit from " + fundingSource.Name,
-			State:       "completed", // TODO: define states
-			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
-				{
-					LedgerID:        s.ledgerID,
-					DebitAccountID:  acc.ID,
-					CreditAccountID: s.equityAccountID,
-					Amount:          args.Amount,
-					// Code: "1", // TODO: define ledger transfer codes.
-					Flags: transactions.LedgerTransferFlags{},
-				},
-			},
-		})
-		if err != nil {
-			switch err.(type) {
-			case *transactions.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Noop service:" + err.Error()}
-			case *transactions.ErrNotFound:
-				return &ErrNotFound{Err: "Noop service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Noop service:" + err.Error()}
-			}
-		}
-		transaction = trx
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return transaction, nil
+	return nil, nil
 }
 
 type BankWithdrawalArgs struct {
