@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http/httptest"
 
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
 
 	"google.golang.org/grpc"
@@ -49,6 +50,7 @@ type TestContainer struct {
 	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Service
 	Os                   onboarding.Service
+	Ps                   payments.Service
 	MockPacioliClient    *mockPacioliV1.MockPacioliServiceClient
 	Graph                *handler.Server
 	Client               *graphql.Client
@@ -125,10 +127,6 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	ledgerID := uuid.NewString()
 	equityAccID := uuid.NewString()
 	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
-		Db:          db,
-		Account:     as,
-		Transaction: ts,
-		Identity:    is,
 		LedgerID:    ledgerID,
 		EquityAccID: equityAccID,
 	})
@@ -184,6 +182,18 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.WithdrawalService = ws
 
+	ps, err := payments.NewService(&payments.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   is,
+		Ts:   ts,
+		Noop: noopProvider,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.Ps = payments.NewLoggingService(ps, logger)
+
 	graph, err := NewService(GraphqlOpts{
 		Db:                  db,
 		Identity:            is,
@@ -195,6 +205,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Os:                  os,
 		Ws:                  ws,
 		Fs:                  fs,
+		Ps:                  ps,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph

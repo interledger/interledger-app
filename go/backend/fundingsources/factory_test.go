@@ -29,6 +29,7 @@ type TestContainer struct {
 	Is                _identity.Service
 	Fs                Service
 	Os                onboarding.Service
+	Ts                account_transactions.Service
 	MockPacioliClient *mockPacioliV1.MockPacioliServiceClient
 	Ctrl              *gomock.Controller
 }
@@ -95,12 +96,9 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
+	c.Ts = ts
 
 	noop, err := noop.NewService(noop.ServiceArgs{
-		Db:          db,
-		Identity:    is,
-		Transaction: ts,
-		Account:     as,
 		LedgerID:    uuid.NewString(),
 		EquityAccID: uuid.NewString(),
 	})
