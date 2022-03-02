@@ -9,7 +9,10 @@ import (
 
 	"github.com/google/uuid"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/withdrawals"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
@@ -144,6 +147,40 @@ func start(args *cli.StartArgs) {
 	}
 	fs = fundingsources.NewLoggingService(fs, logger)
 
+	os, err := onboarding.NewService(&onboarding.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   id,
+		Noop: nos,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ds, err := deposits.NewService(&deposits.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   id,
+		Fs:   fs,
+		Ts:   ts,
+		Noop: nos,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   id,
+		Fs:   fs,
+		Ts:   ts,
+		Noop: nos,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	ps, err := payments.NewService(&payments.ServiceArgs{
 		Db:   db,
 		As:   as,
@@ -164,6 +201,10 @@ func start(args *cli.StartArgs) {
 		Noop:                             nos,
 		Fs:                               fs,
 		Ps:                               ps,
+		Os:                               os,
+		Ws:                               ws,
+		AccountTransactions:              ts,
+		Ds:                               ds,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
 	})
