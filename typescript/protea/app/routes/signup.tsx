@@ -1,5 +1,5 @@
-import { ActionFunction, LoaderFunction, redirect, useLoaderData } from 'remix'
-import { useActionData, json, Form } from 'remix'
+import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
+import type { ActionFunction, LoaderFunction } from 'remix'
 import { Button, Logo, Router, TextField } from '~/components'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import React from 'react'
@@ -128,23 +128,32 @@ export default function SignupPage() {
   const loaderData = useLoaderData()
 
   return (
-    <main className='mx-auto flex h-screen max-w-sm flex-col items-start justify-center px-4'>
-      <Router to={route('/')} aria-label='Fynbos logo'>
-        <Logo className='h-8' />
-      </Router>
-      <h1 className='mt-6 mb-1 font-display text-4xl font-medium leading-normal text-strong'>
-        Create a new account
-      </h1>
-      <p className='mb-10 text-medium'>
-        Or{' '}
-        <Router to={route('/login')}>
-          <span className='text-primary'>sign in to an existing account.</span>
+    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
+      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Router to={route('/')}>
+          <Logo className='h-8' />
         </Router>
-      </p>
+      </div>
+      <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
+          Create a new account
+        </h1>
+      </div>
+      <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <p className='text-medium'>
+          Or{' '}
+          <Router to={route('/login')}>
+            <span className='text-primary'>
+              sign in to an existing account.
+            </span>
+          </Router>
+        </p>
+      </div>
+      {/* Form */}
       <Form
         action={`/signup?flow=${loaderData.id}`}
         method='post'
-        className='flex min-w-full flex-col items-end space-y-4'
+        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
         <TextField
           id='email'
@@ -179,8 +188,9 @@ export default function SignupPage() {
           name='csrf_token'
           type='hidden'
         />
-
-        <Button type='submit'>Create account</Button>
+        <div className='pt-4'>
+          <Button type='submit'>Create account</Button>
+        </div>
       </Form>
     </main>
   )
