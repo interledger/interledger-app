@@ -5,6 +5,7 @@ import (
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"gitlab.com/fynbos/backend/fundingsources"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -29,6 +30,7 @@ type GraphqlOpts struct {
 	Ds                               deposits.Service             `validate:"required"`
 	Os                               onboarding.Service           `validate:"required"`
 	Ws                               withdrawals.Service          `validate:"required"`
+	Fs                               fundingsources.Service       `validate:"required"`
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
 }
@@ -59,6 +61,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		Ds:                  opts.Ds,
 		Os:                  opts.Os,
 		Ws:                  opts.Ws,
+		Fs:                  opts.Fs,
 	}}))
 	svc.SetQueryCache(lru.New(int(queryCacheSize)))
 	svc.Use(extension.Introspection{})

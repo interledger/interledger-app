@@ -22,14 +22,20 @@ import (
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 )
 
-func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated.Account) ([]*generated.Transaction, error) {
+func (r *accountResolver) RecentTransactions(
+	ctx context.Context,
+	obj *generated.Account,
+) ([]*generated.Transaction, error) {
 	var trxs []*generated.Transaction
 	err := crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		dbTrxs, err := r.AccountTransactions.GetByAccount(ctx, tx, &account_transactions.GetByAccountArgs{
-			AccountID: obj.ID,
-			Limit:     3,
-			OrderBy:   "ASC",
-		})
+		dbTrxs, err := r.AccountTransactions.GetByAccount(
+			ctx,
+			tx,
+			&account_transactions.GetByAccountArgs{
+				AccountID: obj.ID,
+				Limit:     3,
+				OrderBy:   "ASC",
+			})
 		if err != nil {
 			return err
 		}
@@ -58,7 +64,10 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 	return trxs, nil
 }
 
-func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {
+func (r *mutationResolver) CreateAccount(
+	ctx context.Context,
+	input generated.CreateAccountInput,
+) (*generated.CreateAccountMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -96,7 +105,10 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.Cr
 	}, nil
 }
 
-func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.VerifyAccountInput) (*generated.VerifyAccountMutationResponse, error) {
+func (r *mutationResolver) VerifyAccount(
+	ctx context.Context,
+	input generated.VerifyAccountInput,
+) (*generated.VerifyAccountMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -157,14 +169,17 @@ func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.Ve
 	}, nil
 }
 
-func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generated.LinkUsdBankAccountInput) (*generated.LinkFundingSourceMutationResponse, error) {
+func (r *mutationResolver) LinkUsdBankAccount(
+	ctx context.Context,
+	input generated.LinkUsdBankAccountInput,
+) (*generated.LinkFundingSourceMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
 	}
 
-	bankAccount, err := r.NoopService.LinkBankAccount(ctx, &_noop.LinkBankAccountArgs{
+	bankAccount, err := r.Fs.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
 		IdentityID:    user.ID,
 		Name:          input.Name,
 		AccountNumber: input.AccountNumber,
@@ -174,7 +189,7 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 	})
 	if err != nil {
 		switch err.(type) {
-		case *_noop.ErrInvalidArgument:
+		case *fundingsources.ErrInvalidArgument:
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -198,20 +213,23 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 	}, nil
 }
 
-func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input generated.VerifyUsdBankAccountInput) (*generated.VerifyUsdBankAccountMutationResponse, error) {
+func (r *mutationResolver) VerifyUsdBankAccount(
+	ctx context.Context,
+	input generated.VerifyUsdBankAccountInput,
+) (*generated.VerifyUsdBankAccountMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
 	}
 
-	fundingSource, err := r.NoopService.VerifyBankAccount(ctx, &_noop.VerifyArgs{
+	fundingSource, err := r.Fs.Verify(ctx, &fundingsources.VerifyArgs{
 		IdentityID:      user.ID,
 		FundingSourceID: input.FundingSourceID,
 	})
 	if err != nil {
 		switch err.(type) {
-		case *_noop.ErrInvalidArgument:
+		case *fundingsources.ErrInvalidArgument:
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -235,7 +253,10 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 	}, nil
 }
 
-func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.DepositInput) (*generated.DepositMutationResponse, error) {
+func (r *mutationResolver) InitiateDeposit(
+	ctx context.Context,
+	input generated.DepositInput,
+) (*generated.DepositMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -303,7 +324,10 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 	}, nil
 }
 
-func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generated.WithdrawalInput) (*generated.WithdrawalMutationResponse, error) {
+func (r *mutationResolver) InitiateWithdrawal(
+	ctx context.Context,
+	input generated.WithdrawalInput,
+) (*generated.WithdrawalMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -378,7 +402,9 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 	}, nil
 }
 
-func (r *mutationResolver) InitiateOutgoingPayment(ctx context.Context, input generated.OutgoingPaymentInput) (*generated.OutgoingPaymentMutationResponse, error) {
+func (r *mutationResolver) InitiateOutgoingPayment(
+	ctx context.Context,
+	input generated.OutgoingPaymentInput) (*generated.OutgoingPaymentMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -474,7 +500,7 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 	}
 	var fundingSources []*fundingsources.FundingSource
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		_fundingSources, err := r.NoopService.GetUserFundingSources(ctx, tx, user.ID)
+		_fundingSources, err := r.Fs.GetByIdentityId(ctx, tx, user.ID)
 		if err != nil {
 			return err
 		}

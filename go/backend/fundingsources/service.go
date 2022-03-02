@@ -4,25 +4,33 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_identity "gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/noop"
 )
 
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSource, error)
 	GetByIdentityId(ctx context.Context, tx *sqlx.Tx, identityId string) ([]*FundingSource, error)
-	Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*FundingSource, error)
+	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
+	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
 }
 
 type service struct {
 	validator *validator.Validate
+	db        *sqlx.DB
 	identity  _identity.Service
+	noop      noop.Service
 }
 
 type ServiceArgs struct {
 	Identity _identity.Service `validate:"required"`
+	Db       *sqlx.DB          `validate:"required"`
+	Noop     noop.Service      `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -32,7 +40,12 @@ func NewService(args *ServiceArgs) (Service, error) {
 		return nil, &ErrInvalidArgument{Err: err.Error()}
 	}
 
-	return &service{validator: validator, identity: args.Identity}, nil
+	return &service{
+		validator: validator,
+		identity:  args.Identity,
+		db:        args.Db,
+		noop:      args.Noop,
+	}, nil
 }
 
 type FundingSource struct {
@@ -157,46 +170,102 @@ type VerifyArgs struct {
 	FundingSourceID string `validate:"required,uuid4"`
 }
 
-func (s *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*FundingSource, error) {
+func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: err.Error()}
 	}
 
-	identity, err := s.identity.Get(ctx, tx, args.IdentityID)
-	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrInvalidArgument:
-		case *_identity.ErrNotFound:
-			return nil, &ErrInvalidArgument{Err: "Identity must exist to verify funding source."}
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
-	}
-
 	var fs FundingSource
-	stmt, err := tx.PrepareNamed(`
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		identity, err := s.identity.Get(ctx, tx, args.IdentityID)
+		if err != nil {
+			switch err.(type) {
+			case *_identity.ErrInvalidArgument:
+			case *_identity.ErrNotFound:
+				return &ErrInvalidArgument{Err: "Identity must exist to verify funding source."}
+			default:
+				return &ErrInternalError{Err: err.Error()}
+			}
+		}
+
+		// performing provider verification here for now.
+		err = s.noop.VerifyBankAccount(ctx, &noop.VerifyArgs{})
+		if err != nil {
+			return &ErrInternalError{Err: "Provider failed to verify funding source."}
+		}
+
+		stmt, err := tx.PrepareNamed(`
 			UPDATE funding_sources SET verification_state=$1 where id=$2 AND identity_id=$3 RETURNING *;
 		`)
-	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		if err != nil {
+			return &ErrInternalError{Err: err.Error()}
 
-	}
-
-	err = stmt.Stmt.Get(&fs,
-		"verified",
-		args.FundingSourceID,
-		identity.ID,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Funding source not found."}
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		err = stmt.Stmt.Get(&fs,
+			"verified",
+			args.FundingSourceID,
+			identity.ID,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return &ErrNotFound{Err: "Funding source not found."}
+			}
+
+			return &ErrInternalError{Err: err.Error()}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &fs, nil
+}
+
+type CreateBankAccountArgs struct {
+	IdentityID    string `validate:"required,uuid4"`
+	Name          string `validate:"required"`
+	AccountNumber string `validate:"required"`
+	RoutingNumber string `validate:"required"`
+	Institution   string `validate:"required"`
+	Type          string `validate:"required"`
+}
+
+func (s *service) CreateBankAccount(
+	ctx context.Context,
+	args *CreateBankAccountArgs,
+) (*FundingSource, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, &ErrInvalidArgument{Err: err.Error()}
+	}
+
+	var fundingsource *FundingSource
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		fs, err := s.Create(ctx, tx, &CreateArgs{
+			IdentityID:        args.IdentityID,
+			Name:              args.Name,
+			Mask:              "****" + args.AccountNumber[:4],
+			VerificationState: "required",
+			Type:              "noop",
+			TypeID:            uuid.NewString(),
+			SubType:           args.Type,
+		})
+		if err != nil {
+			return err
+		}
+
+		fundingsource = fs
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return fundingsource, nil
 }
 
 func IsVerified(fs *FundingSource) bool {

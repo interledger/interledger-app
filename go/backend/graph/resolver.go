@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
@@ -29,4 +30,5 @@ type Resolver struct {
 	Ds                  deposits.Service
 	Os                  onboarding.Service
 	Ws                  withdrawals.Service
+	Fs                  fundingsources.Service
 }
