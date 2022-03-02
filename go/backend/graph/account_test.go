@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
+	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
@@ -80,7 +82,7 @@ func TestUserAccount(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -91,19 +93,32 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fundingSource, err := NewLinkedUsdBankAccount(
+		fundingSource, err := NewBankAccount(
 			container,
 			user,
-			generateLinkUsdBankAccountInput(),
+			&fundingsources.CreateBankAccountArgs{
+				IdentityID:    user.ID,
+				Name:          faker.Name(),
+				AccountNumber: faker.CCNumber(),
+				RoutingNumber: faker.CCNumber(),
+				Institution:   faker.Name(),
+				Type:          "cheque",
+			},
 			true,
 		)
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := newDeposit(container, user, fundingSource.ID)
+		deposit, err := NewDeposit(container, user, &deposits.InitiateDepositArgs{
+			IdentityID:      user.ID,
+			AccountID:       acc.ID,
+			FundingSourceID: fundingSource.ID,
+			Amount:          10000, // 100 dollars
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
+		assert.Equal(t, "completed", deposit.State)
 		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
 				return &pacioliv1.Account{

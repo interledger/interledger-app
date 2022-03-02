@@ -155,7 +155,7 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, args.Type, response.FundingSource.SubType)
 		assert.NotEqual(t, args.AccountNumber, response.FundingSource.Mask)
 		assert.NotEqual(t, args.RoutingNumber, response.FundingSource.Mask)
-		assert.Equal(t, "pending", response.FundingSource.VerificationStatus)
+		assert.Equal(t, "required", response.FundingSource.VerificationStatus)
 
 		var fundingsource *fundingsources.FundingSource
 		err = crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
@@ -176,7 +176,7 @@ func TestGraphql(s *testing.T) {
 		assert.NotEqual(t, "", fundingsource.TypeID)
 		assert.NotEqual(t, args.AccountNumber, fundingsource.Mask)
 		assert.NotEqual(t, args.RoutingNumber, fundingsource.Mask)
-		assert.Equal(t, "pending", fundingsource.VerificationState)
+		assert.Equal(t, "required", fundingsource.VerificationState)
 
 		// verify it
 		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))

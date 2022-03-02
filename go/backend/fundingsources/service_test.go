@@ -2,381 +2,236 @@ package fundingsources
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/country"
-	_identity "gitlab.com/fynbos/backend/identity"
-	test_utils "gitlab.com/fynbos/backend/utils"
-	"go.uber.org/zap"
+	"gitlab.com/fynbos/backend/onboarding"
 )
 
 func TestFundingSources(s *testing.T) {
 	ctx := context.Background()
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
+	c, err := NewTestContainer(ctx, s)
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer crdb.Container.Terminate(ctx)
 
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	defer db.Close()
-
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		s.Fatal(err)
-	}
-	defer logger.Sync()
-
-	ctrl := gomock.NewController(s)
-	defer ctrl.Finish()
-	cs := country.NewService()
-	is, err := _identity.NewService(_identity.ServiceArgs{
-		CountryService: cs,
-	})
-	fs, err := NewService(&ServiceArgs{Identity: is})
-	fs = NewLoggingService(fs, logger)
-
-	s.Run("create funding source", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
-		})
-		var identity *_identity.Identity
-		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			id, err := is.Create(ctx, tx, _identity.CreateArgs{
-				ID:           uuid.NewString(),
-				FirstName:    faker.Name(),
-				LastName:     faker.Name(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        faker.Email(),
-				Country:      "US",
-			})
-			if err != nil {
-				return err
-			}
-
-			identity = id
-			return nil
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Run("validates arguments", func(tt *testing.T) {
-			type Scenario struct {
-				Name          string
-				Args          *CreateArgs
-				ExpectedError string
-			}
-			scenarios := []Scenario{
-				{
-					Name:          "IdentityID is required to create funding source",
-					Args:          generateCreateArgs(withIdentityID("")),
-					ExpectedError: "Key: 'CreateArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
-				},
-				{
-					Name:          "IdentityID must exist to create funding source",
-					Args:          generateCreateArgs(withIdentityID(uuid.NewString())),
-					ExpectedError: "Identity must exist to create funding source.",
-				},
-				{
-					Name:          "Name is required to create funding source",
-					Args:          generateCreateArgs(withName("")),
-					ExpectedError: "Key: 'CreateArgs.Name' Error:Field validation for 'Name' failed on the 'required' tag",
-				},
-				{
-					Name:          "Mask is required to create funding source",
-					Args:          generateCreateArgs(withMask("")),
-					ExpectedError: "Key: 'CreateArgs.Mask' Error:Field validation for 'Mask' failed on the 'required' tag",
-				},
-				{
-					Name:          "VerificationState is required to create funding source",
-					Args:          generateCreateArgs(withVerificationState("")),
-					ExpectedError: "Key: 'CreateArgs.VerificationState' Error:Field validation for 'VerificationState' failed on the 'required' tag",
-				},
-				{
-					Name:          "Type must be one of noop required to create funding source",
-					Args:          generateCreateArgs(withType("")),
-					ExpectedError: "Key: 'CreateArgs.Type' Error:Field validation for 'Type' failed on the 'oneof' tag",
-				},
-				{
-					Name:          "TypeID is required to create funding source",
-					Args:          generateCreateArgs(withTypeID("")),
-					ExpectedError: "Key: 'CreateArgs.TypeID' Error:Field validation for 'TypeID' failed on the 'required' tag",
-				},
-				{
-					Name:          "SubType is required to create funding source",
-					Args:          generateCreateArgs(withSubType("")),
-					ExpectedError: "Key: 'CreateArgs.SubType' Error:Field validation for 'SubType' failed on the 'required' tag",
-				},
-			}
-
-			for _, scenario := range scenarios {
-				var fundingSource *FundingSource
-				err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_fundingSource, err := fs.Create(ctx, tx, scenario.Args)
-					if err != nil {
-						return err
-					}
-
-					fundingSource = _fundingSource
-					return nil
-				})
-				if err == nil {
-					tt.Fatal(scenario.Name)
-				}
-
-				assert.Equal(tt, scenario.ExpectedError, err.Error())
-				assert.Nil(tt, fundingSource)
-			}
-		})
-
-		t.Run("creates db record", func(tt *testing.T) {
-			var fundingsource *FundingSource
-			args := generateCreateArgs(withIdentityID(identity.ID))
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Create(ctx, tx, args)
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-			assert.Equal(tt, args.Name, fundingsource.Name)
-			assert.Equal(tt, args.Mask, fundingsource.Mask)
-			assert.Equal(tt, args.IdentityID, identity.ID)
-			assert.Equal(tt, args.Type, fundingsource.Type)
-			assert.Equal(tt, args.TypeID, fundingsource.TypeID)
-			assert.Equal(tt, args.SubType, fundingsource.SubType)
-			assert.Equal(tt, args.VerificationState, fundingsource.VerificationState)
-
-			var fetchedFS *FundingSource
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
-				if err != nil {
-					return err
-				}
-				fetchedFS = _fs
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-
-			assert.Equal(tt, args.Name, fetchedFS.Name)
-			assert.Equal(tt, args.Mask, fetchedFS.Mask)
-			assert.Equal(tt, args.IdentityID, identity.ID)
-			assert.Equal(tt, args.Type, fetchedFS.Type)
-			assert.Equal(tt, args.TypeID, fetchedFS.TypeID)
-			assert.Equal(tt, args.SubType, fetchedFS.SubType)
-			assert.Equal(tt, args.VerificationState, fetchedFS.VerificationState)
-		})
+	s.Cleanup(func() {
+		c.Cleanup()
 	})
 
-	s.Run("verify account", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
-		})
-		var identity *_identity.Identity
-		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			id, err := is.Create(ctx, tx, _identity.CreateArgs{
-				ID:           uuid.NewString(),
-				FirstName:    faker.Name(),
-				LastName:     faker.Name(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        faker.Email(),
-				Country:      "US",
-			})
-			if err != nil {
-				return err
+	s.Run("validates create bank account arguments", func(t *testing.T) {
+		fmt.Println("starting scenarios")
+		type Scenario struct {
+			Name          string
+			Args          *CreateBankAccountArgs
+			ExpectedError string
+		}
+		scenarios := []Scenario{
+			{
+				Name:          "IdentityID is required to create bank account",
+				Args:          generateCreateBankAccountArgs(withIdentityID("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
+			},
+			{
+				Name:          "IdentityID must exist to create bank account",
+				Args:          generateCreateBankAccountArgs(withIdentityID(uuid.NewString())),
+				ExpectedError: "Identity must exist to create funding source.",
+			},
+			{
+				Name:          "Name is required to create bank account",
+				Args:          generateCreateBankAccountArgs(withName("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.Name' Error:Field validation for 'Name' failed on the 'required' tag",
+			},
+			{
+				Name:          "Institution is required to create bank account",
+				Args:          generateCreateBankAccountArgs(withInstitution("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.Institution' Error:Field validation for 'Institution' failed on the 'required' tag",
+			},
+			{
+				Name:          "AccountNumber is required to create bank account",
+				Args:          generateCreateBankAccountArgs(withAccountNumber("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.AccountNumber' Error:Field validation for 'AccountNumber' failed on the 'required' tag",
+			},
+			{
+				Name:          "RoutingNumber is required to create bank account",
+				Args:          generateCreateBankAccountArgs(withRoutingNumber("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.RoutingNumber' Error:Field validation for 'RoutingNumber' failed on the 'required' tag",
+			},
+			{
+				Name:          "Type must be one of noop required to create bank account",
+				Args:          generateCreateBankAccountArgs(withType("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.Type' Error:Field validation for 'Type' failed on the 'required' tag",
+			},
+		}
+
+		for _, scenario := range scenarios {
+			fs, err := c.Fs.CreateBankAccount(c.Ctx, scenario.Args)
+			if err == nil {
+				t.Fatal(scenario.Name)
 			}
 
-			identity = id
-			return nil
+			assert.Equal(t, scenario.ExpectedError, err.Error())
+			assert.Nil(t, fs)
+		}
+	})
+
+	s.Run("creates bank account", func(t *testing.T) {
+		userID := uuid.NewString()
+		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   userID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		var fundingsource *FundingSource
-		args := generateCreateArgs(withIdentityID(identity.ID))
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_fs, err := fs.Create(ctx, tx, args)
-			if err != nil {
-				return err
-			}
-			fundingsource = _fs
-			return nil
+
+		args := generateCreateBankAccountArgs(withIdentityID(userID))
+		fs, err := c.Fs.CreateBankAccount(ctx, args)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, args.Name, fs.Name)
+		assert.NotEqual(t, args.AccountNumber, fs.Mask)
+		assert.Equal(t, "noop", fs.Type)
+		assert.Equal(t, args.Type, fs.SubType)
+		assert.Equal(t, userID, fs.IdentityID)
+		assert.Equal(t, "required", fs.VerificationState)
+	})
+
+	s.Run("verifies bank account", func(t *testing.T) {
+		userID := uuid.NewString()
+		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   userID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		args := generateCreateBankAccountArgs(withIdentityID(userID))
+		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "required", bankAccount.VerificationState)
+
+		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
+			IdentityID:      userID,
+			FundingSourceID: bankAccount.ID,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		t.Run("returns not found if funding source does not belong to identity", func(tt *testing.T) {
-			assert.Equal(tt, "pending", fundingsource.VerificationState)
+		assert.Equal(t, "verified", fs.VerificationState)
+	})
 
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Verify(ctx, tx, &VerifyArgs{
-					IdentityID:      uuid.NewString(),
-					FundingSourceID: fundingsource.ID,
-				})
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err == nil {
-				tt.Fatal("Verify must check to whom funding source belongs.")
-			}
-			assert.Error(tt, err, "Funding source not found.")
-
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-
-			assert.Equal(tt, "pending", fundingsource.VerificationState)
+	s.Run("returns not found if funding source does not belong to user", func(t *testing.T) {
+		otherUserID := uuid.NewString()
+		myID := uuid.NewString()
+		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   myID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
 		})
-
-		t.Run("returns not found if funding source id does not exist", func(tt *testing.T) {
-			assert.Equal(tt, "pending", fundingsource.VerificationState)
-
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Verify(ctx, tx, &VerifyArgs{
-					IdentityID:      identity.ID,
-					FundingSourceID: uuid.NewString(),
-				})
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err == nil {
-				tt.Fatal("Verify must that funding source exists.")
-			}
-			assert.Error(tt, err, "Funding source not found.")
-
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-
-			assert.Equal(tt, "pending", fundingsource.VerificationState)
+		_, err = NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   otherUserID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
 		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		args := generateCreateBankAccountArgs(withIdentityID(myID))
+		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "required", bankAccount.VerificationState)
 
-		t.Run("sets verification state to verified", func(tt *testing.T) {
-			assert.Equal(tt, "pending", fundingsource.VerificationState)
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Verify(ctx, tx, &VerifyArgs{
-					IdentityID:      identity.ID,
-					FundingSourceID: fundingsource.ID,
-				})
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.Get(ctx, tx, fundingsource.ID)
-				if err != nil {
-					return err
-				}
-				fundingsource = _fs
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-
-			assert.Equal(tt, "verified", fundingsource.VerificationState)
+		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
+			IdentityID:      otherUserID,
+			FundingSourceID: bankAccount.ID,
 		})
+		if err == nil {
+			t.Fatal("User must only be able to verify their own funding sources.")
+		}
 
+		assert.EqualError(t, err, "Funding source not found.")
+		assert.Nil(t, fs)
+	})
+
+	s.Run("returns not found if funding source does not exist", func(t *testing.T) {
+		userID := uuid.NewString()
+		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   userID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
+			IdentityID:      userID,
+			FundingSourceID: uuid.NewString(),
+		})
+		if err == nil {
+			t.Fatal("Must only be able to verify funding sources that exist.")
+		}
+
+		assert.Nil(t, fs)
+		assert.EqualError(t, err, "Funding source not found.")
 	})
 
 	s.Run("get user's funding sources", func(t *testing.T) {
-		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
-		})
-		var identity *_identity.Identity
-		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			id, err := is.Create(ctx, tx, _identity.CreateArgs{
-				ID:           uuid.NewString(),
-				FirstName:    faker.Name(),
-				LastName:     faker.Name(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        faker.Email(),
-				Country:      "US",
-			})
-			if err != nil {
-				return err
-			}
-
-			identity = id
-			return nil
+		userID := uuid.NewString()
+		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   userID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		var fundingsource *FundingSource
-		args := generateCreateArgs(withIdentityID(identity.ID))
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_fs, err := fs.Create(ctx, tx, args)
-			if err != nil {
-				return err
-			}
-			fundingsource = _fs
-			return nil
-		})
+		fundingsource, err := c.Fs.CreateBankAccount(ctx, generateCreateBankAccountArgs(withIdentityID(userID)))
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		var fundingsource1 *FundingSource
-		args1 := generateCreateArgs(withIdentityID(identity.ID))
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_fs, err := fs.Create(ctx, tx, args1)
-			if err != nil {
-				return err
-			}
-			fundingsource1 = _fs
-			return nil
-		})
+		fundingsource1, err := c.Fs.CreateBankAccount(ctx, generateCreateBankAccountArgs(withIdentityID(userID)))
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		t.Run("returns a list of all the users funding sources", func(tt *testing.T) {
-
 			var fundingsources []*FundingSource
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.GetByIdentityId(ctx, tx, identity.ID)
+			err = crdbsqlx.ExecuteTx(ctx, c.Db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := c.Fs.GetByIdentityId(ctx, tx, userID)
 				if err != nil {
 					return err
 				}
@@ -395,30 +250,22 @@ func TestFundingSources(s *testing.T) {
 		})
 
 		t.Run("returns an empty list if a user has no funding sources", func(tt *testing.T) {
-			var tempIdentity *_identity.Identity
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				id, err := is.Create(ctx, tx, _identity.CreateArgs{
-					ID:           uuid.NewString(),
-					FirstName:    faker.Name(),
-					LastName:     faker.Name(),
-					MobileNumber: faker.E164PhoneNumber(),
-					Email:        faker.Email(),
-					Country:      "US",
-				})
-				if err != nil {
-					return err
-				}
-
-				tempIdentity = id
-				return nil
+			otherUserID := uuid.NewString()
+			_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+				IdentityID:   otherUserID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        faker.Email(),
+				Country:      "US",
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			var fundingsources []*FundingSource
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := fs.GetByIdentityId(ctx, tx, tempIdentity.ID)
+			err = crdbsqlx.ExecuteTx(ctx, c.Db, nil, func(tx *sqlx.Tx) error {
+				_fs, err := c.Fs.GetByIdentityId(ctx, tx, otherUserID)
 				if err != nil {
 					return err
 				}
@@ -434,15 +281,14 @@ func TestFundingSources(s *testing.T) {
 	})
 }
 
-func generateCreateArgs(opts ...func(*CreateArgs)) *CreateArgs {
-	args := &CreateArgs{
-		IdentityID:        uuid.NewString(),
-		Name:              faker.Name(),
-		Mask:              "****",
-		VerificationState: "pending",
-		Type:              "noop",
-		TypeID:            uuid.NewString(),
-		SubType:           "cheque",
+func generateCreateBankAccountArgs(opts ...func(*CreateBankAccountArgs)) *CreateBankAccountArgs {
+	args := &CreateBankAccountArgs{
+		IdentityID:    uuid.NewString(),
+		Name:          faker.Name(),
+		AccountNumber: faker.CCNumber(),
+		RoutingNumber: faker.CCNumber(),
+		Institution:   faker.Name(),
+		Type:          "cheque",
 	}
 
 	for _, opt := range opts {
@@ -452,44 +298,38 @@ func generateCreateArgs(opts ...func(*CreateArgs)) *CreateArgs {
 	return args
 }
 
-func withIdentityID(id string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
+func withIdentityID(id string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
 		args.IdentityID = id
 	}
 }
 
-func withName(name string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
+func withName(name string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
 		args.Name = name
 	}
 }
 
-func withMask(mask string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
-		args.Mask = mask
-	}
-}
-
-func withVerificationState(state string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
-		args.VerificationState = state
-	}
-}
-
-func withTypeID(typeID string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
-		args.TypeID = typeID
-	}
-}
-
-func withType(_type string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
+func withType(_type string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
 		args.Type = _type
 	}
 }
 
-func withSubType(subtype string) func(args *CreateArgs) {
-	return func(args *CreateArgs) {
-		args.SubType = subtype
+func withAccountNumber(num string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
+		args.AccountNumber = num
+	}
+}
+
+func withRoutingNumber(num string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
+		args.RoutingNumber = num
+	}
+}
+
+func withInstitution(name string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
+		args.Institution = name
 	}
 }
