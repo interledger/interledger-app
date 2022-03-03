@@ -8,34 +8,19 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	_country "gitlab.com/fynbos/backend/country"
 )
 
 // DB Model
 type identity struct {
 	ID           string
+	Email        string
 	FirstName    string `db:"first_name"`
 	LastName     string `db:"last_name"`
 	MobileNumber string `db:"mobile_number"`
-	Email        string
-	DateOfBirth  string `db:"date_of_birth"`
-	// Array of addresses as forms will generally have multiple lines to
-	// store the address. e.g. line1= street, line2=apartment building name and unit number.
-	Address    pq.StringArray
-	State      string
-	City       string
-	PostalCode string `db:"postal_code"`
-
-	// primary key of country
-	CountryID string `db:"country_id"`
-
-	TaxIDNumber       string `db:"tax_id_number"`
-	Provider          string
-	ProviderID        string `db:"provider_id"`
-	VerificationState string `db:"verification_state"`
-	CreatedAt         string `db:"created_at"`
-	UpdatedAt         string `db:"updated_at"`
+	CountryID    string `db:"country_id"` // primary key of country
+	CreatedAt    string `db:"created_at"`
+	UpdatedAt    string `db:"updated_at"`
 }
 
 // Application Model
@@ -46,25 +31,14 @@ type Identity struct {
 	MobileNumber string
 	Email        string
 	DateOfBirth  string
-	// Array of addresses as forms will generally have multiple lines to
-	// store the address. e.g. line1= street, line2=apartment building name and unit number.
-	Address           []string
-	State             string
-	City              string
-	PostalCode        string
-	Country           string
-	TaxIDNumber       string
-	Provider          string
-	ProviderID        string
-	VerificationState string
-	CreatedAt         string
-	UpdatedAt         string
+	Country      string
+	CreatedAt    string
+	UpdatedAt    string
 }
 
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error)
-	Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Identity, error)
 }
 
 type service struct {
@@ -129,13 +103,12 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 		}
 	}
 
-	provider := self.determineProvider(country.Alpha_2)
 	var identity identity
 	stmt, err := tx.PrepareNamed(`
 			INSERT INTO identities (
-				id, first_name, last_name, mobile_number, email, country_id, provider
+				id, first_name, last_name, mobile_number, email, country_id
 			)
-			VALUES (:id, :first_name, :last_name, :mobile_number, :email, :country_id, :provider)
+			VALUES (:id, :first_name, :last_name, :mobile_number, :email, :country_id)
 			RETURNING *;
 		`)
 	if err != nil {
@@ -150,7 +123,6 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 		args.MobileNumber,
 		args.Email,
 		country.ID,
-		provider,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
@@ -160,10 +132,6 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 	}
 
 	return self.Get(ctx, tx, args.ID)
-}
-
-func (self service) determineProvider(country string) string {
-	return "noop"
 }
 
 func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error) {
@@ -186,96 +154,16 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 		return nil, &ErrInternalError{Err: err.Error()}
 	}
 
-	// crdb < v21.2.5 retrieves date as a timestamp.
-	// cut off the hour, day etc
-	parts := strings.Split(identity.DateOfBirth, "T")
-	dob := ""
-	if parts[0] != "0000-01-01" {
-		dob = parts[0]
-	}
 	return &Identity{
-		ID:                identity.ID,
-		FirstName:         identity.FirstName,
-		LastName:          identity.LastName,
-		MobileNumber:      identity.MobileNumber,
-		Email:             identity.Email,
-		DateOfBirth:       dob,
-		Address:           identity.Address,
-		State:             identity.State,
-		City:              identity.City,
-		PostalCode:        identity.PostalCode,
-		Country:           country.Alpha_2,
-		TaxIDNumber:       identity.TaxIDNumber,
-		Provider:          identity.Provider,
-		ProviderID:        identity.ProviderID,
-		VerificationState: identity.VerificationState,
-		CreatedAt:         identity.CreatedAt,
-		UpdatedAt:         identity.UpdatedAt,
+		ID:           identity.ID,
+		FirstName:    identity.FirstName,
+		LastName:     identity.LastName,
+		MobileNumber: identity.MobileNumber,
+		Email:        identity.Email,
+		Country:      country.Alpha_2,
+		CreatedAt:    identity.CreatedAt,
+		UpdatedAt:    identity.UpdatedAt,
 	}, nil
-}
-
-// TODO: we may not be able to store the user's personal information and will just pass the
-// information through to the provider.
-type VerifyArgs struct {
-	IdentityID        string   `validate:"required,uuid"`
-	DateOfBirth       string   `validate:"datetime=2006-01-02"`
-	Address           []string `validate:"min=1,dive,required"`
-	State             string   `validate:"required"`
-	City              string   `validate:"required"`
-	PostalCode        string   `validate:"required"`
-	TaxIDNumber       string   `validate:"required"`
-	ProviderID        string   `valdiate:"required"`
-	VerificationState string   `validate:"required"`
-}
-
-func (self *service) Verify(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Identity, error) {
-	err := self.validator.Struct(args)
-	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
-	}
-
-	id, err := self.Get(ctx, tx, args.IdentityID)
-	if err != nil {
-		return nil, err
-	}
-
-	stmt, err := tx.PrepareNamed(`
-			UPDATE identities SET
-				date_of_birth=:dob,
-				address=:address,
-				state=:state,
-				city=:city,
-				postal_code=:postal,
-				tax_id_number=:tax_number,
-				verification_state=:status,
-				provider_id=:providerId
-			WHERE id=:id
-			RETURNING *;
-		`)
-	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
-	}
-
-	var identity identity
-	err = stmt.Stmt.Get(&identity,
-		args.DateOfBirth,
-		pq.Array(args.Address),
-		args.State,
-		args.City,
-		args.PostalCode,
-		args.TaxIDNumber,
-		args.VerificationState,
-		args.ProviderID,
-		id.ID,
-	)
-	if err != nil {
-		if strings.Contains(err.Error(), "pq: not found") {
-			return nil, &ErrNotFound{Err: "Identity not found."}
-		}
-		return nil, &ErrInternalError{Err: err.Error()}
-	}
-
-	return self.Get(ctx, tx, identity.ID)
 }
 
 // Error set

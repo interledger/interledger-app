@@ -71,15 +71,6 @@ func TestIdentityService(s *testing.T) {
 		assert.Equal(t, args.LastName, identity.LastName)
 		assert.Equal(t, args.MobileNumber, identity.MobileNumber)
 		assert.Equal(t, country, identity.Country)
-		assert.Equal(t, "", identity.DateOfBirth)
-		assert.Equal(t, []string{}, identity.Address)
-		assert.Equal(t, "", identity.State)
-		assert.Equal(t, "", identity.City)
-		assert.Equal(t, "", identity.PostalCode)
-		assert.Equal(t, "", identity.TaxIDNumber)
-		assert.Equal(t, "", identity.ProviderID)
-		assert.Equal(t, "", identity.VerificationState)
-		assert.Equal(t, "noop", identity.Provider)
 
 		var fetchedIdentity *Identity
 		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
@@ -100,15 +91,6 @@ func TestIdentityService(s *testing.T) {
 		assert.Equal(t, args.LastName, fetchedIdentity.LastName)
 		assert.Equal(t, args.MobileNumber, fetchedIdentity.MobileNumber)
 		assert.Equal(t, country, fetchedIdentity.Country)
-		assert.Equal(t, "", fetchedIdentity.DateOfBirth)
-		assert.Equal(t, []string{}, fetchedIdentity.Address)
-		assert.Equal(t, "", fetchedIdentity.State)
-		assert.Equal(t, "", fetchedIdentity.City)
-		assert.Equal(t, "", fetchedIdentity.PostalCode)
-		assert.Equal(t, "", fetchedIdentity.TaxIDNumber)
-		assert.Equal(t, "", fetchedIdentity.ProviderID)
-		assert.Equal(t, "", fetchedIdentity.VerificationState)
-		assert.Equal(t, "noop", fetchedIdentity.Provider)
 	})
 
 	s.Run("enforces 1-1 mapping between user and identity", func(t *testing.T) {
@@ -450,61 +432,61 @@ func withCountry(country string) func(*CreateArgs) {
 	}
 }
 
-func generateVerifyArgs(opts ...func(*VerifyArgs)) *VerifyArgs {
-	ret := &VerifyArgs{
-		IdentityID:  uuid.NewString(),
-		DateOfBirth: faker.Date(),
-		Address:     []string{faker.Name()},
-		State:       faker.FirstName(),
-		City:        faker.FirstName(),
-		PostalCode:  faker.LastName(),
-		TaxIDNumber: faker.CCNumber(),
-	}
-	for _, opt := range opts {
-		opt(ret)
-	}
+// func generateVerifyArgs(opts ...func(*VerifyArgs)) *VerifyArgs {
+// 	ret := &VerifyArgs{
+// 		IdentityID:  uuid.NewString(),
+// 		DateOfBirth: faker.Date(),
+// 		Address:     []string{faker.Name()},
+// 		State:       faker.FirstName(),
+// 		City:        faker.FirstName(),
+// 		PostalCode:  faker.LastName(),
+// 		TaxIDNumber: faker.CCNumber(),
+// 	}
+// 	for _, opt := range opts {
+// 		opt(ret)
+// 	}
 
-	return ret
-}
+// 	return ret
+// }
 
-func withIdentityID(id string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.IdentityID = id
-	}
-}
+// func withIdentityID(id string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.IdentityID = id
+// 	}
+// }
 
-func withDateOfBirth(dob string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.DateOfBirth = dob
-	}
-}
+// func withDateOfBirth(dob string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.DateOfBirth = dob
+// 	}
+// }
 
-func withAddress(address []string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.Address = address
-	}
-}
+// func withAddress(address []string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.Address = address
+// 	}
+// }
 
-func withState(state string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.State = state
-	}
-}
+// func withState(state string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.State = state
+// 	}
+// }
 
-func withCity(city string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.City = city
-	}
-}
+// func withCity(city string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.City = city
+// 	}
+// }
 
-func withPostalCode(code string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.PostalCode = code
-	}
-}
+// func withPostalCode(code string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.PostalCode = code
+// 	}
+// }
 
-func withTaxIDNumber(tax string) func(*VerifyArgs) {
-	return func(args *VerifyArgs) {
-		args.TaxIDNumber = tax
-	}
-}
+// func withTaxIDNumber(tax string) func(*VerifyArgs) {
+// 	return func(args *VerifyArgs) {
+// 		args.TaxIDNumber = tax
+// 	}
+// }
