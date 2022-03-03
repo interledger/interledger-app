@@ -59,7 +59,7 @@ func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (fs
 	return self.Service.Get(ctx, tx, id)
 }
 
-func (self *loggingService) GetByIdentityId(ctx context.Context, tx *sqlx.Tx, identityId string) (fs []*FundingSource, err error) {
+func (self *loggingService) GetByAccountId(ctx context.Context, tx *sqlx.Tx, identityId string) (fs []FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -77,7 +77,7 @@ func (self *loggingService) GetByIdentityId(ctx context.Context, tx *sqlx.Tx, id
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
-	return self.Service.GetByIdentityId(ctx, tx, identityId)
+	return self.Service.GetByAccountId(ctx, tx, identityId)
 }
 
 func (self *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *FundingSource, err error) {
@@ -109,6 +109,7 @@ func (self *loggingService) CreateBankAccount(ctx context.Context, args *CreateB
 			self.logger.Error(
 				"Failed to link bank account.",
 				zap.String("identityID", args.IdentityID),
+				zap.String("accountID", args.AccountID),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
 			)
@@ -118,6 +119,7 @@ func (self *loggingService) CreateBankAccount(ctx context.Context, args *CreateB
 		self.logger.Debug(
 			"Linked Bank account",
 			zap.String("id", fs.ID),
+			zap.String("accountID", fs.AccountID),
 			zap.String("identityID", args.IdentityID),
 		)
 	}(time.Now())

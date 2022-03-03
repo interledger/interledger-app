@@ -138,9 +138,10 @@ func start(args *cli.StartArgs) {
 	}
 
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Identity: id,
-		Db:       db,
-		Noop:     nos,
+		Is:   id,
+		As:   as,
+		Db:   db,
+		Noop: nos,
 	})
 	if err != nil {
 		log.Fatalln(err)

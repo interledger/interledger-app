@@ -84,7 +84,13 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
 			}
 		}
-
+		acc, err := s.as.Get(ctx, tx, args.AccountID)
+		if err != nil {
+			return &ErrInternalError{Err: "Deposit service:" + err.Error()}
+		}
+		if !s.as.CanMakeDeposit(acc, id.ID) {
+			return ErrUnauthorized
+		}
 		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
 		if err != nil {
 			switch err.(type) {
@@ -96,19 +102,11 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
 			}
 		}
-		if fundingSource.IdentityID != args.IdentityID {
+		if fundingSource.AccountID != acc.ID {
 			return &ErrNotFound{Err: "Deposit service: Funding source not found."}
 		}
 		if fundingSource.VerificationState != "verified" {
 			return &ErrUnverifiedFundingSource{Err: "Deposit service: Funding source is not verified."}
-		}
-
-		acc, err := s.as.Get(ctx, tx, args.AccountID)
-		if err != nil {
-			return &ErrInternalError{Err: "Deposit service:" + err.Error()}
-		}
-		if !s.as.CanMakeDeposit(acc, id.ID) {
-			return ErrUnauthorized
 		}
 
 		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{

@@ -167,8 +167,27 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 		return nil, nil
 	}
 
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		switch err.(type) {
+		case *accounts.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		case *accounts.ErrNotFound:
+			return &generated.LinkFundingSourceMutationResponse{
+				Code:    "422",
+				Success: false,
+				Message: "Create bank account failed: Account not found.",
+			}, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
 	bankAccount, err := r.Fs.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
 		IdentityID:    user.ID,
+		AccountID:     acc.ID,
 		Name:          input.Name,
 		AccountNumber: input.AccountNumber,
 		RoutingNumber: input.RoutingNumber,
@@ -486,9 +505,18 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 		ForbiddenError(ctx)
 		return nil, nil
 	}
-	var fundingSources []*fundingsources.FundingSource
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		switch err.(type) {
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	var fundingSources []fundingsources.FundingSource
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		_fundingSources, err := r.Fs.GetByIdentityId(ctx, tx, user.ID)
+		_fundingSources, err := r.Fs.GetByAccountId(ctx, tx, acc.ID)
 		if err != nil {
 			return err
 		}
