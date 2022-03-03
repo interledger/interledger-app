@@ -128,13 +128,13 @@ func TestUserOnboarding(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.NotNil(t, acc)
+		assert.False(t, acc.IsVerified())
 		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
 				return &pacioliv1.Account{
 					Id: args.Id,
 				}, nil
-			}).Times(2)
+			}).Times(4)
 
 		response, err := verifyAccount(container, user, generateVerifyAccountInput())
 		if err != nil {
@@ -144,7 +144,11 @@ func TestUserOnboarding(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Verified.", response.Message)
-		// TODO: move verification state to account and do assertion on the state
+		freshAcc, err := container.AccountService.GetByIdentityID(ctx, user.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.True(t, freshAcc.IsVerified())
 	})
 
 	// Scenario: unauthenticated request to verify account is rejected

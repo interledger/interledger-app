@@ -95,12 +95,6 @@ func TestGraphql(s *testing.T) {
 			assert.Equal(tt, input.MobileNumber, response.MobileNumber)
 			assert.Equal(tt, user.Email, response.Email)
 			assert.Equal(tt, input.Country, response.Country)
-			assert.Equal(tt, "", response.DateOfBirth)
-			assert.Equal(tt, []string{}, response.Address)
-			assert.Equal(tt, "", response.City)
-			assert.Equal(tt, "", response.State)
-			assert.Equal(tt, "", response.PostalCode)
-			assert.Equal(tt, "", response.TaxIDNumber)
 		})
 	})
 
@@ -202,13 +196,7 @@ func getIdentityRequest() *graphql.Request {
 		            	lastName
 		            	mobileNumber
 		            	email
-		            	dateOfBirth
-		            	address
-		            	city
-		            	state
-		            	postalCode
 		            	country
-		            	taxIdNumber
 			        }
 			    }
 			`)
