@@ -66,7 +66,7 @@ export const Select: FC<SelectProps> = ({
             leaveFrom='opacity-100'
             leaveTo='opacity-0'
           >
-            <Listbox.Options className='absolute mt-2 w-full overflow-auto rounded-xl bg-container py-1 text-base shadow-lg focus:outline-none sm:text-sm'>
+            <Listbox.Options className='absolute mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 text-base shadow-lg focus:outline-none sm:text-sm'>
               {options.map((option, index) => (
                 <Listbox.Option
                   key={index}
