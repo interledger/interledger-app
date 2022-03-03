@@ -26,14 +26,7 @@ type Identity {
   lastName: String!
   mobileNumber: String!
   email: String!
-  dateOfBirth: String!
-  address: [String]!
-  state: String!
-  city: String!
-  postalCode: String!
   country: String!
-  taxIdNumber: String!
-  verificationState: String!
 }
 
 input CreateAccountInput {

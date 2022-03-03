@@ -75,19 +75,12 @@ type ComplexityRoot struct {
 	}
 
 	Identity struct {
-		Address           func(childComplexity int) int
-		City              func(childComplexity int) int
-		Country           func(childComplexity int) int
-		DateOfBirth       func(childComplexity int) int
-		Email             func(childComplexity int) int
-		FirstName         func(childComplexity int) int
-		ID                func(childComplexity int) int
-		LastName          func(childComplexity int) int
-		MobileNumber      func(childComplexity int) int
-		PostalCode        func(childComplexity int) int
-		State             func(childComplexity int) int
-		TaxIDNumber       func(childComplexity int) int
-		VerificationState func(childComplexity int) int
+		Country      func(childComplexity int) int
+		Email        func(childComplexity int) int
+		FirstName    func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LastName     func(childComplexity int) int
+		MobileNumber func(childComplexity int) int
 	}
 
 	LinkFundingSourceMutationResponse struct {
@@ -303,33 +296,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FundingSource.VerificationStatus(childComplexity), true
 
-	case "Identity.address":
-		if e.complexity.Identity.Address == nil {
-			break
-		}
-
-		return e.complexity.Identity.Address(childComplexity), true
-
-	case "Identity.city":
-		if e.complexity.Identity.City == nil {
-			break
-		}
-
-		return e.complexity.Identity.City(childComplexity), true
-
 	case "Identity.country":
 		if e.complexity.Identity.Country == nil {
 			break
 		}
 
 		return e.complexity.Identity.Country(childComplexity), true
-
-	case "Identity.dateOfBirth":
-		if e.complexity.Identity.DateOfBirth == nil {
-			break
-		}
-
-		return e.complexity.Identity.DateOfBirth(childComplexity), true
 
 	case "Identity.email":
 		if e.complexity.Identity.Email == nil {
@@ -365,34 +337,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Identity.MobileNumber(childComplexity), true
-
-	case "Identity.postalCode":
-		if e.complexity.Identity.PostalCode == nil {
-			break
-		}
-
-		return e.complexity.Identity.PostalCode(childComplexity), true
-
-	case "Identity.state":
-		if e.complexity.Identity.State == nil {
-			break
-		}
-
-		return e.complexity.Identity.State(childComplexity), true
-
-	case "Identity.taxIdNumber":
-		if e.complexity.Identity.TaxIDNumber == nil {
-			break
-		}
-
-		return e.complexity.Identity.TaxIDNumber(childComplexity), true
-
-	case "Identity.verificationState":
-		if e.complexity.Identity.VerificationState == nil {
-			break
-		}
-
-		return e.complexity.Identity.VerificationState(childComplexity), true
 
 	case "LinkFundingSourceMutationResponse.code":
 		if e.complexity.LinkFundingSourceMutationResponse.Code == nil {
@@ -773,14 +717,7 @@ type Identity {
   lastName: String!
   mobileNumber: String!
   email: String!
-  dateOfBirth: String!
-  address: [String]!
-  state: String!
-  city: String!
-  postalCode: String!
   country: String!
-  taxIdNumber: String!
-  verificationState: String!
 }
 
 input CreateAccountInput {
@@ -1834,181 +1771,6 @@ func (ec *executionContext) _Identity_email(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Identity_dateOfBirth(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DateOfBirth, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Identity_address(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Address, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Identity_state(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.State, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Identity_city(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.City, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Identity_postalCode(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PostalCode, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Identity_country(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2028,76 +1790,6 @@ func (ec *executionContext) _Identity_country(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Country, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Identity_taxIdNumber(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TaxIDNumber, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Identity_verificationState(ctx context.Context, field graphql.CollectedField, obj *identity.Identity) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Identity",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VerificationState, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5260,79 +4952,9 @@ func (ec *executionContext) _Identity(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "dateOfBirth":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_dateOfBirth(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "address":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_address(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "state":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_state(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "city":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_city(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "postalCode":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_postalCode(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "country":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Identity_country(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "taxIdNumber":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_taxIdNumber(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "verificationState":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Identity_verificationState(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -6495,32 +6117,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNString2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOString2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNString2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2string(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
