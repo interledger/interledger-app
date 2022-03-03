@@ -109,10 +109,12 @@ func main() {
 			return errors.New("Ledger code for backend-usd does not exist.")
 		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo:     "localhost:5005",
-			Cert:          beCert,
-			ImageTag:      "latest",
-			UsdLedgerCode: backendLedgerCode,
+			ImageRepo:        "localhost:5005",
+			Cert:             beCert,
+			ImageTag:         "latest",
+			UsdLedgerCode:    backendLedgerCode,
+			EnablePlayground: true,
+			Hostname:         "fynbos.test",
 		})
 		if err != nil {
 			return err

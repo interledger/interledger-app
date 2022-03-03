@@ -159,10 +159,12 @@ func main() {
 			return err
 		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo:     ecrRepo,
-			Cert:          beCert,
-			ImageTag:      hash,
-			UsdLedgerCode: backendLedgerCode,
+			ImageRepo:        ecrRepo,
+			Cert:             beCert,
+			ImageTag:         hash,
+			UsdLedgerCode:    backendLedgerCode,
+			EnablePlayground: true,
+			Hostname:         "dev.fynbos.dev",
 		})
 		if err != nil {
 			return err
