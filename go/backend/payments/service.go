@@ -21,6 +21,7 @@ var (
 	ErrInternal            = errors.New("payments service: internal error.")
 	ErrUnverifiedAccount   = errors.New("payments service: unverified account.")
 	ErrInsufficientBalance = errors.New("payments service: insufficient balance.")
+	ErrUnauthorized        = errors.New("payments service: unauthorized.")
 )
 
 const (
@@ -91,13 +92,15 @@ func (s *service) InitiateOutgoingPayment(
 		if err != nil {
 			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
 		}
-		// TODO: verification needs to be on account
-		if identity.VerificationState != Verified {
-			return fmt.Errorf("%w", ErrUnverifiedAccount)
-		}
-		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, args.IdentityID)
+		acc, err := s.as.Get(ctx, tx, args.AccountID)
 		if err != nil {
 			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+		if !s.as.CanMakeOutgoingPayment(acc, identity.ID) {
+			return fmt.Errorf("%w", ErrUnauthorized)
+		}
+		if !acc.IsVerified() {
+			return fmt.Errorf("%w", ErrUnverifiedAccount)
 		}
 
 		// We would typically create pending transfers here then ask the provider to initiate the

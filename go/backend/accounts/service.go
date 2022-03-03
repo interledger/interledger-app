@@ -12,17 +12,28 @@ import (
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
+const (
+	Verified string = "verified"
+)
+
 type Account struct {
-	ID               string
-	DebitsAccepted   uint64
-	DebitsReserved   uint64
-	CreditsAccepted  uint64
-	CreditsReserved  uint64
-	AvailableBalance int64
-	IdentityID       string `db:"identity_id"`
-	LedgerAccountID  string `db:"ledger_account_id"` // id returned by Pacioli.
-	CreatedAt        string `db:"created_at"`
-	UpdatedAt        string `db:"updated_at"`
+	ID                string
+	DebitsAccepted    uint64
+	DebitsReserved    uint64
+	CreditsAccepted   uint64
+	CreditsReserved   uint64
+	AvailableBalance  int64
+	IdentityID        string `db:"identity_id"`
+	LedgerAccountID   string `db:"ledger_account_id"` // id returned by Pacioli.
+	Provider          string
+	ProviderID        string `db:"provider_id"`
+	VerificationState string `db:"verification_state"`
+	CreatedAt         string `db:"created_at"`
+	UpdatedAt         string `db:"updated_at"`
+}
+
+func (s Account) IsVerified() bool {
+	return s.VerificationState == Verified
 }
 
 type Service interface {
@@ -30,6 +41,9 @@ type Service interface {
 	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 	GetByIdentityID(ctx context.Context, id string) (*Account, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
+	VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error)
+	CanMakeOutgoingPayment(acc *Account, identityID string) bool
+	CanMakeDeposit(acc *Account, identityID string) bool
 }
 
 type service struct {
@@ -213,6 +227,59 @@ func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error 
 	account.AvailableBalance = int64(account.DebitsAccepted - account.CreditsAccepted - account.CreditsReserved)
 
 	return nil
+}
+
+type VerifyArgs struct {
+	AccountID  string `validate:"required,uuid"`
+	Provider   string `validate:"oneof=noop"`
+	ProviderID string `validate:"required"`
+}
+
+func (s *service) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error) {
+	//TODO: refactor errors
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, &ErrInvalidArgument{Err: "Accounts service: " + err.Error()}
+	}
+
+	acc, err := s.Get(ctx, tx, args.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := tx.PrepareNamed(`
+			UPDATE accounts
+			SET provider=$1, provider_id=$2, verification_state=$3
+			WHERE id=$4
+			RETURNING *;
+		`)
+	if err != nil {
+		return nil, &ErrInternalError{Err: "Accounts service: " + err.Error()}
+	}
+
+	var verifiedAccount Account
+	err = stmt.Stmt.Get(&verifiedAccount, args.Provider, args.ProviderID, Verified, acc.ID)
+	if err != nil {
+		return nil, &ErrInternalError{Err: "Accounts service: " + err.Error()}
+	}
+
+	return &verifiedAccount, nil
+}
+
+func (s service) CanMakeOutgoingPayment(acc *Account, identityID string) bool {
+	if acc == nil {
+		return false
+	}
+
+	return acc.IdentityID == identityID
+}
+
+func (s service) CanMakeDeposit(acc *Account, identityID string) bool {
+	if acc == nil {
+		return false
+	}
+
+	return acc.IdentityID == identityID
 }
 
 // Error set

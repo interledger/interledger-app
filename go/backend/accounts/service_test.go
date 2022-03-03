@@ -271,4 +271,66 @@ func TestAccountsService(s *testing.T) {
 		assert.Equal(t, "Accounts service: accountID is required.", err.Error())
 		assert.Nil(t, acc)
 	})
+
+	s.Run("verify account", func(t *testing.T) {
+		var identity *_identity.Identity
+		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+				ID:           uuid.NewString(),
+				Email:        faker.Email(),
+				FirstName:    faker.Name(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.Phonenumber(),
+				Country:      "US",
+			})
+			if err != nil {
+				return err
+			}
+
+			identity = _identity
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run("updates verification state to verified", func(tt *testing.T) {
+			ledgerAccountID := uuid.NewString()
+			pClient.EXPECT().CreateAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+				Id: ledgerAccountID,
+			}, nil).Times(1)
+			var verifiedAcc *Account
+			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				acc, err := as.Create(ctx, tx, &CreateAccountArgs{
+					IdentityID: identity.ID,
+					Country:    identity.Country,
+				})
+				if err != nil {
+					return err
+				}
+				assert.False(tt, acc.IsVerified())
+
+				pClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+					Id: ledgerAccountID,
+				}, nil).Times(1)
+				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &VerifyArgs{
+					AccountID:  acc.ID,
+					Provider:   "noop",
+					ProviderID: "test-customer1",
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+
+			assert.True(tt, verifiedAcc.IsVerified())
+			assert.Equal(tt, "noop", verifiedAcc.Provider)
+			assert.Equal(tt, "test-customer1", verifiedAcc.ProviderID)
+		})
+	})
 }
