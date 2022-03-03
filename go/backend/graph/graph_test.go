@@ -6,11 +6,13 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
@@ -18,6 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 func TestGraphql(s *testing.T) {
@@ -136,6 +139,12 @@ func TestGraphql(s *testing.T) {
 			t.Fatal(err)
 		}
 
+		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+				return &pacioliv1.Account{
+					Id: args.Id,
+				}, nil
+			}).Times(2)
 		var respData map[string]generated.LinkFundingSourceMutationResponse
 		if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 			t.Fatal(err)
@@ -173,6 +182,12 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, "required", fundingsource.VerificationState)
 
 		// verify it
+		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+				return &pacioliv1.Account{
+					Id: args.Id,
+				}, nil
+			}).Times(1)
 		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))
 		_user.ActingAs(verifyReq, user)
 		var verifyData map[string]generated.VerifyUsdBankAccountMutationResponse

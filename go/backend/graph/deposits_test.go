@@ -42,7 +42,7 @@ func TestUserDeposits(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -56,6 +56,7 @@ func TestUserDeposits(s *testing.T) {
 		verifyFundingSource := true
 		fsArgs := &fundingsources.CreateBankAccountArgs{
 			IdentityID:    user.ID,
+			AccountID:     acc.ID,
 			Name:          faker.Name(),
 			AccountNumber: faker.CCNumber(),
 			RoutingNumber: faker.CCNumber(),
@@ -112,7 +113,7 @@ func TestUserDeposits(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -129,6 +130,7 @@ func TestUserDeposits(s *testing.T) {
 			user,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    user.ID,
+				AccountID:     acc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),
@@ -146,7 +148,7 @@ func TestUserDeposits(s *testing.T) {
 				return &pacioliv1.Account{
 					Id: args.Id,
 				}, nil
-			}).Times(1)
+			}).Times(2)
 		response, err := initiateDeposit(container, user, &generated.DepositInput{
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars

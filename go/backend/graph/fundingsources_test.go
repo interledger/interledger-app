@@ -5,15 +5,18 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
 
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 func TestUserFundingSources(s *testing.T) {
@@ -38,7 +41,7 @@ func TestUserFundingSources(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -55,6 +58,7 @@ func TestUserFundingSources(s *testing.T) {
 			user,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    user.ID,
+				AccountID:     acc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),
@@ -67,6 +71,12 @@ func TestUserFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 
+		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+				return &pacioliv1.Account{
+					Id: args.Id,
+				}, nil
+			}).Times(1)
 		response, err := getFundingSourcesByUserId(container, user)
 
 		assert.Equal(t, 1, len(response))
@@ -93,7 +103,7 @@ func TestUserFundingSources(s *testing.T) {
 			ID:    "",
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -110,6 +120,7 @@ func TestUserFundingSources(s *testing.T) {
 			user,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    user.ID,
+				AccountID:     acc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),
@@ -127,7 +138,6 @@ func TestUserFundingSources(s *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, 0, len(response))
 	})
-
 }
 
 func getFundingSourcesByUserId(container *TestContainer, user *_user.User) ([]*generated.FundingSource, error) {
