@@ -136,9 +136,10 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.NoopService = noopProvider
 
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Identity: is,
-		Db:       db,
-		Noop:     noopProvider,
+		Is:   is,
+		As:   as,
+		Db:   db,
+		Noop: noopProvider,
 	})
 	if err != nil {
 		return nil, err
@@ -281,12 +282,24 @@ func NewBankAccount(
 	args *fundingsources.CreateBankAccountArgs,
 	verify bool,
 ) (*fundingsources.FundingSource, error) {
+	container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+			return &pacioliv1.Account{
+				Id: args.Id,
+			}, nil
+		}).Times(1)
 	bankAccount, err := container.FundingSourceService.CreateBankAccount(container.Ctx, args)
 	if err != nil {
 		return nil, err
 	}
 
 	if verify {
+		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+				return &pacioliv1.Account{
+					Id: args.Id,
+				}, nil
+			}).Times(1)
 		bankAccount, err = container.FundingSourceService.Verify(
 			container.Ctx,
 			&fundingsources.VerifyArgs{

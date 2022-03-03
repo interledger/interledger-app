@@ -2,15 +2,16 @@ package fundingsources
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/onboarding"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 func TestFundingSources(s *testing.T) {
@@ -25,7 +26,18 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("validates create bank account arguments", func(t *testing.T) {
-		fmt.Println("starting scenarios")
+		userID := uuid.NewString()
+		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID:   userID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        faker.Email(),
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		type Scenario struct {
 			Name          string
 			Args          *CreateBankAccountArgs
@@ -41,6 +53,16 @@ func TestFundingSources(s *testing.T) {
 				Name:          "IdentityID must exist to create bank account",
 				Args:          generateCreateBankAccountArgs(withIdentityID(uuid.NewString())),
 				ExpectedError: "Identity must exist to create funding source.",
+			},
+			{
+				Name:          "AccountID is required to create bank account",
+				Args:          generateCreateBankAccountArgs(withAccountID("")),
+				ExpectedError: "Key: 'CreateBankAccountArgs.AccountID' Error:Field validation for 'AccountID' failed on the 'required' tag",
+			},
+			{
+				Name:          "AccountID must exist to create bank account",
+				Args:          generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(uuid.NewString())),
+				ExpectedError: "Account must exist to create funding source.",
 			},
 			{
 				Name:          "Name is required to create bank account",
@@ -82,7 +104,7 @@ func TestFundingSources(s *testing.T) {
 
 	s.Run("creates bank account", func(t *testing.T) {
 		userID := uuid.NewString()
-		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
 			IdentityID:   userID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
@@ -94,7 +116,13 @@ func TestFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		args := generateCreateBankAccountArgs(withIdentityID(userID))
+		c.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+			Id: acc.LedgerAccountID,
+		}, nil).Times(1)
+		args := generateCreateBankAccountArgs(
+			withIdentityID(userID),
+			withAccountID(acc.ID),
+		)
 		fs, err := c.Fs.CreateBankAccount(ctx, args)
 		if err != nil {
 			t.Fatal(err)
@@ -104,13 +132,13 @@ func TestFundingSources(s *testing.T) {
 		assert.NotEqual(t, args.AccountNumber, fs.Mask)
 		assert.Equal(t, "noop", fs.Type)
 		assert.Equal(t, args.Type, fs.SubType)
-		assert.Equal(t, userID, fs.IdentityID)
+		assert.Equal(t, acc.ID, fs.AccountID)
 		assert.Equal(t, "required", fs.VerificationState)
 	})
 
 	s.Run("verifies bank account", func(t *testing.T) {
 		userID := uuid.NewString()
-		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
 			IdentityID:   userID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
@@ -121,13 +149,22 @@ func TestFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		args := generateCreateBankAccountArgs(withIdentityID(userID))
+		c.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+			Id: acc.LedgerAccountID,
+		}, nil).Times(1)
+		args := generateCreateBankAccountArgs(
+			withIdentityID(userID),
+			withAccountID(acc.ID),
+		)
 		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "required", bankAccount.VerificationState)
 
+		c.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+			Id: acc.LedgerAccountID,
+		}, nil).Times(1)
 		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
 			IdentityID:      userID,
 			FundingSourceID: bankAccount.ID,
@@ -142,7 +179,7 @@ func TestFundingSources(s *testing.T) {
 	s.Run("returns not found if funding source does not belong to user", func(t *testing.T) {
 		otherUserID := uuid.NewString()
 		myID := uuid.NewString()
-		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+		myAcc, err := NewAccount(c, &onboarding.CreateAccountArgs{
 			IdentityID:   myID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
@@ -161,13 +198,22 @@ func TestFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		args := generateCreateBankAccountArgs(withIdentityID(myID))
+		args := generateCreateBankAccountArgs(
+			withIdentityID(myID),
+			withAccountID(myAcc.ID),
+		)
+		c.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+			Id: myAcc.LedgerAccountID,
+		}, nil).Times(1)
 		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "required", bankAccount.VerificationState)
 
+		c.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+			Id: myAcc.LedgerAccountID,
+		}, nil).Times(1)
 		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
 			IdentityID:      otherUserID,
 			FundingSourceID: bankAccount.ID,
@@ -208,7 +254,7 @@ func TestFundingSources(s *testing.T) {
 
 	s.Run("get user's funding sources", func(t *testing.T) {
 		userID := uuid.NewString()
-		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
 			IdentityID:   userID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
@@ -219,19 +265,28 @@ func TestFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fundingsource, err := c.Fs.CreateBankAccount(ctx, generateCreateBankAccountArgs(withIdentityID(userID)))
+		c.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
+			Id: acc.LedgerAccountID,
+		}, nil).Times(2)
+		fundingsource, err := c.Fs.CreateBankAccount(
+			ctx,
+			generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(acc.ID)),
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
-		fundingsource1, err := c.Fs.CreateBankAccount(ctx, generateCreateBankAccountArgs(withIdentityID(userID)))
+		fundingsource1, err := c.Fs.CreateBankAccount(
+			ctx,
+			generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(acc.ID)),
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		t.Run("returns a list of all the users funding sources", func(tt *testing.T) {
-			var fundingsources []*FundingSource
+			var fundingsources []FundingSource
 			err = crdbsqlx.ExecuteTx(ctx, c.Db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := c.Fs.GetByIdentityId(ctx, tx, userID)
+				_fs, err := c.Fs.GetByAccountId(ctx, tx, acc.ID)
 				if err != nil {
 					return err
 				}
@@ -251,7 +306,7 @@ func TestFundingSources(s *testing.T) {
 
 		t.Run("returns an empty list if a user has no funding sources", func(tt *testing.T) {
 			otherUserID := uuid.NewString()
-			_, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			otherAcc, err := NewAccount(c, &onboarding.CreateAccountArgs{
 				IdentityID:   otherUserID,
 				FirstName:    faker.FirstName(),
 				LastName:     faker.LastName(),
@@ -263,9 +318,9 @@ func TestFundingSources(s *testing.T) {
 				t.Fatal(err)
 			}
 
-			var fundingsources []*FundingSource
+			var fundingsources []FundingSource
 			err = crdbsqlx.ExecuteTx(ctx, c.Db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := c.Fs.GetByIdentityId(ctx, tx, otherUserID)
+				_fs, err := c.Fs.GetByAccountId(ctx, tx, otherAcc.ID)
 				if err != nil {
 					return err
 				}
@@ -284,6 +339,7 @@ func TestFundingSources(s *testing.T) {
 func generateCreateBankAccountArgs(opts ...func(*CreateBankAccountArgs)) *CreateBankAccountArgs {
 	args := &CreateBankAccountArgs{
 		IdentityID:    uuid.NewString(),
+		AccountID:     uuid.NewString(),
 		Name:          faker.Name(),
 		AccountNumber: faker.CCNumber(),
 		RoutingNumber: faker.CCNumber(),
@@ -296,6 +352,12 @@ func generateCreateBankAccountArgs(opts ...func(*CreateBankAccountArgs)) *Create
 	}
 
 	return args
+}
+
+func withAccountID(id string) func(args *CreateBankAccountArgs) {
+	return func(args *CreateBankAccountArgs) {
+		args.AccountID = id
+	}
 }
 
 func withIdentityID(id string) func(args *CreateBankAccountArgs) {

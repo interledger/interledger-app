@@ -98,6 +98,7 @@ func TestUserAccount(s *testing.T) {
 			user,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    user.ID,
+				AccountID:     acc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),

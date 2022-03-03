@@ -119,9 +119,10 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Os = os
 
 	fs, err := NewService(&ServiceArgs{
-		Identity: is,
-		Db:       db,
-		Noop:     noop,
+		Is:   is,
+		As:   as,
+		Db:   db,
+		Noop: noop,
 	})
 	if err != nil {
 		return nil, err
