@@ -16,7 +16,7 @@ var _testCookieName string = "test-cookie"
 func (self *mockService) GetUser(r http.Request) (*User, error) {
 	c, err := r.Cookie(_testCookieName)
 	if err != nil || c == nil {
-		return nil, &NoCookieError{}
+		return nil, ErrNoUserFound
 	}
 
 	user := User{}
@@ -37,7 +37,7 @@ func (self *mockService) GetUser(r http.Request) (*User, error) {
 func (self *mockService) ForContext(ctx context.Context) (*User, error) {
 	raw, ok := ctx.Value(userCtxKey).(*User)
 	if !ok {
-		return nil, &NoUserFoundError{}
+		return nil, ErrNoUserFound
 	}
 	return raw, nil
 }

@@ -66,6 +66,11 @@ func TestAuthenticationService(s *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(user)
 	}))
+	router.Handle("/open", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(user)
+	}))
 	server := httptest.NewServer(router)
 	defer server.Close()
 
@@ -93,7 +98,7 @@ func TestAuthenticationService(s *testing.T) {
 		assert.Equal(t, user.ID, identity.Id)
 	})
 
-	s.Run("returns Unauthorized if there is no cookie", func(t *testing.T) {
+	s.Run("returns Unauthorized if there is no cookie to authed endpoint", func(t *testing.T) {
 		resp, err := http.Get(server.URL + "/whoami")
 		if err != nil {
 			t.Fatal(err)
@@ -102,7 +107,16 @@ func TestAuthenticationService(s *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
 
-	s.Run("Returns Forbidden if cookie is invalid", func(t *testing.T) {
+	s.Run("returns 200 if there is no cookie to open endpoint", func(t *testing.T) {
+		resp, err := http.Get(server.URL + "/open")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	s.Run("Returns unauthed if cookie is invalid for authed endpoint", func(t *testing.T) {
 		req, err := http.NewRequest("GET", server.URL+"/whoami", nil)
 		if err != nil {
 			t.Fatal(err)
@@ -117,7 +131,25 @@ func TestAuthenticationService(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	s.Run("Returns 200 if cookie is invalid for unauthed endpoint", func(t *testing.T) {
+		req, err := http.NewRequest("GET", server.URL+"/open", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cookie := http.Cookie{
+			Name:  "ory_kratos_session",
+			Value: "test-cookie",
+		}
+		req.AddCookie(&cookie)
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 }
 
