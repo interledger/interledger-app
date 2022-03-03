@@ -2,6 +2,7 @@ package deposits
 
 import (
 	"context"
+	"errors"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -12,6 +13,10 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
+)
+
+var (
+	ErrUnauthorized = errors.New("deposit service: unauthorized.")
 )
 
 type Service interface {
@@ -68,7 +73,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 
 	var transaction *transactions.AccountTransaction
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		_, err := s.is.Get(ctx, tx, args.IdentityID)
+		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
 			switch err.(type) {
 			case *identity.ErrNotFound:
@@ -100,17 +105,11 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 
 		acc, err := s.as.Get(ctx, tx, args.AccountID)
 		if err != nil {
-			switch err.(type) {
-			case *accounts.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Deposit service:" + err.Error()}
-			case *accounts.ErrNotFound:
-				return &ErrNotFound{Err: "Deposit service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
-			}
+			return &ErrInternalError{Err: "Deposit service:" + err.Error()}
 		}
-		// TODO: move verification to account and do a check on its verification state
-		// TODO: authz check to see if identity is allowed to perform deposit into account
+		if !s.as.CanMakeDeposit(acc, id.ID) {
+			return ErrUnauthorized
+		}
 
 		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,

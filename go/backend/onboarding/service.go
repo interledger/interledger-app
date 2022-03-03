@@ -120,12 +120,12 @@ type VerifyAccountArgs struct {
 	TaxIDNumber string   `validate:"required"`
 }
 
-// TODO: refactor to have verification on account
 func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error) {
 	if err := s.validator.Struct(args); err != nil {
 		return nil, &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
 	}
 
+	var verifiedAccount *accounts.Account
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
@@ -135,6 +135,10 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 			default:
 				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 			}
+		}
+		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, id.ID)
+		if err != nil {
+			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 		}
 
 		customer, err := s.noop.CreateCustomer(&noop.CreateCustomerArgs{
@@ -152,17 +156,10 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 		}
 
-		// TODO: refactor to have verification on account
-		_, err = s.is.Verify(ctx, tx, &_identity.VerifyArgs{
-			IdentityID:        id.ID,
-			DateOfBirth:       args.DateOfBirth,
-			Address:           args.Address,
-			State:             args.State,
-			City:              args.City,
-			PostalCode:        args.PostalCode,
-			TaxIDNumber:       args.TaxIDNumber,
-			ProviderID:        customer.ID,
-			VerificationState: customer.Status,
+		verifiedAccount, err = s.as.VerifyWithTx(ctx, tx, &accounts.VerifyArgs{
+			AccountID:  acc.ID,
+			Provider:   "noop",
+			ProviderID: customer.ID,
 		})
 		if err != nil {
 			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
@@ -174,13 +171,7 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 		return nil, err
 	}
 
-	// TODO: here till verification is moved onto account
-	acc, err := s.as.GetByIdentityID(ctx, args.IdentityID)
-	if err != nil {
-		return nil, &ErrInternal{Err: "Onboarding service: " + err.Error()}
-	}
-
-	return acc, nil
+	return verifiedAccount, nil
 }
 
 type ErrInvalidArgument struct {
