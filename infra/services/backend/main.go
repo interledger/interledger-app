@@ -13,10 +13,12 @@ import (
 )
 
 type DeployBackendArgs struct {
-	Cert          *apiextensions.CustomResource
-	ImageRepo     string
-	ImageTag      string
-	UsdLedgerCode uint16
+	Cert             *apiextensions.CustomResource
+	ImageRepo        string
+	ImageTag         string
+	UsdLedgerCode    uint16
+	Hostname         string
+	EnablePlayground bool
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -25,7 +27,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployIngress(ctx)
+	err = deployIngress(ctx, args.Hostname)
 	if err != nil {
 		return err
 	}
@@ -36,6 +38,13 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.UsdLedgerCode)
 	if err != nil {
 		return err
+	}
+
+	if args.EnablePlayground {
+		err = deployPlaygroundIngress(ctx, args.Hostname)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -291,12 +300,27 @@ func deployRbac(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployIngress(ctx *pulumi.Context) error {
+func deployIngress(ctx *pulumi.Context, hn string) error {
 	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
 		Name:     "backend-graphql",
-		Hostname: "*",
+		Hostname: hn,
 		Prefix:   "/graphql",
 		Rewrite:  "/graphql",
+		Service:  "backend",
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deployPlaygroundIngress(ctx *pulumi.Context, hn string) error {
+	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
+		Name:     "backend-playground",
+		Hostname: hn,
+		Prefix:   "/playground",
+		Rewrite:  "/playground",
 		Service:  "backend",
 	})
 	if err != nil {
