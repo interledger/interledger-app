@@ -134,7 +134,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewVerifiedAccount(
+		acc, err := NewVerifiedAccount(
 			container,
 			&onboarding.CreateAccountArgs{
 				IdentityID:   user.ID,
@@ -156,7 +156,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		// TODO: assert account verification state
+		assert.True(t, acc.IsVerified())
 
 		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
@@ -188,17 +188,16 @@ func TestUserOutgoingPayment(s *testing.T) {
 	})
 
 	/*
-		TODO: refactor so that account has verification
-		Outgoing payments aren't allowed unless user's identity is verified
+		Outgoing payments aren't allowed unless account is verified
 		Scenario: user tries to initiate outgoing payment without verifying their identity
 
 		Given a verified user
 		And the user has sufficient balance
-		And the user's identity has not been verified
+		And the account has not been verified
 		When the user initiates an outgoing payment
 		Then an error is returned saying there is insufficient balance
 	*/
-	s.Run("user tries to initiate outgoing payment without verifying their identity", func(t *testing.T) {
+	s.Run("user tries to initiate outgoing payment from an unverified account", func(t *testing.T) {
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
@@ -217,7 +216,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		// TODO: assert account verification state
+		assert.False(t, acc.IsVerified())
 		bankAccount, err := NewBankAccount(
 			container,
 			user,
@@ -250,7 +249,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 				return &pacioliv1.Account{
 					Id: args.Id,
 				}, nil
-			}).Times(1)
+			}).Times(2)
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
 			To:     "$test.fynbos.test/alice",

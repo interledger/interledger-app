@@ -266,7 +266,7 @@ func NewVerifiedAccount(
 			return &pacioliv1.Account{
 				Id: args.Id,
 			}, nil
-		}).Times(1)
+		}).Times(2)
 	acc, err = container.Os.VerifyAccount(container.Ctx, verifyAccountArgs)
 	if err != nil {
 		return nil, err
