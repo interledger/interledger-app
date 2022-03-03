@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -21,9 +22,11 @@ func NewLoggingService(us Service, logger *zap.Logger) Service {
 func (self *loggingService) GetUser(r http.Request) (usr *User, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
-				"Failed to get user from cookie.",
-			)
+			if !errors.Is(err, ErrNoUserFound) {
+				self.logger.Error(
+					"failed to parse user cookie",
+				)
+			}
 		}
 	}(time.Now())
 
@@ -33,8 +36,8 @@ func (self *loggingService) GetUser(r http.Request) (usr *User, err error) {
 func (self *loggingService) ForContext(ctx context.Context) (usr *User, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
-				"Failed to get user from context.",
+			self.logger.Info(
+				"no user in context",
 			)
 		}
 	}(time.Now())
