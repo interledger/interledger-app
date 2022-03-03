@@ -8,10 +8,7 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
-
-	"time"
 
 	"github.com/go-chi/chi"
 	kratos "github.com/ory/kratos-client-go"
@@ -24,21 +21,16 @@ func TestAuthenticationService(s *testing.T) {
 	// Adding this flag so that this test can be
 	// disabled in CI. Our docker image doesn't have
 	// docker-compose and so will fail in CI.
-	if os.Getenv("TEST_INTEGRATION") == "" {
-		s.SkipNow()
-	}
-	identifier, err := test_utils.SetupKratos()
+	kratosContainer, err := test_utils.SetupKratos()
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer test_utils.TeardownKratos(identifier)
-	// wait for docker compose env to spin up.
-	time.Sleep(2 * time.Second)
+	defer kratosContainer.Container.Terminate(context.Background())
 
 	configuration := kratos.NewConfiguration()
 	configuration.Servers = kratos.ServerConfigurations{
 		{
-			URL:         "http://127.0.0.1:4433",
+			URL:         kratosContainer.URI,
 			Description: "Dev Kratos",
 		},
 	}
@@ -56,7 +48,7 @@ func TestAuthenticationService(s *testing.T) {
 	}
 	user = NewLoggingService(user, logger)
 
-	kratosCookie, identity, err := _testRegisterUser(context.Background(), "http://127.0.0.1:4433")
+	kratosCookie, identity, err := _testRegisterUser(context.Background(), kratosContainer.URI)
 	if err != nil {
 		s.Fatal(err)
 	}
