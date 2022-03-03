@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS funding_sources (
 	id 							UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	identity_id                 UUID NOT NULL,
+	account_id                 UUID NOT NULL,
 	name 						TEXT NOT NULL,
 	mask						TEXT NOT NULL,
 	verification_state          TEXT NOT NULL,

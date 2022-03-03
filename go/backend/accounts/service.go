@@ -44,6 +44,8 @@ type Service interface {
 	VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error)
 	CanMakeOutgoingPayment(acc *Account, identityID string) bool
 	CanMakeDeposit(acc *Account, identityID string) bool
+	CanCreateFundingSource(acc *Account, identityID string) bool
+	CanVerifyFundingSource(acc *Account, identityID string) bool
 }
 
 type service struct {
@@ -275,6 +277,22 @@ func (s service) CanMakeOutgoingPayment(acc *Account, identityID string) bool {
 }
 
 func (s service) CanMakeDeposit(acc *Account, identityID string) bool {
+	if acc == nil {
+		return false
+	}
+
+	return acc.IdentityID == identityID
+}
+
+func (s service) CanCreateFundingSource(acc *Account, identityID string) bool {
+	if acc == nil {
+		return false
+	}
+
+	return acc.IdentityID == identityID
+}
+
+func (s service) CanVerifyFundingSource(acc *Account, identityID string) bool {
 	if acc == nil {
 		return false
 	}

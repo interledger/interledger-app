@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
@@ -86,8 +87,8 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
 		}
-		if fs.IdentityID != args.IdentityID {
-			return fmt.Errorf("funding source and identity dont match %w", ErrInternalError)
+		if fs.AccountID != args.AccountID {
+			return fmt.Errorf("funding source and account dont match %w", ErrInternalError)
 		}
 		if !fundingsources.IsVerified(fs) {
 			return ErrUnverifiedFundingSource

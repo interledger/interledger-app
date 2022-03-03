@@ -138,3 +138,11 @@ func (s loggingService) CanMakeOutgoingPayment(acc *Account, identityID string) 
 func (s loggingService) CanMakeDeposit(acc *Account, identityID string) bool {
 	return s.Service.CanMakeDeposit(acc, identityID)
 }
+
+func (s loggingService) CanCreateFundingSource(acc *Account, identityID string) bool {
+	return s.Service.CanCreateFundingSource(acc, identityID)
+}
+
+func (s loggingService) CanVerifyFundingSource(acc *Account, identityID string) bool {
+	return s.Service.CanVerifyFundingSource(acc, identityID)
+}
