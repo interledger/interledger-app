@@ -8,7 +8,7 @@ import {
   getCsrfTokenFromFlow,
   kratos,
   handleFlowError,
-  checkUserSession
+  requireNoUserSession
 } from '~/lib/kratos'
 
 type ActionData = {
@@ -90,6 +90,7 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
+  await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   // Refresh means we want to refresh the session. This is needed, for example, when we want to update the password
@@ -99,10 +100,6 @@ export const loader: LoaderFunction = async ({ request }) => {
   // to perform two-factor authentication/verification.
   const aal = url.searchParams.get('aal')
   const returnTo = url.searchParams.get('return_to')
-
-  // Check if user has session already
-  const session = await checkUserSession(request)
-  if (session != null) return session
 
   // TODO: get flow from kratos and handle flow errors appropriately.
   // If ?flow=.. was in the URL, we fetch it
