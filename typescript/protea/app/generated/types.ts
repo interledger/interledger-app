@@ -234,6 +234,11 @@ export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetFundingSourcesQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
 
+export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCountriesQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', id: string, name: string }> };
+
 
 export const LinkUsdBankAccountDocument = gql`
     mutation LinkUsdBankAccount($input: LinkUsdBankAccountInput!) {
@@ -268,3 +273,12 @@ export const GetFundingSourcesDocument = gql`
 }
     `;
 export type GetFundingSourcesQueryResult = Apollo.QueryResult<GetFundingSourcesQuery, GetFundingSourcesQueryVariables>;
+export const GetCountriesDocument = gql`
+    query GetCountries {
+  countries {
+    id
+    name
+  }
+}
+    `;
+export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetCountriesQueryVariables>;
