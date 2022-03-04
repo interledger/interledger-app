@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "remix dev",
+    "dev": "NODE_OPTIONS='--inspect' remix dev",
     "build": "yarn typecheck && yarn build:css && remix build",
     "postinstall": "remix setup node",
     "start": "remix-serve build",
