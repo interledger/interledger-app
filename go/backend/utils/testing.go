@@ -33,7 +33,7 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 	}
 
 	req := testcontainers.ContainerRequest{
-		Image:        "cockroachdb/cockroach:latest-v21.1",
+		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1",
 		ExposedPorts: []string{"26257/tcp", "8080/tcp"},
 		WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
 		Cmd:          []string{"start-single-node", "--insecure"},

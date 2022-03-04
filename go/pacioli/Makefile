@@ -2,6 +2,11 @@
 IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli
 IMAGE_HASH := latest
 
+pull:
+	@echo "Pulling required images"
+	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1
+	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle
+	@echo "Pull complete"
 
 test:
 	@echo "Running tests"

@@ -13,7 +13,7 @@ variables:
   PROJECT_PATH: $CI_PROJECT_DIR/typescript/protea
   PROTEA_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
-image: node:16-alpine3.11
+image: public.ecr.aws/docker/library/node:16-alpine3.11
 
 default:
   before_script:

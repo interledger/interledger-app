@@ -36,7 +36,7 @@ build_pacioli:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     - cd $SERVICE_PATH
-    - echo $(uname -r)
+    - make pull
     - make test
     - make build IMAGE_HASH=${IMAGE_HASH}
     - make push IMAGE_HASH=${IMAGE_HASH}

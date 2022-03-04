@@ -33,7 +33,7 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 	}
 
 	req := testcontainers.ContainerRequest{
-		Image:        "cockroachdb/cockroach:latest-v21.1",
+		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1",
 		ExposedPorts: []string{"26257/tcp", "8080/tcp"},
 		WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
 		Cmd:          []string{"start-single-node", "--insecure"},
@@ -111,7 +111,7 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContai
 
 	fmt.Println("Starting TigerBeetle test container.")
 	req := testcontainers.ContainerRequest{
-		Image:        "donchangfoot/tigerbeetle", // TODO: host image
+		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle", // TODO: host image
 		ExposedPorts: []string{TIGERBEETLE_PORT},
 		WaitingFor:   wait.ForLog(fmt.Sprintf("init")).WithPollInterval(1 * time.Second),
 		Entrypoint: []string{
