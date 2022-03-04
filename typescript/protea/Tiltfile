@@ -5,6 +5,7 @@ sync_generated = sync('./generated', '/app/generated')
 local_resource('generate watch', serve_cmd = 'yarn generate:watch')
 local_resource('tailwind watch', cmd = 'yarn build:css', deps=['./app'], ignore=['./app/styles'])
 local_resource('protea port forward', serve_cmd = 'kubectl port-forward deployment/protea 8002:8002', resource_deps = ['protea'])
+local_resource('protea port forward debugging', serve_cmd = 'kubectl port-forward deployment/protea 9229:9229', resource_deps = ['protea'])
 local_resource('mailhog port forward', serve_cmd = 'kubectl port-forward deployment/mailhog 8025:8025', resource_deps = ['protea'], links=['http://fynbos.test:8025'])
 
 docker_build('protea', '.', target = "dev", live_update = [
