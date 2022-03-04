@@ -55,6 +55,20 @@ func main() {
 			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
 		})
 
+		// Registry for dependent images
+		_, err = ecr.NewPrivateRepository(ctx, "cockroach", accountID)
+		if err != nil {
+			return err
+		}
+		_, err = ecr.NewPrivateRepository(ctx, "kratos", accountID)
+		if err != nil {
+			return err
+		}
+		_, err = ecr.NewPrivateRepository(ctx, "tigerbeetle", accountID)
+		if err != nil {
+			return err
+		}
+
 		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
 		ctx.Export("eksImage", eksImage.ImageName)
 		ctx.Export("dockerRepoUri", dockerRepo.RepositoryUri)
