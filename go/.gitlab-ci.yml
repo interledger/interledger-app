@@ -11,7 +11,7 @@
       - .go/pkg/mod/
 
 go-mod:
-  image: golang:1.17
+  image: public.ecr.aws/docker/library/golang:1.17
   extends: .go-cache
   script:
     - cd go

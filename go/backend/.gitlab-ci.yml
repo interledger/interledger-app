@@ -36,6 +36,7 @@ build_backend:
     - mkdir -p ~/.docker
     - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
     - cd $BACKEND_PATH
+    - make pull
     - make test
     - make build IMAGE_HASH=${BACKEND_IMAGE_HASH}
     - make push IMAGE_HASH=${BACKEND_IMAGE_HASH}
