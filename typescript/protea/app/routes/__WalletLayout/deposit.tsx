@@ -16,7 +16,7 @@ import {
 } from 'remix'
 import { route } from 'routes-gen'
 import { BackIcon, Button, Select, TextField } from '~/components'
-import { apolloClient } from '~/lib/apollo'
+import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos'
 
 type ActionData = {
