@@ -1,15 +1,14 @@
-import {
-  Configuration,
-  SelfServiceRegistrationFlow,
+import { Configuration, V0alpha2Api } from '@ory/kratos-client'
+import type {
+  Session,
+  UiNodeInputAttributes,
   SelfServiceLoginFlow,
   SelfServiceVerificationFlow,
   SelfServiceSettingsFlow,
   SelfServiceRecoveryFlow,
-  UiNodeInputAttributes,
-  V0alpha2Api,
-  Session
+  SelfServiceRegistrationFlow
 } from '@ory/kratos-client'
-import { json, redirect } from 'remix'
+import { redirect } from 'remix'
 import { AxiosError } from 'axios'
 import { route } from 'routes-gen'
 
@@ -45,7 +44,7 @@ export const getCsrfTokenFromFlow = (
  * @param request Request received in a loader function.
  * @returns the session if the user has a session or else a redirect.
  */
-export async function requireUserSession(request: Request): Promise<Response> {
+export async function requireUserSession(request: Request): Promise<Session> {
   const session = await fetch('http://kratos-public/sessions/whoami', {
     headers: request.headers
   })
@@ -69,44 +68,28 @@ export async function requireUserSession(request: Request): Promise<Response> {
     throw redirect(route('/verify'))
   }
 
-  return json(userSession)
+  return userSession
 }
 
 /**
- * checkUserSession will ensure the user doesn't already have a session.
+ * requireNoUserSession  will ensure the user doesn't already have a session.
  * @param request Request received in a loader function.
- * @returns a redirect response.
+ * @returns void
  */
-export async function checkUserSession(
-  request: Request
-): Promise<Response | null> {
-  const cookie = request.headers.get('cookie') || undefined
-  return kratos
-    .toSession(undefined, cookie)
-    .then((res) => {
-      const session = res.data as Session
+export async function requireNoUserSession(request: Request): Promise<void> {
+  const session = await fetch('http://kratos-public/sessions/whoami', {
+    headers: request.headers
+  })
 
-      // Always redirect if the users email isn't verified
-      if (
-        session.identity.verifiable_addresses &&
-        !session.identity.verifiable_addresses[0].verified
-      ) {
-        return redirect(route('/verify'))
-      }
+  switch (session.status) {
+    // User shouldn't have session/cookies so don't catch unauthorised - 401.
+    case 403:
+    case 422: // Need to complete 2FA.
+      throw redirect(route('/login') + '?aal=aal2')
+  }
 
-      return redirect(route('/home'))
-    })
-    .catch((err) => {
-      switch ((err as AxiosError)?.response?.status) {
-        // User won't have session/cookies so bypass unauthorised.
-        case 401:
-          return null
-        case 403:
-        case 422: // Need to complete 2FA.
-          return redirect(route('/login') + '?aal=aal2')
-      }
-      return null
-    })
+  const userSession = await session.json()
+  if (typeof userSession.error == 'undefined') throw redirect(route('/home'))
 }
 
 // This will only run on the server so don't need a router.
