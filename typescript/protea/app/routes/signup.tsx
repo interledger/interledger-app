@@ -1,8 +1,12 @@
 import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
 import type { ActionFunction, LoaderFunction } from 'remix'
-import { Button, Logo, Router, TextField } from '~/components'
-import axios, { AxiosError, AxiosResponse } from 'axios'
-import React from 'react'
+import {
+  GetCountriesDocument,
+  GetCountriesQuery,
+  GetCountriesQueryVariables
+} from '~/generated/types'
+import { Autocomplete, Button, Logo, Router, TextField } from '~/components'
+import React, { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   getCsrfTokenFromFlow,
@@ -10,14 +14,23 @@ import {
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos'
+import { apolloClient } from '~/lib/apollo.server'
+import axios, { AxiosError, AxiosResponse } from 'axios'
+
+type Country = {
+  id: string
+  name: string
+}
 
 type ActionData = {
   formError?: string
   fieldErrors?: {
-    email: string | undefined
-    password: string | undefined
+    country?: string
+    email?: string
+    password?: string
   }
   fields?: {
+    country: string
     email: string
     password: string
     csrf_token: string
@@ -41,11 +54,13 @@ export const action: ActionFunction = async ({ request }) => {
   const flowId = url.searchParams.get('flow')
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
+  const country = form.get('country')
   const email = form.get('email')
   const password = form.get('password')
 
   if (
     typeof csrfToken !== 'string' ||
+    typeof country !== 'string' ||
     typeof email !== 'string' ||
     typeof password !== 'string'
   ) {
@@ -54,7 +69,7 @@ export const action: ActionFunction = async ({ request }) => {
     })
   }
 
-  const fields = { csrf_token: csrfToken, email, password }
+  const fields = { csrf_token: csrfToken, email, password, country }
 
   return axios
     .post(
@@ -91,20 +106,27 @@ export const action: ActionFunction = async ({ request }) => {
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireNoUserSession(request)
+  const cookie = request.headers.get('cookie')
+
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const returnTo = url.searchParams.get('return_to')
 
+  const countries = await apolloClient
+    .query<GetCountriesQuery, GetCountriesQueryVariables>({
+      query: GetCountriesDocument,
+      context: {
+        headers: request.headers
+      }
+    })
+    .then((val) => val.data.countries)
 
   // TODO: get flow from kratos and handle flow errors appropriately.
   // If ?flow=.. was in the URL, we fetch it
   if (flowId) {
     return kratos
-      .getSelfServiceRegistrationFlow(
-        String(flowId),
-        request.headers.get('cookie') ?? undefined
-      )
-      .then((res) => json(res.data))
+      .getSelfServiceRegistrationFlow(String(flowId), cookie ?? undefined)
+      .then((res) => json({ flow: res.data, countries: countries }))
       .catch(handleFlowError('signup'))
   }
 
@@ -123,7 +145,31 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function SignupPage() {
   const actionData = useActionData<ActionData>()
-  const loaderData = useLoaderData()
+  const { flow, countries } = useLoaderData()
+
+  const [country, setCountry] = useState<Country>()
+  const [query, setQuery] = useState<string>('')
+  const [filteredCountries, setFilteredCountries] = useState(countries)
+
+  useEffect(() => {
+    if (query === '') setFilteredCountries(countries)
+    else {
+      setFilteredCountries(
+        countries.filter((country: Country) => {
+          return (
+            country.name
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
+            country.id
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, ''))
+          )
+        })
+      )
+    }
+  }, [query, countries])
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -149,13 +195,29 @@ export default function SignupPage() {
       </div>
       {/* Form */}
       <Form
-        action={`/signup?flow=${loaderData.id}`}
+        action={`/signup?flow=${flow.id}`}
         method='post'
         className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
+        <Autocomplete
+          id='country'
+          value={country}
+          onChange={setCountry}
+          onQuery={setQuery}
+          options={filteredCountries}
+          label='Country'
+          aria-invalid={Boolean(actionData?.fieldErrors?.country) || undefined}
+          aria-describedby={
+            actionData?.fieldErrors?.country ? 'country-error' : undefined
+          }
+          errorMessage={actionData?.fieldErrors?.country}
+        />
+        <input value={String(country?.id)} name='country' type='hidden' />
+
         <TextField
           id='email'
           label='Email'
+          enterKeyHint='next'
           name='email'
           defaultValue={actionData?.fields?.email}
           type='email'
@@ -166,6 +228,17 @@ export default function SignupPage() {
           required
           errorMessage={actionData?.fieldErrors?.email}
         />
+
+        {/* <div className='flex w-full items-center space-x-3 rounded-xl bg-container p-4'>
+          <div className='text-medium'>
+            <TipIcon />
+          </div>
+          <span className='text-small font-normal text-medium'>
+            We currently aren't released in your region. Feel free to join our
+            waiting list.
+          </span>
+        </div> */}
+
         <TextField
           id='password'
           label='Password'
@@ -182,7 +255,7 @@ export default function SignupPage() {
         />
 
         <input
-          defaultValue={getCsrfTokenFromFlow(loaderData)}
+          defaultValue={getCsrfTokenFromFlow(flow)}
           name='csrf_token'
           type='hidden'
         />
