@@ -10,8 +10,6 @@ import {
 import React from 'react'
 import type { MetaFunction, LinksFunction } from 'remix'
 import styles from '~/styles/app.css'
-import { ApolloProvider } from '@apollo/client'
-import { apolloClient } from '~/lib/apollo'
 import { Error } from '~/components'
 
 const metaContent = {
@@ -83,9 +81,7 @@ function Document({
 export default function App() {
   return (
     <Document>
-      <ApolloProvider client={apolloClient}>
-        <Outlet />
-      </ApolloProvider>
+      <Outlet />
     </Document>
   )
 }
