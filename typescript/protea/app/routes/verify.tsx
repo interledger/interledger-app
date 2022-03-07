@@ -4,7 +4,13 @@ import { Button, Logo, Router } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
 import { getCsrfTokenFromFlow, handleFlowError } from '~/lib/kratos'
+import {
+  OnboardAccountDocument,
+  OnboardAccountMutation,
+  OnboardAccountMutationVariables
+} from '~/generated/types'
 import { Session } from '@ory/kratos-client'
+import { apolloClient } from '~/lib/apollo.server'
 
 type ActionData = {
   formError?: string
@@ -86,6 +92,19 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   const userSession: Session = await session.json()
   if (session.status >= 400) handleFlowError(session, 'verify')
+
+  // TODO: Remove when proper onboarding is implemented
+  await apolloClient.mutate<
+    OnboardAccountMutation,
+    OnboardAccountMutationVariables
+  >({
+    mutation: OnboardAccountDocument,
+    context: {
+      headers: {
+        cookie: cookie
+      }
+    }
+  })
 
   // Check the user has at least one verifiable address.
   if (!userSession.identity.verifiable_addresses)
