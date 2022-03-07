@@ -1,0 +1,14 @@
+query GetHome {
+  account {
+    id
+    balance
+    recentTransactions {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
