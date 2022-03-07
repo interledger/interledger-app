@@ -96,6 +96,7 @@ type ComplexityRoot struct {
 		InitiateOutgoingPayment func(childComplexity int, input OutgoingPaymentInput) int
 		InitiateWithdrawal      func(childComplexity int, input WithdrawalInput) int
 		LinkUsdBankAccount      func(childComplexity int, input LinkUsdBankAccountInput) int
+		OnboardAccount          func(childComplexity int) int
 		VerifyAccount           func(childComplexity int, input VerifyAccountInput) int
 		VerifyUsdBankAccount    func(childComplexity int, input VerifyUsdBankAccountInput) int
 	}
@@ -148,6 +149,7 @@ type AccountResolver interface {
 	RecentTransactions(ctx context.Context, obj *Account) ([]*Transaction, error)
 }
 type MutationResolver interface {
+	OnboardAccount(ctx context.Context) (*CreateAccountMutationResponse, error)
 	CreateAccount(ctx context.Context, input CreateAccountInput) (*CreateAccountMutationResponse, error)
 	VerifyAccount(ctx context.Context, input VerifyAccountInput) (*VerifyAccountMutationResponse, error)
 	LinkUsdBankAccount(ctx context.Context, input LinkUsdBankAccountInput) (*LinkFundingSourceMutationResponse, error)
@@ -426,6 +428,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.LinkUsdBankAccount(childComplexity, args["input"].(LinkUsdBankAccountInput)), true
 
+	case "Mutation.onboardAccount":
+		if e.complexity.Mutation.OnboardAccount == nil {
+			break
+		}
+
+		return e.complexity.Mutation.OnboardAccount(childComplexity), true
+
 	case "Mutation.verifyAccount":
 		if e.complexity.Mutation.VerifyAccount == nil {
 			break
@@ -696,6 +705,7 @@ var sources = []*ast.Source{
 }
 
 type Mutation {
+  onboardAccount: CreateAccountMutationResponse!
   createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
   verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
@@ -1941,6 +1951,41 @@ func (ec *executionContext) _LinkFundingSourceMutationResponse_fundingSource(ctx
 	res := resTmp.(*FundingSource)
 	fc.Result = res
 	return ec.marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_onboardAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().OnboardAccount(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*CreateAccountMutationResponse)
+	fc.Result = res
+	return ec.marshalNCreateAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountMutationResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5050,6 +5095,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "onboardAccount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_onboardAccount(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createAccount":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createAccount(ctx, field)

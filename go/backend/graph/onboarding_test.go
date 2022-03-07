@@ -160,6 +160,33 @@ func TestUserOnboarding(s *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, response)
 	})
+
+	// Scenario: onboard request creates and verifies account TODO: Dummy for now
+	s.Run("onboard request creates and verifies account", func(t *testing.T) {
+		user := &_user.User{
+			Email: faker.Email(),
+			ID:    uuid.NewString(),
+		}
+		input := generateVerifyAccountInput()
+		ledgerAccountID := uuid.NewString()
+		container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
+			Id: ledgerAccountID,
+		}, nil).Times(1)
+		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
+				return &pacioliv1.Account{
+					Id: args.Id,
+				}, nil
+			}).Times(2)
+
+		response, err := onboardAccount(container, user, input)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "200", response.Code)
+		assert.Equal(t, true, response.Success)
+	})
 }
 
 func createAccount(container *TestContainer, user *_user.User, input *generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {
@@ -251,6 +278,33 @@ func verifyAccount(container *TestContainer, user *_user.User, input *generated.
 	}
 
 	ret := response["verifyAccount"]
+
+	return &ret, nil
+}
+
+func onboardAccount(container *TestContainer, user *_user.User, input *generated.VerifyAccountInput) (*generated.CreateAccountMutationResponse, error) {
+	req := graphql.NewRequest(`
+			    mutation {
+			        onboardAccount {
+			            code
+			            success
+			            message
+			            account {
+			            	id
+			            	balance
+			            }
+			        }
+			    }
+			`)
+	req.Var("input", input)
+	_user.ActingAs(req, user)
+
+	var response map[string]generated.CreateAccountMutationResponse
+	if err := container.Client.Run(container.Ctx, req, &response); err != nil {
+		return nil, err
+	}
+
+	ret := response["onboardAccount"]
 
 	return &ret, nil
 }

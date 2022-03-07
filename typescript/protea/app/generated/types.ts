@@ -20,17 +20,17 @@ export type Account = {
   recentTransactions: Array<Transaction>;
 };
 
-export type CreateIdentityInput = {
+export type CreateAccountInput = {
   country: Scalars['String'];
   firstName: Scalars['String'];
   lastName: Scalars['String'];
   mobileNumber: Scalars['String'];
 };
 
-export type CreateIdentityMutationResponse = MutationResponse & {
-  __typename?: 'CreateIdentityMutationResponse';
+export type CreateAccountMutationResponse = MutationResponse & {
+  __typename?: 'CreateAccountMutationResponse';
+  account?: Maybe<Account>;
   code: Scalars['String'];
-  identity?: Maybe<Identity>;
   message: Scalars['String'];
   success: Scalars['Boolean'];
 };
@@ -60,19 +60,12 @@ export type FundingSource = {
 
 export type Identity = {
   __typename?: 'Identity';
-  address: Array<Maybe<Scalars['String']>>;
-  city: Scalars['String'];
   country: Scalars['String'];
-  dateOfBirth: Scalars['String'];
   email: Scalars['String'];
   firstName: Scalars['String'];
   id: Scalars['ID'];
   lastName: Scalars['String'];
   mobileNumber: Scalars['String'];
-  postalCode: Scalars['String'];
-  state: Scalars['String'];
-  taxIdNumber: Scalars['String'];
-  verificationState: Scalars['String'];
 };
 
 export type LinkFundingSourceMutationResponse = MutationResponse & {
@@ -93,18 +86,19 @@ export type LinkUsdBankAccountInput = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createIdentity: CreateIdentityMutationResponse;
+  createAccount: CreateAccountMutationResponse;
   initiateDeposit: DepositMutationResponse;
   initiateOutgoingPayment: OutgoingPaymentMutationResponse;
   initiateWithdrawal: WithdrawalMutationResponse;
   linkUsdBankAccount: LinkFundingSourceMutationResponse;
-  verify: VerifyMutationResponse;
+  onboardAccount: CreateAccountMutationResponse;
+  verifyAccount: VerifyAccountMutationResponse;
   verifyUsdBankAccount: VerifyUsdBankAccountMutationResponse;
 };
 
 
-export type MutationCreateIdentityArgs = {
-  input: CreateIdentityInput;
+export type MutationCreateAccountArgs = {
+  input: CreateAccountInput;
 };
 
 
@@ -128,8 +122,8 @@ export type MutationLinkUsdBankAccountArgs = {
 };
 
 
-export type MutationVerifyArgs = {
-  input: VerificationInput;
+export type MutationVerifyAccountArgs = {
+  input: VerifyAccountInput;
 };
 
 
@@ -179,7 +173,7 @@ export enum TransactionType {
   Withdrawal = 'WITHDRAWAL'
 }
 
-export type VerificationInput = {
+export type VerifyAccountInput = {
   Address: Array<Scalars['String']>;
   City: Scalars['String'];
   DateOfBirth: Scalars['String'];
@@ -188,10 +182,10 @@ export type VerificationInput = {
   TaxIdNumber: Scalars['String'];
 };
 
-export type VerifyMutationResponse = MutationResponse & {
-  __typename?: 'VerifyMutationResponse';
+export type VerifyAccountMutationResponse = MutationResponse & {
+  __typename?: 'VerifyAccountMutationResponse';
+  account?: Maybe<Account>;
   code: Scalars['String'];
-  identity?: Maybe<Identity>;
   message: Scalars['String'];
   success: Scalars['Boolean'];
 };
