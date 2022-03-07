@@ -1,0 +1,10 @@
+mutation OnboardAccount {
+  onboardAccount {
+    code
+    success
+    message
+    account {
+      id
+    }
+  }
+}

@@ -239,6 +239,11 @@ export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetCountriesQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', id: string, name: string }> };
 
+export type OnboardAccountMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnboardAccountMutation = { __typename?: 'Mutation', onboardAccount: { __typename?: 'CreateAccountMutationResponse', code: string, success: boolean, message: string, account?: { __typename?: 'Account', id: string } | null | undefined } };
+
 
 export const LinkUsdBankAccountDocument = gql`
     mutation LinkUsdBankAccount($input: LinkUsdBankAccountInput!) {
@@ -282,3 +287,18 @@ export const GetCountriesDocument = gql`
 }
     `;
 export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetCountriesQueryVariables>;
+export const OnboardAccountDocument = gql`
+    mutation OnboardAccount {
+  onboardAccount {
+    code
+    success
+    message
+    account {
+      id
+    }
+  }
+}
+    `;
+export type OnboardAccountMutationFn = Apollo.MutationFunction<OnboardAccountMutation, OnboardAccountMutationVariables>;
+export type OnboardAccountMutationResult = Apollo.MutationResult<OnboardAccountMutation>;
+export type OnboardAccountMutationOptions = Apollo.BaseMutationOptions<OnboardAccountMutation, OnboardAccountMutationVariables>;
