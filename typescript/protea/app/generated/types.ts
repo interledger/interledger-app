@@ -229,6 +229,13 @@ export type LinkUsdBankAccountMutationVariables = Exact<{
 
 export type LinkUsdBankAccountMutation = { __typename?: 'Mutation', linkUsdBankAccount: { __typename?: 'LinkFundingSourceMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
 
+export type VerifyUsdBankAccountMutationVariables = Exact<{
+  input: VerifyUsdBankAccountInput;
+}>;
+
+
+export type VerifyUsdBankAccountMutation = { __typename?: 'Mutation', verifyUsdBankAccount: { __typename?: 'VerifyUsdBankAccountMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
+
 export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -265,6 +272,26 @@ export const LinkUsdBankAccountDocument = gql`
 export type LinkUsdBankAccountMutationFn = Apollo.MutationFunction<LinkUsdBankAccountMutation, LinkUsdBankAccountMutationVariables>;
 export type LinkUsdBankAccountMutationResult = Apollo.MutationResult<LinkUsdBankAccountMutation>;
 export type LinkUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<LinkUsdBankAccountMutation, LinkUsdBankAccountMutationVariables>;
+export const VerifyUsdBankAccountDocument = gql`
+    mutation VerifyUsdBankAccount($input: VerifyUsdBankAccountInput!) {
+  verifyUsdBankAccount(input: $input) {
+    code
+    success
+    message
+    fundingSource {
+      id
+      name
+      verificationStatus
+      mask
+      type
+      subType
+    }
+  }
+}
+    `;
+export type VerifyUsdBankAccountMutationFn = Apollo.MutationFunction<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
+export type VerifyUsdBankAccountMutationResult = Apollo.MutationResult<VerifyUsdBankAccountMutation>;
+export type VerifyUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
 export const GetFundingSourcesDocument = gql`
     query GetFundingSources {
   fundingSources {
