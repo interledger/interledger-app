@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bxcodec/faker/v3"
 	"strconv"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -59,6 +60,73 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 	}
 
 	return trxs, nil
+}
+
+func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.CreateAccountMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	// Check if account exists
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if acc != nil {
+		floatBalance := float64(acc.AvailableBalance) / float64(100)
+		return &generated.CreateAccountMutationResponse{
+			Code:    "200",
+			Success: true,
+			Message: "Onboarded account.",
+			Account: &generated.Account{
+				ID:      acc.ID,
+				Balance: fmt.Sprintf("$ %.2f", floatBalance),
+			},
+		}, nil
+	}
+
+	acc, err = r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
+		IdentityID:   user.ID,
+		FirstName:    faker.FirstName(),
+		LastName:     faker.FirstName(),
+		MobileNumber: faker.E164PhoneNumber(),
+		Email:        user.Email,
+		Country:      "US",
+	})
+
+	acc, err = r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
+		IdentityID:  user.ID,
+		AccountID:   acc.ID,
+		DateOfBirth: faker.Date(),
+		Address:     []string{faker.Name()},
+		State:       faker.FirstName(),
+		City:        faker.FirstName(),
+		PostalCode:  faker.Currency(),
+		TaxIDNumber: faker.CCNumber(),
+	})
+	if err != nil {
+		switch err.(type) {
+		case *_identity.ErrNotFound:
+			NotFoundError(ctx)
+			return nil, nil
+		case *_identity.ErrInvalidArgument:
+			InvalidArgument(ctx, err.Error())
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	floatBalance := float64(acc.AvailableBalance) / float64(100)
+	return &generated.CreateAccountMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Onboarded account.",
+		Account: &generated.Account{
+			ID:      acc.ID,
+			Balance: fmt.Sprintf("$ %.2f", floatBalance),
+		},
+	}, nil
 }
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {

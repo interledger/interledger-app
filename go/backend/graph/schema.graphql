@@ -5,6 +5,7 @@ type Query{
 }
 
 type Mutation {
+  onboardAccount: CreateAccountMutationResponse!
   createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
   verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
   linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
