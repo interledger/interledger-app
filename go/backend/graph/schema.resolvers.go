@@ -9,8 +9,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/bxcodec/faker/v3"
-
+	faker "github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
