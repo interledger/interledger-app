@@ -1,0 +1,31 @@
+query GetFundingSources {
+  fundingSources {
+    id
+    name
+    verificationStatus
+    mask
+    type
+    subType
+  }
+}
+
+input WithdrawalInput {
+  fundingSourceID: ID!
+  amount: String!
+}
+
+mutation InitiateWithdrawal($input: WithdrawalInput!) {
+  initiateWithdrawal(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
