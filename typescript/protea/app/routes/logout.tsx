@@ -1,27 +1,25 @@
-import { json, redirect, useLoaderData } from 'remix'
+import { json, useLoaderData } from 'remix'
 import type { LoaderFunction } from 'remix'
 import { Logo, Router } from '~/components'
-import { AxiosError } from 'axios'
 import React from 'react'
 import { route } from 'routes-gen'
-import { kratos } from '~/lib/kratos'
+import { handleFlowError } from '~/lib/kratos'
 
 export const loader: LoaderFunction = async ({ request }) => {
-  return kratos
-    .createSelfServiceLogoutFlowUrlForBrowsers(
-      request.headers.get('cookie') ?? undefined
-    )
-    .then(({ data }) => json(data))
-    .catch((err: AxiosError) => {
-      switch (err.response?.status) {
-        case 401:
-          // do nothing, the user is not logged in
-          return redirect(route('/login'))
+  const cookie = String(request.headers.get('cookie'))
+  let flow
+  const flowRes = await fetch(
+    `http://kratos-public/self-service/logout/browser`,
+    {
+      headers: {
+        cookie: cookie,
+        Accept: 'application/json'
       }
-
-      // Something else happened!
-      return Promise.reject(err)
-    })
+    }
+  )
+  flow = await flowRes.json()
+  if (flowRes.status >= 400) handleFlowError(flow, 'logout')
+  return json(flow)
 }
 
 export default function LoginPage() {

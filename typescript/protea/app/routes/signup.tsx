@@ -10,12 +10,10 @@ import React, { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   getCsrfTokenFromFlow,
-  kratos,
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos'
 import { apolloClient } from '~/lib/apollo.server'
-import axios, { AxiosError, AxiosResponse } from 'axios'
 
 type Country = {
   id: string
@@ -35,16 +33,6 @@ type ActionData = {
     password: string
     csrf_token: string
   }
-}
-
-const setAllCookiesHeaders = (response: AxiosResponse): Headers => {
-  const headers = new Headers()
-  const setCookieHeaders = response.headers['set-cookie']
-  if (typeof setCookieHeaders === 'undefined') return headers
-  setCookieHeaders.forEach((val) => {
-    headers.append('set-cookie', val)
-  })
-  return headers
 }
 
 const badRequest = (data: ActionData) => json(data, { status: 400 })
@@ -70,47 +58,49 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const fields = { csrf_token: csrfToken, email, password, country }
-
-  return axios
-    .post(
-      `http://kratos-public/self-service/registration?flow=${flowId}`,
-      {
+  const res = await fetch(
+    `http://kratos-public/self-service/registration?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
         method: 'password',
         traits: {
           email: email
         },
         password: password,
         csrf_token: csrfToken
-      },
-      {
-        headers: {
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
       }
-    )
-    .then((res) =>
-      redirect(route('/verify'), {
-        headers: setAllCookiesHeaders(res)
-      })
-    )
-    .catch((err: AxiosError) => {
-      // If the previous handler did not catch the error it's most likely a form validation error
-      if (err.response?.status === 400) {
-        // Yup, it is!
-        return badRequest({ fieldErrors: err.response?.data, fields })
+    }
+  )
+
+  const data = await res.json()
+
+  if (res.status >= 400) {
+    let fieldErrors: ActionData['fieldErrors'] = {}
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
       }
-      return err
-    })
+    }
+    return badRequest({ fieldErrors: fieldErrors, fields })
+  }
+  return redirect(route('/verify'), {
+    headers: res.headers
+  })
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireNoUserSession(request)
-  const cookie = request.headers.get('cookie')
+  const cookie = String(request.headers.get('cookie'))
 
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('return_to')
 
   const countries = await apolloClient
     .query<GetCountriesQuery, GetCountriesQueryVariables>({
@@ -121,26 +111,33 @@ export const loader: LoaderFunction = async ({ request }) => {
     })
     .then((val) => val.data.countries)
 
-  // TODO: get flow from kratos and handle flow errors appropriately.
-  // If ?flow=.. was in the URL, we fetch it
+  let flow
   if (flowId) {
-    return kratos
-      .getSelfServiceRegistrationFlow(String(flowId), cookie ?? undefined)
-      .then((res) => json({ flow: res.data, countries: countries }))
-      .catch(handleFlowError('signup'))
+    // If ?flow=.. was in the URL, we fetch it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/registration/flows?id=${flowId}`,
+      {
+        headers: {
+          cookie: cookie,
+          Accept: 'application/json'
+        }
+      }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'signup')
+  } else {
+    // Otherwise we initialize it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/registration/browser?${url.searchParams}`,
+      { headers: { Accept: 'application/json' } }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'signup')
+    return redirect(`/signup?flow=${flow.id}`, {
+      headers: flowRes.headers
+    })
   }
-
-  // Otherwise we initialize it
-  return kratos
-    .initializeSelfServiceRegistrationFlowForBrowsers(
-      returnTo ? String(returnTo) : undefined
-    )
-    .then(async (res) =>
-      redirect(`/signup?flow=${res.data.id}`, {
-        headers: res.headers
-      })
-    )
-    .catch(handleFlowError('signup'))
+  return json({ flow, countries })
 }
 
 export default function SignupPage() {
@@ -250,7 +247,6 @@ export default function SignupPage() {
             actionData?.fieldErrors?.password ? 'password-error' : undefined
           }
           required
-          minLength={8}
           errorMessage={actionData?.fieldErrors?.password}
         />
 
