@@ -6,27 +6,20 @@ import {
   CardIcon,
   PendingIcon,
   ReadMoreIcon,
-  ReceivedIcon,
   Router,
   SentIcon,
   SettingsIcon
 } from '~/components'
 import { requireUserSession } from '~/lib/kratos'
 import React, { FC } from 'react'
-
-enum TransactionType {
-  Received = 'Received',
-  Sent = 'Sent',
-  Deposit = 'Deposit',
-  Withdrawal = 'Withdrawal'
-}
-
-enum TransactionStatus {
-  Pending = 'Pending',
-  Complete = 'Complete',
-  Cancelled = 'Cancelled',
-  Failed = 'Failed'
-}
+import {
+  GetHomeDocument,
+  GetHomeQuery,
+  GetHomeQueryVariables,
+  TransactionType
+} from '~/generated/types'
+import { apolloClient } from '~/lib/apollo.server'
+import { DateTime } from 'luxon'
 
 type Activity = {
   id: string
@@ -34,7 +27,7 @@ type Activity = {
   transactionType: TransactionType
   title: string
   description: string
-  status: TransactionStatus
+  status: string
 }
 
 type Activities = {
@@ -43,93 +36,57 @@ type Activities = {
 }
 
 type LoaderData = {
-  balance: string
+  balance?: string
   recentActivities: Activities[]
   pendingTransactions: Activity[]
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUserSession(request)
+  const cookie = request.headers.get('cookie')
+
+  const account = await apolloClient
+    .query<GetHomeQuery, GetHomeQueryVariables>({
+      query: GetHomeDocument,
+      context: {
+        headers: {
+          cookie: cookie
+        }
+      }
+    })
+    .then((val) => val.data.account)
+
+  let recentActivities: LoaderData['recentActivities'] = []
+  let pendingTransactions: LoaderData['pendingTransactions'] = []
+  if (typeof account?.recentTransactions !== 'undefined')
+    for (let trx of account?.recentTransactions) {
+      const activity = {
+        id: trx.id,
+        amount: trx.amount,
+        transactionType: trx.type,
+        title: trx.type,
+        description: trx.description,
+        status: trx.status
+      }
+      if (activity.status == 'pending') {
+        pendingTransactions.push(activity)
+        continue
+      }
+      const date = DateTime.fromISO('2016-05-25').toFormat('dd LLLL yyyy')
+      const indexToPush = recentActivities.findIndex((val) => val.date == date)
+      if (indexToPush > 0)
+        recentActivities[indexToPush].activities.push(activity)
+      else
+        recentActivities.push({
+          date: date,
+          activities: [activity]
+        })
+    }
+
   const data: LoaderData = {
-    balance: '$ 183.00',
-    recentActivities: [
-      {
-        date: '24 January 2022',
-        activities: [
-          {
-            id: '3',
-            amount: '$ 1.00',
-            transactionType: TransactionType.Received,
-            title: 'Received',
-            description: 'from Interledger',
-            status: TransactionStatus.Complete
-          },
-          {
-            id: '6',
-            amount: '$ 1.00',
-            transactionType: TransactionType.Withdrawal,
-            title: 'Withdrawal',
-            description: 'to xxxx bank account',
-            status: TransactionStatus.Complete
-          }
-        ]
-      },
-      {
-        date: '21 January 2022',
-        activities: [
-          {
-            id: '2',
-            amount: '$ 14.00',
-            transactionType: TransactionType.Sent,
-            title: 'Sent',
-            description: 'to Interledger',
-            status: TransactionStatus.Complete
-          },
-          {
-            id: '1',
-            amount: '$ 200.00',
-            transactionType: TransactionType.Deposit,
-            title: 'Deposit',
-            description: 'from card ending 4242',
-            status: TransactionStatus.Complete
-          }
-        ]
-      }
-    ],
-    pendingTransactions: [
-      {
-        id: '7',
-        amount: '$ 1.00',
-        transactionType: TransactionType.Deposit,
-        title: 'Incoming deposit',
-        description: 'from card ending 4242',
-        status: TransactionStatus.Pending
-      },
-      {
-        id: '8',
-        amount: '$ 1.00',
-        transactionType: TransactionType.Withdrawal,
-        title: 'Outgoing withdrawal',
-        description: 'to xxxx bank account',
-        status: TransactionStatus.Pending
-      },
-      {
-        id: '9',
-        amount: '$ 1.00',
-        transactionType: TransactionType.Received,
-        title: 'Incoming payment',
-        description: 'from Interledger',
-        status: TransactionStatus.Pending
-      },
-      {
-        id: '10',
-        amount: '$ 1.00',
-        transactionType: TransactionType.Sent,
-        title: 'Outgoing payment',
-        description: 'to Interledger',
-        status: TransactionStatus.Pending
-      }
-    ]
+    balance: account?.balance,
+    recentActivities: recentActivities,
+    pendingTransactions: pendingTransactions
   }
   return json(data)
 }
@@ -170,17 +127,19 @@ export default function Home() {
             </div>
           </Router>
         </div>
-        <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-display text-lg font-medium'>
-            Recent activity
-          </span>
-          <Router to={route('/activity')}>
-            <div className='flex items-center space-x-1 font-display text-sm font-medium text-primary'>
-              <span>See all</span>
-              <ReadMoreIcon />
-            </div>
-          </Router>
-        </div>
+        {account.recentActivities.length > 0 && (
+          <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <span className='font-display text-lg font-medium'>
+              Recent activity
+            </span>
+            <Router to={route('/activity')}>
+              <div className='flex items-center space-x-1 font-display text-sm font-medium text-primary'>
+                <span>See all</span>
+                <ReadMoreIcon />
+              </div>
+            </Router>
+          </div>
+        )}
         {/* Activity items */}
         {account.recentActivities.map((activities) => (
           <React.Fragment key={activities.date}>
@@ -192,9 +151,11 @@ export default function Home() {
             ))}
           </React.Fragment>
         ))}
-        <div className='col-span-full flex justify-start pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-display text-lg font-medium'>Pending</span>
-        </div>
+        {account.pendingTransactions.length > 0 && (
+          <div className='col-span-full flex justify-start pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <span className='font-display text-lg font-medium'>Pending</span>
+          </div>
+        )}
         {account.pendingTransactions.map((activity) => (
           <ActivityCard key={activity.id} activity={activity} />
         ))}
@@ -203,16 +164,16 @@ export default function Home() {
   )
 }
 
-const activityIcon = (type: TransactionType, status: TransactionStatus) => {
+const activityIcon = (type: TransactionType, status: string) => {
   switch (status) {
-    case TransactionStatus.Pending:
+    case 'pending':
       return <PendingIcon />
     default:
       break
   }
   switch (type) {
-    case TransactionType.Received:
-      return <ReceivedIcon />
+    // case TransactionType.Received:
+    //   return <ReceivedIcon />
     case TransactionType.Sent:
       return <SentIcon />
     case TransactionType.Deposit:

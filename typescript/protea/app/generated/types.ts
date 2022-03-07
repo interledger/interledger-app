@@ -248,6 +248,11 @@ export type InitiateDepositMutationVariables = Exact<{
 
 export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
 
+export type GetHomeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetHomeQuery = { __typename?: 'Query', account?: { __typename?: 'Account', id: string, balance: string, recentTransactions: Array<{ __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string }> } | null | undefined };
+
 export type InitiateWithdrawalMutationVariables = Exact<{
   input: WithdrawalInput;
 }>;
@@ -339,6 +344,23 @@ export const InitiateDepositDocument = gql`
 export type InitiateDepositMutationFn = Apollo.MutationFunction<InitiateDepositMutation, InitiateDepositMutationVariables>;
 export type InitiateDepositMutationResult = Apollo.MutationResult<InitiateDepositMutation>;
 export type InitiateDepositMutationOptions = Apollo.BaseMutationOptions<InitiateDepositMutation, InitiateDepositMutationVariables>;
+export const GetHomeDocument = gql`
+    query GetHome {
+  account {
+    id
+    balance
+    recentTransactions {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
+    `;
+export type GetHomeQueryResult = Apollo.QueryResult<GetHomeQuery, GetHomeQueryVariables>;
 export const InitiateWithdrawalDocument = gql`
     mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {
