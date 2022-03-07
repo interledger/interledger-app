@@ -5,8 +5,29 @@ input LinkUsdBankAccountInput {
   institution: String!
   type: String!
 }
+
 mutation LinkUsdBankAccount($input: LinkUsdBankAccountInput!) {
   linkUsdBankAccount(input: $input) {
+    code
+    success
+    message
+    fundingSource {
+      id
+      name
+      verificationStatus
+      mask
+      type
+      subType
+    }
+  }
+}
+
+input VerifyUsdBankAccountInput {
+  FundingSourceId: String!
+}
+
+mutation VerifyUsdBankAccount($input: VerifyUsdBankAccountInput!) {
+  verifyUsdBankAccount(input: $input) {
     code
     success
     message

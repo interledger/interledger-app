@@ -1,7 +1,10 @@
 import {
   LinkUsdBankAccountMutationVariables,
   LinkUsdBankAccountMutation,
-  LinkUsdBankAccountDocument
+  LinkUsdBankAccountDocument,
+  VerifyUsdBankAccountDocument,
+  VerifyUsdBankAccountMutation,
+  VerifyUsdBankAccountMutationVariables
 } from '~/generated/types'
 import React, { useState } from 'react'
 import {
@@ -47,14 +50,6 @@ export const action: ActionFunction = async ({ request }) => {
   const routingNumber = form.get('routingNumber')
   const type = form.get('type')
 
-  console.table({
-    accountNumber: accountNumber,
-    institution: institution,
-    name: name,
-    routingNumber: routingNumber,
-    type: type
-  })
-
   // TODO: proper validation of input based on providers requirements
   if (
     typeof accountNumber !== 'string' ||
@@ -78,7 +73,7 @@ export const action: ActionFunction = async ({ request }) => {
     }
   }
 
-  const res = await apolloClient.mutate<
+  const linkRes = await apolloClient.mutate<
     LinkUsdBankAccountMutation,
     LinkUsdBankAccountMutationVariables
   >({
@@ -90,7 +85,31 @@ export const action: ActionFunction = async ({ request }) => {
       }
     }
   })
-  if (res.data?.linkUsdBankAccount.success) return redirect(route('/deposit'))
+  if (
+    linkRes.data?.linkUsdBankAccount.success &&
+    linkRes.data?.linkUsdBankAccount.fundingSource != null
+  ) {
+    const verifyUsdBankAccountMutationVariables = {
+      input: {
+        FundingSourceId: linkRes.data?.linkUsdBankAccount?.fundingSource.id
+      }
+    }
+
+    const res = await apolloClient.mutate<
+      VerifyUsdBankAccountMutation,
+      VerifyUsdBankAccountMutationVariables
+    >({
+      mutation: VerifyUsdBankAccountDocument,
+      variables: verifyUsdBankAccountMutationVariables,
+      context: {
+        headers: {
+          cookie: cookie
+        }
+      }
+    })
+    if (res.data?.verifyUsdBankAccount.success)
+      return redirect(route('/deposit'))
+  }
   return null
 }
 
@@ -98,7 +117,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return requireUserSession(request)
 }
 
-const people = [
+const accountTypes = [
   { id: '1', name: 'Checking' },
   { id: '2', name: 'Savings' }
 ]
@@ -107,7 +126,7 @@ export default function DepositPage() {
   const actionData = useActionData<ActionData>()
   // TODO: use loaderData to get the user's fundingSources
   // const loaderData = useLoaderData()
-  const [selected, setSelected] = useState(people[0])
+  const [selected, setSelected] = useState(accountTypes[0])
   return (
     <div className='w-full'>
       {/* Header */}
@@ -127,12 +146,11 @@ export default function DepositPage() {
         method='post'
         className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'
       >
-        <div className='col-span-full flex min-w-full flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'></div>
         <Select
           id='type'
           value={selected}
           onChange={setSelected}
-          options={people}
+          options={accountTypes}
           label='Account type'
           // defaultValue={actionData?.fields?.type}
           className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
