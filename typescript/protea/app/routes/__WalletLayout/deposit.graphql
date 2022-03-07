@@ -8,3 +8,24 @@ query GetFundingSources {
     subType
   }
 }
+
+input DepositInput {
+  fundingSourceID: ID!
+  amount: String!
+}
+
+mutation InitiateDeposit($input: DepositInput!) {
+  initiateDeposit(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}

@@ -241,6 +241,13 @@ export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetFundingSourcesQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
 
+export type InitiateDepositMutationVariables = Exact<{
+  input: DepositInput;
+}>;
+
+
+export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
+
 export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -305,6 +312,26 @@ export const GetFundingSourcesDocument = gql`
 }
     `;
 export type GetFundingSourcesQueryResult = Apollo.QueryResult<GetFundingSourcesQuery, GetFundingSourcesQueryVariables>;
+export const InitiateDepositDocument = gql`
+    mutation InitiateDeposit($input: DepositInput!) {
+  initiateDeposit(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
+    `;
+export type InitiateDepositMutationFn = Apollo.MutationFunction<InitiateDepositMutation, InitiateDepositMutationVariables>;
+export type InitiateDepositMutationResult = Apollo.MutationResult<InitiateDepositMutation>;
+export type InitiateDepositMutationOptions = Apollo.BaseMutationOptions<InitiateDepositMutation, InitiateDepositMutationVariables>;
 export const GetCountriesDocument = gql`
     query GetCountries {
   countries {

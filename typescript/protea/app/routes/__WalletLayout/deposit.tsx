@@ -1,7 +1,10 @@
 import {
   GetFundingSourcesQuery,
   GetFundingSourcesQueryVariables,
-  GetFundingSourcesDocument
+  GetFundingSourcesDocument,
+  InitiateDepositDocument,
+  InitiateDepositMutation,
+  InitiateDepositMutationVariables
 } from '~/generated/types'
 import React, { useState } from 'react'
 import {
@@ -37,19 +40,32 @@ export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
   const fundingsource = form.get('fundingsource')
   const amount = form.get('amount')
-
-  /**
-   * TODO:
-   * - Form validation
-   * - Submission flow
-   * - Route to /deposit/preview on success
-   */
+  const cookie = String(request.headers.get('cookie'))
 
   if (typeof fundingsource !== 'string' || typeof amount !== 'string') {
     return badRequest({
       formError: `Form not submitted correctly.`
     })
   }
+  const initiateDepositMutationVariables = {
+    input: {
+      fundingSourceID: fundingsource,
+      amount: amount
+    }
+  }
+  const res = await apolloClient.mutate<
+    InitiateDepositMutation,
+    InitiateDepositMutationVariables
+  >({
+    mutation: InitiateDepositDocument,
+    variables: initiateDepositMutationVariables,
+    context: {
+      headers: {
+        cookie: cookie
+      }
+    }
+  })
+  if (res.data?.initiateDeposit.success) return redirect(route('/home'))
   return null
 }
 
@@ -74,7 +90,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function DepositPage() {
   const actionData = useActionData<ActionData>()
-  // TODO: use loaderData to get the user's fundingSources
   const loaderData = useLoaderData()
   const [selected, setSelected] = useState(loaderData[0])
   return (
@@ -96,14 +111,12 @@ export default function DepositPage() {
         method='post'
         className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'
       >
-        {/* <div className='col-span-full flex min-w-full flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'></div> */}
         <Select
           id='fundingsource'
           value={selected}
           onChange={setSelected}
           options={loaderData}
           label='Deposit source'
-          // defaultValue={actionData?.fields?.fundingsource}
           className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
           aria-invalid={
             Boolean(actionData?.fieldErrors?.fundingsource) || undefined
