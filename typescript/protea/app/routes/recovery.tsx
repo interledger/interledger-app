@@ -1,12 +1,10 @@
 import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
 import type { ActionFunction, LoaderFunction } from 'remix'
 import { Button, Logo, Router, TextField } from '~/components'
-import axios, { AxiosError } from 'axios'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
   getCsrfTokenFromFlow,
-  kratos,
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos'
@@ -14,7 +12,7 @@ import {
 type ActionData = {
   formError?: string
   fieldErrors?: {
-    email: string | undefined
+    email?: string
   }
   fields?: {
     email: string
@@ -38,62 +36,70 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const fields = { csrf_token: csrfToken, email }
-
-  return axios
-    .post(
-      `http://kratos-public/self-service/recovery?flow=${flowId}`,
-      {
+  const res = await fetch(
+    `http://kratos-public/self-service/recovery?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
         method: 'link',
         email: email,
         csrf_token: csrfToken
-      },
-      {
-        headers: {
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
       }
-    )
-    .then((res) => json(res.data))
-    .catch((err: AxiosError) => {
-      // If the previous handler did not catch the error it's most likely a form validation error
-      if (err.response?.status === 400) {
-        // Yup, it is!
-        return badRequest({ fieldErrors: err.response?.data, fields })
+    }
+  )
+
+  const data = await res.json()
+  if (res.status >= 400) {
+    let fieldErrors: ActionData['fieldErrors'] = {}
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
       }
-      return err
-    })
+    }
+    return badRequest({ fieldErrors: fieldErrors, fields })
+  }
+  return json(data)
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('return_to')
+  const cookie = String(request.headers.get('cookie'))
 
-  // TODO: get flow from kratos and handle flow errors appropriately.
-  // If ?flow=.. was in the URL, we fetch it
+  let flow
   if (flowId) {
-    return kratos
-      .getSelfServiceRecoveryFlow(
-        String(flowId),
-        request.headers.get('cookie') ?? undefined
-      )
-      .then((res) => json(res.data))
-      .catch(handleFlowError('recovery'))
+    // If ?flow=.. was in the URL, we fetch it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/recovery/flows?id=${flowId}`,
+      {
+        headers: {
+          cookie: cookie,
+          Accept: 'application/json'
+        }
+      }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery')
+  } else {
+    // Otherwise we initialize it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/recovery/browser?${url.searchParams}`,
+      { headers: { Accept: 'application/json' } }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery')
+    return redirect(`/recovery?flow=${flow.id}`, {
+      headers: flowRes.headers
+    })
   }
-
-  // Otherwise we initialize it
-  return kratos
-    .initializeSelfServiceRecoveryFlowForBrowsers(
-      returnTo ? String(returnTo) : undefined
-    )
-    .then(async (res) =>
-      redirect(`/recovery?flow=${res.data.id}`, {
-        headers: res.headers
-      })
-    )
-    .catch(handleFlowError('recovery'))
+  return json(flow)
 }
 
 export default function RecoveryPage() {

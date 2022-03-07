@@ -1,16 +1,15 @@
 import { json, Form, redirect, useLoaderData } from 'remix'
 import type { ActionFunction, LoaderFunction } from 'remix'
 import { Button, Logo, Router } from '~/components'
-import axios, { AxiosError } from 'axios'
 import React from 'react'
 import { route } from 'routes-gen'
-import { getCsrfTokenFromFlow, kratos, handleFlowError } from '~/lib/kratos'
+import { getCsrfTokenFromFlow, handleFlowError } from '~/lib/kratos'
 import { Session } from '@ory/kratos-client'
 
 type ActionData = {
   formError?: string
   fieldErrors?: {
-    email: string | undefined
+    email?: string
   }
   fields?: {
     email: string
@@ -34,106 +33,100 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const fields = { csrf_token: csrfToken, email }
-  return axios
-    .post(
-      `http://kratos-public/self-service/verification?flow=${flowId}`,
-      {
+  const res = await fetch(
+    `http://kratos-public/self-service/verification?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
         method: 'link',
-        email: email,
+        email,
         csrf_token: csrfToken
-      },
-      {
-        headers: {
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
       }
-    )
-    .then((res) =>
-      redirect(route('/verify'), {
-        headers: res.headers
-      })
-    )
-    .catch((err: AxiosError) => {
-      // If the previous handler did not catch the error it's most likely a form validation error
-      if (err.response?.status === 400) {
-        // Yup, it is!
-        return badRequest({ fieldErrors: err.response?.data, fields })
+    }
+  )
+
+  const data = await res.json()
+  if (res.status >= 400) {
+    let fieldErrors: ActionData['fieldErrors'] = {}
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
       }
-      return err
-    })
-  // return kratos
-  //   .submitSelfServiceVerificationFlow(String(flowId), undefined, {
-  //     method: 'link',
-  //     email: email,
-  //     csrf_token: csrfToken
-  //   })
-  //   .then(() => redirect(route('/verify')))
-  //   .catch(handleFlowError('verify'))
-  //   .catch((err: AxiosError) => {
-  //     // If the previous handler did not catch the error it's most likely a form validation error
-  //     if (err.response?.status === 400) {
-  //       // Yup, it is!
-  //       return badRequest({ fieldErrors: err.response?.data, fields })
-  //     }
-  //     return err
-  //   })
+    }
+    return badRequest({ fieldErrors: fieldErrors, fields })
+  }
+  return redirect(route('/verify'), {
+    headers: res.headers
+  })
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('return_to')
-  const cookie = request.headers.get('cookie') || undefined
+  const cookie = String(request.headers.get('cookie'))
 
-  const session = await kratos
-    .toSession(undefined, cookie)
-    .then((res) => {
-      const session = res.data as Session
+  const session = await fetch('http://kratos-public/sessions/whoami', {
+    headers: request.headers
+  })
 
-      // Check the user has at least one verifiable address.
-      if (!session.identity.verifiable_addresses)
-        return redirect(route('/signup'))
-      // We currently only allow one email per user.
-      if (session.identity.verifiable_addresses[0].verified)
-        return redirect(route('/home'))
-
-      return session.identity.verifiable_addresses[0].value
-    })
-    .catch((err) => {
-      switch ((err as AxiosError)?.response?.status) {
-        case 403:
-        case 422: // Need to complete 2FA.
-          return redirect(route('/login') + '?aal=aal2')
-      }
-      return redirect(route('/login'))
-    })
-
-  // Ensure any redirects are thrown
-  if (session instanceof Response) return session
-
-  // TODO: get flow from kratos and handle flow errors appropriately.
-  // If ?flow=.. was in the URL, we fetch it
-  if (flowId) {
-    return kratos
-      .getSelfServiceVerificationFlow(String(flowId), cookie)
-      .then((res) => {
-        return json({ flow: res.data, email: String(session) })
-      })
-      .catch(handleFlowError('verify'))
+  switch (session.status) {
+    case 401:
+    case 500:
+      throw redirect(route('/login'))
+    case 403:
+    case 422: // Need to complete 2FA.
+      throw redirect(route('/login') + '?aal=aal2')
   }
 
-  // Otherwise we initialize it
-  return kratos
-    .initializeSelfServiceVerificationFlowForBrowsers(
-      returnTo ? String(returnTo) : undefined
+  const userSession: Session = await session.json()
+  if (session.status >= 400) handleFlowError(session, 'verify')
+
+  // Check the user has at least one verifiable address.
+  if (!userSession.identity.verifiable_addresses)
+    return redirect(route('/signup'))
+  // We currently only allow one email per user.
+  if (userSession.identity.verifiable_addresses[0].verified)
+    return redirect(route('/home'))
+
+  // Ensure any redirects are thrown
+  if (userSession instanceof Response) return session
+
+  let flow
+  if (flowId) {
+    // If ?flow=.. was in the URL, we fetch it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/verification/flows?id=${flowId}`,
+      {
+        headers: {
+          cookie: cookie,
+          Accept: 'application/json'
+        }
+      }
     )
-    .then(async (res) =>
-      redirect(`/verify?flow=${res.data.id}`, {
-        headers: res.headers
-      })
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'verify')
+  } else {
+    // Otherwise we initialize it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/verification/browser?${url.searchParams}`,
+      { headers: { cookie: cookie, Accept: 'application/json' } }
     )
-    .catch(handleFlowError('verify'))
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'verify')
+    return redirect(`/verify?flow=${flow.id}`, {
+      headers: flowRes.headers
+    })
+  }
+  return json({
+    flow,
+    email: userSession.identity.verifiable_addresses[0].value
+  })
 }
 
 export default function VerifyPage() {

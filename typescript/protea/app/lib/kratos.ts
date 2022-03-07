@@ -9,7 +9,6 @@ import type {
   SelfServiceRegistrationFlow
 } from '@ory/kratos-client'
 import { redirect } from 'remix'
-import { AxiosError } from 'axios'
 import { route } from 'routes-gen'
 
 export const kratos = new V0alpha2Api(
@@ -94,43 +93,43 @@ export async function requireNoUserSession(request: Request): Promise<void> {
 
 // This will only run on the server so don't need a router.
 export function handleFlowError(
-  flowType: 'login' | 'signup' | 'settings' | 'recovery' | 'verify'
-) {
-  return async (err: AxiosError) => {
-    switch (err.response?.data.error?.id) {
-      case 'session_aal2_required':
-        // 2FA is enabled and enforced, but user did not perform 2fa yet!
-        throw redirect(err.response?.data.redirect_browser_to)
-      case 'session_already_available':
-        // User is already signed in, let's redirect them home!
-        throw redirect(route('/'))
-      case 'session_refresh_required':
-        // We need to re-authenticate to perform this action
-        throw redirect(err.response?.data.redirect_browser_to)
-      case 'self_service_flow_return_to_forbidden':
-        // The return_to address is not allowed.
-        throw redirect('/' + flowType)
-      case 'self_service_flow_expired':
-        // The flow expired, let's request a new one.
-        throw redirect('/' + flowType)
-      case 'security_csrf_violation':
-        // A CSRF violation occurred. Best to just refresh the flow!
-        throw redirect('/' + flowType)
-      case 'security_identity_mismatch':
-        // The requested item was intended for someone else. Let's request a new flow...
-        throw redirect('/' + flowType)
-      case 'browser_location_change_required':
-        // Ory Kratos asked us to point the user to this URL.
-        throw redirect(err.response.data.redirect_browser_to)
-    }
-
-    switch (err.response?.status) {
-      case 410:
-        // The flow expired, let's request a new one.
-        throw redirect('/' + flowType)
-    }
-
-    // We are not able to handle the error? Return it.
-    return Promise.reject(err)
+  flow: any,
+  flowType:
+    | 'login'
+    | 'signup'
+    | 'settings'
+    | 'settings/password'
+    | 'recovery'
+    | 'verify'
+    | 'logout'
+): void {
+  switch (flow.error.id) {
+    case 'session_inactive':
+      // The user doesn't have a session
+      throw redirect(route('/login'))
+    case 'session_aal2_required':
+      // 2FA is enabled and enforced, but user did not perform 2fa yet!
+      throw redirect(flow.error.redirect_browser_to)
+    case 'session_already_available':
+      // User is already signed in, let's redirect them home!
+      throw redirect(route('/'))
+    case 'session_refresh_required':
+      // We need to re-authenticate to perform this action
+      throw redirect(`/login?refresh=true&return_to=/${flowType}`)
+    case 'self_service_flow_return_to_forbidden':
+      // The return_to address is not allowed.
+      throw redirect('/' + flowType)
+    case 'self_service_flow_expired':
+      // The flow expired, let's request a new one.
+      throw redirect('/' + flowType)
+    case 'security_csrf_violation':
+      // A CSRF violation occurred. Best to just refresh the flow!
+      throw redirect('/' + flowType)
+    case 'security_identity_mismatch':
+      // The requested item was intended for someone else. Let's request a new flow...
+      throw redirect('/' + flowType)
+    case 'browser_location_change_required':
+      // Ory Kratos asked us to point the user to this URL.
+      throw redirect(flow.error.redirect_browser_to)
   }
 }

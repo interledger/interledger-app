@@ -1,12 +1,10 @@
 import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
 import type { ActionFunction, LoaderFunction } from 'remix'
 import { Button, Logo, Router, TextField } from '~/components'
-import axios, { AxiosError, AxiosResponse } from 'axios'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
   getCsrfTokenFromFlow,
-  kratos,
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos'
@@ -14,8 +12,8 @@ import {
 type ActionData = {
   formError?: string
   fieldErrors?: {
-    email: string | undefined
-    password: string | undefined
+    email?: string
+    password?: string
   }
   fields?: {
     email: string
@@ -24,21 +22,12 @@ type ActionData = {
   }
 }
 
-const setAllCookiesHeaders = (response: AxiosResponse): Headers => {
-  const headers = new Headers()
-  const setCookieHeaders = response.headers['set-cookie']
-  if (typeof setCookieHeaders === 'undefined') return headers
-  setCookieHeaders.forEach((val) => {
-    headers.append('set-cookie', val)
-  })
-  return headers
-}
-
 const badRequest = (data: ActionData) => json(data, { status: 400 })
 
 export const action: ActionFunction = async ({ request }) => {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  const returnTo = url.searchParams.get('return_to')
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
@@ -50,88 +39,92 @@ export const action: ActionFunction = async ({ request }) => {
     typeof password !== 'string'
   ) {
     return badRequest({
+      // TODO: handle formError on client
       formError: `Form not submitted correctly.`
     })
   }
-
   const fields = { csrf_token: csrfToken, email, password }
-
-  return axios
-    .post(
-      `http://kratos-public/self-service/login?flow=${flowId}`,
-      {
+  const res = await fetch(
+    `http://kratos-public/self-service/login?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
         method: 'password',
         password_identifier: email,
         password: password,
         csrf_token: csrfToken
-      },
-      {
-        headers: {
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
       }
-    )
-    .then((res) =>
-      redirect(route('/home'), {
-        headers: setAllCookiesHeaders(res)
-      })
-    )
-    .catch(handleFlowError('login'))
-    .catch((err: AxiosError) => {
-      // If the previous handler did not catch the error it's most likely a form validation error
-      if (err.response?.status === 400) {
-        // Yup, it is!
-        return badRequest({ fieldErrors: err.response?.data, fields })
-      }
+    }
+  )
 
-      return err
+  const data = await res.json()
+  if (res.status >= 400) {
+    let fieldErrors: ActionData['fieldErrors'] = {}
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return badRequest({ fieldErrors: fieldErrors, fields })
+  }
+  if (returnTo) {
+    return redirect(returnTo, {
+      headers: res.headers
     })
+  }
+  return redirect(route('/home'), {
+    headers: res.headers
+  })
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  // Refresh means we want to refresh the session. This is needed, for example, when we want to update the password
-  // of a user.
-  const refresh = url.searchParams.get('refresh')
-  // AAL = Authorization Assurance Level. This implies that we want to upgrade the AAL, meaning that we want
-  // to perform two-factor authentication/verification.
-  const aal = url.searchParams.get('aal')
-  const returnTo = url.searchParams.get('return_to')
+  const cookie = String(request.headers.get('cookie'))
 
-  // TODO: get flow from kratos and handle flow errors appropriately.
-  // If ?flow=.. was in the URL, we fetch it
+  let flow
   if (flowId) {
-    return kratos
-      .getSelfServiceLoginFlow(
-        String(flowId),
-        request.headers.get('cookie') ?? undefined
-      )
-      .then((res) => json(res.data))
-      .catch(handleFlowError('login'))
+    // If ?flow=.. was in the URL, we fetch it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/login/flows?id=${flowId}`,
+      {
+        headers: {
+          cookie: cookie,
+          Accept: 'application/json'
+        }
+      }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'login')
+  } else {
+    // Otherwise we initialize it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/login/browser?${url.searchParams}`,
+      { headers: { Accept: 'application/json' } }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'login')
+    url.searchParams.append('flow', flow.id)
+    return redirect(`/login?${url.searchParams}`, {
+      headers: flowRes.headers
+    })
   }
-
-  // Otherwise we initialize it
-  return kratos
-    .initializeSelfServiceLoginFlowForBrowsers(
-      Boolean(refresh),
-      aal ? String(aal) : undefined,
-      returnTo ? String(returnTo) : undefined
-    )
-    .then(async (res) =>
-      redirect(`/login?flow=${res.data.id}`, {
-        headers: res.headers
-      })
-    )
-    .catch(handleFlowError('login'))
+  return json({ flow })
 }
 
 export default function LoginPage() {
   const actionData = useActionData<ActionData>()
-  const loaderData = useLoaderData()
-
+  const { flow } = useLoaderData()
+  const submitUrl = new URL(flow.request_url)
+  const submitSearchParams = submitUrl.searchParams
+  submitSearchParams.append('flow', flow.id)
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
       <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -154,7 +147,7 @@ export default function LoginPage() {
       </div>
       {/* Form */}
       <Form
-        action={`/login?flow=${loaderData.id}`}
+        action={`/login?${submitSearchParams}`}
         method='post'
         className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
@@ -182,17 +175,20 @@ export default function LoginPage() {
             actionData?.fieldErrors?.password ? 'password-error' : undefined
           }
           required
-          minLength={8}
           errorMessage={actionData?.fieldErrors?.password}
         />
 
         <input
-          defaultValue={getCsrfTokenFromFlow(loaderData)}
+          defaultValue={getCsrfTokenFromFlow(flow)}
           name='csrf_token'
           type='hidden'
         />
 
         <div className='flex min-w-full items-center justify-between pt-4'>
+          {/* TODO add ?email= 
+          - Could try get the email from the form
+          - Could use <button name='recovery' type='submit'>?
+          */}
           <Router to={route('/recovery')} aria-label='Forgot password?'>
             <span className='text-primary'>Forgot password?</span>
           </Router>

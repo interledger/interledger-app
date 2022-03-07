@@ -1,30 +1,23 @@
 import { ActionFunction, LoaderFunction, redirect, useLoaderData } from 'remix'
 import { useActionData, json, Form } from 'remix'
 import { Button, Logo, Router, TextField } from '~/components'
-import axios, { AxiosError, AxiosResponse } from 'axios'
 import React from 'react'
 import { route } from 'routes-gen'
-import { getCsrfTokenFromFlow, kratos, handleFlowError } from '~/lib/kratos'
+import {
+  getCsrfTokenFromFlow,
+  handleFlowError,
+  requireUserSession
+} from '~/lib/kratos'
 
 type ActionData = {
   formError?: string
   fieldErrors?: {
-    password: string | undefined
+    password?: string
   }
   fields?: {
     password: string
     csrf_token: string
   }
-}
-
-const setAllCookiesHeaders = (response: AxiosResponse): Headers => {
-  const headers = new Headers()
-  const setCookieHeaders = response.headers['set-cookie']
-  if (typeof setCookieHeaders === 'undefined') return headers
-  setCookieHeaders.forEach((val) => {
-    headers.append('set-cookie', val)
-  })
-  return headers
 }
 
 const badRequest = (data: ActionData) => json(data, { status: 400 })
@@ -43,70 +36,74 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const fields = { csrf_token: csrfToken, password }
-
-  return axios
-    .post(
-      `http://kratos-public/self-service/settings?flow=${flowId}`,
-      {
+  const res = await fetch(
+    `http://kratos-public/self-service/settings?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
         method: 'password',
         password: password,
         csrf_token: csrfToken
-      },
-      {
-        headers: {
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
       }
-    )
-    .then((res) =>
-      redirect(route('/settings'), {
-        headers: setAllCookiesHeaders(res)
-      })
-    )
-    .catch((err: AxiosError) => {
-      // If the previous handler did not catch the error it's most likely a form validation error
-      if (err.response?.status === 400) {
-        // Yup, it is!
-        return badRequest({ fieldErrors: err.response?.data, fields })
+    }
+  )
+
+  const data = await res.json()
+  if (res.status > 400) handleFlowError(data, 'settings/password')
+  if (res.status == 400) {
+    let fieldErrors: ActionData['fieldErrors'] = {}
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
       }
-      return err
-    })
+    }
+    return badRequest({ fieldErrors: fieldErrors, fields })
+  }
+  // TODO show a success notification
+  return redirect(route('/settings'), {
+    headers: res.headers
+  })
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
+  requireUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('return_to')
+  const cookie = String(request.headers.get('cookie'))
 
-  // TODO: Require user has session already
-
-  // TODO: get flow from kratos and handle flow errors appropriately.
-  // If ?flow=.. was in the URL, we fetch it
+  let flow
   if (flowId) {
-    return kratos
-      .getSelfServiceSettingsFlow(
-        String(flowId),
-        undefined,
-        request.headers.get('cookie') ?? undefined
-      )
-      .then((res) => {
-        return json(res.data)
-      })
-      .catch(handleFlowError('settings'))
+    // If ?flow=.. was in the URL, we fetch it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/settings/flows?id=${flowId}`,
+      {
+        headers: {
+          cookie: cookie,
+          Accept: 'application/json'
+        }
+      }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'settings')
+  } else {
+    // Otherwise we initialize it
+    const flowRes = await fetch(
+      `http://kratos-public/self-service/settings/browser?${url.searchParams}`,
+      { headers: { cookie: cookie, Accept: 'application/json' } }
+    )
+    flow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(flow, 'settings')
+    return redirect(`/settings/password?flow=${flow.id}`, {
+      headers: flowRes.headers
+    })
   }
-
-  // Otherwise we initialize it
-  return kratos
-    .initializeSelfServiceSettingsFlowForBrowsers(
-      returnTo ? String(returnTo) : undefined
-    )
-    .then(async (res) =>
-      redirect(`/settings/password?flow=${res.data.id}`, {
-        headers: res.headers
-      })
-    )
-    .catch(handleFlowError('settings'))
+  return json(flow)
 }
 
 export default function SettingsPasswordPage() {
