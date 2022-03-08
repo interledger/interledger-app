@@ -20,7 +20,7 @@ format:
 
 lint:
 	@echo "Linting"
-	go vet ./...
+	golangci-lint run ./...
 	@echo "Lint complete"
 
 build:
