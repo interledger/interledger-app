@@ -98,6 +98,12 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string) er
 									ContainerPort: pulumi.Int(3000),
 								},
 							},
+							Env: corev1.EnvVarArray{
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("KRATOS_URL"),
+									Value: pulumi.String("http://kratos-public"),
+								},
+							},
 						},
 					},
 				},
