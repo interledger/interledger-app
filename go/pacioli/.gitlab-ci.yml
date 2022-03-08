@@ -1,7 +1,7 @@
 include:
   - //////.gitlab-refs.yaml
 
-.go-cache:
+.go-cache-pacioli:
   variables:
     GOPATH: $CI_PROJECT_DIR/.go
   before_script:
@@ -27,10 +27,10 @@ variables:
 
 build_pacioli:
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
-#  extends:
-#    - .go-cache
-#  needs:
-#    - go-mod
+  extends:
+    - .go-cache-pacioli
+  needs:
+    - go-mod
   interruptible: true
   script:
     - mkdir -p ~/.docker
