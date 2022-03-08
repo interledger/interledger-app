@@ -52,8 +52,8 @@ write_files:
               "amazonec2-instance-type=m5d.large",
               "amazonec2-iam-instance-profile={{.RunnerProfileName}}",
               "amazonec2-volume-type=gp3",
+              "amazonec2-root-size=50",
               "amazonec2-ami=ami-0258eeb71ddf238b3",
-              "engine-install-url=https://releases.rancher.com/install-docker/20.10.sh",
             ]
   - owner: root:root
     path: /root/.docker/config.json
