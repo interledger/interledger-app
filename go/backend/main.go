@@ -101,7 +101,7 @@ func start(args *cli.StartArgs) {
 	}
 	users = user.NewLoggingService(users, logger)
 
-	cs := country.NewService()
+	cs := country.NewService(db)
 	id, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
 	})

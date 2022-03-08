@@ -225,10 +225,6 @@ func (c *TestContainer) Cleanup() error {
 	if err != nil {
 		return err
 	}
-	err = c.Logger.Sync()
-	if err != nil {
-		return err
-	}
 	c.Ctrl.Finish()
 
 	return nil
@@ -260,7 +256,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	ctrl := gomock.NewController(s)
 	c.Ctrl = ctrl
 
-	cs := _country.NewService()
+	cs := _country.NewService(db)
 	c.CountryService = cs
 
 	is, err := _identity.NewService(_identity.ServiceArgs{

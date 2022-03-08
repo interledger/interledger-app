@@ -44,16 +44,11 @@ func TestIdentityService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer func() {
-		if err := logger.Sync(); err != nil {
-			s.Fatal(err)
-		}
-	}()
 
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()
 
-	cs := _country.NewService()
+	cs := _country.NewService(db)
 	is, err := NewService(ServiceArgs{
 		CountryService: cs,
 	})

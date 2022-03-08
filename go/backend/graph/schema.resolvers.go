@@ -71,7 +71,7 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 	}
 
 	// Check if account exists
-	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	acc, _ := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if acc != nil {
 		floatBalance := float64(acc.AvailableBalance) / float64(100)
 		return &generated.CreateAccountMutationResponse{
@@ -83,10 +83,6 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 				Balance: fmt.Sprintf("$ %.2f", floatBalance),
 			},
 		}, nil
-	}
-	if err != nil {
-		InternalServerError(ctx)
-		return nil, nil
 	}
 
 	acc, err = r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
@@ -662,7 +658,7 @@ func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error)
 
 func (r *queryResolver) Countries(ctx context.Context) ([]*generated.Country, error) {
 	var countries []*country.Country
-	countries, err := r.CountryService.GetAll(ctx, r.Db)
+	countries, err := r.CountryService.GetAll(ctx)
 	if err != nil {
 		InternalServerError(ctx)
 		return nil, nil

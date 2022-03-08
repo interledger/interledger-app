@@ -56,7 +56,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Logger = logger
 
-	cs := country.NewService()
+	cs := country.NewService(db)
 	c.Cs = cs
 
 	is, err := _identity.NewService(_identity.ServiceArgs{
@@ -136,11 +136,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 func (c *TestContainer) Cleanup() {
 	c.Ctrl.Finish()
 	err := c.Db.Close()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = c.Logger.Sync()
 	if err != nil {
 		fmt.Println(err)
 	}

@@ -45,12 +45,6 @@ func TestAuthenticationService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer func() {
-		err := logger.Sync()
-		if err != nil {
-			s.Fatal(err)
-		}
-	}()
 
 	user, err := NewService(apiClient)
 	if err != nil {

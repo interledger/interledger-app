@@ -42,16 +42,11 @@ func TestAccountsService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer func() {
-		if err := logger.Sync(); err != nil {
-			s.Fatal(err)
-		}
-	}()
 
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()
 
-	cs := _country.NewService()
+	cs := _country.NewService(db)
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
 	})

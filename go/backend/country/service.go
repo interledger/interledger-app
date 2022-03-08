@@ -22,15 +22,17 @@ type Country struct {
 type Service interface {
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country, error)
 	GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) (*Country, error)
-	GetAll(ctx context.Context, db *sqlx.DB) ([]*Country, error)
+	GetAll(ctx context.Context) ([]*Country, error)
 }
 
 type service struct {
 	db *sqlx.DB
 }
 
-func NewService() Service {
-	return &service{}
+func NewService(db *sqlx.DB) Service {
+	return &service{
+		db: db,
+	}
 }
 
 func (self *service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country, error) {
@@ -69,9 +71,9 @@ func (self *service) GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) 
 	return &ret, nil
 }
 
-func (self *service) GetAll(ctx context.Context, db *sqlx.DB) ([]*Country, error) {
+func (self *service) GetAll(ctx context.Context) ([]*Country, error) {
 	countries := []Country{}
-	err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+	err := crdbsqlx.ExecuteTx(ctx, self.db, nil, func(tx *sqlx.Tx) error {
 		err := tx.Select(&countries, "SELECT * FROM countries ORDER BY name ASC")
 		if err != nil {
 			if err == sql.ErrNoRows {
