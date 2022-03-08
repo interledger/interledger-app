@@ -151,7 +151,7 @@ type resultsOrError struct {
 	err     error
 }
 
-func onCreateAccounts(ctx interface{}, err error, operation types.Operation, results []byte) {
+func onCreateAccounts(ctx interface{}, _ error, operation types.Operation, results []byte) {
 	responseChannel := ctx.(chan resultsOrError)
 	defer close(responseChannel)
 
@@ -167,7 +167,7 @@ func onCreateAccounts(ctx interface{}, err error, operation types.Operation, res
 	events := len(results) / 8 // event result { index: u32, code: u32 }
 	ret := make([]types.EventResult, events)
 	r := bytes.NewReader(results)
-	err = binary.Read(r, binary.LittleEndian, &ret)
+	err := binary.Read(r, binary.LittleEndian, &ret)
 	if err != nil {
 		responseChannel <- resultsOrError{
 			results: nil,
@@ -199,15 +199,11 @@ func (s *client) CreateAccounts(batch []types.Account) ([]types.EventResult, err
 		return nil, err
 	}
 
-	for {
-		select {
-		case res := <-responseChannel:
-			if res.err != nil {
-				return nil, res.err
-			}
-			return res.results, nil
-		}
+	res := <-responseChannel
+	if res.err != nil {
+		return nil, res.err
 	}
+	return res.results, nil
 }
 
 type accountLookupsOrError struct {
@@ -215,7 +211,7 @@ type accountLookupsOrError struct {
 	err      error
 }
 
-func onAccountLookupResults(ctx interface{}, err error, operation types.Operation, results []byte) {
+func onAccountLookupResults(ctx interface{}, _ error, operation types.Operation, results []byte) {
 	responseChannel := ctx.(chan accountLookupsOrError)
 	defer close(responseChannel)
 
@@ -230,7 +226,7 @@ func onAccountLookupResults(ctx interface{}, err error, operation types.Operatio
 	// TODO: convert to Account without copying
 	accounts := make([]types.Account, len(results)/128)
 	r := bytes.NewReader(results)
-	err = binary.Read(r, binary.LittleEndian, &accounts)
+	err := binary.Read(r, binary.LittleEndian, &accounts)
 	if err != nil {
 		responseChannel <- accountLookupsOrError{
 			accounts: nil,
@@ -262,18 +258,14 @@ func (s *client) LookupAccounts(batch []types.Uint128) ([]types.Account, error) 
 		return nil, err
 	}
 
-	for {
-		select {
-		case res := <-responseChannel:
-			if res.err != nil {
-				return nil, res.err
-			}
-			return res.accounts, nil
-		}
+	res := <-responseChannel
+	if res.err != nil {
+		return nil, res.err
 	}
+	return res.accounts, nil
 }
 
-func onCreateTransfer(ctx interface{}, err error, operation types.Operation, results []byte) {
+func onCreateTransfer(ctx interface{}, _ error, operation types.Operation, results []byte) {
 	responseChannel := ctx.(chan resultsOrError)
 	defer close(responseChannel)
 
@@ -289,7 +281,7 @@ func onCreateTransfer(ctx interface{}, err error, operation types.Operation, res
 	events := len(results) / 8 // event result { index: u32, code: u32 }
 	ret := make([]types.EventResult, events)
 	r := bytes.NewReader(results)
-	err = binary.Read(r, binary.LittleEndian, &ret)
+	err := binary.Read(r, binary.LittleEndian, &ret)
 	if err != nil {
 		responseChannel <- resultsOrError{
 			results: nil,
@@ -321,18 +313,14 @@ func (s *client) CreateTransfers(batch []types.Transfer) ([]types.EventResult, e
 		return nil, err
 	}
 
-	for {
-		select {
-		case res := <-responseChannel:
-			if res.err != nil {
-				return nil, res.err
-			}
-			return res.results, nil
-		}
+	res := <-responseChannel
+	if res.err != nil {
+		return nil, res.err
 	}
+	return res.results, nil
 }
 
-func onCommitTransfer(ctx interface{}, err error, operation types.Operation, results []byte) {
+func onCommitTransfer(ctx interface{}, _ error, operation types.Operation, results []byte) {
 	responseChannel := ctx.(chan resultsOrError)
 	defer close(responseChannel)
 
@@ -348,7 +336,7 @@ func onCommitTransfer(ctx interface{}, err error, operation types.Operation, res
 	events := len(results) / 8 // event result { index: u32, code: u32 }
 	ret := make([]types.EventResult, events)
 	r := bytes.NewReader(results)
-	err = binary.Read(r, binary.LittleEndian, &ret)
+	err := binary.Read(r, binary.LittleEndian, &ret)
 	if err != nil {
 		responseChannel <- resultsOrError{
 			results: nil,
@@ -380,15 +368,11 @@ func (s *client) CommitTransfers(batch []types.Commit) ([]types.EventResult, err
 		return nil, err
 	}
 
-	for {
-		select {
-		case res := <-responseChannel:
-			if res.err != nil {
-				return nil, res.err
-			}
-			return res.results, nil
-		}
+	res := <-responseChannel
+	if res.err != nil {
+		return nil, res.err
 	}
+	return res.results, nil
 }
 
 type transferLookupsOrError struct {
@@ -396,7 +380,7 @@ type transferLookupsOrError struct {
 	err       error
 }
 
-func onTransferLookup(ctx interface{}, err error, operation types.Operation, results []byte) {
+func onTransferLookup(ctx interface{}, _ error, operation types.Operation, results []byte) {
 	responseChannel := ctx.(chan transferLookupsOrError)
 	defer close(responseChannel)
 
@@ -411,7 +395,7 @@ func onTransferLookup(ctx interface{}, err error, operation types.Operation, res
 	// TODO: convert to Account without copying
 	transfers := make([]types.Transfer, len(results)/128)
 	r := bytes.NewReader(results)
-	err = binary.Read(r, binary.LittleEndian, &transfers)
+	err := binary.Read(r, binary.LittleEndian, &transfers)
 	if err != nil {
 		responseChannel <- transferLookupsOrError{
 			transfers: nil,
@@ -443,13 +427,9 @@ func (s *client) LookupTransfers(batch []types.Uint128) ([]types.Transfer, error
 		return nil, err
 	}
 
-	for {
-		select {
-		case res := <-responseChannel:
-			if res.err != nil {
-				return nil, res.err
-			}
-			return res.transfers, nil
-		}
+	res := <-responseChannel
+	if res.err != nil {
+		return nil, res.err
 	}
+	return res.transfers, nil
 }

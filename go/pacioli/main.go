@@ -53,7 +53,12 @@ func main() {
 
 func start(args *cli.StartArgs) {
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
-	defer db.Close()
+	defer func(db *sqlx.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(db)
 
 	if err != nil {
 		log.Fatalln(err)

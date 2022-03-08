@@ -88,8 +88,14 @@ func TestPacioliService(s *testing.T) {
 		// tbClient.Deinit()
 		// tb.Container.Terminate(ctx)
 
-		db.Close()
-		crdb.Container.Terminate(ctx)
+		err = db.Close()
+		if err != nil {
+			return
+		}
+		err = crdb.Container.Terminate(ctx)
+		if err != nil {
+			return
+		}
 	})
 
 	s.Run("can perform a health check", func(t *testing.T) {

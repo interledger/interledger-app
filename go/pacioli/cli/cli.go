@@ -88,11 +88,20 @@ func Init(args *InitArgs) error {
 
 	// insert ledgers for consuming services
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
-	defer db.Close()
+	if err != nil {
+		return err
+	}
+	defer func(db *sqlx.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(db)
 
 	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls)
 	if err != nil {
 		log.Fatalln(err)
+		return err
 	}
 	defer tbClient.Deinit()
 
