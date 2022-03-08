@@ -4,10 +4,11 @@ import { Button, Logo, Router, TextField } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   requireUserSession
-} from '~/lib/kratos'
+} from '~/lib/kratos.server'
 
 type ActionData = {
   formError?: string
@@ -37,7 +38,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   const fields = { csrf_token: csrfToken, password }
   const res = await fetch(
-    `http://kratos-public/self-service/settings?flow=${flowId}`,
+    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {
       method: 'POST',
       body: JSON.stringify({
@@ -81,7 +82,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/settings/flows?id=${flowId}`,
+      `${KRATOS_URL}/self-service/settings/flows?id=${flowId}`,
       {
         headers: {
           cookie: cookie,
@@ -94,7 +95,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/settings/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/settings/browser?${url.searchParams}`,
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
@@ -103,12 +104,12 @@ export const loader: LoaderFunction = async ({ request }) => {
       headers: flowRes.headers
     })
   }
-  return json(flow)
+  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function SettingsPasswordPage() {
   const actionData = useActionData<ActionData>()
-  const loaderData = useLoaderData()
+  const { flow, csrfToken } = useLoaderData()
 
   return (
     <main className='mx-auto flex h-screen max-w-sm flex-col items-start justify-center px-4'>
@@ -119,12 +120,12 @@ export default function SettingsPasswordPage() {
         Set a new password
       </h1>
       <p className='mb-10 text-medium'>
-        You’ve successfully recovered your account.
+        You've successfully recovered your account.
         <br />
         Set a new password to continue.
       </p>
       <Form
-        action={`/settings/password?flow=${loaderData.id}`}
+        action={`/settings/password?flow=${flow.id}`}
         method='post'
         className='flex min-w-full flex-col items-end space-y-4'
       >
@@ -143,11 +144,7 @@ export default function SettingsPasswordPage() {
           errorMessage={actionData?.fieldErrors?.password}
         />
 
-        <input
-          defaultValue={getCsrfTokenFromFlow(loaderData)}
-          name='csrf_token'
-          type='hidden'
-        />
+        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
 
         <Button type='submit'>Save password</Button>
       </Form>

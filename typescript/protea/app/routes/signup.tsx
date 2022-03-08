@@ -9,10 +9,11 @@ import { Autocomplete, Button, Logo, Router, TextField } from '~/components'
 import React, { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   requireNoUserSession
-} from '~/lib/kratos'
+} from '~/lib/kratos.server'
 import { apolloClient } from '~/lib/apollo.server'
 
 type Country = {
@@ -59,7 +60,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   const fields = { csrf_token: csrfToken, email, password, country }
   const res = await fetch(
-    `http://kratos-public/self-service/registration?flow=${flowId}`,
+    `${KRATOS_URL}/self-service/registration?flow=${flowId}`,
     {
       method: 'POST',
       body: JSON.stringify({
@@ -115,7 +116,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/registration/flows?id=${flowId}`,
+      `${KRATOS_URL}/self-service/registration/flows?id=${flowId}`,
       {
         headers: {
           cookie: cookie,
@@ -128,7 +129,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/registration/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/registration/browser?${url.searchParams}`,
       { headers: { Accept: 'application/json' } }
     )
     flow = await flowRes.json()
@@ -137,12 +138,12 @@ export const loader: LoaderFunction = async ({ request }) => {
       headers: flowRes.headers
     })
   }
-  return json({ flow, countries })
+  return json({ flow, countries, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function SignupPage() {
   const actionData = useActionData<ActionData>()
-  const { flow, countries } = useLoaderData()
+  const { flow, countries, csrfToken } = useLoaderData()
 
   const [country, setCountry] = useState<Country>()
   const [query, setQuery] = useState<string>('')
@@ -250,11 +251,7 @@ export default function SignupPage() {
           errorMessage={actionData?.fieldErrors?.password}
         />
 
-        <input
-          defaultValue={getCsrfTokenFromFlow(flow)}
-          name='csrf_token'
-          type='hidden'
-        />
+        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
         <div className='pt-4'>
           <Button type='submit'>Create account</Button>
         </div>

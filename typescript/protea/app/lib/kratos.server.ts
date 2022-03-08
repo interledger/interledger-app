@@ -1,4 +1,3 @@
-import { Configuration, V0alpha2Api } from '@ory/kratos-client'
 import type {
   Session,
   UiNodeInputAttributes,
@@ -11,16 +10,8 @@ import type {
 import { redirect } from 'remix'
 import { route } from 'routes-gen'
 
-export const kratos = new V0alpha2Api(
-  new Configuration({
-    basePath:
-      typeof window === 'undefined' ? 'http://kratos-public' : window.origin,
-    baseOptions: {
-      // Ensure we send credentials over CORSs
-      withCredentials: true
-    }
-  })
-)
+// Export to ensure this is always evaluated server side.
+export const KRATOS_URL = process.env.KRATOS_URL
 
 export const getCsrfTokenFromFlow = (
   flow:
@@ -44,7 +35,7 @@ export const getCsrfTokenFromFlow = (
  * @returns the session if the user has a session or else a redirect.
  */
 export async function requireUserSession(request: Request): Promise<Session> {
-  const session = await fetch('http://kratos-public/sessions/whoami', {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
 
@@ -76,7 +67,7 @@ export async function requireUserSession(request: Request): Promise<Session> {
  * @returns void
  */
 export async function requireNoUserSession(request: Request): Promise<void> {
-  const session = await fetch('http://kratos-public/sessions/whoami', {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
 

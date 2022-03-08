@@ -3,20 +3,17 @@ import type { LoaderFunction } from 'remix'
 import { Logo, Router } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
-import { handleFlowError } from '~/lib/kratos'
+import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 
 export const loader: LoaderFunction = async ({ request }) => {
   const cookie = String(request.headers.get('cookie'))
   let flow
-  const flowRes = await fetch(
-    `http://kratos-public/self-service/logout/browser`,
-    {
-      headers: {
-        cookie: cookie,
-        Accept: 'application/json'
-      }
+  const flowRes = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
+    headers: {
+      cookie: cookie,
+      Accept: 'application/json'
     }
-  )
+  })
   flow = await flowRes.json()
   if (flowRes.status >= 400) handleFlowError(flow, 'logout')
   return json(flow)

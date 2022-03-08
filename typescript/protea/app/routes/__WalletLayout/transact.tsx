@@ -2,7 +2,7 @@ import React from 'react'
 import { LoaderFunction, NavLink } from 'remix'
 import { route } from 'routes-gen'
 import { SettingsIcon } from '~/components'
-import { requireUserSession } from '~/lib/kratos'
+import { requireUserSession } from '~/lib/kratos.server'
 
 export const loader: LoaderFunction = async ({ request }) => {
   return requireUserSession(request)

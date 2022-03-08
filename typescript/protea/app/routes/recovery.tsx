@@ -4,10 +4,11 @@ import { Button, Logo, Router, TextField } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   requireNoUserSession
-} from '~/lib/kratos'
+} from '~/lib/kratos.server'
 
 type ActionData = {
   formError?: string
@@ -37,7 +38,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   const fields = { csrf_token: csrfToken, email }
   const res = await fetch(
-    `http://kratos-public/self-service/recovery?flow=${flowId}`,
+    `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
     {
       method: 'POST',
       body: JSON.stringify({
@@ -77,7 +78,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/recovery/flows?id=${flowId}`,
+      `${KRATOS_URL}/self-service/recovery/flows?id=${flowId}`,
       {
         headers: {
           cookie: cookie,
@@ -90,7 +91,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/recovery/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/recovery/browser?${url.searchParams}`,
       { headers: { Accept: 'application/json' } }
     )
     flow = await flowRes.json()
@@ -99,12 +100,12 @@ export const loader: LoaderFunction = async ({ request }) => {
       headers: flowRes.headers
     })
   }
-  return json(flow)
+  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function RecoveryPage() {
   const actionData = useActionData<ActionData>()
-  const loaderData = useLoaderData()
+  const { flow, csrfToken } = useLoaderData()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -113,7 +114,7 @@ export default function RecoveryPage() {
           <Logo className='h-8' />
         </Router>
       </div>
-      {loaderData.state === 'sent_email' && (
+      {flow.state === 'sent_email' && (
         <>
           <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
@@ -128,7 +129,7 @@ export default function RecoveryPage() {
           </div>
         </>
       )}
-      {loaderData.state === 'choose_method' && (
+      {flow.state === 'choose_method' && (
         <>
           <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
@@ -143,7 +144,7 @@ export default function RecoveryPage() {
         </>
       )}
       <Form
-        action={`/recovery?flow=${loaderData.id}`}
+        action={`/recovery?flow=${flow.id}`}
         method='post'
         className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
@@ -153,7 +154,7 @@ export default function RecoveryPage() {
           name='email'
           defaultValue={actionData?.fields?.email}
           type='email'
-          disabled={loaderData.state === 'sent_email'}
+          disabled={flow.state === 'sent_email'}
           aria-invalid={Boolean(actionData?.fieldErrors?.email) || undefined}
           aria-describedby={
             actionData?.fieldErrors?.email ? 'email-error' : undefined
@@ -162,13 +163,9 @@ export default function RecoveryPage() {
           errorMessage={actionData?.fieldErrors?.email}
         />
 
-        <input
-          defaultValue={getCsrfTokenFromFlow(loaderData)}
-          name='csrf_token'
-          type='hidden'
-        />
+        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
         <div className='pt-4'>
-          <Button disabled={loaderData.state === 'sent_email'} type='submit'>
+          <Button disabled={flow.state === 'sent_email'} type='submit'>
             Recover account
           </Button>
         </div>
