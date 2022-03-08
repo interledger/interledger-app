@@ -10,7 +10,7 @@ import {
   SentIcon,
   SettingsIcon
 } from '~/components'
-import { requireUserSession } from '~/lib/kratos'
+import { requireUserSession } from '~/lib/kratos.server'
 import React, { FC } from 'react'
 import {
   GetHomeDocument,

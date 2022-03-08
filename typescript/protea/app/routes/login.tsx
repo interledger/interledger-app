@@ -4,10 +4,11 @@ import { Button, Logo, Router, TextField } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   requireNoUserSession
-} from '~/lib/kratos'
+} from '~/lib/kratos.server'
 
 type ActionData = {
   formError?: string
@@ -44,22 +45,19 @@ export const action: ActionFunction = async ({ request }) => {
     })
   }
   const fields = { csrf_token: csrfToken, email, password }
-  const res = await fetch(
-    `http://kratos-public/self-service/login?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        password_identifier: email,
-        password: password,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
+  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      method: 'password',
+      password_identifier: email,
+      password: password,
+      csrf_token: csrfToken
+    }),
+    headers: {
+      'Content-type': 'application/json',
+      cookie: String(request.headers.get('cookie'))
     }
-  )
+  })
 
   const data = await res.json()
   if (res.status >= 400) {
@@ -93,7 +91,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/login/flows?id=${flowId}`,
+      `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
       {
         headers: {
           cookie: cookie,
@@ -106,7 +104,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/login/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/login/browser?${url.searchParams}`,
       { headers: { Accept: 'application/json' } }
     )
     flow = await flowRes.json()
@@ -116,12 +114,12 @@ export const loader: LoaderFunction = async ({ request }) => {
       headers: flowRes.headers
     })
   }
-  return json({ flow })
+  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function LoginPage() {
   const actionData = useActionData<ActionData>()
-  const { flow } = useLoaderData()
+  const { flow, csrfToken } = useLoaderData()
   const submitUrl = new URL(flow.request_url)
   const submitSearchParams = submitUrl.searchParams
   submitSearchParams.append('flow', flow.id)
@@ -178,11 +176,7 @@ export default function LoginPage() {
           errorMessage={actionData?.fieldErrors?.password}
         />
 
-        <input
-          defaultValue={getCsrfTokenFromFlow(flow)}
-          name='csrf_token'
-          type='hidden'
-        />
+        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
 
         <div className='flex min-w-full items-center justify-between pt-4'>
           {/* TODO add ?email= 

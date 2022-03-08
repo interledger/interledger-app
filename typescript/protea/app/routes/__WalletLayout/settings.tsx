@@ -2,7 +2,7 @@ import React from 'react'
 import { Link, LoaderFunction, redirect, useLoaderData } from 'remix'
 import { route } from 'routes-gen'
 import { BackIcon, NextIcon } from '~/components'
-import { requireUserSession } from '~/lib/kratos'
+import { requireUserSession } from '~/lib/kratos.server'
 
 export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url)

@@ -3,7 +3,11 @@ import type { ActionFunction, LoaderFunction } from 'remix'
 import { Button, Logo, Router } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
-import { getCsrfTokenFromFlow, handleFlowError } from '~/lib/kratos'
+import {
+  KRATOS_URL,
+  getCsrfTokenFromFlow,
+  handleFlowError
+} from '~/lib/kratos.server'
 import {
   OnboardAccountDocument,
   OnboardAccountMutation,
@@ -40,7 +44,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   const fields = { csrf_token: csrfToken, email }
   const res = await fetch(
-    `http://kratos-public/self-service/verification?flow=${flowId}`,
+    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
     {
       method: 'POST',
       body: JSON.stringify({
@@ -77,7 +81,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
 
-  const session = await fetch('http://kratos-public/sessions/whoami', {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
 
@@ -120,7 +124,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/verification/flows?id=${flowId}`,
+      `${KRATOS_URL}/self-service/verification/flows?id=${flowId}`,
       {
         headers: {
           cookie: cookie,
@@ -133,7 +137,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `http://kratos-public/self-service/verification/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/verification/browser?${url.searchParams}`,
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
@@ -144,12 +148,13 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
   return json({
     flow,
-    email: userSession.identity.verifiable_addresses[0].value
+    email: userSession.identity.verifiable_addresses[0].value,
+    csrfToken: getCsrfTokenFromFlow(flow)
   })
 }
 
 export default function VerifyPage() {
-  const loaderData = useLoaderData()
+  const { flow, email, csrfToken } = useLoaderData()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -166,21 +171,17 @@ export default function VerifyPage() {
       <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <p className='text-medium'>
           We’ve sent a verification link to your email:
-          <br /> {loaderData.email}
+          <br /> {email}
         </p>
       </div>
       {/* Form */}
       <Form
-        action={`/verify?flow=${loaderData.flow.id}`}
+        action={`/verify?flow=${flow.id}`}
         method='post'
         className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
-        <input
-          defaultValue={getCsrfTokenFromFlow(loaderData.flow)}
-          name='csrf_token'
-          type='hidden'
-        />
-        <input defaultValue={loaderData.email} name='email' type='hidden' />
+        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
+        <input defaultValue={email} name='email' type='hidden' />
         <div className='pt-4'>
           <Button type='submit'>Resend verification</Button>
         </div>
