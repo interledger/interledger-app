@@ -2,6 +2,7 @@ type Query{
   identity: Identity
   fundingSources: [FundingSource]!
   account: Account
+  countries: [Country!]!
 }
 
 type Mutation {
@@ -150,4 +151,9 @@ type Account {
   id: ID!
   balance: String!
   recentTransactions: [Transaction!]!
+}
+
+type Country {
+  id: String!
+  name: String!
 }

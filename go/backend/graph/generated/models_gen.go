@@ -18,6 +18,11 @@ type Account struct {
 	RecentTransactions []*Transaction `json:"recentTransactions"`
 }
 
+type Country struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type CreateAccountInput struct {
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`

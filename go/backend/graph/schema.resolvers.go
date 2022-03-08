@@ -7,13 +7,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bxcodec/faker/v3"
 	"strconv"
+
+	"github.com/bxcodec/faker/v3"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
@@ -649,6 +651,24 @@ func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error)
 	}
 
 	return account, nil
+}
+
+func (r *queryResolver) Countries(ctx context.Context) ([]*generated.Country, error) {
+	var countries []*country.Country
+	countries, err := r.CountryService.GetAll(ctx, r.Db)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
+	ret := make([]*generated.Country, len(countries))
+	for i, trx := range countries {
+		ret[i] = &generated.Country{
+			ID:   trx.Alpha_2,
+			Name: trx.Name,
+		}
+	}
+
+	return ret, err
 }
 
 // Account returns generated.AccountResolver implementation.

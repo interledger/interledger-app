@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -21,6 +22,7 @@ type Country struct {
 type Service interface {
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country, error)
 	GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) (*Country, error)
+	GetAll(ctx context.Context, db *sqlx.DB) ([]*Country, error)
 }
 
 type service struct {
@@ -65,6 +67,37 @@ func (self *service) GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) 
 	}
 
 	return &ret, nil
+}
+
+func (self *service) GetAll(ctx context.Context, db *sqlx.DB) ([]*Country, error) {
+	countries := []Country{}
+	err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+		err := tx.Select(&countries, "SELECT * FROM countries ORDER BY name ASC")
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return &ErrNotFound{Err: "No countries found."}
+			}
+
+			return &ErrInternalError{Err: err.Error()}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make([]*Country, len(countries))
+	for i, trx := range countries {
+		ret[i] = &Country{
+			ID:          trx.ID,
+			Name:        trx.Name,
+			Alpha_2:     trx.Alpha_2,
+			Alpha_3:     trx.Alpha_3,
+			NumericCode: trx.NumericCode,
+		}
+	}
+
+	return ret, nil
 }
 
 // Error set

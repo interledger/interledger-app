@@ -200,6 +200,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Identity:            is,
 		User:                users,
 		Account:             as,
+		Country:             cs,
 		Noop:                noopProvider,
 		AccountTransactions: ts,
 		Ds:                  ds,

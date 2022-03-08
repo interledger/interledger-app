@@ -20,6 +20,12 @@ export type Account = {
   recentTransactions: Array<Transaction>;
 };
 
+export type Country = {
+  __typename?: 'Country';
+  id: Scalars['String'];
+  name: Scalars['String'];
+};
+
 export type CreateAccountInput = {
   country: Scalars['String'];
   firstName: Scalars['String'];
@@ -153,6 +159,7 @@ export type OutgoingPaymentMutationResponse = MutationResponse & {
 export type Query = {
   __typename?: 'Query';
   account?: Maybe<Account>;
+  countries: Array<Country>;
   fundingSources: Array<Maybe<FundingSource>>;
   identity?: Maybe<Identity>;
 };
