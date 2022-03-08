@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"strconv"
 
-	faker "github.com/bxcodec/faker/v3"
+	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	accounttransactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -30,7 +30,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 		dbTrxs, err := r.AccountTransactions.GetByAccount(
 			ctx,
 			tx,
-			&account_transactions.GetByAccountArgs{
+			&accounttransactions.GetByAccountArgs{
 				AccountID: obj.ID,
 				Limit:     3,
 				OrderBy:   "ASC",
@@ -84,6 +84,10 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 			},
 		}, nil
 	}
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
 
 	acc, err = r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
 		IdentityID:   user.ID,
@@ -93,6 +97,10 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 		Email:        user.Email,
 		Country:      "US",
 	})
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
 
 	acc, err = r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
 		IdentityID:  user.ID,
@@ -546,12 +554,12 @@ func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, erro
 
 	var identity *_identity.Identity
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		_identity, err := r.IdentityService.Get(ctx, tx, user.ID)
+		id, err := r.IdentityService.Get(ctx, tx, user.ID)
 		if err != nil {
 			return err
 		}
 
-		identity = _identity
+		identity = id
 		return nil
 	})
 	if err != nil {

@@ -116,10 +116,10 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 			},
 		})
 		if err != nil {
-			switch err.(type) {
+			switch err := err.(type) {
 			case *transactions.ErrInvalidTransfers:
 				return parseInvalidBankWithdrawalTransferErrors(
-					err.(*transactions.ErrInvalidTransfers).TransferErrors,
+					err.TransferErrors,
 				)
 			default:
 				return fmt.Errorf("transaction failed %w %s", ErrInternalError, err.Error())

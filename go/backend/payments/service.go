@@ -123,9 +123,9 @@ func (s *service) InitiateOutgoingPayment(
 			},
 		})
 		if err != nil {
-			switch err.(type) {
+			switch err := err.(type) {
 			case *account_transactions.ErrInvalidTransfers:
-				return parseInvalidOutgoingPaymentErrors(err.(*account_transactions.ErrInvalidTransfers).TransferErrors)
+				return parseInvalidOutgoingPaymentErrors(err.TransferErrors)
 			default:
 				return fmt.Errorf("%s %w", err.Error(), ErrInternal)
 			}

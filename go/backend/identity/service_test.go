@@ -22,18 +22,33 @@ func TestIdentityService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer crdb.Container.Terminate(ctx)
+	defer func() {
+		if err := crdb.Container.Terminate(ctx); err != nil {
+			s.Fatal(err)
+		}
+	}()
 
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.
 	db, err := sqlx.Connect("postgres", crdb.URI)
-	defer db.Close()
+	if err != nil {
+		s.Fatal(err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			s.Fatal(err)
+		}
+	}()
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			s.Fatal(err)
+		}
+	}()
 
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()
@@ -65,6 +80,10 @@ func TestIdentityService(s *testing.T) {
 			identity = _identity
 			return nil
 		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		assert.Equal(t, args.ID, identity.ID)
 		assert.Equal(t, args.Email, identity.Email)
 		assert.Equal(t, args.FirstName, identity.FirstName)

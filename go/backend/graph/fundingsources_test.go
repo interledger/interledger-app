@@ -78,6 +78,9 @@ func TestUserFundingSources(s *testing.T) {
 				}, nil
 			}).Times(1)
 		response, err := getFundingSourcesByUserId(container, user)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		assert.Equal(t, 1, len(response))
 		assert.Equal(t, fundingSource.ID, response[0].ID)
@@ -153,7 +156,10 @@ func getFundingSourcesByUserId(container *TestContainer, user *_user.User) ([]*g
 			        }
 			    }
 			`)
-	_user.ActingAs(req, user)
+	err := _user.ActingAs(req, user)
+	if err != nil {
+		return nil, err
+	}
 	var data map[string][]*generated.FundingSource
 	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
 		return nil, err

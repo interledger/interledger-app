@@ -31,7 +31,10 @@ func TestAccountTransactions(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		container.Cleanup()
+		err := container.Cleanup()
+		if err != nil {
+			return
+		}
 	})
 
 	s.Run("validates arguments", func(t *testing.T) {
@@ -186,12 +189,6 @@ func withAccountID(id string) func(*CreateTransactionArgs) {
 	}
 }
 
-func withDescription(description string) func(*CreateTransactionArgs) {
-	return func(args *CreateTransactionArgs) {
-		args.Description = description
-	}
-}
-
 func withState(state string) func(*CreateTransactionArgs) {
 	return func(args *CreateTransactionArgs) {
 		args.State = state
@@ -224,8 +221,14 @@ type TestContainer struct {
 }
 
 func (c *TestContainer) Cleanup() error {
-	c.Db.Close()
-	c.Logger.Sync()
+	err := c.Db.Close()
+	if err != nil {
+		return err
+	}
+	err = c.Logger.Sync()
+	if err != nil {
+		return err
+	}
 	c.Ctrl.Finish()
 
 	return nil

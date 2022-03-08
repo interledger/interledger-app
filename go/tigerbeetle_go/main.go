@@ -9,7 +9,7 @@ package tigerbeetle_go
 
 void onResult(void* const user_data, uint8_t error, uint8_t operation, uint8_t* const results, const uint32_t results_length);
 */
-import "C"
+import "C" //nolint:typecheck
 import (
 	"bytes"
 	"encoding/binary"

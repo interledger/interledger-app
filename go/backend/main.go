@@ -49,7 +49,10 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+		err = migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	case "start":
 		args, err := cli.ParseStartArgs()
 		if err != nil {
@@ -63,13 +66,20 @@ func main() {
 
 func start(args *cli.StartArgs) {
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
-	defer db.Close()
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
 
 	cfg := zap.NewProductionConfig()
-	cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	if err != nil {
+		log.Fatalln(err)
+	}
 	cfg.OutputPaths = []string{args.LogOutputPath}
 	logger, err := cfg.Build()
 	if err != nil {

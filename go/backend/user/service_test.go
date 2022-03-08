@@ -13,7 +13,7 @@ import (
 	"github.com/go-chi/chi"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/stretchr/testify/assert"
-	test_utils "gitlab.com/fynbos/backend/utils"
+	testutils "gitlab.com/fynbos/backend/utils"
 	"go.uber.org/zap"
 )
 
@@ -21,11 +21,16 @@ func TestAuthenticationService(s *testing.T) {
 	// Adding this flag so that this test can be
 	// disabled in CI. Our docker image doesn't have
 	// docker-compose and so will fail in CI.
-	kratosContainer, err := test_utils.SetupKratos()
+	kratosContainer, err := testutils.SetupKratos()
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer kratosContainer.Container.Terminate(context.Background())
+	defer func() {
+		err := kratosContainer.Container.Terminate(context.Background())
+		if err != nil {
+			s.Fatal(err)
+		}
+	}()
 
 	configuration := kratos.NewConfiguration()
 	configuration.Servers = kratos.ServerConfigurations{
@@ -40,7 +45,12 @@ func TestAuthenticationService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		err := logger.Sync()
+		if err != nil {
+			s.Fatal(err)
+		}
+	}()
 
 	user, err := NewService(apiClient)
 	if err != nil {
@@ -64,12 +74,20 @@ func TestAuthenticationService(s *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(user)
+		err = json.NewEncoder(w).Encode(user)
+		if err != nil {
+			http.Error(w, "error encoding response", http.StatusInternalServerError)
+			return
+		}
 	}))
 	router.Handle("/open", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(user)
+		err := json.NewEncoder(w).Encode(user)
+		if err != nil {
+			http.Error(w, "error encoding response", http.StatusInternalServerError)
+			return
+		}
 	}))
 	server := httptest.NewServer(router)
 	defer server.Close()

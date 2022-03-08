@@ -37,24 +37,33 @@ func TestGraphql(s *testing.T) {
 	s.Run("get identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
 			req := getIdentityRequest()
-			_user.ActingAs(req, nil)
+			err := _user.ActingAs(req, nil)
+			if err != nil {
+				return
+			}
 
 			var respData map[string]identity.Identity
-			err := container.Client.Run(container.Ctx, req, &respData)
+			err = container.Client.Run(container.Ctx, req, &respData)
 
 			assert.Error(tt, err)
 		})
 
 		t.Run("returns not found if there is no identity", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, container.Db)
+				err := test_utils.TruncateDb(ctx, container.Db)
+				if err != nil {
+					tt.Fatal(err)
+				}
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
 				Email: faker.Name(),
 			}
 			req := getIdentityRequest()
-			_user.ActingAs(req, user)
+			err = _user.ActingAs(req, user)
+			if err != nil {
+				tt.Fatal(err)
+			}
 
 			var respData map[string]identity.Identity
 			err := container.Client.Run(container.Ctx, req, &respData)
@@ -64,7 +73,10 @@ func TestGraphql(s *testing.T) {
 
 		t.Run("user can get their identity", func(tt *testing.T) {
 			tt.Cleanup(func() {
-				test_utils.TruncateDb(ctx, container.Db)
+				err := test_utils.TruncateDb(ctx, container.Db)
+				if err != nil {
+					tt.Fatal(err)
+				}
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
@@ -84,7 +96,10 @@ func TestGraphql(s *testing.T) {
 			}
 
 			getReq := getIdentityRequest()
-			_user.ActingAs(getReq, user)
+			err = _user.ActingAs(getReq, user)
+			if err != nil {
+				return
+			}
 
 			var getResp map[string]identity.Identity
 			if err := container.Client.Run(container.Ctx, getReq, &getResp); err != nil {
@@ -104,17 +119,23 @@ func TestGraphql(s *testing.T) {
 	s.Run("authenticated user is required to link usd bank account", func(t *testing.T) {
 		args := generateLinkUsdBankAccountInput()
 		req := linkUsdBankAccountRequest(args)
-		_user.ActingAs(req, nil)
+		err := _user.ActingAs(req, nil)
+		if err != nil {
+			return
+		}
 
 		var respData map[string]generated.LinkFundingSourceMutationResponse
-		err := container.Client.Run(container.Ctx, req, &respData)
+		err = container.Client.Run(container.Ctx, req, &respData)
 
 		assert.Error(t, err)
 	})
 
 	s.Run("user can link and verify usd bank account", func(t *testing.T) {
 		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, container.Db)
+			err = test_utils.TruncateDb(ctx, container.Db)
+			if err != nil {
+				t.Fatal(err)
+			}
 		})
 		user := &_user.User{
 			ID:    uuid.NewString(),
@@ -189,7 +210,10 @@ func TestGraphql(s *testing.T) {
 				}, nil
 			}).Times(1)
 		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))
-		_user.ActingAs(verifyReq, user)
+		err = _user.ActingAs(verifyReq, user)
+		if err != nil {
+			return
+		}
 		var verifyData map[string]generated.VerifyUsdBankAccountMutationResponse
 		if err := container.Client.Run(container.Ctx, verifyReq, &verifyData); err != nil {
 			t.Fatal(err)

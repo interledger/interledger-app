@@ -73,7 +73,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, user, &deposits.InitiateDepositArgs{
+		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
 			AccountID:       acc.ID,
 			FundingSourceID: fundingSource.ID,
 			Amount:          10000, // 100 dollars
@@ -305,7 +305,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, alice, &deposits.InitiateDepositArgs{
+		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
 			AccountID:       aliceAcc.ID,
 			FundingSourceID: aliceBankAccount.ID,
 			Amount:          10000, // 100 dollars
@@ -369,7 +369,10 @@ func initiateWithdrawal(container *TestContainer, user *_user.User, input *gener
 			    }
 			`)
 	req.Var("input", input)
-	_user.ActingAs(req, user)
+	err := _user.ActingAs(req, user)
+	if err != nil {
+		return nil, err
+	}
 	var data map[string]generated.WithdrawalMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
 		return nil, err

@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	client "github.com/ory/kratos-client-go"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -136,27 +134,6 @@ func SetupKratos() (*KratosContainer, error) {
 		container,
 		connString,
 	}, nil
-}
-
-func CheckKratosStatus(client *client.APIClient) error {
-	// Check that the service is running
-	timeout := time.After(20 * time.Second)
-	tick := time.Tick(200 * time.Millisecond)
-	// Keep trying until we're timed out or got a result or got an error
-	for {
-		select {
-		// Got a timeout! fail with a timeout error
-		case <-timeout:
-			return fmt.Errorf("timed out checking kratos status")
-		// Got a tick, we should check on doSomething()
-		case <-tick:
-			fmt.Println("checking kratos status")
-			ok, _, _ := client.MetadataApi.IsReady(context.Background()).Execute()
-			if ok != nil && ok.GetStatus() == "ok" {
-				return nil
-			}
-		}
-	}
 }
 
 func TruncateDb(ctx context.Context, db *sqlx.DB) error {
