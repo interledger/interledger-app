@@ -187,6 +187,9 @@ func TestFundingSources(s *testing.T) {
 			Email:        faker.Email(),
 			Country:      "US",
 		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		_, err = NewAccount(c, &onboarding.CreateAccountArgs{
 			IdentityID:   otherUserID,
 			FirstName:    faker.FirstName(),

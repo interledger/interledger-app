@@ -30,13 +30,23 @@ func TestAccountsService(s *testing.T) {
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.
 	db, err := sqlx.Connect("postgres", crdb.URI)
-	defer db.Close()
-
+	if err != nil {
+		s.Fatal(err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			s.Fatal(err)
+		}
+	}()
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		s.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			s.Fatal(err)
+		}
+	}()
 
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()

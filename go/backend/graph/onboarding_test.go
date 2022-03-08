@@ -204,7 +204,9 @@ func createAccount(container *TestContainer, user *_user.User, input *generated.
 			    }
 			`)
 	req.Var("input", input)
-	_user.ActingAs(req, user)
+	if err := _user.ActingAs(req, user); err != nil {
+		return nil, err
+	}
 
 	var response map[string]generated.CreateAccountMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &response); err != nil {
@@ -231,24 +233,6 @@ func generateAccountInput(opts ...func(*generated.CreateAccountInput)) *generate
 	return args
 }
 
-func withFirstName(name string) func(*generated.CreateAccountInput) {
-	return func(args *generated.CreateAccountInput) {
-		args.FirstName = name
-	}
-}
-
-func withLastName(name string) func(*generated.CreateAccountInput) {
-	return func(args *generated.CreateAccountInput) {
-		args.LastName = name
-	}
-}
-
-func withMobileNumber(number string) func(*generated.CreateAccountInput) {
-	return func(args *generated.CreateAccountInput) {
-		args.MobileNumber = number
-	}
-}
-
 func withCountry(country string) func(*generated.CreateAccountInput) {
 	return func(args *generated.CreateAccountInput) {
 		args.Country = country
@@ -270,7 +254,9 @@ func verifyAccount(container *TestContainer, user *_user.User, input *generated.
 			    }
 			`)
 	req.Var("input", input)
-	_user.ActingAs(req, user)
+	if err := _user.ActingAs(req, user); err != nil {
+		return nil, err
+	}
 
 	var response map[string]generated.VerifyAccountMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &response); err != nil {
@@ -297,7 +283,9 @@ func onboardAccount(container *TestContainer, user *_user.User, input *generated
 			    }
 			`)
 	req.Var("input", input)
-	_user.ActingAs(req, user)
+	if err := _user.ActingAs(req, user); err != nil {
+		return nil, err
+	}
 
 	var response map[string]generated.CreateAccountMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &response); err != nil {
@@ -324,40 +312,4 @@ func generateVerifyAccountInput(opts ...func(*generated.VerifyAccountInput)) *ge
 	}
 
 	return args
-}
-
-func withDateOfBirth(dob string) func(*generated.VerifyAccountInput) {
-	return func(args *generated.VerifyAccountInput) {
-		args.DateOfBirth = dob
-	}
-}
-
-func withAddress(address []string) func(*generated.VerifyAccountInput) {
-	return func(args *generated.VerifyAccountInput) {
-		args.Address = address
-	}
-}
-
-func withState(state string) func(*generated.VerifyAccountInput) {
-	return func(args *generated.VerifyAccountInput) {
-		args.State = state
-	}
-}
-
-func withCity(city string) func(*generated.VerifyAccountInput) {
-	return func(args *generated.VerifyAccountInput) {
-		args.City = city
-	}
-}
-
-func withPostalCode(code string) func(*generated.VerifyAccountInput) {
-	return func(args *generated.VerifyAccountInput) {
-		args.PostalCode = code
-	}
-}
-
-func withTaxIDNumber(tax string) func(*generated.VerifyAccountInput) {
-	return func(args *generated.VerifyAccountInput) {
-		args.TaxIDNumber = tax
-	}
 }

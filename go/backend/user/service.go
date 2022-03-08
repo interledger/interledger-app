@@ -77,7 +77,3 @@ type User struct {
 	ID    string
 	Email string
 }
-
-type traits struct {
-	Email string
-}

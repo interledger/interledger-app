@@ -2,6 +2,7 @@ package fundingsources
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -134,9 +135,20 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 func (c *TestContainer) Cleanup() {
 	c.Ctrl.Finish()
-	c.Db.Close()
-	c.Logger.Sync()
-	c.Crdb.Container.Terminate(c.Ctx)
+	err := c.Db.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = c.Logger.Sync()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = c.Crdb.Container.Terminate(c.Ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func NewAccount(

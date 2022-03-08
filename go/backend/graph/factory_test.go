@@ -74,6 +74,9 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.Logger = logger
 
 	db, err := sqlx.Connect("postgres", crdb.URI)
+	if err != nil {
+		return nil, err
+	}
 	c.Db = db
 
 	ctrl := gomock.NewController(t)
@@ -225,9 +228,9 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 func (c *TestContainer) Cleanup(ctx context.Context) {
 	c.Server.Close()
 	c.Ctrl.Finish()
-	c.Db.Close()
-	c.Logger.Sync()
-	c.Crdb.Container.Terminate(ctx)
+	_ = c.Db.Close()
+	_ = c.Logger.Sync()
+	_ = c.Crdb.Container.Terminate(ctx)
 }
 
 func NewAccount(
@@ -307,6 +310,9 @@ func NewBankAccount(
 				IdentityID:      user.ID,
 				FundingSourceID: bankAccount.ID,
 			})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return bankAccount, nil
@@ -314,7 +320,6 @@ func NewBankAccount(
 
 func NewDeposit(
 	c *TestContainer,
-	user *_user.User,
 	args *deposits.InitiateDepositArgs,
 ) (*account_transactions.AccountTransaction, error) {
 	c.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(

@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -63,7 +62,10 @@ func TestUserAccount(s *testing.T) {
 			}).Times(1)
 
 		req := getAccountRequest()
-		_user.ActingAs(req, user)
+		err = _user.ActingAs(req, user)
+		if err != nil {
+			t.Fatal(err)
+		}
 		var data map[string]generated.Account
 		if err := container.Client.Run(container.Ctx, req, &data); err != nil {
 			t.Fatal(err)
@@ -110,7 +112,7 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, user, &deposits.InitiateDepositArgs{
+		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
 			IdentityID:      user.ID,
 			AccountID:       acc.ID,
 			FundingSourceID: fundingSource.ID,
@@ -132,7 +134,10 @@ func TestUserAccount(s *testing.T) {
 			}).Times(1)
 
 		req := getAccountTransactionsRequest()
-		_user.ActingAs(req, user)
+		err = _user.ActingAs(req, user)
+		if err != nil {
+			t.Fatal(err)
+		}
 		var data map[string]generated.Account
 		if err := container.Client.Run(container.Ctx, req, &data); err != nil {
 			t.Fatal(err)
@@ -142,7 +147,7 @@ func TestUserAccount(s *testing.T) {
 		assert.Len(t, rTrxs, 1)
 		firstTrx := rTrxs[0]
 		assert.Equal(t, deposit.ID, firstTrx.ID)
-		assert.Equal(t, fmt.Sprintf("$ 100.00"), firstTrx.Amount)
+		assert.Equal(t, "$ 100.00", firstTrx.Amount)
 		assert.Equal(t, generated.TransactionType("deposit"), firstTrx.Type)
 	})
 }

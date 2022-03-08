@@ -16,7 +16,10 @@ func NewService() (*oso.Oso, error) {
 		return nil, err
 	}
 
-	o.RegisterClass(user.User{}, nil)
+	err = o.RegisterClass(user.User{}, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	err = o.LoadString(string(policy))
 	if err != nil {

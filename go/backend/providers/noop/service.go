@@ -3,7 +3,6 @@ package noop
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -31,7 +30,6 @@ type Service interface {
 
 type service struct {
 	validator *validator.Validate
-	cache     map[string]*NoopBankAccount
 	// TODO: configuring and management of ledgers and ledger accounts that this provider
 	// acts upon.
 	ledgerID        string
@@ -142,10 +140,6 @@ func (self *service) CreateCustomer(args *CreateCustomerArgs) (*Customer, error)
 		Created:            time.Now().String(),
 		Status:             Verified,
 	}, nil
-}
-
-func isValidIlpAddress(address string) bool {
-	return strings.HasPrefix(address, "$")
 }
 
 type ErrInternalError struct {

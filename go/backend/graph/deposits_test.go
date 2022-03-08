@@ -185,7 +185,10 @@ func initiateDeposit(container *TestContainer, user *_user.User, input *generate
 			    }
 			`)
 	req.Var("input", input)
-	_user.ActingAs(req, user)
+	err := _user.ActingAs(req, user)
+	if err != nil {
+		return nil, err
+	}
 	var data map[string]generated.DepositMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
 		return nil, err

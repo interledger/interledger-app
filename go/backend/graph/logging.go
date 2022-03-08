@@ -8,11 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type loggingService struct {
-	logger  *zap.Logger
-	Service *handler.Server
-}
-
 func NewLoggingService(gs *handler.Server, logger *zap.Logger) *handler.Server {
 	childLogger := logger.With(zap.String("service", "graphql"))
 	gs.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {

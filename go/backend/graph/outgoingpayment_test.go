@@ -84,7 +84,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, user, &deposits.InitiateDepositArgs{
+		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
 			IdentityID:      user.ID,
 			AccountID:       acc.ID,
 			FundingSourceID: bankAccount.ID,
@@ -235,7 +235,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, user, &deposits.InitiateDepositArgs{
+		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
 			IdentityID:      user.ID,
 			AccountID:       acc.ID,
 			FundingSourceID: bankAccount.ID,
@@ -290,7 +290,10 @@ func InitiateOutgoingPayment(
 			    }
 			`)
 	req.Var("input", input)
-	_user.ActingAs(req, user)
+	err := _user.ActingAs(req, user)
+	if err != nil {
+		return nil, err
+	}
 	var data map[string]generated.OutgoingPaymentMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
 		return nil, err
