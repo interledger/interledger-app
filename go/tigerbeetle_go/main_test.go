@@ -98,6 +98,9 @@ func toU128(value string) *types.Uint128 {
 
 func TestClient(s *testing.T) {
 	tbContainer, err := setupTigerBeetle(context.Background())
+	if err != nil {
+		s.Fatal(err)
+	}
 	addresses := []string{tbContainer.URI}
 	client, err := NewClient(TIGERBEETLE_CLUSTER_ID, addresses)
 	if err != nil {
@@ -106,7 +109,10 @@ func TestClient(s *testing.T) {
 
 	s.Cleanup(func() {
 		client.Deinit()
-		os.RemoveAll(tbContainer.DataDir)
+		err := os.RemoveAll(tbContainer.DataDir)
+		if err != nil {
+			return
+		}
 	})
 
 	go func() {

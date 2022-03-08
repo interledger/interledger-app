@@ -54,13 +54,22 @@ func TestLedgerService(s *testing.T) {
 		// tbClient.Deinit()
 		// tb.Container.Terminate(ctx)
 
-		db.Close()
-		crdb.Container.Terminate(ctx)
+		err := db.Close()
+		if err != nil {
+			return
+		}
+		err = crdb.Container.Terminate(ctx)
+		if err != nil {
+			return
+		}
 	})
 
 	s.Run("ledger", func(t *testing.T) {
 		t.Cleanup(func() {
-			test_utils.TruncateDb(ctx, db)
+			err := test_utils.TruncateDb(ctx, db)
+			if err != nil {
+				return
+			}
 		})
 		if err != nil {
 			t.Fatal(err)
