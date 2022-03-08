@@ -82,7 +82,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	ctrl := gomock.NewController(t)
 	c.Ctrl = ctrl
 
-	cs := _country.NewService()
+	cs := _country.NewService(db)
 	c.CountryService = cs
 
 	is, err := identity.NewService(identity.ServiceArgs{
@@ -229,7 +229,6 @@ func (c *TestContainer) Cleanup(ctx context.Context) {
 	c.Server.Close()
 	c.Ctrl.Finish()
 	_ = c.Db.Close()
-	_ = c.Logger.Sync()
 	_ = c.Crdb.Container.Terminate(ctx)
 }
 
