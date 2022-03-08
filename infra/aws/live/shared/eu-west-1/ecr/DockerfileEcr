@@ -2,7 +2,7 @@ FROM ubuntu:21.10
 
 # Update to local SA mirror for building
 RUN sed -E -i 's#http://[^\s]*archive\.ubuntu\.com/ubuntu#http://ftp.leg.uct.ac.za/ubuntu#g' /etc/apt/sources.list
-RUN apt-get update && apt-get install -y curl gcc make
+RUN apt-get update && apt-get install -y curl gcc make jq
 
 # Install docker v20.10 which is required for our GL Runner
 RUN curl https://download.docker.com/linux/ubuntu/dists/impish/pool/stable/amd64/docker-ce-cli_20.10.12~3-0~ubuntu-impish_amd64.deb -o docker.deb \
@@ -14,6 +14,9 @@ RUN curl -OL https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
 RUN tar -C /usr/local -xvf go1.17.6.linux-amd64.tar.gz
 RUN rm -f go1.17.6.linux-amd64.tar.gz
 ENV PATH="$PATH:/usr/local/go/bin"
+
+# Install golangci-lint
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.44.2
 
 # Install ECR Login
 RUN go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
