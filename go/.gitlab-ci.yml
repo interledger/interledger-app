@@ -4,6 +4,7 @@
   before_script:
     - mkdir -p .go
   cache:
+    policy: pull-push
     key:
       files:
         - go/go.mod
@@ -11,8 +12,16 @@
       - .go/pkg/mod/
 
 go-mod:
-  image: public.ecr.aws/docker/library/golang:1.17
+  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
   extends: .go-cache
   script:
     - cd go
     - go mod download
+    - make lintci
+    - make lint
+  artifacts:
+    when: always
+    reports:
+      codequality: ./go/gl-code-quality-report.json
+    paths:
+      - ./go/gl-code-quality-report.json
