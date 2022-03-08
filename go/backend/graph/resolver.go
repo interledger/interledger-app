@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
@@ -24,6 +25,7 @@ type Resolver struct {
 	// appending service to avoid name clashed with function names.
 	IdentityService     identity.Service
 	UserService         user.Service
+	CountryService      country.Service
 	AccountService      accounts.Service
 	NoopService         noop.Service
 	Db                  *sqlx.DB

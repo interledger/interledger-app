@@ -198,6 +198,7 @@ func start(args *cli.StartArgs) {
 		Db:                               db,
 		Identity:                         id,
 		Account:                          as,
+		Country:                          cs,
 		User:                             users,
 		Noop:                             nos,
 		Fs:                               fs,

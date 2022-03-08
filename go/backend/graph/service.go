@@ -14,6 +14,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
@@ -26,6 +27,7 @@ type GraphqlOpts struct {
 	Identity                         identity.Service             `validate:"required"`
 	User                             user.Service                 `validate:"required"`
 	Account                          accounts.Service             `validate:"required"`
+	Country                          country.Service              `validate:"required"`
 	AccountTransactions              account_transactions.Service `validate:"required"`
 	Noop                             noop.Service                 `validate:"required"`
 	Ds                               deposits.Service             `validate:"required"`
@@ -58,6 +60,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		IdentityService:     opts.Identity,
 		UserService:         opts.User,
 		AccountService:      opts.Account,
+		CountryService:      opts.Country,
 		NoopService:         opts.Noop,
 		AccountTransactions: opts.AccountTransactions,
 		Ds:                  opts.Ds,
