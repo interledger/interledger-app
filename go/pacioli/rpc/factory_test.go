@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -52,10 +51,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI})
 	if err != nil {
-		fmt.Println()
-		fmt.Println(tb.URI)
-		fmt.Println(err)
-		fmt.Println()
 		return nil, err
 	}
 	// drive the TB client.

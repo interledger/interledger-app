@@ -16,6 +16,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	cli "gitlab.com/fynbos/pacioli/cli"
 )
 
 type CockroachDBContainer struct {
@@ -141,7 +142,10 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContai
 		return nil, err
 	}
 
-	connString := fmt.Sprintf("%s:%s", hostIP, mappedPort.Port())
+	connString, err := cli.ParseTburl(fmt.Sprintf("%s:%s", hostIP, mappedPort.Port()))
+	if err != nil {
+		return nil, err
+	}
 
-	return &TigerBeetleContainer{Container: container, URI: connString}, nil
+	return &TigerBeetleContainer{Container: container, URI: connString[0]}, nil
 }
