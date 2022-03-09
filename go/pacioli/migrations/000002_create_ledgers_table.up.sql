@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS ledgers (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id          INT PRIMARY KEY,
     name        TEXT,
-    code        INT UNIQUE NOT NULL,
+    asset       TEXT NOT NULL,
+    scale       INT NOT NULL, 
     created_at  TIMESTAMP NOT NULL DEFAULT now(),
     updated_at  TIMESTAMP NOT NULL DEFAULT now()
 );
