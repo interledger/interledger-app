@@ -91,7 +91,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, eventErrors[2].Index, uint32(3))
 		assert.Equal(t, eventErrors[2].Code, uint32(LEDGER_EXISTS_WITH_DIFFERENT_SCALE))
 
-		ledgers, err := c.Ls.GetLedgers(ctx, tenant, []uint16{ledgerID, ledger2ID})
+		ledgers, err := c.Ls.GetLedgers(ctx, tenant, []uint32{uint32(ledgerID), uint32(ledger2ID)})
 		if err != nil {
 			t.Fatal(err)
 		}
