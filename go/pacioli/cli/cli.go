@@ -45,7 +45,7 @@ func ParseInitArgs() (*InitArgs, error) {
 	}
 	// checking if tbUrl is a host name and converting it to an ip address.
 	// here till this is supported by the TB client.
-	tbUrls, err := parseTburl(tbUrl)
+	tbUrls, err := ParseTburl(tbUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	// checking if tbUrl is a host name and converting it to an ip address.
 	// here till this is supported by the TB client.
-	tbUrls, err := parseTburl(tbUrl)
+	tbUrls, err := ParseTburl(tbUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	}, nil
 }
 
-func parseTburl(url string) ([]string, error) {
+func ParseTburl(url string) ([]string, error) {
 	if url == "" {
 		return nil, errors.New("Tb url must be specified.")
 	}
@@ -173,7 +173,7 @@ func parseTburl(url string) ([]string, error) {
 		}
 
 		for _, ip := range ips {
-			tbUrls = append(tbUrls, ip.String()+port)
+			tbUrls = append(tbUrls, ip.String()+":"+port)
 		}
 	} else {
 		tbUrls = append(tbUrls, url)
