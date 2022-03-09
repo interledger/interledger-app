@@ -134,12 +134,31 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	ts = account_transactions.NewLoggingService(ts, logger)
 	c.TransactionService = ts
 
-	ledgerID := uuid.NewString()
+	ledgerID := uint16(2)
 	equityAccID := uuid.NewString()
 	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
-		LedgerID:    ledgerID,
-		EquityAccID: equityAccID,
+		LedgerID:      ledgerID,
+		EquityAccID:   equityAccID,
+		PacioliTenant: "dev",
+		PacioliClient: pClient,
 	})
+	if err != nil {
+		return nil, err
+	}
+	c.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioli.ConfigureAccountsResponse{}, nil,
+	).Times(1)
+	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
+		Args: []*pacioli.Ledger{
+			{
+				Id:    uint32(ledgerID),
+				Name:  "Noop-USD",
+				Asset: "840", // US dollars
+				Scale: 2,
+			},
+		},
+	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).Times(1)
+	err = noopProvider.Init(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -117,9 +117,9 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			State:       "completed", // TODO: define states
 			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
-					LedgerID:        s.noop.GetLedgerID(), // TODO: this shouldn't be necessary
+					LedgerID:        s.noop.GetLedgerID(),
 					DebitAccountID:  acc.ID,
-					CreditAccountID: s.noop.GetLedgerID(),
+					CreditAccountID: s.noop.GetEquityAccountID(),
 					Amount:          args.Amount,
 					// Code: "1", // TODO: define ledger transfer codes.
 					Flags: transactions.LedgerTransferFlags{},
