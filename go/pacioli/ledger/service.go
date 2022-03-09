@@ -1,30 +1,39 @@
 package pacioli
 
 import (
-	"database/sql"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/tigerbeetle_go"
 	tigerbeetleTypes "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
-// Models
+var (
+	ErrInvalidArg = errors.New("pacioli: invalid argument.")
+	ErrNotFound   = errors.New("pacioli: not found.")
+	ErrDuplicate  = errors.New("pacioli: duplicate.")
+	ErrInternal   = errors.New("pacioli: internal error.")
+)
 
+// Models
 type Ledger struct {
-	ID        string `json:"id"`
+	ID        uint16 `json:"id"` // maps to TigerBeetle's `unit` (soon to be ledger) field on an account.
 	Name      string `json:"name"`
-	Code      uint16 `json:"code"`
+	Asset     string `json:"string"`
+	Scale     uint8  `json:"scale"`
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
 }
 
 type Account struct {
 	ID              string
-	LedgerCode      uint16
+	LedgerID        uint16
+	Flags           AccountFlags
 	Code            uint16
 	DebitsReserved  uint64
 	DebitsAccepted  uint64
@@ -34,6 +43,7 @@ type Account struct {
 
 type Transfer struct {
 	ID              string
+	LedgerID        uint16 // this field is coming soon to a TigerBeetle near you.
 	DebitAccountID  string
 	CreditAccountID string
 	Amount          uint64
@@ -42,99 +52,88 @@ type Transfer struct {
 }
 
 type TransferFlags = tigerbeetleTypes.TransferFlags
+type AccountFlags = tigerbeetleTypes.AccountFlags
+type EventResult = tigerbeetleTypes.EventResult
 
 type Service interface {
-	GetLedger(ledgerID string) (*Ledger, error)
-	GetLedgerByCode(code uint16) (*Ledger, error)
-	CreateLedger(name string, code uint16) (*Ledger, error)
-	CreateAccounts(ledgerID string, args []CreateAccountArgs) ([]tigerbeetleTypes.EventResult, error)
-	GetAccounts(ledgerID string, accountIDs []string) ([]Account, error)
-
-	// TODO: refactor Pacioli so that cross-currency ledger transfers can be linked.
-	CreateTransfers(ledgerID string, args []CreateTransferArgs) ([]tigerbeetleTypes.EventResult, error)
-	GetTransfers(ledgerID string, transferIDs []string) ([]Transfer, error)
+	CreateTenant(name string) error
+	CreateLedgers(tenant string, args []CreateLedgerArgs) ([]EventResult, error)
+	GetLedgers(tenant string, ledgerIDs []uint16) ([]Ledger, error)
+	CreateAccounts(tenant string, args []CreateAccountArgs) ([]EventResult, error)
+	GetAccounts(tenant string, accountIDs []string) ([]Account, error)
+	CreateTransfers(tenant string, args []CreateTransferArgs) ([]EventResult, error)
+	GetTransfers(tenant string, transferIDs []string) ([]Transfer, error)
 }
 
 type service struct {
-	db *sqlx.DB
-	tb tigerbeetle_go.Client
+	db        *sqlx.DB
+	tb        tigerbeetle_go.Client
+	validator *validator.Validate
 }
 
 func NewLedgerService(db *sqlx.DB, tb tigerbeetle_go.Client) (Service, error) {
-	return &service{db: db, tb: tb}, nil
+	return &service{db: db, tb: tb, validator: validator.New()}, nil
 }
 
-func (s *service) CreateLedger(name string, code uint16) (*Ledger, error) {
-	var ret Ledger
-	stmt, err := s.db.PrepareNamed("INSERT INTO ledgers (name, code) VALUES (:name, :code) RETURNING *")
-	if err != nil {
-		return nil, err
-	}
-
-	err = stmt.Stmt.Get(&ret, name, code)
-	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"ledgers_code_key\"") {
-			return nil, ErrDuplicate{Err: "Ledger exists."}
-		}
-		return nil, err
-	}
-
-	return &ret, nil
+func (s *service) CreateTenant(name string) error {
+	return nil
 }
 
-// Will only return the ledger if it exists otherwise will return ErrNotFound.
-func (s service) GetLedger(id string) (*Ledger, error) {
-	_, err := uuid.Parse(id)
-	if err != nil {
-		return nil, ErrInvalidArg{Err: "Ledger ID must be a uuid."}
-	}
+type CreateLedgerArgs struct {
+	ID    uint16 `validate:"required,uuid4"`
+	Name  string
+	Asset string
+	Scale uint8
+}
 
-	var ledger Ledger
-	err = s.db.Get(&ledger, "SELECT * FROM ledgers WHERE id=$1 LIMIT 1", id)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, ErrNotFound{
-				Err: "Ledger not found.",
-			}
-		default:
-			return nil, err
-		}
-	}
+func (s *service) CreateLedgers(tenant string, args []CreateLedgerArgs) ([]EventResult, error) {
+	// var ret Ledger
+	// stmt, err := s.db.PrepareNamed(
+	// 	`INSERT INTO ledgers (id, name, code, asset, scale)
+	// 	VALUES (:id, :name, :asset, :scale) RETURNING *`,
+	// )
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	return &ledger, nil
+	// err = stmt.Stmt.Get(&ret, args.ID, args.Name, args.Asset, args.Scale)
+	// if err != nil {
+	// 	if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"ledgers_code_key\"") {
+	// 		return nil, fmt.Errorf("Ledger exists. %w", ErrDuplicate)
+	// 	}
+	// 	return nil, err
+	// }
+
+	// return &ret, nil
+
+	return nil, nil
 }
 
 // Will only return the ledger if it exists otherwise will return ErrNotFound.
-func (s service) GetLedgerByCode(code uint16) (*Ledger, error) {
-	var ledger Ledger
-	err := s.db.Get(&ledger, "SELECT * FROM ledgers WHERE code=$1 LIMIT 1", code)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, ErrNotFound{
-				Err: "Ledger not found.",
-			}
-		default:
-			return nil, err
-		}
-	}
+func (s service) GetLedgers(tenant string, ids []uint16) ([]Ledger, error) {
+	// ACL to be done here.
 
-	return &ledger, nil
+	// var ledger Ledger
+	// err := s.db.Get(&ledger, "SELECT * FROM ledgers WHERE id=$1 LIMIT 1", id)
+	// if err != nil {
+	// 	switch err {
+	// 	case sql.ErrNoRows:
+	// 		return nil, ErrNotFound
+	// 	default:
+	// 		return nil, err
+	// 	}
+	// }
+
+	// return &ledger, nil
+
+	return nil, nil
 }
 
 type CreateAccountArgs struct {
-	ID   string
-	Code uint16
-}
-
-func validateCreateAccountArgs(account CreateAccountArgs) error {
-	_, err := uuid.Parse(account.ID)
-	if err != nil {
-		return ErrInvalidArg{Err: "Account ID must be a valid uuid."}
-	}
-
-	return nil
+	ID       string `validate:"required,uuid4"`
+	LedgerID uint16
+	Code     uint16
+	Flags    AccountFlags
 }
 
 // Helper function to convert uuids into u128 needed for TigerBeetle IDs.
@@ -161,17 +160,13 @@ func U128ToUuid(value tigerbeetleTypes.Uint128) string {
 	return ret
 }
 
-func (s *service) CreateAccounts(ledgerID string, args []CreateAccountArgs) ([]tigerbeetleTypes.EventResult, error) {
-	ledger, err := s.GetLedger(ledgerID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *service) CreateAccounts(tenant string, args []CreateAccountArgs) ([]EventResult, error) {
+	// TODO: collect ledgers and perform ACL
 	tbAccounts := make([]tigerbeetleTypes.Account, len(args))
 	for i, acc := range args {
-		err := validateCreateAccountArgs(acc)
+		err := s.validator.Struct(args)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s %w", err.Error(), ErrInvalidArg)
 		}
 
 		tbAccID, err := UuidToU128(acc.ID)
@@ -180,7 +175,7 @@ func (s *service) CreateAccounts(ledgerID string, args []CreateAccountArgs) ([]t
 		}
 		tbAccounts[i] = tigerbeetleTypes.Account{
 			ID:   *tbAccID,
-			Unit: ledger.Code,
+			Unit: acc.LedgerID,
 			Code: acc.Code,
 		}
 	}
@@ -188,25 +183,18 @@ func (s *service) CreateAccounts(ledgerID string, args []CreateAccountArgs) ([]t
 	eventErrors, err := s.tb.CreateAccounts(tbAccounts)
 	// this error will be due to connection / io buffer issues
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
 	}
 
 	return eventErrors, nil
 }
 
-func (s *service) GetAccounts(ledgerID string, accountIDs []string) ([]Account, error) {
-	// make sure ledger exists. In future, we will be able to use this with TBs query language to look
-	// for accounts in the specified ledger.
-	_, err := s.GetLedger(ledgerID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *service) GetAccounts(tenant string, accountIDs []string) ([]Account, error) {
 	tbAccIDs := make([]tigerbeetleTypes.Uint128, len(accountIDs))
 	for _, id := range accountIDs {
 		_, err := uuid.Parse(id)
 		if err != nil {
-			return nil, ErrInvalidArg{Err: "Account id must be a uuid."}
+			return nil, fmt.Errorf("Account ID must be a uuid. %w", ErrInvalidArg)
 		}
 		accID, err := UuidToU128(id)
 		if err != nil {
@@ -225,7 +213,7 @@ func (s *service) GetAccounts(ledgerID string, accountIDs []string) ([]Account, 
 	for i, result := range results {
 		ret[i] = Account{
 			ID:              U128ToUuid(result.ID),
-			LedgerCode:      result.Unit,
+			LedgerID:        result.Unit,
 			Code:            result.Code,
 			DebitsReserved:  result.DebitsReserved,
 			DebitsAccepted:  result.DebitsAccepted,
@@ -234,51 +222,29 @@ func (s *service) GetAccounts(ledgerID string, accountIDs []string) ([]Account, 
 		}
 	}
 
+	// TODO: ACL on accounts
+
 	return ret, nil
 }
 
 type CreateTransferArgs struct {
-	ID              string
-	Amount          uint64
-	DebitAccountID  string
-	CreditAccountID string
+	ID              string `validate:"required,uuid4"`
+	Amount          uint64 `validate:"gt=0"`
+	DebitAccountID  string `validate:"required,uuid4"`
+	CreditAccountID string `validate:"required,uuid4"`
 	Flags           TransferFlags
 	Code            uint32
 }
 
-func validateCreateTransferArgs(transfer CreateTransferArgs) error {
-	_, err := uuid.Parse(transfer.ID)
-	if err != nil {
-		return ErrInvalidArg{Err: "Transfer ID must be a valid uuid."}
-	}
-
-	_, err = uuid.Parse(transfer.DebitAccountID)
-	if err != nil {
-		return ErrInvalidArg{Err: "Transfer DebitAccountID must be a valid uuid."}
-	}
-
-	_, err = uuid.Parse(transfer.CreditAccountID)
-	if err != nil {
-		return ErrInvalidArg{Err: "Transfer CreditAccountID must be a valid uuid."}
-	}
-
-	return nil
-}
-
 // TODO: Assuming that IDs are uuids and are being generated by another service for now. Might be better to be
 // unopinionated and accept []byte.
-func (s *service) CreateTransfers(ledgerID string, args []CreateTransferArgs) ([]tigerbeetleTypes.EventResult, error) {
-	// This will be used when TB supports having a ledgerCode applied to a transfer.
-	_, err := s.GetLedger(ledgerID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *service) CreateTransfers(tenant string, args []CreateTransferArgs) ([]EventResult, error) {
+	// TODO: collect ledgers and perform ACL
 	tbTransfers := make([]tigerbeetleTypes.Transfer, len(args))
 	for i, transfer := range args {
-		err = validateCreateTransferArgs(transfer)
+		err := s.validator.Struct(transfer)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s %w", err.Error(), ErrInvalidArg)
 		}
 		transferID, err := UuidToU128(transfer.ID)
 		if err != nil {
@@ -312,19 +278,12 @@ func (s *service) CreateTransfers(ledgerID string, args []CreateTransferArgs) ([
 	return eventErrors, nil
 }
 
-func (s *service) GetTransfers(ledgerID string, transferIDs []string) ([]Transfer, error) {
-	// make sure ledger exists. In future, we will be able to use this with TBs query language to look
-	// for transfers in the specified ledger.
-	_, err := s.GetLedger(ledgerID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *service) GetTransfers(tenant string, transferIDs []string) ([]Transfer, error) {
 	tbTransferIDs := make([]tigerbeetleTypes.Uint128, len(transferIDs))
 	for i, id := range transferIDs {
 		_, err := uuid.Parse(id)
 		if err != nil {
-			return nil, ErrInvalidArg{Err: "Transfer id must be a uuid."}
+			return nil, fmt.Errorf("Transfer ID must be a uuid. %w", ErrInvalidArg)
 		}
 		transferID, err := UuidToU128(id)
 		if err != nil {
@@ -350,30 +309,7 @@ func (s *service) GetTransfers(ledgerID string, transferIDs []string) ([]Transfe
 		}
 	}
 
+	// TODO: ACL on ledgers involved
+
 	return ret, nil
-}
-
-// Error setargs.F
-type ErrInvalidArg struct {
-	Err string
-}
-
-func (s ErrInvalidArg) Error() string {
-	return s.Err
-}
-
-type ErrDuplicate struct {
-	Err string
-}
-
-func (s ErrDuplicate) Error() string {
-	return s.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (s ErrNotFound) Error() string {
-	return s.Err
 }

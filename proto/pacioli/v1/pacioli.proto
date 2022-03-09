@@ -5,48 +5,81 @@ package pacioli.v1;
 option go_package = "./pacioli/v1;pacioli";
 
 service PacioliService {
-  rpc CreateLedger(CreateLedgerRequest) returns (Ledger);
-  rpc GetLedgerByCode(GetLedgerByCodeRequest) returns (Ledger);
-  rpc CreateAccount(CreateAccountRequest) returns (Account);
-  rpc GetAccount(GetAccountRequest) returns (Account);
+  rpc CreateTenant(CreateTenantRequest) returns (Empty);
+  rpc CreateLedgers(CreateLedgersRequest) returns (CreateLedgersResponse);
+  rpc GetLedgers(GetLedgersRequest) returns (GetLedgersResponse);
+  rpc CreateAccounts(CreateAccountsRequest) returns (CreateAccountsResponse);
+  rpc GetAccounts(GetAccountsRequest) returns (Account);
   rpc CreateTransfers(CreateTransfersRequest) returns (CreateTransfersResponse);
   rpc GetTransfers(GetTransfersRequest) returns (GetTransfersResponse);
 }
 
-message Ledger {
-  string id = 1;
-  string name = 2;
-  uint32 code = 3;
-}
+message Empty {}
 
-message CreateLedgerRequest {
+message CreateTenantRequest {
   string name = 1;
-  uint32 code = 2;
 }
 
-message GetLedgerByCodeRequest{
-  uint32 code = 1;
+message Ledger {
+  uint32 id = 1;
+  string name = 2;
+  string asset = 3;
+  uint32 scale =4;
+}
+
+message CreateLedgersRequest {
+  repeated Ledger args = 1;
+}
+
+message CreateLedgersResponse {
+  repeated EventError errors = 1;
+}
+
+message GetLedgersRequest {
+  repeated string ids = 1;
+}
+
+message GetLedgersResponse {
+  repeated Ledger ledgers = 1;
 }
 
 message Account {
   string id = 1;
-  uint32 ledgerCode = 2;
+  uint32 ledgerId = 2;
   uint32 code = 3;
   uint64 debitsReserved = 4;
   uint64 debitsAccepted = 5;
   uint64 creditsReserved = 6;
   uint64 creditsAccepted = 7;
+  AccountFlags flags = 8;
 }
 
-message CreateAccountRequest {
-  string ledgerID = 1;
-  uint32 unit = 2;
+message AccountFlags {
+  bool linked = 1;
+  bool debitsMustNotExceedCredits = 2;
+  bool creditsMustNotExceedDebits = 3;
+}
+
+message CreateAccountArgs {
+  string id = 1;
+  uint32 ledgerId = 2;
   uint32 code = 3;
 }
 
-message GetAccountRequest {
-  string id = 1;
-  string ledgerID = 2;
+message CreateAccountsRequest {
+  repeated CreateAccountArgs args = 1;
+}
+
+message CreateAccountsResponse {
+  repeated EventError errors = 1;
+}
+
+message GetAccountsRequest {
+  repeated string ids = 1;
+}
+
+message GetAccountsResponse {
+  repeated Account accounts = 1;
 }
 
 message Transfer {
@@ -65,8 +98,7 @@ message TransferFlags {
 }
 
 message CreateTransfersRequest {
-  string ledgerID = 1;
-  repeated Transfer transfers = 2;
+  repeated Transfer transfers = 1;
 }
 
 message EventError {
@@ -79,8 +111,7 @@ message CreateTransfersResponse {
 }
 
 message GetTransfersRequest {
-  string ledgerID = 1;
-  repeated string TransferIDs = 2;
+  repeated string TransferIds = 1;
 }
 
 message GetTransfersResponse {

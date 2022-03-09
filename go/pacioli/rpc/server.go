@@ -95,7 +95,7 @@ func (s *rpcServer) CreateAccount(ctx context.Context, req *pacioliv1.CreateAcco
 
 	return &pacioliv1.Account{
 		Id:              accountId,
-		LedgerCode:      uint32(accounts[0].LedgerCode),
+		LedgerCode:      uint32(accounts[0].LedgerID),
 		Code:            uint32(accounts[0].Code),
 		DebitsReserved:  accounts[0].DebitsReserved,
 		DebitsAccepted:  accounts[0].DebitsAccepted,
@@ -123,7 +123,7 @@ func (s *rpcServer) GetAccount(ctx context.Context, req *pacioliv1.GetAccountReq
 
 	return &pacioliv1.Account{
 		Id:              accounts[0].ID,
-		LedgerCode:      uint32(accounts[0].LedgerCode),
+		LedgerCode:      uint32(accounts[0].LedgerID),
 		Code:            uint32(accounts[0].Code),
 		DebitsReserved:  accounts[0].DebitsReserved,
 		DebitsAccepted:  accounts[0].DebitsAccepted,
