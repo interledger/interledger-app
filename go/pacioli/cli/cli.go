@@ -9,12 +9,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jmoiron/sqlx"
-	ledger "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/migrations"
-	"gitlab.com/fynbos/tigerbeetle_go"
 )
 
 type InitArgs struct {
@@ -97,38 +94,6 @@ func Init(args *InitArgs) error {
 			log.Fatalln(err)
 		}
 	}(db)
-
-	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls)
-	if err != nil {
-		log.Fatalln(err)
-		return err
-	}
-	defer tbClient.Deinit()
-
-	// drive the TB client.
-	// TODO: update to official client when it lands.
-	go func() {
-		tick := time.Tick(20 * time.Millisecond)
-		for range tick {
-			tbClient.Tick()
-		}
-	}()
-
-	ls, err := ledger.NewService(db, tbClient)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// TODO: rework configuration when grpc auth is introduced.
-	_, err = ls.CreateLedger("backend-usd", args.BackendLedgerCode)
-	if err != nil {
-		switch err.(type) {
-		case ledger.ErrDuplicate:
-			// do nothing.
-		default:
-			return err
-		}
-	}
 
 	return nil
 }
