@@ -78,7 +78,10 @@ func start(args *cli.StartArgs) {
 		}
 	}()
 
-	ls, err := ledger.NewService(db, tbClient)
+	ls, err := ledger.NewService(&ledger.ServiceArgs{
+		Db: db,
+		Tb: tbClient,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}

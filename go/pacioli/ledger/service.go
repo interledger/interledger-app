@@ -74,14 +74,14 @@ type Service interface {
 	// This is declaritive and will not fail if the ledger exists. It will fail if one exists with
 	// different fields.
 	ConfigureLedgers(ctx context.Context, tenant string, args []ConfigureLedgerArgs) ([]EventResult, error)
-	GetLedgers(ctx context.Context, tenant string, ledgerIDs []uint16) ([]Ledger, error)
+	GetLedgers(ctx context.Context, tenant string, ledgerIDs []uint32) ([]Ledger, error)
 
 	// This is declaritive and will not fail if the account exists. It will fail if one exists with
 	// different fields.
 	ConfigureAccounts(ctx context.Context, tenant string, args []ConfigureAccountArgs) ([]EventResult, error)
 	GetAccounts(ctx context.Context, tenant string, accountIDs []string) ([]Account, error)
 	CreateTransfers(ctx context.Context, tenant string, args []CreateTransferArgs) ([]EventResult, error)
-	GetTransfers(tenant string, transferIDs []string) ([]Transfer, error)
+	GetTransfers(ctx context.Context, tenant string, transferIDs []string) ([]Transfer, error)
 }
 
 type service struct {
@@ -132,14 +132,14 @@ func (s *service) ConfigureLedgers(
 	tenant string,
 	args []ConfigureLedgerArgs,
 ) ([]EventResult, error) {
-	ledgerIds := make([]uint16, len(args))
+	ledgerIds := make([]uint32, len(args))
 	for i, ledger := range args {
 		err := s.validator.Struct(ledger)
 		if err != nil {
 			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), ErrInvalidArg)
 		}
 
-		ledgerIds[i] = ledger.ID
+		ledgerIds[i] = uint32(ledger.ID)
 	}
 
 	existingLedgers, err := s.GetLedgers(ctx, tenant, ledgerIds)
@@ -235,7 +235,7 @@ func canCreateLedger(args ConfigureLedgerArgs, existingLedger Ledger) uint8 {
 	return LEDGER_OK
 }
 
-func (s service) GetLedgers(ctx context.Context, tenant string, ids []uint16) ([]Ledger, error) {
+func (s service) GetLedgers(ctx context.Context, tenant string, ids []uint32) ([]Ledger, error) {
 	// TODO: ACL
 
 	var ledgers []Ledger
@@ -290,7 +290,7 @@ func (s *service) ConfigureAccounts(
 	args []ConfigureAccountArgs,
 ) ([]EventResult, error) {
 	// TODO: ACL
-	ledgerIDs := []uint16{}
+	ledgerIDs := []uint32{}
 	keys := map[uint16]uint8{}
 	const (
 		LOOKING_UP uint8 = 1
@@ -300,7 +300,7 @@ func (s *service) ConfigureAccounts(
 	for _, account := range args {
 		if _, present := keys[account.LedgerID]; !present {
 			keys[account.LedgerID] = LOOKING_UP
-			ledgerIDs = append(ledgerIDs, account.LedgerID)
+			ledgerIDs = append(ledgerIDs, uint32(account.LedgerID))
 		}
 	}
 
@@ -469,7 +469,7 @@ func (s *service) CreateTransfers(ctx context.Context, tenant string, args []Cre
 	return eventErrors, nil
 }
 
-func (s *service) GetTransfers(tenant string, transferIDs []string) ([]Transfer, error) {
+func (s *service) GetTransfers(ctx context.Context, tenant string, transferIDs []string) ([]Transfer, error) {
 	tbTransferIDs := make([]tigerbeetleTypes.Uint128, len(transferIDs))
 	for i, id := range transferIDs {
 		_, err := uuid.Parse(id)

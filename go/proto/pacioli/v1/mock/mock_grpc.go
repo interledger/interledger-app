@@ -36,44 +36,64 @@ func (m *MockPacioliServiceClient) EXPECT() *MockPacioliServiceClientMockRecorde
 	return m.recorder
 }
 
-// CreateAccount mocks base method.
-func (m *MockPacioliServiceClient) CreateAccount(ctx context.Context, in *pacioli.CreateAccountRequest, opts ...grpc.CallOption) (*pacioli.Account, error) {
+// ConfigureAccounts mocks base method.
+func (m *MockPacioliServiceClient) ConfigureAccounts(ctx context.Context, in *pacioli.ConfigureAccountsRequest, opts ...grpc.CallOption) (*pacioli.ConfigureAccountsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "CreateAccount", varargs...)
-	ret0, _ := ret[0].(*pacioli.Account)
+	ret := m.ctrl.Call(m, "ConfigureAccounts", varargs...)
+	ret0, _ := ret[0].(*pacioli.ConfigureAccountsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateAccount indicates an expected call of CreateAccount.
-func (mr *MockPacioliServiceClientMockRecorder) CreateAccount(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+// ConfigureAccounts indicates an expected call of ConfigureAccounts.
+func (mr *MockPacioliServiceClientMockRecorder) ConfigureAccounts(ctx, in interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockPacioliServiceClient)(nil).CreateAccount), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureAccounts", reflect.TypeOf((*MockPacioliServiceClient)(nil).ConfigureAccounts), varargs...)
 }
 
-// CreateLedger mocks base method.
-func (m *MockPacioliServiceClient) CreateLedger(ctx context.Context, in *pacioli.CreateLedgerRequest, opts ...grpc.CallOption) (*pacioli.Ledger, error) {
+// ConfigureLedgers mocks base method.
+func (m *MockPacioliServiceClient) ConfigureLedgers(ctx context.Context, in *pacioli.ConfigureLedgersRequest, opts ...grpc.CallOption) (*pacioli.ConfigureLedgersResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "CreateLedger", varargs...)
-	ret0, _ := ret[0].(*pacioli.Ledger)
+	ret := m.ctrl.Call(m, "ConfigureLedgers", varargs...)
+	ret0, _ := ret[0].(*pacioli.ConfigureLedgersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateLedger indicates an expected call of CreateLedger.
-func (mr *MockPacioliServiceClientMockRecorder) CreateLedger(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+// ConfigureLedgers indicates an expected call of ConfigureLedgers.
+func (mr *MockPacioliServiceClientMockRecorder) ConfigureLedgers(ctx, in interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLedger", reflect.TypeOf((*MockPacioliServiceClient)(nil).CreateLedger), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureLedgers", reflect.TypeOf((*MockPacioliServiceClient)(nil).ConfigureLedgers), varargs...)
+}
+
+// ConfigureTenant mocks base method.
+func (m *MockPacioliServiceClient) ConfigureTenant(ctx context.Context, in *pacioli.ConfigureTenantRequest, opts ...grpc.CallOption) (*pacioli.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ConfigureTenant", varargs...)
+	ret0, _ := ret[0].(*pacioli.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConfigureTenant indicates an expected call of ConfigureTenant.
+func (mr *MockPacioliServiceClientMockRecorder) ConfigureTenant(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureTenant", reflect.TypeOf((*MockPacioliServiceClient)(nil).ConfigureTenant), varargs...)
 }
 
 // CreateTransfers mocks base method.
@@ -96,44 +116,44 @@ func (mr *MockPacioliServiceClientMockRecorder) CreateTransfers(ctx, in interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransfers", reflect.TypeOf((*MockPacioliServiceClient)(nil).CreateTransfers), varargs...)
 }
 
-// GetAccount mocks base method.
-func (m *MockPacioliServiceClient) GetAccount(ctx context.Context, in *pacioli.GetAccountRequest, opts ...grpc.CallOption) (*pacioli.Account, error) {
+// GetAccounts mocks base method.
+func (m *MockPacioliServiceClient) GetAccounts(ctx context.Context, in *pacioli.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetAccount", varargs...)
-	ret0, _ := ret[0].(*pacioli.Account)
+	ret := m.ctrl.Call(m, "GetAccounts", varargs...)
+	ret0, _ := ret[0].(*pacioli.GetAccountsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAccount indicates an expected call of GetAccount.
-func (mr *MockPacioliServiceClientMockRecorder) GetAccount(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+// GetAccounts indicates an expected call of GetAccounts.
+func (mr *MockPacioliServiceClientMockRecorder) GetAccounts(ctx, in interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockPacioliServiceClient)(nil).GetAccount), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccounts", reflect.TypeOf((*MockPacioliServiceClient)(nil).GetAccounts), varargs...)
 }
 
-// GetLedgerByCode mocks base method.
-func (m *MockPacioliServiceClient) GetLedgerByCode(ctx context.Context, in *pacioli.GetLedgerByCodeRequest, opts ...grpc.CallOption) (*pacioli.Ledger, error) {
+// GetLedgers mocks base method.
+func (m *MockPacioliServiceClient) GetLedgers(ctx context.Context, in *pacioli.GetLedgersRequest, opts ...grpc.CallOption) (*pacioli.GetLedgersResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetLedgerByCode", varargs...)
-	ret0, _ := ret[0].(*pacioli.Ledger)
+	ret := m.ctrl.Call(m, "GetLedgers", varargs...)
+	ret0, _ := ret[0].(*pacioli.GetLedgersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLedgerByCode indicates an expected call of GetLedgerByCode.
-func (mr *MockPacioliServiceClientMockRecorder) GetLedgerByCode(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+// GetLedgers indicates an expected call of GetLedgers.
+func (mr *MockPacioliServiceClientMockRecorder) GetLedgers(ctx, in interface{}, opts ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLedgerByCode", reflect.TypeOf((*MockPacioliServiceClient)(nil).GetLedgerByCode), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLedgers", reflect.TypeOf((*MockPacioliServiceClient)(nil).GetLedgers), varargs...)
 }
 
 // GetTransfers mocks base method.
@@ -179,34 +199,49 @@ func (m *MockPacioliServiceServer) EXPECT() *MockPacioliServiceServerMockRecorde
 	return m.recorder
 }
 
-// CreateAccount mocks base method.
-func (m *MockPacioliServiceServer) CreateAccount(arg0 context.Context, arg1 *pacioli.CreateAccountRequest) (*pacioli.Account, error) {
+// ConfigureAccounts mocks base method.
+func (m *MockPacioliServiceServer) ConfigureAccounts(arg0 context.Context, arg1 *pacioli.ConfigureAccountsRequest) (*pacioli.ConfigureAccountsResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAccount", arg0, arg1)
-	ret0, _ := ret[0].(*pacioli.Account)
+	ret := m.ctrl.Call(m, "ConfigureAccounts", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.ConfigureAccountsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateAccount indicates an expected call of CreateAccount.
-func (mr *MockPacioliServiceServerMockRecorder) CreateAccount(arg0, arg1 interface{}) *gomock.Call {
+// ConfigureAccounts indicates an expected call of ConfigureAccounts.
+func (mr *MockPacioliServiceServerMockRecorder) ConfigureAccounts(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockPacioliServiceServer)(nil).CreateAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureAccounts", reflect.TypeOf((*MockPacioliServiceServer)(nil).ConfigureAccounts), arg0, arg1)
 }
 
-// CreateLedger mocks base method.
-func (m *MockPacioliServiceServer) CreateLedger(arg0 context.Context, arg1 *pacioli.CreateLedgerRequest) (*pacioli.Ledger, error) {
+// ConfigureLedgers mocks base method.
+func (m *MockPacioliServiceServer) ConfigureLedgers(arg0 context.Context, arg1 *pacioli.ConfigureLedgersRequest) (*pacioli.ConfigureLedgersResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateLedger", arg0, arg1)
-	ret0, _ := ret[0].(*pacioli.Ledger)
+	ret := m.ctrl.Call(m, "ConfigureLedgers", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.ConfigureLedgersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateLedger indicates an expected call of CreateLedger.
-func (mr *MockPacioliServiceServerMockRecorder) CreateLedger(arg0, arg1 interface{}) *gomock.Call {
+// ConfigureLedgers indicates an expected call of ConfigureLedgers.
+func (mr *MockPacioliServiceServerMockRecorder) ConfigureLedgers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLedger", reflect.TypeOf((*MockPacioliServiceServer)(nil).CreateLedger), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureLedgers", reflect.TypeOf((*MockPacioliServiceServer)(nil).ConfigureLedgers), arg0, arg1)
+}
+
+// ConfigureTenant mocks base method.
+func (m *MockPacioliServiceServer) ConfigureTenant(arg0 context.Context, arg1 *pacioli.ConfigureTenantRequest) (*pacioli.Empty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConfigureTenant", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConfigureTenant indicates an expected call of ConfigureTenant.
+func (mr *MockPacioliServiceServerMockRecorder) ConfigureTenant(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigureTenant", reflect.TypeOf((*MockPacioliServiceServer)(nil).ConfigureTenant), arg0, arg1)
 }
 
 // CreateTransfers mocks base method.
@@ -224,34 +259,34 @@ func (mr *MockPacioliServiceServerMockRecorder) CreateTransfers(arg0, arg1 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransfers", reflect.TypeOf((*MockPacioliServiceServer)(nil).CreateTransfers), arg0, arg1)
 }
 
-// GetAccount mocks base method.
-func (m *MockPacioliServiceServer) GetAccount(arg0 context.Context, arg1 *pacioli.GetAccountRequest) (*pacioli.Account, error) {
+// GetAccounts mocks base method.
+func (m *MockPacioliServiceServer) GetAccounts(arg0 context.Context, arg1 *pacioli.GetAccountsRequest) (*pacioli.GetAccountsResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccount", arg0, arg1)
-	ret0, _ := ret[0].(*pacioli.Account)
+	ret := m.ctrl.Call(m, "GetAccounts", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.GetAccountsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAccount indicates an expected call of GetAccount.
-func (mr *MockPacioliServiceServerMockRecorder) GetAccount(arg0, arg1 interface{}) *gomock.Call {
+// GetAccounts indicates an expected call of GetAccounts.
+func (mr *MockPacioliServiceServerMockRecorder) GetAccounts(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockPacioliServiceServer)(nil).GetAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccounts", reflect.TypeOf((*MockPacioliServiceServer)(nil).GetAccounts), arg0, arg1)
 }
 
-// GetLedgerByCode mocks base method.
-func (m *MockPacioliServiceServer) GetLedgerByCode(arg0 context.Context, arg1 *pacioli.GetLedgerByCodeRequest) (*pacioli.Ledger, error) {
+// GetLedgers mocks base method.
+func (m *MockPacioliServiceServer) GetLedgers(arg0 context.Context, arg1 *pacioli.GetLedgersRequest) (*pacioli.GetLedgersResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLedgerByCode", arg0, arg1)
-	ret0, _ := ret[0].(*pacioli.Ledger)
+	ret := m.ctrl.Call(m, "GetLedgers", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.GetLedgersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLedgerByCode indicates an expected call of GetLedgerByCode.
-func (mr *MockPacioliServiceServerMockRecorder) GetLedgerByCode(arg0, arg1 interface{}) *gomock.Call {
+// GetLedgers indicates an expected call of GetLedgers.
+func (mr *MockPacioliServiceServerMockRecorder) GetLedgers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLedgerByCode", reflect.TypeOf((*MockPacioliServiceServer)(nil).GetLedgerByCode), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLedgers", reflect.TypeOf((*MockPacioliServiceServer)(nil).GetLedgers), arg0, arg1)
 }
 
 // GetTransfers mocks base method.
