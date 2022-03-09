@@ -114,12 +114,9 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 		}
 	}
 
-	// TODO: refactor Pacioli so that cross-currency ledger transfers can be linked.
-	ledgerID := ""
 	ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
 	transferIDs := make([]string, len(args.LedgerTransfers))
 	for i, transfer := range args.LedgerTransfers {
-		ledgerID = transfer.LedgerID // hack for now till Pacioli is refactored.
 		id := uuid.NewString()
 		transferIDs[i] = id
 		ledgerTransfers[i] = &pacioli.Transfer{
@@ -133,11 +130,11 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 				TwoPhaseCommit: transfer.Flags.TwoPhaseCommit,
 				Condition:      transfer.Flags.Condition,
 			},
+			// TODO: add ledger id once TB supports it
 		}
 	}
 
 	response, err := s.pacioli.CreateTransfers(ctx, &pacioli.CreateTransfersRequest{
-		LedgerID:  ledgerID, // TODO: refactor Pacioli so that cross-currency ledger transfers can be linked.
 		Transfers: ledgerTransfers,
 	})
 	if err != nil {

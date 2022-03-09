@@ -17,6 +17,7 @@ import (
 	_identity "gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/proto/pacioli/v1"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
 	"go.uber.org/zap"
@@ -106,9 +107,16 @@ func TestAccountTransactions(s *testing.T) {
 
 		// Create function calls out to Pacioli to check if the ledger account exists and then creates the transfers.
 		expectedTransferIDs := []string{}
-		container.MockPacioliClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
-			Id: acc.LedgerAccountID,
-		}, nil).Times(1)
+		container.MockPacioliClient.EXPECT().GetAccounts(ctx, gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
+				return &pacioli.GetAccountsResponse{
+					Accounts: []*pacioli.Account{
+						{
+							Id: args.Ids[0],
+						},
+					},
+				}, nil
+			}).Times(1)
 		container.MockPacioliClient.EXPECT().CreateTransfers(ctx, gomock.Any()).DoAndReturn(
 			func(_ context.Context, args *pacioliv1.CreateTransfersRequest, opts ...grpc.CallOption) (*pacioliv1.CreateTransfersResponse, error) {
 				assert.Len(t, args.Transfers, 1)
@@ -267,21 +275,30 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.IdentityService = _identity.NewLoggingService(is, logger)
 
-	pacioliLedgerID := uuid.NewString()
-	ledgerCode := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
 	c.MockPacioliClient = pClient
-	pClient.EXPECT().GetLedgerByCode(gomock.Any(), gomock.Any()).Return(&pacioliv1.Ledger{
-		Id:   pacioliLedgerID,
-		Code: uint32(ledgerCode),
-	}, nil).Times(1)
+	pacioliLedgerID := uint16(1)
+	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
+		Args: []*pacioli.Ledger{
+			{
+				Id:    uint32(pacioliLedgerID),
+				Name:  "Fynbos ledger",
+				Asset: "840", // US dollars
+				Scale: 2,
+			},
+		},
+	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).Times(1)
 	as, err := _accounts.NewService(&accounts.ServiceArgs{
-		Is:                is,
-		Cs:                cs,
-		PacioliLedgerCode: ledgerCode,
-		PacioliClient:     pClient,
-		Db:                db,
+		Is:              is,
+		Cs:              cs,
+		PacioliLedgerID: pacioliLedgerID,
+		PacioliClient:   pClient,
+		Db:              db,
 	})
+	if err != nil {
+		return nil, err
+	}
+	err = as.Init(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -316,10 +333,9 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 		}
 		identity = id
 
-		ledgerAccountID := uuid.NewString()
-		container.MockPacioliClient.EXPECT().CreateAccount(container.Ctx, gomock.Any()).Return(&pacioliv1.Account{
-			Id: ledgerAccountID,
-		}, nil).Times(1)
+		container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+			&pacioliv1.ConfigureAccountsResponse{}, nil,
+		).Times(1)
 		_acc, err := container.AccountService.Create(container.Ctx, tx, &_accounts.CreateAccountArgs{
 			IdentityID: user.ID,
 			Country:    "US",

@@ -30,6 +30,20 @@ func TestUserDeposits(s *testing.T) {
 		container.Cleanup(ctx)
 	})
 
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.ConfigureAccountsResponse{}, nil,
+	).AnyTimes()
+	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+			return &pacioliv1.GetAccountsResponse{
+				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
+			}, nil
+		}).AnyTimes()
+	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.CreateTransfersResponse{
+			Errors: []*pacioliv1.EventError{},
+		}, nil).AnyTimes()
+
 	/*
 		Scenario: user initiates deposit from a USD bank account
 		Given a verified user
@@ -72,16 +86,6 @@ func TestUserDeposits(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(3)
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{},
-			}, nil).Times(1)
 
 		response, err := initiateDeposit(container, user, &generated.DepositInput{
 			FundingSourceID: fundingSource.ID,
@@ -143,12 +147,6 @@ func TestUserDeposits(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(2)
 		response, err := initiateDeposit(container, user, &generated.DepositInput{
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars

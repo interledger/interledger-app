@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/proto/pacioli/v1"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
@@ -31,6 +32,13 @@ func TestUserAccount(s *testing.T) {
 		container.Cleanup(ctx)
 	})
 
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.ConfigureAccountsResponse{}, nil,
+	).AnyTimes()
+	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.CreateTransfersResponse{
+			Errors: []*pacioliv1.EventError{},
+		}, nil).AnyTimes()
 	/*
 		Scenario: user queries their account balance
 	*/
@@ -39,7 +47,7 @@ func TestUserAccount(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -50,14 +58,18 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id:              args.Id,
-					CreditsAccepted: 100,
-					CreditsReserved: 20,
-					DebitsAccepted:  200,
-					DebitsReserved:  0,
+		container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), &pacioli.GetAccountsRequest{Ids: []string{acc.LedgerAccountID}}).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+				return &pacioliv1.GetAccountsResponse{
+					Accounts: []*pacioliv1.Account{
+						{
+							Id:              args.GetIds()[0],
+							CreditsAccepted: 100,
+							CreditsReserved: 20,
+							DebitsAccepted:  200,
+							DebitsReserved:  0,
+						},
+					},
 				}, nil
 			}).Times(1)
 
@@ -95,6 +107,16 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+				return &pacioliv1.GetAccountsResponse{
+					Accounts: []*pacioliv1.Account{
+						{
+							Id: args.GetIds()[0],
+						},
+					},
+				}, nil
+			}).Times(4)
 		fundingSource, err := NewBankAccount(
 			container,
 			user,
@@ -122,14 +144,18 @@ func TestUserAccount(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "completed", deposit.State)
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id:              args.Id,
-					CreditsAccepted: 0,
-					CreditsReserved: 0,
-					DebitsAccepted:  0,
-					DebitsReserved:  0,
+		container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+				return &pacioliv1.GetAccountsResponse{
+					Accounts: []*pacioliv1.Account{
+						{
+							Id:              args.GetIds()[0],
+							CreditsAccepted: 0,
+							CreditsReserved: 0,
+							DebitsAccepted:  0,
+							DebitsReserved:  0,
+						},
+					},
 				}, nil
 			}).Times(1)
 

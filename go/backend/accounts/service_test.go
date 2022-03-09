@@ -13,9 +13,11 @@ import (
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/proto/pacioli/v1"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -55,24 +57,34 @@ func TestAccountsService(s *testing.T) {
 	}
 	is = _identity.NewLoggingService(is, logger)
 
-	pacioliLedgerID := uuid.NewString()
-	ledgerCode := uint16(1)
+	pacioliLedgerID := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	pClient.EXPECT().GetLedgerByCode(gomock.Any(), gomock.Any()).Return(&pacioliv1.Ledger{
-		Id:   pacioliLedgerID,
-		Code: uint32(ledgerCode),
-	}, nil).Times(1)
 	as, err := NewService(&ServiceArgs{
-		Is:                is,
-		Cs:                cs,
-		PacioliLedgerCode: ledgerCode,
-		PacioliClient:     pClient,
-		Db:                db,
+		Is:              is,
+		Cs:              cs,
+		PacioliLedgerID: pacioliLedgerID,
+		PacioliClient:   pClient,
+		PacioliTenant:   "dev",
+		Db:              db,
 	})
 	if err != nil {
 		s.Fatal(err)
 	}
 	as = NewLoggingService(as, logger)
+	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
+		Args: []*pacioli.Ledger{
+			{
+				Id:    uint32(pacioliLedgerID),
+				Name:  "Fynbos ledger",
+				Asset: "840", // US dollars
+				Scale: 2,
+			},
+		},
+	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).Times(1)
+	err = as.Init(ctx)
+	if err != nil {
+		s.Fatal(err)
+	}
 
 	s.Run("create account", func(t *testing.T) {
 		var identity *_identity.Identity
@@ -97,11 +109,23 @@ func TestAccountsService(s *testing.T) {
 		}
 
 		t.Run("writes to db if written to pacioli", func(tt *testing.T) {
-			ledgerAccountID := uuid.NewString()
-			pClient.EXPECT().CreateAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
-				Id: ledgerAccountID,
-			}, nil).Times(1)
-
+			pClient.EXPECT().ConfigureAccounts(ctx, gomock.Any(), gomock.Any()).Return(
+				&pacioli.ConfigureAccountsResponse{}, nil,
+			).Times(1)
+			pClient.EXPECT().GetAccounts(ctx, gomock.Any()).DoAndReturn(
+				func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
+					return &pacioli.GetAccountsResponse{
+						Accounts: []*pacioli.Account{
+							{
+								Id:              args.Ids[0],
+								DebitsReserved:  1, // return non-zero to make sure default values aren't used.
+								DebitsAccepted:  2,
+								CreditsAccepted: 3,
+								CreditsReserved: 4,
+							},
+						},
+					}, nil
+				}).Times(2)
 			var acc *Account
 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				_acc, err := as.Create(ctx, tx, &CreateAccountArgs{
@@ -118,20 +142,12 @@ func TestAccountsService(s *testing.T) {
 			if err != nil {
 				tt.Fatal(err)
 			}
-			assert.Equal(tt, ledgerAccountID, acc.LedgerAccountID)
 			assert.Equal(tt, uint64(0), acc.DebitsAccepted)
 			assert.Equal(tt, uint64(0), acc.DebitsReserved)
 			assert.Equal(tt, uint64(0), acc.CreditsAccepted)
 			assert.Equal(tt, uint64(0), acc.CreditsReserved)
 			assert.Equal(tt, identity.ID, acc.IdentityID)
 
-			pClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
-				Id:              ledgerAccountID,
-				DebitsReserved:  1, // return non-zero to make sure default values aren't used.
-				DebitsAccepted:  2,
-				CreditsAccepted: 3,
-				CreditsReserved: 4,
-			}, nil).Times(1)
 			var freshAcc *Account
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
@@ -145,20 +161,12 @@ func TestAccountsService(s *testing.T) {
 			if err != nil {
 				tt.Fatal(err)
 			}
-			assert.Equal(tt, ledgerAccountID, freshAcc.LedgerAccountID)
 			assert.Equal(tt, uint64(1), freshAcc.DebitsReserved)
 			assert.Equal(tt, uint64(2), freshAcc.DebitsAccepted)
 			assert.Equal(tt, uint64(3), freshAcc.CreditsAccepted)
 			assert.Equal(tt, uint64(4), freshAcc.CreditsReserved)
 			assert.Equal(tt, identity.ID, freshAcc.IdentityID)
 
-			pClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
-				Id:              ledgerAccountID,
-				DebitsReserved:  1, // return non-zero to make sure default values aren't used.
-				DebitsAccepted:  2,
-				CreditsAccepted: 3,
-				CreditsReserved: 4,
-			}, nil).Times(1)
 			var freshAccGottenByID *Account
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				_acc, err := as.Get(ctx, tx, acc.ID)
@@ -172,7 +180,6 @@ func TestAccountsService(s *testing.T) {
 			if err != nil {
 				tt.Fatal(err)
 			}
-			assert.Equal(tt, ledgerAccountID, freshAccGottenByID.LedgerAccountID)
 			assert.Equal(tt, uint64(1), freshAccGottenByID.DebitsReserved)
 			assert.Equal(tt, uint64(2), freshAccGottenByID.DebitsAccepted)
 			assert.Equal(tt, uint64(3), freshAccGottenByID.CreditsAccepted)
@@ -181,8 +188,9 @@ func TestAccountsService(s *testing.T) {
 		})
 
 		t.Run("fails if not written to pacioli", func(tt *testing.T) {
-			pClient.EXPECT().CreateAccount(ctx, gomock.Any()).
-				Return(nil, status.Error(codes.Internal, "Failed to create account.")).Times(1)
+			pClient.EXPECT().ConfigureAccounts(ctx, gomock.Any()).Return(
+				nil, status.Error(codes.Internal, "Failed to create account."),
+			).Times(1)
 
 			var acc *Account
 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
@@ -300,10 +308,9 @@ func TestAccountsService(s *testing.T) {
 		}
 
 		t.Run("updates verification state to verified", func(tt *testing.T) {
-			ledgerAccountID := uuid.NewString()
-			pClient.EXPECT().CreateAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
-				Id: ledgerAccountID,
-			}, nil).Times(1)
+			pClient.EXPECT().ConfigureAccounts(ctx, gomock.Any()).Return(
+				&pacioli.ConfigureAccountsResponse{}, nil,
+			).Times(1)
 			var verifiedAcc *Account
 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				acc, err := as.Create(ctx, tx, &CreateAccountArgs{
@@ -315,9 +322,16 @@ func TestAccountsService(s *testing.T) {
 				}
 				assert.False(tt, acc.IsVerified())
 
-				pClient.EXPECT().GetAccount(ctx, gomock.Any()).Return(&pacioliv1.Account{
-					Id: ledgerAccountID,
-				}, nil).Times(1)
+				pClient.EXPECT().GetAccounts(ctx, gomock.Any()).DoAndReturn(
+					func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
+						return &pacioli.GetAccountsResponse{
+							Accounts: []*pacioli.Account{
+								{
+									Id: args.Ids[0],
+								},
+							},
+						}, nil
+					}).Times(1)
 				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &VerifyArgs{
 					AccountID:  acc.ID,
 					Provider:   "noop",

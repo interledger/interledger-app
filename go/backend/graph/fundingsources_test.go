@@ -30,6 +30,16 @@ func TestUserFundingSources(s *testing.T) {
 		container.Cleanup(ctx)
 	})
 
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.ConfigureAccountsResponse{}, nil,
+	).AnyTimes()
+	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+			return &pacioliv1.GetAccountsResponse{
+				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
+			}, nil
+		}).AnyTimes()
+
 	/*
 		Scenario: user needs to fetch their funding sources
 		Given a verified user
@@ -71,12 +81,6 @@ func TestUserFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(1)
 		response, err := getFundingSourcesByUserId(container, user)
 		if err != nil {
 			t.Fatal(err)

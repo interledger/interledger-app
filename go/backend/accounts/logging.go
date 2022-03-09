@@ -18,6 +18,26 @@ func NewLoggingService(accountsService Service, logger *zap.Logger) Service {
 	return &loggingService{childLogger, accountsService}
 }
 
+func (self *loggingService) Init(ctx context.Context) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed initialise.",
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Initialised.",
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.Init(ctx)
+}
+
 func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (account *Account, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

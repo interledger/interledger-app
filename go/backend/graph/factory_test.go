@@ -7,8 +7,6 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
 
-	"google.golang.org/grpc"
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
 	"github.com/golang/mock/gomock"
@@ -30,7 +28,7 @@ import (
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/proto/pacioli/v1"
 	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
 )
 
@@ -93,22 +91,31 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.IdentityService = identity.NewLoggingService(is, logger)
 
-	pacioliLedgerID := uuid.NewString()
-	ledgerCode := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	pClient.EXPECT().GetLedgerByCode(gomock.Any(), gomock.Any()).Return(&pacioliv1.Ledger{
-		Id:   pacioliLedgerID,
-		Code: uint32(ledgerCode),
-	}, nil).Times(1)
+	pacioliLedgerID := uint16(1)
+	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
+		Args: []*pacioli.Ledger{
+			{
+				Id:    uint32(pacioliLedgerID),
+				Name:  "Fynbos ledger",
+				Asset: "840", // US dollars
+				Scale: 2,
+			},
+		},
+	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).Times(1)
 	c.MockPacioliClient = pClient
 
 	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Is:                is,
-		Cs:                cs,
-		PacioliLedgerCode: ledgerCode,
-		PacioliClient:     pClient,
-		Db:                db,
+		Is:              is,
+		Cs:              cs,
+		PacioliLedgerID: pacioliLedgerID,
+		PacioliClient:   pClient,
+		Db:              db,
 	})
+	if err != nil {
+		return nil, err
+	}
+	err = as.Init(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -236,10 +243,6 @@ func NewAccount(
 	container *TestContainer,
 	input *onboarding.CreateAccountArgs,
 ) (*accounts.Account, error) {
-	container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
-		Id: uuid.NewString(),
-	}, nil).Times(1)
-
 	acc, err := container.Os.CreateAccount(container.Ctx, input)
 	if err != nil {
 		return nil, err
@@ -254,10 +257,6 @@ func NewVerifiedAccount(
 	createAccountArgs *onboarding.CreateAccountArgs,
 	verifyAccountArgs *onboarding.VerifyAccountArgs,
 ) (*accounts.Account, error) {
-	container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
-		Id: uuid.NewString(),
-	}, nil).Times(1)
-
 	acc, err := container.Os.CreateAccount(container.Ctx, createAccountArgs)
 	if err != nil {
 		return nil, err
@@ -265,12 +264,6 @@ func NewVerifiedAccount(
 
 	verifyAccountArgs.AccountID = acc.ID
 	verifyAccountArgs.IdentityID = acc.IdentityID
-	container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-			return &pacioliv1.Account{
-				Id: args.Id,
-			}, nil
-		}).Times(2)
 	acc, err = container.Os.VerifyAccount(container.Ctx, verifyAccountArgs)
 	if err != nil {
 		return nil, err
@@ -285,24 +278,12 @@ func NewBankAccount(
 	args *fundingsources.CreateBankAccountArgs,
 	verify bool,
 ) (*fundingsources.FundingSource, error) {
-	container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-			return &pacioliv1.Account{
-				Id: args.Id,
-			}, nil
-		}).Times(1)
 	bankAccount, err := container.FundingSourceService.CreateBankAccount(container.Ctx, args)
 	if err != nil {
 		return nil, err
 	}
 
 	if verify {
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(1)
 		bankAccount, err = container.FundingSourceService.Verify(
 			container.Ctx,
 			&fundingsources.VerifyArgs{
@@ -321,21 +302,6 @@ func NewDeposit(
 	c *TestContainer,
 	args *deposits.InitiateDepositArgs,
 ) (*account_transactions.AccountTransaction, error) {
-	c.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(
-			_ context.Context,
-			args *pacioliv1.GetAccountRequest,
-			opts ...grpc.CallOption,
-		) (*pacioliv1.Account, error) {
-			return &pacioliv1.Account{
-				Id: args.Id,
-			}, nil
-		}).Times(2)
-	c.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.CreateTransfersResponse{
-			Errors: []*pacioliv1.EventError{},
-		}, nil).Times(1)
-
 	deposit, err := c.DepositService.InitiateDeposit(c.Ctx, args)
 	if err != nil {
 		return nil, err

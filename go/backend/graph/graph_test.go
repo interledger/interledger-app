@@ -34,6 +34,16 @@ func TestGraphql(s *testing.T) {
 		container.Cleanup(ctx)
 	})
 
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.ConfigureAccountsResponse{}, nil,
+	).AnyTimes()
+	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+			return &pacioliv1.GetAccountsResponse{
+				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
+			}, nil
+		}).AnyTimes()
+
 	s.Run("get identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
 			req := getIdentityRequest()
@@ -159,13 +169,6 @@ func TestGraphql(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(2)
 		var respData map[string]generated.LinkFundingSourceMutationResponse
 		if err := container.Client.Run(container.Ctx, req, &respData); err != nil {
 			t.Fatal(err)
@@ -203,12 +206,6 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, "required", fundingsource.VerificationState)
 
 		// verify it
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(1)
 		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))
 		err = _user.ActingAs(verifyReq, user)
 		if err != nil {

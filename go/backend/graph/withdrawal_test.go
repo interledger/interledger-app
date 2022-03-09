@@ -15,8 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
-	"google.golang.org/grpc"
 )
 
 func TestUserWithdrawals(s *testing.T) {
@@ -30,6 +28,15 @@ func TestUserWithdrawals(s *testing.T) {
 	s.Cleanup(func() {
 		container.Cleanup(ctx)
 	})
+
+	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.CreateTransfersResponse{
+			Errors: []*pacioliv1.EventError{},
+		}, nil).AnyTimes()
+	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.CreateTransfersResponse{
+			Errors: []*pacioliv1.EventError{},
+		}, nil).Times(1)
 
 	/*
 		Scenario: user initiates withdrawal to a verified bank account
@@ -83,17 +90,6 @@ func TestUserWithdrawals(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "completed", deposit.State)
-
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(3)
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{},
-			}, nil).Times(1)
 
 		response, err := initiateWithdrawal(container, user, &generated.WithdrawalInput{
 			FundingSourceID: fundingSource.ID,
@@ -155,22 +151,6 @@ func TestUserWithdrawals(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(3)
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{
-					{
-						Index: 0,
-						Code:  tb_types.TransferExceedsCredits,
-					},
-				},
-			}, nil).Times(1)
-
 		response, err := initiateWithdrawal(container, user, &generated.WithdrawalInput{
 			FundingSourceID: fundingSource.ID,
 			Amount:          "10000", // 100 dollars
@@ -226,12 +206,6 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(2)
 
 		response, err := initiateWithdrawal(container, user, &generated.WithdrawalInput{
 			FundingSourceID: fundingSource.ID,
@@ -331,12 +305,6 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(2)
 
 		response, err := initiateWithdrawal(container, alice, &generated.WithdrawalInput{
 			FundingSourceID: bobBankAccount.ID,

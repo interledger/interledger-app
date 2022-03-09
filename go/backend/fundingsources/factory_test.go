@@ -15,7 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/proto/pacioli/v1"
 	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
 	"go.uber.org/zap"
 )
@@ -70,22 +70,31 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	ctrl := gomock.NewController(t)
 	c.Ctrl = ctrl
 
-	pacioliLedgerID := uuid.NewString()
-	ledgerCode := uint16(1)
 	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	pClient.EXPECT().GetLedgerByCode(gomock.Any(), gomock.Any()).Return(&pacioliv1.Ledger{
-		Id:   pacioliLedgerID,
-		Code: uint32(ledgerCode),
-	}, nil).Times(1)
+	pacioliLedgerID := uint16(1)
+	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
+		Args: []*pacioli.Ledger{
+			{
+				Id:    uint32(pacioliLedgerID),
+				Name:  "Fynbos ledger",
+				Asset: "840", // US dollars
+				Scale: 2,
+			},
+		},
+	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).Times(1)
 	c.MockPacioliClient = pClient
 
 	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Is:                is,
-		Cs:                cs,
-		PacioliLedgerCode: 0,
-		PacioliClient:     pClient,
-		Db:                db,
+		Is:              is,
+		Cs:              cs,
+		PacioliLedgerID: pacioliLedgerID,
+		PacioliClient:   pClient,
+		Db:              db,
 	})
+	if err != nil {
+		return nil, err
+	}
+	err = as.Init(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +159,9 @@ func NewAccount(
 	container *TestContainer,
 	input *onboarding.CreateAccountArgs,
 ) (*accounts.Account, error) {
-	container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
-		Id: uuid.NewString(),
-	}, nil).Times(1)
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioli.ConfigureAccountsResponse{}, nil,
+	).Times(1)
 
 	acc, err := container.Os.CreateAccount(container.Ctx, input)
 	if err != nil {
