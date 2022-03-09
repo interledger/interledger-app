@@ -26,6 +26,15 @@ func TestUserOnboarding(s *testing.T) {
 	s.Cleanup(func() {
 		container.Cleanup(ctx)
 	})
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.ConfigureAccountsResponse{}, nil,
+	).AnyTimes()
+	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+			return &pacioliv1.GetAccountsResponse{
+				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
+			}, nil
+		}).AnyTimes()
 
 	/*
 		Scenario: user creates an account at Fynbos
@@ -40,10 +49,6 @@ func TestUserOnboarding(s *testing.T) {
 			Email: faker.Email(),
 		}
 		input := generateAccountInput()
-		ledgerAccountID := uuid.NewString()
-		container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
-			Id: ledgerAccountID,
-		}, nil).Times(1)
 
 		response, err := createAccount(container, user, input)
 		if err != nil {
@@ -129,12 +134,6 @@ func TestUserOnboarding(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.False(t, acc.IsVerified())
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(4)
 
 		response, err := verifyAccount(container, user, generateVerifyAccountInput())
 		if err != nil {
@@ -168,16 +167,6 @@ func TestUserOnboarding(s *testing.T) {
 			ID:    uuid.NewString(),
 		}
 		input := generateVerifyAccountInput()
-		ledgerAccountID := uuid.NewString()
-		container.MockPacioliClient.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&pacioliv1.Account{
-			Id: ledgerAccountID,
-		}, nil).Times(1)
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(2)
 
 		response, err := onboardAccount(container, user, input)
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -37,6 +38,7 @@ func (s Account) IsVerified() bool {
 }
 
 type Service interface {
+	Init(ctx context.Context) error
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error)
 	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 	GetByIdentityID(ctx context.Context, id string) (*Account, error)
@@ -53,16 +55,17 @@ type service struct {
 	is              _identity.Service
 	cs              _country.Service
 	validator       *validator.Validate
-	pacioliLedgerID string
+	pacioliLedgerID uint16
 	pacioliClient   pacioliv1.PacioliServiceClient
 }
 
 type ServiceArgs struct {
-	Is                _identity.Service `validate:"required"`
-	Cs                _country.Service  `validate:"required"`
-	PacioliLedgerCode uint16
-	PacioliClient     pacioliv1.PacioliServiceClient `validate:"required"`
-	Db                *sqlx.DB                       `validate:"required"`
+	Is              _identity.Service `validate:"required"`
+	Cs              _country.Service  `validate:"required"`
+	PacioliTenant   string
+	PacioliLedgerID uint16
+	PacioliClient   pacioliv1.PacioliServiceClient `validate:"required"`
+	Db              *sqlx.DB                       `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -71,23 +74,37 @@ func NewService(args *ServiceArgs) (Service, error) {
 		return nil, err
 	}
 
-	// TODO: re-work configuration when grpc auth is introduced.
-	ctx := context.Background() // TODO: timeout
-	ledger, err := args.PacioliClient.GetLedgerByCode(ctx, &pacioliv1.GetLedgerByCodeRequest{
-		Code: uint32(args.PacioliLedgerCode),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return &service{
 		db:              args.Db,
 		is:              args.Is,
 		cs:              args.Cs,
-		pacioliLedgerID: ledger.Id,
+		pacioliLedgerID: args.PacioliLedgerID,
 		pacioliClient:   args.PacioliClient,
 		validator:       validator,
 	}, nil
+}
+
+func (s *service) Init(ctx context.Context) error {
+	// TODO: create tenant when auth is working
+	response, err := s.pacioliClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
+		Args: []*pacioliv1.Ledger{
+			{
+				Id:    uint32(s.pacioliLedgerID),
+				Name:  "Fynbos ledger",
+				Asset: "840", // US dollars
+				Scale: 2,
+			},
+		},
+	})
+	if err != nil {
+		return &ErrInternalError{Err: err.Error()}
+	}
+	eventErrors := response.GetErrors()
+	if len(eventErrors) > 0 {
+		return &ErrInternalError{Err: "Failed to configure ledgers."}
+	}
+
+	return nil
 }
 
 type CreateAccountArgs struct {
@@ -104,7 +121,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: err.Error()}
 	}
-	ctry, err := s.cs.GetByAlpha2(ctx, tx, args.Country)
+	_, err = s.cs.GetByAlpha2(ctx, tx, args.Country)
 	if err != nil {
 		return nil, &ErrInvalidArgument{Err: "Unknown or unsupported country: " + args.Country}
 	}
@@ -121,12 +138,24 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	}
 
 	// pacioli client must be configured with retries and exponential backoff at higher level.
-	ledgerAccount, err := s.pacioliClient.CreateAccount(ctx, &pacioliv1.CreateAccountRequest{
-		LedgerID: s.pacioliLedgerID,
-		Unit:     uint32(ctry.NumericCode), // grpc does not have uint16 natively
+	ledgerAccountID := uuid.NewString()
+	response, err := s.pacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
+		Args: []*pacioliv1.ConfigureAccountsArgs{
+			{
+				Id:       ledgerAccountID,
+				LedgerId: uint32(s.pacioliLedgerID),
+				Flags: &pacioliv1.AccountFlags{
+					DebitsMustNotExceedCredits: true,
+				},
+			},
+		},
 	})
 	if err != nil {
 		return nil, &ErrInternalError{Err: err.Error()}
+	}
+	eventErrors := response.GetErrors()
+	if len(eventErrors) > 0 {
+		return nil, &ErrInternalError{Err: "Failed to create account in pacioli."}
 	}
 
 	stmt, err := tx.PrepareNamed("INSERT INTO accounts (identity_id, ledger_account_id) VALUES (:identityid, :ledgeraccountid) RETURNING *")
@@ -135,7 +164,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	}
 
 	var ret Account
-	err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccount.Id)
+	err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccountID)
 	if err != nil {
 		return nil, &ErrInternalError{Err: err.Error()}
 	}
@@ -208,13 +237,16 @@ func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error 
 	if account == nil {
 		return &ErrInternalError{Err: "Accounts service: account needs to specified to fetch from Pacioli."}
 	}
-	ledgerAccount, err := s.pacioliClient.GetAccount(ctx, &pacioliv1.GetAccountRequest{
-		LedgerID: s.pacioliLedgerID,
-		Id:       account.LedgerAccountID,
+	response, err := s.pacioliClient.GetAccounts(ctx, &pacioliv1.GetAccountsRequest{
+		Ids: []string{account.LedgerAccountID},
 	})
 	if err != nil {
 		return &ErrInternalError{Err: err.Error()}
 	}
+	if len(response.GetAccounts()) != 1 {
+		return &ErrNotFound{Err: "Account not in pacioli."}
+	}
+	ledgerAccount := response.GetAccounts()[0]
 	if ledgerAccount.Id != account.LedgerAccountID {
 		// Panic-ing here as something is wrong - possibly encoding of uuids to byte slice.
 		panic("Accounts service: Ledger account ID does not match that returned from Pacioli.")

@@ -31,6 +31,16 @@ func TestUserOutgoingPayment(s *testing.T) {
 		container.Cleanup(ctx)
 	})
 
+	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
+		&pacioliv1.ConfigureAccountsResponse{}, nil,
+	).AnyTimes()
+	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
+			return &pacioliv1.GetAccountsResponse{
+				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
+			}, nil
+		}).AnyTimes()
+
 	/*
 		Scenario: user initiates an outgoing payment to an ilp address
 
@@ -41,6 +51,10 @@ func TestUserOutgoingPayment(s *testing.T) {
 		Then a successful response is returned along with the newly created transaction
 	*/
 	s.Run("user initiates an outgoing payment to an ilp address", func(t *testing.T) {
+		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+			&pacioliv1.CreateTransfersResponse{
+				Errors: []*pacioliv1.EventError{},
+			}, nil).Times(2)
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
@@ -95,16 +109,6 @@ func TestUserOutgoingPayment(s *testing.T) {
 		}
 		assert.Equal(t, "completed", deposit.State)
 
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(3)
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{},
-			}, nil).Times(1)
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
 			To:     "$test.fynbos.test/alice",
@@ -131,6 +135,12 @@ func TestUserOutgoingPayment(s *testing.T) {
 		Then an error is returned saying there is insufficient balance
 	*/
 	s.Run("user has insufficient balance to initiate outgoing payment", func(t *testing.T) {
+		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+			&pacioliv1.CreateTransfersResponse{
+				Errors: []*pacioliv1.EventError{
+					{Index: 0, Code: tb_types.TransferExceedsCredits},
+				},
+			}, nil).Times(1)
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
@@ -159,21 +169,6 @@ func TestUserOutgoingPayment(s *testing.T) {
 		}
 		assert.True(t, acc.IsVerified())
 
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(3)
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{
-					{
-						Index: 0,
-						Code:  tb_types.TransferExceedsCredits,
-					},
-				},
-			}, nil).Times(1)
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
 			To:     "$test.fynbos.test/alice",
@@ -199,6 +194,10 @@ func TestUserOutgoingPayment(s *testing.T) {
 		Then an error is returned saying there is insufficient balance
 	*/
 	s.Run("user tries to initiate outgoing payment from an unverified account", func(t *testing.T) {
+		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
+			&pacioliv1.CreateTransfersResponse{
+				Errors: []*pacioliv1.EventError{},
+			}, nil).Times(1)
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
@@ -246,12 +245,6 @@ func TestUserOutgoingPayment(s *testing.T) {
 		}
 		assert.Equal(t, "completed", deposit.State)
 
-		container.MockPacioliClient.EXPECT().GetAccount(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountRequest, opts ...grpc.CallOption) (*pacioliv1.Account, error) {
-				return &pacioliv1.Account{
-					Id: args.Id,
-				}, nil
-			}).Times(2)
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
 			To:     "$test.fynbos.test/alice",

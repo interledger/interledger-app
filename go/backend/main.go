@@ -117,11 +117,11 @@ func start(args *cli.StartArgs) {
 
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Db:                db,
-		Is:                id,
-		Cs:                cs,
-		PacioliClient:     pClient,
-		PacioliLedgerCode: args.UsdLedgerCode,
+		Db:              db,
+		Is:              id,
+		Cs:              cs,
+		PacioliClient:   pClient,
+		PacioliLedgerID: args.UsdLedgerCode,
 	})
 	if err != nil {
 		log.Fatalln(err)

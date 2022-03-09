@@ -23,7 +23,6 @@ require (
 	go.uber.org/zap v1.19.1
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
-	gotest.tools v2.2.0+incompatible
 )
 
 require (
@@ -45,7 +44,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
