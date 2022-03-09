@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"gitlab.com/fynbos/infra/services/retool"
+
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/backend"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
@@ -135,6 +138,15 @@ func main() {
 			ImageTag:  "latest",
 			Namespace: "default",
 		})
+		if err != nil {
+			return err
+		}
+
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:     "retool-ingress",
+			Hostname: "retool.fynbos.test",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
+		_, err = retool.DeployRetool(ctx, "retool.fynbos.test")
 		if err != nil {
 			return err
 		}
