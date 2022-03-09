@@ -114,7 +114,7 @@ func Init(args *InitArgs) error {
 		}
 	}()
 
-	ls, err := ledger.NewLedgerService(db, tbClient)
+	ls, err := ledger.NewService(db, tbClient)
 	if err != nil {
 		log.Fatalln(err)
 	}
