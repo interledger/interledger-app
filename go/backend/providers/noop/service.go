@@ -2,11 +2,17 @@ package noop
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+)
+
+var (
+	ErrInternal = errors.New("noop: internal error.")
 )
 
 const (
@@ -18,13 +24,14 @@ const (
 )
 
 type Service interface {
+	Init(ctx context.Context) error
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) error
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) error
 	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) error
 	InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) error
 
 	GetEquityAccountID() string
-	GetLedgerID() string // This shouldn't be necessary - here till pacioli is refactored
+	GetLedgerID() uint16
 	CreateCustomer(args *CreateCustomerArgs) (*Customer, error)
 }
 
@@ -32,14 +39,17 @@ type service struct {
 	validator *validator.Validate
 	// TODO: configuring and management of ledgers and ledger accounts that this provider
 	// acts upon.
-	ledgerID        string
+	ledgerID        uint16
 	equityAccountID string
+	pacioliClient   pacioliv1.PacioliServiceClient
 }
 
 type ServiceArgs struct {
 	// TODO: configuring and management of ledgers and ledger accounts
-	LedgerID    string `validate:"required"`
-	EquityAccID string `validate:"required"`
+	LedgerID      uint16
+	EquityAccID   string `validate:"required"`
+	PacioliTenant string
+	PacioliClient pacioliv1.PacioliServiceClient `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -53,7 +63,52 @@ func NewService(args ServiceArgs) (Service, error) {
 		validator:       validator,
 		ledgerID:        args.LedgerID,
 		equityAccountID: args.EquityAccID,
+		pacioliClient:   args.PacioliClient,
 	}, nil
+}
+
+func (s *service) Init(ctx context.Context) error {
+	// TODO: configure tenant
+	ledgerResponse, err := s.pacioliClient.ConfigureLedgers(
+		ctx,
+		&pacioliv1.ConfigureLedgersRequest{
+			Args: []*pacioliv1.Ledger{
+				{
+					Id:    uint32(s.ledgerID),
+					Name:  "Noop-USD",
+					Asset: "840",
+					Scale: 2,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("Failed to configure ledger.%s %w", err.Error(), ErrInternal)
+	}
+	if len(ledgerResponse.GetErrors()) > 0 {
+		return fmt.Errorf("%s %+v %w", "Failed to configure ledger.", ledgerResponse.GetErrors(), ErrInternal)
+	}
+
+	accountResponse, err := s.pacioliClient.ConfigureAccounts(
+		ctx,
+		&pacioliv1.ConfigureAccountsRequest{
+			Args: []*pacioliv1.ConfigureAccountsArgs{
+				{
+					Id:       s.equityAccountID,
+					LedgerId: uint32(s.ledgerID),
+					// Code: 1,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("Failed to configure equity account.%s %w", err.Error(), ErrInternal)
+	}
+	if len(accountResponse.GetErrors()) > 0 {
+		return fmt.Errorf("%s %+v %w", "Failed to configure equity account.", accountResponse.GetErrors(), ErrInternal)
+	}
+
+	return nil
 }
 
 type NoopBankAccount struct {
@@ -108,7 +163,7 @@ func (s *service) GetEquityAccountID() string {
 	return s.equityAccountID
 }
 
-func (s *service) GetLedgerID() string {
+func (s *service) GetLedgerID() uint16 {
 	return s.ledgerID
 }
 

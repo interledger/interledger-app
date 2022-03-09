@@ -88,7 +88,7 @@ func TestAccountTransactions(s *testing.T) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		ledgerID := uuid.NewString()
+		ledgerID := uint16(1)
 		equityAccID := uuid.NewString()
 		args := generateCreateTransactionArgs(
 			withAccountID(acc.ID),

@@ -106,7 +106,7 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 			State:       "completed", // TODO: define states
 			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
-					LedgerID:        acc.LedgerAccountID,
+					LedgerID:        s.noop.GetLedgerID(),
 					DebitAccountID:  equityAccountID,
 					CreditAccountID: acc.ID,
 					Amount:          args.Amount,
