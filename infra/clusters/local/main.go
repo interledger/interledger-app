@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/backend"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
@@ -103,18 +101,14 @@ func main() {
 			return err
 		}
 
-		ledgerCodes := pacioli.LocalClusterLedgerCodes()
-		backendLedgerCode, present := ledgerCodes["backend-usd"]
-		if !present {
-			return errors.New("Ledger code for backend-usd does not exist.")
-		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo:        "localhost:5005",
-			Cert:             beCert,
-			ImageTag:         "latest",
-			UsdLedgerCode:    backendLedgerCode,
-			EnablePlayground: true,
-			Hostname:         "fynbos.test",
+			ImageRepo:           "localhost:5005",
+			Cert:                beCert,
+			ImageTag:            "latest",
+			UsdLedgerCode:       0,
+			NoopEquityAccountID: "036c9b47-d0e4-4960-863e-a80224aa6ff3",
+			EnablePlayground:    true,
+			Hostname:            "fynbos.test",
 		})
 		if err != nil {
 			return err

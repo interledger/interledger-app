@@ -11,7 +11,14 @@ import (
 )
 
 type MigrationArgs struct {
-	ConnectionString string
+	ConnectionString    string
+	NoopLedgerID        uint16
+	NoopEquityAccountID string
+	PacioliUrl          string
+	UsdLedgerID         uint16
+	KratosUrl           string
+	LogLevel            string
+	LogOutputPath       string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -30,21 +37,62 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		log.Fatalln(err)
 	}
 
+	kratosUrl := os.Getenv("KRATOS_URL")
+	if kratosUrl == "" {
+		kratosUrl = "http://localhost:4433"
+	}
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
+	}
+	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
+	if logOutputPath == "" {
+		logOutputPath = "stderr"
+	}
+
+	pacioliUrl := os.Getenv("PACIOLI_URL")
+	if pacioliUrl == "" {
+		pacioliUrl = "pacioli:443"
+	}
+
+	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
+	if usdLedgerIDString == "" {
+		return nil, errors.New("USD ledger code not specified.")
+	}
+	usdLedgerID, err := strconv.ParseUint(usdLedgerIDString, 10, 16)
+	if err != nil {
+		return nil, errors.New("USD_LEDGER_ID must be a uint16.")
+	}
+
+	noopEquityAccount := os.Getenv("NOOP_EQUITY_ACCOUNT_ID")
+	if noopEquityAccount == "" {
+		return nil, errors.New("NOOP_EQUITY_ACCOUNT_ID is required.")
+	}
+
 	return &MigrationArgs{
-		ConnectionString: connString,
+		ConnectionString:    connString,
+		PacioliUrl:          pacioliUrl,
+		NoopEquityAccountID: noopEquityAccount,
+		NoopLedgerID:        uint16(usdLedgerID),
+		UsdLedgerID:         uint16(usdLedgerID),
+		KratosUrl:           kratosUrl,
+		LogLevel:            logLevel,
+		LogOutputPath:       logOutputPath,
 	}, nil
 }
 
 type StartArgs struct {
-	Port               string
-	DbConnectionString string
-	TbUrl              string
-	TbClusterID        string
-	KratosUrl          string
-	PacioliUrl         string
-	UsdLedgerCode      uint16
-	LogLevel           string
-	LogOutputPath      string
+	Port                string
+	DbConnectionString  string
+	TbUrl               string
+	TbClusterID         string
+	KratosUrl           string
+	PacioliUrl          string
+	UsdLedgerID         uint16
+	LogLevel            string
+	LogOutputPath       string
+	NoopLedgerID        uint16
+	NoopEquityAccountID string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -80,13 +128,13 @@ func ParseStartArgs() (*StartArgs, error) {
 	if pacioliUrl == "" {
 		pacioliUrl = "pacioli:443"
 	}
-	usdLedgerCodeString := os.Getenv("USD_LEDGER_CODE")
-	if usdLedgerCodeString == "" {
+	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
+	if usdLedgerIDString == "" {
 		return nil, errors.New("USD ledger code not specified.")
 	}
-	usdLedgerCode, err := strconv.ParseUint(usdLedgerCodeString, 10, 16)
+	usdLedgerID, err := strconv.ParseUint(usdLedgerIDString, 10, 16)
 	if err != nil {
-		return nil, errors.New("USD_LEDGER_CODE must be a uint16.")
+		return nil, errors.New("USD_LEDGER_ID must be a uint16.")
 	}
 
 	connString, err := migrations.InlineSslCreds(
@@ -99,15 +147,22 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, err
 	}
 
+	noopEquityAccount := os.Getenv("NOOP_EQUITY_ACCOUNT_ID")
+	if noopEquityAccount == "" {
+		return nil, errors.New("NOOP_EQUITY_ACCOUNT_ID is required.")
+	}
+
 	return &StartArgs{
-		Port:               port,
-		DbConnectionString: connString,
-		TbUrl:              tbUrl,
-		TbClusterID:        tbClusterID,
-		KratosUrl:          kratosUrl,
-		PacioliUrl:         pacioliUrl,
-		UsdLedgerCode:      uint16(usdLedgerCode),
-		LogLevel:           logLevel,
-		LogOutputPath:      logOutputPath,
+		Port:                port,
+		DbConnectionString:  connString,
+		TbUrl:               tbUrl,
+		TbClusterID:         tbClusterID,
+		KratosUrl:           kratosUrl,
+		PacioliUrl:          pacioliUrl,
+		UsdLedgerID:         uint16(usdLedgerID),
+		LogLevel:            logLevel,
+		LogOutputPath:       logOutputPath,
+		NoopLedgerID:        uint16(usdLedgerID), // all on the same ledger at the moment.
+		NoopEquityAccountID: noopEquityAccount,
 	}, nil
 }
