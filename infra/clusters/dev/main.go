@@ -2,9 +2,10 @@ package main
 
 import (
 	b64 "encoding/base64"
-	"errors"
 	"os/exec"
 	"strings"
+
+	"os"
 
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
@@ -19,7 +20,6 @@ import (
 	"gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/protea"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
-	"os"
 )
 
 func main() {
@@ -144,12 +144,6 @@ func main() {
 			return err
 		}
 
-		ledgerCodes := pacioli.DevClusterLedgerCodes()
-		backendLedgerCode, present := ledgerCodes["backend-usd"]
-		if !present {
-			return errors.New("Ledger code for backend-usd does not exist.")
-		}
-
 		beCert, err := cockroach.CreateClientCert(ctx, &cockroach.ClientCertArgs{
 			Issuer:    "ca-issuer",
 			Namespace: "default",
@@ -159,12 +153,13 @@ func main() {
 			return err
 		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo:        ecrRepo,
-			Cert:             beCert,
-			ImageTag:         hash,
-			UsdLedgerCode:    backendLedgerCode,
-			EnablePlayground: true,
-			Hostname:         "dev.fynbos.dev",
+			ImageRepo:           ecrRepo,
+			Cert:                beCert,
+			ImageTag:            hash,
+			UsdLedgerCode:       100,
+			NoopEquityAccountID: "7c63db4d-2f4c-4ab2-935e-7482bad12649",
+			EnablePlayground:    true,
+			Hostname:            "dev.fynbos.dev",
 		})
 		if err != nil {
 			return err

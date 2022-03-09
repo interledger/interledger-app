@@ -13,12 +13,13 @@ import (
 )
 
 type DeployBackendArgs struct {
-	Cert             *apiextensions.CustomResource
-	ImageRepo        string
-	ImageTag         string
-	UsdLedgerCode    uint16
-	Hostname         string
-	EnablePlayground bool
+	Cert                *apiextensions.CustomResource
+	ImageRepo           string
+	ImageTag            string
+	UsdLedgerCode       uint16
+	NoopEquityAccountID string
+	Hostname            string
+	EnablePlayground    bool
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -35,7 +36,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.UsdLedgerCode)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.UsdLedgerCode, args.NoopEquityAccountID)
 	if err != nil {
 		return err
 	}
@@ -85,6 +86,7 @@ func deployDeployment(
 	imageTag string,
 	cert *apiextensions.CustomResource,
 	usdLedgerCode uint16,
+	noopEquityAccountID string,
 ) error {
 	_, err := appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
@@ -154,8 +156,24 @@ func deployDeployment(
 									Value: pulumi.String("cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"),
 								},
 								&corev1.EnvVarArgs{
-									Name:  pulumi.String("TB_CLUSTER_ID"),
-									Value: pulumi.String("0"),
+									Name:  pulumi.String("KRATOS_URL"),
+									Value: pulumi.String("http://kratos-public"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("LOG_LEVEL"),
+									Value: pulumi.String("info"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("USD_LEDGER_ID"),
+									Value: pulumi.String(strconv.Itoa(int(usdLedgerCode))),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("NOOP_EQUITY_ACCOUNT_ID"),
+									Value: pulumi.String(noopEquityAccountID),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("PACIOLI_URL"),
+									Value: pulumi.String("pacioli:443"),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
@@ -209,8 +227,12 @@ func deployDeployment(
 									Value: pulumi.String("info"),
 								},
 								&corev1.EnvVarArgs{
-									Name:  pulumi.String("USD_LEDGER_CODE"),
+									Name:  pulumi.String("USD_LEDGER_ID"),
 									Value: pulumi.String(strconv.Itoa(int(usdLedgerCode))),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("NOOP_EQUITY_ACCOUNT_ID"),
+									Value: pulumi.String(noopEquityAccountID),
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("PACIOLI_URL"),
