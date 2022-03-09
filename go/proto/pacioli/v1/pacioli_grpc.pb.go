@@ -22,10 +22,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PacioliServiceClient interface {
-	CreateLedger(ctx context.Context, in *CreateLedgerRequest, opts ...grpc.CallOption) (*Ledger, error)
-	GetLedgerByCode(ctx context.Context, in *GetLedgerByCodeRequest, opts ...grpc.CallOption) (*Ledger, error)
-	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*Account, error)
-	GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*Account, error)
+	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*Empty, error)
+	CreateLedgers(ctx context.Context, in *CreateLedgersRequest, opts ...grpc.CallOption) (*CreateLedgersResponse, error)
+	GetLedgers(ctx context.Context, in *GetLedgersRequest, opts ...grpc.CallOption) (*GetLedgersResponse, error)
+	CreateAccounts(ctx context.Context, in *CreateAccountsRequest, opts ...grpc.CallOption) (*CreateAccountsResponse, error)
+	GetAccounts(ctx context.Context, in *GetAccountsRequest, opts ...grpc.CallOption) (*Account, error)
 	CreateTransfers(ctx context.Context, in *CreateTransfersRequest, opts ...grpc.CallOption) (*CreateTransfersResponse, error)
 	GetTransfers(ctx context.Context, in *GetTransfersRequest, opts ...grpc.CallOption) (*GetTransfersResponse, error)
 }
@@ -38,36 +39,45 @@ func NewPacioliServiceClient(cc grpc.ClientConnInterface) PacioliServiceClient {
 	return &pacioliServiceClient{cc}
 }
 
-func (c *pacioliServiceClient) CreateLedger(ctx context.Context, in *CreateLedgerRequest, opts ...grpc.CallOption) (*Ledger, error) {
-	out := new(Ledger)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateLedger", in, out, opts...)
+func (c *pacioliServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateTenant", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *pacioliServiceClient) GetLedgerByCode(ctx context.Context, in *GetLedgerByCodeRequest, opts ...grpc.CallOption) (*Ledger, error) {
-	out := new(Ledger)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetLedgerByCode", in, out, opts...)
+func (c *pacioliServiceClient) CreateLedgers(ctx context.Context, in *CreateLedgersRequest, opts ...grpc.CallOption) (*CreateLedgersResponse, error) {
+	out := new(CreateLedgersResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateLedgers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *pacioliServiceClient) CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*Account, error) {
+func (c *pacioliServiceClient) GetLedgers(ctx context.Context, in *GetLedgersRequest, opts ...grpc.CallOption) (*GetLedgersResponse, error) {
+	out := new(GetLedgersResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetLedgers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pacioliServiceClient) CreateAccounts(ctx context.Context, in *CreateAccountsRequest, opts ...grpc.CallOption) (*CreateAccountsResponse, error) {
+	out := new(CreateAccountsResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pacioliServiceClient) GetAccounts(ctx context.Context, in *GetAccountsRequest, opts ...grpc.CallOption) (*Account, error) {
 	out := new(Account)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateAccount", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pacioliServiceClient) GetAccount(ctx context.Context, in *GetAccountRequest, opts ...grpc.CallOption) (*Account, error) {
-	out := new(Account)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetAccount", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/GetAccounts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,10 +106,11 @@ func (c *pacioliServiceClient) GetTransfers(ctx context.Context, in *GetTransfer
 // All implementations should embed UnimplementedPacioliServiceServer
 // for forward compatibility
 type PacioliServiceServer interface {
-	CreateLedger(context.Context, *CreateLedgerRequest) (*Ledger, error)
-	GetLedgerByCode(context.Context, *GetLedgerByCodeRequest) (*Ledger, error)
-	CreateAccount(context.Context, *CreateAccountRequest) (*Account, error)
-	GetAccount(context.Context, *GetAccountRequest) (*Account, error)
+	CreateTenant(context.Context, *CreateTenantRequest) (*Empty, error)
+	CreateLedgers(context.Context, *CreateLedgersRequest) (*CreateLedgersResponse, error)
+	GetLedgers(context.Context, *GetLedgersRequest) (*GetLedgersResponse, error)
+	CreateAccounts(context.Context, *CreateAccountsRequest) (*CreateAccountsResponse, error)
+	GetAccounts(context.Context, *GetAccountsRequest) (*Account, error)
 	CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error)
 	GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error)
 }
@@ -108,17 +119,20 @@ type PacioliServiceServer interface {
 type UnimplementedPacioliServiceServer struct {
 }
 
-func (UnimplementedPacioliServiceServer) CreateLedger(context.Context, *CreateLedgerRequest) (*Ledger, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateLedger not implemented")
+func (UnimplementedPacioliServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
 }
-func (UnimplementedPacioliServiceServer) GetLedgerByCode(context.Context, *GetLedgerByCodeRequest) (*Ledger, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLedgerByCode not implemented")
+func (UnimplementedPacioliServiceServer) CreateLedgers(context.Context, *CreateLedgersRequest) (*CreateLedgersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateLedgers not implemented")
 }
-func (UnimplementedPacioliServiceServer) CreateAccount(context.Context, *CreateAccountRequest) (*Account, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
+func (UnimplementedPacioliServiceServer) GetLedgers(context.Context, *GetLedgersRequest) (*GetLedgersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLedgers not implemented")
 }
-func (UnimplementedPacioliServiceServer) GetAccount(context.Context, *GetAccountRequest) (*Account, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAccount not implemented")
+func (UnimplementedPacioliServiceServer) CreateAccounts(context.Context, *CreateAccountsRequest) (*CreateAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAccounts not implemented")
+}
+func (UnimplementedPacioliServiceServer) GetAccounts(context.Context, *GetAccountsRequest) (*Account, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAccounts not implemented")
 }
 func (UnimplementedPacioliServiceServer) CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTransfers not implemented")
@@ -138,74 +152,92 @@ func RegisterPacioliServiceServer(s grpc.ServiceRegistrar, srv PacioliServiceSer
 	s.RegisterService(&PacioliService_ServiceDesc, srv)
 }
 
-func _PacioliService_CreateLedger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateLedgerRequest)
+func _PacioliService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTenantRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PacioliServiceServer).CreateLedger(ctx, in)
+		return srv.(PacioliServiceServer).CreateTenant(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CreateLedger",
+		FullMethod: "/pacioli.v1.PacioliService/CreateTenant",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CreateLedger(ctx, req.(*CreateLedgerRequest))
+		return srv.(PacioliServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PacioliService_GetLedgerByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetLedgerByCodeRequest)
+func _PacioliService_CreateLedgers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateLedgersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PacioliServiceServer).GetLedgerByCode(ctx, in)
+		return srv.(PacioliServiceServer).CreateLedgers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/GetLedgerByCode",
+		FullMethod: "/pacioli.v1.PacioliService/CreateLedgers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).GetLedgerByCode(ctx, req.(*GetLedgerByCodeRequest))
+		return srv.(PacioliServiceServer).CreateLedgers(ctx, req.(*CreateLedgersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PacioliService_CreateAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAccountRequest)
+func _PacioliService_GetLedgers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLedgersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PacioliServiceServer).CreateAccount(ctx, in)
+		return srv.(PacioliServiceServer).GetLedgers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CreateAccount",
+		FullMethod: "/pacioli.v1.PacioliService/GetLedgers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CreateAccount(ctx, req.(*CreateAccountRequest))
+		return srv.(PacioliServiceServer).GetLedgers(ctx, req.(*GetLedgersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PacioliService_GetAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAccountRequest)
+func _PacioliService_CreateAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAccountsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PacioliServiceServer).GetAccount(ctx, in)
+		return srv.(PacioliServiceServer).CreateAccounts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/GetAccount",
+		FullMethod: "/pacioli.v1.PacioliService/CreateAccounts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).GetAccount(ctx, req.(*GetAccountRequest))
+		return srv.(PacioliServiceServer).CreateAccounts(ctx, req.(*CreateAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PacioliService_GetAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PacioliServiceServer).GetAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pacioli.v1.PacioliService/GetAccounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PacioliServiceServer).GetAccounts(ctx, req.(*GetAccountsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -254,20 +286,24 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PacioliServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateLedger",
-			Handler:    _PacioliService_CreateLedger_Handler,
+			MethodName: "CreateTenant",
+			Handler:    _PacioliService_CreateTenant_Handler,
 		},
 		{
-			MethodName: "GetLedgerByCode",
-			Handler:    _PacioliService_GetLedgerByCode_Handler,
+			MethodName: "CreateLedgers",
+			Handler:    _PacioliService_CreateLedgers_Handler,
 		},
 		{
-			MethodName: "CreateAccount",
-			Handler:    _PacioliService_CreateAccount_Handler,
+			MethodName: "GetLedgers",
+			Handler:    _PacioliService_GetLedgers_Handler,
 		},
 		{
-			MethodName: "GetAccount",
-			Handler:    _PacioliService_GetAccount_Handler,
+			MethodName: "CreateAccounts",
+			Handler:    _PacioliService_CreateAccounts_Handler,
+		},
+		{
+			MethodName: "GetAccounts",
+			Handler:    _PacioliService_GetAccounts_Handler,
 		},
 		{
 			MethodName: "CreateTransfers",
