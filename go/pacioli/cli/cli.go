@@ -10,12 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli/migrations"
 )
 
 type InitArgs struct {
-	BackendLedgerCode  uint16
 	DbConnectionString string
 	TbClusterID        uint32
 	TbUrls             []string
@@ -59,18 +57,8 @@ func ParseInitArgs() (*InitArgs, error) {
 		return nil, err
 	}
 
-	backendLedgerCodeString := os.Getenv("BACKEND_LEDGER_CODE")
-	if backendLedgerCodeString == "" {
-		return nil, errors.New("BACKEND_LEDGER_CODE is required.")
-	}
-	backendLedgerCodeUInt, err := strconv.ParseUint(backendLedgerCodeString, 10, 16)
-	if err != nil {
-		return nil, errors.New("BACKEND_LEDGER_CODE must be a uint16.")
-	}
-
 	return &InitArgs{
 		DbConnectionString: connString,
-		BackendLedgerCode:  uint16(backendLedgerCodeUInt), // ParseUint will check the max size.
 		TbUrls:             tbUrls,
 		TbClusterID:        uint32(parsedTbClusterID),
 	}, nil
@@ -82,18 +70,6 @@ func Init(args *InitArgs) error {
 	if err != nil {
 		return err
 	}
-
-	// insert ledgers for consuming services
-	db, err := sqlx.Connect("postgres", args.DbConnectionString)
-	if err != nil {
-		return err
-	}
-	defer func(db *sqlx.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}(db)
 
 	return nil
 }
@@ -159,7 +135,7 @@ func ParseTburl(url string) ([]string, error) {
 	}
 	split := strings.Split(url, ":")
 	host := split[0]
-	port := ":8080"
+	port := "8080"
 	if len(split) > 1 {
 		port = split[1]
 	}
