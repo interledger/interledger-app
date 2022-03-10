@@ -314,8 +314,9 @@ func (s *service) ConfigureAccounts(
 		keys[ledger.ID] = EXISTS
 	}
 
-	eventErrors := []EventResult{}
-	// size to length of args to avoid append
+	// size to len(args) to avoid appending
+	eventErrors := make([]EventResult, len(args))
+	errors := uint32(0) // number of errors
 	accountsToCreate := make([]tigerbeetleTypes.Account, len(args))
 	index := uint32(0) // number of accounts to create
 
@@ -328,10 +329,11 @@ func (s *service) ConfigureAccounts(
 		}
 
 		if keys[acc.LedgerID] != EXISTS {
-			eventErrors = append(eventErrors, EventResult{
+			eventErrors[errors] = EventResult{
 				Index: uint32(i),
 				Code:  uint32(ACCOUNT_LEDGER_DOES_NOT_EXIST),
-			})
+			}
+			errors++
 			continue
 		}
 
@@ -353,7 +355,6 @@ func (s *service) ConfigureAccounts(
 	if err != nil {
 		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
 	}
-
 	// map the tbEventErrors to our eventErrors
 	for _, tbErr := range tbEventErrors {
 		index, present := mapToEventErrorSlot[tbErr.Index]
@@ -361,10 +362,13 @@ func (s *service) ConfigureAccounts(
 			// the mapping is broken
 			panic("Unable to map Tb event errors back to our create account errors.")
 		}
-		eventErrors = append(tbEventErrors, EventResult{Index: index, Code: tbErr.Code})
+		if tbErr.Code != tigerbeetleTypes.AccountExists {
+			eventErrors[errors] = EventResult{Index: index, Code: tbErr.Code}
+			errors++
+		}
 	}
 
-	return eventErrors, nil
+	return eventErrors[:errors], nil
 }
 
 func (s *service) GetAccounts(

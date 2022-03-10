@@ -82,7 +82,6 @@ func TestPacioli(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
 		assert.Len(t, eventErrors, 3)
 		assert.Equal(t, eventErrors[0].Index, uint32(1))
 		assert.Equal(t, eventErrors[0].Code, uint32(LEDGER_EXISTS_WITH_DIFFERENT_NAME))
@@ -149,6 +148,10 @@ func TestPacioli(s *testing.T) {
 					DebitsMustNotExceedCredits: true,
 				},
 			},
+			{ // this shouldn't fail as it will exist
+				ID:       account1ID,
+				LedgerID: ledgerID,
+			},
 		}
 		eventErrors, err = c.Ls.ConfigureAccounts(ctx, tenant, args)
 		if err != nil {
@@ -167,7 +170,6 @@ func TestPacioli(s *testing.T) {
 				t.Fatal("The error mapping is broken.")
 			}
 		}
-
 		accounts, err := c.Ls.GetAccounts(ctx, tenant, []string{account1ID, account2ID})
 		if err != nil {
 			t.Fatal(err)
