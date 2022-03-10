@@ -75,7 +75,7 @@ func (s *service) Init(ctx context.Context) error {
 			Args: []*pacioliv1.Ledger{
 				{
 					Id:    uint32(s.ledgerID),
-					Name:  "Noop-USD",
+					Name:  "Fynbos ledger",
 					Asset: "840",
 					Scale: 2,
 				},
