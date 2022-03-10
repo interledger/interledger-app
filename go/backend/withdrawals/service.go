@@ -108,7 +108,7 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 				{
 					LedgerID:        s.noop.GetLedgerID(),
 					DebitAccountID:  equityAccountID,
-					CreditAccountID: acc.ID,
+					CreditAccountID: acc.LedgerAccountID,
 					Amount:          args.Amount,
 					// Code: "1", // TODO: define ledger transfer codes.
 					Flags: transactions.LedgerTransferFlags{},
