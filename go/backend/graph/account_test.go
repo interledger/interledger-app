@@ -174,7 +174,7 @@ func TestUserAccount(s *testing.T) {
 		firstTrx := rTrxs[0]
 		assert.Equal(t, deposit.ID, firstTrx.ID)
 		assert.Equal(t, "$ 100.00", firstTrx.Amount)
-		assert.Equal(t, generated.TransactionType("deposit"), firstTrx.Type)
+		assert.Equal(t, generated.TransactionTypeDeposit, firstTrx.Type)
 	})
 }
 
