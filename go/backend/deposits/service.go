@@ -118,7 +118,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
 					LedgerID:        s.noop.GetLedgerID(),
-					DebitAccountID:  acc.ID,
+					DebitAccountID:  acc.LedgerAccountID,
 					CreditAccountID: s.noop.GetEquityAccountID(),
 					Amount:          args.Amount,
 					// Code: "1", // TODO: define ledger transfer codes.

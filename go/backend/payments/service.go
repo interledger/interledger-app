@@ -115,7 +115,7 @@ func (s *service) InitiateOutgoingPayment(
 				{
 					LedgerID:        s.noop.GetLedgerID(),
 					DebitAccountID:  s.noop.GetEquityAccountID(),
-					CreditAccountID: acc.ID,
+					CreditAccountID: acc.LedgerAccountID,
 					Amount:          args.Amount,
 					// Code: uint16,
 					Flags: account_transactions.LedgerTransferFlags{},
