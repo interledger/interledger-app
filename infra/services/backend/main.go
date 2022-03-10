@@ -224,7 +224,7 @@ func deployDeployment(
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("LOG_LEVEL"),
-									Value: pulumi.String("info"),
+									Value: pulumi.String("debug"),
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("USD_LEDGER_ID"),

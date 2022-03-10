@@ -1,4 +1,4 @@
-import { ApolloClient, HttpLink, InMemoryCache, from } from '@apollo/client'
+import { ApolloClient, from, HttpLink, InMemoryCache } from '@apollo/client'
 import { onError } from '@apollo/client/link/error'
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -18,5 +18,13 @@ const Link = new HttpLink({
 
 export const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
-  link: from([errorLink, Link])
+  link: from([errorLink, Link]),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'network-only',
+    },
+    query: {
+      fetchPolicy: 'network-only',
+    },
+  }
 })
