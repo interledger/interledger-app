@@ -181,11 +181,10 @@ func main() {
 			return err
 		}
 		err = pacioli.DeployPacioli(ctx, &pacioli.DeployPacioliArgs{
-			Cert:              pcCert,
-			ImageRepo:         ecrRepo,
-			ImageTag:          hash,
-			Namespace:         "default",
-			BackendLedgerCode: backendLedgerCode,
+			Cert:      pcCert,
+			ImageRepo: ecrRepo,
+			ImageTag:  hash,
+			Namespace: "default",
 		})
 		if err != nil {
 			return err

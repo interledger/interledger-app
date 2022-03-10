@@ -1,8 +1,6 @@
 package pacioli
 
 import (
-	"strconv"
-
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
@@ -15,11 +13,10 @@ import (
 const name = "pacioli"
 
 type DeployPacioliArgs struct {
-	Cert              *apiextensions.CustomResource
-	ImageRepo         string
-	ImageTag          string
-	Namespace         string
-	BackendLedgerCode uint16
+	Cert      *apiextensions.CustomResource
+	ImageRepo string
+	ImageTag  string
+	Namespace string
 }
 
 func DeployPacioli(ctx *pulumi.Context, args *DeployPacioliArgs) error {
@@ -38,7 +35,7 @@ func DeployPacioli(ctx *pulumi.Context, args *DeployPacioliArgs) error {
 		return err
 	}
 
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.BackendLedgerCode)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert)
 	if err != nil {
 		return err
 	}
@@ -157,7 +154,7 @@ func deployRbac(ctx *pulumi.Context, namespace string) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource, backendLedgerCode uint16) error {
+func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource) error {
 	_, err := appsv1.NewDeployment(ctx, name+"-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -231,10 +228,6 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TB_CLUSTER_ID"),
 									Value: pulumi.String("0"),
-								},
-								&corev1.EnvVarArgs{
-									Name:  pulumi.String("BACKEND_LEDGER_CODE"),
-									Value: pulumi.String(strconv.Itoa(int(backendLedgerCode))),
 								},
 							},
 							Args: pulumi.StringArray{pulumi.String("init")},
