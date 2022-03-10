@@ -72,9 +72,9 @@ export const loader: LoaderFunction = async ({ request }) => {
         pendingTransactions.push(activity)
         continue
       }
-      const date = DateTime.fromISO('2016-05-25').toFormat('dd LLLL yyyy')
+      const date = DateTime.fromISO(trx.timestamp).toFormat('dd LLLL yyyy')
       const indexToPush = recentActivities.findIndex((val) => val.date == date)
-      if (indexToPush > 0)
+      if (indexToPush >= 0)
         recentActivities[indexToPush].activities.push(activity)
       else
         recentActivities.push({
