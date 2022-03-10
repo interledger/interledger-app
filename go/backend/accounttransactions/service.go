@@ -144,7 +144,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 	transferErrors := response.GetErrors()
 	if len(transferErrors) > 0 {
 		return nil, &ErrInvalidTransfers{
-			Err:            "Transaction service: One or more ledger transfers failed.",
+			Err:            fmt.Sprintf("Transaction service: One or more ledger transfers failed. %+v", transferErrors),
 			TransferErrors: transferErrors,
 		}
 	}
