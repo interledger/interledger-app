@@ -3,6 +3,7 @@ package accounts
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -31,6 +32,7 @@ type Account struct {
 	VerificationState string `db:"verification_state"`
 	CreatedAt         string `db:"created_at"`
 	UpdatedAt         string `db:"updated_at"`
+	// TODO: add flags
 }
 
 func (s Account) IsVerified() bool {
@@ -101,7 +103,7 @@ func (s *service) Init(ctx context.Context) error {
 	}
 	eventErrors := response.GetErrors()
 	if len(eventErrors) > 0 {
-		return &ErrInternalError{Err: "Failed to configure ledgers."}
+		return &ErrInternalError{Err: fmt.Sprintf("Failed to configure ledgers. %+v", eventErrors)}
 	}
 
 	return nil
@@ -110,6 +112,7 @@ func (s *service) Init(ctx context.Context) error {
 type CreateAccountArgs struct {
 	IdentityID string `validate:"required,uuid"`
 	Country    string `validate:"iso3166_1_alpha2"`
+	// TODO: add flags
 }
 
 // This will create the ledger account in Pacioli first and then inserts an account entry into
@@ -144,9 +147,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 			{
 				Id:       ledgerAccountID,
 				LedgerId: uint32(s.pacioliLedgerID),
-				Flags: &pacioliv1.AccountFlags{
-					DebitsMustNotExceedCredits: true,
-				},
+				// TODO: add flags
 			},
 		},
 	})
