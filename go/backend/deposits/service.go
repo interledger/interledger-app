@@ -3,6 +3,7 @@ package deposits
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -113,8 +114,8 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			AccountID:   acc.ID,
 			Type:        "deposit",
 			NetAmount:   args.Amount,
-			Description: "Deposit from " + fundingSource.Name,
-			State:       "completed", // TODO: define states
+			Description: fmt.Sprintf("from %s bank account", fundingSource.Mask), // TODO Format to come from FS
+			State:       "completed",                                             // TODO: define states
 			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
 					LedgerID:        s.noop.GetLedgerID(),
