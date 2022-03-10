@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -33,7 +34,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 			&accounttransactions.GetByAccountArgs{
 				AccountID: obj.ID,
 				Limit:     3,
-				OrderBy:   "ASC",
+				OrderBy:   "DESC",
 			})
 		if err != nil {
 			return err
@@ -42,7 +43,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 		for _, trx := range dbTrxs {
 			trxs = append(trxs, &generated.Transaction{
 				ID:          trx.ID,
-				Type:        generated.TransactionType(trx.Type),
+				Type:        generated.TransactionType(strings.ToUpper(trx.Type)),
 				Description: trx.Description,
 				Amount:      fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)),
 				Timestamp:   trx.CreatedAt,
