@@ -110,11 +110,11 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 		TaxIDNumber: faker.CCNumber(),
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrNotFound:
+		switch {
+		case errors.Is(err, _identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
-		case *_identity.ErrInvalidArgument:
+		case errors.Is(err, _identity.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -151,8 +151,8 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.Cr
 		Country:      input.Country,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, _identity.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -209,11 +209,11 @@ func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.Ve
 		TaxIDNumber: input.TaxIDNumber,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrNotFound:
+		switch {
+		case errors.Is(err, _identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
-		case *_identity.ErrInvalidArgument:
+		case errors.Is(err, _identity.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -560,8 +560,8 @@ func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, erro
 		return nil
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrNotFound:
+		switch {
+		case errors.Is(err, _identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
 		default:
@@ -599,8 +599,8 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 		return nil
 	})
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrNotFound:
+		switch {
+		case errors.Is(err, _identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
 		default:

@@ -79,8 +79,6 @@ func (s *service) CreateAccount(
 		})
 		if err != nil {
 			switch err.(type) {
-			case *_identity.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
 			default:
 				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 			}
@@ -128,8 +126,6 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
 			switch err.(type) {
-			case *_identity.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
 			default:
 				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 			}
