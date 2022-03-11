@@ -3,6 +3,7 @@ package accounts
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
@@ -16,6 +17,13 @@ import (
 
 const (
 	Verified string = "verified"
+)
+
+var (
+	ErrInternal        = errors.New("accounts service: internal error.")
+	ErrDuplicate       = errors.New("accounts service: duplicate.")
+	ErrInvalidArgument = errors.New("accounts service: invalid argument.")
+	ErrNotFound        = errors.New("accounts service: not found.")
 )
 
 type Account struct {
@@ -99,11 +107,11 @@ func (s *service) Init(ctx context.Context) error {
 		},
 	})
 	if err != nil {
-		return &ErrInternalError{Err: err.Error()}
+		return fmt.Errorf("Failed to configure ledgers. %w %s", ErrInternal, err.Error())
 	}
 	eventErrors := response.GetErrors()
 	if len(eventErrors) > 0 {
-		return &ErrInternalError{Err: fmt.Sprintf("Failed to configure ledgers. %+v", eventErrors)}
+		return fmt.Errorf("Failed to configure ledgers: %w %+v", ErrInternal, eventErrors)
 	}
 
 	return nil
@@ -122,22 +130,15 @@ type CreateAccountArgs struct {
 func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 	_, err = s.cs.GetByAlpha2(ctx, tx, args.Country)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: "Unknown or unsupported country: " + args.Country}
+		return nil, fmt.Errorf("Unknown or unsupported country %s. %w", args.Country, ErrInvalidArgument)
 	}
 	identity, err := s.is.Get(ctx, tx, args.IdentityID)
-	// TODO: perhaps a global error set?
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrInvalidArgument:
-		case *_identity.ErrNotFound:
-			return nil, &ErrInvalidArgument{Err: "Identity must exist."}
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	// pacioli client must be configured with retries and exponential backoff at higher level.
@@ -152,22 +153,22 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 		},
 	})
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 	eventErrors := response.GetErrors()
 	if len(eventErrors) > 0 {
-		return nil, &ErrInternalError{Err: "Failed to create account in pacioli."}
+		return nil, fmt.Errorf("Failed to create account in pacioli. %w %+v", ErrInternal, eventErrors)
 	}
 
 	stmt, err := tx.PrepareNamed("INSERT INTO accounts (identity_id, ledger_account_id) VALUES (:identityid, :ledgeraccountid) RETURNING *")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	var ret Account
 	err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccountID)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return &ret, nil
@@ -175,17 +176,17 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 
 func (s *service) GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, identityID string) (*Account, error) {
 	if identityID == "" {
-		return nil, &ErrInvalidArgument{Err: "identityID is required."}
+		return nil, fmt.Errorf("%w IdentityID is required.", ErrInvalidArgument)
 	}
 
 	var ret Account
 	err := tx.Get(&ret, "SELECT * FROM accounts WHERE identity_id=$1 LIMIT 1", identityID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	err = s.fetchFromPacioli(ctx, &ret)
@@ -212,17 +213,17 @@ func (s *service) GetByIdentityID(ctx context.Context, identityID string) (*Acco
 
 func (s *service) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (*Account, error) {
 	if accountID == "" {
-		return nil, &ErrInvalidArgument{Err: "Accounts service: accountID is required."}
+		return nil, fmt.Errorf("%w AccountID is required.", ErrInvalidArgument)
 	}
 
 	var ret Account
 	err := tx.Get(&ret, "SELECT * FROM accounts WHERE id=$1 LIMIT 1", accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Accounts service: Not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	err = s.fetchFromPacioli(ctx, &ret)
@@ -236,16 +237,16 @@ func (s *service) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (*Acco
 // Fetches ledger account from Pacioli and merges with the specified account.
 func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error {
 	if account == nil {
-		return &ErrInternalError{Err: "Accounts service: account needs to specified to fetch from Pacioli."}
+		return fmt.Errorf("%w Account is required.", ErrInvalidArgument)
 	}
 	response, err := s.pacioliClient.GetAccounts(ctx, &pacioliv1.GetAccountsRequest{
 		Ids: []string{account.LedgerAccountID},
 	})
 	if err != nil {
-		return &ErrInternalError{Err: err.Error()}
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 	if len(response.GetAccounts()) != 1 {
-		return &ErrNotFound{Err: "Account not in pacioli."}
+		return fmt.Errorf("%w %s", ErrInternal, "Account not found in pacioli.")
 	}
 	ledgerAccount := response.GetAccounts()[0]
 	if ledgerAccount.Id != account.LedgerAccountID {
@@ -274,7 +275,7 @@ func (s *service) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArg
 	//TODO: refactor errors
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: "Accounts service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	acc, err := s.Get(ctx, tx, args.AccountID)
@@ -289,13 +290,13 @@ func (s *service) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArg
 			RETURNING *;
 		`)
 	if err != nil {
-		return nil, &ErrInternalError{Err: "Accounts service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	var verifiedAccount Account
 	err = stmt.Stmt.Get(&verifiedAccount, args.Provider, args.ProviderID, Verified, acc.ID)
 	if err != nil {
-		return nil, &ErrInternalError{Err: "Accounts service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return &verifiedAccount, nil
@@ -331,30 +332,4 @@ func (s service) CanVerifyFundingSource(acc *Account, identityID string) bool {
 	}
 
 	return acc.IdentityID == identityID
-}
-
-// Error set
-// TODO: wrapping errors instead to preserve stack.
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (r *ErrInvalidArgument) Error() string {
-	return r.Err
-}
-
-type ErrInternalError struct {
-	Err string
-}
-
-func (r *ErrInternalError) Error() string {
-	return r.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (r *ErrNotFound) Error() string {
-	return r.Err
 }

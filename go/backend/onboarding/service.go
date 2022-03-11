@@ -92,8 +92,6 @@ func (s *service) CreateAccount(
 		})
 		if err != nil {
 			switch err.(type) {
-			case *accounts.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
 			default:
 				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
 			}

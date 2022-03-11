@@ -96,8 +96,6 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 	acc, err := s.as.Get(ctx, tx, args.AccountID)
 	if err != nil {
 		switch err.(type) {
-		case *accounts.ErrNotFound:
-			return nil, &ErrInternalError{Err: "Account must exist to create funding source."}
 		default:
 			return nil, &ErrInternalError{Err: err.Error()}
 		}

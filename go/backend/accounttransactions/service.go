@@ -106,9 +106,6 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 	acc, err := s.as.Get(ctx, tx, args.AccountID)
 	if err != nil {
 		switch err.(type) {
-		case *accounts.ErrInvalidArgument:
-		case *accounts.ErrNotFound:
-			return nil, &ErrNotFound{Err: "Transaction service: " + err.Error()}
 		default:
 			return nil, &ErrInternalError{Err: "Transaction service: " + err.Error()}
 		}
