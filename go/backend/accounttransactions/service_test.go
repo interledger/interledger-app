@@ -40,25 +40,29 @@ func TestAccountTransactions(s *testing.T) {
 
 	s.Run("validates arguments", func(t *testing.T) {
 		type scenario struct {
-			Name          string
-			Args          *CreateTransactionArgs
-			ExpectedError string
+			Name            string
+			Args            *CreateTransactionArgs
+			ExpectedMessage string
+			ExpectedError   error
 		}
 		scenarios := []scenario{
 			{
-				Name:          "Account must exist.",
-				Args:          generateCreateTransactionArgs(withAccountID(uuid.NewString())),
-				ExpectedError: "Transaction service: Accounts service: Not found.",
+				Name:            "Account must exist.",
+				Args:            generateCreateTransactionArgs(withAccountID(uuid.NewString())),
+				ExpectedMessage: "not found.",
+				ExpectedError:   ErrInternal,
 			},
 			{
-				Name:          "Amount must be greater than 0.",
-				Args:          generateCreateTransactionArgs(withAmount(0)),
-				ExpectedError: "Transaction service: Key: 'CreateTransactionArgs.NetAmount' Error:Field validation for 'NetAmount' failed on the 'gt' tag",
+				Name:            "Amount must be greater than 0.",
+				Args:            generateCreateTransactionArgs(withAmount(0)),
+				ExpectedMessage: "Key: 'CreateTransactionArgs.NetAmount' Error:Field validation for 'NetAmount' failed on the 'gt' tag",
+				ExpectedError:   ErrInvalidArgument,
 			},
 			{
-				Name:          "State is required.",
-				Args:          generateCreateTransactionArgs(withState("")),
-				ExpectedError: "Transaction service: Key: 'CreateTransactionArgs.State' Error:Field validation for 'State' failed on the 'required' tag",
+				Name:            "State is required.",
+				Args:            generateCreateTransactionArgs(withState("")),
+				ExpectedMessage: "Key: 'CreateTransactionArgs.State' Error:Field validation for 'State' failed on the 'required' tag",
+				ExpectedError:   ErrInvalidArgument,
 			},
 		}
 
@@ -74,7 +78,8 @@ func TestAccountTransactions(s *testing.T) {
 				return nil
 			})
 
-			assert.Equal(t, scenario.ExpectedError, err.Error())
+			assert.ErrorIs(t, err, scenario.ExpectedError)
+			assert.Contains(t, err.Error(), scenario.ExpectedMessage)
 			assert.Nil(t, trx, scenario.Name)
 		}
 	})
