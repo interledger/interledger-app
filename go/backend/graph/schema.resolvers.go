@@ -182,11 +182,11 @@ func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.Ve
 
 	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		switch err.(type) {
-		case *accounts.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, accounts.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *accounts.ErrNotFound:
+		case errors.Is(err, accounts.ErrNotFound):
 			return &generated.VerifyAccountMutationResponse{
 				Code:    "404",
 				Success: false,
@@ -243,11 +243,11 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 
 	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		switch err.(type) {
-		case *accounts.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, accounts.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *accounts.ErrNotFound:
+		case errors.Is(err, accounts.ErrNotFound):
 			return &generated.LinkFundingSourceMutationResponse{
 				Code:    "422",
 				Success: false,
@@ -346,11 +346,11 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 
 	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		switch err.(type) {
-		case *accounts.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, accounts.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *accounts.ErrNotFound:
+		case errors.Is(err, accounts.ErrNotFound):
 			return &generated.DepositMutationResponse{
 				Code:    "404",
 				Success: false,
@@ -413,11 +413,11 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 	}
 	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		switch err.(type) {
-		case *accounts.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, accounts.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *accounts.ErrNotFound:
+		case errors.Is(err, accounts.ErrNotFound):
 			return &generated.WithdrawalMutationResponse{
 				Code:    "404",
 				Success: false,
@@ -489,8 +489,8 @@ func (r *mutationResolver) InitiateOutgoingPayment(ctx context.Context, input ge
 
 	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		switch err.(type) {
-		case *accounts.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, accounts.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
