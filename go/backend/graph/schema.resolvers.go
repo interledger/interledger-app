@@ -269,8 +269,8 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 		Type:          input.Type,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *fundingsources.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, fundingsources.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -306,8 +306,8 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 		FundingSourceID: input.FundingSourceID,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *fundingsources.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, fundingsources.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:

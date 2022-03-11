@@ -3,6 +3,8 @@ package fundingsources
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -11,6 +13,14 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
+)
+
+var (
+	ErrDuplicate       = errors.New("funding source: duplicate.")
+	ErrNotFound        = errors.New("funding source: not found.")
+	ErrInvalidArgument = errors.New("funding source: invalid argument.")
+	ErrInternal        = errors.New("funding source: internal error.")
+	ErrUnauthorized    = errors.New("funding source: unauthorized.")
 )
 
 type Service interface {
@@ -40,7 +50,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	return &service{
@@ -80,28 +90,19 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 	// TODO: refactor errors
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	identity, err := s.is.Get(ctx, tx, args.IdentityID)
 	if err != nil {
-		switch err.(type) {
-		case *_identity.ErrInvalidArgument:
-		case *_identity.ErrNotFound:
-			return nil, &ErrInvalidArgument{Err: "Identity must exist to create funding source."}
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 	acc, err := s.as.Get(ctx, tx, args.AccountID)
 	if err != nil {
-		switch err.(type) {
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 	if !s.as.CanCreateFundingSource(acc, identity.ID) {
-		return nil, &ErrInternalError{Err: "unauthorized."}
+		return nil, ErrUnauthorized
 	}
 
 	var fs FundingSource
@@ -113,8 +114,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 			RETURNING *;
 		`)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
-
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	err = stmt.Stmt.Get(&fs,
@@ -127,7 +127,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 		args.SubType,
 	)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return &fs, nil
@@ -135,17 +135,17 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 
 func (s service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSource, error) {
 	if id == "" {
-		return nil, &ErrInvalidArgument{Err: "ID is required to look up funding source."}
+		return nil, fmt.Errorf("%w ID is required.", ErrInvalidArgument)
 	}
 
 	var fundingsource FundingSource
 	err := tx.Get(&fundingsource, "SELECT * FROM funding_sources where id=$1 LIMIT 1;", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Funding source not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return &fundingsource, nil
@@ -153,17 +153,17 @@ func (s service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSourc
 
 func (s service) GetByAccountId(ctx context.Context, tx *sqlx.Tx, identityId string) ([]FundingSource, error) {
 	if identityId == "" {
-		return nil, &ErrInvalidArgument{Err: "Identity ID is required to look up funding source."}
+		return nil, fmt.Errorf("%w IdentityID is required.", ErrInvalidArgument)
 	}
 
 	fundingSources := []FundingSource{}
 	err := tx.SelectContext(ctx, &fundingSources, "SELECT * FROM funding_sources WHERE account_id=$1;", identityId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Funding sources not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return fundingSources, nil
@@ -178,20 +178,14 @@ func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource,
 	// TODO: refactor errors
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	var verifiedFs FundingSource
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
-			switch err.(type) {
-			case *_identity.ErrInvalidArgument:
-			case *_identity.ErrNotFound:
-				return &ErrInvalidArgument{Err: "Identity must exist to verify funding source."}
-			default:
-				return &ErrInternalError{Err: err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		fs, err := s.Get(ctx, tx, args.FundingSourceID)
 		if err != nil {
@@ -199,24 +193,23 @@ func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource,
 		}
 		acc, err := s.as.Get(ctx, tx, fs.AccountID)
 		if err != nil {
-			return &ErrInternalError{Err: err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		if !s.as.CanVerifyFundingSource(acc, id.ID) {
-			return &ErrInternalError{Err: "Funding source not found."}
+			return ErrUnauthorized
 		}
 
 		// performing provider verification here for now.
 		err = s.noop.VerifyBankAccount(ctx, &noop.VerifyArgs{})
 		if err != nil {
-			return &ErrInternalError{Err: "Provider failed to verify funding source."}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
 		stmt, err := tx.PrepareNamed(`
 			UPDATE funding_sources SET verification_state=$1 where id=$2 RETURNING *;
 		`)
 		if err != nil {
-			return &ErrInternalError{Err: err.Error()}
-
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
 		err = stmt.Stmt.Get(&verifiedFs,
@@ -225,10 +218,10 @@ func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource,
 		)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return &ErrNotFound{Err: "Funding source not found."}
+				return ErrNotFound
 			}
 
-			return &ErrInternalError{Err: err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
 		return nil
@@ -256,7 +249,7 @@ func (s *service) CreateBankAccount(
 ) (*FundingSource, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	var fundingsource *FundingSource
@@ -287,36 +280,4 @@ func (s *service) CreateBankAccount(
 
 func IsVerified(fs *FundingSource) bool {
 	return fs.VerificationState == "verified"
-}
-
-type ErrInternalError struct {
-	Err string
-}
-
-func (e ErrInternalError) Error() string {
-	return e.Err
-}
-
-type ErrDuplicate struct {
-	Err string
-}
-
-func (e ErrDuplicate) Error() string {
-	return e.Err
-}
-
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (e ErrInvalidArgument) Error() string {
-	return e.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (e ErrNotFound) Error() string {
-	return e.Err
 }
