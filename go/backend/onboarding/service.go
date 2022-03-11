@@ -2,6 +2,8 @@ package onboarding
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -9,6 +11,11 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
+)
+
+var (
+	ErrInternal        = errors.New("onboarding: internal error.")
+	ErrInvalidArgument = errors.New("onboarding: invalid argument.")
 )
 
 type Service interface {
@@ -64,7 +71,7 @@ func (s *service) CreateAccount(
 	args *CreateAccountArgs,
 ) (*accounts.Account, error) {
 	if err := s.validator.Struct(args); err != nil {
-		return nil, &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
 	var account *accounts.Account
@@ -78,10 +85,7 @@ func (s *service) CreateAccount(
 			Country:      args.Country,
 		})
 		if err != nil {
-			switch err.(type) {
-			default:
-				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 
 		acc, err := s.as.Create(ctx, tx, &accounts.CreateAccountArgs{
@@ -89,10 +93,7 @@ func (s *service) CreateAccount(
 			Country:    args.Country,
 		})
 		if err != nil {
-			switch err.(type) {
-			default:
-				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 		account = acc
 
@@ -118,21 +119,18 @@ type VerifyAccountArgs struct {
 
 func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error) {
 	if err := s.validator.Struct(args); err != nil {
-		return nil, &ErrInvalidArgument{Err: "Onboarding service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
 	var verifiedAccount *accounts.Account
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
-			switch err.(type) {
-			default:
-				return &ErrInternal{Err: "Onboarding service: " + err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 		acc, err := s.as.GetByIdentityIDWithTrx(ctx, tx, id.ID)
 		if err != nil {
-			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 
 		customer, err := s.noop.CreateCustomer(&noop.CreateCustomerArgs{
@@ -147,7 +145,7 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 			Ssn:         args.TaxIDNumber,
 		})
 		if err != nil {
-			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 
 		verifiedAccount, err = s.as.VerifyWithTx(ctx, tx, &accounts.VerifyArgs{
@@ -156,7 +154,7 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 			ProviderID: customer.ID,
 		})
 		if err != nil {
-			return &ErrInternal{Err: "Onboarding service: " + err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 
 		return nil
@@ -166,20 +164,4 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 	}
 
 	return verifiedAccount, nil
-}
-
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (e ErrInvalidArgument) Error() string {
-	return e.Err
-}
-
-type ErrInternal struct {
-	Err string
-}
-
-func (e ErrInternal) Error() string {
-	return e.Err
 }
