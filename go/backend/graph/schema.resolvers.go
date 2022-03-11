@@ -369,11 +369,11 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		Amount:          parsedAmount,
 	})
 	if err != nil {
-		switch err.(type) {
-		case *deposits.ErrInvalidArgument:
+		switch {
+		case errors.Is(err, deposits.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
-		case *deposits.ErrUnverifiedFundingSource:
+		case errors.Is(err, deposits.ErrUnverifiedFundingSource):
 			return &generated.DepositMutationResponse{
 				Code:    "403",
 				Success: false,
