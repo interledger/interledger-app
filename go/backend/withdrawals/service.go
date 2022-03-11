@@ -12,8 +12,6 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
-	"gitlab.com/fynbos/proto/pacioli/v1"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 var (
@@ -116,11 +114,9 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 			},
 		})
 		if err != nil {
-			switch err := err.(type) {
-			case *transactions.ErrInvalidTransfers:
-				return parseInvalidBankWithdrawalTransferErrors(
-					err.TransferErrors,
-				)
+			switch {
+			case errors.Is(err, transactions.ErrExceedsCredits):
+				return ErrInsufficientBalance
 			default:
 				return fmt.Errorf("transaction failed %w %s", ErrInternalError, err.Error())
 			}
@@ -143,20 +139,4 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 	}
 
 	return transaction, nil
-}
-
-// Filter out errors related to user account such as insufficient balance.
-// Otherwise, this returns an internal error if the error is not related to the user's account e.g. fx.
-func parseInvalidBankWithdrawalTransferErrors(transferErrors []*pacioli.EventError) error {
-	if len(transferErrors) != 1 {
-		panic("withdrawal service: There should be one ledger transfer error.")
-	}
-
-	err := transferErrors[0]
-	switch err.Code {
-	case tb_types.TransferExceedsCredits:
-		return ErrInsufficientBalance
-	default:
-		return ErrInternalError
-	}
 }

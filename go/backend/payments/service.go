@@ -12,8 +12,6 @@ import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
-	"gitlab.com/fynbos/proto/pacioli/v1"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 var (
@@ -123,9 +121,9 @@ func (s *service) InitiateOutgoingPayment(
 			},
 		})
 		if err != nil {
-			switch err := err.(type) {
-			case *account_transactions.ErrInvalidTransfers:
-				return parseInvalidOutgoingPaymentErrors(err.TransferErrors)
+			switch {
+			case errors.Is(err, account_transactions.ErrExceedsCredits):
+				return ErrInsufficientBalance
 			default:
 				return fmt.Errorf("%s %w", err.Error(), ErrInternal)
 			}
@@ -147,20 +145,4 @@ func (s *service) InitiateOutgoingPayment(
 	}
 
 	return outgoingPayment, nil
-}
-
-// Filter out errors related to user account such as insufficient balance.
-// Otherwise, this returns an internal error if the error is not related to the user's account e.g. fx.
-func parseInvalidOutgoingPaymentErrors(transferErrors []*pacioli.EventError) error {
-	if len(transferErrors) != 1 {
-		panic("Noop service: There should be one ledger transfer error for an outgoing payment.")
-	}
-
-	err := transferErrors[0]
-	switch err.Code {
-	case tb_types.TransferExceedsCredits:
-		return fmt.Errorf("%w", ErrInsufficientBalance)
-	default:
-		return fmt.Errorf("Pacioli error code: %d %w", err.Code, ErrInternal)
-	}
 }
