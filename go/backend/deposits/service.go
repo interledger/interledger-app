@@ -17,7 +17,11 @@ import (
 )
 
 var (
-	ErrUnauthorized = errors.New("deposit service: unauthorized.")
+	ErrUnauthorized            = errors.New("deposit: unauthorized.")
+	ErrInternal                = errors.New("deposit: internal error.")
+	ErrInvalidArgument         = errors.New("deposit: invalid argument.")
+	ErrNotFound                = errors.New("deposit: not found.")
+	ErrUnverifiedFundingSource = errors.New("deposit: unverified funding source.")
 )
 
 type Service interface {
@@ -46,7 +50,7 @@ type service struct {
 func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
 	if err := validator.Struct(args); err != nil {
-		return nil, &ErrInvalidArgument{Err: "Deposit service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	return &service{
@@ -69,45 +73,31 @@ type InitiateDepositArgs struct {
 
 func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs) (*account_transactions.AccountTransaction, error) {
 	if err := s.validator.Struct(args); err != nil {
-		return nil, &ErrInvalidArgument{Err: "Deposit service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	var transaction *transactions.AccountTransaction
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		id, err := s.is.Get(ctx, tx, args.IdentityID)
 		if err != nil {
-			switch err.(type) {
-			case *identity.ErrNotFound:
-				return &ErrNotFound{Err: "Deposit service:" + err.Error()}
-			case *identity.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Deposit service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		acc, err := s.as.Get(ctx, tx, args.AccountID)
 		if err != nil {
-			return &ErrInternalError{Err: "Deposit service:" + err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		if !s.as.CanMakeDeposit(acc, id.ID) {
 			return ErrUnauthorized
 		}
 		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
 		if err != nil {
-			switch err.(type) {
-			case *fundingsources.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Deposit service:" + err.Error()}
-			case *fundingsources.ErrNotFound:
-				return &ErrNotFound{Err: "Deposit service:" + err.Error()}
-			default:
-				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		if fundingSource.AccountID != acc.ID {
-			return &ErrNotFound{Err: "Deposit service: Funding source not found."}
+			return ErrNotFound
 		}
 		if fundingSource.VerificationState != "verified" {
-			return &ErrUnverifiedFundingSource{Err: "Deposit service: Funding source is not verified."}
+			return ErrUnverifiedFundingSource
 		}
 
 		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
@@ -128,10 +118,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			},
 		})
 		if err != nil {
-			switch err.(type) {
-			default:
-				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
-			}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		transaction = trx
 		return nil
@@ -141,36 +128,4 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 	}
 
 	return transaction, nil
-}
-
-type ErrInternalError struct {
-	Err string
-}
-
-func (e ErrInternalError) Error() string {
-	return e.Err
-}
-
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (e ErrInvalidArgument) Error() string {
-	return e.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (e ErrNotFound) Error() string {
-	return e.Err
-}
-
-type ErrUnverifiedFundingSource struct {
-	Err string
-}
-
-func (e ErrUnverifiedFundingSource) Error() string {
-	return e.Err
 }
