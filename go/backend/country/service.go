@@ -3,9 +3,17 @@ package country
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
+)
+
+var (
+	ErrNotFound        = errors.New("country: not found.")
+	ErrInvalidArgument = errors.New("country: invalid argument.")
+	ErrInternal        = errors.New("country: internal error.")
 )
 
 // Model
@@ -37,17 +45,17 @@ func NewService(db *sqlx.DB) Service {
 
 func (self *service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country, error) {
 	if id == "" {
-		return nil, &ErrInvalidArgument{Err: "ID is required."}
+		return nil, fmt.Errorf("%w ID is required.", ErrInvalidArgument)
 	}
 
 	var ret Country
 	err := tx.Get(&ret, "SELECT * FROM countries WHERE id=$1 LIMIT 1", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return &ret, nil
@@ -55,17 +63,17 @@ func (self *service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country,
 
 func (self *service) GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) (*Country, error) {
 	if code == "" {
-		return nil, &ErrInvalidArgument{Err: "code is required."}
+		return nil, fmt.Errorf("%w Code is required.", ErrInvalidArgument)
 	}
 
 	var ret Country
 	err := tx.Get(&ret, "SELECT * FROM countries WHERE alpha_2=$1 LIMIT 1", code)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return &ret, nil
@@ -77,10 +85,10 @@ func (self *service) GetAll(ctx context.Context) ([]*Country, error) {
 		err := tx.Select(&countries, "SELECT * FROM countries ORDER BY name ASC")
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return &ErrNotFound{Err: "No countries found."}
+				return ErrNotFound
 			}
 
-			return &ErrInternalError{Err: err.Error()}
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		return nil
 	})
@@ -100,37 +108,4 @@ func (self *service) GetAll(ctx context.Context) ([]*Country, error) {
 	}
 
 	return ret, nil
-}
-
-// Error set
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (r *ErrInvalidArgument) Error() string {
-	return r.Err
-}
-
-type ErrInternalError struct {
-	Err string
-}
-
-func (r *ErrInternalError) Error() string {
-	return r.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (r *ErrNotFound) Error() string {
-	return r.Err
-}
-
-type ErrDuplicate struct {
-	Err string
-}
-
-func (r *ErrDuplicate) Error() string {
-	return r.Err
 }

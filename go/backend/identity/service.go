@@ -95,12 +95,7 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 
 	country, err := self.country.GetByAlpha2(ctx, tx, args.Country)
 	if err != nil {
-		switch err.(type) {
-		case *_country.ErrNotFound:
-			return nil, &ErrInvalidArgument{Err: err.Error()}
-		default:
-			return nil, &ErrInternalError{Err: err.Error()}
-		}
+		return nil, &ErrInternalError{Err: err.Error()}
 	}
 
 	var identity identity
