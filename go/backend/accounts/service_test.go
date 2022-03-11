@@ -212,9 +212,10 @@ func TestAccountsService(s *testing.T) {
 
 		t.Run("validates arguments", func(tt *testing.T) {
 			type scenario struct {
-				Name          string
-				Args          *CreateAccountArgs
-				ExpectedError string
+				Name                 string
+				Args                 *CreateAccountArgs
+				ExpectedErrorMessage string
+				ExpectedError        error
 			}
 			scenarios := []scenario{
 				{
@@ -223,7 +224,8 @@ func TestAccountsService(s *testing.T) {
 						IdentityID: identity.ID,
 						Country:    "XCV",
 					},
-					ExpectedError: "Key: 'CreateAccountArgs.Country' Error:Field validation for 'Country' failed on the 'iso3166_1_alpha2' tag",
+					ExpectedErrorMessage: "Key: 'CreateAccountArgs.Country' Error:Field validation for 'Country' failed on the 'iso3166_1_alpha2' tag",
+					ExpectedError:        ErrInvalidArgument,
 				},
 				{
 					Name: "Identity must exist",
@@ -231,7 +233,8 @@ func TestAccountsService(s *testing.T) {
 						IdentityID: uuid.NewString(),
 						Country:    "US",
 					},
-					ExpectedError: "Identity must exist.",
+					ExpectedErrorMessage: "not found.",
+					ExpectedError:        ErrInternal,
 				},
 			}
 
@@ -247,7 +250,8 @@ func TestAccountsService(s *testing.T) {
 					return nil
 				})
 
-				assert.Equal(tt, scenario.ExpectedError, err.Error())
+				assert.ErrorIs(tt, err, scenario.ExpectedError)
+				assert.Contains(tt, err.Error(), scenario.ExpectedErrorMessage)
 				assert.Nil(tt, acc, scenario.Name)
 			}
 		})
@@ -265,7 +269,8 @@ func TestAccountsService(s *testing.T) {
 			return nil
 		})
 
-		assert.Equal(t, "identityID is required.", err.Error())
+		assert.ErrorIs(t, err, ErrInvalidArgument)
+		assert.Contains(t, err.Error(), "IdentityID is required.")
 		assert.Nil(t, acc)
 	})
 
@@ -281,7 +286,8 @@ func TestAccountsService(s *testing.T) {
 			return nil
 		})
 
-		assert.Equal(t, "Accounts service: accountID is required.", err.Error())
+		assert.ErrorIs(t, err, ErrInvalidArgument)
+		assert.Contains(t, err.Error(), "AccountID is required.")
 		assert.Nil(t, acc)
 	})
 

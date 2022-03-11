@@ -98,7 +98,7 @@ func (args CreateArgs) String() string {
 func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error) {
 	err := self.validator.Struct(args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s.", ErrInvalidArgument, err)
 	}
 
 	country, err := self.country.GetByAlpha2(ctx, tx, args.Country)

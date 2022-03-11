@@ -41,55 +41,65 @@ func TestFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 		type Scenario struct {
-			Name          string
-			Args          *CreateBankAccountArgs
-			ExpectedError string
+			Name                 string
+			Args                 *CreateBankAccountArgs
+			ExpectedErrorMessage string
+			ExpectedError        error
 		}
 		scenarios := []Scenario{
 			{
-				Name:          "IdentityID is required to create bank account",
-				Args:          generateCreateBankAccountArgs(withIdentityID("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
+				Name:                 "IdentityID is required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withIdentityID("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 			{
-				Name:          "IdentityID must exist to create bank account",
-				Args:          generateCreateBankAccountArgs(withIdentityID(uuid.NewString())),
-				ExpectedError: "Identity must exist to create funding source.",
+				Name:                 "IdentityID must exist to create bank account",
+				Args:                 generateCreateBankAccountArgs(withIdentityID(uuid.NewString())),
+				ExpectedErrorMessage: "not found.",
+				ExpectedError:        ErrInternal,
 			},
 			{
-				Name:          "AccountID is required to create bank account",
-				Args:          generateCreateBankAccountArgs(withAccountID("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.AccountID' Error:Field validation for 'AccountID' failed on the 'required' tag",
+				Name:                 "AccountID is required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withAccountID("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.AccountID' Error:Field validation for 'AccountID' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 			{
-				Name:          "AccountID must exist to create bank account",
-				Args:          generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(uuid.NewString())),
-				ExpectedError: "Account must exist to create funding source.",
+				Name:                 "AccountID must exist to create bank account",
+				Args:                 generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(uuid.NewString())),
+				ExpectedErrorMessage: "not found.",
+				ExpectedError:        ErrInternal,
 			},
 			{
-				Name:          "Name is required to create bank account",
-				Args:          generateCreateBankAccountArgs(withName("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.Name' Error:Field validation for 'Name' failed on the 'required' tag",
+				Name:                 "Name is required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withName("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.Name' Error:Field validation for 'Name' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 			{
-				Name:          "Institution is required to create bank account",
-				Args:          generateCreateBankAccountArgs(withInstitution("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.Institution' Error:Field validation for 'Institution' failed on the 'required' tag",
+				Name:                 "Institution is required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withInstitution("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.Institution' Error:Field validation for 'Institution' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 			{
-				Name:          "AccountNumber is required to create bank account",
-				Args:          generateCreateBankAccountArgs(withAccountNumber("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.AccountNumber' Error:Field validation for 'AccountNumber' failed on the 'required' tag",
+				Name:                 "AccountNumber is required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withAccountNumber("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.AccountNumber' Error:Field validation for 'AccountNumber' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 			{
-				Name:          "RoutingNumber is required to create bank account",
-				Args:          generateCreateBankAccountArgs(withRoutingNumber("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.RoutingNumber' Error:Field validation for 'RoutingNumber' failed on the 'required' tag",
+				Name:                 "RoutingNumber is required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withRoutingNumber("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.RoutingNumber' Error:Field validation for 'RoutingNumber' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 			{
-				Name:          "Type must be one of noop required to create bank account",
-				Args:          generateCreateBankAccountArgs(withType("")),
-				ExpectedError: "Key: 'CreateBankAccountArgs.Type' Error:Field validation for 'Type' failed on the 'required' tag",
+				Name:                 "Type must be one of noop required to create bank account",
+				Args:                 generateCreateBankAccountArgs(withType("")),
+				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.Type' Error:Field validation for 'Type' failed on the 'required' tag",
+				ExpectedError:        ErrInvalidArgument,
 			},
 		}
 
@@ -99,7 +109,8 @@ func TestFundingSources(s *testing.T) {
 				t.Fatal(scenario.Name)
 			}
 
-			assert.Equal(t, scenario.ExpectedError, err.Error())
+			assert.ErrorIs(t, err, scenario.ExpectedError)
+			assert.Contains(t, err.Error(), scenario.ExpectedErrorMessage)
 			assert.Nil(t, fs)
 		}
 	})
@@ -236,7 +247,8 @@ func TestFundingSources(s *testing.T) {
 			t.Fatal("User must only be able to verify their own funding sources.")
 		}
 
-		assert.EqualError(t, err, "Funding source not found.")
+		assert.ErrorIs(t, err, ErrUnauthorized)
+		assert.Contains(t, err.Error(), "unauthorized.")
 		assert.Nil(t, fs)
 	})
 
@@ -263,7 +275,8 @@ func TestFundingSources(s *testing.T) {
 		}
 
 		assert.Nil(t, fs)
-		assert.EqualError(t, err, "Funding source not found.")
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Contains(t, err.Error(), "not found.")
 	})
 
 	s.Run("get user's funding sources", func(t *testing.T) {
