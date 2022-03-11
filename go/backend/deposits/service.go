@@ -129,10 +129,6 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 		})
 		if err != nil {
 			switch err.(type) {
-			case *transactions.ErrInvalidArgument:
-				return &ErrInvalidArgument{Err: "Deposit service:" + err.Error()}
-			case *transactions.ErrNotFound:
-				return &ErrNotFound{Err: "Deposit service:" + err.Error()}
 			default:
 				return &ErrInternalError{Err: "Deposit service:" + err.Error()}
 			}

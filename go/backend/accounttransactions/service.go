@@ -2,6 +2,7 @@ package account_transactions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
@@ -10,6 +11,17 @@ import (
 	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/proto/pacioli/v1"
+	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
+)
+
+var (
+	ErrInternal              = errors.New("account transactions: internal error.")
+	ErrInvalidArgument       = errors.New("account transactions: invalid argument.")
+	ErrNotFound              = errors.New("account transactions: not found.")
+	ErrDuplicate             = errors.New("account transactions: duplicate.")
+	ErrInvalidLedgerTransfer = errors.New("account transactions: ledger transfer failed.")
+	ErrExceedsDebits         = errors.New("account transactions: exceeds debits.")
+	ErrExceedsCredits        = errors.New("account transactions: exceeds credits.")
 )
 
 // This represents the transaction that a user has performed on their account.
@@ -42,7 +54,7 @@ type accountTransaction struct {
 }
 
 type Service interface {
-	Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error)
+	Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error) // TODO: this should return an error array
 	GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error)
 }
 
@@ -61,7 +73,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: "Transaction service:" + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	return &service{
@@ -97,18 +109,16 @@ type CreateTransactionArgs struct {
 }
 
 // Calls out to Pacioli first and then inserts an account transaction into CRDB.
+// TODO: this should return an error array
 func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: "Transaction service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	acc, err := s.as.Get(ctx, tx, args.AccountID)
 	if err != nil {
-		switch err.(type) {
-		default:
-			return nil, &ErrInternalError{Err: "Transaction service: " + err.Error()}
-		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
@@ -135,14 +145,20 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 		Transfers: ledgerTransfers,
 	})
 	if err != nil {
-		return nil, &ErrInternalError{Err: "Transaction service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	transferErrors := response.GetErrors()
 	if len(transferErrors) > 0 {
-		return nil, &ErrInvalidTransfers{
-			Err:            fmt.Sprintf("Transaction service: One or more ledger transfers failed. %+v", transferErrors),
-			TransferErrors: transferErrors,
+		for _, err := range transferErrors {
+			switch err.Code {
+			case tb_types.TransferExceedsCredits:
+				return nil, fmt.Errorf("%w %+v", ErrExceedsCredits, err)
+			case tb_types.TransferExceedsDebits:
+				return nil, fmt.Errorf("%w %+v", ErrExceedsDebits, err)
+			default:
+				return nil, fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+			}
 		}
 	}
 
@@ -153,7 +169,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 		`,
 	)
 	if err != nil {
-		return nil, &ErrInternalError{Err: "Transaction service: " + err.Error()}
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
 	}
 
 	var transaction accountTransaction
@@ -167,7 +183,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransacti
 		pq.StringArray(transferIDs),
 	)
 	if err != nil {
-		return nil, &ErrInternalError{Err: "Transaction service: " + err.Error()}
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
 	}
 
 	return &AccountTransaction{
@@ -192,7 +208,7 @@ type GetByAccountArgs struct {
 func (s *service) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: "Transaction service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	transactions := []accountTransaction{}
@@ -202,7 +218,7 @@ func (s *service) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAcco
 		args.Limit,
 	)
 	if err != nil {
-		return nil, &ErrInternalError{Err: "Transaction service: " + err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	ret := make([]*AccountTransaction, len(transactions))
@@ -221,45 +237,4 @@ func (s *service) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAcco
 	}
 
 	return ret, nil
-}
-
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (r *ErrInvalidArgument) Error() string {
-	return r.Err
-}
-
-type ErrInternalError struct {
-	Err string
-}
-
-func (r *ErrInternalError) Error() string {
-	return r.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (r *ErrNotFound) Error() string {
-	return r.Err
-}
-
-type ErrDuplicate struct {
-	Err string
-}
-
-func (r *ErrDuplicate) Error() string {
-	return r.Err
-}
-
-type ErrInvalidTransfers struct {
-	Err            string
-	TransferErrors []*pacioli.EventError
-}
-
-func (r *ErrInvalidTransfers) Error() string {
-	return r.Err
 }
