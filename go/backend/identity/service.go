@@ -3,12 +3,20 @@ package identity
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_country "gitlab.com/fynbos/backend/country"
+)
+
+var (
+	ErrInternal        = errors.New("identity: internal error.")
+	ErrInvalidArgument = errors.New("identity: invalid argument.")
+	ErrNotFound        = errors.New("identity: not found.")
+	ErrDuplicate       = errors.New("identity: duplicate.")
 )
 
 // DB Model
@@ -54,7 +62,7 @@ func NewService(args ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
 	if err != nil {
-		return nil, &ErrInvalidArgument{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
 	return &service{
@@ -95,7 +103,7 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 
 	country, err := self.country.GetByAlpha2(ctx, tx, args.Country)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	var identity identity
@@ -107,7 +115,7 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 			RETURNING *;
 		`)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 
 	}
 
@@ -121,9 +129,9 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
-			return nil, &ErrDuplicate{Err: "Identity exists."}
+			return nil, ErrDuplicate
 		}
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	return self.Get(ctx, tx, args.ID)
@@ -131,22 +139,22 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 
 func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error) {
 	if id == "" {
-		return nil, &ErrInvalidArgument{Err: "ID is required."}
+		return nil, fmt.Errorf("%w ID is required.", ErrInvalidArgument)
 	}
 
 	var identity identity
 	err := tx.Get(&identity, `SELECT * FROM identities WHERE id=$1 LIMIT 1`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, &ErrNotFound{Err: "Not found."}
+			return nil, ErrNotFound
 		}
 
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	country, err := self.country.Get(ctx, tx, identity.CountryID)
 	if err != nil {
-		return nil, &ErrInternalError{Err: err.Error()}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	return &Identity{
@@ -159,38 +167,4 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 		CreatedAt:    identity.CreatedAt,
 		UpdatedAt:    identity.UpdatedAt,
 	}, nil
-}
-
-// Error set
-// TODO: wrapping errors instead to preserve stack.
-type ErrInvalidArgument struct {
-	Err string
-}
-
-func (r *ErrInvalidArgument) Error() string {
-	return r.Err
-}
-
-type ErrInternalError struct {
-	Err string
-}
-
-func (r *ErrInternalError) Error() string {
-	return r.Err
-}
-
-type ErrNotFound struct {
-	Err string
-}
-
-func (r *ErrNotFound) Error() string {
-	return r.Err
-}
-
-type ErrDuplicate struct {
-	Err string
-}
-
-func (r *ErrDuplicate) Error() string {
-	return r.Err
 }
