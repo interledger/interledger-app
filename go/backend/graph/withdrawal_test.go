@@ -16,7 +16,6 @@ import (
 )
 
 func TestUserWithdrawals(s *testing.T) {
-	s.Skip("skipping withdrawal tests until it is refactored.")
 	ctx := context.Background()
 	container, err := NewTestContainer(ctx, s)
 	if err != nil {
@@ -57,6 +56,7 @@ func TestUserWithdrawals(s *testing.T) {
 		verifyFundingSource := true
 		fsArgs := &fundingsources.CreateBankAccountArgs{
 			IdentityID:    user.ID,
+			AccountID:     acc.ID,
 			Name:          faker.Name(),
 			AccountNumber: faker.CCNumber(),
 			RoutingNumber: faker.CCNumber(),
@@ -97,7 +97,7 @@ func TestUserWithdrawals(s *testing.T) {
 		assert.Equal(t, "10000", response.Transaction.Amount)     // TODO: where do we pretty print?
 		assert.NotEqual(t, 0, response.Transaction.Timestamp)     // TODO: format of timestamp
 		assert.Equal(t, "completed", response.Transaction.Status) // TODO: status definitions
-		assert.Equal(t, "Withdrawal to "+fsArgs.Name, response.Transaction.Description)
+		assert.Equal(t, "to "+fundingSource.Mask+" bank account", response.Transaction.Description)
 		assert.Equal(t, generated.TransactionTypeWithdrawal, response.Transaction.Type)
 	})
 
@@ -114,7 +114,7 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -131,6 +131,7 @@ func TestUserWithdrawals(s *testing.T) {
 			user,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    user.ID,
+				AccountID:     acc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),
@@ -151,7 +152,7 @@ func TestUserWithdrawals(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, "500", response.Code)
+		assert.Equal(t, "422", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Withdrawal failed: Insufficient balance.", response.Message)
 		assert.Nil(t, response.Transaction)
@@ -170,7 +171,7 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   user.ID,
 			Email:        user.Email,
 			FirstName:    faker.FirstName(),
@@ -187,6 +188,7 @@ func TestUserWithdrawals(s *testing.T) {
 			user,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    user.ID,
+				AccountID:     acc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),
@@ -243,7 +245,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = NewAccount(container, &onboarding.CreateAccountArgs{
+		bobAcc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID:   bob.ID,
 			Email:        bob.Email,
 			FirstName:    faker.FirstName(),
@@ -260,6 +262,7 @@ func TestUserWithdrawals(s *testing.T) {
 			alice,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    alice.ID,
+				AccountID:     aliceAcc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),
@@ -286,6 +289,7 @@ func TestUserWithdrawals(s *testing.T) {
 			bob,
 			&fundingsources.CreateBankAccountArgs{
 				IdentityID:    bob.ID,
+				AccountID:     bobAcc.ID,
 				Name:          faker.Name(),
 				AccountNumber: faker.CCNumber(),
 				RoutingNumber: faker.CCNumber(),

@@ -449,7 +449,7 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 			}, nil
 		case errors.Is(err, withdrawals.ErrInsufficientBalance):
 			return &generated.WithdrawalMutationResponse{
-				Code:    "500",
+				Code:    "422",
 				Success: false,
 				Message: "Withdrawal failed: Insufficient balance.",
 			}, nil

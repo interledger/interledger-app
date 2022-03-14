@@ -89,8 +89,9 @@ func (s *service) CreateAccount(
 		}
 
 		acc, err := s.as.Create(ctx, tx, &accounts.CreateAccountArgs{
-			IdentityID: id.ID,
-			Country:    args.Country,
+			IdentityID:                 id.ID,
+			Country:                    args.Country,
+			CreditsMustNotExceedDebits: true,
 		})
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)

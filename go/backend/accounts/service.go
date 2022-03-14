@@ -27,20 +27,21 @@ var (
 )
 
 type Account struct {
-	ID                string
-	DebitsAccepted    uint64
-	DebitsReserved    uint64
-	CreditsAccepted   uint64
-	CreditsReserved   uint64
-	AvailableBalance  int64
-	IdentityID        string `db:"identity_id"`
-	LedgerAccountID   string `db:"ledger_account_id"` // id returned by Pacioli.
-	Provider          string
-	ProviderID        string `db:"provider_id"`
-	VerificationState string `db:"verification_state"`
-	CreatedAt         string `db:"created_at"`
-	UpdatedAt         string `db:"updated_at"`
-	// TODO: add flags
+	ID                         string
+	DebitsAccepted             uint64
+	DebitsReserved             uint64
+	CreditsAccepted            uint64
+	CreditsReserved            uint64
+	AvailableBalance           int64
+	IdentityID                 string `db:"identity_id"`
+	LedgerAccountID            string `db:"ledger_account_id"` // id returned by Pacioli.
+	Provider                   string
+	ProviderID                 string `db:"provider_id"`
+	VerificationState          string `db:"verification_state"`
+	DebitsMustNotExceedCredits bool
+	CreditsMustNotExceedDebits bool
+	CreatedAt                  string `db:"created_at"`
+	UpdatedAt                  string `db:"updated_at"`
 }
 
 func (s Account) IsVerified() bool {
@@ -120,7 +121,11 @@ func (s *service) Init(ctx context.Context) error {
 type CreateAccountArgs struct {
 	IdentityID string `validate:"required,uuid"`
 	Country    string `validate:"iso3166_1_alpha2"`
-	// TODO: add flags
+
+	// Points to the next account in array. Last one in array cannot have linked flag set.
+	Linked                     bool
+	DebitMustNotExceedCredits  bool
+	CreditsMustNotExceedDebits bool
 }
 
 // This will create the ledger account in Pacioli first and then inserts an account entry into
@@ -148,7 +153,11 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 			{
 				Id:       ledgerAccountID,
 				LedgerId: uint32(s.pacioliLedgerID),
-				// TODO: add flags
+				Flags: &pacioliv1.AccountFlags{
+					Linked:                     args.Linked,
+					DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
+					CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
+				},
 			},
 		},
 	})
@@ -169,6 +178,11 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	err = s.fetchFromPacioli(ctx, &ret)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ret, nil
@@ -258,6 +272,8 @@ func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error 
 	account.CreditsReserved = ledgerAccount.CreditsReserved
 	account.DebitsAccepted = ledgerAccount.DebitsAccepted
 	account.DebitsReserved = ledgerAccount.DebitsReserved
+	account.CreditsMustNotExceedDebits = ledgerAccount.Flags.CreditsMustNotExceedDebits
+	account.DebitsMustNotExceedCredits = ledgerAccount.Flags.DebitsMustNotExceedCredits
 
 	// Calculate available balance
 	account.AvailableBalance = int64(account.DebitsAccepted - account.CreditsAccepted - account.CreditsReserved)

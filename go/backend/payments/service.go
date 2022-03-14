@@ -122,7 +122,7 @@ func (s *service) InitiateOutgoingPayment(
 		})
 		if err != nil {
 			switch {
-			case errors.Is(err, account_transactions.ErrExceedsCredits):
+			case errors.Is(err, account_transactions.ErrExceedsDebits):
 				return ErrInsufficientBalance
 			default:
 				return fmt.Errorf("%s %w", err.Error(), ErrInternal)

@@ -172,91 +172,138 @@ func TestAccountsService(s *testing.T) {
 	})
 
 	s.Run("create account", func(t *testing.T) {
-		var identity *_identity.Identity
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
-				ID:           uuid.NewString(),
-				Email:        faker.Email(),
-				FirstName:    faker.Name(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.Phonenumber(),
-				Country:      "US",
-			})
-			if err != nil {
-				return err
+		t.Run("writes to db if written to pacioli", func(tt *testing.T) {
+			type scenario struct {
+				Name                       string
+				DebitsMustNotExceedCredits bool
+				CreditsMustNotExceedDebits bool
+			}
+			scenarios := []scenario{
+				{
+					Name:                       "Sets DebitsMustNotExceedCredits",
+					DebitsMustNotExceedCredits: true,
+				},
+				{
+					Name:                       "Sets CreditsMustNotExceedDebits",
+					CreditsMustNotExceedDebits: true,
+				},
 			}
 
-			identity = _identity
-			return nil
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.NotNil(t, identity)
+			for _, scenario := range scenarios {
+				var identity *_identity.Identity
+				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+					_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+						ID:           uuid.NewString(),
+						Email:        faker.Email(),
+						FirstName:    faker.Name(),
+						LastName:     faker.LastName(),
+						MobileNumber: faker.Phonenumber(),
+						Country:      "US",
+					})
+					if err != nil {
+						return err
+					}
 
-		t.Run("writes to db if written to pacioli", func(tt *testing.T) {
-			var acc *Account
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := as.Create(ctx, tx, &CreateAccountArgs{
-					IdentityID: identity.ID,
-					Country:    identity.Country,
+					identity = _identity
+					return nil
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				assert.NotNil(t, identity)
+
+				var acc *Account
+				err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+					_acc, err := as.Create(ctx, tx, &CreateAccountArgs{
+						IdentityID:                 identity.ID,
+						Country:                    identity.Country,
+						DebitMustNotExceedCredits:  scenario.DebitsMustNotExceedCredits,
+						CreditsMustNotExceedDebits: scenario.CreditsMustNotExceedDebits,
+					})
+					if err != nil {
+						return err
+					}
+
+					acc = _acc
+					return nil
+				})
+				if err != nil {
+					tt.Fatal(err)
+				}
+				assert.Equal(tt, uint64(0), acc.DebitsAccepted)
+				assert.Equal(tt, uint64(0), acc.DebitsReserved)
+				assert.Equal(tt, uint64(0), acc.CreditsAccepted)
+				assert.Equal(tt, uint64(0), acc.CreditsReserved)
+				assert.Equal(tt, identity.ID, acc.IdentityID)
+				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, acc.CreditsMustNotExceedDebits)
+				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, acc.DebitsMustNotExceedCredits)
+
+				var freshAcc *Account
+				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+					_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
+					if err != nil {
+						return err
+					}
+
+					freshAcc = _acc
+					return nil
+				})
+				if err != nil {
+					tt.Fatal(err)
+				}
+				assert.Equal(tt, uint64(0), freshAcc.DebitsReserved)
+				assert.Equal(tt, uint64(0), freshAcc.DebitsAccepted)
+				assert.Equal(tt, uint64(0), freshAcc.CreditsAccepted)
+				assert.Equal(tt, uint64(0), freshAcc.CreditsReserved)
+				assert.Equal(tt, identity.ID, freshAcc.IdentityID)
+				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, freshAcc.CreditsMustNotExceedDebits)
+				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, freshAcc.DebitsMustNotExceedCredits)
+
+				var freshAccGottenByID *Account
+				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+					_acc, err := as.Get(ctx, tx, acc.ID)
+					if err != nil {
+						return err
+					}
+
+					freshAccGottenByID = _acc
+					return nil
+				})
+				if err != nil {
+					tt.Fatal(err)
+				}
+				assert.Equal(tt, uint64(0), freshAccGottenByID.DebitsReserved)
+				assert.Equal(tt, uint64(0), freshAccGottenByID.DebitsAccepted)
+				assert.Equal(tt, uint64(0), freshAccGottenByID.CreditsAccepted)
+				assert.Equal(tt, uint64(0), freshAccGottenByID.CreditsReserved)
+				assert.Equal(tt, identity.ID, freshAccGottenByID.IdentityID)
+				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, freshAccGottenByID.CreditsMustNotExceedDebits)
+				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, freshAccGottenByID.DebitsMustNotExceedCredits)
+			}
+		})
+
+		t.Run("validates arguments", func(tt *testing.T) {
+			var identity *_identity.Identity
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+					ID:           uuid.NewString(),
+					Email:        faker.Email(),
+					FirstName:    faker.Name(),
+					LastName:     faker.LastName(),
+					MobileNumber: faker.Phonenumber(),
+					Country:      "US",
 				})
 				if err != nil {
 					return err
 				}
 
-				acc = _acc
+				identity = _identity
 				return nil
 			})
 			if err != nil {
-				tt.Fatal(err)
+				t.Fatal(err)
 			}
-			assert.Equal(tt, uint64(0), acc.DebitsAccepted)
-			assert.Equal(tt, uint64(0), acc.DebitsReserved)
-			assert.Equal(tt, uint64(0), acc.CreditsAccepted)
-			assert.Equal(tt, uint64(0), acc.CreditsReserved)
-			assert.Equal(tt, identity.ID, acc.IdentityID)
-
-			var freshAcc *Account
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
-				if err != nil {
-					return err
-				}
-
-				freshAcc = _acc
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-			assert.Equal(tt, uint64(0), freshAcc.DebitsReserved)
-			assert.Equal(tt, uint64(0), freshAcc.DebitsAccepted)
-			assert.Equal(tt, uint64(0), freshAcc.CreditsAccepted)
-			assert.Equal(tt, uint64(0), freshAcc.CreditsReserved)
-			assert.Equal(tt, identity.ID, freshAcc.IdentityID)
-
-			var freshAccGottenByID *Account
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := as.Get(ctx, tx, acc.ID)
-				if err != nil {
-					return err
-				}
-
-				freshAccGottenByID = _acc
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-			assert.Equal(tt, uint64(0), freshAccGottenByID.DebitsReserved)
-			assert.Equal(tt, uint64(0), freshAccGottenByID.DebitsAccepted)
-			assert.Equal(tt, uint64(0), freshAccGottenByID.CreditsAccepted)
-			assert.Equal(tt, uint64(0), freshAccGottenByID.CreditsReserved)
-			assert.Equal(tt, identity.ID, freshAccGottenByID.IdentityID)
-		})
-
-		t.Run("validates arguments", func(tt *testing.T) {
+			assert.NotNil(t, identity)
 			type scenario struct {
 				Name                 string
 				Args                 *CreateAccountArgs
@@ -306,6 +353,28 @@ func TestAccountsService(s *testing.T) {
 		t.Run("fails if not written to pacioli", func(tt *testing.T) {
 			conn.Close()
 			assert.Equal(t, "SHUTDOWN", conn.GetState().String())
+			var identity *_identity.Identity
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+				_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+					ID:           uuid.NewString(),
+					Email:        faker.Email(),
+					FirstName:    faker.Name(),
+					LastName:     faker.LastName(),
+					MobileNumber: faker.Phonenumber(),
+					Country:      "US",
+				})
+				if err != nil {
+					return err
+				}
+
+				identity = _identity
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.NotNil(t, identity)
+
 			var acc *Account
 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				_acc, err := as.Create(ctx, tx, &CreateAccountArgs{
