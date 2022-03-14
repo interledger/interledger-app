@@ -30,8 +30,9 @@ type TestContainer struct {
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
+	containerNetwork := "pacioli-test"
 
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
+	crdb, err := test_utils.SetupTestCockroachDB(ctx, containerNetwork)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +44,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Db = db
 
-	tb, err := test_utils.SetupTigerBeetle(ctx, 0)
+	tb, err := test_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
 		return nil, err
 	}

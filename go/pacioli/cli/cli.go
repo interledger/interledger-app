@@ -111,12 +111,15 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, err
 	}
 
-	connString, err := migrations.InlineSslCreds(
-		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.pacioli.key",
-		"/cockroach-certs/client.pacioli.crt",
-		"/cockroach-certs/ca.crt",
-	)
+	connString := baseDbUrl
+	if os.Getenv("ENV") != "testing" {
+		connString, err = migrations.InlineSslCreds(
+			strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
+			"/cockroach-certs/client.pacioli.key",
+			"/cockroach-certs/client.pacioli.crt",
+			"/cockroach-certs/ca.crt",
+		)
+	}
 	if err != nil {
 		log.Fatalln(err)
 	}

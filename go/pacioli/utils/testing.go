@@ -25,8 +25,12 @@ type CockroachDBContainer struct {
 }
 
 // This will start the crdb test container and run the migrations.
-func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
+func SetupTestCockroachDB(ctx context.Context, network string) (*CockroachDBContainer, error) {
 	fmt.Println("Starting CRDB test container.")
+	containerNetwork := network
+	if containerNetwork == "" {
+		containerNetwork = "pacioli-test"
+	}
 
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
@@ -34,10 +38,12 @@ func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
 	}
 
 	req := testcontainers.ContainerRequest{
-		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1",
-		ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-		WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
-		Cmd:          []string{"start-single-node", "--insecure"},
+		Image:          "823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1",
+		Networks:       []string{containerNetwork},
+		NetworkAliases: map[string][]string{containerNetwork: {"pacioli-crdb"}},
+		ExposedPorts:   []string{"26257/tcp", "8080/tcp"},
+		WaitingFor:     wait.ForHTTP("/health").WithPort("8080"),
+		Cmd:            []string{"start-single-node", "--insecure"},
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
@@ -101,11 +107,15 @@ type TigerBeetleContainer struct {
 	URI string
 }
 
-func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContainer, error) {
+func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*TigerBeetleContainer, error) {
 	const (
 		TIGERBEETLE_PORT = "3000"
 		TIGERBEETLE_DIR  = "/var/lib/tigerbeetle"
 	)
+	containerNetwork := network
+	if containerNetwork == "" {
+		containerNetwork = "pacioli-test"
+	}
 
 	initTbCommand := fmt.Sprintf("./tigerbeetle init --cluster=%d --replica=0 --directory=%s;", clusterID, TIGERBEETLE_DIR)
 	startTbCommand := fmt.Sprintf("./tigerbeetle start --cluster=%d --replica=0 --addresses=0.0.0.0:%s --directory=%s;", clusterID, TIGERBEETLE_PORT, TIGERBEETLE_DIR)
@@ -118,7 +128,9 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32) (*TigerBeetleContai
 		Entrypoint: []string{
 			"/bin/bash",
 		},
-		Privileged: true,
+		Networks:       []string{containerNetwork},
+		NetworkAliases: map[string][]string{containerNetwork: {"pacioli-tigerbeetle"}},
+		Privileged:     true,
 		Cmd: []string{
 			"-c",
 			fmt.Sprintf("%s %s", initTbCommand, startTbCommand),
