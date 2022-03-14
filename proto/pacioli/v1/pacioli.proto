@@ -90,6 +90,7 @@ message Transfer {
   uint64 amount = 4;
   uint32 code = 5;
   TransferFlags flags = 6;
+  uint64 timeout = 7;
 }
 
 message TransferFlags {
