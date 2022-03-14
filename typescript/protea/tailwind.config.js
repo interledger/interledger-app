@@ -40,7 +40,10 @@ module.exports = {
         primary: withOpacity('--bg-primary'),
         'container-primary': withOpacity('--bg-container-primary'),
         'container-primary-hover': withOpacity('--bg-container-primary-hover'),
-        'container-primary-active': withOpacity('--bg-container-primary-active')
+        'container-primary-active': withOpacity(
+          '--bg-container-primary-active'
+        ),
+        snackbar: withOpacity('--bg-snackbar')
       },
       borderColor: {
         base: withOpacity('--border-base'),
