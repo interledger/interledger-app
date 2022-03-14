@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
@@ -120,6 +121,10 @@ func TestRpc(s *testing.T) {
 					CreditAccountId: accountBID,
 					Amount:          100,
 					Code:            1,
+					Flags: &pacioliv1.TransferFlags{
+						TwoPhaseCommit: true,
+					},
+					Timeout: uint64(10 * time.Millisecond),
 				},
 				{ // This one will fail as the account IDs are the same.
 					Id:              transferB,
@@ -154,6 +159,6 @@ func TestRpc(s *testing.T) {
 		flags := transfers[0].GetFlags()
 		assert.Equal(t, false, flags.GetCondition())
 		assert.Equal(t, false, flags.GetLinked())
-		assert.Equal(t, false, flags.GetTwoPhaseCommit())
+		assert.Equal(t, true, flags.GetTwoPhaseCommit())
 	})
 }

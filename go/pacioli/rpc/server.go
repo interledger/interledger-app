@@ -181,6 +181,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 			CreditAccountID: transfer.GetCreditAccountId(),
 			Flags:           flags,
 			Code:            transfer.GetCode(),
+			Timeout:         transfer.GetTimeout(),
 		}
 	}
 
