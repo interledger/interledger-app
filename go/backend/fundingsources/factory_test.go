@@ -2,10 +2,8 @@ package fundingsources
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
@@ -15,24 +13,25 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	"gitlab.com/fynbos/proto/pacioli/v1"
-	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 type TestContainer struct {
-	Ctx               context.Context
-	Crdb              *test_utils.CockroachDBContainer
-	Logger            *zap.Logger
-	Db                *sqlx.DB
-	Cs                country.Service
-	Noop              noop.Service
-	Is                _identity.Service
-	Fs                Service
-	Os                onboarding.Service
-	Ts                account_transactions.Service
-	MockPacioliClient *mockPacioliV1.MockPacioliServiceClient
-	Ctrl              *gomock.Controller
+	Ctx              context.Context
+	Crdb             *test_utils.CockroachDBContainer
+	Logger           *zap.Logger
+	Db               *sqlx.DB
+	Cs               country.Service
+	Noop             noop.Service
+	Is               _identity.Service
+	Fs               Service
+	Os               onboarding.Service
+	Ts               account_transactions.Service
+	PacioliContainer *test_utils.PacioliContainer
+	PacioliClient    pacioliv1.PacioliServiceClient
+	PacioliLedgerID  uint16
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -67,27 +66,23 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Is = _identity.NewLoggingService(is, logger)
 
-	ctrl := gomock.NewController(t)
-	c.Ctrl = ctrl
+	pacioliContainer, err := test_utils.SetupPacioli(ctx)
+	if err != nil {
+		return nil, err
+	}
+	c.PacioliContainer = pacioliContainer
 
-	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	pacioliLedgerID := uint16(1)
-	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
-		Args: []*pacioli.Ledger{
-			{
-				Id:    uint32(pacioliLedgerID),
-				Name:  "Fynbos ledger",
-				Asset: "840", // US dollars
-				Scale: 2,
-			},
-		},
-	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).AnyTimes()
-	c.MockPacioliClient = pClient
-
+	c.PacioliLedgerID = uint16(1)
+	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	pClient := pacioliv1.NewPacioliServiceClient(conn)
+	c.PacioliClient = pClient
 	as, err := accounts.NewService(&accounts.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
-		PacioliLedgerID: pacioliLedgerID,
+		PacioliLedgerID: c.PacioliLedgerID,
 		PacioliClient:   pClient,
 		Db:              db,
 	})
@@ -109,7 +104,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ts = ts
 
 	noop, err := noop.NewService(noop.ServiceArgs{
-		LedgerID:      pacioliLedgerID,
+		LedgerID:      c.PacioliLedgerID,
 		EquityAccID:   uuid.NewString(),
 		PacioliTenant: "dev",
 		PacioliClient: pClient,
@@ -117,9 +112,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-	c.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
-		&pacioli.ConfigureAccountsResponse{}, nil,
-	).Times(1)
 	err = noop.Init(ctx)
 	if err != nil {
 		return nil, err
@@ -151,27 +143,29 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	return c, nil
 }
 
-func (c *TestContainer) Cleanup() {
-	c.Ctrl.Finish()
+func (c *TestContainer) Cleanup() error {
 	err := c.Db.Close()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	err = c.Crdb.Container.Terminate(c.Ctx)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+
+	err = c.PacioliContainer.Terminate(c.Ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewAccount(
 	container *TestContainer,
 	input *onboarding.CreateAccountArgs,
 ) (*accounts.Account, error) {
-	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
-		&pacioli.ConfigureAccountsResponse{}, nil,
-	).Times(1)
-
 	acc, err := container.Os.CreateAccount(container.Ctx, input)
 	if err != nil {
 		return nil, err

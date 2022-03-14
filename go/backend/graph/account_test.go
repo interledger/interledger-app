@@ -2,22 +2,21 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/proto/pacioli/v1"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
@@ -29,16 +28,12 @@ func TestUserAccount(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		container.Cleanup(ctx)
+		err = container.Cleanup(ctx)
+		if err != nil {
+			s.Fatal(err)
+		}
 	})
 
-	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.ConfigureAccountsResponse{}, nil,
-	).AnyTimes()
-	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.CreateTransfersResponse{
-			Errors: []*pacioliv1.EventError{},
-		}, nil).AnyTimes()
 	/*
 		Scenario: user queries their account balance
 	*/
@@ -58,20 +53,42 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), &pacioli.GetAccountsRequest{Ids: []string{acc.LedgerAccountID}}).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{
-							Id:              args.GetIds()[0],
-							CreditsAccepted: 100,
-							CreditsReserved: 20,
-							DebitsAccepted:  200,
-							DebitsReserved:  0,
-						},
+		transferResponse, err := container.PacioliClient.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
+			Transfers: []*pacioliv1.Transfer{
+				{
+					Id:              uuid.NewString(),
+					DebitAccountId:  acc.LedgerAccountID,
+					CreditAccountId: container.NoopService.GetEquityAccountID(),
+					Amount:          200,
+				},
+				{
+					Id:              uuid.NewString(),
+					DebitAccountId:  container.NoopService.GetEquityAccountID(),
+					CreditAccountId: acc.LedgerAccountID,
+					Amount:          100,
+				},
+				{
+					Id:              uuid.NewString(),
+					DebitAccountId:  container.NoopService.GetEquityAccountID(),
+					CreditAccountId: acc.LedgerAccountID,
+					Amount:          20,
+
+					Flags: &pacioliv1.TransferFlags{
+						TwoPhaseCommit: true,
 					},
-				}, nil
-			}).Times(1)
+					Timeout: uint64(10 * time.Millisecond),
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(transferResponse.GetErrors()) != 0 {
+			fmt.Println()
+			fmt.Printf("%+v", transferResponse.GetErrors())
+			fmt.Println()
+			t.Fatal("Failed to create transfers in pacioli.")
+		}
 
 		req := getAccountRequest()
 		err = _user.ActingAs(req, user)
@@ -107,16 +124,6 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{
-							Id: args.GetIds()[0],
-						},
-					},
-				}, nil
-			}).Times(4)
 		fundingSource, err := NewBankAccount(
 			container,
 			user,
@@ -144,20 +151,6 @@ func TestUserAccount(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "completed", deposit.State)
-		container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{
-							Id:              args.GetIds()[0],
-							CreditsAccepted: 0,
-							CreditsReserved: 0,
-							DebitsAccepted:  0,
-							DebitsReserved:  0,
-						},
-					},
-				}, nil
-			}).Times(1)
 
 		req := getAccountTransactionsRequest()
 		err = _user.ActingAs(req, user)

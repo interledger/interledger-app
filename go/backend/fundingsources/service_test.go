@@ -6,14 +6,10 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/proto/pacioli/v1"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	"google.golang.org/grpc"
 )
 
 func TestFundingSources(s *testing.T) {
@@ -24,7 +20,10 @@ func TestFundingSources(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		c.Cleanup()
+		err = c.Cleanup()
+		if err != nil {
+			s.Fatal(err)
+		}
 	})
 
 	s.Run("validates create bank account arguments", func(t *testing.T) {
@@ -128,15 +127,6 @@ func TestFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		c.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{Id: args.Ids[0]},
-					},
-				}, nil
-			}).Times(1)
 		args := generateCreateBankAccountArgs(
 			withIdentityID(userID),
 			withAccountID(acc.ID),
@@ -167,14 +157,6 @@ func TestFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		c.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{Id: args.Ids[0]},
-					},
-				}, nil
-			}).Times(2)
 		args := generateCreateBankAccountArgs(
 			withIdentityID(userID),
 			withAccountID(acc.ID),
@@ -225,14 +207,6 @@ func TestFundingSources(s *testing.T) {
 			withIdentityID(myID),
 			withAccountID(myAcc.ID),
 		)
-		c.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{Id: args.Ids[0]},
-					},
-				}, nil
-			}).Times(2)
 		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
 		if err != nil {
 			t.Fatal(err)
@@ -292,14 +266,6 @@ func TestFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		c.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioli.GetAccountsResponse, error) {
-				return &pacioliv1.GetAccountsResponse{
-					Accounts: []*pacioliv1.Account{
-						{Id: args.Ids[0]},
-					},
-				}, nil
-			}).Times(2)
 		fundingsource, err := c.Fs.CreateBankAccount(
 			ctx,
 			generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(acc.ID)),

@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"google.golang.org/grpc"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
@@ -28,8 +29,7 @@ import (
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	"gitlab.com/fynbos/proto/pacioli/v1"
-	mockPacioliV1 "gitlab.com/fynbos/proto/pacioli/v1/mock"
+	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 type TestContainer struct {
@@ -37,7 +37,6 @@ type TestContainer struct {
 	Crdb                 *test_utils.CockroachDBContainer
 	Logger               *zap.Logger
 	Db                   *sqlx.DB
-	Ctrl                 *gomock.Controller
 	AccountService       _account.Service
 	CountryService       _country.Service
 	FundingSourceService fundingsources.Service
@@ -49,7 +48,9 @@ type TestContainer struct {
 	TransactionService   account_transactions.Service
 	Os                   onboarding.Service
 	Ps                   payments.Service
-	MockPacioliClient    *mockPacioliV1.MockPacioliServiceClient
+	PacioliContainer     *test_utils.PacioliContainer
+	PacioliClient        pacioliv1.PacioliServiceClient
+	PacioliLedgerID      uint16
 	Graph                *handler.Server
 	Client               *graphql.Client
 	Server               *httptest.Server
@@ -77,9 +78,6 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.Db = db
 
-	ctrl := gomock.NewController(t)
-	c.Ctrl = ctrl
-
 	cs := _country.NewService(db)
 	c.CountryService = cs
 
@@ -91,24 +89,24 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.IdentityService = identity.NewLoggingService(is, logger)
 
-	pClient := mockPacioliV1.NewMockPacioliServiceClient(ctrl)
-	pacioliLedgerID := uint16(1)
-	pClient.EXPECT().ConfigureLedgers(ctx, &pacioli.ConfigureLedgersRequest{
-		Args: []*pacioli.Ledger{
-			{
-				Id:    uint32(pacioliLedgerID),
-				Name:  "Fynbos ledger",
-				Asset: "840", // US dollars
-				Scale: 2,
-			},
-		},
-	}).Return(&pacioli.ConfigureLedgersResponse{}, nil).AnyTimes()
-	c.MockPacioliClient = pClient
+	pacioliContainer, err := test_utils.SetupPacioli(ctx)
+	if err != nil {
+		return nil, err
+	}
+	c.PacioliContainer = pacioliContainer
+
+	c.PacioliLedgerID = uint16(1)
+	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	pClient := pacioliv1.NewPacioliServiceClient(conn)
+	c.PacioliClient = pClient
 
 	as, err := accounts.NewService(&accounts.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
-		PacioliLedgerID: pacioliLedgerID,
+		PacioliLedgerID: c.PacioliLedgerID,
 		PacioliClient:   pClient,
 		Db:              db,
 	})
@@ -136,7 +134,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 
 	equityAccID := uuid.NewString()
 	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
-		LedgerID:      pacioliLedgerID,
+		LedgerID:      c.PacioliLedgerID,
 		EquityAccID:   equityAccID,
 		PacioliTenant: "dev",
 		PacioliClient: pClient,
@@ -144,9 +142,6 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	if err != nil {
 		return nil, err
 	}
-	c.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
-		&pacioli.ConfigureAccountsResponse{}, nil,
-	).Times(1)
 	err = noopProvider.Init(ctx)
 	if err != nil {
 		return nil, err
@@ -240,11 +235,24 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	return c, err
 }
 
-func (c *TestContainer) Cleanup(ctx context.Context) {
+func (c *TestContainer) Cleanup(ctx context.Context) error {
 	c.Server.Close()
-	c.Ctrl.Finish()
-	_ = c.Db.Close()
-	_ = c.Crdb.Container.Terminate(ctx)
+	err := c.Db.Close()
+	if err != nil {
+		return err
+	}
+
+	err = c.Crdb.Container.Terminate(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.PacioliContainer.Terminate(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewAccount(
