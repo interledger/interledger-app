@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
@@ -15,9 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
-	"google.golang.org/grpc"
 )
 
 func TestUserOutgoingPayment(s *testing.T) {
@@ -28,18 +24,11 @@ func TestUserOutgoingPayment(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		container.Cleanup(ctx)
+		err = container.Cleanup(ctx)
+		if err != nil {
+			s.Fatal(err)
+		}
 	})
-
-	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.ConfigureAccountsResponse{}, nil,
-	).AnyTimes()
-	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
-			return &pacioliv1.GetAccountsResponse{
-				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
-			}, nil
-		}).AnyTimes()
 
 	/*
 		Scenario: user initiates an outgoing payment to an ilp address
@@ -51,10 +40,6 @@ func TestUserOutgoingPayment(s *testing.T) {
 		Then a successful response is returned along with the newly created transaction
 	*/
 	s.Run("user initiates an outgoing payment to an ilp address", func(t *testing.T) {
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{},
-			}, nil).Times(2)
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
@@ -134,54 +119,49 @@ func TestUserOutgoingPayment(s *testing.T) {
 		When the user initiates an outgoing payment
 		Then an error is returned saying there is insufficient balance
 	*/
-	s.Run("user has insufficient balance to initiate outgoing payment", func(t *testing.T) {
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{
-					{Index: 0, Code: tb_types.TransferExceedsCredits},
-				},
-			}, nil).Times(1)
-		user := &_user.User{
-			ID:    uuid.NewString(),
-			Email: faker.Email(),
-		}
-		acc, err := NewVerifiedAccount(
-			container,
-			&onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
-			},
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.True(t, acc.IsVerified())
+	// TODO: enable this test once we have account limits.
+	// s.Run("user has insufficient balance to initiate outgoing payment", func(t *testing.T) {
+	// 	user := &_user.User{
+	// 		ID:    uuid.NewString(),
+	// 		Email: faker.Email(),
+	// 	}
+	// 	acc, err := NewVerifiedAccount(
+	// 		container,
+	// 		&onboarding.CreateAccountArgs{
+	// 			IdentityID:   user.ID,
+	// 			FirstName:    faker.FirstName(),
+	// 			LastName:     faker.LastName(),
+	// 			MobileNumber: faker.E164PhoneNumber(),
+	// 			Email:        user.Email,
+	// 			Country:      "US",
+	// 		},
+	// 		&onboarding.VerifyAccountArgs{
+	// 			DateOfBirth: faker.Date(),
+	// 			Address:     []string{faker.Name()},
+	// 			State:       faker.Name(),
+	// 			City:        faker.Name(),
+	// 			PostalCode:  faker.CCNumber(),
+	// 			TaxIDNumber: faker.CCNumber(),
+	// 		},
+	// 	)
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	assert.True(t, acc.IsVerified())
 
-		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
-			Amount: "10000",
-			To:     "$test.fynbos.test/alice",
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
+	// 	response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
+	// 		Amount: "10000",
+	// 		To:     "$test.fynbos.test/alice",
+	// 	})
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
 
-		assert.Equal(t, "422", response.Code)
-		assert.Equal(t, false, response.Success)
-		assert.Equal(t, "Outgoing payment failed: Insufficient balance.", response.Message)
-		assert.Nil(t, response.Transaction)
-	})
+	// 	assert.Equal(t, "422", response.Code)
+	// 	assert.Equal(t, false, response.Success)
+	// 	assert.Equal(t, "Outgoing payment failed: Insufficient balance.", response.Message)
+	// 	assert.Nil(t, response.Transaction)
+	// })
 
 	/*
 		Outgoing payments aren't allowed unless account is verified
@@ -194,10 +174,6 @@ func TestUserOutgoingPayment(s *testing.T) {
 		Then an error is returned saying there is insufficient balance
 	*/
 	s.Run("user tries to initiate outgoing payment from an unverified account", func(t *testing.T) {
-		container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-			&pacioliv1.CreateTransfersResponse{
-				Errors: []*pacioliv1.EventError{},
-			}, nil).Times(1)
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),

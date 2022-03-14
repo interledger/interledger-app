@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +13,6 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 func TestUserWithdrawals(s *testing.T) {
@@ -26,17 +24,11 @@ func TestUserWithdrawals(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		container.Cleanup(ctx)
+		err = container.Cleanup(ctx)
+		if err != nil {
+			s.Fatal(err)
+		}
 	})
-
-	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.CreateTransfersResponse{
-			Errors: []*pacioliv1.EventError{},
-		}, nil).AnyTimes()
-	container.MockPacioliClient.EXPECT().CreateTransfers(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.CreateTransfersResponse{
-			Errors: []*pacioliv1.EventError{},
-		}, nil).Times(1)
 
 	/*
 		Scenario: user initiates withdrawal to a verified bank account

@@ -5,18 +5,15 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 func TestUserFundingSources(s *testing.T) {
@@ -27,18 +24,11 @@ func TestUserFundingSources(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		container.Cleanup(ctx)
+		err = container.Cleanup(ctx)
+		if err != nil {
+			s.Fatal(err)
+		}
 	})
-
-	container.MockPacioliClient.EXPECT().ConfigureAccounts(gomock.Any(), gomock.Any()).Return(
-		&pacioliv1.ConfigureAccountsResponse{}, nil,
-	).AnyTimes()
-	container.MockPacioliClient.EXPECT().GetAccounts(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, args *pacioliv1.GetAccountsRequest, opts ...grpc.CallOption) (*pacioliv1.GetAccountsResponse, error) {
-			return &pacioliv1.GetAccountsResponse{
-				Accounts: []*pacioliv1.Account{{Id: args.GetIds()[0]}},
-			}, nil
-		}).AnyTimes()
 
 	/*
 		Scenario: user needs to fetch their funding sources

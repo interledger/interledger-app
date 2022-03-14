@@ -19,7 +19,10 @@ func TestCountries(s *testing.T) {
 	}
 
 	s.Cleanup(func() {
-		container.Cleanup(ctx)
+		err = container.Cleanup(ctx)
+		if err != nil {
+			s.Fatal(err)
+		}
 	})
 
 	/*
