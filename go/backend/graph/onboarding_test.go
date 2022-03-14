@@ -33,6 +33,7 @@ func TestUserOnboarding(s *testing.T) {
 		Given a users preliminary information
 		When they signup
 		Then we create an identity and Fynbos account that is not yet backed by a provider
+		And Fynbos account is created with CreditsMustNotExceedDebits flag
 	*/
 	s.Run("user creates an account at Fynbos", func(t *testing.T) {
 		user := &_user.User{
@@ -51,6 +52,13 @@ func TestUserOnboarding(s *testing.T) {
 		assert.Equal(t, "Created account.", response.Message)
 		assert.NotNil(t, response.Account)
 		assert.Equal(t, "$ 0.00", response.Account.Balance)
+
+		acc, err := container.AccountService.GetByIdentityID(ctx, user.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, true, acc.CreditsMustNotExceedDebits)
+		assert.Equal(t, false, acc.DebitsMustNotExceedCredits)
 	})
 
 	/*

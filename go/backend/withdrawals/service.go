@@ -115,7 +115,7 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 		})
 		if err != nil {
 			switch {
-			case errors.Is(err, transactions.ErrExceedsCredits):
+			case errors.Is(err, transactions.ErrExceedsDebits):
 				return ErrInsufficientBalance
 			default:
 				return fmt.Errorf("transaction failed %w %s", ErrInternalError, err.Error())

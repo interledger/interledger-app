@@ -119,49 +119,49 @@ func TestUserOutgoingPayment(s *testing.T) {
 		When the user initiates an outgoing payment
 		Then an error is returned saying there is insufficient balance
 	*/
-	// TODO: enable this test once we have account limits.
-	// s.Run("user has insufficient balance to initiate outgoing payment", func(t *testing.T) {
-	// 	user := &_user.User{
-	// 		ID:    uuid.NewString(),
-	// 		Email: faker.Email(),
-	// 	}
-	// 	acc, err := NewVerifiedAccount(
-	// 		container,
-	// 		&onboarding.CreateAccountArgs{
-	// 			IdentityID:   user.ID,
-	// 			FirstName:    faker.FirstName(),
-	// 			LastName:     faker.LastName(),
-	// 			MobileNumber: faker.E164PhoneNumber(),
-	// 			Email:        user.Email,
-	// 			Country:      "US",
-	// 		},
-	// 		&onboarding.VerifyAccountArgs{
-	// 			DateOfBirth: faker.Date(),
-	// 			Address:     []string{faker.Name()},
-	// 			State:       faker.Name(),
-	// 			City:        faker.Name(),
-	// 			PostalCode:  faker.CCNumber(),
-	// 			TaxIDNumber: faker.CCNumber(),
-	// 		},
-	// 	)
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	assert.True(t, acc.IsVerified())
+	s.Run("user has insufficient balance to initiate outgoing payment", func(t *testing.T) {
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		acc, err := NewVerifiedAccount(
+			container,
+			&onboarding.CreateAccountArgs{
+				IdentityID:   user.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        user.Email,
+				Country:      "US",
+			},
+			&onboarding.VerifyAccountArgs{
+				DateOfBirth: faker.Date(),
+				Address:     []string{faker.Name()},
+				State:       faker.Name(),
+				City:        faker.Name(),
+				PostalCode:  faker.CCNumber(),
+				TaxIDNumber: faker.CCNumber(),
+			},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.True(t, acc.IsVerified())
+		assert.Equal(t, int64(0), acc.AvailableBalance)
 
-	// 	response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
-	// 		Amount: "10000",
-	// 		To:     "$test.fynbos.test/alice",
-	// 	})
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
+		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
+			Amount: "10000",
+			To:     "$test.fynbos.test/alice",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	// 	assert.Equal(t, "422", response.Code)
-	// 	assert.Equal(t, false, response.Success)
-	// 	assert.Equal(t, "Outgoing payment failed: Insufficient balance.", response.Message)
-	// 	assert.Nil(t, response.Transaction)
-	// })
+		assert.Equal(t, "422", response.Code)
+		assert.Equal(t, false, response.Success)
+		assert.Equal(t, "Outgoing payment failed: Insufficient balance.", response.Message)
+		assert.Nil(t, response.Transaction)
+	})
 
 	/*
 		Outgoing payments aren't allowed unless account is verified
