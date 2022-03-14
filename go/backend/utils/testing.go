@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"gitlab.com/fynbos/backend/migrations"
+	pacioli_utils "gitlab.com/fynbos/pacioli/utils"
 )
 
 type CockroachDBContainer struct {
@@ -142,4 +145,116 @@ func TruncateDb(ctx context.Context, db *sqlx.DB) error {
 	//const query = `SELECT 'TRUNCATE TABLE ' + Table_Schema + '.' + Table_Name from INFORMATION_SCHEMA.tables where table_type = 'base table'`
 	//_, err := db.ExecContext(ctx, "SELECT")
 	return nil
+}
+
+type PacioliContainer struct {
+	Crdb           testcontainers.Container
+	Tb             testcontainers.Container
+	URI            string
+	Pacioli        testcontainers.Container
+	PacioliUrl     string
+	PacioliNetwork testcontainers.Network
+}
+
+func (c *PacioliContainer) Terminate(ctx context.Context) error {
+	err := c.Pacioli.Terminate(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.Tb.Terminate(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.Crdb.Terminate(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.PacioliNetwork.Remove(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
+	fmt.Println("Starting pacioli test container.")
+	containerNetwork := "pacioli-" + uuid.NewString()
+	network, err := testcontainers.GenericNetwork(ctx, testcontainers.GenericNetworkRequest{
+		NetworkRequest: testcontainers.NetworkRequest{
+			Name:           containerNetwork,
+			CheckDuplicate: true,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, errors.New("Could not get directory path for utils/testing.")
+	}
+
+	fmt.Println("Starting pacioli crdb.")
+	crdb, err := pacioli_utils.SetupTestCockroachDB(ctx, containerNetwork)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Starting pacioli tb.")
+	tb, err := pacioli_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Building and starting pacioli.")
+	configPath := filepath.Join(filepath.Dir(moduleDir), "../../")
+	req := testcontainers.ContainerRequest{
+		FromDockerfile: testcontainers.FromDockerfile{
+			Context:    configPath,
+			Dockerfile: "pacioli/Dockerfile",
+		},
+		ExposedPorts: []string{"443/tcp"},
+		Env: map[string]string{
+			"ENV":           "testing",
+			"PORT":          "443",
+			"DB_URL":        "postgres://root@pacioli-crdb:26257/pacioli?sslmode=disable",
+			"TB_URL":        "pacioli-tigerbeetle:3000",
+			"TB_CLUSTER_ID": "0",
+		},
+		Networks:   []string{containerNetwork},
+		WaitingFor: wait.ForLog("grpc server").WithPollInterval(1 * time.Second),
+		Cmd:        []string{"start"},
+	}
+
+	pacioliContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	mappedPort, err := pacioliContainer.MappedPort(ctx, "443")
+	if err != nil {
+		return nil, err
+	}
+
+	hostIP, err := pacioliContainer.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	connString := fmt.Sprintf("%s:%s", hostIP, mappedPort.Port())
+
+	return &PacioliContainer{
+		Crdb:           crdb,
+		Tb:             tb,
+		Pacioli:        pacioliContainer,
+		PacioliUrl:     connString,
+		PacioliNetwork: network,
+	}, nil
 }
