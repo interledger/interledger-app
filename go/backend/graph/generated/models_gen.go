@@ -93,6 +93,17 @@ type OutgoingPaymentMutationResponse struct {
 
 func (OutgoingPaymentMutationResponse) IsMutationResponse() {}
 
+type PageInfo struct {
+	HasNextPage bool   `json:"hasNextPage"`
+	StartCursor string `json:"startCursor"`
+	EndCursor   string `json:"endCursor"`
+}
+
+type Pagination struct {
+	After string `json:"after"`
+	First int    `json:"first"`
+}
+
 type Transaction struct {
 	ID          string          `json:"id"`
 	Type        TransactionType `json:"type"`
@@ -100,6 +111,16 @@ type Transaction struct {
 	Amount      string          `json:"amount"`
 	Timestamp   string          `json:"timestamp"`
 	Status      string          `json:"status"`
+}
+
+type TransactionEdge struct {
+	Node   *Transaction `json:"node"`
+	Cursor string       `json:"cursor"`
+}
+
+type TransactionsConnection struct {
+	PageInfo *PageInfo          `json:"pageInfo"`
+	Edges    []*TransactionEdge `json:"edges"`
 }
 
 type VerifyAccountInput struct {

@@ -58,3 +58,7 @@ models:
     fields:
       recentTransactions:
         resolver: true
+  TransactionsConnection:
+    fields:
+      pageInfo:
+        resolver: true
