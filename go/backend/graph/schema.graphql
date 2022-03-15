@@ -3,6 +3,7 @@ type Query{
   fundingSources: [FundingSource]!
   account: Account
   countries: [Country!]!
+  transactions(input: Pagination!): TransactionsConnection!
 }
 
 type Mutation {
@@ -156,4 +157,25 @@ type Account {
 type Country {
   id: String!
   name: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  startCursor: String!
+  endCursor: String!
+}
+
+input Pagination {
+  after: String!
+  first: Int!
+}
+
+type TransactionEdge {
+  node: Transaction!
+  cursor: String!
+}
+
+type TransactionsConnection {
+  pageInfo: PageInfo!
+  edges: [TransactionEdge!]!
 }

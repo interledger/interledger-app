@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bxcodec/faker/v3"
+	faker "github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
-	accounttransactions "gitlab.com/fynbos/backend/accounttransactions"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -31,7 +31,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 		dbTrxs, err := r.AccountTransactions.GetByAccount(
 			ctx,
 			tx,
-			&accounttransactions.GetByAccountArgs{
+			&account_transactions.GetByAccountArgs{
 				AccountID: obj.ID,
 				Limit:     3,
 				OrderBy:   "DESC",
@@ -675,6 +675,31 @@ func (r *queryResolver) Countries(ctx context.Context) ([]*generated.Country, er
 	return ret, err
 }
 
+func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagination) (*generated.TransactionsConnection, error) {
+	return &generated.TransactionsConnection{
+		Edges: []*generated.TransactionEdge{
+			{
+				Node: &generated.Transaction{
+					ID:          "aaaaa",
+					Type:        generated.TransactionTypeDeposit,
+					Description: "from ****44 bank account",
+					Amount:      "$10.00",
+				},
+				Cursor: "aaaaa",
+			},
+		},
+	}, nil
+}
+
+func (r *transactionsConnectionResolver) PageInfo(ctx context.Context, obj *generated.TransactionsConnection) (*generated.PageInfo, error) {
+	startCursor := "aaaaa"
+	return &generated.PageInfo{
+		HasNextPage: false,
+		StartCursor: startCursor,
+		EndCursor:   startCursor,
+	}, nil
+}
+
 // Account returns generated.AccountResolver implementation.
 func (r *Resolver) Account() generated.AccountResolver { return &accountResolver{r} }
 
@@ -684,6 +709,12 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// TransactionsConnection returns generated.TransactionsConnectionResolver implementation.
+func (r *Resolver) TransactionsConnection() generated.TransactionsConnectionResolver {
+	return &transactionsConnectionResolver{r}
+}
+
 type accountResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type transactionsConnectionResolver struct{ *Resolver }
