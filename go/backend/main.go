@@ -136,6 +136,7 @@ func start(args *cli.StartArgs) {
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
 		AccountService: as,
 		PacioliClient:  pClient,
+		Db:             db,
 	})
 	if err != nil {
 		log.Fatalln(err)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -56,17 +57,21 @@ type accountTransaction struct {
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error) // TODO: this should return an error array
 	GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error)
+	GetPage(ctx context.Context, args *PaginationArgs) ([]AccountTransaction, error)
+	GetPageInfo(ctx context.Context, accountID string, edges []AccountTransaction) (hasNextPage bool, startCursor string, endCursor string, err error)
 }
 
 type service struct {
 	validator *validator.Validate
 	as        accounts.Service
 	pacioli   pacioli.PacioliServiceClient
+	db        *sqlx.DB
 }
 
 type ServiceArgs struct {
 	AccountService accounts.Service             `validate:"required"`
 	PacioliClient  pacioli.PacioliServiceClient `validate:"required"`
+	Db             *sqlx.DB                     `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -78,6 +83,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 	return &service{
 		validator: validator,
+		db:        args.Db,
 		as:        args.AccountService,
 		pacioli:   args.PacioliClient,
 	}, nil
@@ -237,4 +243,91 @@ func (s *service) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAcco
 	}
 
 	return ret, nil
+}
+
+type PaginationArgs struct {
+	AccountID string `validate:"required,uuid4"`
+	After     string `validate:"omitempty,uuid4"` // forward pagination cursor
+	First     uint32 `validate:"lt=1000"`         // forward pagination limit. max 1000
+}
+
+func (s *service) GetPage(ctx context.Context, args *PaginationArgs) ([]AccountTransaction, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
+	}
+	limit := args.First
+	if limit == 0 {
+		limit = 10
+	}
+
+	sql := "SELECT * FROM account_transactions WHERE "
+	conds := make([]string, 0)
+	conds = append(conds, "account_id=:accountid")
+	if args.After != "" {
+		conds = append(
+			conds,
+			// equality needs to flip when ORDERING BY ASC
+			`created_at < (
+				SELECT created_at FROM account_transactions WHERE account_id=:accountid AND id=:id LIMIT 1
+			)`,
+		)
+	}
+
+	sql = sql + strings.Join(conds, " AND ")
+	stmt, err := s.db.PrepareNamedContext(ctx, sql+" ORDER BY created_at DESC LIMIT :limit;")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	transactions := []accountTransaction{}
+	err = stmt.SelectContext(
+		ctx, &transactions,
+		map[string]interface{}{
+			"accountid": args.AccountID,
+			"id":        args.After,
+			"limit":     limit,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	ret := make([]AccountTransaction, len(transactions))
+	for i, trx := range transactions {
+		ret[i] = AccountTransaction{
+			ID:          trx.ID,
+			Type:        trx.Type,
+			AccountID:   trx.AccountID,
+			Description: trx.Description,
+			State:       trx.State,
+			NetAmount:   trx.NetAmount,
+			TransferIDs: trx.TransferIDs,
+			CreatedAt:   trx.CreatedAt,
+			UpdatedAt:   trx.UpdatedAt,
+		}
+	}
+
+	return ret, nil
+}
+
+func (s *service) GetPageInfo(
+	ctx context.Context,
+	accountID string,
+	edges []AccountTransaction,
+) (hasNextPage bool, startCursor string, endCursor string, err error) {
+	if len(edges) == 0 {
+		return false, "", "", nil
+	}
+
+	last := edges[len(edges)-1]
+	nextPageEdges, err := s.GetPage(ctx, &PaginationArgs{
+		AccountID: accountID,
+		After:     last.ID,
+	})
+	if err != nil {
+		return false, "", "", err
+	}
+
+	return len(nextPageEdges) > 0, edges[0].ID, last.ID, nil
 }

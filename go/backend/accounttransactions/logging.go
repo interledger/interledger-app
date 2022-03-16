@@ -59,3 +59,57 @@ func (self *loggingService) GetByAccount(ctx context.Context, tx *sqlx.Tx, args 
 
 	return self.Service.GetByAccount(ctx, tx, args)
 }
+
+func (self *loggingService) GetPage(
+	ctx context.Context,
+	args *PaginationArgs,
+) (edges []AccountTransaction, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to get account transaction page.",
+				zap.String("accountID", args.AccountID),
+				zap.String("after", args.After),
+				zap.Uint32("first", args.First),
+				zap.String("msg", err.Error()),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Got account transaction page.",
+			zap.String("accountID", args.AccountID),
+			zap.String("after", args.After),
+			zap.Uint32("first", args.First),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.GetPage(ctx, args)
+}
+
+func (self *loggingService) GetPageInfo(
+	ctx context.Context,
+	accountID string,
+	edges []AccountTransaction,
+) (hasNextPage bool, startCursor string, endCursor string, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to get account transaction page info.",
+				zap.String("accountID", accountID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Got account transaction page info.",
+			zap.String("accountID", accountID),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.GetPageInfo(ctx, accountID, edges)
+}

@@ -676,27 +676,88 @@ func (r *queryResolver) Countries(ctx context.Context) ([]*generated.Country, er
 }
 
 func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagination) (*generated.TransactionsConnection, error) {
-	return &generated.TransactionsConnection{
-		Edges: []*generated.TransactionEdge{
-			{
-				Node: &generated.Transaction{
-					ID:          "aaaaa",
-					Type:        generated.TransactionTypeDeposit,
-					Description: "from ****44 bank account",
-					Amount:      "$10.00",
-				},
-				Cursor: "aaaaa",
-			},
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
+
+	transactions, err := r.AccountTransactions.GetPage(
+		ctx,
+		&account_transactions.PaginationArgs{
+			AccountID: acc.ID,
+			After:     input.After,
+			First:     uint32(input.First),
 		},
+	)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
+
+	edges := make([]*generated.TransactionEdge, len(transactions))
+	for i, trx := range transactions {
+		edges[i] = &generated.TransactionEdge{
+			Node: &generated.Transaction{
+				ID:          trx.ID,
+				Type:        generated.TransactionType(strings.ToUpper(trx.Type)),
+				Description: trx.Description,
+				Amount:      fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)),
+				Timestamp:   trx.CreatedAt,
+				Status:      trx.State,
+			},
+			Cursor: trx.ID,
+		}
+	}
+
+	return &generated.TransactionsConnection{
+		Edges: edges,
 	}, nil
 }
 
 func (r *transactionsConnectionResolver) PageInfo(ctx context.Context, obj *generated.TransactionsConnection) (*generated.PageInfo, error) {
-	startCursor := "aaaaa"
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
+
+	edges := obj.Edges
+	if edges == nil || len(edges) == 0 {
+		return &generated.PageInfo{
+			HasNextPage: false,
+			StartCursor: "",
+			EndCursor:   "",
+		}, nil
+	}
+
+	transactions := make([]account_transactions.AccountTransaction, len(edges))
+	for i, edge := range edges {
+		transactions[i] = account_transactions.AccountTransaction{
+			ID: edge.Node.ID,
+		}
+	}
+	hasNextPage, startCursor, endCursor, err := r.AccountTransactions.GetPageInfo(ctx, acc.ID, transactions)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
 	return &generated.PageInfo{
-		HasNextPage: false,
+		HasNextPage: hasNextPage,
 		StartCursor: startCursor,
-		EndCursor:   startCursor,
+		EndCursor:   endCursor,
 	}, nil
 }
 
