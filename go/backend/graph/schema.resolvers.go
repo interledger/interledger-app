@@ -722,12 +722,42 @@ func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagina
 }
 
 func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.Transaction, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	transaction, err := r.AccountTransactions.Get(ctx, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, account_transactions.ErrNotFound):
+			NotFoundError(ctx)
+			return nil, nil
+		default:
+			InternalServerError(ctx)
+			return nil, nil
+		}
+	}
+
+	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		InternalServerError(ctx)
+		return nil, nil
+	}
+
+	if acc.ID != transaction.AccountID {
+		NotFoundError(ctx)
+		return nil, nil
+	}
+
 	return &generated.Transaction{
-		ID:          "aaaaa",
-		Type:        "deposit",
-		Description: "aaaaa",
-		Status:      "aaaaa",
-		Amount:      "$ 1.00",
+		ID:          transaction.ID,
+		Type:        generated.TransactionType(strings.ToUpper(transaction.Type)),
+		Description: transaction.Description,
+		Status:      transaction.State,
+		Amount:      fmt.Sprintf("$ %.2f", float64(transaction.NetAmount)/float64(100)),
+		Timestamp:   transaction.CreatedAt,
 	}, nil
 }
 
@@ -745,7 +775,7 @@ func (r *transactionsConnectionResolver) PageInfo(ctx context.Context, obj *gene
 	}
 
 	edges := obj.Edges
-	if edges == nil || len(edges) == 0 {
+	if len(edges) == 0 {
 		return &generated.PageInfo{
 			HasNextPage: false,
 			StartCursor: "",

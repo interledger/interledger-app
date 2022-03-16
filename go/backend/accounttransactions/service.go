@@ -2,10 +2,12 @@ package account_transactions
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -55,10 +57,21 @@ type accountTransaction struct {
 }
 
 type Service interface {
-	Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error) // TODO: this should return an error array
+	// TODO: Create should return an error array
+	Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error)
 	GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error)
 	GetPage(ctx context.Context, args *PaginationArgs) ([]AccountTransaction, error)
-	GetPageInfo(ctx context.Context, accountID string, edges []AccountTransaction) (hasNextPage bool, startCursor string, endCursor string, err error)
+	GetPageInfo(
+		ctx context.Context,
+		accountID string,
+		edges []AccountTransaction,
+	) (
+		hasNextPage bool,
+		startCursor string,
+		endCursor string,
+		err error,
+	)
+	Get(ctx context.Context, id string) (*AccountTransaction, error)
 }
 
 type service struct {
@@ -106,17 +119,27 @@ type CreateLedgerTransferArgs struct {
 }
 
 type CreateTransactionArgs struct {
-	AccountID       string `validate:"required,uuid4"`
-	Description     string
-	Type            string                     `validate:"oneof=deposit withdrawal outgoingPayment"`
-	NetAmount       uint64                     `validate:"gt=0"`      // a uint64 as you can't have a negative deposit/withdrawal etc.
-	State           string                     `validate:"required"`  // TODO: decide on transaction states
-	LedgerTransfers []CreateLedgerTransferArgs `validate:"dive,gt=0"` // We assume an account transaction has to backed by at least one ledger transfer
+	AccountID   string `validate:"required,uuid4"`
+	Description string
+	Type        string `validate:"oneof=deposit withdrawal outgoingPayment"`
+
+	// a uint64 as you can't have a negative deposit/withdrawal etc.
+	NetAmount uint64 `validate:"gt=0"`
+
+	// TODO: decide on transaction states
+	State string `validate:"required"`
+
+	// We assume an account transaction has to backed by at least one ledger transfer
+	LedgerTransfers []CreateLedgerTransferArgs `validate:"dive,gt=0"`
 }
 
 // Calls out to Pacioli first and then inserts an account transaction into CRDB.
 // TODO: this should return an error array
-func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error) {
+func (s *service) Create(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	args *CreateTransactionArgs,
+) (*AccountTransaction, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
@@ -211,7 +234,11 @@ type GetByAccountArgs struct {
 	OrderBy   string `validate:"oneof=ASC DESC"`
 }
 
-func (s *service) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error) {
+func (s *service) GetByAccount(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	args *GetByAccountArgs,
+) ([]*AccountTransaction, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
@@ -219,7 +246,10 @@ func (s *service) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAcco
 
 	transactions := []accountTransaction{}
 	err = tx.SelectContext(ctx, &transactions,
-		fmt.Sprintf("SELECT * FROM account_transactions WHERE account_id=$1 ORDER BY created_at %s LIMIT $2;", args.OrderBy),
+		fmt.Sprintf(
+			"SELECT * FROM account_transactions WHERE account_id=$1 ORDER BY created_at %s LIMIT $2;",
+			args.OrderBy,
+		),
 		args.AccountID,
 		args.Limit,
 	)
@@ -330,4 +360,40 @@ func (s *service) GetPageInfo(
 	}
 
 	return len(nextPageEdges) > 0, edges[0].ID, last.ID, nil
+}
+
+func (s *service) Get(ctx context.Context, id string) (*AccountTransaction, error) {
+	trx := &accountTransaction{}
+	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		err := s.db.GetContext(
+			ctx,
+			trx,
+			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
+			id,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return ErrNotFound
+			}
+
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccountTransaction{
+		ID:          trx.ID,
+		Type:        trx.Type,
+		AccountID:   trx.AccountID,
+		Description: trx.Description,
+		State:       trx.State,
+		NetAmount:   trx.NetAmount,
+		TransferIDs: trx.TransferIDs,
+		CreatedAt:   trx.CreatedAt,
+		UpdatedAt:   trx.UpdatedAt,
+	}, nil
 }
