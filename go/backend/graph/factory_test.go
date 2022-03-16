@@ -125,6 +125,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
 		AccountService: as,
 		PacioliClient:  pClient,
+		Db:             db,
 	})
 	if err != nil {
 		return nil, err

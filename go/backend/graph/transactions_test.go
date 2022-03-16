@@ -2,6 +2,8 @@ package graph
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -74,18 +76,19 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+	totalTransactions := 10
 	i := 0
-	transactions := make([]*account_transactions.AccountTransaction, 10)
-	for i < 10 {
+	transactionsAsc := make([]*account_transactions.AccountTransaction, totalTransactions)
+	for i < totalTransactions {
 		if i%2 == 0 {
-			transactions[i], err = NewDeposit(c, &deposits.InitiateDepositArgs{
+			transactionsAsc[i], err = NewDeposit(c, &deposits.InitiateDepositArgs{
 				AccountID:       acc.ID,
 				IdentityID:      user.ID,
 				FundingSourceID: bankAccount.ID,
 				Amount:          1000,
 			})
 		} else {
-			transactions[i], err = c.Ps.InitiateOutgoingPayment(ctx, &payments.InitiateOutgoingPaymentArgs{
+			transactionsAsc[i], err = c.Ps.InitiateOutgoingPayment(ctx, &payments.InitiateOutgoingPaymentArgs{
 				IdentityID: user.ID,
 				AccountID:  acc.ID,
 				Amount:     100,
@@ -98,20 +101,126 @@ func TestTransactions(s *testing.T) {
 		i++
 	}
 
+	/*
+		Scenario: user has transactions and can paginate through them.
+		Given a user
+		And transactions on the users account
+		When the user requests a page of transactions
+		Then the page should be returned according to https://relay.dev/graphql/connections.html
+	*/
 	s.Run("user can get a page of account transactions", func(t *testing.T) {
-		response, err := getTransactions(c, user, &generated.Pagination{
-			First: 10,
+		type scenario struct {
+			Name                 string
+			After                string
+			First                int
+			ExpectedTransactions []*account_transactions.AccountTransaction
+			ExpectedHasNextPage  bool
+			ExpectedStartCursor  string
+			ExpectedEndCursor    string
+		}
+		scenarios := []scenario{
+			{
+				Name:                 "Can get first 5 transactions",
+				First:                5,
+				ExpectedHasNextPage:  true,
+				ExpectedTransactions: transactionsAsc[totalTransactions-5:],
+
+				// query will return in DESC order so expect the 5 latest transactions
+				ExpectedStartCursor: transactionsAsc[totalTransactions-1].ID,
+				ExpectedEndCursor:   transactionsAsc[totalTransactions-5].ID,
+			},
+			{
+				Name:                 "Can get all transactions",
+				First:                totalTransactions,
+				ExpectedTransactions: transactionsAsc,
+				ExpectedHasNextPage:  false,
+				ExpectedStartCursor:  transactionsAsc[totalTransactions-1].ID,
+				ExpectedEndCursor:    transactionsAsc[0].ID,
+			},
+			{
+				Name:                 "Can get transactions after a specified one",
+				After:                transactionsAsc[2].ID,
+				ExpectedHasNextPage:  false,
+				First:                5,
+				ExpectedTransactions: transactionsAsc[:2],
+				// query will return in DESC order so expect the first 2 that were created
+				ExpectedStartCursor: transactionsAsc[1].ID,
+				ExpectedEndCursor:   transactionsAsc[0].ID,
+			},
+		}
+
+		for _, scenario := range scenarios {
+			response, err := getTransactions(c, user, &generated.Pagination{
+				First: scenario.First,
+				After: scenario.After,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Len(t, response.Edges, len(scenario.ExpectedTransactions))
+			for i, edge := range response.Edges {
+				trx := scenario.ExpectedTransactions[len(scenario.ExpectedTransactions)-1-i] // query will return it in DESC order.
+				assert.Equal(t, trx.ID, edge.Node.ID, scenario.Name)
+				assert.Equal(t, trx.ID, edge.Cursor, scenario.Name)
+				assert.Equal(t, fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)), edge.Node.Amount, scenario.Name)
+				assert.Equal(t, trx.State, edge.Node.Status, scenario.Name)
+				assert.Equal(t, trx.Description, edge.Node.Description, scenario.Name)
+				assert.Equal(t, trx.CreatedAt, edge.Node.Timestamp, scenario.Name)
+				assert.Equal(t, generated.TransactionType(strings.ToUpper(trx.Type)), edge.Node.Type, scenario.Name)
+			}
+			assert.Equal(t, scenario.ExpectedStartCursor, response.PageInfo.StartCursor, scenario.Name)
+			assert.Equal(t, scenario.ExpectedEndCursor, response.PageInfo.EndCursor, scenario.Name)
+			assert.Equal(t, scenario.ExpectedHasNextPage, response.PageInfo.HasNextPage, scenario.Name)
+		}
+	})
+
+	s.Run("unauthenticated request is forbidden", func(t *testing.T) {
+		response, err := getTransactions(c, nil, &generated.Pagination{})
+		if err == nil {
+			t.Fatal("Unauthenticated requests must be forbidden")
+		}
+
+		assert.Nil(t, response)
+		assert.Error(t, err)
+	})
+
+	s.Run("user can only get their own transactions", func(t *testing.T) {
+		otherUser := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		_, err = NewVerifiedAccount(
+			c,
+			&onboarding.CreateAccountArgs{
+				IdentityID:   otherUser.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        user.Email,
+				Country:      "US",
+			},
+			&onboarding.VerifyAccountArgs{
+				DateOfBirth: faker.Date(),
+				Address:     []string{faker.Name()},
+				State:       faker.Name(),
+				City:        faker.Name(),
+				PostalCode:  faker.CCNumber(),
+				TaxIDNumber: faker.CCNumber(),
+			},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		response, err := getTransactions(c, otherUser, &generated.Pagination{
+			First: 5,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		assert.Len(t, response.Edges, 1)
-		assert.Equal(t, "aaaaa", response.Edges[0].Node.ID)
-		assert.Equal(t, "aaaaa", response.Edges[0].Cursor)
-		assert.False(t, response.PageInfo.HasNextPage)
-		assert.Equal(t, "aaaaa", response.PageInfo.StartCursor)
-		assert.Equal(t, "aaaaa", response.PageInfo.EndCursor)
+		assert.Len(t, response.Edges, 0)
 	})
 }
 

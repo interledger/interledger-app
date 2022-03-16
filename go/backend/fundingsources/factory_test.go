@@ -97,6 +97,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
 		AccountService: as,
 		PacioliClient:  pClient,
+		Db:             db,
 	})
 	if err != nil {
 		return nil, err
