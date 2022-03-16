@@ -721,6 +721,16 @@ func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagina
 	}, nil
 }
 
+func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.Transaction, error) {
+	return &generated.Transaction{
+		ID:          "aaaaa",
+		Type:        "deposit",
+		Description: "aaaaa",
+		Status:      "aaaaa",
+		Amount:      "$ 1.00",
+	}, nil
+}
+
 func (r *transactionsConnectionResolver) PageInfo(ctx context.Context, obj *generated.TransactionsConnection) (*generated.PageInfo, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
