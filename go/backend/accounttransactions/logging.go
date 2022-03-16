@@ -99,6 +99,7 @@ func (self *loggingService) GetPageInfo(
 			self.logger.Error(
 				"Failed to get account transaction page info.",
 				zap.String("accountID", accountID),
+				zap.String("msg", err.Error()),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 			)
 			return
@@ -112,4 +113,26 @@ func (self *loggingService) GetPageInfo(
 	}(time.Now())
 
 	return self.Service.GetPageInfo(ctx, accountID, edges)
+}
+
+func (self *loggingService) Get(ctx context.Context, id string) (trx *AccountTransaction, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to get account transaction.",
+				zap.String("id", id),
+				zap.String("msg", err.Error()),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Got account transaction.",
+			zap.String("id", id),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.Get(ctx, id)
 }

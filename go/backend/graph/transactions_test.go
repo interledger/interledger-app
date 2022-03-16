@@ -59,6 +59,32 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+	otherUser := &_user.User{
+		ID:    uuid.NewString(),
+		Email: faker.Email(),
+	}
+	_, err = NewVerifiedAccount(
+		c,
+		&onboarding.CreateAccountArgs{
+			IdentityID:   otherUser.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		},
+		&onboarding.VerifyAccountArgs{
+			DateOfBirth: faker.Date(),
+			Address:     []string{faker.Name()},
+			State:       faker.Name(),
+			City:        faker.Name(),
+			PostalCode:  faker.CCNumber(),
+			TaxIDNumber: faker.CCNumber(),
+		},
+	)
+	if err != nil {
+		s.Fatal(err)
+	}
 	bankAccount, err := NewBankAccount(
 		c,
 		user,
@@ -88,12 +114,15 @@ func TestTransactions(s *testing.T) {
 				Amount:          1000,
 			})
 		} else {
-			transactionsAsc[i], err = c.Ps.InitiateOutgoingPayment(ctx, &payments.InitiateOutgoingPaymentArgs{
-				IdentityID: user.ID,
-				AccountID:  acc.ID,
-				Amount:     100,
-				To:         "$test.fynbos.dev/alice",
-			})
+			transactionsAsc[i], err = c.Ps.InitiateOutgoingPayment(
+				ctx,
+				&payments.InitiateOutgoingPaymentArgs{
+					IdentityID: user.ID,
+					AccountID:  acc.ID,
+					Amount:     100,
+					To:         "$test.fynbos.dev/alice",
+				},
+			)
 		}
 		if err != nil {
 			s.Fatal(err)
@@ -160,14 +189,25 @@ func TestTransactions(s *testing.T) {
 
 			assert.Len(t, response.Edges, len(scenario.ExpectedTransactions))
 			for i, edge := range response.Edges {
-				trx := scenario.ExpectedTransactions[len(scenario.ExpectedTransactions)-1-i] // query will return it in DESC order.
+				// query will return it in DESC order.
+				trx := scenario.ExpectedTransactions[len(scenario.ExpectedTransactions)-1-i]
 				assert.Equal(t, trx.ID, edge.Node.ID, scenario.Name)
 				assert.Equal(t, trx.ID, edge.Cursor, scenario.Name)
-				assert.Equal(t, fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)), edge.Node.Amount, scenario.Name)
+				assert.Equal(
+					t,
+					fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)),
+					edge.Node.Amount,
+					scenario.Name,
+				)
 				assert.Equal(t, trx.State, edge.Node.Status, scenario.Name)
 				assert.Equal(t, trx.Description, edge.Node.Description, scenario.Name)
 				assert.Equal(t, trx.CreatedAt, edge.Node.Timestamp, scenario.Name)
-				assert.Equal(t, generated.TransactionType(strings.ToUpper(trx.Type)), edge.Node.Type, scenario.Name)
+				assert.Equal(
+					t,
+					generated.TransactionType(strings.ToUpper(trx.Type)),
+					edge.Node.Type,
+					scenario.Name,
+				)
 			}
 			assert.Equal(t, scenario.ExpectedStartCursor, response.PageInfo.StartCursor, scenario.Name)
 			assert.Equal(t, scenario.ExpectedEndCursor, response.PageInfo.EndCursor, scenario.Name)
@@ -175,7 +215,7 @@ func TestTransactions(s *testing.T) {
 		}
 	})
 
-	s.Run("unauthenticated request is forbidden", func(t *testing.T) {
+	s.Run("unauthenticated request to fetch a page of transactions is forbidden", func(t *testing.T) {
 		response, err := getTransactions(c, nil, &generated.Pagination{})
 		if err == nil {
 			t.Fatal("Unauthenticated requests must be forbidden")
@@ -186,33 +226,6 @@ func TestTransactions(s *testing.T) {
 	})
 
 	s.Run("user can only get their own transactions", func(t *testing.T) {
-		otherUser := &_user.User{
-			ID:    uuid.NewString(),
-			Email: faker.Email(),
-		}
-		_, err = NewVerifiedAccount(
-			c,
-			&onboarding.CreateAccountArgs{
-				IdentityID:   otherUser.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
-			},
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-
 		response, err := getTransactions(c, otherUser, &generated.Pagination{
 			First: 5,
 		})
@@ -223,17 +236,111 @@ func TestTransactions(s *testing.T) {
 		assert.Len(t, response.Edges, 0)
 	})
 
+	/*
+		Scenario: authenticated user can get a detailed view of a transaction
+		Given an authenticated user
+		And the user has transactions on their account
+		When the user gets the transaction by its id
+		Then the transaction is returned
+	*/
 	s.Run("user can get a detailed view of a transaction", func(t *testing.T) {
 		transaction, err := getTransaction(c, user, transactionsAsc[0].ID)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		assert.NotNil(t, transaction)
+		assert.Equal(t, transactionsAsc[0].ID, transaction.ID)
+		assert.Equal(t, transactionsAsc[0].Description, transaction.Description)
+		assert.Equal(
+			t,
+			generated.TransactionType(strings.ToUpper(transactionsAsc[0].Type)),
+			transaction.Type,
+		)
+		assert.Equal(t, transactionsAsc[0].CreatedAt, transaction.Timestamp)
+		assert.Equal(t, transactionsAsc[0].State, transaction.Status)
+		assert.Equal(
+			t,
+			fmt.Sprintf("$ %.2f", float64(transactionsAsc[0].NetAmount)/float64(100)),
+			transaction.Amount,
+		)
+	})
+
+	/*
+		Scenario: authenticated user can only get a detailed view of a transaction that is on
+		 their own account.
+		Given an authenticated user
+		AND a transaction exists for another user's account
+		When the authenticated user gets the transaction
+		Then the graphql not found error is returned
+	*/
+	s.Run("user can only get a detailed view of their own transaction", func(t *testing.T) {
+		transaction, err := getTransaction(c, otherUser, transactionsAsc[0].ID)
+		if err == nil {
+			t.Fatal("user must only be able to get their own transaction.")
+		}
+
+		assert.Nil(t, transaction)
+		assert.Equal(t, "graphql: Not found.", err.Error())
+	})
+
+	/*
+		Scenario: authenticated user can not look up a non-existent transaction
+		Given an authenticated user
+		AND the user has transactions on their account
+		When the user gets a transaction that does not exist
+		Then the graphql not found error is returned
+	*/
+	s.Run(
+		"not found is returned to user when they try to get a non-existent transaction",
+		func(t *testing.T) {
+			transaction, err := getTransaction(c, user, uuid.NewString())
+			if err == nil {
+				t.Fatal("not found error must be returned when user looks up non-existent transaction.")
+			}
+
+			assert.Nil(t, transaction)
+			assert.Equal(t, "graphql: Not found.", err.Error())
+		},
+	)
+
+	/*
+		Scenario: unauthenticated requests to get a detailed view of a transaction
+		Given a transaction
+		When an unauthenticated request is made to get it
+		Then the graphql not found error is returned
+	*/
+	s.Run("unauthenticated request to get a transaction is forbidden", func(t *testing.T) {
+		transaction, err := getTransaction(c, nil, transactionsAsc[0].ID)
+		if err == nil {
+			t.Fatal("unauthenticated request to get a transaction is forbidden.")
+		}
+
+		assert.Nil(t, transaction)
+		assert.Equal(t, "graphql: Forbidden.", err.Error())
+	})
+
+	/*
+		Scenario: malicious authenticated user tries to inject sql to look up a transaction
+		Given an authenticated user
+		When the user tries to make the WHERE clause true
+		Then the graphql internal error is returned
+	*/
+	s.Run("user can not run an sql injection attack to retrieve a transaction", func(t *testing.T) {
+		transaction, err := getTransaction(c, user, "1=1")
+		if err == nil {
+			t.Fatal("user must not be able to run an sql injection attack to get a transaction.")
+		}
+
+		assert.Nil(t, transaction)
+		assert.Equal(t, "graphql: Unable to process request.", err.Error())
 	})
 }
 
-func getTransactions(container *TestContainer, user *_user.User, input *generated.Pagination) (*generated.TransactionsConnection, error) {
+func getTransactions(
+	container *TestContainer,
+	user *_user.User,
+	input *generated.Pagination,
+) (*generated.TransactionsConnection, error) {
 	req := graphql.NewRequest(`
 			    query ($input: Pagination!) {
 			        transactions (input: $input) {
