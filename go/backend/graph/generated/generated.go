@@ -125,6 +125,7 @@ type ComplexityRoot struct {
 		Countries      func(childComplexity int) int
 		FundingSources func(childComplexity int) int
 		Identity       func(childComplexity int) int
+		Transaction    func(childComplexity int, id string) int
 		Transactions   func(childComplexity int, input Pagination) int
 	}
 
@@ -188,6 +189,7 @@ type QueryResolver interface {
 	Account(ctx context.Context) (*Account, error)
 	Countries(ctx context.Context) ([]*Country, error)
 	Transactions(ctx context.Context, input Pagination) (*TransactionsConnection, error)
+	Transaction(ctx context.Context, id string) (*Transaction, error)
 }
 type TransactionsConnectionResolver interface {
 	PageInfo(ctx context.Context, obj *TransactionsConnection) (*PageInfo, error)
@@ -579,6 +581,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Identity(childComplexity), true
 
+	case "Query.transaction":
+		if e.complexity.Query.Transaction == nil {
+			break
+		}
+
+		args, err := ec.field_Query_transaction_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Transaction(childComplexity, args["id"].(string)), true
+
 	case "Query.transactions":
 		if e.complexity.Query.Transactions == nil {
 			break
@@ -815,6 +829,7 @@ var sources = []*ast.Source{
   account: Account
   countries: [Country!]!
   transactions(input: Pagination!): TransactionsConnection!
+  transaction(id: String!): Transaction!
 }
 
 type Mutation {
@@ -1115,6 +1130,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_transaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -2922,6 +2952,48 @@ func (ec *executionContext) _Query_transactions(ctx context.Context, field graph
 	res := resTmp.(*TransactionsConnection)
 	fc.Result = res
 	return ec.marshalNTransactionsConnection2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransactionsConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_transaction(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_transaction_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Transaction(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*Transaction)
+	fc.Result = res
+	return ec.marshalNTransaction2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransaction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6041,6 +6113,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "transaction":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_transaction(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -7099,6 +7194,10 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNTransaction2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransaction(ctx context.Context, sel ast.SelectionSet, v Transaction) graphql.Marshaler {
+	return ec._Transaction(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNTransaction2ᚕᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*Transaction) graphql.Marshaler {

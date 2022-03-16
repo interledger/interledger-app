@@ -222,6 +222,15 @@ func TestTransactions(s *testing.T) {
 
 		assert.Len(t, response.Edges, 0)
 	})
+
+	s.Run("user can get a detailed view of a transaction", func(t *testing.T) {
+		transaction, err := getTransaction(c, user, transactionsAsc[0].ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.NotNil(t, transaction)
+	})
 }
 
 func getTransactions(container *TestContainer, user *_user.User, input *generated.Pagination) (*generated.TransactionsConnection, error) {
@@ -258,6 +267,37 @@ func getTransactions(container *TestContainer, user *_user.User, input *generate
 	}
 
 	response := data["transactions"]
+
+	return &response, nil
+}
+
+func getTransaction(container *TestContainer, user *_user.User, id string) (
+	*generated.Transaction,
+	error,
+) {
+	req := graphql.NewRequest(`
+			    query ($id: String!) {
+			        transaction (id: $id) {
+			            id
+	            		type
+	            		description
+	            		status
+	            		timestamp
+	            		amount
+			        }
+			    }
+			`)
+	req.Var("id", id)
+	err := _user.ActingAs(req, user)
+	if err != nil {
+		return nil, err
+	}
+	var data map[string]generated.Transaction
+	if err := container.Client.Run(container.Ctx, req, &data); err != nil {
+		return nil, err
+	}
+
+	response := data["transaction"]
 
 	return &response, nil
 }

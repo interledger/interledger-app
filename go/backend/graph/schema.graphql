@@ -4,6 +4,7 @@ type Query{
   account: Account
   countries: [Country!]!
   transactions(input: Pagination!): TransactionsConnection!
+  transaction(id: String!): Transaction!
 }
 
 type Mutation {
