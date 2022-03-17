@@ -1,6 +1,11 @@
 package kratos
 
 import (
+	"errors"
+	"io/ioutil"
+	"path/filepath"
+	"runtime"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/yaml"
@@ -9,6 +14,11 @@ import (
 )
 
 func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domain string) (*helm.Chart, error) {
+
+	emailTemplates, err := GetEmailTemplates()
+	if err != nil {
+		return nil, err
+	}
 
 	chart, err := helm.NewChart(ctx, "kratos", helm.ChartArgs{
 		Version: pulumi.String("0.21.5"),
@@ -40,6 +50,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 				"identitySchemas": pulumi.Map{
 					"identity.schema.json": pulumi.String("{\n          \"$id\": \"https://fynbos.dev/users/email-password/identity.schema.json\",\n          \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n          \"title\": \"User\",\n          \"type\": \"object\",\n          \"properties\": {\n            \"traits\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"email\": {\n                  \"type\": \"string\",\n                  \"format\": \"email\",\n                  \"title\": \"E-Mail\",\n                  \"ory.sh/kratos\": {\n                    \"credentials\": {\n                      \"password\": {\n                        \"identifier\": true\n                      }\n                    },\n                    \"verification\": {\n                      \"via\": \"email\"\n                    },\n                    \"recovery\": {\n                      \"via\": \"email\"\n                    }\n                  }\n                }\n              },\n              \"required\": [\n                \"email\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        }"),
 				},
+				"emailTemplates": emailTemplates,
 				"config": pulumi.Map{
 					"dsn": pulumi.String("cockroach://kratos@cockroachdb-public:26257/kratos?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslcert=/cockroach-certs/client.kratos.crt&sslkey=/cockroach-certs/client.kratos.key&sslrootcert=/cockroach-certs/ca.crt"),
 					"serve": pulumi.Map{
@@ -140,6 +151,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 							"connection_uri": pulumi.String("smtp://mailhog:1025/?disable_starttls=true"),
 							"from_address":   pulumi.String("no-reply@fynbos.test"),
 						},
+						"template_override_path": pulumi.String("/conf/courier-templates"),
 					},
 				},
 			},
@@ -220,4 +232,98 @@ func DeployKratosIngress(ctx *pulumi.Context, opts ...pulumi.ResourceOption) err
 	}
 
 	return nil
+}
+
+func GetEmailTemplates() (pulumi.Map, error) {
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, errors.New("could not get directory path for kratos module")
+	}
+
+	recoveryValidSubject, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/recovery/valid/email.subject.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	recoveryValidBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/recovery/valid/email.body.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	recoveryValidPlainBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/recovery/valid/email.body.plaintext.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	recoveryInvalidSubject, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/recovery/invalid/email.subject.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	recoveryInvalidBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/recovery/invalid/email.body.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	recoveryInvalidPlainBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/recovery/invalid/email.body.plaintext.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	verificationValidSubject, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/verification/valid/email.subject.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	verificationValidBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/verification/valid/email.body.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	verificationValidPlainBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/verification/valid/email.body.plaintext.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	verificationInvalidSubject, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/verification/invalid/email.subject.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	verificationInvalidBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/verification/invalid/email.body.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	verificationInvalidPlainBody, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "templates/verification/invalid/email.body.plaintext.gotmpl"))
+	if err != nil {
+		return nil, err
+	}
+
+	return pulumi.Map{
+		"recovery": pulumi.Map{
+			"valid": pulumi.Map{
+				"subject":   pulumi.String(recoveryValidSubject),
+				"body":      pulumi.String(recoveryValidBody),
+				"plainBody": pulumi.String(recoveryValidPlainBody),
+			},
+			"invalid": pulumi.Map{
+				"subject":   pulumi.String(recoveryInvalidSubject),
+				"body":      pulumi.String(recoveryInvalidBody),
+				"plainBody": pulumi.String(recoveryInvalidPlainBody),
+			},
+		},
+		"verification": pulumi.Map{
+			"valid": pulumi.Map{
+				"subject":   pulumi.String(verificationValidSubject),
+				"body":      pulumi.String(verificationValidBody),
+				"plainBody": pulumi.String(verificationValidPlainBody),
+			},
+			"invalid": pulumi.Map{
+				"subject":   pulumi.String(verificationInvalidSubject),
+				"body":      pulumi.String(verificationInvalidBody),
+				"plainBody": pulumi.String(verificationInvalidPlainBody),
+			},
+		},
+	}, nil
 }
