@@ -15,12 +15,12 @@ export const Button: FC<ButtonProps> = (
   return (
     <button
       {...buttonProps}
-      className={`flex h-10 items-center rounded-full font-display text-sm font-medium text-medium focus:outline-none ${
+      className={`flex h-10 items-center rounded-full font-display text-sm font-medium text-medium ${
         icon ? 'pl-4 pr-6' : 'px-6'
       } ${
         buttonProps.disabled
           ? 'cursor-not-allowed bg-disabled text-disabled'
-          : `cursor-pointer focus:ring-2 focus:ring-focus ${activeClassNames}`
+          : `cursor-pointer focus-visible:outline-2 focus-visible:outline-focus ${activeClassNames}`
       }`}
     >
       {icon && <div className='mr-2'>{icon}</div>}
@@ -41,12 +41,12 @@ export const FAB: FC<FABProps> = (
   return (
     <button
       {...buttonProps}
-      className={`fixed right-4 flex h-14 w-min items-center space-x-3 rounded-2xl p-4 font-display text-sm font-medium text-medium focus:outline-none lg:hidden ${
+      className={`fixed right-4 flex h-14 w-min items-center space-x-3 rounded-2xl p-4 font-display text-sm font-medium text-medium lg:hidden ${
         hasNav ? 'bottom-24 sm:bottom-4' : 'bottom-4'
       } ${children ? 'pr-5' : ''} ${
         buttonProps.disabled
           ? 'cursor-not-allowed bg-disabled text-disabled'
-          : `cursor-pointer bg-container-primary shadow-lg hover:bg-container-primary-hover focus:ring-2 focus:ring-focus active:bg-container-primary-active`
+          : `cursor-pointer bg-container-primary shadow-lg hover:bg-container-primary-hover focus-visible:outline-2 focus-visible:outline-focus active:bg-container-primary-active`
       }`}
     >
       <div>{icon}</div>

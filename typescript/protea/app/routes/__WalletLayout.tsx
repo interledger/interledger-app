@@ -7,7 +7,8 @@ import {
   TransactIcon,
   WalletIcon,
   Logo,
-  LogoIcon
+  LogoIcon,
+  Router
 } from '~/components'
 
 // Allow us to show/hide the NavRail and NavDrawer on certain pages.
@@ -55,9 +56,11 @@ export default function WalletLayout() {
       {showNav(location.pathname) && (
         <NavDrawer>
           <NavList>
-            <Link to={route('/')} aria-label='Fynbos logo'>
-              <Logo className='mb-6 ml-4 h-8' />
-            </Link>
+            <div className='mb-6 ml-4 h-8'>
+              <Router to={route('/')} aria-label='Fynbos logo'>
+                <Logo className='h-8' />
+              </Router>
+            </div>
             <NavListItem icon={<WalletIcon />} to={route('/home')}>
               Home
             </NavListItem>
@@ -135,7 +138,11 @@ type NavListItemProps = {
 
 const NavListItem: FC<NavListItemProps> = ({ children, icon, to }) => {
   return (
-    <NavLink prefetch='render' className='w-full' to={to}>
+    <NavLink
+      prefetch='render'
+      className='w-full rounded-full focus-visible:outline-2 focus-visible:outline-focus'
+      to={to}
+    >
       {({ isActive }) => (
         <li
           className={`flex w-full flex-col items-center justify-between space-y-1 rounded-full sm:w-14 sm:space-y-2 lg:h-12 lg:w-56 lg:flex-row lg:justify-start lg:space-y-0 lg:space-x-3 lg:px-4 lg:hover:bg-container-hover ${

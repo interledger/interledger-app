@@ -59,6 +59,13 @@ module.exports = {
         active: withOpacity('--border-active'),
         error: withOpacity('--border-error')
       },
+      outlineColor: {
+        base: withOpacity('--border-base'),
+        focus: withOpacity('--border-focus'),
+        hover: withOpacity('--border-hover'),
+        active: withOpacity('--border-active'),
+        error: withOpacity('--border-error')
+      },
       divideColor: {
         base: withOpacity('--border-base'),
         focus: withOpacity('--border-focus'),

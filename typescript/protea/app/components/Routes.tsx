@@ -27,7 +27,7 @@ export const Router: FC<RouterProps> = ({
   return (
     <Link
       to={to}
-      className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${className}`}
+      className={`focus-visible:outline-2 focus-visible:outline-focus ${className}`}
       {...rest}
     >
       {children}

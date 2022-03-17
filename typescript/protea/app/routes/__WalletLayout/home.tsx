@@ -116,13 +116,13 @@ export default function Home() {
           </span>
         </div>
         <div className='col-span-full flex justify-center space-x-3 py-4 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <Router to={route('/deposit')}>
-            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover focus:outline-none  focus:ring-2 focus:ring-focus active:bg-container-primary-active'>
+          <Router className='rounded-full' to={route('/deposit')}>
+            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
               Deposit
             </div>
           </Router>
-          <Router to={route('/withdraw')}>
-            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover focus:outline-none  focus:ring-2 focus:ring-focus active:bg-container-primary-active'>
+          <Router className='rounded-full' to={route('/withdraw')}>
+            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
               Withdraw
             </div>
           </Router>
@@ -187,7 +187,7 @@ const activityIcon = (type: TransactionType, status: string) => {
 
 export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
   return (
-    <Link
+    <Router
       to={route('/activity/transaction/:id', {
         id: activity.id
       })}
@@ -205,6 +205,6 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
         </div>
       </div>
       <span className='font-sans text-lg font-normal'>{activity.amount}</span>
-    </Link>
+    </Router>
   )
 }
