@@ -68,6 +68,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+		_, err = ecr.NewPrivateRepository(ctx, "temporalite", accountID)
+		if err != nil {
+			return err
+		}
 
 		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
 		ctx.Export("eksImage", eksImage.ImageName)

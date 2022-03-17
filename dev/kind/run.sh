@@ -14,3 +14,8 @@ docker push localhost:5005/protea:latest
 # Build pacioli base docker and upload to cluster
 docker build "$(dirname "$0")/../../go/" -f "$(dirname "$0")/../../go/pacioli/Dockerfile" -t localhost:5005/pacioli:latest
 docker push localhost:5005/pacioli:latest
+
+# Pull and push temporal
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite localhost:5005/temporalite
+docker push localhost:5005/temporalite
