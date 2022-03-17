@@ -157,10 +157,10 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 			},
 			"ingress": pulumi.Map{
 				"admin": pulumi.Map{
-					"enabled": pulumi.Bool(true),
+					"enabled": pulumi.Bool(false),
 				},
 				"public": pulumi.Map{
-					"enabled": pulumi.Bool(true),
+					"enabled": pulumi.Bool(false),
 				},
 			},
 			"deployment": pulumi.Map{
