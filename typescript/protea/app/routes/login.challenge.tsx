@@ -1,14 +1,15 @@
 import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
 import type { ActionFunction, LoaderFunction } from 'remix'
-import { Button, Logo, Router, TextField } from '~/components'
+import { Button, Logo, MailIcon, Router, TextField } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  requireNoUserSession
+  requireUserSession
 } from '~/lib/kratos.server'
+import { commitSession, getSession } from '~/sessions'
 
 type ActionData = {
   formError?: string
@@ -26,14 +27,13 @@ type ActionData = {
 const badRequest = (data: ActionData) => json(data, { status: 400 })
 
 export const action: ActionFunction = async ({ request }) => {
+  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('return_to')
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
   const password = form.get('password')
-
   if (
     typeof csrfToken !== 'string' ||
     typeof email !== 'string' ||
@@ -71,7 +71,8 @@ export const action: ActionFunction = async ({ request }) => {
     }
     return badRequest({ fieldErrors: fieldErrors, fields })
   }
-  if (returnTo) {
+  if (userSettings.has('challenge-flow')) {
+    const { returnTo } = userSettings.get('challenge-flow')
     return redirect(returnTo, {
       headers: res.headers
     })
@@ -82,10 +83,20 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-  await requireNoUserSession(request)
+  const session = await requireUserSession(request)
+  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  const challengeFlow = url.searchParams.get('challenge-flow')
   const cookie = String(request.headers.get('cookie'))
+
+  if (challengeFlow == 'settings-password') {
+    userSettings.set('challenge-flow', {
+      type: challengeFlow,
+      returnTo: '/settings/password',
+      email: session.identity.traits.email
+    })
+  }
 
   let flow
   if (flowId) {
@@ -100,25 +111,31 @@ export const loader: LoaderFunction = async ({ request }) => {
       }
     )
     flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'login')
+    if (flowRes.status >= 400) handleFlowError(flow, 'login/challenge')
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/login/browser?refresh=true`,
       { headers: { Accept: 'application/json' } }
     )
+    if (flowRes.status >= 400) handleFlowError(flow, 'login/challenge')
     flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'login')
-    return redirect(`/login?flow=${flow.id}`, {
+    flowRes.headers.append('Set-Cookie', await commitSession(userSettings))
+    return redirect(`/login/challenge?flow=${flow.id}`, {
       headers: flowRes.headers
     })
   }
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return json({
+    flow,
+    csrfToken: getCsrfTokenFromFlow(flow),
+    email: session.identity.traits.email
+  })
 }
 
-export default function LoginPage() {
+export default function LoginChallengePage() {
   const actionData = useActionData<ActionData>()
-  const { flow, csrfToken } = useLoaderData()
+  const { flow, csrfToken, email } = useLoaderData()
+
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
       <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -128,36 +145,24 @@ export default function LoginPage() {
       </div>
       <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
-          Sign in to your account
+          Confirm it's you
         </h1>
       </div>
       <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>
-          Or{' '}
-          <Router to={route('/signup')}>
-            <span className='text-primary'>create a new account.</span>
-          </Router>
-        </p>
+        <p className='text-medium'>To continue, first verify it's you.</p>
       </div>
       {/* Form */}
       <Form
-        action={`/login?flow=${flow.id}`}
+        action={`/login/challenge?flow=${flow.id}`}
         method='post'
         className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
-        <TextField
-          id='email'
-          label='Email'
-          name='email'
-          defaultValue={actionData?.fields?.email}
-          type='email'
-          aria-invalid={Boolean(actionData?.fieldErrors?.email) || undefined}
-          aria-describedby={
-            actionData?.fieldErrors?.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.fieldErrors?.email}
-        />
+        <div className='flex min-w-full items-center space-x-3 rounded-xl bg-container p-4'>
+          <div className='text-medium'>
+            <MailIcon />
+          </div>
+          <span className='text-small font-normal text-medium'>{email}</span>
+        </div>
         <TextField
           id='password'
           label='Password'
@@ -172,17 +177,14 @@ export default function LoginPage() {
           errorMessage={actionData?.fieldErrors?.password}
         />
 
+        <input defaultValue={email} name='email' type='hidden' />
         <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
 
-        <div className='flex min-w-full items-center justify-between pt-4'>
-          {/* TODO add ?email= 
-          - Could try get the email from the form
-          - Could use <button name='recovery' type='submit'>?
-          */}
-          <Router to={route('/recovery')} aria-label='Forgot password?'>
+        <div className='flex min-w-full items-center justify-end pt-4'>
+          {/* <Router to={route('/recovery')} aria-label='Forgot password?'>
             <span className='text-primary'>Forgot password?</span>
-          </Router>
-          <Button type='submit'>Login</Button>
+          </Router> */}
+          <Button type='submit'>Continue</Button>
         </div>
       </Form>
     </main>

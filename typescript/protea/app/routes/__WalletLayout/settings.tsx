@@ -1,25 +1,48 @@
-import React from 'react'
-import { Link, LoaderFunction, redirect, useLoaderData } from 'remix'
+import React, { useState } from 'react'
+import { Link, LoaderFunction, redirect, useLoaderData, json } from 'remix'
 import { route } from 'routes-gen'
-import { BackIcon, NextIcon } from '~/components'
+import { BackIcon, NextIcon, Router, Snackbar } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
+import { getSession, commitSession } from '~/sessions'
 
 export const loader: LoaderFunction = async ({ request }) => {
+  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   if (flowId)
-    return redirect(`${route('/settings/password')}?flow=${flowId}`, {
+    return redirect(`${route('/recovery/password')}?flow=${flowId}`, {
       headers: request.headers
     })
-
   const session = await requireUserSession(request)
-  return session
+  const snackbar = {
+    // NOTE: userSettings.has must be called before userSettings.get
+    show: userSettings.has('snackbar'),
+    ...userSettings.get('snackbar')
+  }
+
+  return json(
+    {
+      session,
+      snackbar: snackbar
+    },
+    {
+      headers: { 'Set-Cookie': await commitSession(userSettings) }
+    }
+  )
 }
 
 export default function SettingsPage() {
-  const session = useLoaderData()
+  const { session, snackbar } = useLoaderData()
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
   return (
     <div className='w-full'>
+      <Snackbar
+        message={snackbar.message}
+        action={snackbar.action}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        onClose={() => setSnackbar(false)}
+      />
       {/* Header */}
       <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-white p-4 text-medium sm:min-w-full'>
         <Link className='sm:hidden' to={route('/home')}>
@@ -58,7 +81,10 @@ export default function SettingsPage() {
         <span className='col-span-full ml-4 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Security
         </span>
-        <div className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Router
+          to='/login/challenge?challenge-flow=settings-password'
+          className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        >
           <div className='flex flex-col'>
             <span className='font-display text-xs font-medium'>Password</span>
             <span className='font-sans text-base font-normal'>
@@ -66,7 +92,7 @@ export default function SettingsPage() {
             </span>
           </div>
           <NextIcon />
-        </div>
+        </Router>
       </div>
     </div>
   )
