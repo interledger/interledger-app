@@ -7,10 +7,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function ConnectPage() {
   return (
-    // <WalletLayout route={Routes.connect} header='Connect' settings>
-    {
-      /* TODO insert content */
-    }
-    // </WalletLayout>
+    <div className='flex h-screen w-full items-center justify-center font-display text-5xl font-medium text-medium'>
+      Coming soon <span className='text-primary'>.</span>
+    </div>
   )
 }
