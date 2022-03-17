@@ -156,12 +156,36 @@ export type OutgoingPaymentMutationResponse = MutationResponse & {
   transaction?: Maybe<Transaction>;
 };
 
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  endCursor: Scalars['String'];
+  hasNextPage: Scalars['Boolean'];
+  startCursor: Scalars['String'];
+};
+
+export type Pagination = {
+  after: Scalars['String'];
+  first: Scalars['Int'];
+};
+
 export type Query = {
   __typename?: 'Query';
   account?: Maybe<Account>;
   countries: Array<Country>;
   fundingSources: Array<Maybe<FundingSource>>;
   identity?: Maybe<Identity>;
+  transaction: Transaction;
+  transactions: TransactionsConnection;
+};
+
+
+export type QueryTransactionArgs = {
+  id: Scalars['String'];
+};
+
+
+export type QueryTransactionsArgs = {
+  input: Pagination;
 };
 
 export type Transaction = {
@@ -174,11 +198,23 @@ export type Transaction = {
   type: TransactionType;
 };
 
+export type TransactionEdge = {
+  __typename?: 'TransactionEdge';
+  cursor: Scalars['String'];
+  node: Transaction;
+};
+
 export enum TransactionType {
   Deposit = 'DEPOSIT',
   Sent = 'SENT',
   Withdrawal = 'WITHDRAWAL'
 }
+
+export type TransactionsConnection = {
+  __typename?: 'TransactionsConnection';
+  edges: Array<TransactionEdge>;
+  pageInfo: PageInfo;
+};
 
 export type VerifyAccountInput = {
   Address: Array<Scalars['String']>;
