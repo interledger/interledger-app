@@ -21,10 +21,10 @@ export const apolloClient = new ApolloClient({
   link: from([errorLink, Link]),
   defaultOptions: {
     watchQuery: {
-      fetchPolicy: 'network-only',
+      fetchPolicy: 'network-only'
     },
     query: {
-      fetchPolicy: 'network-only',
-    },
+      fetchPolicy: 'network-only'
+    }
   }
 })
