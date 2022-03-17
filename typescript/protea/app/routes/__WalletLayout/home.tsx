@@ -64,7 +64,7 @@ export const loader: LoaderFunction = async ({ request }) => {
         id: trx.id,
         amount: trx.amount,
         transactionType: trx.type,
-        title: trx.type,
+        title: activityTitle(trx.type),
         description: trx.description,
         status: trx.status
       }
@@ -182,6 +182,21 @@ const activityIcon = (type: TransactionType, status: string) => {
       return <BankIcon />
     default:
       return null
+  }
+}
+
+const activityTitle = (type: TransactionType): string => {
+  switch (type) {
+    // case TransactionType.Received:
+    //   return <ReceivedIcon />
+    case TransactionType.Sent:
+      return 'Sent'
+    case TransactionType.Deposit:
+      return 'Deposit'
+    case TransactionType.Withdrawal:
+      return 'Withdrawal'
+    default:
+      return ''
   }
 }
 
