@@ -11,6 +11,7 @@ import (
 	pacioli "gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/protea"
 	"gitlab.com/fynbos/infra/services/retool"
+	"gitlab.com/fynbos/infra/services/temporal"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
 )
 
@@ -81,6 +82,11 @@ func main() {
 		err = kratos.DeployKratosIngress(ctx, pulumi.DependsOnInputs(ingressChart.Ready))
 
 		err = mailhog.DeployMailHog(ctx, "mail.fynbos.test")
+		if err != nil {
+			return err
+		}
+
+		err = temporal.DeployTemporalDev(ctx, "localhost:5005", "latest")
 		if err != nil {
 			return err
 		}
