@@ -57,7 +57,7 @@ export const action: ActionFunction = async ({ request }) => {
   )
 
   const data = await res.json()
-  if (res.status > 400) handleFlowError(data, 'settings/password')
+  if (res.status > 400) handleFlowError(data, 'recovery/password')
   if (res.status == 400) {
     let fieldErrors: ActionData['fieldErrors'] = {}
     for (let node of data.ui.nodes) {
@@ -70,7 +70,6 @@ export const action: ActionFunction = async ({ request }) => {
     return badRequest({ fieldErrors: fieldErrors, fields })
   }
 
-  userSettings.unset('challenge-flow')
   userSettings.flash('snackbar', {
     message: 'New password successfully saved.',
     action: 'done'
@@ -87,7 +86,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
-
+  debugger
   let flow
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
@@ -101,7 +100,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       }
     )
     flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
@@ -109,13 +108,13 @@ export const loader: LoaderFunction = async ({ request }) => {
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
-    return redirect(`/settings/password?flow=${flow.id}`)
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
+    return redirect(`/recovery/password?flow=${flow.id}`)
   }
   return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
-export default function SettingsPasswordPage() {
+export default function RecoveryPasswordPage() {
   const actionData = useActionData<ActionData>()
   const { flow, csrfToken } = useLoaderData()
 
@@ -132,11 +131,15 @@ export default function SettingsPasswordPage() {
         </h1>
       </div>
       <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>Set a new password to continue.</p>
+        <p className='text-medium'>
+          You've successfully recovered your account.
+          <br />
+          Set a new password to continue.
+        </p>
       </div>
 
       <Form
-        action={`/settings/password?flow=${flow.id}`}
+        action={`/recovery/password?flow=${flow.id}`}
         method='post'
         className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
@@ -155,6 +158,7 @@ export default function SettingsPasswordPage() {
         />
 
         <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
+
         <div className='pt-4'>
           <Button type='submit'>Save password</Button>
         </div>

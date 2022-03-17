@@ -144,6 +144,12 @@ export const ListItemActiveIcon = () => (
   </IconBase>
 )
 
+export const MailIcon = () => (
+  <IconBase>
+    <path d='M22 4H2.01L2 20H22V4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z' />
+  </IconBase>
+)
+
 export const NextIcon = () => (
   <IconBase>
     <path d='M10.0201 6L8.61011 7.41L13.1901 12L8.61011 16.59L10.0201 18L16.0201 12L10.0201 6Z' />

@@ -1,6 +1,8 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/blog/connecting-the-internet-economy": {};
+    "/recovery/password": {};
+    "/login/challenge": {};
     "/": {};
     "/activity/transaction/:id": { id: string };
     "/settings/password": {};
@@ -26,6 +28,8 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/blog/connecting-the-internet-economy"]
+      | ["/recovery/password"]
+      | ["/login/challenge"]
       | ["/"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/password"]

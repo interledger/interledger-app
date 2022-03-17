@@ -90,7 +90,9 @@ export function handleFlowError(
     | 'signup'
     | 'settings'
     | 'settings/password'
+    | 'login/challenge'
     | 'recovery'
+    | 'recovery/password'
     | 'verify'
     | 'logout'
 ): void {
@@ -106,7 +108,8 @@ export function handleFlowError(
       throw redirect(route('/'))
     case 'session_refresh_required':
       // We need to re-authenticate to perform this action
-      throw redirect(`/login?refresh=true&return_to=/${flowType}`)
+      // NOTE: this is a last resort in case a user manualy bypasses the standard flow.
+      throw redirect(`/login/challenge`)
     case 'self_service_flow_return_to_forbidden':
       // The return_to address is not allowed.
       throw redirect('/' + flowType)
