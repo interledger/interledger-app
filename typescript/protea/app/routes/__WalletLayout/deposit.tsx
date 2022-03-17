@@ -70,7 +70,7 @@ export const action: ActionFunction = async ({ request }) => {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-  requireUserSession(request)
+  await requireUserSession(request)
 
   const cookie = request.headers.get('cookie')
   const fundingSources = await apolloClient
