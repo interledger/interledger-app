@@ -55,12 +55,6 @@ func TestAccountTransactions(s *testing.T) {
 				ExpectedMessage: "Key: 'CreateTransactionArgs.NetAmount' Error:Field validation for 'NetAmount' failed on the 'gt' tag",
 				ExpectedError:   ErrInvalidArgument,
 			},
-			{
-				Name:            "State is required.",
-				Args:            generateCreateTransactionArgs(withState("")),
-				ExpectedMessage: "Key: 'CreateTransactionArgs.State' Error:Field validation for 'State' failed on the 'required' tag",
-				ExpectedError:   ErrInvalidArgument,
-			},
 		}
 
 		for _, scenario := range scenarios {
@@ -137,7 +131,7 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, args.AccountID, trx.AccountID)
 		assert.Equal(t, int64(args.NetAmount), trx.NetAmount)
 		assert.Equal(t, args.Description, trx.Description)
-		assert.Equal(t, args.State, trx.State)
+		assert.Equal(t, Posted, trx.State)
 		assert.Equal(t, args.Type, trx.Type)
 
 		// check that ledger transfers were created
@@ -175,7 +169,7 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, args.AccountID, fetchedTransaction.AccountID)
 		assert.Equal(t, int64(args.NetAmount), fetchedTransaction.NetAmount)
 		assert.Equal(t, args.Description, fetchedTransaction.Description)
-		assert.Equal(t, args.State, fetchedTransaction.State)
+		assert.Equal(t, Posted, fetchedTransaction.State)
 		assert.Equal(t, args.Type, fetchedTransaction.Type)
 		assert.Equal(t, trx.TransferIDs, fetchedTransaction.TransferIDs)
 	})
@@ -187,7 +181,6 @@ func generateCreateTransactionArgs(opts ...func(*CreateTransactionArgs)) *Create
 		Description:     faker.Sentence(),
 		Type:            "deposit",
 		NetAmount:       100,
-		State:           "pending",
 		LedgerTransfers: []CreateLedgerTransferArgs{},
 	}
 	for _, opt := range opts {
@@ -200,12 +193,6 @@ func generateCreateTransactionArgs(opts ...func(*CreateTransactionArgs)) *Create
 func withAccountID(id string) func(*CreateTransactionArgs) {
 	return func(args *CreateTransactionArgs) {
 		args.AccountID = id
-	}
-}
-
-func withState(state string) func(*CreateTransactionArgs) {
-	return func(args *CreateTransactionArgs) {
-		args.State = state
 	}
 }
 
