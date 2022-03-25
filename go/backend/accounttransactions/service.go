@@ -35,7 +35,7 @@ type AccountTransaction struct {
 	Type        string
 	AccountID   string `db:"account_id"`
 	Description string
-	State       string
+	State       State
 
 	// This is the net position change on the account from the user's point of view.
 	NetAmount   int64    `db:"net_amount"`
@@ -88,14 +88,14 @@ type ServiceArgs struct {
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
-	validator := validator.New()
-	err := validator.Struct(args)
+	v := validator.New()
+	err := v.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	return &service{
-		validator: validator,
+		validator: v,
 		db:        args.Db,
 		as:        args.AccountService,
 		pacioli:   args.PacioliClient,
@@ -125,9 +125,6 @@ type CreateTransactionArgs struct {
 
 	// a uint64 as you can't have a negative deposit/withdrawal etc.
 	NetAmount uint64 `validate:"gt=0"`
-
-	// TODO: decide on transaction states
-	State string `validate:"required"`
 
 	// We assume an account transaction has to backed by at least one ledger transfer
 	LedgerTransfers []CreateLedgerTransferArgs `validate:"dive,gt=0"`
@@ -208,11 +205,17 @@ func (s *service) Create(
 		args.Type,
 		args.Description,
 		args.NetAmount,
-		args.State,
+		Posted.String(),
 		pq.StringArray(transferIDs),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+	}
+
+	var state State
+	err = state.Unmarshall(transaction.State)
+	if err != nil {
+		return nil, err
 	}
 
 	return &AccountTransaction{
@@ -220,7 +223,7 @@ func (s *service) Create(
 		Type:        transaction.Type,
 		AccountID:   transaction.AccountID,
 		Description: transaction.Description,
-		State:       transaction.State,
+		State:       state,
 		NetAmount:   transaction.NetAmount,
 		TransferIDs: []string(transaction.TransferIDs),
 		CreatedAt:   transaction.CreatedAt,
@@ -244,7 +247,7 @@ func (s *service) GetByAccount(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
-	transactions := []accountTransaction{}
+	var transactions []accountTransaction
 	err = tx.SelectContext(ctx, &transactions,
 		fmt.Sprintf(
 			"SELECT * FROM account_transactions WHERE account_id=$1 ORDER BY created_at %s LIMIT $2;",
@@ -259,12 +262,18 @@ func (s *service) GetByAccount(
 
 	ret := make([]*AccountTransaction, len(transactions))
 	for i, trx := range transactions {
+		var state State
+		err = state.Unmarshall(trx.State)
+		if err != nil {
+			return nil, err
+		}
+
 		ret[i] = &AccountTransaction{
 			ID:          trx.ID,
 			Type:        trx.Type,
 			AccountID:   trx.AccountID,
 			Description: trx.Description,
-			State:       trx.State,
+			State:       state,
 			NetAmount:   trx.NetAmount,
 			TransferIDs: trx.TransferIDs,
 			CreatedAt:   trx.CreatedAt,
@@ -325,12 +334,18 @@ func (s *service) GetPage(ctx context.Context, args *PaginationArgs) ([]AccountT
 
 	ret := make([]AccountTransaction, len(transactions))
 	for i, trx := range transactions {
+		var state State
+		err = state.Unmarshall(trx.State)
+		if err != nil {
+			return nil, err
+		}
+
 		ret[i] = AccountTransaction{
 			ID:          trx.ID,
 			Type:        trx.Type,
 			AccountID:   trx.AccountID,
 			Description: trx.Description,
-			State:       trx.State,
+			State:       state,
 			NetAmount:   trx.NetAmount,
 			TransferIDs: trx.TransferIDs,
 			CreatedAt:   trx.CreatedAt,
@@ -385,15 +400,50 @@ func (s *service) Get(ctx context.Context, id string) (*AccountTransaction, erro
 		return nil, err
 	}
 
+	var state State
+	err = state.Unmarshall(trx.State)
+	if err != nil {
+		return nil, err
+	}
+
 	return &AccountTransaction{
 		ID:          trx.ID,
 		Type:        trx.Type,
 		AccountID:   trx.AccountID,
 		Description: trx.Description,
-		State:       trx.State,
+		State:       state,
 		NetAmount:   trx.NetAmount,
 		TransferIDs: trx.TransferIDs,
 		CreatedAt:   trx.CreatedAt,
 		UpdatedAt:   trx.UpdatedAt,
 	}, nil
+}
+
+type State string
+
+const (
+	Pending = State("PENDING")
+	Posted  = State("POSTED")
+	Voided  = State("VOIDED")
+)
+
+func (s State) String() string {
+	return string(s)
+}
+
+func (s State) IsValid() bool {
+	switch s {
+	case Pending, Posted, Voided:
+		return true
+	}
+	return false
+}
+
+func (s *State) Unmarshall(v string) error {
+	state := State(v)
+	if !state.IsValid() {
+		return fmt.Errorf("%s is not a valid State", v)
+	}
+	*s = state
+	return nil
 }
