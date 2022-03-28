@@ -47,7 +47,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 				Description: trx.Description,
 				Amount:      fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)),
 				Timestamp:   trx.CreatedAt,
-				Status:      trx.State,
+				Status:      trx.State.String(),
 			})
 		}
 
@@ -393,7 +393,7 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 			Timestamp:   depositTransaction.CreatedAt, // TODO: decide format
 			Amount:      strconv.FormatInt(depositTransaction.NetAmount, 10),
 			Type:        generated.TransactionTypeDeposit,
-			Status:      depositTransaction.State,
+			Status:      depositTransaction.State.String(),
 			Description: depositTransaction.Description,
 		},
 	}, nil
@@ -468,7 +468,7 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 			Timestamp:   withdrawal.CreatedAt, // TODO: decide format
 			Amount:      strconv.FormatInt(withdrawal.NetAmount, 10),
 			Type:        generated.TransactionTypeWithdrawal,
-			Status:      withdrawal.State,
+			Status:      withdrawal.State.String(),
 			Description: withdrawal.Description,
 		},
 	}, nil
@@ -536,7 +536,7 @@ func (r *mutationResolver) InitiateOutgoingPayment(ctx context.Context, input ge
 			Timestamp:   outgoingPayment.CreatedAt, // TODO: decide format
 			Amount:      strconv.FormatInt(outgoingPayment.NetAmount, 10),
 			Type:        generated.TransactionTypeSent,
-			Status:      outgoingPayment.State,
+			Status:      outgoingPayment.State.String(),
 			Description: outgoingPayment.Description,
 		},
 	}, nil

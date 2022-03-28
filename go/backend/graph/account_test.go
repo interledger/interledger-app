@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
 	"time"
 
@@ -150,7 +151,7 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, "completed", deposit.State)
+		assert.Equal(t, account_transactions.Posted, deposit.State)
 
 		req := getAccountTransactionsRequest()
 		err = _user.ActingAs(req, user)

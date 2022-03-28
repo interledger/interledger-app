@@ -58,16 +58,7 @@ func TestAccountTransactions(s *testing.T) {
 		}
 
 		for _, scenario := range scenarios {
-			var trx *AccountTransaction
-			err := crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-				_trx, err := container.TransactionService.Create(ctx, tx, scenario.Args)
-				if err != nil {
-					return err
-				}
-
-				trx = _trx
-				return nil
-			})
+			trx, err := container.TransactionService.Create(ctx, scenario.Args)
 
 			assert.ErrorIs(t, err, scenario.ExpectedError)
 			assert.Contains(t, err.Error(), scenario.ExpectedMessage)
@@ -114,16 +105,7 @@ func TestAccountTransactions(s *testing.T) {
 			}),
 		)
 
-		var trx *AccountTransaction
-		err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-			_trx, err := container.TransactionService.Create(container.Ctx, tx, args)
-			if err != nil {
-				return err
-			}
-			trx = _trx
-
-			return nil
-		})
+		trx, err := container.TransactionService.Create(container.Ctx, args)
 		if err != nil {
 			t.Fatal(err)
 		}

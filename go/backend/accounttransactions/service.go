@@ -58,7 +58,7 @@ type accountTransaction struct {
 
 type Service interface {
 	// TODO: Create should return an error array
-	Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (*AccountTransaction, error)
+	Create(ctx context.Context, args *CreateTransactionArgs) (*AccountTransaction, error)
 	GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error)
 	GetPage(ctx context.Context, args *PaginationArgs) ([]AccountTransaction, error)
 	GetPageInfo(
@@ -99,6 +99,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		db:        args.Db,
 		as:        args.AccountService,
 		pacioli:   args.PacioliClient,
+		db:        args.Db,
 	}, nil
 }
 
@@ -134,7 +135,6 @@ type CreateTransactionArgs struct {
 // TODO: this should return an error array
 func (s *service) Create(
 	ctx context.Context,
-	tx *sqlx.Tx,
 	args *CreateTransactionArgs,
 ) (*AccountTransaction, error) {
 	err := s.validator.Struct(args)
@@ -142,74 +142,80 @@ func (s *service) Create(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
-	acc, err := s.as.Get(ctx, tx, args.AccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
-	ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
-	transferIDs := make([]string, len(args.LedgerTransfers))
-	for i, transfer := range args.LedgerTransfers {
-		id := uuid.NewString()
-		transferIDs[i] = id
-		ledgerTransfers[i] = &pacioli.Transfer{
-			Id:              id,
-			DebitAccountId:  transfer.DebitAccountID,
-			CreditAccountId: transfer.CreditAccountID,
-			Amount:          transfer.Amount,
-			Code:            uint32(transfer.Code),
-			Flags: &pacioli.TransferFlags{
-				Linked:         transfer.Flags.Linked,
-				TwoPhaseCommit: transfer.Flags.TwoPhaseCommit,
-				Condition:      transfer.Flags.Condition,
-			},
-			// TODO: add ledger id once TB supports it
+	var transaction accountTransaction
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		acc, err := s.as.Get(ctx, tx, args.AccountID)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
-	}
 
-	response, err := s.pacioli.CreateTransfers(ctx, &pacioli.CreateTransfersRequest{
-		Transfers: ledgerTransfers,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
+		ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
+		transferIDs := make([]string, len(args.LedgerTransfers))
+		for i, transfer := range args.LedgerTransfers {
+			id := uuid.NewString()
+			transferIDs[i] = id
+			ledgerTransfers[i] = &pacioli.Transfer{
+				Id:              id,
+				DebitAccountId:  transfer.DebitAccountID,
+				CreditAccountId: transfer.CreditAccountID,
+				Amount:          transfer.Amount,
+				Code:            uint32(transfer.Code),
+				Flags: &pacioli.TransferFlags{
+					Linked:         transfer.Flags.Linked,
+					TwoPhaseCommit: false,
+					Condition:      false,
+				},
+				// TODO: add ledger id once TB supports it
+			}
+		}
+
+		response, err := s.pacioli.CreateTransfers(ctx, &pacioli.CreateTransfersRequest{
+			Transfers: ledgerTransfers,
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
 
 	transferErrors := response.GetErrors()
 	if len(transferErrors) > 0 {
 		for _, err := range transferErrors {
 			switch err.Code {
 			case tb_types.TransferExceedsCredits:
-				return nil, fmt.Errorf("%w %+v", ErrExceedsCredits, err)
+				return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
 			case tb_types.TransferExceedsDebits:
-				return nil, fmt.Errorf("%w %+v", ErrExceedsDebits, err)
+				return fmt.Errorf("%w %+v", ErrExceedsDebits, err)
 			default:
-				return nil, fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+				return fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
 			}
 		}
 	}
 
-	stmt, err := tx.PrepareNamedContext(ctx, `INSERT INTO account_transactions
+		stmt, err := tx.PrepareNamedContext(ctx, `INSERT INTO account_transactions
 		(account_id, type, description, net_amount, state, transfer_ids) VALUES
 		(:accountid, :type, :description, :netamount, :state, :transfer_ids)
 		RETURNING *;
 		`,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		return fmt.Errorf("%s %w", err.Error(), ErrInternal)
 	}
 
-	var transaction accountTransaction
-	err = stmt.Stmt.Get(
-		&transaction,
-		acc.ID,
-		args.Type,
-		args.Description,
-		args.NetAmount,
-		Posted.String(),
-		pq.StringArray(transferIDs),
-	)
+		err = stmt.Stmt.Get(
+			&transaction,
+			acc.ID,
+			args.Type,
+			args.Description,
+			args.NetAmount,
+			Posted.String(),
+			pq.StringArray(transferIDs),
+		)
+		if err != nil {
+			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		return nil, err
 	}
 
 	var state State

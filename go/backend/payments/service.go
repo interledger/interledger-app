@@ -103,12 +103,11 @@ func (s *service) InitiateOutgoingPayment(
 
 		// We would typically create pending transfers here then ask the provider to initiate the
 		// payment. But for the noop case we will create single phase transfers.
-		transaction, err := s.ts.Create(ctx, tx, &account_transactions.CreateTransactionArgs{
+		transaction, err := s.ts.Create(ctx, &account_transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
 			Description: "Sent to " + args.To,
 			Type:        "outgoingPayment",
 			NetAmount:   args.Amount,
-			State:       "completed", // noop provider provides instant payments :)
 			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
 				{
 					LedgerID:        s.noop.GetLedgerID(),

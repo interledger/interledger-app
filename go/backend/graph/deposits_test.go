@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -85,9 +86,9 @@ func TestUserDeposits(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Deposit initiated.", response.Message)
-		assert.Equal(t, "10000", response.Transaction.Amount)     // TODO: where do we pretty print?
-		assert.NotEqual(t, 0, response.Transaction.Timestamp)     // TODO: format of timestamp
-		assert.Equal(t, "completed", response.Transaction.Status) // TODO: status definitions
+		assert.Equal(t, "10000", response.Transaction.Amount)                              // TODO: where do we pretty print?
+		assert.NotEqual(t, 0, response.Transaction.Timestamp)                              // TODO: format of timestamp
+		assert.Equal(t, account_transactions.Posted.String(), response.Transaction.Status) // TODO: status definitions
 		assert.Equal(t, fmt.Sprintf("from %s bank account", fundingSource.Mask), response.Transaction.Description)
 		assert.Equal(t, generated.TransactionTypeDeposit, response.Transaction.Type)
 	})

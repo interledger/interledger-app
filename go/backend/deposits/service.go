@@ -100,12 +100,11 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 			return ErrUnverifiedFundingSource
 		}
 
-		trx, err := s.ts.Create(ctx, tx, &transactions.CreateTransactionArgs{
+		trx, err := s.ts.Create(ctx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
 			Type:        "deposit",
 			NetAmount:   args.Amount,
 			Description: fmt.Sprintf("from %s bank account", fundingSource.Mask), // TODO Format to come from FS
-			State:       "completed",                                             // TODO: define states
 			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
 					LedgerID:        s.noop.GetLedgerID(),

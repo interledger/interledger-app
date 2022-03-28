@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"errors"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -92,7 +93,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, "completed", deposit.State)
+		assert.Equal(t, account_transactions.Posted, deposit.State)
 
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
@@ -108,7 +109,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		assert.Equal(t, generated.TransactionTypeSent, response.Transaction.Type)
 		assert.Equal(t, "10000", response.Transaction.Amount)
 		assert.Equal(t, "Sent to $test.fynbos.test/alice", response.Transaction.Description)
-		assert.Equal(t, "completed", response.Transaction.Status)
+		assert.Equal(t, account_transactions.Posted.String(), response.Transaction.Status)
 	})
 
 	/*
@@ -219,7 +220,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, "completed", deposit.State)
+		assert.Equal(t, account_transactions.Posted, deposit.State)
 
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
