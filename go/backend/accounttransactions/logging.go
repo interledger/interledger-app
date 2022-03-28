@@ -18,7 +18,7 @@ func NewLoggingService(service Service, logger *zap.Logger) Service {
 	return &loggingService{childLogger, service}
 }
 
-func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *CreateTransactionArgs) (trx *AccountTransaction, err error) {
+func (self *loggingService) Create(ctx context.Context, args *CreateTransactionArgs) (trx *AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -37,7 +37,7 @@ func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *Creat
 		)
 	}(time.Now())
 
-	return self.Service.Create(ctx, tx, args)
+	return self.Service.Create(ctx, args)
 }
 
 func (self *loggingService) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) (trxs []*AccountTransaction, err error) {

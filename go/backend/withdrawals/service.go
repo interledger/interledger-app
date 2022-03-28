@@ -96,12 +96,11 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 		equityAccountID := s.noop.GetEquityAccountID()
 
 		// prepare transactions and transfers
-		trx, err := s.ts.Create(ctx, sqlTx, &transactions.CreateTransactionArgs{
+		trx, err := s.ts.Create(ctx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
 			Type:        "withdrawal",
 			NetAmount:   args.Amount,
 			Description: fmt.Sprintf("to %s bank account", fs.Mask), // TODO Format to come from FS
-			State:       "completed",                                // TODO: define states
 			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
 					LedgerID:        s.noop.GetLedgerID(),
