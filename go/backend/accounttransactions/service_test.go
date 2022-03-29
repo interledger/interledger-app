@@ -299,6 +299,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *accounts.Account, error) {
 	var acc *accounts.Account
 	var identity *_identity.Identity
+
 	err := crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
 		id, err := container.IdentityService.Create(container.Ctx, tx, _identity.CreateArgs{
 			ID:           user.ID,
@@ -312,7 +313,10 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 			return err
 		}
 		identity = id
+		return nil
+	})
 
+	err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
 		_acc, err := container.AccountService.Create(container.Ctx, tx, &_accounts.CreateAccountArgs{
 			IdentityID: user.ID,
 			Country:    "US",

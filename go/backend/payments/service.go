@@ -86,7 +86,7 @@ func (s *service) InitiateOutgoingPayment(
 
 	var outgoingPayment *account_transactions.AccountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		identity, err := s.is.Get(ctx, tx, args.IdentityID)
+		id, err := s.is.Get(ctx, args.IdentityID)
 		if err != nil {
 			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
 		}
@@ -94,7 +94,7 @@ func (s *service) InitiateOutgoingPayment(
 		if err != nil {
 			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
 		}
-		if !s.as.CanMakeOutgoingPayment(acc, identity.ID) {
+		if !s.as.CanMakeOutgoingPayment(acc, id.ID) {
 			return fmt.Errorf("%w", ErrUnauthorized)
 		}
 		if !acc.IsVerified() {

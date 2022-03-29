@@ -74,9 +74,10 @@ func (s *service) CreateAccount(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	var account *accounts.Account
+	// TODO splitting up for now
+	var id *_identity.Identity
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Create(ctx, tx, _identity.CreateArgs{
+		localId, err := s.is.Create(ctx, tx, _identity.CreateArgs{
 			ID:           args.IdentityID,
 			FirstName:    args.FirstName,
 			LastName:     args.LastName,
@@ -87,7 +88,15 @@ func (s *service) CreateAccount(
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
+		id = localId
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 
+	var account *accounts.Account
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		acc, err := s.as.Create(ctx, tx, &accounts.CreateAccountArgs{
 			IdentityID:                 id.ID,
 			Country:                    args.Country,
@@ -125,7 +134,7 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 
 	var verifiedAccount *accounts.Account
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, tx, args.IdentityID)
+		id, err := s.is.Get(ctx, args.IdentityID)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}

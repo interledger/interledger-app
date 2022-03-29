@@ -66,7 +66,7 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 	var transaction *transactions.AccountTransaction
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(sqlTx *sqlx.Tx) error {
 		// get identity
-		id, err := s.is.Get(ctx, sqlTx, args.IdentityID)
+		id, err := s.is.Get(ctx, args.IdentityID)
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
 		}

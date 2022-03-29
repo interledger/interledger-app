@@ -18,10 +18,10 @@ func NewLoggingService(identityService Service, logger *zap.Logger) Service {
 	return &loggingService{childLogger, identityService}
 }
 
-func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (identity *Identity, err error) {
+func (s *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (identity *Identity, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to create identity.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -29,23 +29,23 @@ func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args Create
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Created identity.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	self.logger.Debug(
+	s.logger.Debug(
 		"Creating identity.",
 		zap.Stringer("args", args),
 	)
-	return self.Service.Create(ctx, tx, args)
+	return s.Service.Create(ctx, tx, args)
 }
 
-func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (identity *Identity, err error) {
+func (s *loggingService) Get(ctx context.Context, id string) (identity *Identity, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to get identity.",
 				zap.String("id", id),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -54,14 +54,14 @@ func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (id
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Got identity.",
 			zap.String("id", identity.ID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return self.Service.Get(ctx, tx, id)
+	return s.Service.Get(ctx, id)
 }
 
 func (self *loggingService) GetByEmail(ctx context.Context, email string) (identity *Identity, err error) {

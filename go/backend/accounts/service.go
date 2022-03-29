@@ -138,7 +138,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
-	identity, err := s.is.Get(ctx, tx, args.IdentityID)
+	identity, err := s.is.Get(ctx, args.IdentityID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
