@@ -25,8 +25,8 @@ var (
 
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error)
-	Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSource, error)
-	GetByAccountId(ctx context.Context, tx *sqlx.Tx, identityId string) ([]FundingSource, error)
+	Get(ctx context.Context, id string) (*FundingSource, error)
+	GetByAccountId(ctx context.Context, identityId string) ([]FundingSource, error)
 	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
 }
@@ -47,14 +47,14 @@ type ServiceArgs struct {
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
-	validator := validator.New()
-	err := validator.Struct(args)
+	v := validator.New()
+	err := v.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	return &service{
-		validator: validator,
+		validator: v,
 		is:        args.Is,
 		as:        args.As,
 		db:        args.Db,
@@ -133,13 +133,13 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 	return &fs, nil
 }
 
-func (s service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSource, error) {
+func (s service) Get(ctx context.Context, id string) (*FundingSource, error) {
 	if id == "" {
 		return nil, fmt.Errorf("%w ID is required.", ErrInvalidArgument)
 	}
 
 	var fundingsource FundingSource
-	err := tx.Get(&fundingsource, "SELECT * FROM funding_sources where id=$1 LIMIT 1;", id)
+	err := s.db.GetContext(ctx, &fundingsource, "SELECT * FROM funding_sources where id=$1 LIMIT 1;", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
@@ -151,13 +151,13 @@ func (s service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*FundingSourc
 	return &fundingsource, nil
 }
 
-func (s service) GetByAccountId(ctx context.Context, tx *sqlx.Tx, identityId string) ([]FundingSource, error) {
+func (s service) GetByAccountId(ctx context.Context, identityId string) ([]FundingSource, error) {
 	if identityId == "" {
 		return nil, fmt.Errorf("%w IdentityID is required.", ErrInvalidArgument)
 	}
 
 	fundingSources := []FundingSource{}
-	err := tx.SelectContext(ctx, &fundingSources, "SELECT * FROM funding_sources WHERE account_id=$1;", identityId)
+	err := s.db.SelectContext(ctx, &fundingSources, "SELECT * FROM funding_sources WHERE account_id=$1;", identityId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
@@ -181,23 +181,24 @@ func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource,
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
+	id, err := s.is.Get(ctx, args.IdentityID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	fs, err := s.Get(ctx, args.FundingSourceID)
+	if err != nil {
+		return nil, err
+	}
+	acc, err := s.as.Get(ctx, fs.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	if !s.as.CanVerifyFundingSource(acc, id.ID) {
+		return nil, ErrUnauthorized
+	}
+
 	var verifiedFs FundingSource
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, args.IdentityID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-		fs, err := s.Get(ctx, tx, args.FundingSourceID)
-		if err != nil {
-			return err
-		}
-		acc, err := s.as.Get(ctx, fs.AccountID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-		if !s.as.CanVerifyFundingSource(acc, id.ID) {
-			return ErrUnauthorized
-		}
 
 		// performing provider verification here for now.
 		err = s.noop.VerifyBankAccount(ctx, &noop.VerifyArgs{})

@@ -90,22 +90,23 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
+	fundingSource, err := s.fs.Get(ctx, args.FundingSourceID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	if fundingSource.AccountID != acc.ID {
+		return nil, ErrNotFound
+	}
+	if fundingSource.VerificationState != "verified" {
+		return nil, ErrUnverifiedFundingSource
+	}
+
+	if !s.as.CanMakeDeposit(acc, id.ID) {
+		return nil, ErrUnauthorized
+	}
 
 	var transaction *transactions.AccountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		if !s.as.CanMakeDeposit(acc, id.ID) {
-			return ErrUnauthorized
-		}
-		fundingSource, err := s.fs.Get(ctx, tx, args.FundingSourceID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-		if fundingSource.AccountID != acc.ID {
-			return ErrNotFound
-		}
-		if fundingSource.VerificationState != "verified" {
-			return ErrUnverifiedFundingSource
-		}
 
 		trx, err := s.ts.Create(ctx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
