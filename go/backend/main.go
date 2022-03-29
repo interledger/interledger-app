@@ -254,7 +254,11 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	server := _admin.NewServer(health)
+	server, err := _admin.NewServer(&_admin.ServerArgs{
+		Hs: health,
+		Is: id,
+		As: as,
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}

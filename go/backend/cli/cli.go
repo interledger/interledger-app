@@ -84,8 +84,6 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 type StartArgs struct {
 	Port                string
 	DbConnectionString  string
-	TbUrl               string
-	TbClusterID         string
 	KratosUrl           string
 	PacioliUrl          string
 	UsdLedgerID         uint16
@@ -115,14 +113,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
 	if logOutputPath == "" {
 		logOutputPath = "stderr"
-	}
-	tbUrl := os.Getenv("TB_URL")
-	if tbUrl == "" {
-		tbUrl = "tigerbeetle-0.tigerbeetle.default.svc.cluster.local:80"
-	}
-	tbClusterID := os.Getenv("TB_CLUSTER_ID")
-	if tbClusterID == "" {
-		return nil, errors.New("TigerBeetle cluster ID not specified.")
 	}
 	pacioliUrl := os.Getenv("PACIOLI_URL")
 	if pacioliUrl == "" {
@@ -155,8 +145,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	return &StartArgs{
 		Port:                port,
 		DbConnectionString:  connString,
-		TbUrl:               tbUrl,
-		TbClusterID:         tbClusterID,
 		KratosUrl:           kratosUrl,
 		PacioliUrl:          pacioliUrl,
 		UsdLedgerID:         uint16(usdLedgerID),
