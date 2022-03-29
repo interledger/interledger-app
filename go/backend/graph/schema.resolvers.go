@@ -551,7 +551,7 @@ func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, erro
 
 	var identity *_identity.Identity
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		id, err := r.IdentityService.Get(ctx, tx, user.ID)
+		id, err := r.IdentityService.Get(ctx, user.ID)
 		if err != nil {
 			return err
 		}
@@ -632,7 +632,7 @@ func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error)
 
 	var account *generated.Account
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		identity, err := r.IdentityService.Get(ctx, tx, user.ID)
+		identity, err := r.IdentityService.Get(ctx, user.ID)
 		if err != nil {
 			return err
 		}

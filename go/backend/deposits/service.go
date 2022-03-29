@@ -85,7 +85,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 
 	var transaction *transactions.AccountTransaction
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, tx, args.IdentityID)
+		id, err := s.is.Get(ctx, args.IdentityID)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}

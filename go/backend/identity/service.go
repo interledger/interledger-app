@@ -47,7 +47,7 @@ type Identity struct {
 
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error)
-	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error)
+	Get(ctx context.Context, id string) (*Identity, error)
 	GetByEmail(ctx context.Context, email string) (*Identity, error)
 }
 
@@ -100,13 +100,13 @@ func (args CreateArgs) String() string {
 
 // There is a 1-1 mapping between the identity and user stored in Kratos. The
 // Kratos ID is used as the identity ID.
-func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error) {
-	err := self.validator.Struct(args)
+func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error) {
+	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s.", ErrInvalidArgument, err)
 	}
 
-	c, err := self.country.GetByAlpha2(ctx, args.Country)
+	c, err := s.country.GetByAlpha2(ctx, args.Country)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -139,16 +139,25 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return self.Get(ctx, tx, args.ID)
+	return &Identity{
+		ID:           identity.ID,
+		FirstName:    identity.FirstName,
+		LastName:     identity.LastName,
+		MobileNumber: identity.MobileNumber,
+		Email:        identity.Email,
+		Country:      c.Alpha_2,
+		CreatedAt:    identity.CreatedAt,
+		UpdatedAt:    identity.UpdatedAt,
+	}, nil
 }
 
-func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error) {
+func (s service) Get(ctx context.Context, id string) (*Identity, error) {
 	if id == "" {
 		return nil, fmt.Errorf("%w ID is required.", ErrInvalidArgument)
 	}
 
 	var identity identity
-	err := tx.Get(&identity, `SELECT * FROM identities WHERE id=$1 LIMIT 1`, id)
+	err := s.db.Get(&identity, `SELECT * FROM identities WHERE id=$1 LIMIT 1`, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
@@ -157,7 +166,7 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	country, err := self.country.Get(ctx, identity.CountryID)
+	country, err := s.country.Get(ctx, identity.CountryID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}

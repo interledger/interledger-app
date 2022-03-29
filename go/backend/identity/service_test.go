@@ -87,19 +87,11 @@ func TestIdentityService(s *testing.T) {
 		assert.Equal(t, args.MobileNumber, identity.MobileNumber)
 		assert.Equal(t, country, identity.Country)
 
-		var fetchedIdentity *Identity
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_fetchedIdentity, err := is.Get(ctx, tx, args.ID)
-			if err != nil {
-				return err
-			}
-
-			fetchedIdentity = _fetchedIdentity
-			return nil
-		})
+		fetchedIdentity, err := is.Get(ctx, args.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		assert.Equal(t, args.ID, fetchedIdentity.ID)
 		assert.Equal(t, args.Email, fetchedIdentity.Email)
 		assert.Equal(t, args.FirstName, fetchedIdentity.FirstName)
@@ -199,16 +191,7 @@ func TestIdentityService(s *testing.T) {
 	})
 
 	s.Run("id is required to get identity", func(t *testing.T) {
-		var identity *Identity
-		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Get(ctx, tx, "")
-			if err != nil {
-				return err
-			}
-
-			identity = _identity
-			return nil
-		})
+		identity, err := is.Get(ctx, "")
 		if err == nil {
 			t.Fatal("User is supposed to be required to get identity.")
 		}
@@ -218,16 +201,7 @@ func TestIdentityService(s *testing.T) {
 	})
 
 	s.Run("returns not found if there is no identity", func(t *testing.T) {
-		var identity *Identity
-		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Get(ctx, tx, uuid.NewString())
-			if err != nil {
-				return err
-			}
-
-			identity = _identity
-			return nil
-		})
+		identity, err := is.Get(ctx, uuid.NewString())
 		if err == nil {
 			t.Fatal("Should return not found.")
 		}

@@ -93,7 +93,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
-	identity, err := s.is.Get(ctx, tx, args.IdentityID)
+	identity, err := s.is.Get(ctx, args.IdentityID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
@@ -183,7 +183,7 @@ func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource,
 
 	var verifiedFs FundingSource
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, tx, args.IdentityID)
+		id, err := s.is.Get(ctx, args.IdentityID)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
