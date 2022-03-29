@@ -14,5 +14,9 @@ message GetUserAccountByEmailRequest {
 
 message Account {
   string id = 1;
-  uint64 balance = 2;
+  int64 balance = 2;
+  uint64 debitsReserved = 3;
+  uint64 debitsAccepted = 4;
+  uint64 creditsReserved = 5;
+  uint64 creditsAccepted = 6;
 }

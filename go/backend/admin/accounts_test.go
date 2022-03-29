@@ -2,53 +2,58 @@ package admin
 
 import (
 	"context"
-	"fmt"
-	"net"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/healthcheck"
+	"gitlab.com/fynbos/backend/onboarding"
+	_user "gitlab.com/fynbos/backend/user"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
-	"google.golang.org/grpc"
 )
 
 func TestAccounts(s *testing.T) {
 	ctx := context.Background()
-	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", "8443"))
+	c, err := NewTestContainer(ctx)
 	if err != nil {
 		s.Fatal(err)
 	}
-	health, err := healthcheck.NewService()
-	if err != nil {
-		s.Fatal(err)
-	}
-	server := NewServer(health)
-	go func() {
-		if err := server.Serve(listener); err != nil {
-			s.Fatal(err)
-		}
-	}()
 
-	conn, err := grpc.Dial("127.0.0.1:8443", grpc.WithBlock(), grpc.WithInsecure())
-	if err != nil {
-		s.Fatal(err)
-	}
-	defer func() {
-		err = conn.Close()
-		if err != nil {
+	s.Cleanup(func() {
+		if err = c.Cleanup(ctx); err != nil {
 			s.Fatal(err)
 		}
-	}()
-	client := backendv1.NewBackendServiceClient(conn)
+	})
 
 	s.Run("can get user account by email", func(t *testing.T) {
-		response, err := client.GetUserAccountByEmail(ctx, &backendv1.GetUserAccountByEmailRequest{
-			Email: "test@fynbos.dev",
+		user := _user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		acc, err := c.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
+			IdentityID:   user.ID,
+			Email:        user.Email,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, "1234", response.GetId())
+		response, err := c.AdminClient.GetUserAccountByEmail(ctx, &backendv1.GetUserAccountByEmailRequest{
+			Email: user.Email,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, acc.ID, response.GetId())
+		assert.Equal(t, acc.AvailableBalance, response.GetBalance())
+		assert.Equal(t, acc.DebitsAccepted, response.GetDebitsAccepted())
+		assert.Equal(t, acc.DebitsReserved, response.GetDebitsReserved())
+		assert.Equal(t, acc.CreditsAccepted, response.GetCreditsAccepted())
+		assert.Equal(t, acc.CreditsReserved, response.GetCreditsReserved())
 	})
 }
