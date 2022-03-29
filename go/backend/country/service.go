@@ -28,8 +28,8 @@ type Country struct {
 }
 
 type Service interface {
-	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country, error)
-	GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) (*Country, error)
+	Get(ctx context.Context, id string) (*Country, error)
+	GetByAlpha2(ctx context.Context, code string) (*Country, error)
 	GetAll(ctx context.Context) ([]*Country, error)
 }
 
@@ -43,13 +43,13 @@ func NewService(db *sqlx.DB) Service {
 	}
 }
 
-func (self *service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country, error) {
+func (s *service) Get(_ context.Context, id string) (*Country, error) {
 	if id == "" {
 		return nil, fmt.Errorf("%w ID is required.", ErrInvalidArgument)
 	}
 
 	var ret Country
-	err := tx.Get(&ret, "SELECT * FROM countries WHERE id=$1 LIMIT 1", id)
+	err := s.db.Get(&ret, "SELECT * FROM countries WHERE id=$1 LIMIT 1", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
@@ -61,13 +61,13 @@ func (self *service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Country,
 	return &ret, nil
 }
 
-func (self *service) GetByAlpha2(ctx context.Context, tx *sqlx.Tx, code string) (*Country, error) {
+func (s *service) GetByAlpha2(_ context.Context, code string) (*Country, error) {
 	if code == "" {
 		return nil, fmt.Errorf("%w Code is required.", ErrInvalidArgument)
 	}
 
 	var ret Country
-	err := tx.Get(&ret, "SELECT * FROM countries WHERE alpha_2=$1 LIMIT 1", code)
+	err := s.db.Get(&ret, "SELECT * FROM countries WHERE alpha_2=$1 LIMIT 1", code)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound

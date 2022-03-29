@@ -63,15 +63,15 @@ type ServiceArgs struct {
 }
 
 func NewService(args ServiceArgs) (Service, error) {
-	validator := validator.New()
-	err := validator.Struct(args)
+	v := validator.New()
+	err := v.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
 	return &service{
 		country:   args.CountryService,
-		validator: validator,
+		validator: v,
 		db:        args.Db,
 	}, nil
 }
@@ -106,7 +106,7 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 		return nil, fmt.Errorf("%w %s.", ErrInvalidArgument, err)
 	}
 
-	country, err := self.country.GetByAlpha2(ctx, tx, args.Country)
+	c, err := self.country.GetByAlpha2(ctx, args.Country)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -130,7 +130,7 @@ func (self *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (
 		args.LastName,
 		args.MobileNumber,
 		args.Email,
-		country.ID,
+		c.ID,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
@@ -157,7 +157,7 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	country, err := self.country.Get(ctx, tx, identity.CountryID)
+	country, err := self.country.Get(ctx, identity.CountryID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}

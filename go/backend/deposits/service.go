@@ -48,13 +48,13 @@ type service struct {
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
-	validator := validator.New()
-	if err := validator.Struct(args); err != nil {
+	v := validator.New()
+	if err := v.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
 	return &service{
-		validator: validator,
+		validator: v,
 		db:        args.Db,
 		as:        args.As,
 		is:        args.Is,
@@ -75,6 +75,13 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 	if err := s.validator.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
+	/*
+		The flow should be as follows
+		* Check if existing deposit already
+		* Checks on Identity, Account, FS
+		* Create Deposit Object (accountId, funding source etc)
+		* Kickoff workflow
+	*/
 
 	var transaction *transactions.AccountTransaction
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {

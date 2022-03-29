@@ -137,10 +137,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
-	_, err = s.cs.GetByAlpha2(ctx, tx, args.Country)
-	if err != nil {
-		return nil, fmt.Errorf("Unknown or unsupported country %s. %w", args.Country, ErrInvalidArgument)
-	}
+
 	identity, err := s.is.Get(ctx, tx, args.IdentityID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
