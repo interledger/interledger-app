@@ -260,16 +260,7 @@ func TestAccountsService(s *testing.T) {
 				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, freshAcc.CreditsMustNotExceedDebits)
 				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, freshAcc.DebitsMustNotExceedCredits)
 
-				var freshAccGottenByID *Account
-				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_acc, err := as.Get(ctx, tx, acc.ID)
-					if err != nil {
-						return err
-					}
-
-					freshAccGottenByID = _acc
-					return nil
-				})
+				freshAccGottenByID, err := as.Get(ctx, acc.ID)
 				if err != nil {
 					tt.Fatal(err)
 				}

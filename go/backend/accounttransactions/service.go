@@ -142,12 +142,13 @@ func (s *service) Create(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
+	acc, err := s.as.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
 	var transaction accountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		acc, err := s.as.Get(ctx, tx, args.AccountID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
 
 		ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
 		transferIDs := make([]string, len(args.LedgerTransfers))

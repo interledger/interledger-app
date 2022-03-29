@@ -82,17 +82,17 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 		* Create Deposit Object (accountId, funding source etc)
 		* Kickoff workflow
 	*/
+	id, err := s.is.Get(ctx, args.IdentityID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	acc, err := s.as.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
 
 	var transaction *transactions.AccountTransaction
-	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, args.IdentityID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-		acc, err := s.as.Get(ctx, tx, args.AccountID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		if !s.as.CanMakeDeposit(acc, id.ID) {
 			return ErrUnauthorized
 		}

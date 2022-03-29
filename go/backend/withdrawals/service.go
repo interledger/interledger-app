@@ -63,23 +63,23 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdrawalArgs) (*transactions.AccountTransaction, error) {
 
+	// get identity
+	id, err := s.is.Get(ctx, args.IdentityID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInternalError, err.Error())
+	}
+
+	// get acc
+	acc, err := s.as.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInternalError, err.Error())
+	}
+	if acc.IdentityID != id.ID {
+		return nil, fmt.Errorf("account and identity dont match %w %s", ErrInternalError, err.Error())
+	}
+
 	var transaction *transactions.AccountTransaction
-	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(sqlTx *sqlx.Tx) error {
-		// get identity
-		id, err := s.is.Get(ctx, args.IdentityID)
-		if err != nil {
-			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
-		}
-
-		// get acc
-		acc, err := s.as.Get(ctx, sqlTx, args.AccountID)
-		if err != nil {
-			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
-		}
-		if acc.IdentityID != id.ID {
-			return fmt.Errorf("account and identity dont match %w %s", ErrInternalError, err.Error())
-		}
-
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(sqlTx *sqlx.Tx) error {
 		// get funding source
 		fs, err := s.fs.Get(ctx, sqlTx, args.FundingSourceID)
 		if err != nil {
