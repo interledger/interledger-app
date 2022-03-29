@@ -315,6 +315,9 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 		identity = id
 		return nil
 	})
+	if err != nil {
+		return nil, nil, err
+	}
 
 	err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
 		_acc, err := container.AccountService.Create(container.Ctx, tx, &_accounts.CreateAccountArgs{

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"google.golang.org/grpc/credentials/insecure"
 	"fmt"
 	"log"
 	"net"
@@ -121,7 +122,7 @@ func start(args *cli.StartArgs) {
 	}
 	id = identity.NewLoggingService(id, logger)
 
-	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -334,7 +335,7 @@ func configurePacioli(args *cli.MigrationArgs) error {
 	}
 	id = identity.NewLoggingService(id, logger)
 
-	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}

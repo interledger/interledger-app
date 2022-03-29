@@ -2,12 +2,10 @@ package deposits
 
 import (
 	"context"
-	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"go.temporal.io/sdk/activity"
 )
 
 type Activity struct {
-	ts transactions.Service
 }
 
 func (s *Activity) PrepareWithdrawUserFunds(ctx context.Context) error {

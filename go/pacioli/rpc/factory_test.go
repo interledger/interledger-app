@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"testing"
 	"time"
@@ -89,7 +90,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Server = server
 
 	connectTo := "127.0.0.1:8081"
-	conn, err := grpc.Dial(connectTo, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(connectTo, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
