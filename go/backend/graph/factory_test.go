@@ -83,6 +83,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 
 	is, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		return nil, err

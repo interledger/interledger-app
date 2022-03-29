@@ -60,6 +60,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		return nil, err

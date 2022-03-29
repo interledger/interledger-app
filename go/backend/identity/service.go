@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_country "gitlab.com/fynbos/backend/country"
@@ -47,15 +48,18 @@ type Identity struct {
 type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error)
 	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity, error)
+	GetByEmail(ctx context.Context, email string) (*Identity, error)
 }
 
 type service struct {
 	country   _country.Service
 	validator *validator.Validate
+	db        *sqlx.DB
 }
 
 type ServiceArgs struct {
 	CountryService _country.Service `validate:"required"`
+	Db             *sqlx.DB         `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -68,6 +72,7 @@ func NewService(args ServiceArgs) (Service, error) {
 	return &service{
 		country:   args.CountryService,
 		validator: validator,
+		db:        args.Db,
 	}, nil
 }
 
@@ -155,6 +160,45 @@ func (self service) Get(ctx context.Context, tx *sqlx.Tx, id string) (*Identity,
 	country, err := self.country.Get(ctx, tx, identity.CountryID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &Identity{
+		ID:           identity.ID,
+		FirstName:    identity.FirstName,
+		LastName:     identity.LastName,
+		MobileNumber: identity.MobileNumber,
+		Email:        identity.Email,
+		Country:      country.Alpha_2,
+		CreatedAt:    identity.CreatedAt,
+		UpdatedAt:    identity.UpdatedAt,
+	}, nil
+}
+
+func (self service) GetByEmail(ctx context.Context, email string) (*Identity, error) {
+	if email == "" {
+		return nil, fmt.Errorf("%w Email is required.", ErrInvalidArgument)
+	}
+
+	var identity identity
+	var country *_country.Country
+	err := crdbsqlx.ExecuteTx(ctx, self.db, nil, func(tx *sqlx.Tx) error {
+		err := tx.Get(&identity, `SELECT * FROM identities WHERE email=$1 LIMIT 1`, email)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return ErrNotFound
+			}
+
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+
+		country, err = self.country.Get(ctx, tx, identity.CountryID)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &Identity{

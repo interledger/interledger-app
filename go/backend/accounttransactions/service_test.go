@@ -278,6 +278,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		s.Fatal(err)

@@ -54,6 +54,7 @@ func TestAccountsService(s *testing.T) {
 	cs := _country.NewService(db)
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		s.Fatal(err)

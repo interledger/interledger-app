@@ -51,6 +51,7 @@ func TestIdentityService(s *testing.T) {
 	cs := _country.NewService(db)
 	is, err := NewService(ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		s.Fatal(err)
@@ -235,6 +236,27 @@ func TestIdentityService(s *testing.T) {
 		assert.ErrorIs(t, err, ErrNotFound)
 		assert.Contains(t, err.Error(), "not found.")
 	})
+
+	s.Run("can get by email", func(t *testing.T) {
+		userID := uuid.NewString()
+		email := faker.Email()
+		var identity *Identity
+		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
+			_identity, err := is.Create(ctx, tx, *generateCreateArgs(withEmail(email), withID(userID)))
+			if err != nil {
+				return err
+			}
+
+			identity = _identity
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, userID, identity.ID)
+		assert.Equal(t, email, identity.Email)
+	})
 }
 
 // TODO: auto generate helpers.
@@ -291,62 +313,3 @@ func withCountry(country string) func(*CreateArgs) {
 		args.Country = country
 	}
 }
-
-// func generateVerifyArgs(opts ...func(*VerifyArgs)) *VerifyArgs {
-// 	ret := &VerifyArgs{
-// 		IdentityID:  uuid.NewString(),
-// 		DateOfBirth: faker.Date(),
-// 		Address:     []string{faker.Name()},
-// 		State:       faker.FirstName(),
-// 		City:        faker.FirstName(),
-// 		PostalCode:  faker.LastName(),
-// 		TaxIDNumber: faker.CCNumber(),
-// 	}
-// 	for _, opt := range opts {
-// 		opt(ret)
-// 	}
-
-// 	return ret
-// }
-
-// func withIdentityID(id string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.IdentityID = id
-// 	}
-// }
-
-// func withDateOfBirth(dob string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.DateOfBirth = dob
-// 	}
-// }
-
-// func withAddress(address []string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.Address = address
-// 	}
-// }
-
-// func withState(state string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.State = state
-// 	}
-// }
-
-// func withCity(city string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.City = city
-// 	}
-// }
-
-// func withPostalCode(code string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.PostalCode = code
-// 	}
-// }
-
-// func withTaxIDNumber(tax string) func(*VerifyArgs) {
-// 	return func(args *VerifyArgs) {
-// 		args.TaxIDNumber = tax
-// 	}
-// }
