@@ -63,3 +63,25 @@ func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (id
 
 	return self.Service.Get(ctx, tx, id)
 }
+
+func (self *loggingService) GetByEmail(ctx context.Context, email string) (identity *Identity, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			self.logger.Error(
+				"Failed to get identity by email.",
+				zap.String("email", email),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		self.logger.Debug(
+			"Got identity.",
+			zap.String("id", identity.ID),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return self.Service.GetByEmail(ctx, email)
+}

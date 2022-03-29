@@ -112,6 +112,7 @@ func start(args *cli.StartArgs) {
 	cs := country.NewService(db)
 	id, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -309,6 +310,7 @@ func configurePacioli(args *cli.MigrationArgs) error {
 	cs := country.NewService(db)
 	id, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
+		Db:             db,
 	})
 	if err != nil {
 		return err
