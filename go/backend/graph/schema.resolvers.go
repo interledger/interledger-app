@@ -588,16 +588,7 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 		}
 	}
 
-	var fundingSources []fundingsources.FundingSource
-	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		_fundingSources, err := r.Fs.GetByAccountId(ctx, tx, acc.ID)
-		if err != nil {
-			return err
-		}
-
-		fundingSources = _fundingSources
-		return nil
-	})
+	fs, err := r.Fs.GetByAccountId(ctx, acc.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, _identity.ErrNotFound):
@@ -608,8 +599,8 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 			return nil, nil
 		}
 	}
-	ret := make([]*generated.FundingSource, len(fundingSources))
-	for i, trx := range fundingSources {
+	ret := make([]*generated.FundingSource, len(fs))
+	for i, trx := range fs {
 		ret[i] = &generated.FundingSource{
 			ID:                 trx.ID,
 			Name:               trx.Name,

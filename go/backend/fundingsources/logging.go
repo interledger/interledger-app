@@ -18,10 +18,10 @@ func NewLoggingService(service Service, logger *zap.Logger) Service {
 	return &loggingService{childLogger, service}
 }
 
-func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (fs *FundingSource, err error) {
+func (s *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (fs *FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to create funding source.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -29,19 +29,19 @@ func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *Creat
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Created funding source.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return self.Service.Create(ctx, tx, args)
+	return s.Service.Create(ctx, tx, args)
 }
 
-func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (fs *FundingSource, err error) {
+func (s *loggingService) Get(ctx context.Context, id string) (fs *FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to get funding source.",
 				zap.String("id", id),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -50,19 +50,19 @@ func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, id string) (fs
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Got funding source.",
 			zap.String("id", fs.ID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
-	return self.Service.Get(ctx, tx, id)
+	return s.Service.Get(ctx, id)
 }
 
-func (self *loggingService) GetByAccountId(ctx context.Context, tx *sqlx.Tx, identityId string) (fs []FundingSource, err error) {
+func (s *loggingService) GetByAccountId(ctx context.Context, identityId string) (fs []FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to get funding sources.",
 				zap.String("identityId", identityId),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -71,19 +71,19 @@ func (self *loggingService) GetByAccountId(ctx context.Context, tx *sqlx.Tx, ide
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Got funding source.",
 			// zap.String("id", fs[0]),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
-	return self.Service.GetByAccountId(ctx, tx, identityId)
+	return s.Service.GetByAccountId(ctx, identityId)
 }
 
-func (self *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *FundingSource, err error) {
+func (s *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to verify funding source.",
 				zap.String("id", args.FundingSourceID),
 				zap.String("identityID", args.IdentityID),
@@ -93,20 +93,20 @@ func (self *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *F
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Verified funding source",
 			zap.String("id", args.FundingSourceID),
 			zap.String("identityID", args.IdentityID),
 		)
 	}(time.Now())
 
-	return self.Service.Verify(ctx, args)
+	return s.Service.Verify(ctx, args)
 }
 
-func (self *loggingService) CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (fs *FundingSource, err error) {
+func (s *loggingService) CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (fs *FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			self.logger.Error(
+			s.logger.Error(
 				"Failed to link bank account.",
 				zap.String("identityID", args.IdentityID),
 				zap.String("accountID", args.AccountID),
@@ -116,7 +116,7 @@ func (self *loggingService) CreateBankAccount(ctx context.Context, args *CreateB
 			return
 		}
 
-		self.logger.Debug(
+		s.logger.Debug(
 			"Linked Bank account",
 			zap.String("id", fs.ID),
 			zap.String("accountID", fs.AccountID),
@@ -124,5 +124,5 @@ func (self *loggingService) CreateBankAccount(ctx context.Context, args *CreateB
 		)
 	}(time.Now())
 
-	return self.Service.CreateBankAccount(ctx, args)
+	return s.Service.CreateBankAccount(ctx, args)
 }

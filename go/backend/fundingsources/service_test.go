@@ -5,9 +5,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/onboarding"
 )
@@ -282,22 +280,14 @@ func TestFundingSources(s *testing.T) {
 		}
 
 		t.Run("returns a list of all the users funding sources", func(tt *testing.T) {
-			var fundingsources []FundingSource
-			err = crdbsqlx.ExecuteTx(ctx, c.Db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := c.Fs.GetByAccountId(ctx, tx, acc.ID)
-				if err != nil {
-					return err
-				}
-				fundingsources = _fs
-				return nil
-			})
+			fs, err := c.Fs.GetByAccountId(ctx, acc.ID)
 			if err != nil {
 				tt.Fatal(err)
 			}
 
-			fundingSourcesIDs := []string{fundingsources[1].ID, fundingsources[0].ID}
+			fundingSourcesIDs := []string{fs[1].ID, fs[0].ID}
 
-			assert.Equal(tt, 2, len(fundingsources))
+			assert.Equal(tt, 2, len(fs))
 			assert.Contains(tt, fundingSourcesIDs, fundingsource.ID)
 			assert.Contains(tt, fundingSourcesIDs, fundingsource1.ID)
 		})
@@ -316,20 +306,12 @@ func TestFundingSources(s *testing.T) {
 				t.Fatal(err)
 			}
 
-			var fundingsources []FundingSource
-			err = crdbsqlx.ExecuteTx(ctx, c.Db, nil, func(tx *sqlx.Tx) error {
-				_fs, err := c.Fs.GetByAccountId(ctx, tx, otherAcc.ID)
-				if err != nil {
-					return err
-				}
-				fundingsources = _fs
-				return nil
-			})
+			fs, err := c.Fs.GetByAccountId(ctx, otherAcc.ID)
 			if err != nil {
 				tt.Fatal(err)
 			}
 
-			assert.Equal(tt, 0, len(fundingsources))
+			assert.Equal(tt, 0, len(fs))
 		})
 	})
 }

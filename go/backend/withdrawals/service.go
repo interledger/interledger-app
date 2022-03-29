@@ -78,19 +78,20 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 		return nil, fmt.Errorf("account and identity dont match %w %s", ErrInternalError, err.Error())
 	}
 
+	// get funding source
+	fs, err := s.fs.Get(ctx, args.FundingSourceID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInternalError, err.Error())
+	}
+	if fs.AccountID != args.AccountID {
+		return nil, fmt.Errorf("funding source and account dont match %w", ErrInternalError)
+	}
+	if !fundingsources.IsVerified(fs) {
+		return nil, ErrUnverifiedFundingSource
+	}
+
 	var transaction *transactions.AccountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(sqlTx *sqlx.Tx) error {
-		// get funding source
-		fs, err := s.fs.Get(ctx, sqlTx, args.FundingSourceID)
-		if err != nil {
-			return fmt.Errorf("%w: %s", ErrInternalError, err.Error())
-		}
-		if fs.AccountID != args.AccountID {
-			return fmt.Errorf("funding source and account dont match %w", ErrInternalError)
-		}
-		if !fundingsources.IsVerified(fs) {
-			return ErrUnverifiedFundingSource
-		}
 
 		// ask providers for plan of transfers - in future this will be get quote
 		equityAccountID := s.noop.GetEquityAccountID()

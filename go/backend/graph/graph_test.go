@@ -5,14 +5,11 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -174,29 +171,20 @@ func TestGraphql(s *testing.T) {
 		assert.NotEqual(t, args.RoutingNumber, response.FundingSource.Mask)
 		assert.Equal(t, "required", response.FundingSource.VerificationStatus)
 
-		var fundingsource *fundingsources.FundingSource
-		err = crdbsqlx.ExecuteTx(ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-			_fs, err := container.FundingSourceService.Get(ctx, tx, response.FundingSource.ID)
-			if err != nil {
-				return err
-			}
-			fundingsource = _fs
-
-			return nil
-		})
+		fs, err := container.FundingSourceService.Get(ctx, response.FundingSource.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, args.Name, fundingsource.Name)
-		assert.Equal(t, "noop", fundingsource.Type)
-		assert.Equal(t, args.Type, fundingsource.SubType)
-		assert.NotEqual(t, "", fundingsource.TypeID)
-		assert.NotEqual(t, args.AccountNumber, fundingsource.Mask)
-		assert.NotEqual(t, args.RoutingNumber, fundingsource.Mask)
-		assert.Equal(t, "required", fundingsource.VerificationState)
+		assert.Equal(t, args.Name, fs.Name)
+		assert.Equal(t, "noop", fs.Type)
+		assert.Equal(t, args.Type, fs.SubType)
+		assert.NotEqual(t, "", fs.TypeID)
+		assert.NotEqual(t, args.AccountNumber, fs.Mask)
+		assert.NotEqual(t, args.RoutingNumber, fs.Mask)
+		assert.Equal(t, "required", fs.VerificationState)
 
 		// verify it
-		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fundingsource.ID)))
+		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fs.ID)))
 		err = _user.ActingAs(verifyReq, user)
 		if err != nil {
 			return
