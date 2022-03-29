@@ -63,7 +63,7 @@ func TestIdentityService(s *testing.T) {
 		var identity *Identity
 		var country string
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			c, err := cs.GetByAlpha2(ctx, tx, args.Country)
+			c, err := cs.GetByAlpha2(ctx, args.Country)
 			if err != nil {
 				t.Fatal(err)
 			}
