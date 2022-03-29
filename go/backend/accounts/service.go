@@ -53,7 +53,7 @@ type Service interface {
 	Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error)
 	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 	GetByIdentityID(ctx context.Context, id string) (*Account, error)
-	Get(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
+	Get(ctx context.Context, id string) (*Account, error)
 	VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error)
 	CanMakeOutgoingPayment(acc *Account, identityID string) bool
 	CanMakeDeposit(acc *Account, identityID string) bool
@@ -222,13 +222,13 @@ func (s *service) GetByIdentityID(ctx context.Context, identityID string) (*Acco
 	return acc, err
 }
 
-func (s *service) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (*Account, error) {
+func (s *service) Get(ctx context.Context, accountID string) (*Account, error) {
 	if accountID == "" {
 		return nil, fmt.Errorf("%w AccountID is required.", ErrInvalidArgument)
 	}
 
 	var ret Account
-	err := tx.Get(&ret, "SELECT * FROM accounts WHERE id=$1 LIMIT 1", accountID)
+	err := s.db.Get(&ret, "SELECT * FROM accounts WHERE id=$1 LIMIT 1", accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
@@ -291,7 +291,7 @@ func (s *service) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArg
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
-	acc, err := s.Get(ctx, tx, args.AccountID)
+	acc, err := s.Get(ctx, args.AccountID)
 	if err != nil {
 		return nil, err
 	}

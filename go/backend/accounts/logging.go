@@ -107,7 +107,7 @@ func (self *loggingService) GetByIdentityID(ctx context.Context, identityID stri
 	return self.Service.GetByIdentityID(ctx, identityID)
 }
 
-func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, accountID string) (account *Account, err error) {
+func (self *loggingService) Get(ctx context.Context, accountID string) (account *Account, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -126,7 +126,7 @@ func (self *loggingService) Get(ctx context.Context, tx *sqlx.Tx, accountID stri
 		)
 	}(time.Now())
 
-	return self.Service.Get(ctx, tx, accountID)
+	return self.Service.Get(ctx, accountID)
 }
 
 func (s *loggingService) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (account *Account, err error) {

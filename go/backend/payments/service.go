@@ -84,22 +84,23 @@ func (s *service) InitiateOutgoingPayment(
 		return nil, fmt.Errorf("%s %w", err.Error(), ErrInvalidArgument)
 	}
 
+	id, err := s.is.Get(ctx, args.IdentityID)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+	}
+	acc, err := s.as.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+	}
+	if !s.as.CanMakeOutgoingPayment(acc, id.ID) {
+		return nil, fmt.Errorf("%w", ErrUnauthorized)
+	}
+	if !acc.IsVerified() {
+		return nil, fmt.Errorf("%w", ErrUnverifiedAccount)
+	}
+
 	var outgoingPayment *account_transactions.AccountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, args.IdentityID)
-		if err != nil {
-			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
-		}
-		acc, err := s.as.Get(ctx, tx, args.AccountID)
-		if err != nil {
-			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
-		}
-		if !s.as.CanMakeOutgoingPayment(acc, id.ID) {
-			return fmt.Errorf("%w", ErrUnauthorized)
-		}
-		if !acc.IsVerified() {
-			return fmt.Errorf("%w", ErrUnverifiedAccount)
-		}
 
 		// We would typically create pending transfers here then ask the provider to initiate the
 		// payment. But for the noop case we will create single phase transfers.

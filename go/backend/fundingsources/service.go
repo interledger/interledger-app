@@ -97,7 +97,7 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
-	acc, err := s.as.Get(ctx, tx, args.AccountID)
+	acc, err := s.as.Get(ctx, args.AccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
@@ -191,7 +191,7 @@ func (s *service) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource,
 		if err != nil {
 			return err
 		}
-		acc, err := s.as.Get(ctx, tx, fs.AccountID)
+		acc, err := s.as.Get(ctx, fs.AccountID)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
