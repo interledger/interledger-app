@@ -10,13 +10,13 @@ RUN curl https://download.docker.com/linux/ubuntu/dists/impish/pool/stable/amd64
     && rm -f docker.deb
 
 # Install golang
-RUN curl -OL https://golang.org/dl/go1.17.6.linux-amd64.tar.gz
-RUN tar -C /usr/local -xvf go1.17.6.linux-amd64.tar.gz
+RUN curl -OL https://golang.org/dl/go1.18.linux-amd64.tar.gz
+RUN tar -C /usr/local -xvf go1.18.linux-amd64.tar.gz
 RUN rm -f go1.17.6.linux-amd64.tar.gz
 ENV PATH="$PATH:/usr/local/go/bin"
 
 # Install golangci-lint
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.44.2
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.45.0
 
 # Install ECR Login
 RUN go install github.com/awslabs/amazon-ecr-credential-helper/ecr-login/cli/docker-credential-ecr-login@latest
