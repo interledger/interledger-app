@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package backend.v1;
+
+option go_package = "./backend/v1;backend";
+
+service BackendService {
+  rpc GetUserAccountByEmail(GetUserAccountByEmailRequest) returns (Account);
+}
+
+message GetUserAccountByEmailRequest {
+	string email = 1;
+}
+
+message Account {
+  string id = 1;
+  uint64 balance = 2;
+}

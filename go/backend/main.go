@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
@@ -23,6 +26,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/backend/accounts"
+	_admin "gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -241,7 +245,27 @@ func start(args *cli.StartArgs) {
 	}))
 
 	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)
-	log.Fatal(http.ListenAndServe(":"+args.Port, router))
+	go func() {
+		log.Fatal(http.ListenAndServe(":"+args.Port, router))
+	}()
+
+	health, err := healthcheck.NewService()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	server := _admin.NewServer(health)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", "8443"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("admin grpc server: 0.0.0.0:%s", "8443")
+	err = server.Serve(listener)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func configurePacioli(args *cli.MigrationArgs) error {
