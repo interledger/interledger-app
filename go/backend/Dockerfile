@@ -1,5 +1,5 @@
 # cant use alpine as we need glibc for CGO
-FROM public.ecr.aws/docker/library/golang:1.17 AS base
+FROM public.ecr.aws/docker/library/golang:1.18 AS base
 
 WORKDIR /build
 
