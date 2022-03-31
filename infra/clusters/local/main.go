@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"gitlab.com/fynbos/infra/services/retool"
 
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
