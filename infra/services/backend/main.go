@@ -77,6 +77,32 @@ func deployService(ctx *pulumi.Context) error {
 	if err != nil {
 		return err
 	}
+
+	_, err = corev1.NewService(ctx, "backend-admin-service", &corev1.ServiceArgs{
+		ApiVersion: pulumi.String("v1"),
+		Kind:       pulumi.String("Service"),
+		Metadata: &metav1.ObjectMetaArgs{
+			Name: pulumi.String("backend-admin"),
+			Labels: pulumi.StringMap{
+				"app": pulumi.String("backend-admin"),
+			},
+		},
+		Spec: &corev1.ServiceSpecArgs{
+			Ports: corev1.ServicePortArray{
+				&corev1.ServicePortArgs{
+					Port:       pulumi.Int(443),
+					TargetPort: pulumi.Int(8443),
+					Name:       pulumi.String("grpc"),
+				},
+			},
+			Selector: pulumi.StringMap{
+				"app": pulumi.String("backend"),
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -195,6 +221,10 @@ func deployDeployment(
 									ContainerPort: pulumi.Int(8080),
 									Name:          pulumi.String("http"),
 								},
+								&corev1.ContainerPortArgs{
+									ContainerPort: pulumi.Int(8443),
+									Name:          pulumi.String("grpc"),
+								},
 							},
 							LivenessProbe: &corev1.ProbeArgs{
 								HttpGet: &corev1.HTTPGetActionArgs{
@@ -205,10 +235,12 @@ func deployDeployment(
 								PeriodSeconds: pulumi.Int(5),
 							},
 							ReadinessProbe: &corev1.ProbeArgs{
-								HttpGet: &corev1.HTTPGetActionArgs{
-									Path:   pulumi.String("/healthz"),
-									Port:   pulumi.String("http"),
-									Scheme: pulumi.String("HTTP"),
+								Exec: &corev1.ExecActionArgs{
+									Command: pulumi.StringArray{
+										pulumi.String("/dist/grpc_health_probe"),
+										pulumi.String("-addr=:8443"),
+										pulumi.String("-service=backend"),
+									},
 								},
 								PeriodSeconds:    pulumi.Int(5),
 								FailureThreshold: pulumi.Int(2),
