@@ -4,7 +4,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func Deposit(ctx workflow.Context) error {
+func DepositWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Starting deposit")
 
