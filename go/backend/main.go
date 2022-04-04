@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"gitlab.com/fynbos/backend/temporal"
 	"google.golang.org/grpc/credentials/insecure"
 	"fmt"
 	"log"
@@ -106,6 +107,11 @@ func start(args *cli.StartArgs) {
 	}
 	kratosClient := kratos.NewAPIClient(configuration)
 
+	tp, err := temporal.NewTemporalClient()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	users, err := user.NewService(kratosClient)
 	if err != nil {
 		log.Fatalln(err)
@@ -183,12 +189,11 @@ func start(args *cli.StartArgs) {
 	}
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   id,
-		Fs:   fs,
-		Ts:   ts,
-		Noop: nos,
+		Db: db,
+		As: as,
+		Is: id,
+		Fs: fs,
+		Tp: tp,
 	})
 	if err != nil {
 		log.Fatalln(err)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"go.temporal.io/sdk/client"
 
 	"github.com/go-playground/validator/v10"
@@ -47,7 +46,8 @@ type Deposit struct {
 	ID              string
 	AccountID       string `db:"account_id"`
 	FundingSourceId string `db:"funding_source_id"`
-	Amount          int64
+	Amount          uint64
+	State           State
 	CreatedAt       string `db:"created_at"`
 	UpdatedAt       string `db:"updated_at"`
 }
@@ -111,18 +111,52 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 
 	// Create the deposit
 	// TODO should this be an idempotent key?
-	depositId := uuid.New()
+	var deposit Deposit
+	err = s.db.Get(&deposit, `INSERT INTO deposits
+		(account_id, funding_source_id, amount, state) VALUES ($1, $2, $3, $4)
+		RETURNING *;
+		`, acc.ID, fundingSource.ID, args.Amount, Created)
+	if err != nil {
+		return nil, err
+	}
+
 	workflowOptions := client.StartWorkflowOptions{
-		ID: "deposit_" + depositId.String(),
+		ID: "deposit_" + deposit.ID,
 	}
 	_, err = s.tp.ExecuteWorkflow(context.Background(), workflowOptions, DepositWorkflow)
 	if err != nil {
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
+	return &deposit, nil
+}
 
-	return nil, nil
+type State string
+
+const (
+	Created    = State("CREATED")
+	Processing = State("PROCESSING")
+	Complete   = State("COMPLETE")
+	Failed     = State("FAILED")
+)
+
+func (s State) String() string {
+	return string(s)
+}
+
+func (s State) IsValid() bool {
+	switch s {
+	case Created, Processing, Complete, Failed:
+		return true
+	}
+	return false
+}
+
+func (s *State) Unmarshall(v string) error {
+	state := State(v)
+	if !state.IsValid() {
+		return fmt.Errorf("%s is not a valid State", v)
+	}
+	*s = state
+	return nil
 }
