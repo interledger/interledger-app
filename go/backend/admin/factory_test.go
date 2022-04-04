@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials/insecure"
 	"net"
 
 	"github.com/google/uuid"
@@ -80,7 +81,7 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 	}
 	c.Pacioli = pacioli
 
-	pacioliConn, err := grpc.Dial(pacioli.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	pacioliConn, err := grpc.Dial(pacioli.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +179,7 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 	}()
 	c.AdminServer = server
 
-	adminConn, err := grpc.Dial("127.0.0.1:8443", grpc.WithBlock(), grpc.WithInsecure())
+	adminConn, err := grpc.Dial("127.0.0.1:8443", grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

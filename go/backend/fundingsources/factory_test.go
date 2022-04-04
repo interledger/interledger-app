@@ -2,6 +2,7 @@ package fundingsources
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials/insecure"
 	"testing"
 
 	"github.com/google/uuid"
@@ -74,7 +75,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.PacioliContainer = pacioliContainer
 
 	c.PacioliLedgerID = uint16(1)
-	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

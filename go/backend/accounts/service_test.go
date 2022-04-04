@@ -2,6 +2,7 @@ package accounts
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials/insecure"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -62,7 +63,7 @@ func TestAccountsService(s *testing.T) {
 	is = _identity.NewLoggingService(is, logger)
 
 	pacioliLedgerID := uint16(1)
-	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		s.Fatal(err)
 	}
@@ -104,7 +105,7 @@ func TestAccountsService(s *testing.T) {
 	s.Run("Get requires accountID", func(t *testing.T) {
 		var acc *Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_acc, err := as.Get(ctx, tx, "")
+			_acc, err := as.Get(ctx, "")
 			if err != nil {
 				return err
 			}
@@ -141,16 +142,24 @@ func TestAccountsService(s *testing.T) {
 		}
 
 		t.Run("updates verification state to verified", func(tt *testing.T) {
-			var verifiedAcc *Account
+			var acc *Account
 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				acc, err := as.Create(ctx, tx, &CreateAccountArgs{
+				localAcc, err := as.Create(ctx, tx, &CreateAccountArgs{
 					IdentityID: identity.ID,
 					Country:    identity.Country,
 				})
 				if err != nil {
 					return err
 				}
-				assert.False(tt, acc.IsVerified())
+				assert.False(tt, localAcc.IsVerified())
+				acc = localAcc
+				return nil
+			})
+			if err != nil {
+				tt.Fatal(err)
+			}
+			var verifiedAcc *Account
+			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &VerifyArgs{
 					AccountID:  acc.ID,
 					Provider:   "noop",
@@ -159,7 +168,6 @@ func TestAccountsService(s *testing.T) {
 				if err != nil {
 					return err
 				}
-
 				return nil
 			})
 			if err != nil {

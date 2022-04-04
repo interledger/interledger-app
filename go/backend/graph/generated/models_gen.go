@@ -39,16 +39,23 @@ type CreateAccountMutationResponse struct {
 
 func (CreateAccountMutationResponse) IsMutationResponse() {}
 
+type Deposit struct {
+	ID        string `json:"id"`
+	State     string `json:"state"`
+	Amount    string `json:"amount"`
+	Timestamp string `json:"timestamp"`
+}
+
 type DepositInput struct {
 	FundingSourceID string `json:"fundingSourceID"`
 	Amount          string `json:"amount"`
 }
 
 type DepositMutationResponse struct {
-	Code        string       `json:"code"`
-	Success     bool         `json:"success"`
-	Message     string       `json:"message"`
-	Transaction *Transaction `json:"transaction"`
+	Code    string   `json:"code"`
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Deposit *Deposit `json:"deposit"`
 }
 
 func (DepositMutationResponse) IsMutationResponse() {}

@@ -13,8 +13,6 @@ import (
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 
-	"gitlab.com/fynbos/backend/deposits"
-	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
@@ -125,33 +123,25 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fundingSource, err := NewBankAccount(
-			container,
-			user,
-			&fundingsources.CreateBankAccountArgs{
-				IdentityID:    user.ID,
-				AccountID:     acc.ID,
-				Name:          faker.Name(),
-				AccountNumber: faker.CCNumber(),
-				RoutingNumber: faker.CCNumber(),
-				Institution:   faker.Name(),
-				Type:          "cheque",
+		deposit, err := NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   10000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  acc.LedgerAccountID,
+					Amount:          10000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
 			},
-			true,
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
-			IdentityID:      user.ID,
-			AccountID:       acc.ID,
-			FundingSourceID: fundingSource.ID,
-			Amount:          10000, // 100 dollars
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, account_transactions.Posted, deposit.State)
 
 		req := getAccountTransactionsRequest()
 		err = _user.ActingAs(req, user)

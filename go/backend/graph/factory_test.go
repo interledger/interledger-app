@@ -2,6 +2,10 @@ package graph
 
 import (
 	"context"
+	"github.com/stretchr/testify/mock"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/mocks"
+	"google.golang.org/grpc/credentials/insecure"
 	"net/http/httptest"
 
 	"gitlab.com/fynbos/backend/payments"
@@ -97,7 +101,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.PacioliContainer = pacioliContainer
 
 	c.PacioliLedgerID = uint16(1)
-	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -161,13 +165,26 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.FundingSourceService = fundingsources.NewLoggingService(fs, logger)
 
+	tp := &mocks.Client{}
+	tp.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
+			testWorkflowID := opts.ID
+			testRunID := "test-runid"
+
+			mockWorkflowRun := &mocks.WorkflowRun{}
+			mockWorkflowRun.On("GetID").Return(testWorkflowID)
+			mockWorkflowRun.On("GetRunID").Return(testRunID)
+			mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
+			return mockWorkflowRun
+		}, nil,
+	)
+
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Fs:   fs,
-		Ts:   ts,
-		Noop: noopProvider,
+		Db: db,
+		As: as,
+		Is: is,
+		Fs: fs,
+		Tp: tp,
 	})
 	if err != nil {
 		return nil, err
@@ -318,12 +335,12 @@ func NewBankAccount(
 
 func NewDeposit(
 	c *TestContainer,
-	args *deposits.InitiateDepositArgs,
+	args *account_transactions.CreateTransactionArgs,
 ) (*account_transactions.AccountTransaction, error) {
-	deposit, err := c.DepositService.InitiateDeposit(c.Ctx, args)
+	trx, err := c.TransactionService.Create(c.Ctx, args)
 	if err != nil {
 		return nil, err
 	}
 
-	return deposit, nil
+	return trx, nil
 }
