@@ -2,13 +2,13 @@ package graph
 
 import (
 	"context"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -72,16 +72,25 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
-			AccountID:       acc.ID,
-			FundingSourceID: fundingSource.ID,
-			Amount:          10000, // 100 dollars
-			IdentityID:      user.ID,
+		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   10000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  acc.LedgerAccountID,
+					Amount:          10000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, "completed", deposit.State)
 
 		response, err := initiateWithdrawal(container, user, &generated.WithdrawalInput{
 			FundingSourceID: fundingSource.ID,
@@ -94,9 +103,9 @@ func TestUserWithdrawals(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Withdrawal initiated.", response.Message)
-		assert.Equal(t, "10000", response.Transaction.Amount)     // TODO: where do we pretty print?
-		assert.NotEqual(t, 0, response.Transaction.Timestamp)     // TODO: format of timestamp
-		assert.Equal(t, "completed", response.Transaction.Status) // TODO: status definitions
+		assert.Equal(t, "10000", response.Transaction.Amount) // TODO: where do we pretty print?
+		assert.NotEqual(t, 0, response.Transaction.Timestamp) // TODO: format of timestamp
+		assert.Equal(t, account_transactions.Posted.String(), response.Transaction.Status)
 		assert.Equal(t, "to "+fundingSource.Mask+" bank account", response.Transaction.Description)
 		assert.Equal(t, generated.TransactionTypeWithdrawal, response.Transaction.Type)
 	})
@@ -257,7 +266,7 @@ func TestUserWithdrawals(s *testing.T) {
 			t.Fatal(err)
 		}
 		verifyFundingSource := true
-		aliceBankAccount, err := NewBankAccount(
+		_, err = NewBankAccount(
 			container,
 			alice,
 			&fundingsources.CreateBankAccountArgs{
@@ -274,16 +283,26 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
-			AccountID:       aliceAcc.ID,
-			FundingSourceID: aliceBankAccount.ID,
-			Amount:          10000, // 100 dollars
-			IdentityID:      alice.ID,
+		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   aliceAcc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   1000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  aliceAcc.LedgerAccountID,
+					Amount:          10000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, "completed", deposit.State)
+
 		bobBankAccount, err := NewBankAccount(
 			container,
 			bob,

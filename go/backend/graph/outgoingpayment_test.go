@@ -10,8 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/deposits"
-	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
@@ -67,33 +65,28 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		bankAccount, err := NewBankAccount(
-			container,
-			user,
-			&fundingsources.CreateBankAccountArgs{
-				IdentityID:    user.ID,
-				AccountID:     acc.ID,
-				Name:          faker.Name(),
-				AccountNumber: faker.CCNumber(),
-				RoutingNumber: faker.CCNumber(),
-				Institution:   faker.Name(),
-				Type:          "cheque",
-			},
-			true,
-		)
 		if err != nil {
 			t.Fatal(err)
 		}
-		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
-			IdentityID:      user.ID,
-			AccountID:       acc.ID,
-			FundingSourceID: bankAccount.ID,
-			Amount:          10000, // 100 dollars
+		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   10000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  acc.LedgerAccountID,
+					Amount:          10000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, account_transactions.Posted, deposit.State)
 
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",
@@ -194,33 +187,26 @@ func TestUserOutgoingPayment(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.False(t, acc.IsVerified())
-		bankAccount, err := NewBankAccount(
-			container,
-			user,
-			&fundingsources.CreateBankAccountArgs{
-				IdentityID:    user.ID,
-				AccountID:     acc.ID,
-				Name:          faker.Name(),
-				AccountNumber: faker.CCNumber(),
-				RoutingNumber: faker.CCNumber(),
-				Institution:   faker.Name(),
-				Type:          "cheque",
+
+		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   1000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  acc.LedgerAccountID,
+					Amount:          1000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
 			},
-			true,
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-		deposit, err := NewDeposit(container, &deposits.InitiateDepositArgs{
-			IdentityID:      user.ID,
-			AccountID:       acc.ID,
-			FundingSourceID: bankAccount.ID,
-			Amount:          10000, // 100 dollars
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Equal(t, account_transactions.Posted, deposit.State)
 
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
 			Amount: "10000",

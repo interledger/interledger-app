@@ -12,7 +12,7 @@ pull:
 
 test:
 	@echo "Running tests"
-	go test ./...
+	go test -p 2 ./...
 	@echo "Tests complete"
 
 format:

@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"gitlab.com/fynbos/backend/temporal"
 	"google.golang.org/grpc/credentials/insecure"
-	"fmt"
 	"log"
 	"net"
 	"net/http"

@@ -2,6 +2,7 @@ package account_transactions
 
 import (
 	"context"
+	"google.golang.org/grpc/credentials/insecure"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -261,7 +262,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.PacioliContainer = pacioliContainer
 
 	c.PacioliLedgerID = uint16(1)
-	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithInsecure())
+	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		s.Fatal(err)
 	}

@@ -11,7 +11,6 @@ import (
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -85,7 +84,7 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-	bankAccount, err := NewBankAccount(
+	_, err = NewBankAccount(
 		c,
 		user,
 		&fundingsources.CreateBankAccountArgs{
@@ -107,11 +106,21 @@ func TestTransactions(s *testing.T) {
 	transactionsAsc := make([]*account_transactions.AccountTransaction, totalTransactions)
 	for i < totalTransactions {
 		if i%2 == 0 {
-			transactionsAsc[i], err = NewDeposit(c, &deposits.InitiateDepositArgs{
-				AccountID:       acc.ID,
-				IdentityID:      user.ID,
-				FundingSourceID: bankAccount.ID,
-				Amount:          1000,
+			transactionsAsc[i], err = NewDeposit(c, &account_transactions.CreateTransactionArgs{
+				AccountID:   acc.ID,
+				Description: "Test transaction",
+				Type:        "deposit",
+				NetAmount:   1000,
+				LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+					{
+						LedgerID:        c.NoopService.GetLedgerID(),
+						CreditAccountID: c.NoopService.GetEquityAccountID(),
+						DebitAccountID:  acc.LedgerAccountID,
+						Amount:          1000,
+						// Code: uint16,
+						Flags: account_transactions.LedgerTransferFlags{},
+					},
+				},
 			})
 		} else {
 			transactionsAsc[i], err = c.Ps.InitiateOutgoingPayment(
@@ -199,7 +208,7 @@ func TestTransactions(s *testing.T) {
 					edge.Node.Amount,
 					scenario.Name,
 				)
-				assert.Equal(t, trx.State, edge.Node.Status, scenario.Name)
+				assert.Equal(t, trx.State.String(), edge.Node.Status, scenario.Name)
 				assert.Equal(t, trx.Description, edge.Node.Description, scenario.Name)
 				assert.Equal(t, trx.CreatedAt, edge.Node.Timestamp, scenario.Name)
 				assert.Equal(
@@ -257,7 +266,7 @@ func TestTransactions(s *testing.T) {
 			transaction.Type,
 		)
 		assert.Equal(t, transactionsAsc[0].CreatedAt, transaction.Timestamp)
-		assert.Equal(t, transactionsAsc[0].State, transaction.Status)
+		assert.Equal(t, transactionsAsc[0].State.String(), transaction.Status)
 		assert.Equal(
 			t,
 			fmt.Sprintf("$ %.2f", float64(transactionsAsc[0].NetAmount)/float64(100)),

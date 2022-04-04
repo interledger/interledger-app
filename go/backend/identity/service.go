@@ -200,7 +200,7 @@ func (self service) GetByEmail(ctx context.Context, email string) (*Identity, er
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 
-		country, err = self.country.Get(ctx, tx, identity.CountryID)
+		country, err = self.country.Get(ctx, identity.CountryID)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}

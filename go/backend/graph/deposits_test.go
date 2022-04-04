@@ -2,8 +2,7 @@ package graph
 
 import (
 	"context"
-	"fmt"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/deposits"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -86,11 +85,8 @@ func TestUserDeposits(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Deposit initiated.", response.Message)
-		assert.Equal(t, "10000", response.Transaction.Amount)                              // TODO: where do we pretty print?
-		assert.NotEqual(t, 0, response.Transaction.Timestamp)                              // TODO: format of timestamp
-		assert.Equal(t, account_transactions.Posted.String(), response.Transaction.Status) // TODO: status definitions
-		assert.Equal(t, fmt.Sprintf("from %s bank account", fundingSource.Mask), response.Transaction.Description)
-		assert.Equal(t, generated.TransactionTypeDeposit, response.Transaction.Type)
+		assert.Equal(t, "10000", response.Deposit.Amount) // TODO: where do we pretty print?
+		assert.Equal(t, deposits.Created.String(), response.Deposit.State)
 	})
 
 	/*
@@ -146,7 +142,7 @@ func TestUserDeposits(s *testing.T) {
 		assert.Equal(t, "403", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Deposit failed: Funding source is not verified.", response.Message)
-		assert.Nil(t, response.Transaction)
+		assert.Nil(t, response.Deposit)
 	})
 
 	// TODO: does the user need to be verified to allow deposits?
@@ -159,13 +155,11 @@ func initiateDeposit(container *TestContainer, user *_user.User, input *generate
 			            code
 			            success
 			            message
-			            transaction {
+			            deposit {
 			            	id
-			            	type
-			            	description
 			            	amount
 			            	timestamp
-			            	status
+			            	state
 			            }
 			        }
 			    }

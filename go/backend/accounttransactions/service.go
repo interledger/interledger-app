@@ -99,7 +99,6 @@ func NewService(args *ServiceArgs) (Service, error) {
 		db:        args.Db,
 		as:        args.AccountService,
 		pacioli:   args.PacioliClient,
-		db:        args.Db,
 	}, nil
 }
 
@@ -177,29 +176,29 @@ func (s *service) Create(
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
-	transferErrors := response.GetErrors()
-	if len(transferErrors) > 0 {
-		for _, err := range transferErrors {
-			switch err.Code {
-			case tb_types.TransferExceedsCredits:
-				return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
-			case tb_types.TransferExceedsDebits:
-				return fmt.Errorf("%w %+v", ErrExceedsDebits, err)
-			default:
-				return fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+		transferErrors := response.GetErrors()
+		if len(transferErrors) > 0 {
+			for _, err := range transferErrors {
+				switch err.Code {
+				case tb_types.TransferExceedsCredits:
+					return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
+				case tb_types.TransferExceedsDebits:
+					return fmt.Errorf("%w %+v", ErrExceedsDebits, err)
+				default:
+					return fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+				}
 			}
 		}
-	}
 
 		stmt, err := tx.PrepareNamedContext(ctx, `INSERT INTO account_transactions
 		(account_id, type, description, net_amount, state, transfer_ids) VALUES
 		(:accountid, :type, :description, :netamount, :state, :transfer_ids)
 		RETURNING *;
 		`,
-	)
-	if err != nil {
-		return fmt.Errorf("%s %w", err.Error(), ErrInternal)
-	}
+		)
+		if err != nil {
+			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
 
 		err = stmt.Stmt.Get(
 			&transaction,

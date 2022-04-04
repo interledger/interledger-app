@@ -362,7 +362,7 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		}
 	}
 
-	depositTransaction, err := r.Ds.InitiateDeposit(ctx, &deposits.InitiateDepositArgs{
+	deposit, err := r.Ds.InitiateDeposit(ctx, &deposits.InitiateDepositArgs{
 		IdentityID:      user.ID,
 		AccountID:       acc.ID,
 		FundingSourceID: input.FundingSourceID,
@@ -388,13 +388,11 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		Code:    "200",
 		Success: true,
 		Message: "Deposit initiated.",
-		Transaction: &generated.Transaction{
-			ID:          depositTransaction.ID,
-			Timestamp:   depositTransaction.CreatedAt, // TODO: decide format
-			Amount:      strconv.FormatInt(depositTransaction.NetAmount, 10),
-			Type:        generated.TransactionTypeDeposit,
-			Status:      depositTransaction.State.String(),
-			Description: depositTransaction.Description,
+		Deposit: &generated.Deposit{
+			ID:        deposit.ID,
+			State:     deposit.State.String(),
+			Amount:    strconv.FormatInt(int64(deposit.Amount), 10),
+			Timestamp: deposit.CreatedAt,
 		},
 	}, nil
 }
@@ -701,7 +699,7 @@ func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagina
 				Description: trx.Description,
 				Amount:      fmt.Sprintf("$ %.2f", float64(trx.NetAmount)/float64(100)),
 				Timestamp:   trx.CreatedAt,
-				Status:      trx.State,
+				Status:      trx.State.String(),
 			},
 			Cursor: trx.ID,
 		}
@@ -746,7 +744,7 @@ func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.
 		ID:          transaction.ID,
 		Type:        generated.TransactionType(strings.ToUpper(transaction.Type)),
 		Description: transaction.Description,
-		Status:      transaction.State,
+		Status:      transaction.State.String(),
 		Amount:      fmt.Sprintf("$ %.2f", float64(transaction.NetAmount)/float64(100)),
 		Timestamp:   transaction.CreatedAt,
 	}, nil

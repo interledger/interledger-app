@@ -107,7 +107,7 @@ type DepositMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  transaction: Transaction
+  deposit: Deposit
 }
 
 enum TransactionType {
@@ -179,4 +179,11 @@ type TransactionEdge {
 type TransactionsConnection {
   pageInfo: PageInfo!
   edges: [TransactionEdge!]!
+}
+
+type Deposit {
+  id: ID!
+  state: String!
+  amount: String!
+  timestamp: String!
 }
