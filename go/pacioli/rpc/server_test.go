@@ -192,7 +192,7 @@ func TestRpc(s *testing.T) {
 						Flags: &pacioliv1.TransferFlags{
 							TwoPhaseCommit: true,
 						},
-						Timeout: uint64(10 * time.Millisecond),
+						Timeout: uint64(1 * time.Second),
 					},
 				},
 			})

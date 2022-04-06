@@ -237,7 +237,36 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 }
 
 func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTransfersRequest) (*pacioliv1.CommitTransfersResponse, error) {
+	commits := req.GetCommits()
+	commitArgs := make([]_ledger.CommitTransferArgs, len(commits))
+	for i, commit := range commits {
+		flags := _ledger.CommitFlags{}
+		if commit.GetFlags() != nil {
+			flags.Linked = commit.GetFlags().Linked
+			flags.Reject = commit.GetFlags().Reject
+			flags.Preimage = commit.GetFlags().Preimage
+		}
+		commitArgs[i] = _ledger.CommitTransferArgs{
+			ID:    commit.GetId(),
+			Flags: flags,
+			Code:  commit.GetCode(),
+		}
+	}
+
+	errors, err := s.ledger.CommitTransfers(ctx, DEV_TENANT, commitArgs)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Failed to commit transfers.")
+	}
+
+	errorsToReturn := make([]*pacioliv1.EventError, len(errors))
+	for i, err := range errors {
+		errorsToReturn[i] = &pacioliv1.EventError{
+			Index: err.Index,
+			Code:  err.Code,
+		}
+	}
+
 	return &pacioliv1.CommitTransfersResponse{
-		Errors: []*pacioliv1.EventError{},
+		Errors: errorsToReturn,
 	}, nil
 }
