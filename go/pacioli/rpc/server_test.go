@@ -161,4 +161,64 @@ func TestRpc(s *testing.T) {
 		assert.Equal(t, false, flags.GetLinked())
 		assert.Equal(t, true, flags.GetTwoPhaseCommit())
 	})
+
+	s.Run("can commit transfers", func(t *testing.T) {
+		scenarios := []struct {
+			Name       string
+			TransferID string
+			Reject     bool
+		}{
+			{
+				Name:       "can commit transfer",
+				TransferID: uuid.NewString(),
+				Reject:     false,
+			},
+			{
+				Name:       "can reject transfer",
+				TransferID: uuid.NewString(),
+				Reject:     true,
+			},
+		}
+
+		for _, scenario := range scenarios {
+			createTransfersResponse, err := c.Client.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
+				Transfers: []*pacioliv1.Transfer{
+					{
+						Id:              scenario.TransferID,
+						DebitAccountId:  accountAID,
+						CreditAccountId: accountBID,
+						Amount:          100,
+						Code:            1,
+						Flags: &pacioliv1.TransferFlags{
+							TwoPhaseCommit: true,
+						},
+						Timeout: uint64(10 * time.Millisecond),
+					},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			errors := createTransfersResponse.GetErrors()
+			assert.Len(t, errors, 0)
+
+			commitTransfersResponse, err := c.Client.CommitTransfers(ctx, &pacioliv1.CommitTransfersRequest{
+				Commits: []*pacioliv1.Commit{
+					{
+						Id:   scenario.TransferID,
+						Code: 1,
+						Flags: &pacioliv1.CommitFlags{
+							Reject: scenario.Reject,
+						},
+					},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			errors = commitTransfersResponse.GetErrors()
+			assert.Len(t, errors, 0)
+		}
+	})
+
 }

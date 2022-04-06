@@ -235,3 +235,9 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 		Transfers: transfersToReturn,
 	}, nil
 }
+
+func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTransfersRequest) (*pacioliv1.CommitTransfersResponse, error) {
+	return &pacioliv1.CommitTransfersResponse{
+		Errors: []*pacioliv1.EventError{},
+	}, nil
+}
