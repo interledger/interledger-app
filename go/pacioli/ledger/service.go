@@ -63,6 +63,7 @@ type Transfer struct {
 	Timeout         uint64
 }
 
+type CommitFlags = tigerbeetleTypes.CommitFlags
 type TransferFlags = tigerbeetleTypes.TransferFlags
 type AccountFlags = tigerbeetleTypes.AccountFlags
 type EventResult = tigerbeetleTypes.EventResult
@@ -82,6 +83,7 @@ type Service interface {
 	GetAccounts(ctx context.Context, tenant string, accountIDs []string) ([]Account, error)
 	CreateTransfers(ctx context.Context, tenant string, args []CreateTransferArgs) ([]EventResult, error)
 	GetTransfers(ctx context.Context, tenant string, transferIDs []string) ([]Transfer, error)
+	CommitTransfers(ctx context.Context, tenant string, args []CommitTransferArgs) ([]EventResult, error)
 }
 
 type service struct {
@@ -512,4 +514,38 @@ func (s *service) GetTransfers(ctx context.Context, tenant string, transferIDs [
 	// TODO: ACL on ledgers involved
 
 	return ret, nil
+}
+
+type CommitTransferArgs struct {
+	ID    string `validate:"required,uuid4"`
+	Flags CommitFlags
+	Code  uint32
+}
+
+func (s *service) CommitTransfers(ctx context.Context, tenant string, args []CommitTransferArgs) ([]EventResult, error) {
+	commits := make([]tigerbeetleTypes.Commit, len(args))
+	for i, commit := range args {
+		err := s.validator.Struct(commit)
+		if err != nil {
+			return nil, fmt.Errorf("%s %w", err.Error(), ErrInvalidArg)
+		}
+
+		commitID, err := UuidToU128(commit.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+
+		commits[i] = tigerbeetleTypes.Commit{
+			ID:    *commitID,
+			Code:  commit.Code,
+			Flags: commit.Flags.ToUint32(),
+		}
+	}
+
+	eventErrors, err := s.tb.CommitTransfers(commits)
+	if err != nil {
+		return nil, err
+	}
+
+	return eventErrors, nil
 }
