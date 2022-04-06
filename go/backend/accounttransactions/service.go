@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -18,13 +19,13 @@ import (
 )
 
 var (
-	ErrInternal              = errors.New("account transactions: internal error.")
-	ErrInvalidArgument       = errors.New("account transactions: invalid argument.")
-	ErrNotFound              = errors.New("account transactions: not found.")
-	ErrDuplicate             = errors.New("account transactions: duplicate.")
-	ErrInvalidLedgerTransfer = errors.New("account transactions: ledger transfer failed.")
-	ErrExceedsDebits         = errors.New("account transactions: exceeds debits.")
-	ErrExceedsCredits        = errors.New("account transactions: exceeds credits.")
+	ErrInternal              = errors.New("account transactions: internal error")
+	ErrInvalidArgument       = errors.New("account transactions: invalid argument")
+	ErrNotFound              = errors.New("account transactions: not found")
+	ErrDuplicate             = errors.New("account transactions: duplicate")
+	ErrInvalidLedgerTransfer = errors.New("account transactions: ledger transfer failed")
+	ErrExceedsDebits         = errors.New("account transactions: exceeds debits")
+	ErrExceedsCredits        = errors.New("account transactions: exceeds credits")
 )
 
 // This represents the transaction that a user has performed on their account.
@@ -59,6 +60,9 @@ type accountTransaction struct {
 type Service interface {
 	// TODO: Create should return an error array
 	Create(ctx context.Context, args *CreateTransactionArgs) (*AccountTransaction, error)
+	CreatePending(ctx context.Context, args *CreatePendingTransactionArgs) (*AccountTransaction, error)
+	PostPending(ctx context.Context, id string) (*AccountTransaction, error)
+	VoidPending(ctx context.Context, id string) (*AccountTransaction, error)
 	GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) ([]*AccountTransaction, error)
 	GetPage(ctx context.Context, args *PaginationArgs) ([]AccountTransaction, error)
 	GetPageInfo(
@@ -237,6 +241,295 @@ func (s *service) Create(
 	}, nil
 }
 
+type CreatePendingTransactionArgs struct {
+	AccountID   string `validate:"required,uuid4"`
+	Description string
+	Type        string `validate:"oneof=deposit withdrawal outgoingPayment"`
+
+	// a uint64 as you can't have a negative deposit/withdrawal etc.
+	NetAmount uint64 `validate:"gt=0"`
+
+	// We assume an account transaction has to backed by at least one ledger transfer
+	LedgerTransfers []CreateLedgerTransferArgs `validate:"dive,gt=0"`
+}
+
+func (s *service) CreatePending(
+	ctx context.Context,
+	args *CreatePendingTransactionArgs,
+) (*AccountTransaction, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
+	}
+
+	acc, err := s.as.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	// Default to 48 Hours timeout
+	duration, err := time.ParseDuration("48h")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	var transaction accountTransaction
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+
+		ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
+		transferIDs := make([]string, len(args.LedgerTransfers))
+		for i, transfer := range args.LedgerTransfers {
+			id := uuid.NewString()
+			transferIDs[i] = id
+			ledgerTransfers[i] = &pacioli.Transfer{
+				Id:              id,
+				DebitAccountId:  transfer.DebitAccountID,
+				CreditAccountId: transfer.CreditAccountID,
+				Amount:          transfer.Amount,
+				Code:            uint32(transfer.Code),
+				Timeout:         uint64(duration.Nanoseconds()),
+				Flags: &pacioli.TransferFlags{
+					Linked:         transfer.Flags.Linked,
+					TwoPhaseCommit: true,
+					Condition:      false,
+				},
+				// TODO: add ledger id once TB supports it
+			}
+		}
+
+		response, err := s.pacioli.CreateTransfers(ctx, &pacioli.CreateTransfersRequest{
+			Transfers: ledgerTransfers,
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		transferErrors := response.GetErrors()
+		if len(transferErrors) > 0 {
+			for _, err := range transferErrors {
+				switch err.Code {
+				case tb_types.TransferExceedsCredits:
+					return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
+				case tb_types.TransferExceedsDebits:
+					return fmt.Errorf("%w %+v", ErrExceedsDebits, err)
+				default:
+					return fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+				}
+			}
+		}
+
+		stmt, err := tx.PrepareNamedContext(ctx, `INSERT INTO account_transactions
+		(account_id, type, description, net_amount, state, transfer_ids) VALUES
+		(:accountid, :type, :description, :netamount, :state, :transfer_ids)
+		RETURNING *;
+		`,
+		)
+		if err != nil {
+			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+
+		err = stmt.Stmt.Get(
+			&transaction,
+			acc.ID,
+			args.Type,
+			args.Description,
+			args.NetAmount,
+			Pending.String(),
+			pq.StringArray(transferIDs),
+		)
+		if err != nil {
+			return fmt.Errorf("%s %w", err.Error(), ErrInternal)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var state State
+	err = state.Unmarshall(transaction.State)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccountTransaction{
+		ID:          transaction.ID,
+		Type:        transaction.Type,
+		AccountID:   transaction.AccountID,
+		Description: transaction.Description,
+		State:       state,
+		NetAmount:   transaction.NetAmount,
+		TransferIDs: []string(transaction.TransferIDs),
+		CreatedAt:   transaction.CreatedAt,
+		UpdatedAt:   transaction.UpdatedAt,
+	}, nil
+}
+
+func (s *service) PostPending(ctx context.Context, id string) (*AccountTransaction, error) {
+	trx := &accountTransaction{}
+	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		err := s.db.GetContext(
+			ctx,
+			trx,
+			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
+			id,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return ErrNotFound
+			}
+
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		// Check if state is pending
+		if trx.State != Pending.String() {
+			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
+		}
+
+		ledgerCommits := make([]*pacioli.Commit, len(trx.TransferIDs))
+		for i, transferId := range trx.TransferIDs {
+			ledgerCommits[i] = &pacioli.Commit{
+				Id:   transferId,
+				Code: uint32(1), // TODO what do we want the code to be here?
+				Flags: &pacioli.CommitFlags{
+					Linked:   false,
+					Reject:   false,
+					Preimage: false,
+				},
+			}
+		}
+
+		response, err := s.pacioli.CommitTransfers(ctx, &pacioli.CommitTransfersRequest{
+			Commits: ledgerCommits,
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		// TODO need to handle the case where this was retried and is safe to do so... ie committed already.
+		commitErrors := response.GetErrors()
+		if len(commitErrors) > 0 {
+			for _, err := range commitErrors {
+				switch err.Code {
+				default:
+					return fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+				}
+			}
+		}
+
+		_, err = s.db.Exec("UPDATE account_transactions set state = $1 where id = $2", Posted.String(), id)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		err = s.db.GetContext(
+			ctx,
+			trx,
+			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
+			id,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return ErrNotFound
+			}
+
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var state State
+	err = state.Unmarshall(trx.State)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccountTransaction{
+		ID:          trx.ID,
+		Type:        trx.Type,
+		AccountID:   trx.AccountID,
+		Description: trx.Description,
+		State:       state,
+		NetAmount:   trx.NetAmount,
+		TransferIDs: []string(trx.TransferIDs),
+		CreatedAt:   trx.CreatedAt,
+		UpdatedAt:   trx.UpdatedAt,
+	}, nil
+}
+
+func (s *service) VoidPending(ctx context.Context, id string) (*AccountTransaction, error) {
+	trx := &accountTransaction{}
+	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		err := s.db.GetContext(
+			ctx,
+			trx,
+			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
+			id,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return ErrNotFound
+			}
+
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		// Check if state is pending
+		if trx.State != Pending.String() {
+			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
+		}
+
+		fmt.Println(trx.TransferIDs)
+
+		// call out to commit
+
+		_, err = s.db.Exec("UPDATE account_transactions set state = $1 where id = $2", Voided.String(), id)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		err = s.db.GetContext(
+			ctx,
+			trx,
+			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
+			id,
+		)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return ErrNotFound
+			}
+
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var state State
+	err = state.Unmarshall(trx.State)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccountTransaction{
+		ID:          trx.ID,
+		Type:        trx.Type,
+		AccountID:   trx.AccountID,
+		Description: trx.Description,
+		State:       state,
+		NetAmount:   trx.NetAmount,
+		TransferIDs: []string(trx.TransferIDs),
+		CreatedAt:   trx.CreatedAt,
+		UpdatedAt:   trx.UpdatedAt,
+	}, nil
+}
+
 type GetByAccountArgs struct {
 	AccountID string `validate:"required,uuid4"`
 	Limit     uint32 `validate:"gt=1"`
@@ -306,7 +599,7 @@ func (s *service) GetPage(ctx context.Context, args *PaginationArgs) ([]AccountT
 		limit = 10
 	}
 
-	sql := "SELECT * FROM account_transactions WHERE "
+	query := "SELECT * FROM account_transactions WHERE "
 	conds := make([]string, 0)
 	conds = append(conds, "account_id=:accountid")
 	if args.After != "" {
@@ -319,8 +612,8 @@ func (s *service) GetPage(ctx context.Context, args *PaginationArgs) ([]AccountT
 		)
 	}
 
-	sql = sql + strings.Join(conds, " AND ")
-	stmt, err := s.db.PrepareNamedContext(ctx, sql+" ORDER BY created_at DESC LIMIT :limit;")
+	query = query + strings.Join(conds, " AND ")
+	stmt, err := s.db.PrepareNamedContext(ctx, query+" ORDER BY created_at DESC LIMIT :limit;")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}

@@ -2,6 +2,7 @@ package account_transactions
 
 import (
 	"context"
+	"fmt"
 	"google.golang.org/grpc/credentials/insecure"
 	"testing"
 
@@ -76,21 +77,11 @@ func TestAccountTransactions(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		equityAccID := uuid.NewString()
-		response, err := container.PacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       equityAccID,
-					LedgerId: uint32(container.PacioliLedgerID),
-				},
-			},
-		})
+		equityAccID, err := createEquityAccount(container)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(response.GetErrors()) != 0 {
-			t.Fatal("Equity account failed to be created.")
-		}
+
 		args := generateCreateTransactionArgs(
 			withAccountID(acc.ID),
 			withAmount(17),
@@ -125,8 +116,10 @@ func TestAccountTransactions(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Len(t, transferResponse.GetTransfers(), 1)
-		assert.Equal(t, transferResponse.GetTransfers()[0].CreditAccountId, equityAccID)
-		assert.Equal(t, transferResponse.GetTransfers()[0].DebitAccountId, acc.LedgerAccountID)
+		transfer := transferResponse.GetTransfers()[0]
+		assert.Equal(t, transfer.CreditAccountId, equityAccID)
+		assert.Equal(t, transfer.DebitAccountId, acc.LedgerAccountID)
+		assert.Equal(t, transfer.Flags.TwoPhaseCommit, false)
 
 		// check that get works
 		var trxs []*AccountTransaction
@@ -155,6 +148,268 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, Posted, fetchedTransaction.State)
 		assert.Equal(t, args.Type, fetchedTransaction.Type)
 		assert.Equal(t, trx.TransferIDs, fetchedTransaction.TransferIDs)
+	})
+
+	s.Run("pending", func(tg *testing.T) {
+		tg.Run("can create a pending transaction", func(t *testing.T) {
+			user := _user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+			_, acc, err := onboard(container, &user)
+			if err != nil {
+				t.Fatal(err)
+			}
+			equityAccID, err := createEquityAccount(container)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			args := &CreatePendingTransactionArgs{
+				AccountID:   acc.ID,
+				Description: "Pending trx",
+				Type:        "deposit",
+				NetAmount:   100,
+				LedgerTransfers: []CreateLedgerTransferArgs{
+					{
+						LedgerID:        container.PacioliLedgerID,
+						DebitAccountID:  acc.LedgerAccountID,
+						CreditAccountID: equityAccID,
+						Amount:          100,
+						Code:            0,
+						Flags:           LedgerTransferFlags{},
+					},
+				},
+			}
+
+			trx, err := container.TransactionService.CreatePending(container.Ctx, args)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, args.AccountID, trx.AccountID)
+			assert.Equal(t, int64(args.NetAmount), trx.NetAmount)
+			assert.Equal(t, args.Description, trx.Description)
+			assert.Equal(t, Pending, trx.State)
+			assert.Equal(t, args.Type, trx.Type)
+
+			// check that ledger transfers were created
+			transferResponse, err := container.PacioliClient.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
+				Ids: trx.TransferIDs,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Len(t, transferResponse.GetTransfers(), 1)
+			transfer := transferResponse.GetTransfers()[0]
+			assert.Equal(t, transfer.CreditAccountId, equityAccID)
+			assert.Equal(t, transfer.DebitAccountId, acc.LedgerAccountID)
+			assert.Equal(t, transfer.Flags.TwoPhaseCommit, true)
+
+			// check that get works
+			var trxs []*AccountTransaction
+			err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
+				_trxs, err := container.TransactionService.GetByAccount(container.Ctx, tx, &GetByAccountArgs{
+					AccountID: acc.ID,
+					Limit:     10,
+					OrderBy:   "ASC",
+				})
+				if err != nil {
+					return err
+				}
+				trxs = _trxs
+
+				return nil
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Len(t, trxs, 1)
+			fetchedTransaction := trxs[0]
+			assert.Equal(t, args.AccountID, fetchedTransaction.AccountID)
+			assert.Equal(t, int64(args.NetAmount), fetchedTransaction.NetAmount)
+			assert.Equal(t, args.Description, fetchedTransaction.Description)
+			assert.Equal(t, Pending, fetchedTransaction.State)
+			assert.Equal(t, args.Type, fetchedTransaction.Type)
+			assert.Equal(t, trx.TransferIDs, fetchedTransaction.TransferIDs)
+		})
+	})
+
+	s.Run("post pending", func(tg *testing.T) {
+		tg.Run("can post a pending transaction", func(t *testing.T) {
+			user := _user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+			_, acc, err := onboard(container, &user)
+			if err != nil {
+				t.Fatal(err)
+			}
+			equityAccID, err := createEquityAccount(container)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			args := &CreatePendingTransactionArgs{
+				AccountID:   acc.ID,
+				Description: "Pending trx",
+				Type:        "deposit",
+				NetAmount:   100,
+				LedgerTransfers: []CreateLedgerTransferArgs{
+					{
+						LedgerID:        container.PacioliLedgerID,
+						DebitAccountID:  acc.LedgerAccountID,
+						CreditAccountID: equityAccID,
+						Amount:          100,
+						Code:            0,
+						Flags:           LedgerTransferFlags{},
+					},
+				},
+			}
+			trx, err := container.TransactionService.CreatePending(container.Ctx, args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, Pending, trx.State)
+
+			trx, err = container.TransactionService.PostPending(container.Ctx, trx.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, Posted, trx.State)
+
+			// TODO check the commit transfer was created
+		})
+
+		tg.Run("cant post a non pending transaction", func(t *testing.T) {
+			user := _user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+			_, acc, err := onboard(container, &user)
+			if err != nil {
+				t.Fatal(err)
+			}
+			equityAccID, err := createEquityAccount(container)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			args := generateCreateTransactionArgs(
+				withAccountID(acc.ID),
+				withAmount(17),
+				withLedgerTransfers([]CreateLedgerTransferArgs{
+					{
+						LedgerID:        container.PacioliLedgerID,
+						DebitAccountID:  acc.LedgerAccountID,
+						CreditAccountID: equityAccID,
+						Amount:          100,
+						Code:            0,
+						Flags:           LedgerTransferFlags{},
+					},
+				}),
+			)
+
+			trx, err := container.TransactionService.Create(container.Ctx, args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.NotEqual(t, Pending, trx.State)
+
+			trx, err = container.TransactionService.PostPending(container.Ctx, trx.ID)
+			if err == nil {
+				t.Fatal("expected error to occur")
+			}
+		})
+	})
+
+	s.Run("void pending", func(tg *testing.T) {
+		tg.Run("can void a pending transaction", func(t *testing.T) {
+			user := _user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+			_, acc, err := onboard(container, &user)
+			if err != nil {
+				t.Fatal(err)
+			}
+			equityAccID, err := createEquityAccount(container)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			args := &CreatePendingTransactionArgs{
+				AccountID:   acc.ID,
+				Description: "Pending trx",
+				Type:        "deposit",
+				NetAmount:   100,
+				LedgerTransfers: []CreateLedgerTransferArgs{
+					{
+						LedgerID:        container.PacioliLedgerID,
+						DebitAccountID:  acc.LedgerAccountID,
+						CreditAccountID: equityAccID,
+						Amount:          100,
+						Code:            0,
+						Flags:           LedgerTransferFlags{},
+					},
+				},
+			}
+			trx, err := container.TransactionService.CreatePending(container.Ctx, args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, Pending, trx.State)
+
+			trx, err = container.TransactionService.VoidPending(container.Ctx, trx.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, Voided, trx.State)
+		})
+
+		tg.Run("cant void a non pending transaction", func(t *testing.T) {
+			user := _user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+			_, acc, err := onboard(container, &user)
+			if err != nil {
+				t.Fatal(err)
+			}
+			equityAccID, err := createEquityAccount(container)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			args := generateCreateTransactionArgs(
+				withAccountID(acc.ID),
+				withAmount(17),
+				withLedgerTransfers([]CreateLedgerTransferArgs{
+					{
+						LedgerID:        container.PacioliLedgerID,
+						DebitAccountID:  acc.LedgerAccountID,
+						CreditAccountID: equityAccID,
+						Amount:          100,
+						Code:            0,
+						Flags:           LedgerTransferFlags{},
+					},
+				}),
+			)
+
+			trx, err := container.TransactionService.Create(container.Ctx, args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.NotEqual(t, Pending, trx.State)
+
+			trx, err = container.TransactionService.VoidPending(container.Ctx, trx.ID)
+			if err == nil {
+				t.Fatal("expected error to occur")
+			}
+		})
 	})
 }
 
@@ -337,4 +592,23 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 	}
 
 	return identity, acc, nil
+}
+
+func createEquityAccount(container *TestContainer) (string, error) {
+	equityAccID := uuid.NewString()
+	response, err := container.PacioliClient.ConfigureAccounts(context.Background(), &pacioliv1.ConfigureAccountsRequest{
+		Args: []*pacioliv1.ConfigureAccountsArgs{
+			{
+				Id:       equityAccID,
+				LedgerId: uint32(container.PacioliLedgerID),
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+	if len(response.GetErrors()) != 0 {
+		return "", fmt.Errorf("equity account failed to be created")
+	}
+	return equityAccID, nil
 }
