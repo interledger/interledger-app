@@ -89,7 +89,7 @@ export default function App() {
 export function ErrorBoundary({ error }: { error: Error }) {
   return (
     <Document title='An error occurred.'>
-      <Error reason={error.message} />
+      <Error data={{ body: error.message }} />
     </Document>
   )
 }
@@ -98,7 +98,7 @@ export function CatchBoundary() {
   const caught = useCatch()
   return (
     <Document title='An error occurred.'>
-      <Error statusCode={caught.status} reason={caught.statusText} />
+      <Error status={caught.status} data={caught.data} />
     </Document>
   )
 }
