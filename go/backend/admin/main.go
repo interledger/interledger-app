@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -19,12 +20,14 @@ import (
 
 var (
 	ErrInvalidArgument = errors.New("admin grpc: invalid argument.")
+	ErrInternal        = errors.New("admin grpc: internal error.")
 )
 
 type ServerArgs struct {
-	Hs healthcheck.Service
-	Is identity.Service
-	As accounts.Service
+	Hs healthcheck.Service `validate:"required"`
+	Is identity.Service    `validate:"required"`
+	As accounts.Service    `validate:"required"`
+	Us auth.Service        `validate:"required"`
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -33,11 +36,14 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	server := grpc.NewServer()
+	server := grpc.NewServer(
+		args.Us.MakeUnaryInterceptors(),
+	)
 	backendv1.RegisterBackendServiceServer(server, &rpcServer{
 		validator: validator,
 		as:        args.As,
 		is:        args.Is,
+		us:        args.Us,
 	})
 	grpc_health_v1.RegisterHealthServer(server, args.Hs)
 	reflection.Register(server)
@@ -49,13 +55,17 @@ type rpcServer struct {
 	validator *validator.Validate
 	as        accounts.Service
 	is        identity.Service
+	us        auth.Service
 }
 
 func (s *rpcServer) GetUserAccountByEmail(
 	ctx context.Context,
 	req *backendv1.GetUserAccountByEmailRequest,
 ) (*backendv1.Account, error) {
-	// TODO: authN and authZ
+	_, err := s.us.ForContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
+	}
 
 	id, err := s.is.GetByEmail(ctx, req.GetEmail())
 	if err != nil {

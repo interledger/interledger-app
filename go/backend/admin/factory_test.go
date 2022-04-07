@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -152,11 +153,12 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	us := auth.NewMockService()
 	server, err := NewServer(&ServerArgs{
 		Hs: hs,
 		Is: is,
 		As: as,
+		Us: us,
 	})
 	if err != nil {
 		return nil, err
