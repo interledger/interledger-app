@@ -89,6 +89,7 @@ export const action: ActionFunction = async ({ request }) => {
         })
       }
     }
+    // TODO: add formError here and catch on frontend
     return badRequest({ fieldErrors: fieldErrors, fields })
   }
   return redirect(route('/verify'), {

@@ -17,7 +17,10 @@ export const Footer: FC = () => {
         <Router to={'https://interledger.org'} aria-label='Interledger'>
           Interledger
         </Router>
-        <Router to={'https://docs.openpayments.guide'} aria-label='Open Payments'>
+        <Router
+          to={'https://docs.openpayments.guide'}
+          aria-label='Open Payments'
+        >
           Open Payments
         </Router>
       </div>
