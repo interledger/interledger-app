@@ -82,15 +82,16 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 }
 
 type StartArgs struct {
-	Port                string
-	DbConnectionString  string
-	KratosUrl           string
-	PacioliUrl          string
-	UsdLedgerID         uint16
-	LogLevel            string
-	LogOutputPath       string
-	NoopLedgerID        uint16
-	NoopEquityAccountID string
+	Port                 string
+	DbConnectionString   string
+	KratosUrl            string
+	PacioliUrl           string
+	UsdLedgerID          uint16
+	LogLevel             string
+	LogOutputPath        string
+	NoopLedgerID         uint16
+	NoopEquityAccountID  string
+	GoogleOauth2ClientID string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -142,15 +143,21 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("NOOP_EQUITY_ACCOUNT_ID is required.")
 	}
 
+	googleOauth2ClientID := os.Getenv("GOOGLE_OUATH2_CLIENT_ID")
+	if googleOauth2ClientID == "" {
+		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
+	}
+
 	return &StartArgs{
-		Port:                port,
-		DbConnectionString:  connString,
-		KratosUrl:           kratosUrl,
-		PacioliUrl:          pacioliUrl,
-		UsdLedgerID:         uint16(usdLedgerID),
-		LogLevel:            logLevel,
-		LogOutputPath:       logOutputPath,
-		NoopLedgerID:        uint16(usdLedgerID), // all on the same ledger at the moment.
-		NoopEquityAccountID: noopEquityAccount,
+		Port:                 port,
+		DbConnectionString:   connString,
+		KratosUrl:            kratosUrl,
+		PacioliUrl:           pacioliUrl,
+		UsdLedgerID:          uint16(usdLedgerID),
+		LogLevel:             logLevel,
+		LogOutputPath:        logOutputPath,
+		NoopLedgerID:         uint16(usdLedgerID), // all on the same ledger at the moment.
+		NoopEquityAccountID:  noopEquityAccount,
+		GoogleOauth2ClientID: googleOauth2ClientID,
 	}, nil
 }

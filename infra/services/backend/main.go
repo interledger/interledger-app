@@ -13,13 +13,14 @@ import (
 )
 
 type DeployBackendArgs struct {
-	Cert                *apiextensions.CustomResource
-	ImageRepo           string
-	ImageTag            string
-	UsdLedgerCode       uint16
-	NoopEquityAccountID string
-	Hostname            string
-	EnablePlayground    bool
+	Cert                 *apiextensions.CustomResource
+	ImageRepo            string
+	ImageTag             string
+	UsdLedgerCode        uint16
+	NoopEquityAccountID  string
+	Hostname             string
+	EnablePlayground     bool
+	GoogleOauth2ClientID string // oauth client for the admin app
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -36,7 +37,15 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert, args.UsdLedgerCode, args.NoopEquityAccountID)
+	err = deployDeployment(
+		ctx,
+		args.ImageRepo,
+		args.ImageTag,
+		args.Cert,
+		args.UsdLedgerCode,
+		args.NoopEquityAccountID,
+		args.GoogleOauth2ClientID,
+	)
 	if err != nil {
 		return err
 	}
@@ -113,6 +122,7 @@ func deployDeployment(
 	cert *apiextensions.CustomResource,
 	usdLedgerCode uint16,
 	noopEquityAccountID string,
+	googleOauth2ClientID string,
 ) error {
 	_, err := appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
@@ -269,6 +279,10 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("PACIOLI_URL"),
 									Value: pulumi.String("pacioli:443"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("GOOGLE_OUATH2_CLIENT_ID"),
+									Value: pulumi.String(googleOauth2ClientID),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{

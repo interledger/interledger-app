@@ -11,6 +11,7 @@ import (
 	"time"
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -254,10 +255,16 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	adminUsers, err := auth.NewService(args.GoogleOauth2ClientID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	adminUsers = auth.NewLoggingService(adminUsers, logger)
 	server, err := _admin.NewServer(&_admin.ServerArgs{
 		Hs: health,
 		Is: id,
 		As: as,
+		Us: adminUsers,
 	})
 	if err != nil {
 		log.Fatalln(err)
