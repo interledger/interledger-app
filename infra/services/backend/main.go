@@ -292,6 +292,44 @@ func deployDeployment(
 								},
 							},
 						},
+						&corev1.ContainerArgs{
+							Name:            pulumi.String("worker"),
+							Image:           pulumi.Sprintf("%s/backend:%s", imageRepo, imageTag),
+							ImagePullPolicy: pulumi.String("Always"),
+							Args:            pulumi.StringArray{pulumi.String("worker")},
+							Env: corev1.EnvVarArray{
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("DB_URL"),
+									Value: pulumi.String("cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("KRATOS_URL"),
+									Value: pulumi.String("http://kratos-public"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("LOG_LEVEL"),
+									Value: pulumi.String("debug"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("USD_LEDGER_ID"),
+									Value: pulumi.String(strconv.Itoa(int(usdLedgerCode))),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("NOOP_EQUITY_ACCOUNT_ID"),
+									Value: pulumi.String(noopEquityAccountID),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("PACIOLI_URL"),
+									Value: pulumi.String("pacioli:443"),
+								},
+							},
+							VolumeMounts: corev1.VolumeMountArray{
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("cockroach-certs"),
+									MountPath: pulumi.String("/cockroach-certs"),
+								},
+							},
+						},
 					},
 					TerminationGracePeriodSeconds: pulumi.Int(30),
 				},

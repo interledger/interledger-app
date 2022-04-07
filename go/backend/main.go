@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"gitlab.com/fynbos/backend/temporal"
+	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
@@ -71,6 +72,12 @@ func main() {
 			log.Fatalln(err)
 		}
 		start(args)
+	case "worker":
+		args, err := cli.ParseStartArgs()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		startWorker(args)
 	default:
 		log.Fatalln("Unknown command:", command)
 	}
@@ -378,4 +385,121 @@ func configurePacioli(args *cli.MigrationArgs) error {
 	}
 
 	return nil
+}
+
+func startWorker(args *cli.StartArgs) {
+	log.Printf("begin worker start")
+	db, err := sqlx.Connect("postgres", args.DbConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
+	cfg := zap.NewProductionConfig()
+	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	cfg.OutputPaths = []string{args.LogOutputPath}
+	logger, err := cfg.Build()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	cs := country.NewService(db)
+	id, err := identity.NewService(identity.ServiceArgs{
+		CountryService: cs,
+		Db:             db,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	id = identity.NewLoggingService(id, logger)
+
+	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pClient := pacioliv1.NewPacioliServiceClient(conn)
+	as, err := accounts.NewService(&accounts.ServiceArgs{
+		Db:              db,
+		Is:              id,
+		Cs:              cs,
+		PacioliClient:   pClient,
+		PacioliLedgerID: args.UsdLedgerID,
+		PacioliTenant:   "dev",
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	as = accounts.NewLoggingService(as, logger)
+
+	ts, err := transactions.NewService(&transactions.ServiceArgs{
+		AccountService: as,
+		PacioliClient:  pClient,
+		Db:             db,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	ts = transactions.NewLoggingService(ts, logger)
+
+	nos, err := _noop.NewService(_noop.ServiceArgs{
+		LedgerID:      args.NoopLedgerID,
+		EquityAccID:   args.NoopEquityAccountID,
+		PacioliTenant: "dev",
+		PacioliClient: pClient,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
+		Is:   id,
+		As:   as,
+		Db:   db,
+		Noop: nos,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fs = fundingsources.NewLoggingService(fs, logger)
+
+	tp, err := temporal.NewTemporalClient()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	ds, err := deposits.NewService(&deposits.ServiceArgs{
+		Db: db,
+		As: as,
+		Is: id,
+		Fs: fs,
+		Tp: tp,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("Worker creating")
+	w, err := temporal.NewTemporalWorker(temporal.WorkerArgs{
+		Client: tp,
+		Ds:     ds,
+		As:     as,
+		Np:     nos,
+		Ts:     ts,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = w.Run(worker.InterruptCh())
+	log.Printf("Worker started")
+	if err != nil {
+		logger.Fatal("Unable to start worker", zap.Error(err))
+	}
 }
