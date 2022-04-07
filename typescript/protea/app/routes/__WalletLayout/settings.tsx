@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, LoaderFunction, redirect, useLoaderData, json } from 'remix'
 import { route } from 'routes-gen'
-import { BackIcon, NextIcon, Router, Snackbar } from '~/components'
+import { BackIcon, CardIcon, NextIcon, Router, Snackbar } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
@@ -67,17 +67,25 @@ export default function SettingsPage() {
               {session?.identity.traits.email}
             </span>
           </div>
-          <NextIcon />
         </div>
         <div className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex flex-col'>
             <span className='font-display text-xs font-medium'>Country</span>
+            <span className='font-sans text-base font-normal'>TODO</span>
+          </div>
+        </div>
+        <Router
+          to='/settings/payment-methods'
+          className={`col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4`}
+        >
+          <div className='flex space-x-3'>
+            <CardIcon />
             <span className='font-sans text-base font-normal'>
-              South Africa
+              Payment methods
             </span>
           </div>
           <NextIcon />
-        </div>
+        </Router>
         <span className='col-span-full ml-4 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Security
         </span>

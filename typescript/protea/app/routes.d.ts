@@ -8,6 +8,7 @@ declare module "routes-gen" {
     "/login/challenge": {};
     "/": {};
     "/activity/transaction/:id": { id: string };
+    "/settings/payment-methods": {};
     "/settings/password": {};
     "/transact/preview": {};
     "/transact/receive": {};
@@ -43,6 +44,7 @@ declare module "routes-gen" {
       | ["/login/challenge"]
       | ["/"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
+      | ["/settings/payment-methods"]
       | ["/settings/password"]
       | ["/transact/preview"]
       | ["/transact/receive"]
