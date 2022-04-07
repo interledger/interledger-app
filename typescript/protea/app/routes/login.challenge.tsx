@@ -82,7 +82,7 @@ export const action: ActionFunction = async ({ request }) => {
   })
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
   const session = await requireUserSession(request)
   const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)

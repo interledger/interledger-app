@@ -86,7 +86,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
-  debugger
+
   let flow
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
