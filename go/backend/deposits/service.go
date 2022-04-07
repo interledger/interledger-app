@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 
 	"github.com/go-playground/validator/v10"
@@ -14,15 +15,17 @@ import (
 )
 
 var (
-	ErrUnauthorized            = errors.New("deposit: unauthorized.")
-	ErrInternal                = errors.New("deposit: internal error.")
-	ErrInvalidArgument         = errors.New("deposit: invalid argument.")
-	ErrNotFound                = errors.New("deposit: not found.")
-	ErrUnverifiedFundingSource = errors.New("deposit: unverified funding source.")
+	ErrUnauthorized            = errors.New("deposit: unauthorized")
+	ErrInternal                = errors.New("deposit: internal error")
+	ErrInvalidArgument         = errors.New("deposit: invalid argument")
+	ErrNotFound                = errors.New("deposit: not found")
+	ErrUnverifiedFundingSource = errors.New("deposit: unverified funding source")
 )
 
 type Service interface {
 	InitiateDeposit(ctx context.Context, args *InitiateDepositArgs) (*Deposit, error)
+	Get(ctx context.Context, id string) (*Deposit, error)
+	SetState(ctx context.Context, id string, state State) error
 }
 
 type ServiceArgs struct {
@@ -109,7 +112,6 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 		return nil, ErrUnauthorized
 	}
 
-	// Create the deposit
 	// TODO should this be an idempotent key?
 	var deposit Deposit
 	err = s.db.Get(&deposit, `INSERT INTO deposits
@@ -117,18 +119,48 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 		RETURNING *;
 		`, acc.ID, fundingSource.ID, args.Amount, Created)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to insert into db %s %w", err.Error(), ErrInternal)
 	}
 
+	// TODO add mechanism to handle if deposit is created but workflow is not
 	workflowOptions := client.StartWorkflowOptions{
-		ID: "deposit_" + deposit.ID,
+		ID:                    "deposit_" + deposit.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
-	_, err = s.tp.ExecuteWorkflow(context.Background(), workflowOptions, DepositWorkflow)
+	_, err = s.tp.ExecuteWorkflow(context.Background(), workflowOptions, DepositWorkflow, deposit.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert execute workflow %s %w", err.Error(), ErrInternal)
+	}
+
+	return &deposit, nil
+}
+
+func (s *service) Get(ctx context.Context, id string) (*Deposit, error) {
+	var deposit Deposit
+	err := s.db.GetContext(ctx, &deposit, `select * from deposits where id = $1 LIMIT 1`, id)
 	if err != nil {
 		return nil, err
 	}
 
 	return &deposit, nil
+}
+
+func (s *service) SetState(ctx context.Context, id string, state State) error {
+
+	deposit, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// TODO add checks for legitimate state changes
+
+	_, err = s.db.ExecContext(ctx, "update deposits set state = $1 where id = $2", state.String(), deposit.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type State string

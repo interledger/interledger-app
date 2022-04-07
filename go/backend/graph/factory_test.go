@@ -166,7 +166,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.FundingSourceService = fundingsources.NewLoggingService(fs, logger)
 
 	tp := &mocks.Client{}
-	tp.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(
+	tp.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
 		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
 			testWorkflowID := opts.ID
 			testRunID := "test-runid"
