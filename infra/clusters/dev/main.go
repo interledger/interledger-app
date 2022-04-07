@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/infra/services/mailhog"
 	"gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/protea"
+	"gitlab.com/fynbos/infra/services/retool"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
 )
 
@@ -153,13 +154,14 @@ func main() {
 			return err
 		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo:           ecrRepo,
-			Cert:                beCert,
-			ImageTag:            hash,
-			UsdLedgerCode:       100,
-			NoopEquityAccountID: "7c63db4d-2f4c-4ab2-935e-7482bad12649",
-			EnablePlayground:    true,
-			Hostname:            "dev.fynbos.dev",
+			ImageRepo:            ecrRepo,
+			Cert:                 beCert,
+			ImageTag:             hash,
+			UsdLedgerCode:        100,
+			NoopEquityAccountID:  "7c63db4d-2f4c-4ab2-935e-7482bad12649",
+			EnablePlayground:     true,
+			Hostname:             "dev.fynbos.dev",
+			GoogleOauth2ClientID: "572950914705-ith2keqq6l3cu652n262jd0gf9ffi7ka.apps.googleusercontent.com",
 		})
 		if err != nil {
 			return err
@@ -186,6 +188,19 @@ func main() {
 			ImageTag:  hash,
 			Namespace: "default",
 		})
+		if err != nil {
+			return err
+		}
+
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:      "retool-ingress",
+			Hostname:  "retool.fynbos.dev",
+			TlsSecret: "tls-secret",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+		_, err = retool.DeployRetool(ctx, "retool.fynbos.dev")
 		if err != nil {
 			return err
 		}
