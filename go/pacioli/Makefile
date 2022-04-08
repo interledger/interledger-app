@@ -20,7 +20,7 @@ format:
 
 lint:
 	@echo "Linting"
-	golangci-lint run ./...
+	golangci-lint run --go=1.17 ./...
 	@echo "Lint complete"
 
 build:
