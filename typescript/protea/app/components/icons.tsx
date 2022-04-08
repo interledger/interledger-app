@@ -86,6 +86,12 @@ export const CheckboxIndeterminateIcon = () => (
   </IconBase>
 )
 
+export const CloseIcon = () => (
+  <IconBase>
+    <path d='M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z' />
+  </IconBase>
+)
+
 export const ConnectIcon = () => (
   <IconBase>
     <path d='M3 11H11V3H3V11ZM5 5H9V9H5V5Z' />

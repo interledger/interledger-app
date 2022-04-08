@@ -1,6 +1,7 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/blog/connecting-the-internet-economy": {};
+    "/confirmation/:flowId": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
     "/": {};
@@ -17,6 +18,7 @@ declare module "routes-gen" {
     "/deposit": {};
     "/bank": {};
     "/home": {};
+    "/flows/:flowId": { flowId: string };
     "/blog": {};
     "/recovery": {};
     "/logout": {};
@@ -28,6 +30,7 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/blog/connecting-the-internet-economy"]
+      | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
       | ["/"]
@@ -44,6 +47,7 @@ declare module "routes-gen" {
       | ["/deposit"]
       | ["/bank"]
       | ["/home"]
+      | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
       | ["/blog"]
       | ["/recovery"]
       | ["/logout"]
