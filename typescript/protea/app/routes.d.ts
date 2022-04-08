@@ -3,6 +3,7 @@ declare module "routes-gen" {
     "/blog/connecting-the-internet-economy": {};
     "/confirmation/:flowId": { flowId: string };
     "/confirmation/:flowId/payment-method": { flowId: string };
+    "/confirmation/:flowId/withdraw": { flowId: string };
     "/confirmation/:flowId/deposit": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
@@ -16,14 +17,16 @@ declare module "routes-gen" {
     "/activity": {};
     "/settings": {};
     "/transact": {};
-    "/withdraw": {};
     "/connect": {};
     "/home": {};
     "/flows/:flowId": { flowId: string };
+    "/flows/:flowId/withdraw/payment-method": { flowId: string };
     "/flows/:flowId/deposit/payment-method": { flowId: string };
     "/flows/:flowId/payment-method/details": { flowId: string };
     "/flows/:flowId/payment-method/review": { flowId: string };
     "/flows/:flowId/payment-method/type": { flowId: string };
+    "/flows/:flowId/withdraw/amount": { flowId: string };
+    "/flows/:flowId/withdraw/review": { flowId: string };
     "/flows/:flowId/deposit/amount": { flowId: string };
     "/flows/:flowId/deposit/review": { flowId: string };
     "/blog": {};
@@ -39,6 +42,7 @@ declare module "routes-gen" {
       | ["/blog/connecting-the-internet-economy"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
+      | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
@@ -52,14 +56,16 @@ declare module "routes-gen" {
       | ["/activity"]
       | ["/settings"]
       | ["/transact"]
-      | ["/withdraw"]
       | ["/connect"]
       | ["/home"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
+      | ["/flows/:flowId/withdraw/payment-method", RouteParams["/flows/:flowId/withdraw/payment-method"]]
       | ["/flows/:flowId/deposit/payment-method", RouteParams["/flows/:flowId/deposit/payment-method"]]
       | ["/flows/:flowId/payment-method/details", RouteParams["/flows/:flowId/payment-method/details"]]
       | ["/flows/:flowId/payment-method/review", RouteParams["/flows/:flowId/payment-method/review"]]
       | ["/flows/:flowId/payment-method/type", RouteParams["/flows/:flowId/payment-method/type"]]
+      | ["/flows/:flowId/withdraw/amount", RouteParams["/flows/:flowId/withdraw/amount"]]
+      | ["/flows/:flowId/withdraw/review", RouteParams["/flows/:flowId/withdraw/review"]]
       | ["/flows/:flowId/deposit/amount", RouteParams["/flows/:flowId/deposit/amount"]]
       | ["/flows/:flowId/deposit/review", RouteParams["/flows/:flowId/deposit/review"]]
       | ["/blog"]

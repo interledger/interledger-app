@@ -126,7 +126,12 @@ export default function Home() {
               Deposit
             </div>
           </Router>
-          <Router className='rounded-full' to={route('/withdraw')}>
+          <Router
+            className='rounded-full'
+            to={route('/flows/:flowId/withdraw/payment-method', {
+              flowId: 'init'
+            })}
+          >
             <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
               Withdraw
             </div>
