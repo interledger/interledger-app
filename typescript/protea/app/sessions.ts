@@ -5,7 +5,7 @@ export const { getSession, commitSession, destroySession } =
     cookie: {
       name: 'user_settings',
       httpOnly: true,
-      maxAge: 300,
+      maxAge: 86400,
       path: '/',
       sameSite: 'lax'
     }
