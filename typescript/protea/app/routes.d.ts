@@ -2,6 +2,7 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/blog/connecting-the-internet-economy": {};
     "/confirmation/:flowId": { flowId: string };
+    "/confirmation/:flowId/payment-method": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
     "/": {};
@@ -19,6 +20,9 @@ declare module "routes-gen" {
     "/bank": {};
     "/home": {};
     "/flows/:flowId": { flowId: string };
+    "/flows/:flowId/payment-method/details": { flowId: string };
+    "/flows/:flowId/payment-method/review": { flowId: string };
+    "/flows/:flowId/payment-method/type": { flowId: string };
     "/blog": {};
     "/recovery": {};
     "/logout": {};
@@ -31,6 +35,7 @@ declare module "routes-gen" {
     T extends
       | ["/blog/connecting-the-internet-economy"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
+      | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
       | ["/"]
@@ -48,6 +53,9 @@ declare module "routes-gen" {
       | ["/bank"]
       | ["/home"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
+      | ["/flows/:flowId/payment-method/details", RouteParams["/flows/:flowId/payment-method/details"]]
+      | ["/flows/:flowId/payment-method/review", RouteParams["/flows/:flowId/payment-method/review"]]
+      | ["/flows/:flowId/payment-method/type", RouteParams["/flows/:flowId/payment-method/type"]]
       | ["/blog"]
       | ["/recovery"]
       | ["/logout"]
