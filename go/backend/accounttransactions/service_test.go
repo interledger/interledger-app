@@ -318,7 +318,7 @@ func TestAccountTransactions(s *testing.T) {
 			}
 			assert.NotEqual(t, Pending, trx.State)
 
-			trx, err = container.TransactionService.PostPending(container.Ctx, trx.ID)
+			_, err = container.TransactionService.PostPending(container.Ctx, trx.ID)
 			if err == nil {
 				t.Fatal("expected error to occur")
 			}
@@ -405,7 +405,7 @@ func TestAccountTransactions(s *testing.T) {
 			}
 			assert.NotEqual(t, Pending, trx.State)
 
-			trx, err = container.TransactionService.VoidPending(container.Ctx, trx.ID)
+			_, err = container.TransactionService.VoidPending(container.Ctx, trx.ID)
 			if err == nil {
 				t.Fatal("expected error to occur")
 			}
