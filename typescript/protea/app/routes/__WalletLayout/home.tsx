@@ -116,7 +116,12 @@ export default function Home() {
           </span>
         </div>
         <div className='col-span-full flex justify-center space-x-3 py-4 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <Router className='rounded-full' to={route('/deposit')}>
+          <Router
+            className='rounded-full'
+            to={route('/flows/:flowId/deposit/payment-method', {
+              flowId: 'init'
+            })}
+          >
             <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
               Deposit
             </div>

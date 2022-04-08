@@ -3,6 +3,7 @@ declare module "routes-gen" {
     "/blog/connecting-the-internet-economy": {};
     "/confirmation/:flowId": { flowId: string };
     "/confirmation/:flowId/payment-method": { flowId: string };
+    "/confirmation/:flowId/deposit": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
     "/": {};
@@ -16,13 +17,14 @@ declare module "routes-gen" {
     "/transact": {};
     "/withdraw": {};
     "/connect": {};
-    "/deposit": {};
-    "/bank": {};
     "/home": {};
     "/flows/:flowId": { flowId: string };
+    "/flows/:flowId/deposit/payment-method": { flowId: string };
     "/flows/:flowId/payment-method/details": { flowId: string };
     "/flows/:flowId/payment-method/review": { flowId: string };
     "/flows/:flowId/payment-method/type": { flowId: string };
+    "/flows/:flowId/deposit/amount": { flowId: string };
+    "/flows/:flowId/deposit/review": { flowId: string };
     "/blog": {};
     "/recovery": {};
     "/logout": {};
@@ -36,6 +38,7 @@ declare module "routes-gen" {
       | ["/blog/connecting-the-internet-economy"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
+      | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
       | ["/"]
@@ -49,13 +52,14 @@ declare module "routes-gen" {
       | ["/transact"]
       | ["/withdraw"]
       | ["/connect"]
-      | ["/deposit"]
-      | ["/bank"]
       | ["/home"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
+      | ["/flows/:flowId/deposit/payment-method", RouteParams["/flows/:flowId/deposit/payment-method"]]
       | ["/flows/:flowId/payment-method/details", RouteParams["/flows/:flowId/payment-method/details"]]
       | ["/flows/:flowId/payment-method/review", RouteParams["/flows/:flowId/payment-method/review"]]
       | ["/flows/:flowId/payment-method/type", RouteParams["/flows/:flowId/payment-method/type"]]
+      | ["/flows/:flowId/deposit/amount", RouteParams["/flows/:flowId/deposit/amount"]]
+      | ["/flows/:flowId/deposit/review", RouteParams["/flows/:flowId/deposit/review"]]
       | ["/blog"]
       | ["/recovery"]
       | ["/logout"]

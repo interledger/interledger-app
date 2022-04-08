@@ -9,11 +9,6 @@ query GetFundingSources {
   }
 }
 
-input DepositInput {
-  fundingSourceID: ID!
-  amount: String!
-}
-
 mutation InitiateDeposit($input: DepositInput!) {
   initiateDeposit(input: $input) {
     code
