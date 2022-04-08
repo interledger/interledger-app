@@ -268,13 +268,6 @@ export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetFundingSourcesQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
 
-export type InitiateWithdrawalMutationVariables = Exact<{
-  input: WithdrawalInput;
-}>;
-
-
-export type InitiateWithdrawalMutation = { __typename?: 'Mutation', initiateWithdrawal: { __typename?: 'WithdrawalMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
-
 export type InitiateDepositMutationVariables = Exact<{
   input: DepositInput;
 }>;
@@ -295,6 +288,13 @@ export type VerifyUsdBankAccountMutationVariables = Exact<{
 
 
 export type VerifyUsdBankAccountMutation = { __typename?: 'Mutation', verifyUsdBankAccount: { __typename?: 'VerifyUsdBankAccountMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
+
+export type InitiateWithdrawalMutationVariables = Exact<{
+  input: WithdrawalInput;
+}>;
+
+
+export type InitiateWithdrawalMutation = { __typename?: 'Mutation', initiateWithdrawal: { __typename?: 'WithdrawalMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
 
 export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -337,26 +337,6 @@ export const GetFundingSourcesDocument = gql`
 }
     `;
 export type GetFundingSourcesQueryResult = Apollo.QueryResult<GetFundingSourcesQuery, GetFundingSourcesQueryVariables>;
-export const InitiateWithdrawalDocument = gql`
-    mutation InitiateWithdrawal($input: WithdrawalInput!) {
-  initiateWithdrawal(input: $input) {
-    code
-    success
-    message
-    transaction {
-      id
-      type
-      description
-      amount
-      timestamp
-      status
-    }
-  }
-}
-    `;
-export type InitiateWithdrawalMutationFn = Apollo.MutationFunction<InitiateWithdrawalMutation, InitiateWithdrawalMutationVariables>;
-export type InitiateWithdrawalMutationResult = Apollo.MutationResult<InitiateWithdrawalMutation>;
-export type InitiateWithdrawalMutationOptions = Apollo.BaseMutationOptions<InitiateWithdrawalMutation, InitiateWithdrawalMutationVariables>;
 export const InitiateDepositDocument = gql`
     mutation InitiateDeposit($input: DepositInput!) {
   initiateDeposit(input: $input) {
@@ -417,6 +397,26 @@ export const VerifyUsdBankAccountDocument = gql`
 export type VerifyUsdBankAccountMutationFn = Apollo.MutationFunction<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
 export type VerifyUsdBankAccountMutationResult = Apollo.MutationResult<VerifyUsdBankAccountMutation>;
 export type VerifyUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
+export const InitiateWithdrawalDocument = gql`
+    mutation InitiateWithdrawal($input: WithdrawalInput!) {
+  initiateWithdrawal(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
+    `;
+export type InitiateWithdrawalMutationFn = Apollo.MutationFunction<InitiateWithdrawalMutation, InitiateWithdrawalMutationVariables>;
+export type InitiateWithdrawalMutationResult = Apollo.MutationResult<InitiateWithdrawalMutation>;
+export type InitiateWithdrawalMutationOptions = Apollo.BaseMutationOptions<InitiateWithdrawalMutation, InitiateWithdrawalMutationVariables>;
 export const GetCountriesDocument = gql`
     query GetCountries {
   countries {

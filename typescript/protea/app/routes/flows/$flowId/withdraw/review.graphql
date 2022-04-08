@@ -9,11 +9,6 @@ query GetFundingSources {
   }
 }
 
-input WithdrawalInput {
-  fundingSourceID: ID!
-  amount: String!
-}
-
 mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {
     code
