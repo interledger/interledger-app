@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -24,10 +25,11 @@ var (
 )
 
 type ServerArgs struct {
-	Hs healthcheck.Service `validate:"required"`
-	Is identity.Service    `validate:"required"`
-	As accounts.Service    `validate:"required"`
-	Us auth.Service        `validate:"required"`
+	Hs  healthcheck.Service `validate:"required"`
+	Is  identity.Service    `validate:"required"`
+	As  accounts.Service    `validate:"required"`
+	Us  auth.Service        `validate:"required"`
+	Oso *oso.Oso            `validate:"required"`
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -44,6 +46,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		as:        args.As,
 		is:        args.Is,
 		us:        args.Us,
+		oso:       args.Oso,
 	})
 	grpc_health_v1.RegisterHealthServer(server, args.Hs)
 	reflection.Register(server)
@@ -56,15 +59,20 @@ type rpcServer struct {
 	as        accounts.Service
 	is        identity.Service
 	us        auth.Service
+	oso       *oso.Oso
 }
 
 func (s *rpcServer) GetUserAccountByEmail(
 	ctx context.Context,
 	req *backendv1.GetUserAccountByEmailRequest,
 ) (*backendv1.Account, error) {
-	_, err := s.us.ForContext(ctx)
+	adminUser, err := s.us.ForContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
+	}
+	err = s.oso.Authorize(adminUser, "read", accounts.Account{})
+	if err != nil {
+		return nil, status.Error(codes.PermissionDenied, "Forbidden.")
 	}
 
 	id, err := s.is.GetByEmail(ctx, req.GetEmail())

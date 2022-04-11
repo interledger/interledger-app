@@ -50,14 +50,29 @@ func TestAccounts(s *testing.T) {
 			ExpectedError string
 		}{
 			{
-				Name:          "Authenticated admin user is allowed to read.",
+				Name:          "Non approved admin user is not allowed to read.",
 				AdminUser:     "test@fynbos.test",
-				ExpectedError: "",
+				ExpectedError: "Forbidden.",
 			},
 			{
 				Name:          "Unauthenticated request is denied",
 				AdminUser:     "",
 				ExpectedError: "Unauthenticated.",
+			},
+			{
+				Name:          "Approved admin user is allowed to read",
+				AdminUser:     "don@fynbos.dev",
+				ExpectedError: "",
+			},
+			{
+				Name:          "Approved admin user is allowed to read",
+				AdminUser:     "matt@fynbos.dev",
+				ExpectedError: "",
+			},
+			{
+				Name:          "Approved admin user is allowed to read",
+				AdminUser:     "cairin@fynbos.dev",
+				ExpectedError: "",
 			},
 		}
 
@@ -81,7 +96,7 @@ func TestAccounts(s *testing.T) {
 				assert.Equal(t, acc.CreditsReserved, response.GetCreditsReserved())
 			} else {
 				assert.Error(t, err)
-				assert.True(t, strings.Contains(err.Error(), "Unauthenticated"))
+				assert.True(t, strings.Contains(err.Error(), scenario.ExpectedError))
 			}
 		}
 	})

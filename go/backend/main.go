@@ -12,6 +12,7 @@ import (
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -260,11 +261,16 @@ func start(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
+	oso, err := authorization.NewAdminService()
+	if err != nil {
+		log.Fatal(err)
+	}
 	server, err := _admin.NewServer(&_admin.ServerArgs{
-		Hs: health,
-		Is: id,
-		As: as,
-		Us: adminUsers,
+		Hs:  health,
+		Is:  id,
+		As:  as,
+		Us:  adminUsers,
+		Oso: oso,
 	})
 	if err != nil {
 		log.Fatalln(err)

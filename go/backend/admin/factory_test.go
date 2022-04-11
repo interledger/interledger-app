@@ -6,8 +6,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
+	_auth "gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -28,6 +30,7 @@ type TestContainer struct {
 	Is              identity.Service
 	Hs              healthcheck.Service
 	Os              onboarding.Service
+	Oso             *oso.Oso
 	Noop            noop.Service
 	AdminConn       *grpc.ClientConn
 	AdminClient     backend.BackendServiceClient
@@ -154,11 +157,16 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 		return nil, err
 	}
 	us := auth.NewMockService()
+	oso, err := _auth.NewAdminService()
+	if err != nil {
+		return nil, err
+	}
 	server, err := NewServer(&ServerArgs{
-		Hs: hs,
-		Is: is,
-		As: as,
-		Us: us,
+		Hs:  hs,
+		Is:  is,
+		As:  as,
+		Us:  us,
+		Oso: oso,
 	})
 	if err != nil {
 		return nil, err
