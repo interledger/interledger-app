@@ -80,6 +80,19 @@ go install github.com/golang/mock/mockgen@v1.6.0
 # from the fynbos root
 mockgen -source=./pacioli/v1/pacioli_grpc.pb.go -destination=./pacioli/v1/mock/mock_grpc.go
 ```
+### Admin backend
+We use a GRPC server for our admin RPCs which requires an authenticated user. A token needs to be
+set in grpc metadata under the `idToken` key. This token is the ID token issued by Google's oauth2
+server.
 
+A Retool Oauth2 client has been set up at https://console.cloud.google.com/api/credentials for 
+production. Retool-local has been set up for local deployments.
 
 ### Gotchas
+#### Configuring Retool
+
+Since the GRPC resource is a new feature in Retool, we use a custom Authentication method. The first
+step is to configure the generic oauth 2 flow. Fill in the details of the Retool Oauth client found
+at https://console.cloud.google.com/api/credentials. Then add a second step that adds a variable
+that takes the value `{{oauth1.idToken}}`. You then need to set the `idToken` key in the metadata to
+this variable.
