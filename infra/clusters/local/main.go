@@ -1,8 +1,6 @@
 package main
 
 import (
-	"gitlab.com/fynbos/infra/services/retool"
-
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/backend"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
@@ -12,6 +10,7 @@ import (
 	"gitlab.com/fynbos/infra/services/mailhog"
 	pacioli "gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/protea"
+	"gitlab.com/fynbos/infra/services/retool"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
 )
 
@@ -104,13 +103,14 @@ func main() {
 		}
 
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
-			ImageRepo:           "localhost:5005",
-			Cert:                beCert,
-			ImageTag:            "latest",
-			UsdLedgerCode:       0,
-			NoopEquityAccountID: "036c9b47-d0e4-4960-863e-a80224aa6ff3",
-			EnablePlayground:    true,
-			Hostname:            "fynbos.test",
+			ImageRepo:            "localhost:5005",
+			Cert:                 beCert,
+			ImageTag:             "latest",
+			UsdLedgerCode:        0,
+			NoopEquityAccountID:  "036c9b47-d0e4-4960-863e-a80224aa6ff3",
+			EnablePlayground:     true,
+			Hostname:             "fynbos.test",
+			GoogleOauth2ClientID: "572950914705-dv7oqq4r8bqljv3s831qqcan1n6f8vvs.apps.googleusercontent.com",
 		})
 		if err != nil {
 			return err
@@ -143,9 +143,9 @@ func main() {
 
 		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
 			Name:     "retool-ingress",
-			Hostname: "retool.fynbos.test",
+			Hostname: "localhost", // use localhost so Google will redirect.
 		}, pulumi.DependsOnInputs(ingressChart.Ready))
-		_, err = retool.DeployRetool(ctx, "retool.fynbos.test")
+		_, err = retool.DeployRetool(ctx, "localhost")
 		if err != nil {
 			return err
 		}
