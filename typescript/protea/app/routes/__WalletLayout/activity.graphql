@@ -1,0 +1,20 @@
+query GetActivity($input: Pagination!) {
+  transactions(input: $input) {
+    pageInfo {
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    edges {
+      node {
+        id
+        type
+        description
+        amount
+        timestamp
+        status
+      }
+      cursor
+    }
+  }
+}
