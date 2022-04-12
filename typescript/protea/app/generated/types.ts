@@ -265,6 +265,13 @@ export type GetActivityQueryVariables = Exact<{
 
 export type GetActivityQuery = { __typename?: 'Query', transactions: { __typename?: 'TransactionsConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, startCursor: string, endCursor: string }, edges: Array<{ __typename?: 'TransactionEdge', cursor: string, node: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } }> } };
 
+export type GetActivityTransactionQueryVariables = Exact<{
+  id: Scalars['String'];
+}>;
+
+
+export type GetActivityTransactionQuery = { __typename?: 'Query', transaction: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } };
+
 export type GetHomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -337,6 +344,19 @@ export const GetActivityDocument = gql`
 }
     `;
 export type GetActivityQueryResult = Apollo.QueryResult<GetActivityQuery, GetActivityQueryVariables>;
+export const GetActivityTransactionDocument = gql`
+    query GetActivityTransaction($id: String!) {
+  transaction(id: $id) {
+    id
+    type
+    description
+    amount
+    timestamp
+    status
+  }
+}
+    `;
+export type GetActivityTransactionQueryResult = Apollo.QueryResult<GetActivityTransactionQuery, GetActivityTransactionQueryVariables>;
 export const GetHomeDocument = gql`
     query GetHome {
   account {

@@ -1,17 +1,107 @@
 import React from 'react'
-import { Link, LoaderFunction, useNavigate } from 'remix'
-import { route } from 'routes-gen'
-import { BackIcon, ReceivedIcon } from '~/components'
+import { LoaderFunction, useNavigate, json, useLoaderData } from 'remix'
+import {
+  BackIcon,
+  BankIcon,
+  CardIcon,
+  PendingIcon,
+  SentIcon
+} from '~/components'
+import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
+import {
+  GetActivityTransactionQuery,
+  GetActivityTransactionQueryVariables,
+  GetActivityTransactionDocument,
+  TransactionType
+} from '~/generated/types'
+import { DateTime } from 'luxon'
+
+type Activity = {
+  id: string
+  amount: string
+  transactionType: TransactionType
+  title: string
+  description: string
+  status: string
+  date: string
+}
+
+type LoaderData = {
+  transaction: Activity
+}
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  // params.id should be used to fetch a specific transaction
-  console.log(params)
-  return requireUserSession(request)
+  await requireUserSession(request)
+  const cookie = request.headers.get('cookie')
+  const transaction = await apolloClient
+    .query<GetActivityTransactionQuery, GetActivityTransactionQueryVariables>({
+      query: GetActivityTransactionDocument,
+      variables: {
+        id: String(params.id)
+      },
+      context: {
+        headers: {
+          cookie: cookie
+        }
+      }
+    })
+    .then((val) => val.data.transaction)
+
+  return json({
+    transaction: {
+      id: transaction.id,
+      amount: transaction.amount,
+      transactionType: transaction.type,
+      title: activityTitle(transaction.type),
+      description: transaction.description,
+      status: transaction.status,
+      date: DateTime.fromISO(transaction.timestamp).toFormat(
+        'dd LLLL yyyy HH:mm'
+      )
+    }
+  })
+}
+
+const activityTitle = (type: TransactionType): string => {
+  switch (type) {
+    // case TransactionType.Received:
+    //   return <ReceivedIcon />
+    case TransactionType.Sent:
+      return 'Sent'
+    case TransactionType.Deposit:
+      return 'Deposit'
+    case TransactionType.Withdrawal:
+      return 'Withdrawal'
+    default:
+      return ''
+  }
+}
+
+const activityIcon = (type: TransactionType, status: string) => {
+  switch (status) {
+    case 'pending':
+      return <PendingIcon />
+    default:
+      break
+  }
+  switch (type) {
+    // case TransactionType.Received:
+    //   return <ReceivedIcon />
+    case TransactionType.Sent:
+      return <SentIcon />
+    case TransactionType.Deposit:
+      return <CardIcon />
+    case TransactionType.Withdrawal:
+      return <BankIcon />
+    default:
+      return null
+  }
 }
 
 export default function ActivityTransactionPage() {
   const navigate = useNavigate()
+  const { transaction } = useLoaderData<LoaderData>()
   return (
     <div className='w-full'>
       {/* Header */}
@@ -30,22 +120,45 @@ export default function ActivityTransactionPage() {
         </div>
       </header>
       {/* Body */}
-      <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        {/* Activity item */}
-        {/* TODO Form */}
-        <div className='col-span-full flex h-12 items-center justify-between rounded-xl bg-container px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+        <div className='col-span-full mb-4 flex h-12 items-center justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center justify-between space-x-3'>
-            <ReceivedIcon />
+            {activityIcon(transaction.transactionType, transaction.status)}
             <div className='flex flex-col'>
-              <span className='font-display text-base font-medium'>
-                Received
+              <span className='text-left font-display text-base font-medium'>
+                {transaction.title}
               </span>
               <span className='font-sans text-xs font-normal'>
-                from Interledger
+                {transaction.description}
               </span>
             </div>
           </div>
-          <span className='font-sans text-lg font-normal'>$ 1.00</span>
+        </div>
+        <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <span className='mb-1 font-display text-xs font-medium'>Amount</span>
+          <span className='font-sans text-base font-normal'>
+            {transaction.amount}
+          </span>
+        </div>
+        <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <span className='mb-1 font-display text-xs font-medium'>Date</span>
+          <span className='font-sans text-base font-normal'>
+            {transaction.date}
+          </span>
+        </div>
+        <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <span className='mb-1 font-display text-xs font-medium'>
+            Transaction ID
+          </span>
+          <span className='font-sans text-base font-normal'>
+            {transaction.id}
+          </span>
+        </div>
+        <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <span className='mb-1 font-display text-xs font-medium'>Status</span>
+          <span className='font-sans text-base font-normal capitalize'>
+            {transaction.status}
+          </span>
         </div>
       </div>
     </div>
