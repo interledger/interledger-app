@@ -1,0 +1,10 @@
+query GetActivityTransaction($id: String!) {
+  transaction(id: $id) {
+    id
+    type
+    description
+    amount
+    timestamp
+    status
+  }
+}
