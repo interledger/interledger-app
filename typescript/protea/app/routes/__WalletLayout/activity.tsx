@@ -1,12 +1,20 @@
-import React, { FC } from 'react'
-import { Link, LoaderFunction, json, useLoaderData } from 'remix'
+import React, { FC, useCallback, useEffect, useState } from 'react'
+import {
+  Link,
+  LoaderFunction,
+  json,
+  useLoaderData,
+  useFetcher,
+  Form,
+  redirect,
+  ActionFunction
+} from 'remix'
 import { route } from 'routes-gen'
 import {
   BackIcon,
   BankIcon,
   CardIcon,
   PendingIcon,
-  Router,
   SentIcon
 } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
@@ -19,6 +27,7 @@ import {
   PageInfo
 } from '~/generated/types'
 import { DateTime } from 'luxon'
+import { commitSession, getSession } from '~/sessions'
 
 type Activity = {
   id: string
@@ -27,28 +36,33 @@ type Activity = {
   title: string
   description: string
   status: string
-}
-
-type Activities = {
   date: string
-  activities: Activity[]
 }
 
 type LoaderData = {
   pageInfo: PageInfo
-  transactions: Activities[]
+  transactions: Activity[]
+  pages: number
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
   await requireUserSession(request)
+  const searchParams = new URL(request.url).searchParams
+
+  const cursor = String(searchParams.get('cursor') || '')
   const cookie = request.headers.get('cookie')
+  const userSettings = await getSession(cookie)
+
+  const activitySettings = userSettings.get('activity')
+  const pages = activitySettings?.pages || 1
+
   const activities = await apolloClient
     .query<GetActivityQuery, GetActivityQueryVariables>({
       query: GetActivityDocument,
       variables: {
         input: {
-          after: '',
-          first: 10
+          after: cursor,
+          first: 30 * pages
         }
       },
       context: {
@@ -59,32 +73,30 @@ export const loader: LoaderFunction = async ({ request }) => {
     })
     .then((val) => val.data.transactions)
 
-  let transactions: LoaderData['transactions'] = []
-  if (typeof activities?.edges !== 'undefined')
-    for (let trx of activities?.edges) {
-      const activity = {
-        id: trx.node.id,
-        amount: trx.node.amount,
-        transactionType: trx.node.type,
-        title: activityTitle(trx.node.type),
-        description: trx.node.description,
-        status: trx.node.status
-      }
-      const date = DateTime.fromISO(trx.node.timestamp).toFormat('dd LLLL yyyy')
-      const indexToPush = transactions.findIndex((val) => val.date == date)
-      if (indexToPush >= 0) transactions[indexToPush].activities.push(activity)
-      else
-        transactions.push({
-          date: date,
-          activities: [activity]
-        })
-    }
+  let transactions: LoaderData['transactions'] = activities?.edges.map(
+    (trx) => ({
+      id: trx.node.id,
+      amount: trx.node.amount,
+      transactionType: trx.node.type,
+      title: activityTitle(trx.node.type),
+      description: trx.node.description,
+      status: trx.node.status,
+      date: DateTime.fromISO(trx.node.timestamp).toFormat('dd LLLL yyyy')
+    })
+  )
 
   const data: LoaderData = {
     pageInfo: activities.pageInfo,
-    transactions
+    transactions,
+    pages: pages
   }
-  return json(data)
+
+  userSettings.unset('activity')
+  return json(data, {
+    headers: {
+      'Set-Cookie': await commitSession(userSettings)
+    }
+  })
 }
 
 const activityTitle = (type: TransactionType): string => {
@@ -125,16 +137,17 @@ const activityIcon = (type: TransactionType, status: string) => {
 
 export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
   return (
-    <Router
-      to={route('/activity/transaction/:id', {
-        id: activity.id
-      })}
-      className='col-span-full flex items-center justify-between rounded-xl bg-container py-2 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+    <button
+      form='activity-control'
+      type='submit'
+      name='activity-id'
+      value={activity.id}
+      className='col-span-full flex items-center justify-between rounded-xl bg-container py-2 px-3 focus-visible:outline-2 focus-visible:outline-focus sm:col-span-6 sm:col-start-2 lg:col-start-4'
     >
       <div className='flex items-center justify-between space-x-3'>
         {activityIcon(activity.transactionType, activity.status)}
         <div className='flex flex-col'>
-          <span className='font-display text-base font-medium'>
+          <span className='text-left font-display text-base font-medium'>
             {activity.title}
           </span>
           <span className='font-sans text-xs font-normal'>
@@ -143,12 +156,77 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
         </div>
       </div>
       <span className='font-sans text-lg font-normal'>{activity.amount}</span>
-    </Router>
+    </button>
   )
 }
 
 export default function ActivityPage() {
-  const { transactions } = useLoaderData<LoaderData>()
+  const initialPage = useLoaderData<LoaderData>()
+  const fetcher = useFetcher()
+
+  const [transactions, setTransactions] = useState<LoaderData['transactions']>(
+    initialPage.transactions
+  )
+  const [pageInfo, setPageInfo] = useState<PageInfo>(initialPage.pageInfo)
+  const [pages, setPages] = useState<number>(initialPage.pages)
+
+  const [scrollPosition, setScrollPosition] = useState(0)
+  const [clientHeight, setClientHeight] = useState(0)
+  const [height, setHeight] = useState(null)
+  const [shouldFetch, setShouldFetch] = useState(true)
+
+  const divHeight = useCallback(
+    (node) => {
+      if (node !== null) {
+        setHeight(node.getBoundingClientRect().height)
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [transactions.length]
+  )
+
+  // Add Listeners to scroll and client resize
+  useEffect(() => {
+    const scrollListener = () => {
+      setClientHeight(window.innerHeight)
+      setScrollPosition(window.scrollY)
+    }
+
+    // Avoid running during SSR
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', scrollListener)
+    }
+
+    // Clean up
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('scroll', scrollListener)
+      }
+    }
+  }, [clientHeight, scrollPosition])
+
+  useEffect(() => {
+    if (!shouldFetch || !height) return
+    if (clientHeight + scrollPosition + 100 < height) return
+
+    if (pageInfo.hasNextPage) {
+      fetcher.load(`/activity?cursor=${pageInfo.endCursor}`)
+    }
+    setShouldFetch(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientHeight, scrollPosition, fetcher])
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.data.transactions.length > 0) {
+      setTransactions((prevTransactions: Activity[]) => {
+        return [...prevTransactions, ...fetcher.data.transactions]
+      })
+      setPages((pages) => pages + 1)
+      setPageInfo(fetcher.data.pageInfo)
+      setShouldFetch(true)
+    }
+  }, [fetcher.data])
+
   return (
     <div className='w-full'>
       {/* Header */}
@@ -163,16 +241,32 @@ export default function ActivityPage() {
         </div>
       </header>
       {/* Body */}
-      <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+      <div
+        ref={divHeight}
+        className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'
+      >
+        <Form
+          id='activity-control'
+          className='hidden'
+          action={`/activity`}
+          method='post'
+        />
+        <input
+          form='activity-control'
+          type='hidden'
+          name='pages'
+          value={pages}
+        />
         {/* Activity item */}
-        {transactions.map((activities) => (
-          <React.Fragment key={activities.date}>
-            <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-              {activities.date}
-            </span>
-            {activities.activities.map((activity) => (
-              <ActivityCard key={activity.id} activity={activity} />
-            ))}
+        {transactions.map((transaction, index) => (
+          <React.Fragment key={transaction.id}>
+            {(index == 0 ||
+              transaction.date != transactions[index - 1].date) && (
+              <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+                {transaction.date}
+              </span>
+            )}
+            <ActivityCard key={transaction.id} activity={transaction} />
           </React.Fragment>
         ))}
       </div>
@@ -184,5 +278,25 @@ export default function ActivityPage() {
         Filter
       </FAB> */}
     </div>
+  )
+}
+
+export const action: ActionFunction = async ({ request }) => {
+  const form = await request.formData()
+  const pages = form.get('pages')
+  const activityId = form.get('activity-id')
+  const userSettings = await getSession(request.headers.get('Cookie'))
+
+  userSettings.set('activity', { pages })
+
+  return redirect(
+    route('/activity/transaction/:id', {
+      id: String(activityId)
+    }),
+    {
+      headers: {
+        'Set-Cookie': await commitSession(userSettings)
+      }
+    }
   )
 }
