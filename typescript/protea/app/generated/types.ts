@@ -258,6 +258,13 @@ export type WithdrawalMutationResponse = MutationResponse & {
   transaction?: Maybe<Transaction>;
 };
 
+export type GetActivityQueryVariables = Exact<{
+  input: Pagination;
+}>;
+
+
+export type GetActivityQuery = { __typename?: 'Query', transactions: { __typename?: 'TransactionsConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, startCursor: string, endCursor: string }, edges: Array<{ __typename?: 'TransactionEdge', cursor: string, node: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } }> } };
+
 export type GetHomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -307,6 +314,29 @@ export type OnboardAccountMutationVariables = Exact<{ [key: string]: never; }>;
 export type OnboardAccountMutation = { __typename?: 'Mutation', onboardAccount: { __typename?: 'CreateAccountMutationResponse', code: string, success: boolean, message: string, account?: { __typename?: 'Account', id: string } | null | undefined } };
 
 
+export const GetActivityDocument = gql`
+    query GetActivity($input: Pagination!) {
+  transactions(input: $input) {
+    pageInfo {
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    edges {
+      node {
+        id
+        type
+        description
+        amount
+        timestamp
+        status
+      }
+      cursor
+    }
+  }
+}
+    `;
+export type GetActivityQueryResult = Apollo.QueryResult<GetActivityQuery, GetActivityQueryVariables>;
 export const GetHomeDocument = gql`
     query GetHome {
   account {
