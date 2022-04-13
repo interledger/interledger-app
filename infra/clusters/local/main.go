@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/backend"
 	cert_manager "gitlab.com/fynbos/infra/services/cert-manager"
@@ -9,6 +10,7 @@ import (
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
 	pacioli "gitlab.com/fynbos/infra/services/pacioli"
+	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/protea"
 	"gitlab.com/fynbos/infra/services/redis"
 	"gitlab.com/fynbos/infra/services/retool"
@@ -163,6 +165,26 @@ func main() {
 			EnableSentinal: false,
 			ReplicaCount:   0,
 		})
+		if err != nil {
+			return err
+		}
+
+		rafikiDbPassword, err := random.NewRandomPassword(ctx, "rafiki-postgres", &random.RandomPasswordArgs{
+			Length:  pulumi.Int(32),
+			Special: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+		err = postgres.DeployPostgres(ctx, &postgres.DeployPostgresArgs{
+			ReadReplicasCount: 0,
+			Username:          "rafiki",
+			Database:          "rafiki",
+			Password:          rafikiDbPassword,
+		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
