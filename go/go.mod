@@ -7,6 +7,7 @@ require (
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1
+	github.com/coilhq/tigerbeetle-go v0.0.0-20220413141643-c1692eeebcc1
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/go-chi/chi v1.5.4
 	github.com/go-playground/validator/v10 v10.10.0
@@ -21,6 +22,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.12.0
 	github.com/vektah/gqlparser/v2 v2.4.0
+	go.temporal.io/api v1.7.1-0.20220223032354-6e6fe738916a
 	go.temporal.io/sdk v1.13.1
 	go.uber.org/zap v1.19.1
 	google.golang.org/grpc v1.44.0
@@ -75,7 +77,6 @@ require (
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/urfave/cli/v2 v2.3.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	go.temporal.io/api v1.7.1-0.20220223032354-6e6fe738916a // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect

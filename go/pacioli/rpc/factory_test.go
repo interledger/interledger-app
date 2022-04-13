@@ -5,14 +5,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"testing"
-	"time"
 
+	"github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	"gitlab.com/fynbos/pacioli/ledger"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	"gitlab.com/fynbos/tigerbeetle_go"
 	"google.golang.org/grpc"
 )
 
@@ -51,17 +50,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Tb = tb
 
-	tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI})
+	tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI}, 1000)
 	if err != nil {
 		return nil, err
 	}
-	// drive the TB client.
-	go func() {
-		tick := time.Tick(20 * time.Millisecond)
-		for range tick {
-			tbClient.Tick()
-		}
-	}()
+	c.TbClient = tbClient
 
 	ls, err := ledger.NewService(&ledger.ServiceArgs{
 		Db: db,
@@ -112,6 +105,8 @@ func (c *TestContainer) Cleanup() error {
 	if err != nil {
 		return err
 	}
+
+	c.TbClient.Close()
 
 	err = c.Tb.Terminate(c.Ctx)
 	if err != nil {

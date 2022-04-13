@@ -133,6 +133,7 @@ func ParseStartArgs() (*StartArgs, error) {
 }
 
 func ParseTburl(url string) ([]string, error) {
+	fmt.Println("printed url: ", url)
 	if url == "" {
 		return nil, errors.New("Tb url must be specified.")
 	}
@@ -152,7 +153,9 @@ func ParseTburl(url string) ([]string, error) {
 		}
 
 		for _, ip := range ips {
-			tbUrls = append(tbUrls, ip.String()+":"+port)
+			if ip.To4() != nil {
+				tbUrls = append(tbUrls, ip.String()+":"+port)
+			}
 		}
 	} else {
 		tbUrls = append(tbUrls, url)

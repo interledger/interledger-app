@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/proto/pacioli/v1"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 var (

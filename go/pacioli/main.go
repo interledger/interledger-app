@@ -3,18 +3,16 @@ package main
 import (
 	"embed"
 	"fmt"
-	"log"
-	"net"
-	"os"
-	"time"
-
+	"github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/rpc"
-	"gitlab.com/fynbos/tigerbeetle_go"
+	"log"
+	"net"
+	"os"
 )
 
 //go:embed migrations/**.*.sql
@@ -64,19 +62,11 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls)
+	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls, 1000)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer tbClient.Deinit()
-
-	// drive the TB client.
-	go func() {
-		tick := time.Tick(20 * time.Millisecond)
-		for range tick {
-			tbClient.Tick()
-		}
-	}()
+	defer tbClient.Close()
 
 	ls, err := ledger.NewService(&ledger.ServiceArgs{
 		Db: db,

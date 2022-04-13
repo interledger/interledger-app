@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/coilhq/tigerbeetle-go"
+	tigerbeetleTypes "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/tigerbeetle_go"
-	tigerbeetleTypes "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 var (

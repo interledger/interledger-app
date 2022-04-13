@@ -12,7 +12,6 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.7 && \
 COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
-COPY tigerbeetle_go ./tigerbeetle_go
 COPY proto ./proto
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 

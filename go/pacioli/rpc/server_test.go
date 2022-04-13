@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
+	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
+	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	tb_types "gitlab.com/fynbos/tigerbeetle_go/pkg/types"
 )
 
 func TestPacioli(s *testing.T) {
