@@ -3,12 +3,10 @@ package ledger
 import (
 	"context"
 	"fmt"
-	"testing"
-	"time"
-
+	"github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
-	"gitlab.com/fynbos/tigerbeetle_go"
+	"testing"
 )
 
 type TestContainer struct {
@@ -43,7 +41,9 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Tb = tb
 
-	tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI})
+	tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI}, 1000)
+	c.TbClient = tbClient
+
 	if err != nil {
 		fmt.Println()
 		fmt.Println(tb.URI)
@@ -51,13 +51,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		fmt.Println()
 		return nil, err
 	}
-	// drive the TB client.
-	go func() {
-		tick := time.Tick(20 * time.Millisecond)
-		for range tick {
-			tbClient.Tick()
-		}
-	}()
 
 	ls, err := NewService(&ServiceArgs{
 		Db: db,
@@ -81,6 +74,8 @@ func (c *TestContainer) Cleanup() error {
 	if err != nil {
 		return err
 	}
+
+	c.TbClient.Close()
 
 	err = c.Tb.Terminate(c.Ctx)
 	if err != nil {
