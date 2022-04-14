@@ -6,5 +6,5 @@ login:
 
 sync:
 	@echo "Syncing containers"
-	skopeo sync --src yaml --dest docker sync.yml 823058932981.dkr.ecr.eu-west-1.amazonaws.com --override-os linux
+	skopeo sync --src yaml --dest docker sync.yml 823058932981.dkr.ecr.eu-west-1.amazonaws.com --all
 	@echo "Containers synced"

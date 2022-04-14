@@ -79,7 +79,7 @@ func statefulSet(ctx *pulumi.Context, isLocal bool) error {
 					InitContainers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:  pulumi.String("init-tigerbeetle"),
-							Image: pulumi.String("donchangfoot/tigerbeetle"),
+							Image: pulumi.String("823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1"),
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
 									Name:      pulumi.String("datadir"),
@@ -106,7 +106,7 @@ func statefulSet(ctx *pulumi.Context, isLocal bool) error {
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:  pulumi.String("tigerbeetle"),
-							Image: pulumi.String("donchangfoot/tigerbeetle"),
+							Image: pulumi.String("823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1"),
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{
 									ContainerPort: pulumi.Int(8080),
