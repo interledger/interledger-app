@@ -18,11 +18,11 @@ require (
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
 	github.com/ory/kratos-client-go v0.8.0-alpha.2
-	github.com/osohq/go-oso v0.22.1
+	github.com/osohq/go-oso v0.26.0
 	github.com/stretchr/testify v1.7.0
 	github.com/testcontainers/testcontainers-go v0.12.0
 	github.com/vektah/gqlparser/v2 v2.4.0
-	go.temporal.io/api v1.7.1-0.20220223032354-6e6fe738916a
+	go.temporal.io/api v1.6.1-0.20211110205628-60c98e9cbfe2
 	go.temporal.io/sdk v1.13.1
 	go.uber.org/zap v1.19.1
 	google.golang.org/grpc v1.44.0
