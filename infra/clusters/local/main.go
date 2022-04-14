@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/infra/services/mailhog"
 	pacioli "gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/protea"
+	"gitlab.com/fynbos/infra/services/redis"
 	"gitlab.com/fynbos/infra/services/retool"
 	"gitlab.com/fynbos/infra/services/temporal"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
@@ -157,6 +158,11 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		err = redis.DeployRedis(ctx, &redis.DeployRedisArgs{
+			EnableSentinal: false,
+			ReplicaCount:   0,
+		})
 
 		return nil
 	})
