@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Header } from '../Header'
 import { BackIcon, Container, Footer, Router } from '~/components'
 import type { Author, BlogMeta } from '~/lib/blog'

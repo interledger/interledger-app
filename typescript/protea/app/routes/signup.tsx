@@ -1,10 +1,11 @@
-import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
-import type { ActionFunction, LoaderFunction } from 'remix'
-import {
-  GetCountriesDocument,
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import type {
   GetCountriesQuery,
   GetCountriesQueryVariables
 } from '~/generated/types'
+import { GetCountriesDocument } from '~/generated/types'
 import { Autocomplete, Button, Logo, Router, TextField } from '~/components'
 import React, { useEffect, useState } from 'react'
 import { route } from 'routes-gen'

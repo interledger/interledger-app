@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import type { FC } from 'react'
 import { route } from 'routes-gen'
 import { Logo } from './Logo'
 import { Router } from './Routes'

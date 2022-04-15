@@ -1,15 +1,16 @@
 import React, { useState } from 'react'
-import { Form, LoaderFunction, json, useLoaderData } from 'remix'
-import type { ActionFunction } from 'remix'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Button, Router, NextIcon, TipIcon, RadioGroup } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
-import {
-  GetFundingSourcesDocument,
+import type {
   GetFundingSourcesQuery,
   GetFundingSourcesQueryVariables
 } from '~/generated/types'
+import { GetFundingSourcesDocument } from '~/generated/types'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)

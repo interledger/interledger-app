@@ -1,5 +1,6 @@
 import { RadioGroup as HeadlessRadioGroup } from '@headlessui/react'
-import React, { FC } from 'react'
+import type { FC } from 'react'
+import React from 'react'
 import { RadioActiveIcon, RadioIcon, Icons } from '.'
 
 export type RadioGroupOption = {

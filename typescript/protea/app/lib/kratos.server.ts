@@ -7,7 +7,7 @@ import type {
   SelfServiceRecoveryFlow,
   SelfServiceRegistrationFlow
 } from '@ory/kratos-client'
-import { redirect } from 'remix'
+import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 
 // Export to ensure this is always evaluated server side.

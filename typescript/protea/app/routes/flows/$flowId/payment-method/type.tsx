@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Form, LoaderFunction, json, useLoaderData } from 'remix'
-import type { ActionFunction } from 'remix'
-import { Button, RadioGroup, RadioGroupOption, TipIcon } from '~/components'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
+import type { RadioGroupOption } from '~/components'
+import { Button, RadioGroup, TipIcon } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 
 export const loader: LoaderFunction = async ({ request, params }) => {

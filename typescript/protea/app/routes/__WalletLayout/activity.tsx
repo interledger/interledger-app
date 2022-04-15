@@ -1,14 +1,8 @@
-import React, { FC, useCallback, useEffect, useState } from 'react'
-import {
-  Link,
-  LoaderFunction,
-  json,
-  useLoaderData,
-  useFetcher,
-  Form,
-  redirect,
-  ActionFunction
-} from 'remix'
+import type { FC } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   BackIcon,
@@ -19,13 +13,12 @@ import {
 } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
-import {
+import type {
   GetActivityQuery,
   GetActivityQueryVariables,
-  GetActivityDocument,
-  TransactionType,
   PageInfo
 } from '~/generated/types'
+import { GetActivityDocument, TransactionType } from '~/generated/types'
 import { DateTime } from 'luxon'
 import { commitSession, getSession } from '~/sessions'
 

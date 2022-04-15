@@ -1,6 +1,7 @@
-import { Link, NavLink, Outlet, useLocation } from 'remix'
+import { Link, NavLink, Outlet, useLocation } from '@remix-run/react'
 import { route } from 'routes-gen'
-import React, { FC } from 'react'
+import type { FC } from 'react'
+import React from 'react'
 import {
   ConnectIcon,
   SettingsIcon,

@@ -1,5 +1,5 @@
-import { Outlet } from 'remix'
-import type { LoaderFunction } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { Outlet } from '@remix-run/react'
 import { route } from 'routes-gen'
 import React from 'react'
 import { Logo, Router } from '~/components'

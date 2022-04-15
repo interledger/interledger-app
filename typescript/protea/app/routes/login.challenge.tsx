@@ -1,5 +1,6 @@
-import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
-import type { ActionFunction, LoaderFunction } from 'remix'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Logo, MailIcon, Router, TextField } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
