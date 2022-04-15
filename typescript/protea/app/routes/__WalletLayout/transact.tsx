@@ -1,5 +1,6 @@
 import React from 'react'
-import { LoaderFunction, NavLink } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { NavLink } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { SettingsIcon } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'

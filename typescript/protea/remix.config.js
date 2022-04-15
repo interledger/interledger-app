@@ -6,7 +6,6 @@ module.exports = {
   serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',
   publicPath: '/build/',
-  serverBuildPath: 'build',
   devServerPort: 8002,
   ignoredRouteFiles: ['.*', '**/*.draft.mdx', '**/*.graphql'],
   sourcemap: true

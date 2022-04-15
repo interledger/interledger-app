@@ -1,5 +1,7 @@
 import React from 'react'
-import { LoaderFunction, useNavigate, json, useLoaderData } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { useLoaderData, useNavigate } from '@remix-run/react'
 import {
   BackIcon,
   BankIcon,
@@ -9,9 +11,11 @@ import {
 } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
-import {
+import type {
   GetActivityTransactionQuery,
-  GetActivityTransactionQueryVariables,
+  GetActivityTransactionQueryVariables
+} from '~/generated/types'
+import {
   GetActivityTransactionDocument,
   TransactionType
 } from '~/generated/types'

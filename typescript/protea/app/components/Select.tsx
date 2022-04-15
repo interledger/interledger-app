@@ -1,5 +1,6 @@
 import { Listbox, Transition } from '@headlessui/react'
-import React, { Fragment, FC } from 'react'
+import type { FC } from 'react'
+import React, { Fragment } from 'react'
 import { SelectIcon, CheckIcon } from '.'
 
 type SelectOptions = {

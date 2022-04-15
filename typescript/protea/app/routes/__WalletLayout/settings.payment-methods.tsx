@@ -1,12 +1,14 @@
 import React from 'react'
-import { Link, LoaderFunction, useLoaderData, json } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { BackIcon, Icons, NextIcon, Router, TipIcon } from '~/components'
-import {
+import type {
   GetFundingSourcesQuery,
-  GetFundingSourcesQueryVariables,
-  GetFundingSourcesDocument
+  GetFundingSourcesQueryVariables
 } from '~/generated/types'
+import { GetFundingSourcesDocument } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
 
 type PaymentMethod = {
@@ -72,7 +74,10 @@ export default function SettingsPaymentMethodsPage() {
         )}
         {paymentMethods.length > 0 &&
           paymentMethods.map((method: PaymentMethod) => (
-            <div className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <div
+              key={method.id}
+              className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+            >
               <div className='flex items-center space-x-3 text-medium'>
                 {method.icon && Icons[method.icon]()}
                 <div className='flex flex-col'>

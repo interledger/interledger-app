@@ -1,4 +1,4 @@
-import { redirect, json } from 'remix'
+import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { Params } from 'react-router-dom'
 import { v4 } from 'uuid'

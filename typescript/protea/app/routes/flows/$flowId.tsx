@@ -1,6 +1,14 @@
-import { Form, json, Outlet, useCatch, useLoaderData, useLocation } from 'remix'
-import type { LoaderFunction, ActionFunction } from 'remix'
-import React, { FC } from 'react'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import {
+  Form,
+  Outlet,
+  useCatch,
+  useLoaderData,
+  useLocation
+} from '@remix-run/react'
+import type { FC } from 'react'
+import React from 'react'
 import { BackIcon, CloseIcon, Error } from '~/components'
 import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'
 import { requireUserSession } from '~/lib/kratos.server'

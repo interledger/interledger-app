@@ -1,5 +1,6 @@
-import React, { FC } from 'react'
-import { Link } from 'remix'
+import type { FC } from 'react'
+import React from 'react'
+import { Link } from '@remix-run/react'
 
 /**
  * Predefined routes that allow for consistent routing.

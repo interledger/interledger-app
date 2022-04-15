@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Form, LoaderFunction, json, useLoaderData, useActionData } from 'remix'
-import type { ActionFunction } from 'remix'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Select, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 

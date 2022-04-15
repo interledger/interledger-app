@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { Link, LoaderFunction, redirect, useLoaderData, json } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { BackIcon, CardIcon, NextIcon, Router, Snackbar } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'

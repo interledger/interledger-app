@@ -1,6 +1,8 @@
-import React, { ChangeEventHandler, useState } from 'react'
-import { Form, LoaderFunction, json, useLoaderData, useFetcher } from 'remix'
-import type { ActionFunction } from 'remix'
+import type { ChangeEventHandler } from 'react'
+import React, { useState } from 'react'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button, TextField } from '~/components'
 import { getCurrentFlow, stepFlow, updateFlowData } from '~/lib/flows.server'
 

@@ -1,7 +1,8 @@
-import React, { FC } from 'react'
+import type { FC } from 'react'
+import React from 'react'
 import { Container } from './Container'
 import { LeavesDecor } from './Decor'
-import { Link } from 'remix'
+import { Link } from '@remix-run/react'
 
 type ErrorProps = {
   status?: number
