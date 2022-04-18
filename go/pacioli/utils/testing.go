@@ -117,6 +117,7 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*T
 		containerNetwork = "pacioli-test"
 	}
 
+	mkdirTbCommand := fmt.Sprintf("mkdir -p %s;", TIGERBEETLE_DIR)
 	initTbCommand := fmt.Sprintf("./tigerbeetle init --cluster=%d --replica=0 --directory=%s;", clusterID, TIGERBEETLE_DIR)
 	startTbCommand := fmt.Sprintf("./tigerbeetle start --cluster=%d --replica=0 --addresses=0.0.0.0:%s --directory=%s;", clusterID, TIGERBEETLE_PORT, TIGERBEETLE_DIR)
 
@@ -133,7 +134,7 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*T
 		Privileged:     true,
 		Cmd: []string{
 			"-c",
-			fmt.Sprintf("%s %s", initTbCommand, startTbCommand),
+			fmt.Sprintf("%s %s %s", mkdirTbCommand, initTbCommand, startTbCommand),
 		},
 	}
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
