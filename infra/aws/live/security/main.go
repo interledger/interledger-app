@@ -86,6 +86,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+		accSharedReadAccessGroup, err := secure_baseline.NewCrossAccountGroup(ctx, provider, "_account.shared-read-access", "arn:aws:iam::823058932981:role/allow-read-access-from-other-accounts")
+		if err != nil {
+			return err
+		}
 
 		/**
 		Create Users
@@ -114,6 +118,7 @@ func main() {
 		}
 		err = CreateUser(ctx, "omer", pulumi.StringArray{
 			userSelfMgmtGroup.Name,
+			accSharedReadAccessGroup.Name,
 		}, "keybase:omertoast", provider)
 		if err != nil {
 			return err
