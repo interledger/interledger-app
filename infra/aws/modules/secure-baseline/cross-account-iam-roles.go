@@ -23,6 +23,22 @@ func NewCrossAccountIamRoles(ctx *pulumi.Context, securityAccountId string) (*ia
 	return role, nil
 }
 
+func NewDevCrossAccountIamRole(ctx *pulumi.Context, securityAccountId string) (*iam.Role, error) {
+
+	role, err := iam.NewRole(ctx, "readAccessRole", &iam.RoleArgs{
+		Name:             pulumi.String("allow-read-access-from-other-accounts"),
+		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId)),
+		ManagedPolicyArns: pulumi.StringArray{
+			pulumi.String("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
 func newAssumeRolePolicy(securityAccountId string) string {
 
 	type Principal struct {
