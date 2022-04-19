@@ -9,7 +9,9 @@ import (
 )
 
 type DeployTigerBeetleArgs struct {
-	IsLocal bool
+	IsLocal   bool
+	ImageRepo string
+	ImageTag  string
 }
 
 func DeployTigerBeetle(ctx *pulumi.Context, args DeployTigerBeetleArgs) error {
@@ -19,7 +21,7 @@ func DeployTigerBeetle(ctx *pulumi.Context, args DeployTigerBeetleArgs) error {
 		return err
 	}
 
-	err = statefulSet(ctx, args.IsLocal)
+	err = statefulSet(ctx, args.IsLocal, args.ImageRepo, args.ImageTag)
 	if err != nil {
 		return err
 	}
@@ -32,7 +34,7 @@ func DeployTigerBeetle(ctx *pulumi.Context, args DeployTigerBeetleArgs) error {
 	return nil
 }
 
-func statefulSet(ctx *pulumi.Context, isLocal bool) error {
+func statefulSet(ctx *pulumi.Context, isLocal bool, imageRepo string, imageTag string) error {
 	_, err := appsv1.NewStatefulSet(ctx, "tigerbeetle-ss", &appsv1.StatefulSetArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("StatefulSet"),
@@ -79,7 +81,7 @@ func statefulSet(ctx *pulumi.Context, isLocal bool) error {
 					InitContainers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:  pulumi.String("init-tigerbeetle"),
-							Image: pulumi.String("823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1"),
+							Image: pulumi.Sprintf("%s/tigerbeetle:%s", imageRepo, imageTag),
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
 									Name:      pulumi.String("datadir"),
@@ -106,7 +108,7 @@ func statefulSet(ctx *pulumi.Context, isLocal bool) error {
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
 							Name:  pulumi.String("tigerbeetle"),
-							Image: pulumi.String("823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1"),
+							Image: pulumi.Sprintf("%s/tigerbeetle:%s", imageRepo, imageTag),
 							Ports: corev1.ContainerPortArray{
 								&corev1.ContainerPortArgs{
 									ContainerPort: pulumi.Int(8080),

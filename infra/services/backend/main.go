@@ -322,6 +322,10 @@ func deployDeployment(
 									Name:  pulumi.String("PACIOLI_URL"),
 									Value: pulumi.String("pacioli:443"),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("GOOGLE_OUATH2_CLIENT_ID"),
+									Value: pulumi.String(googleOauth2ClientID),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
