@@ -15,8 +15,17 @@ type DeployPostgresArgs struct {
 	Database string
 }
 
-func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs) error {
-	_, err := helm.NewChart(ctx, "postgres", helm.ChartArgs{
+func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs, opts ...pulumi.ResourceOption) error {
+	nc, err := createNodeCert(ctx, &NodeCertArgs{
+		Issuer:      "ca-issuer",
+		Namespace:   "default",
+		ServiceName: "postgres-postgresql",
+	}, opts...)
+	if err != nil {
+		return err
+	}
+
+	_, err = helm.NewChart(ctx, "postgres", helm.ChartArgs{
 		Version: pulumi.String("11.1.19"),
 		Chart:   pulumi.String("postgresql"),
 		FetchArgs: &helm.FetchArgs{
@@ -47,8 +56,18 @@ func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs) error {
 					},
 				},
 			},
+			"tls": pulumi.Map{
+				"enabled":            pulumi.Bool(true),
+				"certificatesSecret": pulumi.String("postgresdb-node"),
+				"certFilename":       pulumi.String("tls.crt"),
+				"certKeyFilename":    pulumi.String("tls.key"),
+				"certCAFilename":     pulumi.String("ca.crt"),
+			},
+			"volumePermissions": pulumi.Map{
+				"enabled": pulumi.Bool(true),
+			},
 		},
-	})
+	}, pulumi.DependsOn([]pulumi.Resource{nc}))
 	if err != nil {
 		return err
 	}
