@@ -1,6 +1,7 @@
 package rafiki
 
 import (
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
@@ -10,7 +11,8 @@ import (
 )
 
 type DeployRafikiArgs struct {
-	DbUrl                      pulumi.StringInput
+	DbCert                     *apiextensions.CustomResource
+	DbBaseUrl                  string
 	TbClusterID                string
 	TbReplicaAddresses         string
 	IlpAddress                 string
@@ -116,28 +118,28 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 					SecurityContext: &corev1.PodSecurityContextArgs{
 						RunAsUser: pulumi.Int(65532),
 					},
-					// Volumes: corev1.VolumeArray{
-					// 	&corev1.VolumeArgs{
-					// 		Name: pulumi.String("cockroach-certs"),
-					// 		Secret: &corev1.SecretVolumeSourceArgs{
-					// 			SecretName: pulumi.String("cockroachdb-backend"),
-					// 			Items: corev1.KeyToPathArray{
-					// 				&corev1.KeyToPathArgs{
-					// 					Key:  pulumi.String("tls.key"),
-					// 					Path: pulumi.String("client.backend.key"),
-					// 				},
-					// 				&corev1.KeyToPathArgs{
-					// 					Key:  pulumi.String("tls.crt"),
-					// 					Path: pulumi.String("client.backend.crt"),
-					// 				},
-					// 				&corev1.KeyToPathArgs{
-					// 					Key:  pulumi.String("ca.crt"),
-					// 					Path: pulumi.String("ca.crt"),
-					// 				},
-					// 			},
-					// 		},
-					// 	},
-					// },
+					Volumes: corev1.VolumeArray{
+						&corev1.VolumeArgs{
+							Name: pulumi.String("postgres-certs"),
+							Secret: &corev1.SecretVolumeSourceArgs{
+								SecretName: pulumi.String("postgresdb-rafiki"),
+								Items: corev1.KeyToPathArray{
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("tls.key"),
+										Path: pulumi.String("tls.key"),
+									},
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("tls.crt"),
+										Path: pulumi.String("tls.crt"),
+									},
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("ca.crt"),
+										Path: pulumi.String("ca.crt"),
+									},
+								},
+							},
+						},
+					},
 					ServiceAccountName: pulumi.String("rafiki"),
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
@@ -172,8 +174,14 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 							},
 							Env: corev1.EnvVarArray{
 								&corev1.EnvVarArgs{
-									Name:  pulumi.String("DATABASE_URL"),
-									Value: args.DbUrl,
+									Name: pulumi.String("DATABASE_URL"),
+									Value: pulumi.String(
+										args.DbBaseUrl +
+											"?sslmode=verify-full&" +
+											"sslcert=/certs/tls.crt&" +
+											"sslkey=/certs/tls.key&" +
+											"sslrootcert=/certs/ca.crt",
+									),
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TIGERBEETLE_CLUSTER_ID"),
@@ -234,13 +242,19 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 									Value: pulumi.String(args.WebhookUrl),
 								},
 							},
+							VolumeMounts: corev1.VolumeMountArray{
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("postgres-certs"),
+									MountPath: pulumi.String("/certs"),
+								},
+							},
 						},
 					},
 					TerminationGracePeriodSeconds: pulumi.Int(30),
 				},
 			},
 		},
-	}, pulumi.DependsOn([]pulumi.Resource{streamSecret, adminKey}))
+	}, pulumi.DependsOn([]pulumi.Resource{args.DbCert, streamSecret, adminKey}))
 	if err != nil {
 		return err
 	}

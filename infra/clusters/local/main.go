@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"fmt"
 
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -185,7 +184,7 @@ func main() {
 			Username:          "rafiki",
 			Database:          "rafiki",
 			Password:          rafikiDbPassword,
-		})
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}
@@ -208,19 +207,24 @@ func main() {
 			return base64.RawStdEncoding.EncodeToString([]byte(str)[0:32])
 		}).(pulumi.StringInput)
 
-		// TODO: set up certs.
-		rafikiDbUrl := rafikiDbPassword.Result.ApplyT(func(password string) string {
-			return fmt.Sprintf("postgresql://rafiki:%s@postgres-postgresql/rafiki", password)
-		}).(pulumi.StringOutput)
+		rc, err := postgres.CreateClientCert(ctx, &postgres.ClientCertArgs{
+			Name:      "rafiki",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		})
+		if err != nil {
+			return err
+		}
 		err = rafiki.DeployRafiki(ctx, &rafiki.DeployRafikiArgs{
 			ImageRepo:   "localhost:5005/rafiki-backend",
 			ImageTag:    "latest",
-			DbUrl:       rafikiDbUrl,
+			DbBaseUrl:   "postgresql://rafiki@postgres-postgresql/rafiki",
+			DbCert:      rc,
 			TbClusterID: "0",
 			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
 			// waiting for update for client to handle dns.
 			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
-			TbReplicaAddresses:         "[\"10.244.0.9:8080\"]",
+			TbReplicaAddresses:         "[\"10.244.0.12:8080\"]",
 			IlpAddress:                 "test.fynbos",
 			NonceRedisKey:              "noncefynbos",
 			RedisUrl:                   "redis://redis-master",
