@@ -168,7 +168,9 @@ func main() {
 		}
 
 		err = tigerbeetle.DeployTigerBeetle(ctx, tigerbeetle.DeployTigerBeetleArgs{
-			IsLocal: false,
+			IsLocal:   false,
+			ImageRepo: ecrRepo,
+			ImageTag:  "patch-1",
 		})
 		if err != nil {
 			return err

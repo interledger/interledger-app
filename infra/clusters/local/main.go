@@ -123,7 +123,9 @@ func main() {
 		}
 
 		err = tigerbeetle.DeployTigerBeetle(ctx, tigerbeetle.DeployTigerBeetleArgs{
-			IsLocal: true,
+			IsLocal:   true,
+			ImageRepo: "localhost:5005",
+			ImageTag:  "patch-1",
 		})
 		if err != nil {
 			return err

@@ -19,3 +19,8 @@ docker push localhost:5005/pacioli:latest
 docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite
 docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite localhost:5005/temporalite
 docker push localhost:5005/temporalite
+
+# Pull and push tigerbeetle
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1 localhost:5005/tigerbeetle:patch-1
+docker push localhost:5005/tigerbeetle:patch-1
