@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
 	b64 "encoding/base64"
+	"fmt"
 	"os/exec"
 	"strings"
 
@@ -9,6 +11,7 @@ import (
 
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
+	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	"gitlab.com/fynbos/infra/services/backend"
@@ -18,8 +21,12 @@ import (
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
 	"gitlab.com/fynbos/infra/services/pacioli"
+	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/protea"
+	"gitlab.com/fynbos/infra/services/rafiki"
+	"gitlab.com/fynbos/infra/services/redis"
 	"gitlab.com/fynbos/infra/services/retool"
+	"gitlab.com/fynbos/infra/services/temporal"
 	"gitlab.com/fynbos/infra/services/tigerbeetle"
 )
 
@@ -137,6 +144,11 @@ func main() {
 			return err
 		}
 
+		err = temporal.DeployTemporalDev(ctx, ecrRepo, "latest")
+		if err != nil {
+			return err
+		}
+
 		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
 			ImageRepo: ecrRepo,
 			ImageTag:  hash,
@@ -203,6 +215,91 @@ func main() {
 			return err
 		}
 		_, err = retool.DeployRetool(ctx, "retool.fynbos.dev")
+		if err != nil {
+			return err
+		}
+
+		err = redis.DeployRedis(ctx, &redis.DeployRedisArgs{
+			EnableSentinal: false,
+			ReplicaCount:   0,
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
+		if err != nil {
+			return err
+		}
+
+		rafikiDbPassword, err := random.NewRandomPassword(ctx, "rafiki-postgres", &random.RandomPasswordArgs{
+			Length:  pulumi.Int(32),
+			Special: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+		err = postgres.DeployPostgres(ctx, &postgres.DeployPostgresArgs{
+			ReadReplicasCount: 0,
+			Username:          "rafiki",
+			Database:          "rafiki",
+			Password:          rafikiDbPassword,
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
+		if err != nil {
+			return err
+		}
+
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:      "rafiki-ingress",
+			Hostname:  "pay.fynbos.dev",
+			TlsSecret: "tls-secret",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+
+		streamSecret, err := random.NewRandomString(ctx, "rafiki-stream-secret", &random.RandomStringArgs{
+			Length: pulumi.Int(32),
+		}, pulumi.AdditionalSecretOutputs([]string{"Result"}))
+		if err != nil {
+			return err
+		}
+		streamSecretBase64 := streamSecret.Result.ApplyT(func(str string) string {
+			return base64.RawStdEncoding.EncodeToString([]byte(str)[0:32])
+		}).(pulumi.StringInput)
+
+		rafikiPostgresCert, err := postgres.CreateClientCert(ctx, &postgres.ClientCertArgs{
+			Name:      "rafiki",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		})
+		if err != nil {
+			return err
+		}
+		rafikiRedisCert, err := redis.CreateClientCert(ctx, &redis.ClientCertArgs{
+			Name:      "rafiki",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		})
+		if err != nil {
+			return err
+		}
+		err = rafiki.DeployRafiki(ctx, &rafiki.DeployRafikiArgs{
+			ImageRepo:   fmt.Sprintf("%s/rafiki-backend", ecrRepo),
+			ImageTag:    "latest",
+			DbBaseUrl:   "postgresql://rafiki@postgres-postgresql/rafiki",
+			DbCert:      rafikiPostgresCert,
+			TbClusterID: "0",
+			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
+			// waiting for update for client to handle dns.
+			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
+			TbReplicaAddresses:         "[\"10.100.71.147:8080\"]",
+			IlpAddress:                 "test.fynbos",
+			NonceRedisKey:              "noncefynbos",
+			RedisUrl:                   "redis://redis-master:6379",
+			RedisCert:                  rafikiRedisCert,
+			AuthServerGrantUrl:         "http://127.0.0.1:3006",
+			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
+			StreamSecret:               streamSecretBase64,
+			AdminKey:                   streamSecret.Result, // re-using for local cluster
+			Hostname:                   "pay.fynbos.dev",
+			PublicHost:                 "https://pay.fynbos.dev",
+		})
 		if err != nil {
 			return err
 		}
