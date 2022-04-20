@@ -10,7 +10,6 @@ import (
 	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
-	_auth "gitlab.com/fynbos/backend/authorization"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -158,16 +157,12 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 		return nil, err
 	}
 	us := auth.NewMockService()
-	oso, err := _auth.NewAdminService()
-	if err != nil {
-		return nil, err
-	}
+
 	server, err := NewServer(&ServerArgs{
-		Hs:  hs,
-		Is:  is,
-		As:  as,
-		Us:  us,
-		Oso: oso,
+		Hs: hs,
+		Is: is,
+		As: as,
+		Us: us,
 	})
 	if err != nil {
 		return nil, err

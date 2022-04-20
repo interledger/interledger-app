@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -25,16 +24,15 @@ var (
 )
 
 type ServerArgs struct {
-	Hs  healthcheck.Service `validate:"required"`
-	Is  identity.Service    `validate:"required"`
-	As  accounts.Service    `validate:"required"`
-	Us  auth.Service        `validate:"required"`
-	Oso *oso.Oso            `validate:"required"`
+	Hs healthcheck.Service `validate:"required"`
+	Is identity.Service    `validate:"required"`
+	As accounts.Service    `validate:"required"`
+	Us auth.Service        `validate:"required"`
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
-	validator := validator.New()
-	if err := validator.Struct(args); err != nil {
+	v := validator.New()
+	if err := v.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
@@ -42,11 +40,10 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		args.Us.MakeUnaryInterceptors(),
 	)
 	backendv1.RegisterBackendServiceServer(server, &rpcServer{
-		validator: validator,
+		validator: v,
 		as:        args.As,
 		is:        args.Is,
 		us:        args.Us,
-		oso:       args.Oso,
 	})
 	grpc_health_v1.RegisterHealthServer(server, args.Hs)
 	reflection.Register(server)
@@ -59,7 +56,6 @@ type rpcServer struct {
 	as        accounts.Service
 	is        identity.Service
 	us        auth.Service
-	oso       *oso.Oso
 }
 
 func (s *rpcServer) GetUserAccountByEmail(
@@ -70,8 +66,8 @@ func (s *rpcServer) GetUserAccountByEmail(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
 	}
-	err = s.oso.Authorize(adminUser, "read", accounts.Account{})
-	if err != nil {
+	isAdmin := authorizeAdmin(adminUser.Email)
+	if !isAdmin {
 		return nil, status.Error(codes.PermissionDenied, "Forbidden.")
 	}
 
@@ -98,4 +94,19 @@ func (s *rpcServer) GetUserAccountByEmail(
 		CreditsReserved: acc.CreditsReserved,
 		CreditsAccepted: acc.CreditsAccepted,
 	}, nil
+}
+
+func authorizeAdmin(email string) bool {
+	emails := [...]string{
+		"don@fynbos.dev",
+		"matt@fynbos.dev",
+		"cairin@fynbos.dev",
+		"adrian@fynbos.dev",
+	}
+	for _, e := range emails {
+		if e == email {
+			return true
+		}
+	}
+	return false
 }
