@@ -72,6 +72,9 @@ func main() {
 		if err != nil {
 			return err
 		}
+		if _, err = ecr.NewPrivateRepository(ctx, "rafiki-backend", accountID); err != nil {
+			return err
+		}
 
 		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
 		ctx.Export("eksImage", eksImage.ImageName)
