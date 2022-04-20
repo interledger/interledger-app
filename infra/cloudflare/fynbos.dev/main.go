@@ -79,6 +79,18 @@ func main() {
 			return err
 		}
 
+		_, err = cloudflare.NewRecord(ctx, "dev-pay", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("pay.fynbos.dev"),
+			Value:   pulumi.String("a3975af75c60c4a1197c33dade9480dd-8bd81ab13ea4f740.elb.eu-west-1.amazonaws.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
 		// google
 		_, err = cloudflare.NewRecord(ctx, "_domainconnect", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
@@ -242,6 +254,10 @@ func main() {
 
 		err = CreateDevRetoolAccess(ctx, zone.ID())
 		if err != nil {
+			return err
+		}
+
+		if err = CreateDevPayAccess(ctx, zone.ID()); err != nil {
 			return err
 		}
 
