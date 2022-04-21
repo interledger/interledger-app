@@ -167,7 +167,7 @@ func main() {
 		err = redis.DeployRedis(ctx, &redis.DeployRedisArgs{
 			EnableSentinal: false,
 			ReplicaCount:   0,
-		})
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}
@@ -207,7 +207,15 @@ func main() {
 			return base64.RawStdEncoding.EncodeToString([]byte(str)[0:32])
 		}).(pulumi.StringInput)
 
-		rc, err := postgres.CreateClientCert(ctx, &postgres.ClientCertArgs{
+		rafikiPostgresCert, err := postgres.CreateClientCert(ctx, &postgres.ClientCertArgs{
+			Name:      "rafiki",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		})
+		if err != nil {
+			return err
+		}
+		rafikiRedisCert, err := redis.CreateClientCert(ctx, &redis.ClientCertArgs{
 			Name:      "rafiki",
 			Issuer:    "ca-issuer",
 			Namespace: "default",
@@ -219,15 +227,16 @@ func main() {
 			ImageRepo:   "localhost:5005/rafiki-backend",
 			ImageTag:    "latest",
 			DbBaseUrl:   "postgresql://rafiki@postgres-postgresql/rafiki",
-			DbCert:      rc,
+			DbCert:      rafikiPostgresCert,
 			TbClusterID: "0",
 			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
 			// waiting for update for client to handle dns.
 			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
-			TbReplicaAddresses:         "[\"10.244.0.12:8080\"]",
+			TbReplicaAddresses:         "[\"10.244.0.26:8080\"]",
 			IlpAddress:                 "test.fynbos",
 			NonceRedisKey:              "noncefynbos",
-			RedisUrl:                   "redis://redis-master",
+			RedisUrl:                   "redis://redis-master:6379",
+			RedisCert:                  rafikiRedisCert,
 			AuthServerGrantUrl:         "http://127.0.0.1:3006",
 			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
 			StreamSecret:               streamSecretBase64,
