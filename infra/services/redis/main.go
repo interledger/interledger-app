@@ -10,12 +10,22 @@ type DeployRedisArgs struct {
 	ReplicaCount   uint8
 }
 
-func DeployRedis(ctx *pulumi.Context, args *DeployRedisArgs) error {
+func DeployRedis(ctx *pulumi.Context, args *DeployRedisArgs, opts ...pulumi.ResourceOption) error {
 	architecture := "standalone"
 	if args.ReplicaCount > 0 {
 		architecture = "replication"
 	}
-	_, err := helm.NewChart(ctx, "redis", helm.ChartArgs{
+
+	nc, err := createNodeCert(ctx, &NodeCertArgs{
+		Issuer:      "ca-issuer",
+		Namespace:   "default",
+		ServiceName: "redis-master",
+	}, opts...)
+	if err != nil {
+		return err
+	}
+
+	_, err = helm.NewChart(ctx, "redis", helm.ChartArgs{
 		Version: pulumi.String("16.8.5"),
 		Chart:   pulumi.String("redis"),
 		FetchArgs: &helm.FetchArgs{
@@ -47,8 +57,15 @@ func DeployRedis(ctx *pulumi.Context, args *DeployRedisArgs) error {
 			"sentinel": pulumi.Map{
 				"enabled": pulumi.Bool(args.EnableSentinal),
 			},
+			"tls": pulumi.Map{
+				"enabled":            pulumi.Bool(true),
+				"certificatesSecret": pulumi.String("redis-node"),
+				"certFilename":       pulumi.String("tls.crt"),
+				"certKeyFilename":    pulumi.String("tls.key"),
+				"certCAFilename":     pulumi.String("ca.crt"),
+			},
 		},
-	})
+	}, pulumi.DependsOn([]pulumi.Resource{nc}))
 	if err != nil {
 		return err
 	}

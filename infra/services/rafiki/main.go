@@ -18,6 +18,7 @@ type DeployRafikiArgs struct {
 	IlpAddress                 string
 	NonceRedisKey              string
 	RedisUrl                   string
+	RedisCert                  *apiextensions.CustomResource
 	AuthServerGrantUrl         string
 	AuthServerIntrospectionUrl string
 	StreamSecret               pulumi.StringInput
@@ -139,6 +140,26 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 								},
 							},
 						},
+						&corev1.VolumeArgs{
+							Name: pulumi.String("redis-certs"),
+							Secret: &corev1.SecretVolumeSourceArgs{
+								SecretName: pulumi.String("redis-rafiki"),
+								Items: corev1.KeyToPathArray{
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("tls.key"),
+										Path: pulumi.String("tls.key"),
+									},
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("tls.crt"),
+										Path: pulumi.String("tls.crt"),
+									},
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("ca.crt"),
+										Path: pulumi.String("ca.crt"),
+									},
+								},
+							},
+						},
 					},
 					ServiceAccountName: pulumi.String("rafiki"),
 					Containers: corev1.ContainerArray{
@@ -174,13 +195,21 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 							},
 							Env: corev1.EnvVarArray{
 								&corev1.EnvVarArgs{
+									Name:  pulumi.String("PORT"),
+									Value: pulumi.String("3001"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("CONNECTOR_PORT"),
+									Value: pulumi.String("3002"),
+								},
+								&corev1.EnvVarArgs{
 									Name: pulumi.String("DATABASE_URL"),
 									Value: pulumi.String(
 										args.DbBaseUrl +
 											"?sslmode=verify-full&" +
-											"sslcert=/certs/tls.crt&" +
-											"sslkey=/certs/tls.key&" +
-											"sslrootcert=/certs/ca.crt",
+											"sslcert=/postgres-certs/tls.crt&" +
+											"sslkey=/postgres-certs/tls.key&" +
+											"sslrootcert=/postgres-certs/ca.crt",
 									),
 								},
 								&corev1.EnvVarArgs{
@@ -194,6 +223,18 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("REDIS_URL"),
 									Value: pulumi.String(args.RedisUrl),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("REDIS_TLS_CA_FILE_PATH"),
+									Value: pulumi.String("/redis-certs/ca.crt"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("REDIS_TLS_KEY_FILE_PATH"),
+									Value: pulumi.String("/redis-certs/tls.key"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("REDIS_TLS_CERT_FILE_PATH"),
+									Value: pulumi.String("/redis-certs/tls.crt"),
 								},
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("NONCE_REDIS_KEY"),
@@ -245,7 +286,11 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
 									Name:      pulumi.String("postgres-certs"),
-									MountPath: pulumi.String("/certs"),
+									MountPath: pulumi.String("/postgres-certs"),
+								},
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("redis-certs"),
+									MountPath: pulumi.String("/redis-certs"),
 								},
 							},
 						},
@@ -254,7 +299,7 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 				},
 			},
 		},
-	}, pulumi.DependsOn([]pulumi.Resource{args.DbCert, streamSecret, adminKey}))
+	}, pulumi.DependsOn([]pulumi.Resource{args.DbCert, args.RedisCert, streamSecret, adminKey}))
 	if err != nil {
 		return err
 	}
