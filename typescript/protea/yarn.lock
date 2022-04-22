@@ -1613,13 +1613,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@headlessui/react@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "@headlessui/react@npm:1.5.0"
+"@headlessui/react@npm:insiders":
+  version: 0.0.0-insiders.0162c57
+  resolution: "@headlessui/react@npm:0.0.0-insiders.0162c57"
   peerDependencies:
     react: ^16 || ^17 || ^18
     react-dom: ^16 || ^17 || ^18
-  checksum: e3373dfb73936950d659a87718fb9fdedc599b344b30cb0d8b1ef0a2ec13d6f405c653fa51284236788658840ece82c6a8538a5a5931e595274e9590b2020079
+  checksum: f621750bd41c128777b40f78c0fc587f6ea92fbac80161cea0f6e9bfcc1012189b73d0f3489777af23d8f226f0c45b314071c5989f2139e4a0d64e821f1fa31d
   languageName: node
   linkType: hard
 
@@ -9960,7 +9960,7 @@ autoprefixer@latest:
     "@graphql-codegen/typescript": 2.3.1
     "@graphql-codegen/typescript-operations": 2.2.0
     "@graphql-codegen/typescript-react-apollo": ^3.2.1
-    "@headlessui/react": ^1.5.0
+    "@headlessui/react": insiders
     "@mapbox/rehype-prism": ^0.7.0
     "@ory/kratos-client": 0.8.2-alpha.1
     "@remix-run/dev": ^1.4.1
