@@ -8,6 +8,7 @@ import invariant from 'ts-invariant'
 export enum flowType {
   Deposit = 'deposit',
   Withdraw = 'withdraw',
+  Send = 'send',
   PaymentMethod = 'payment-method'
 }
 
@@ -280,6 +281,32 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           {
             name: 'Review',
             route: route('/flows/:flowId/withdraw/review', { flowId: id })
+          }
+        ],
+        complete: false,
+        exitTo: '/home'
+      }
+    case flowType.Send:
+      return {
+        id: id,
+        type: flowType.Send,
+        name: 'Send',
+        stepIndex: 0,
+        data: {},
+        steps: [
+          {
+            name: 'To',
+            route: route('/flows/:flowId/send/to', {
+              flowId: id
+            })
+          },
+          {
+            name: 'Amount',
+            route: route('/flows/:flowId/send/amount', { flowId: id })
+          },
+          {
+            name: 'Review',
+            route: route('/flows/:flowId/send/review', { flowId: id })
           }
         ],
         complete: false,

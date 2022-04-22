@@ -311,6 +311,13 @@ export type VerifyUsdBankAccountMutationVariables = Exact<{
 
 export type VerifyUsdBankAccountMutation = { __typename?: 'Mutation', verifyUsdBankAccount: { __typename?: 'VerifyUsdBankAccountMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
 
+export type InitiateOutgoingPaymentMutationVariables = Exact<{
+  input: OutgoingPaymentInput;
+}>;
+
+
+export type InitiateOutgoingPaymentMutation = { __typename?: 'Mutation', initiateOutgoingPayment: { __typename?: 'OutgoingPaymentMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
+
 export type InitiateWithdrawalMutationVariables = Exact<{
   input: WithdrawalInput;
 }>;
@@ -453,6 +460,26 @@ export const VerifyUsdBankAccountDocument = gql`
 export type VerifyUsdBankAccountMutationFn = Apollo.MutationFunction<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
 export type VerifyUsdBankAccountMutationResult = Apollo.MutationResult<VerifyUsdBankAccountMutation>;
 export type VerifyUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
+export const InitiateOutgoingPaymentDocument = gql`
+    mutation InitiateOutgoingPayment($input: OutgoingPaymentInput!) {
+  initiateOutgoingPayment(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
+    `;
+export type InitiateOutgoingPaymentMutationFn = Apollo.MutationFunction<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
+export type InitiateOutgoingPaymentMutationResult = Apollo.MutationResult<InitiateOutgoingPaymentMutation>;
+export type InitiateOutgoingPaymentMutationOptions = Apollo.BaseMutationOptions<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
 export const InitiateWithdrawalDocument = gql`
     mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {
