@@ -41,6 +41,14 @@ export type CreateAccountMutationResponse = MutationResponse & {
   success: Scalars['Boolean'];
 };
 
+export type Deposit = {
+  __typename?: 'Deposit';
+  amount: Scalars['String'];
+  id: Scalars['ID'];
+  state: Scalars['String'];
+  timestamp: Scalars['String'];
+};
+
 export type DepositInput = {
   amount: Scalars['String'];
   fundingSourceID: Scalars['ID'];
@@ -49,9 +57,9 @@ export type DepositInput = {
 export type DepositMutationResponse = MutationResponse & {
   __typename?: 'DepositMutationResponse';
   code: Scalars['String'];
+  deposit?: Maybe<Deposit>;
   message: Scalars['String'];
   success: Scalars['Boolean'];
-  transaction?: Maybe<Transaction>;
 };
 
 export type FundingSource = {
@@ -287,7 +295,7 @@ export type InitiateDepositMutationVariables = Exact<{
 }>;
 
 
-export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
+export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, deposit?: { __typename?: 'Deposit', id: string, state: string, amount: string, timestamp: string } | null | undefined } };
 
 export type LinkUsdBankAccountMutationVariables = Exact<{
   input: LinkUsdBankAccountInput;
@@ -393,13 +401,11 @@ export const InitiateDepositDocument = gql`
     code
     success
     message
-    transaction {
+    deposit {
       id
-      type
-      description
+      state
       amount
       timestamp
-      status
     }
   }
 }

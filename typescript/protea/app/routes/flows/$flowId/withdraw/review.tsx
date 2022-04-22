@@ -67,12 +67,12 @@ export default function WithdrawReviewPage() {
 
 export const action: ActionFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)
-  const { paymentMethodId, amount } = flow?.data
+  const { paymentMethodId, total } = flow?.data
   const cookie = request.headers.get('cookie')
   const initiateWithdrawalMutationVariables = {
     input: {
       fundingSourceID: paymentMethodId,
-      amount: amount.toFixed(2).replace('.', '')
+      amount: total.toFixed(2).replace('.', '')
     }
   }
   const res = await apolloClient.mutate<
