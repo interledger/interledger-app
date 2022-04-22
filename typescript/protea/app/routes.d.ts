@@ -12,13 +12,11 @@ declare module "routes-gen" {
     "/activity/transaction/:id": { id: string };
     "/settings/payment-methods": {};
     "/settings/password": {};
-    "/transact/preview": {};
-    "/transact/receive": {};
     "/activity/filter": {};
     "/activity": {};
     "/settings": {};
-    "/transact": {};
     "/connect": {};
+    "/receive": {};
     "/home": {};
     "/flows/:flowId": { flowId: string };
     "/flows/:flowId/withdraw/payment-method": { flowId: string };
@@ -55,13 +53,11 @@ declare module "routes-gen" {
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/payment-methods"]
       | ["/settings/password"]
-      | ["/transact/preview"]
-      | ["/transact/receive"]
       | ["/activity/filter"]
       | ["/activity"]
       | ["/settings"]
-      | ["/transact"]
       | ["/connect"]
+      | ["/receive"]
       | ["/home"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
       | ["/flows/:flowId/withdraw/payment-method", RouteParams["/flows/:flowId/withdraw/payment-method"]]

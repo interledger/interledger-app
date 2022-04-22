@@ -5,12 +5,10 @@ export const loader: LoaderFunction = async ({ request }) => {
   return requireUserSession(request)
 }
 
-export default function TransactReceivePage() {
+export default function ConnectPage() {
   return (
-    // <WalletLayout backRoute={Routes.transact} header='Receive' hideNav>
-    {
-      /* TODO insert content */
-    }
-    // </WalletLayout>
+    <div className='flex h-screen w-full items-center justify-center font-display text-5xl font-medium text-medium'>
+      Coming soon <span className='text-primary'>.</span>
+    </div>
   )
 }
