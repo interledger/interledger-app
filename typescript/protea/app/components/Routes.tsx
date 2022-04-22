@@ -1,15 +1,15 @@
-import type { FC } from 'react'
+import { forwardRef } from 'react'
 import React from 'react'
-import { Link } from '@remix-run/react'
+import { Link, useNavigate } from '@remix-run/react'
 
 /**
- * Predefined routes that allow for consistent routing.
  * Ensure all routes are prefixed with `/` to prevent relative routing.
  */
 
-export type RouterProps = {
+type RouterProps = {
   className?: string
   to: string
+  children?: React.ReactNode
 }
 
 /**
@@ -19,19 +19,72 @@ export type RouterProps = {
  * @param href - Routes or Routes object with params
  * @param rest The props passed through to the anchor tag.
  */
-export const Router: FC<RouterProps> = ({
-  className,
-  children,
-  to,
-  ...rest
-}) => {
-  return (
-    <Link
-      to={to}
-      className={`focus-visible:outline-2 focus-visible:outline-focus ${className}`}
-      {...rest}
-    >
-      {children}
-    </Link>
-  )
-}
+const RouterRoot = forwardRef<any, RouterProps>(
+  ({ className, children, to, ...rest }, ref) => {
+    return (
+      <Link
+        ref={ref}
+        to={to}
+        className={`focus-visible:outline-2 focus-visible:outline-focus ${className}`}
+        {...rest}
+      >
+        {children}
+      </Link>
+    )
+  }
+)
+
+RouterRoot.displayName = 'Link Router'
+
+/**
+ * Exposes a headless button that will route to `to`,
+ * and can be wrapped around a styled button for accessibility.
+ *
+ * @param children The children of the button.
+ * @param href - Routes or Routes object with params
+ * @param rest The props passed through to the anchor tag.
+ */
+const Button = forwardRef<any, RouterProps>(
+  ({ className, children, to, ...rest }, ref) => {
+    const navigate = useNavigate()
+    return (
+      <button
+        ref={ref}
+        onClick={() => navigate(to)}
+        className={`focus-visible:outline-2 focus-visible:outline-focus ${className}`}
+        {...rest}
+      >
+        {children}
+      </button>
+    )
+  }
+)
+
+Button.displayName = 'Button Router'
+
+/**
+ * Exposes a headless anchor tag that will route to `to`,
+ * and can be wrapped around a styled button for accessibility.
+ *
+ * @param children The children of the button.
+ * @param href - Routes or Routes object with params
+ * @param rest The props passed through to the anchor tag.
+ */
+const a = forwardRef<any, RouterProps>(
+  ({ className, children, to, ...rest }, ref) => {
+    return (
+      <a
+        ref={ref}
+        href={to}
+        className={`focus-visible:outline-2 focus-visible:outline-focus ${className}`}
+        {...rest}
+      >
+        {children}
+      </a>
+    )
+  }
+)
+
+a.displayName = 'Anchor Router'
+
+export const Router = Object.assign(RouterRoot, { Button, a })
