@@ -29,23 +29,23 @@ export const Error: FC<ErrorProps> = ({ status, data }) => {
           <div className='sm:mt-12'>
             <div>
               <h1 className='font-display text-4xl font-medium text-medium'>
-                {data.title || 'An error occurred'}
+                {data?.title || status == 404
+                  ? 'Not found'
+                  : 'An error occurred'}
               </h1>
               <p className='mt-2 font-sans text-weak'>
                 {/*TODO put in support email here.*/}
-                {data.body ||
-                  'Please try again, and contact support if the problem persists.'}
+                {data?.body ||
+                  'Please try again, or contact support if the problem persists.'}
               </p>
             </div>
-            {data.action && (
-              <div className='mt-10'>
-                <Link to={data.action.route || '/home'}>
-                  <span className='text-primary'>
-                    {data.action.text || 'Go back home'}
-                  </span>
-                </Link>
-              </div>
-            )}
+            <div className='mt-10'>
+              <Link to={data?.action?.route || '/'}>
+                <span className='text-primary'>
+                  {data?.action?.text || 'Go back home'}
+                </span>
+              </Link>
+            </div>
           </div>
         </main>
         <LeavesDecor />
