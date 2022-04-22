@@ -5,6 +5,7 @@ declare module "routes-gen" {
     "/confirmation/:flowId/payment-method": { flowId: string };
     "/confirmation/:flowId/withdraw": { flowId: string };
     "/confirmation/:flowId/deposit": { flowId: string };
+    "/confirmation/:flowId/send": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
     "/": {};
@@ -29,6 +30,9 @@ declare module "routes-gen" {
     "/flows/:flowId/withdraw/review": { flowId: string };
     "/flows/:flowId/deposit/amount": { flowId: string };
     "/flows/:flowId/deposit/review": { flowId: string };
+    "/flows/:flowId/send/amount": { flowId: string };
+    "/flows/:flowId/send/review": { flowId: string };
+    "/flows/:flowId/send/to": { flowId: string };
     "/blog": {};
     "/recovery": {};
     "/logout": {};
@@ -44,6 +48,7 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
+      | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
       | ["/"]
@@ -68,6 +73,9 @@ declare module "routes-gen" {
       | ["/flows/:flowId/withdraw/review", RouteParams["/flows/:flowId/withdraw/review"]]
       | ["/flows/:flowId/deposit/amount", RouteParams["/flows/:flowId/deposit/amount"]]
       | ["/flows/:flowId/deposit/review", RouteParams["/flows/:flowId/deposit/review"]]
+      | ["/flows/:flowId/send/amount", RouteParams["/flows/:flowId/send/amount"]]
+      | ["/flows/:flowId/send/review", RouteParams["/flows/:flowId/send/review"]]
+      | ["/flows/:flowId/send/to", RouteParams["/flows/:flowId/send/to"]]
       | ["/blog"]
       | ["/recovery"]
       | ["/logout"]
