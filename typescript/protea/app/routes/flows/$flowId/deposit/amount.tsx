@@ -103,7 +103,7 @@ export const action: ActionFunction = async ({ request }) => {
     total = 0
   if (!isNaN(amount)) {
     fee = amount * feeStructure.percentage + feeStructure.fixed
-    total = amount - fee
+    total = amount + fee
     if (total < 0) total = 0
   }
   const data = {
