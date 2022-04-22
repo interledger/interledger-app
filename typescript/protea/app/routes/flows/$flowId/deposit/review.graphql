@@ -14,13 +14,11 @@ mutation InitiateDeposit($input: DepositInput!) {
     code
     success
     message
-    transaction {
+    deposit {
       id
-      type
-      description
+      state
       amount
       timestamp
-      status
     }
   }
 }

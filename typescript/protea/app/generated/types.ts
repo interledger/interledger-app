@@ -41,6 +41,14 @@ export type CreateAccountMutationResponse = MutationResponse & {
   success: Scalars['Boolean'];
 };
 
+export type Deposit = {
+  __typename?: 'Deposit';
+  amount: Scalars['String'];
+  id: Scalars['ID'];
+  state: Scalars['String'];
+  timestamp: Scalars['String'];
+};
+
 export type DepositInput = {
   amount: Scalars['String'];
   fundingSourceID: Scalars['ID'];
@@ -49,9 +57,9 @@ export type DepositInput = {
 export type DepositMutationResponse = MutationResponse & {
   __typename?: 'DepositMutationResponse';
   code: Scalars['String'];
+  deposit?: Maybe<Deposit>;
   message: Scalars['String'];
   success: Scalars['Boolean'];
-  transaction?: Maybe<Transaction>;
 };
 
 export type FundingSource = {
@@ -287,7 +295,7 @@ export type InitiateDepositMutationVariables = Exact<{
 }>;
 
 
-export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
+export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, deposit?: { __typename?: 'Deposit', id: string, state: string, amount: string, timestamp: string } | null | undefined } };
 
 export type LinkUsdBankAccountMutationVariables = Exact<{
   input: LinkUsdBankAccountInput;
@@ -302,6 +310,13 @@ export type VerifyUsdBankAccountMutationVariables = Exact<{
 
 
 export type VerifyUsdBankAccountMutation = { __typename?: 'Mutation', verifyUsdBankAccount: { __typename?: 'VerifyUsdBankAccountMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
+
+export type InitiateOutgoingPaymentMutationVariables = Exact<{
+  input: OutgoingPaymentInput;
+}>;
+
+
+export type InitiateOutgoingPaymentMutation = { __typename?: 'Mutation', initiateOutgoingPayment: { __typename?: 'OutgoingPaymentMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
 
 export type InitiateWithdrawalMutationVariables = Exact<{
   input: WithdrawalInput;
@@ -393,13 +408,11 @@ export const InitiateDepositDocument = gql`
     code
     success
     message
-    transaction {
+    deposit {
       id
-      type
-      description
+      state
       amount
       timestamp
-      status
     }
   }
 }
@@ -447,6 +460,26 @@ export const VerifyUsdBankAccountDocument = gql`
 export type VerifyUsdBankAccountMutationFn = Apollo.MutationFunction<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
 export type VerifyUsdBankAccountMutationResult = Apollo.MutationResult<VerifyUsdBankAccountMutation>;
 export type VerifyUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
+export const InitiateOutgoingPaymentDocument = gql`
+    mutation InitiateOutgoingPayment($input: OutgoingPaymentInput!) {
+  initiateOutgoingPayment(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}
+    `;
+export type InitiateOutgoingPaymentMutationFn = Apollo.MutationFunction<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
+export type InitiateOutgoingPaymentMutationResult = Apollo.MutationResult<InitiateOutgoingPaymentMutation>;
+export type InitiateOutgoingPaymentMutationOptions = Apollo.BaseMutationOptions<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
 export const InitiateWithdrawalDocument = gql`
     mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {

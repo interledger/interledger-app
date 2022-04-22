@@ -2,7 +2,7 @@ import React from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, TipIcon } from '~/components'
+import { Button } from '~/components'
 import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -12,28 +12,25 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function WithdrawConfirmationPage() {
+export default function SendConfirmationPage() {
   const { flow } = useLoaderData()
-  const { paymentMethodMask, displayAmount, displayFee, displayTotal } =
-    flow?.data
+  const { to, displayAmount, displayFee, displayTotal } = flow?.data
   return (
     <>
       <Form
-        id='withdraw-confirmation'
-        action={`/confirmation/${flow.id}/withdraw`}
+        id='send-confirmation'
+        action={`/confirmation/${flow.id}/send`}
         method='post'
         className='hidden'
       />
       <div className='col-span-full flex flex-col pb-8 pt-4 text-strong sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='font-display text-4xl font-medium'>
-          Withdraw confirmed
+          Send confirmed
         </span>
       </div>
       <div className='col-span-full flex justify-between pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Payment method</span>
-        <span className='font-sans text-base font-normal'>
-          {paymentMethodMask}
-        </span>
+        <span className='font-sans text-sm font-medium'>Sent to</span>
+        <span className='font-sans text-base font-normal'>{to}</span>
       </div>
       <div className='text medium col-span-full flex justify-between sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='font-display text-sm font-medium'>Amount</span>
@@ -53,17 +50,9 @@ export default function WithdrawConfirmationPage() {
           {displayTotal || '$ 0.00'}
         </span>
       </div>
-      <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='text-medium'>
-          <TipIcon />
-        </div>
-        <span className='font-sans text-sm font-normal text-medium'>
-          Your withdraw may take some time to appear in your bank account.
-        </span>
-      </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='withdraw-confirmation' type='submit'>
+        <Button form='send-confirmation' type='submit'>
           Continue
         </Button>
       </div>

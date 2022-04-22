@@ -1,0 +1,15 @@
+mutation InitiateOutgoingPayment($input: OutgoingPaymentInput!) {
+  initiateOutgoingPayment(input: $input) {
+    code
+    success
+    message
+    transaction {
+      id
+      type
+      description
+      amount
+      timestamp
+      status
+    }
+  }
+}

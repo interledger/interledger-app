@@ -1,6 +1,7 @@
-import { getAllPosts, BlogMeta } from '~/lib/blog'
+import type { BlogMeta } from '~/lib/blog'
+import { getAllPosts } from '~/lib/blog'
 import { Container, Footer, Header, Router } from '~/components'
-import { FC } from 'react'
+import type { FC } from 'react'
 import { DateTime } from 'luxon'
 
 type BlogPageProps = {

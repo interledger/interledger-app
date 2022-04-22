@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Switch as HeadlessSwitch } from '@headlessui/react'
 
 type SwitchProps = {

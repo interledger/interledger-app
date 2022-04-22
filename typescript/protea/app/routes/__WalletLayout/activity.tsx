@@ -1,31 +1,24 @@
-import React, { FC, useCallback, useEffect, useState } from 'react'
-import {
-  Link,
-  LoaderFunction,
-  json,
-  useLoaderData,
-  useFetcher,
-  Form,
-  redirect,
-  ActionFunction
-} from 'remix'
+import type { FC } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
-  BackIcon,
   BankIcon,
   CardIcon,
   PendingIcon,
-  SentIcon
+  SentIcon,
+  SettingsIcon
 } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
-import {
+import type {
   GetActivityQuery,
   GetActivityQueryVariables,
-  GetActivityDocument,
-  TransactionType,
   PageInfo
 } from '~/generated/types'
+import { GetActivityDocument, TransactionType } from '~/generated/types'
 import { DateTime } from 'luxon'
 import { commitSession, getSession } from '~/sessions'
 
@@ -72,7 +65,7 @@ export const loader: LoaderFunction = async ({ request }) => {
       }
     })
     .then((val) => val.data.transactions)
-
+  // TODO Handle empty case: val.data == null
   let transactions: LoaderData['transactions'] = activities?.edges.map(
     (trx) => ({
       id: trx.node.id,
@@ -230,20 +223,20 @@ export default function ActivityPage() {
   return (
     <div className='w-full'>
       {/* Header */}
-      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-white p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
-        <Link to={route('/home')}>
-          <div className='-ml-3 p-3 text-medium'>
-            <BackIcon />
-          </div>
-        </Link>
+      <header className='sticky top-0 flex h-16 min-w-full select-none items-center justify-between bg-white p-4 text-medium'>
         <div className='flex items-center justify-start font-display text-2xl font-medium'>
           Activity
         </div>
+        <Link className='sm:hidden' to={route('/settings')}>
+          <div className='-mr-3 p-3 text-medium'>
+            <SettingsIcon />
+          </div>
+        </Link>
       </header>
       {/* Body */}
       <div
         ref={divHeight}
-        className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'
+        className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'
       >
         <Form
           id='activity-control'

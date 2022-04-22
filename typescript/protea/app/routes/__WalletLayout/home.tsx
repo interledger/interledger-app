@@ -1,5 +1,6 @@
-import { json, Link, useLoaderData } from 'remix'
-import type { LoaderFunction } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   BankIcon,
@@ -11,13 +12,10 @@ import {
   SettingsIcon
 } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import React, { FC } from 'react'
-import {
-  GetHomeDocument,
-  GetHomeQuery,
-  GetHomeQueryVariables,
-  TransactionType
-} from '~/generated/types'
+import type { FC } from 'react'
+import React from 'react'
+import type { GetHomeQuery, GetHomeQueryVariables } from '~/generated/types'
+import { GetHomeDocument, TransactionType } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
 import { DateTime } from 'luxon'
 

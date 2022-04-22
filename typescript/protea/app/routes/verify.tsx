@@ -1,5 +1,6 @@
-import { json, Form, redirect, useLoaderData } from 'remix'
-import type { ActionFunction, LoaderFunction } from 'remix'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
 import { Button, Logo, Router } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
@@ -8,12 +9,12 @@ import {
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
-import {
-  OnboardAccountDocument,
+import type {
   OnboardAccountMutation,
   OnboardAccountMutationVariables
 } from '~/generated/types'
-import { Session } from '@ory/kratos-client'
+import { OnboardAccountDocument } from '~/generated/types'
+import type { Session } from '@ory/kratos-client'
 import { apolloClient } from '~/lib/apollo.server'
 
 type ActionData = {
