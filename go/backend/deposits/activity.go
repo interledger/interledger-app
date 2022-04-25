@@ -2,10 +2,13 @@ package deposits
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"go.temporal.io/sdk/activity"
 )
@@ -15,14 +18,16 @@ type Activity struct {
 	ds        Service
 	ts        transactions.Service
 	as        accounts.Service
+	fs        fundingsources.Service
 	noop      noop.Service
 }
 
 type ActivityArgs struct {
-	Ds Service              `validate:"required"`
-	As accounts.Service     `validate:"required"`
-	Np noop.Service         `validate:"required"`
-	Ts transactions.Service `validate:"required"`
+	Ds Service                `validate:"required"`
+	As accounts.Service       `validate:"required"`
+	Np noop.Service           `validate:"required"`
+	Ts transactions.Service   `validate:"required"`
+	Fs fundingsources.Service `validate:"required"`
 }
 
 func NewActivity(args ActivityArgs) (*Activity, error) {
@@ -36,6 +41,7 @@ func NewActivity(args ActivityArgs) (*Activity, error) {
 		as:        args.As,
 		ds:        args.Ds,
 		ts:        args.Ts,
+		fs:        args.Fs,
 		noop:      args.Np,
 	}, nil
 }
@@ -54,12 +60,18 @@ func (s *Activity) CreatePendingTransaction(ctx context.Context, depositId strin
 		return "", err
 	}
 
+	// get funding source
+	fs, err := s.fs.Get(ctx, deposit.FundingSourceId)
+	if err != nil {
+		return "", fmt.Errorf("%w: %s", errors.New("deposit service: internal error"), err.Error())
+	}
+
 	// TODO this needs to be better way to handle getting the data.
 	trx, err := s.ts.CreatePending(ctx, &transactions.CreatePendingTransactionArgs{
 		AccountID:   deposit.AccountID,
 		Type:        "deposit",
 		NetAmount:   deposit.Amount,
-		Description: fmt.Sprintf("from %s bank account", "test"), // TODO Format to come from FS
+		Description: fmt.Sprintf("from %s bank account", fs.Mask), // TODO Format to come from FS
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
 				LedgerID:        s.noop.GetLedgerID(),

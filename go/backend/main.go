@@ -4,14 +4,15 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"gitlab.com/fynbos/backend/temporal"
-	"go.temporal.io/sdk/worker"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"time"
+
+	"gitlab.com/fynbos/backend/temporal"
+	"go.temporal.io/sdk/worker"
+	"google.golang.org/grpc/credentials/insecure"
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
@@ -487,6 +488,7 @@ func startWorker(args *cli.StartArgs) {
 		As:     as,
 		Np:     nos,
 		Ts:     ts,
+		Fs:     fs,
 	})
 	if err != nil {
 		log.Fatalln(err)

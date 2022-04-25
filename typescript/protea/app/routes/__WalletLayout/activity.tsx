@@ -115,7 +115,7 @@ const activityIcon = (type: TransactionType, status: string) => {
     case TransactionType.Outgoingpayment:
       return 'north_east'
     case TransactionType.Deposit:
-      return 'credit_card'
+      return 'account_balance'
     case TransactionType.Withdrawal:
       return 'account_balance'
     default:

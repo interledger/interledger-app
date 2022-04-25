@@ -4,6 +4,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -15,6 +16,7 @@ type WorkerArgs struct {
 	As     accounts.Service
 	Np     noop.Service
 	Ts     transactions.Service
+	Fs     fundingsources.Service
 }
 
 func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
@@ -27,6 +29,7 @@ func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
 		As: args.As,
 		Np: args.Np,
 		Ts: args.Ts,
+		Fs: args.Fs,
 	})
 	if err != nil {
 		return nil, err
