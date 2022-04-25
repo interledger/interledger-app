@@ -175,7 +175,7 @@ const activityIcon = (type: TransactionType, status: string) => {
   switch (type) {
     // case TransactionType.Received:
     //   return <ReceivedIcon />
-    case TransactionType.Sent:
+    case TransactionType.Outgoingpayment:
       return 'north_east'
     case TransactionType.Deposit:
       return 'credit_card'
@@ -190,7 +190,7 @@ const activityTitle = (type: TransactionType): string => {
   switch (type) {
     // case TransactionType.Received:
     //   return <ReceivedIcon />
-    case TransactionType.Sent:
+    case TransactionType.Outgoingpayment:
       return 'Sent'
     case TransactionType.Deposit:
       return 'Deposit'

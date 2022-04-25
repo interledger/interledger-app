@@ -214,6 +214,7 @@ export type TransactionEdge = {
 
 export enum TransactionType {
   Deposit = 'DEPOSIT',
+  Outgoingpayment = 'OUTGOINGPAYMENT',
   Sent = 'SENT',
   Withdrawal = 'WITHDRAWAL'
 }
