@@ -9,7 +9,7 @@ import {
 } from '@remix-run/react'
 import type { FC } from 'react'
 import React from 'react'
-import { BackIcon, CloseIcon, Error } from '~/components'
+import { Icon, Error } from '~/components'
 import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'
 import { requireUserSession } from '~/lib/kratos.server'
 
@@ -48,7 +48,7 @@ export default function FlowLayout() {
               value={parseInt(flow.stepIndex) - 1}
             >
               <div className='-ml-3 p-3 text-medium'>
-                <BackIcon />
+                <Icon>arrow_back</Icon>
               </div>
             </button>
           )}
@@ -58,7 +58,7 @@ export default function FlowLayout() {
         </div>
         <button form='flow-control' name='route' value='exit'>
           <div className='-mr-3 p-3 text-medium'>
-            <CloseIcon />
+            <Icon>close</Icon>
           </div>
         </button>
       </header>

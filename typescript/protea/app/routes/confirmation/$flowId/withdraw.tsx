@@ -2,7 +2,7 @@ import React from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, TipIcon } from '~/components'
+import { Button, Icon } from '~/components'
 import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -53,11 +53,9 @@ export default function WithdrawConfirmationPage() {
           {displayTotal || '$ 0.00'}
         </span>
       </div>
-      <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='text-medium'>
-          <TipIcon />
-        </div>
-        <span className='font-sans text-sm font-normal text-medium'>
+      <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Icon>tips_and_updates</Icon>
+        <span className='font-sans text-sm font-normal'>
           Your withdraw may take some time to appear in your bank account.
         </span>
       </div>

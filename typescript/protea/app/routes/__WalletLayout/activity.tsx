@@ -4,13 +4,7 @@ import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import {
-  BankIcon,
-  CardIcon,
-  PendingIcon,
-  SentIcon,
-  SettingsIcon
-} from '~/components'
+import { Icon } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
 import type {
@@ -107,10 +101,11 @@ const activityTitle = (type: TransactionType): string => {
   }
 }
 
+// TODO: Replace with implementation in the backend.
 const activityIcon = (type: TransactionType, status: string) => {
   switch (status) {
     case 'pending':
-      return <PendingIcon />
+      return 'hourglass_empty'
     default:
       break
   }
@@ -118,11 +113,11 @@ const activityIcon = (type: TransactionType, status: string) => {
     // case TransactionType.Received:
     //   return <ReceivedIcon />
     case TransactionType.Sent:
-      return <SentIcon />
+      return 'north_east'
     case TransactionType.Deposit:
-      return <CardIcon />
+      return 'credit_card'
     case TransactionType.Withdrawal:
-      return <BankIcon />
+      return 'account_balance'
     default:
       return null
   }
@@ -138,7 +133,7 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
       className='col-span-full flex items-center justify-between rounded-xl bg-container py-2 px-3 focus-visible:outline-2 focus-visible:outline-focus sm:col-span-6 sm:col-start-2 lg:col-start-4'
     >
       <div className='flex items-center justify-between space-x-3'>
-        {activityIcon(activity.transactionType, activity.status)}
+        <Icon>{activityIcon(activity.transactionType, activity.status)}</Icon>
         <div className='flex flex-col'>
           <span className='text-left font-display text-base font-medium'>
             {activity.title}
@@ -229,7 +224,7 @@ export default function ActivityPage() {
         </div>
         <Link className='sm:hidden' to={route('/settings')}>
           <div className='-mr-3 p-3 text-medium'>
-            <SettingsIcon />
+            <Icon>settings</Icon>
           </div>
         </Link>
       </header>
@@ -263,13 +258,6 @@ export default function ActivityPage() {
           </React.Fragment>
         ))}
       </div>
-      {/* TODO enable FAB when filter page is ready. */}
-      {/* <FAB
-        onClick={() => navigate(route('/activity/filter'))}
-        icon={<FilterIcon />}
-      >
-        Filter
-      </FAB> */}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { Combobox, Transition } from '@headlessui/react'
 import type { FC } from 'react'
 import React, { Fragment } from 'react'
-import { SelectIcon, CheckIcon } from '.'
+import { Icon } from '.'
 
 type AutocompleteOptions = {
   id: string
@@ -60,8 +60,8 @@ export const Autocomplete: FC<AutocompleteProps> = ({
                 displayValue={(value: AutocompleteOptions) => value?.name}
                 onChange={(event) => onQuery(event.target.value)}
               />
-              <Combobox.Button className='flex h-full items-center bg-container px-4'>
-                <SelectIcon />
+              <Combobox.Button className='flex h-full items-center bg-container px-4 text-medium'>
+                <Icon>unfold_more</Icon>
               </Combobox.Button>
             </div>
           </div>
@@ -95,7 +95,7 @@ export const Autocomplete: FC<AutocompleteProps> = ({
                         </span>
                         {selected && (
                           <span className='flex text-primary'>
-                            <CheckIcon />
+                            <Icon>check</Icon>
                           </span>
                         )}
                       </>

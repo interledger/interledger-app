@@ -1,9 +1,10 @@
 import type { FC } from 'react'
 import { Header } from '../Header'
-import { BackIcon, Container, Footer, Router } from '~/components'
+import { Container, Footer, Icon, Router } from '~/components'
 import type { Author, BlogMeta } from '~/lib/blog'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
+import React from 'react'
 
 type BlogLayoutProps = {
   meta: BlogMeta
@@ -34,7 +35,7 @@ export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
               <Router to={route('/blog')}>
                 <span className='mt-12 hidden items-center text-primary sm:flex'>
                   <span className='mr-2'>
-                    <BackIcon />
+                    <Icon>arrow_back</Icon>
                   </span>{' '}
                   Back to blogs
                 </span>
