@@ -3,7 +3,7 @@ import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Button, Router, NextIcon, TipIcon, RadioGroup } from '~/components'
+import { Button, Router, Icon, RadioGroup } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type {
@@ -32,7 +32,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     id: fs?.id,
     name: fs?.name,
     description: fs?.mask,
-    icon: 'BankIcon' // TODO: get actual icon from fundingsource subtype
+    icon: 'account_balance' // TODO: get actual icon from fundingsource subtype
   }))
 
   return json({
@@ -55,11 +55,9 @@ export default function DepositPaymentMethodPage() {
         className='hidden'
       />
       {paymentMethods.length == 0 && (
-        <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='text-medium'>
-            <TipIcon />
-          </div>
-          <span className='font-sans text-sm font-normal text-medium'>
+        <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <Icon>tips_and_updates</Icon>
+          <span className='font-sans text-sm font-normal'>
             You need to add a payment method before you can deposit money.
           </span>
         </div>
@@ -97,7 +95,7 @@ export default function DepositPaymentMethodPage() {
         <span className='font-sans text-base font-normal'>
           New payment method
         </span>
-        <NextIcon />
+        <Icon>navigate_next</Icon>
       </Router>
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <Button

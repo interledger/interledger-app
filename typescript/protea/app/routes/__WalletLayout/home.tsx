@@ -2,15 +2,7 @@ import type { LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import {
-  BankIcon,
-  CardIcon,
-  PendingIcon,
-  ReadMoreIcon,
-  Router,
-  SentIcon,
-  SettingsIcon
-} from '~/components'
+import { Icon, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import type { FC } from 'react'
 import React from 'react'
@@ -100,7 +92,7 @@ export default function Home() {
         </div>
         <Link className='sm:hidden' to={route('/settings')}>
           <div className='-mr-3 p-3 text-medium'>
-            <SettingsIcon />
+            <Icon>settings</Icon>
           </div>
         </Link>
       </header>
@@ -143,7 +135,7 @@ export default function Home() {
             <Router to={route('/activity')}>
               <div className='flex items-center space-x-1 font-display text-sm font-medium text-primary'>
                 <span>See all</span>
-                <ReadMoreIcon />
+                <Icon>read_more</Icon>
               </div>
             </Router>
           </div>
@@ -172,10 +164,11 @@ export default function Home() {
   )
 }
 
+// TODO: Replace with implementation in the backend.
 const activityIcon = (type: TransactionType, status: string) => {
   switch (status) {
     case 'pending':
-      return <PendingIcon />
+      return 'hourglass_empty'
     default:
       break
   }
@@ -183,11 +176,11 @@ const activityIcon = (type: TransactionType, status: string) => {
     // case TransactionType.Received:
     //   return <ReceivedIcon />
     case TransactionType.Sent:
-      return <SentIcon />
+      return 'north_east'
     case TransactionType.Deposit:
-      return <CardIcon />
+      return 'credit_card'
     case TransactionType.Withdrawal:
-      return <BankIcon />
+      return 'account_balance'
     default:
       return null
   }
@@ -217,7 +210,7 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
       className='col-span-full flex items-center justify-between rounded-xl bg-container py-2 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'
     >
       <div className='flex items-center justify-between space-x-3'>
-        {activityIcon(activity.transactionType, activity.status)}
+        <Icon>{activityIcon(activity.transactionType, activity.status)}</Icon>
         <div className='flex flex-col'>
           <span className='font-display text-base font-medium'>
             {activity.title}

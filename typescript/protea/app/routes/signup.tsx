@@ -231,7 +231,7 @@ export default function SignupPage() {
 
         {/* <div className='flex w-full items-center space-x-3 rounded-xl bg-container p-4'>
           <div className='text-medium'>
-            <TipIcon />
+            <Icon>tips_and_updates</Icon>
           </div>
           <span className='text-small font-normal text-medium'>
             We currently aren't released in your region. Feel free to join our

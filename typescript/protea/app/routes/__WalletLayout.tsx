@@ -8,20 +8,7 @@ import {
 import { route } from 'routes-gen'
 import type { FC } from 'react'
 import React, { Fragment } from 'react'
-import {
-  ConnectIcon,
-  SettingsIcon,
-  TransactIcon,
-  WalletIcon,
-  Logo,
-  LogoIcon,
-  Router,
-  QRIcon,
-  SendIcon,
-  ActivityIcon,
-  WithdrawIcon,
-  DepositIcon
-} from '~/components'
+import { Icon, Logo, LogoIcon, Router } from '~/components'
 import { Menu, Popover, Transition } from '@headlessui/react'
 
 // Allow us to show/hide the NavRail and NavDrawer on certain pages.
@@ -52,16 +39,16 @@ export default function WalletLayout() {
               <LogoIcon className='mx-auto mb-4 h-8' />
             </Link>
             <NavFAB />
-            <NavListItem icon={<WalletIcon />} to={route('/home')}>
+            <NavListItem icon='savings' to={route('/home')}>
               Home
             </NavListItem>
-            <NavListItem icon={<ActivityIcon />} to={route('/activity')}>
+            <NavListItem icon='history' to={route('/activity')}>
               Activity
             </NavListItem>
-            <NavListItem icon={<ConnectIcon />} to={route('/connect')}>
+            <NavListItem icon='dashboard_customize' to={route('/connect')}>
               Connect
             </NavListItem>
-            <NavListItem icon={<SettingsIcon />} to={route('/settings')}>
+            <NavListItem icon='settings' to={route('/settings')}>
               Settings
             </NavListItem>
           </NavList>
@@ -78,18 +65,18 @@ export default function WalletLayout() {
             <div className='pb-6'>
               <NavFAB />
             </div>
-            <NavListItem icon={<WalletIcon />} to={route('/home')}>
+            <NavListItem icon='savings' to={route('/home')}>
               Home
             </NavListItem>
-            <NavListItem icon={<ActivityIcon />} to={route('/activity')}>
+            <NavListItem icon='history' to={route('/activity')}>
               Activity
             </NavListItem>
-            <NavListItem icon={<ConnectIcon />} to={route('/connect')}>
+            <NavListItem icon='dashboard_customize' to={route('/connect')}>
               Connect
             </NavListItem>
           </NavList>
           <NavList>
-            <NavListItem icon={<SettingsIcon />} to={route('/settings')}>
+            <NavListItem icon='settings' to={route('/settings')}>
               Settings
             </NavListItem>
           </NavList>
@@ -100,13 +87,13 @@ export default function WalletLayout() {
       {showNavBar(location.pathname) && (
         <NavBar>
           <NavList>
-            <NavListItem icon={<WalletIcon />} to={route('/home')}>
+            <NavListItem icon='savings' to={route('/home')}>
               Home
             </NavListItem>
-            <NavListItem icon={<ActivityIcon />} to={route('/activity')}>
+            <NavListItem icon='history' to={route('/activity')}>
               Activity
             </NavListItem>
-            <NavListItem icon={<ConnectIcon />} to={route('/connect')}>
+            <NavListItem icon='dashboard_customize' to={route('/connect')}>
               Connect
             </NavListItem>
           </NavList>
@@ -152,7 +139,7 @@ const NavDrawer: FC = ({ children }) => {
 }
 
 type NavListItemProps = {
-  icon?: React.ReactNode
+  icon?: string
   to: string
 }
 
@@ -176,7 +163,7 @@ const NavListItem: FC<NavListItemProps> = ({ children, icon, to }) => {
                 : 'text-medium'
             }`}
           >
-            {icon}
+            <Icon>{icon}</Icon>
           </div>
           <div>{children}</div>
         </li>
@@ -190,7 +177,8 @@ function NavFAB() {
     <Menu as='div'>
       <div>
         <Menu.Button className='inline-flex cursor-pointer items-center space-x-3 rounded-2xl bg-container-primary p-4 text-medium hover:bg-container-primary-hover focus-visible:outline-2 focus-visible:outline-focus lg:w-full'>
-          <TransactIcon /> <span className='hidden lg:flex'>Transact</span>
+          <Icon>swap_horiz</Icon>
+          <span className='hidden lg:flex'>Transact</span>
         </Menu.Button>
       </div>
       <Transition
@@ -213,7 +201,7 @@ function NavFAB() {
                   flowId: 'init'
                 })}
               >
-                <SendIcon />
+                <Icon>send</Icon>
                 <span>Send</span>
               </Router>
             )}
@@ -226,7 +214,7 @@ function NavFAB() {
                 }`}
                 to={route('/receive')}
               >
-                <QRIcon />
+                <Icon>qr_code</Icon>
                 <span>Recieve</span>
               </Router>
             )}
@@ -241,7 +229,7 @@ function NavFAB() {
                   flowId: 'init'
                 })}
               >
-                <DepositIcon />
+                <Icon>download</Icon>
                 <span>Deposit</span>
               </Router>
             )}
@@ -256,7 +244,7 @@ function NavFAB() {
                   flowId: 'init'
                 })}
               >
-                <WithdrawIcon />
+                <Icon>upload</Icon>
                 <span>Withdraw</span>
               </Router>
             )}
@@ -290,14 +278,15 @@ function HomeFAB() {
             >
               {!open && (
                 <div className='flex w-min cursor-pointer items-center space-x-3 rounded-2xl bg-container-primary-active p-4 text-medium shadow-lg focus-visible:outline-2 focus-visible:outline-focus'>
-                  <TransactIcon /> <span>Transact</span>
+                  <Icon>swap_horiz</Icon>
+                  <span>Transact</span>
                 </div>
               )}
               {open && (
                 <div className='flex items-center space-x-4'>
                   <span>Send</span>
                   <div className='flex w-min cursor-pointer items-center space-x-3 rounded-2xl bg-primary p-4 text-white shadow-lg focus-visible:outline-2 focus-visible:outline-focus'>
-                    <SendIcon />
+                    <Icon>send</Icon>
                   </div>
                 </div>
               )}
@@ -319,7 +308,7 @@ function HomeFAB() {
                       to={route('/receive')}
                       className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
                     >
-                      <QRIcon />
+                      <Icon>qr_code</Icon>
                     </Router>
                   </div>
                 </Transition.Child>
@@ -340,7 +329,7 @@ function HomeFAB() {
                       })}
                       className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
                     >
-                      <DepositIcon />
+                      <Icon>download</Icon>
                     </Router>
                   </div>
                 </Transition.Child>
@@ -361,7 +350,7 @@ function HomeFAB() {
                       })}
                       className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
                     >
-                      <WithdrawIcon />
+                      <Icon>upload</Icon>
                     </Router>
                   </div>
                 </Transition.Child>

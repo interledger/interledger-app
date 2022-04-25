@@ -48,6 +48,10 @@ export const links: LinksFunction = () => {
     {
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Overpass+Mono&family=Inter:wght@400;500&family=Poppins:wght@400;500&display=swap'
+    },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.sandbox.google.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0'
     }
   ]
 }
