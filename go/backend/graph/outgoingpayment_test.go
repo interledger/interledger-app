@@ -3,8 +3,10 @@ package graph
 import (
 	"context"
 	"errors"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
+
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/payments"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
@@ -99,10 +101,9 @@ func TestUserOutgoingPayment(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Outgoing payment initiated.", response.Message)
-		assert.Equal(t, generated.TransactionTypeSent, response.Transaction.Type)
-		assert.Equal(t, "10000", response.Transaction.Amount)
-		assert.Equal(t, "Sent to $test.fynbos.test/alice", response.Transaction.Description)
-		assert.Equal(t, account_transactions.Posted.String(), response.Transaction.Status)
+		assert.Equal(t, "10000", response.OutgoingPayment.Amount)
+		assert.Equal(t, "$test.fynbos.test/alice", response.OutgoingPayment.Destination)
+		assert.Equal(t, payments.Created.String(), response.OutgoingPayment.State)
 	})
 
 	/*
@@ -154,7 +155,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		assert.Equal(t, "422", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Outgoing payment failed: Insufficient balance.", response.Message)
-		assert.Nil(t, response.Transaction)
+		assert.Nil(t, response.OutgoingPayment)
 	})
 
 	/*
@@ -219,7 +220,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		assert.Equal(t, "403", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Outgoing payment failed: Account unverified.", response.Message)
-		assert.Nil(t, response.Transaction)
+		assert.Nil(t, response.OutgoingPayment)
 	})
 }
 
@@ -234,13 +235,12 @@ func InitiateOutgoingPayment(
 			            code
 			            success
 			            message
-			            transaction {
+			            outgoingPayment {
 			            	id
-			            	type
-			            	description
-			            	amount
+			            	destination
+			            	state
+										amount
 			            	timestamp
-			            	status
 			            }
 			        }
 			    }

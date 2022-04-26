@@ -147,7 +147,7 @@ type OutgoingPaymentMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  transaction: Transaction
+  outgoingPayment: OutgoingPayment
 }
 
 type Account {
@@ -184,6 +184,14 @@ type TransactionsConnection {
 
 type Deposit {
   id: ID!
+  state: String!
+  amount: String!
+  timestamp: String!
+}
+
+type OutgoingPayment {
+  id: ID!
+  destination: String!
   state: String!
   amount: String!
   timestamp: String!
