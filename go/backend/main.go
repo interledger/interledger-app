@@ -221,8 +221,7 @@ func start(args *cli.StartArgs) {
 		Db:   db,
 		As:   as,
 		Is:   id,
-		Ts:   ts,
-		Noop: nos,
+		Tp:   tp,
 	})
 	if err != nil {
 		log.Fatal(err)
