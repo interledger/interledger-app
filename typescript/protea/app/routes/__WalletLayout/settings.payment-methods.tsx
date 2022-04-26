@@ -36,7 +36,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     id: fs?.id,
     name: fs?.name,
     description: fs?.mask,
-    icon: 'credit_card' // TODO: get actual icon from fundingsource subtype
+    icon: 'account_balance' // TODO: get actual icon from fundingsource subtype
   }))
 
   return json({
