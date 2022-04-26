@@ -86,16 +86,24 @@ type LinkUsdBankAccountInput struct {
 	Type          string `json:"type"`
 }
 
+type OutgoingPayment struct {
+	ID          string `json:"id"`
+	Destination string `json:"destination"`
+	State       string `json:"state"`
+	Amount      string `json:"amount"`
+	Timestamp   string `json:"timestamp"`
+}
+
 type OutgoingPaymentInput struct {
 	Amount string `json:"amount"`
 	To     string `json:"to"`
 }
 
 type OutgoingPaymentMutationResponse struct {
-	Code        string       `json:"code"`
-	Success     bool         `json:"success"`
-	Message     string       `json:"message"`
-	Transaction *Transaction `json:"transaction"`
+	Code            string           `json:"code"`
+	Success         bool             `json:"success"`
+	Message         string           `json:"message"`
+	OutgoingPayment *OutgoingPayment `json:"outgoingPayment"`
 }
 
 func (OutgoingPaymentMutationResponse) IsMutationResponse() {}
