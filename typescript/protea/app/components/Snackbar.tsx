@@ -1,5 +1,6 @@
 import { Transition } from '@headlessui/react'
-import { FC, Fragment } from 'react'
+import type { FC } from 'react'
+import { Fragment } from 'react'
 
 interface SnackbarProps {
   id: string

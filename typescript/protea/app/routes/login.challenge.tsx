@@ -1,6 +1,7 @@
-import { useActionData, json, Form, redirect, useLoaderData } from 'remix'
-import type { ActionFunction, LoaderFunction } from 'remix'
-import { Button, Logo, MailIcon, Router, TextField } from '~/components'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Button, Icon, Logo, Router, TextField } from '~/components'
 import React from 'react'
 import { route } from 'routes-gen'
 import {
@@ -159,7 +160,7 @@ export default function LoginChallengePage() {
       >
         <div className='flex min-w-full items-center space-x-3 rounded-xl bg-container p-4'>
           <div className='text-medium'>
-            <MailIcon />
+            <Icon>mail</Icon>
           </div>
           <span className='text-small font-normal text-medium'>{email}</span>
         </div>

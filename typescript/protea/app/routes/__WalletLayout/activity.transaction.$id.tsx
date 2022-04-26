@@ -1,17 +1,15 @@
 import React from 'react'
-import { LoaderFunction, useNavigate, json, useLoaderData } from 'remix'
-import {
-  BackIcon,
-  BankIcon,
-  CardIcon,
-  PendingIcon,
-  SentIcon
-} from '~/components'
+import type { LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { useLoaderData, useNavigate } from '@remix-run/react'
+import { Icon } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
-import {
+import type {
   GetActivityTransactionQuery,
-  GetActivityTransactionQueryVariables,
+  GetActivityTransactionQueryVariables
+} from '~/generated/types'
+import {
   GetActivityTransactionDocument,
   TransactionType
 } from '~/generated/types'
@@ -67,7 +65,7 @@ const activityTitle = (type: TransactionType): string => {
   switch (type) {
     // case TransactionType.Received:
     //   return <ReceivedIcon />
-    case TransactionType.Sent:
+    case TransactionType.Outgoingpayment:
       return 'Sent'
     case TransactionType.Deposit:
       return 'Deposit'
@@ -78,22 +76,23 @@ const activityTitle = (type: TransactionType): string => {
   }
 }
 
+// TODO: Replace with implementation in the backend.
 const activityIcon = (type: TransactionType, status: string) => {
   switch (status) {
     case 'pending':
-      return <PendingIcon />
+      return 'hourglass_empty'
     default:
       break
   }
   switch (type) {
     // case TransactionType.Received:
     //   return <ReceivedIcon />
-    case TransactionType.Sent:
-      return <SentIcon />
+    case TransactionType.Outgoingpayment:
+      return 'north_east'
     case TransactionType.Deposit:
-      return <CardIcon />
+      return 'account_balance'
     case TransactionType.Withdrawal:
-      return <BankIcon />
+      return 'account_balance'
     default:
       return null
   }
@@ -112,7 +111,7 @@ export default function ActivityTransactionPage() {
           }}
         >
           <div className='-ml-3 p-3 text-medium'>
-            <BackIcon />
+            <Icon>arrow_back</Icon>
           </div>
         </button>
         <div className='flex items-center justify-start font-display text-2xl font-medium'>
@@ -123,7 +122,9 @@ export default function ActivityTransactionPage() {
       <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         <div className='col-span-full mb-4 flex h-12 items-center justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center justify-between space-x-3'>
-            {activityIcon(transaction.transactionType, transaction.status)}
+            <Icon>
+              {activityIcon(transaction.transactionType, transaction.status)}
+            </Icon>
             <div className='flex flex-col'>
               <span className='text-left font-display text-base font-medium'>
                 {transaction.title}

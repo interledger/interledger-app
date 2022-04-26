@@ -259,7 +259,7 @@ func (s *service) CreateBankAccount(
 			IdentityID:        args.IdentityID,
 			AccountID:         args.AccountID,
 			Name:              args.Name,
-			Mask:              "****" + args.AccountNumber[:4],
+			Mask:              args.AccountNumber[:4],
 			VerificationState: "required",
 			Type:              "noop",
 			TypeID:            uuid.NewString(),

@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
-import { Form, LoaderFunction, json, useLoaderData } from 'remix'
-import type { ActionFunction } from 'remix'
-import { Button, RadioGroup, RadioGroupOption, TipIcon } from '~/components'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
+import type { RadioGroupOption } from '~/components'
+import { Icon } from '~/components'
+import { Button, RadioGroup } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -12,13 +15,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
       id: 'bank',
       name: 'Bank account',
       description: '',
-      icon: 'BankIcon'
+      icon: 'account_balance'
     },
     {
       id: 'card',
       name: 'Card',
       description: '',
-      icon: 'CardIcon',
+      icon: 'credit_card',
       disabled: true
     }
   ]
@@ -56,11 +59,9 @@ export default function PaymentMethodTypePage() {
         name='payment-type'
         type='hidden'
       />
-      <div className='col-span-full mt-4 flex items-center justify-between space-x-3 rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='text-medium'>
-          <TipIcon />
-        </div>
-        <span className='font-sans text-sm font-normal text-medium'>
+      <div className='col-span-full mt-4 flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Icon>tips_and_updates</Icon>
+        <span className='font-sans text-sm font-normal'>
           We currently only support Bank accounts, more coming soon!
         </span>
       </div>

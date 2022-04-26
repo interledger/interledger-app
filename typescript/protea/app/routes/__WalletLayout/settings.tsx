@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Link, LoaderFunction, redirect, useLoaderData, json } from 'remix'
+import type { LoaderFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { BackIcon, CardIcon, NextIcon, Router, Snackbar } from '~/components'
+import { Icon, Router, Snackbar } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
@@ -47,7 +49,7 @@ export default function SettingsPage() {
       <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-white p-4 text-medium sm:min-w-full'>
         <Link className='sm:hidden' to={route('/home')}>
           <div className='-ml-3 p-3 text-medium'>
-            <BackIcon />
+            <Icon>arrow_back</Icon>
           </div>
         </Link>
         <div className='flex items-center justify-start font-display text-2xl font-medium'>
@@ -79,12 +81,12 @@ export default function SettingsPage() {
           className={`col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4`}
         >
           <div className='flex space-x-3'>
-            <CardIcon />
+            <Icon>credit_card</Icon>
             <span className='font-sans text-base font-normal'>
               Payment methods
             </span>
           </div>
-          <NextIcon />
+          <Icon>navigate_next</Icon>
         </Router>
         <span className='col-span-full ml-4 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Security
@@ -99,7 +101,7 @@ export default function SettingsPage() {
               &#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;
             </span>
           </div>
-          <NextIcon />
+          <Icon>navigate_next</Icon>
         </Router>
       </div>
     </div>

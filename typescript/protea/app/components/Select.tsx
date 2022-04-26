@@ -1,6 +1,7 @@
 import { Listbox, Transition } from '@headlessui/react'
-import React, { Fragment, FC } from 'react'
-import { SelectIcon, CheckIcon } from '.'
+import type { FC } from 'react'
+import React, { Fragment } from 'react'
+import { Icon } from '.'
 
 type SelectOptions = {
   id: string
@@ -54,8 +55,8 @@ export const Select: FC<SelectProps> = ({
             {({ disabled }: { disabled: boolean }) => (
               <div className='flex h-full items-center justify-between overflow-hidden rounded-xl'>
                 <span className='ml-4'>{disabled ? 'Hello' : value?.name}</span>
-                <div className='flex h-full items-center bg-container px-4'>
-                  <SelectIcon />
+                <div className='flex h-full items-center bg-container px-4 text-medium'>
+                  <Icon>unfold_more</Icon>
                 </div>
               </div>
             )}
@@ -86,7 +87,7 @@ export const Select: FC<SelectProps> = ({
                       </span>
                       {selected && (
                         <span className='flex text-primary'>
-                          <CheckIcon />
+                          <Icon>check</Icon>
                         </span>
                       )}
                     </>

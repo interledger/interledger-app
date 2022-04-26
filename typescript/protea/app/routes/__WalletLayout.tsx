@@ -1,20 +1,20 @@
-import { Link, NavLink, Outlet, useLocation } from 'remix'
-import { route } from 'routes-gen'
-import React, { FC } from 'react'
 import {
-  ConnectIcon,
-  SettingsIcon,
-  TransactIcon,
-  WalletIcon,
-  Logo,
-  LogoIcon,
-  Router
-} from '~/components'
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate
+} from '@remix-run/react'
+import { route } from 'routes-gen'
+import type { FC } from 'react'
+import React, { Fragment } from 'react'
+import { Icon, Logo, LogoIcon, Router } from '~/components'
+import { Menu, Popover, Transition } from '@headlessui/react'
 
 // Allow us to show/hide the NavRail and NavDrawer on certain pages.
 function showNav(pathname: string) {
   return (
-    ['/home', '/transact', '/connect', '/settings'].findIndex(
+    ['/home', '/activity', '/connect', '/settings'].findIndex(
       (val) => val === pathname
     ) >= 0
   )
@@ -23,7 +23,7 @@ function showNav(pathname: string) {
 // Allow us to show/hide the NavBar on certain pages.
 function showNavBar(pathname: string) {
   return (
-    ['/home', '/transact', '/connect'].findIndex((val) => val === pathname) >= 0
+    ['/home', '/activity', '/connect'].findIndex((val) => val === pathname) >= 0
   )
 }
 
@@ -38,16 +38,17 @@ export default function WalletLayout() {
             <Link to={route('/')} aria-label='Fynbos logo'>
               <LogoIcon className='mx-auto mb-4 h-8' />
             </Link>
-            <NavListItem icon={<WalletIcon />} to={route('/home')}>
+            <NavFAB />
+            <NavListItem icon='savings' to={route('/home')}>
               Home
             </NavListItem>
-            <NavListItem icon={<TransactIcon />} to={route('/transact')}>
-              Transact
+            <NavListItem icon='history' to={route('/activity')}>
+              Activity
             </NavListItem>
-            <NavListItem icon={<ConnectIcon />} to={route('/connect')}>
+            <NavListItem icon='dashboard_customize' to={route('/connect')}>
               Connect
             </NavListItem>
-            <NavListItem icon={<SettingsIcon />} to={route('/settings')}>
+            <NavListItem icon='settings' to={route('/settings')}>
               Settings
             </NavListItem>
           </NavList>
@@ -56,23 +57,26 @@ export default function WalletLayout() {
       {showNav(location.pathname) && (
         <NavDrawer>
           <NavList>
-            <div className='mb-6 ml-4 h-8'>
+            <div className='mb-2 ml-4'>
               <Router to={route('/')} aria-label='Fynbos logo'>
                 <Logo className='h-8' />
               </Router>
             </div>
-            <NavListItem icon={<WalletIcon />} to={route('/home')}>
+            <div className='pb-6'>
+              <NavFAB />
+            </div>
+            <NavListItem icon='savings' to={route('/home')}>
               Home
             </NavListItem>
-            <NavListItem icon={<TransactIcon />} to={route('/transact')}>
-              Transact
+            <NavListItem icon='history' to={route('/activity')}>
+              Activity
             </NavListItem>
-            <NavListItem icon={<ConnectIcon />} to={route('/connect')}>
+            <NavListItem icon='dashboard_customize' to={route('/connect')}>
               Connect
             </NavListItem>
           </NavList>
           <NavList>
-            <NavListItem icon={<SettingsIcon />} to={route('/settings')}>
+            <NavListItem icon='settings' to={route('/settings')}>
               Settings
             </NavListItem>
           </NavList>
@@ -83,17 +87,20 @@ export default function WalletLayout() {
       {showNavBar(location.pathname) && (
         <NavBar>
           <NavList>
-            <NavListItem icon={<WalletIcon />} to={route('/home')}>
+            <NavListItem icon='savings' to={route('/home')}>
               Home
             </NavListItem>
-            <NavListItem icon={<TransactIcon />} to={route('/transact')}>
-              Transact
+            <NavListItem icon='history' to={route('/activity')}>
+              Activity
             </NavListItem>
-            <NavListItem icon={<ConnectIcon />} to={route('/connect')}>
+            <NavListItem icon='dashboard_customize' to={route('/connect')}>
               Connect
             </NavListItem>
           </NavList>
         </NavBar>
+      )}
+      {(location.pathname == '/home' || location.pathname == '/activity') && (
+        <HomeFAB />
       )}
     </div>
   )
@@ -132,7 +139,7 @@ const NavDrawer: FC = ({ children }) => {
 }
 
 type NavListItemProps = {
-  icon?: React.ReactNode
+  icon?: string
   to: string
 }
 
@@ -156,11 +163,213 @@ const NavListItem: FC<NavListItemProps> = ({ children, icon, to }) => {
                 : 'text-medium'
             }`}
           >
-            {icon}
+            <Icon>{icon}</Icon>
           </div>
           <div>{children}</div>
         </li>
       )}
     </NavLink>
+  )
+}
+
+function NavFAB() {
+  return (
+    <Menu as='div'>
+      <div>
+        <Menu.Button className='inline-flex cursor-pointer items-center space-x-3 rounded-2xl bg-container-primary p-4 text-medium hover:bg-container-primary-hover focus-visible:outline-2 focus-visible:outline-focus lg:w-full'>
+          <Icon>swap_horiz</Icon>
+          <span className='hidden lg:flex'>Transact</span>
+        </Menu.Button>
+      </div>
+      <Transition
+        as={Fragment}
+        enter='transition ease-out duration-100'
+        enterFrom='transform opacity-0 scale-95'
+        enterTo='transform opacity-100 scale-100'
+        leave='transition ease-in duration-75'
+        leaveFrom='transform opacity-100 scale-100'
+        leaveTo='transform opacity-0 scale-95'
+      >
+        <Menu.Items className='absolute ml-20 -mt-14 w-56 origin-top-left rounded-xl bg-container shadow-lg focus:outline-none lg:ml-[15.5rem]'>
+          <Menu.Item>
+            {({ active }) => (
+              <Router
+                className={`flex w-full items-center space-x-3 px-4 py-3 text-sm first-of-type:rounded-t-xl last-of-type:rounded-b-xl hover:bg-container-hover ${
+                  active ? 'bg-container-hover' : ''
+                }`}
+                to={route('/flows/:flowId/send/to', {
+                  flowId: 'init'
+                })}
+              >
+                <Icon>send</Icon>
+                <span>Send</span>
+              </Router>
+            )}
+          </Menu.Item>
+          <Menu.Item>
+            {({ active }) => (
+              <Router
+                className={`flex w-full items-center space-x-3 px-4 py-3 text-sm first-of-type:rounded-t-xl last-of-type:rounded-b-xl hover:bg-container-hover ${
+                  active ? 'bg-container-hover' : ''
+                }`}
+                to={route('/receive')}
+              >
+                <Icon>qr_code</Icon>
+                <span>Recieve</span>
+              </Router>
+            )}
+          </Menu.Item>
+          <Menu.Item>
+            {({ active }) => (
+              <Router
+                className={`flex w-full items-center space-x-3 px-4 py-3 text-sm first-of-type:rounded-t-xl last-of-type:rounded-b-xl hover:bg-container-hover ${
+                  active ? 'bg-container-hover' : ''
+                }`}
+                to={route('/flows/:flowId/deposit/payment-method', {
+                  flowId: 'init'
+                })}
+              >
+                <Icon>download</Icon>
+                <span>Deposit</span>
+              </Router>
+            )}
+          </Menu.Item>
+          <Menu.Item>
+            {({ active }) => (
+              <Router
+                className={`flex w-full items-center space-x-3 px-4 py-3 text-sm first-of-type:rounded-t-xl last-of-type:rounded-b-xl hover:bg-container-hover ${
+                  active ? 'bg-container-hover' : ''
+                }`}
+                to={route('/flows/:flowId/withdraw/payment-method', {
+                  flowId: 'init'
+                })}
+              >
+                <Icon>upload</Icon>
+                <span>Withdraw</span>
+              </Router>
+            )}
+          </Menu.Item>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  )
+}
+
+function HomeFAB() {
+  // TODO Scroll state for extended FAB
+  const navigate = useNavigate()
+  return (
+    <div className='fixed top-16 w-full max-w-sm px-4'>
+      <Popover className='relative'>
+        {({ open }) => (
+          <>
+            <Popover.Button
+              onClick={(event: any) => {
+                if (open) {
+                  event.preventDefault()
+                  navigate(
+                    route('/flows/:flowId/send/to', {
+                      flowId: 'init'
+                    })
+                  )
+                }
+              }}
+              className='fixed right-4 bottom-24 font-display text-sm font-medium transition-all sm:hidden'
+            >
+              {!open && (
+                <div className='flex w-min cursor-pointer items-center space-x-3 rounded-2xl bg-container-primary-active p-4 text-medium shadow-lg focus-visible:outline-2 focus-visible:outline-focus'>
+                  <Icon>swap_horiz</Icon>
+                  <span>Transact</span>
+                </div>
+              )}
+              {open && (
+                <div className='flex items-center space-x-4'>
+                  <span>Send</span>
+                  <div className='flex w-min cursor-pointer items-center space-x-3 rounded-2xl bg-primary p-4 text-white shadow-lg focus-visible:outline-2 focus-visible:outline-focus'>
+                    <Icon>send</Icon>
+                  </div>
+                </div>
+              )}
+            </Popover.Button>
+            <Transition as={Fragment}>
+              <Popover.Panel className='fixed right-6 bottom-[168px] z-10 flex flex-col-reverse space-y-4 space-y-reverse font-display text-sm font-medium '>
+                <Transition.Child
+                  as={Fragment}
+                  enter='transition ease-out duration-200'
+                  enterFrom='opacity-0 translate-y-2'
+                  enterTo='opacity-100 translate-y-0'
+                  leave='transition ease-in duration-150'
+                  leaveFrom='opacity-100 translate-y-0'
+                  leaveTo='opacity-0 translate-y-2'
+                >
+                  <div className='flex items-center justify-end space-x-6'>
+                    <span>Receive</span>
+                    <Router
+                      to={route('/receive')}
+                      className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
+                    >
+                      <Icon>qr_code</Icon>
+                    </Router>
+                  </div>
+                </Transition.Child>
+                <Transition.Child
+                  as={Fragment}
+                  enter='transition ease-out duration-200 delay-[25ms]'
+                  enterFrom='opacity-0 translate-y-2'
+                  enterTo='opacity-100 translate-y-0'
+                  leave='transition ease-in duration-150'
+                  leaveFrom='opacity-100 translate-y-0'
+                  leaveTo='opacity-0 translate-y-2'
+                >
+                  <div className='flex items-center justify-end space-x-6'>
+                    <span>Deposit</span>
+                    <Router
+                      to={route('/flows/:flowId/deposit/payment-method', {
+                        flowId: 'init'
+                      })}
+                      className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
+                    >
+                      <Icon>download</Icon>
+                    </Router>
+                  </div>
+                </Transition.Child>
+                <Transition.Child
+                  as={Fragment}
+                  enter='transition ease-out duration-200 delay-[50ms]'
+                  enterFrom='opacity-0 translate-y-2'
+                  enterTo='opacity-100 translate-y-0'
+                  leave='transition ease-in duration-150'
+                  leaveFrom='opacity-100 translate-y-0'
+                  leaveTo='opacity-0 translate-y-2'
+                >
+                  <div className='flex items-center justify-end space-x-6'>
+                    <span>Withdraw</span>
+                    <Router
+                      to={route('/flows/:flowId/withdraw/payment-method', {
+                        flowId: 'init'
+                      })}
+                      className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
+                    >
+                      <Icon>upload</Icon>
+                    </Router>
+                  </div>
+                </Transition.Child>
+              </Popover.Panel>
+            </Transition>
+            <Transition.Child
+              as={Fragment}
+              enter='ease-out duration-300'
+              enterFrom='opacity-0'
+              enterTo='opacity-100'
+              leave='ease-in duration-200'
+              leaveFrom='opacity-100'
+              leaveTo='opacity-0'
+            >
+              <Popover.Overlay className='fixed inset-0 -z-10 bg-white/90' />
+            </Transition.Child>
+          </>
+        )}
+      </Popover>
+    </div>
   )
 }

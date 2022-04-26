@@ -1,12 +1,13 @@
 import { RadioGroup as HeadlessRadioGroup } from '@headlessui/react'
-import React, { FC } from 'react'
-import { RadioActiveIcon, RadioIcon, Icons } from '.'
+import type { FC } from 'react'
+import React from 'react'
+import { Icon } from '.'
 
 export type RadioGroupOption = {
   id: string
   name: string
   description: string
-  icon: keyof typeof Icons
+  icon: string
   disabled?: boolean
 }
 
@@ -39,7 +40,12 @@ export const RadioGroup: FC<RadioGroupProps> = ({
 }) => {
   return (
     <div className={className || 'min-w-full'}>
-      <HeadlessRadioGroup disabled={disabled} value={value} onChange={onChange}>
+      <HeadlessRadioGroup
+        id={id}
+        disabled={disabled}
+        value={value}
+        onChange={onChange}
+      >
         <HeadlessRadioGroup.Label className='sr-only'>
           {label}
         </HeadlessRadioGroup.Label>
@@ -64,7 +70,7 @@ export const RadioGroup: FC<RadioGroupProps> = ({
                         disabled ? 'text-disabled' : 'text-medium'
                       }`}
                     >
-                      {option.icon && Icons[option.icon]()}
+                      {option.icon && <Icon>{option.icon}</Icon>}
                       <div className='flex flex-col'>
                         <HeadlessRadioGroup.Label
                           as='span'
@@ -83,7 +89,7 @@ export const RadioGroup: FC<RadioGroupProps> = ({
                       </div>
                     </div>
                     <div
-                      className={`transition-all duration-300 ${
+                      className={`flex items-center transition-all duration-300 ${
                         disabled
                           ? 'text-disabled'
                           : checked
@@ -91,8 +97,8 @@ export const RadioGroup: FC<RadioGroupProps> = ({
                           : 'text-medium'
                       }`}
                     >
-                      {checked && <RadioActiveIcon />}
-                      {!checked && <RadioIcon />}
+                      {checked && <Icon>radio_button_checked</Icon>}
+                      {!checked && <Icon>radio_button_unchecked</Icon>}
                     </div>
                   </div>
                 </>

@@ -1,14 +1,15 @@
 import React from 'react'
-import { Form, LoaderFunction, json, useLoaderData } from 'remix'
-import type { ActionFunction } from 'remix'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components'
 import { completeFlow, getCurrentFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
-import {
+import type {
   InitiateWithdrawalMutation,
-  InitiateWithdrawalDocument,
   InitiateWithdrawalMutationVariables
 } from '~/generated/types'
+import { InitiateWithdrawalDocument } from '~/generated/types'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)
@@ -66,12 +67,12 @@ export default function WithdrawReviewPage() {
 
 export const action: ActionFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)
-  const { paymentMethodId, amount } = flow?.data
+  const { paymentMethodId, total } = flow?.data
   const cookie = request.headers.get('cookie')
   const initiateWithdrawalMutationVariables = {
     input: {
       fundingSourceID: paymentMethodId,
-      amount: amount.toFixed(2).replace('.', '')
+      amount: total.toFixed(2).replace('.', '')
     }
   }
   const res = await apolloClient.mutate<

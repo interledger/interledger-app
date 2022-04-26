@@ -1,15 +1,18 @@
 import React from 'react'
-import { Form, LoaderFunction, json, useLoaderData } from 'remix'
-import type { ActionFunction } from 'remix'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components'
 import { completeFlow, getCurrentFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
-import {
+import type {
   LinkUsdBankAccountMutation,
   LinkUsdBankAccountMutationVariables,
-  LinkUsdBankAccountDocument,
   VerifyUsdBankAccountMutation,
-  VerifyUsdBankAccountMutationVariables,
+  VerifyUsdBankAccountMutationVariables
+} from '~/generated/types'
+import {
+  LinkUsdBankAccountDocument,
   VerifyUsdBankAccountDocument
 } from '~/generated/types'
 
