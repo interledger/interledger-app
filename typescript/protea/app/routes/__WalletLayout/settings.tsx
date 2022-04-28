@@ -62,18 +62,19 @@ export default function Page() {
         <span className='col-span-full ml-4 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Personal info
         </span>
-        <div className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='flex flex-col'>
-            <span className='font-display text-xs font-medium'>Email</span>
+        <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <div className='flex space-x-3'>
+            <Icon>mail</Icon>
             <span className='font-sans text-base font-normal'>
               {session?.identity.traits.email}
             </span>
           </div>
         </div>
-        <div className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='flex flex-col'>
-            <span className='font-display text-xs font-medium'>Country</span>
-            <span className='font-sans text-base font-normal'>TODO</span>
+        <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <div className='flex space-x-3'>
+            <Icon>flag</Icon>
+            {/* TODO: show actual country here rather */}
+            <span className='font-sans text-base font-normal'>Country</span>
           </div>
         </div>
         <Router
@@ -93,13 +94,11 @@ export default function Page() {
         </span>
         <Router
           to='/login/challenge?challenge-flow=settings-password'
-          className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+          className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'
         >
-          <div className='flex flex-col'>
-            <span className='font-display text-xs font-medium'>Password</span>
-            <span className='font-sans text-base font-normal'>
-              &#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;
-            </span>
+          <div className='flex space-x-3'>
+            <Icon>password</Icon>
+            <span className='font-sans text-base font-normal'>Password</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
