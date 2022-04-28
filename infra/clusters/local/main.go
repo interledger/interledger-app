@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
+
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/backend"
@@ -12,6 +15,7 @@ import (
 	pacioli "gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/protea"
+	"gitlab.com/fynbos/infra/services/rafiki"
 	"gitlab.com/fynbos/infra/services/redis"
 	"gitlab.com/fynbos/infra/services/retool"
 	"gitlab.com/fynbos/infra/services/temporal"
@@ -181,6 +185,52 @@ func main() {
 			Username:          "rafiki",
 			Database:          "rafiki",
 			Password:          rafikiDbPassword,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:     "rafiki-ingress",
+			Hostname: "pay.fynbos.test",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+
+		streamSecret, err := random.NewRandomString(ctx, "rafiki-stream-secret", &random.RandomStringArgs{
+			Length: pulumi.Int(32),
+		})
+		if err != nil {
+			return err
+		}
+		streamSecretBase64 := streamSecret.Result.ApplyT(func(str string) string {
+			return base64.RawStdEncoding.EncodeToString([]byte(str)[0:32])
+		}).(pulumi.StringInput)
+
+		// TODO: set up certs.
+		rafikiDbUrl := rafikiDbPassword.Result.ApplyT(func(password string) string {
+			return fmt.Sprintf("postgresql://rafiki:%s@postgres-postgresql/rafiki", password)
+		}).(pulumi.StringOutput)
+		err = rafiki.DeployRafiki(ctx, &rafiki.DeployRafikiArgs{
+			ImageRepo:   "localhost:5005/rafiki-backend",
+			ImageTag:    "latest",
+			DbUrl:       rafikiDbUrl,
+			TbClusterID: "0",
+			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
+			// waiting for update for client to handle dns.
+			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
+			TbReplicaAddresses:         "[\"10.244.0.9:8080\"]",
+			IlpAddress:                 "test.fynbos",
+			NonceRedisKey:              "noncefynbos",
+			RedisUrl:                   "redis://redis-master",
+			AuthServerGrantUrl:         "http://127.0.0.1:3006",
+			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
+			StreamSecret:               streamSecretBase64,
+			AdminKey:                   streamSecret.Result,                     // re-using for local cluster
+			WebhookUrl:                 "https://end3sf6r22xva.x.pipedream.net", // using request bin for now
+			Hostname:                   "pay.fynbos.test",
+			PublicHost:                 "http://pay.fynbos.test",
 		})
 		if err != nil {
 			return err
