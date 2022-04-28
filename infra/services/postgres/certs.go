@@ -36,7 +36,7 @@ func createNodeCert(ctx *pulumi.Context, args *NodeCertArgs, opts ...pulumi.Reso
 					"algorithm": pulumi.String("RSA"),
 					"size":      pulumi.Int(2048),
 				},
-				"commonName": pulumi.String("node"),
+				"commonName": pulumi.String("postgres"), // act as the "postgres" admin user
 				"subject": pulumi.Map{
 					"organizations": pulumi.StringArray{
 						pulumi.String("Postgres"),

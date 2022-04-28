@@ -1,18 +1,21 @@
 package postgres
 
 import (
+	"errors"
+	"io/ioutil"
+	"path/filepath"
+	"runtime"
+
+	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
+	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
 type DeployPostgresArgs struct {
-	ReadReplicasCount uint8
-
-	// For now we are using this for Rafiki. Might be neccessary later to use an init.sql file.
-	Username string                 // Custom user to create
-	Password *random.RandomPassword // Password for custom user
-	Database string
+	ReadReplicasCount    uint8
+	PostgresUserPassword *random.RandomPassword // Password for "postgres" super user
 }
 
 func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs, opts ...pulumi.ResourceOption) error {
@@ -25,6 +28,27 @@ func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs, opts ...pulum
 		return err
 	}
 
+	// read from `dbinit.sql` file.
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("Could not get directory path for postgres module.")
+	}
+
+	dat, err := ioutil.ReadFile(filepath.Join(filepath.Dir(moduleDir), "dbinit.sql"))
+	if err != nil {
+		return err
+	}
+
+	sqlInitConfig, err := corev1.NewConfigMap(ctx, "postgres-init-sql", &corev1.ConfigMapArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name: pulumi.String("postgres-init"),
+		},
+		Data: pulumi.StringMap{"dbinit.sql": pulumi.String(dat)},
+	})
+	if err != nil {
+		return err
+	}
+
 	_, err = helm.NewChart(ctx, "postgres", helm.ChartArgs{
 		Version: pulumi.String("11.1.19"),
 		Chart:   pulumi.String("postgresql"),
@@ -33,10 +57,9 @@ func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs, opts ...pulum
 		},
 		Values: pulumi.Map{
 			"auth": pulumi.Map{
-				"enablePostgresUser": pulumi.Bool(false),
-				"username":           pulumi.String(args.Username),
-				"password":           args.Password.Result,
-				"database":           pulumi.String(args.Database),
+				// enabling super user to run the init scripts.
+				"enablePostgresUser": pulumi.Bool(true),
+				"postgresPassword":   args.PostgresUserPassword.Result,
 			},
 			"readReplicas": pulumi.Map{
 				"replicaCount": pulumi.Int(args.ReadReplicasCount),
@@ -65,6 +88,14 @@ func DeployPostgres(ctx *pulumi.Context, args *DeployPostgresArgs, opts ...pulum
 			},
 			"volumePermissions": pulumi.Map{
 				"enabled": pulumi.Bool(true),
+			},
+			"primary": pulumi.Map{
+				"initdb": pulumi.Map{
+					"scriptsConfigMap": sqlInitConfig.Metadata.Name(),
+				},
+				"persistence": pulumi.Map{
+					"size": pulumi.String("1Gi"), // just for dev.
+				},
 			},
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{nc}))
