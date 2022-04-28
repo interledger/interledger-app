@@ -1,14 +1,3 @@
-query GetFundingSources {
-  fundingSources {
-    id
-    name
-    verificationStatus
-    mask
-    type
-    subType
-  }
-}
-
 mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {
     code

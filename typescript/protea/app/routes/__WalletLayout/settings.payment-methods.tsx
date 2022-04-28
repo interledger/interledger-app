@@ -5,10 +5,10 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
 import type {
-  GetFundingSourcesQuery,
-  GetFundingSourcesQueryVariables
+  SettingsPaymentMethodsQuery,
+  SettingsPaymentMethodsQueryVariables
 } from '~/generated/types'
-import { GetFundingSourcesDocument } from '~/generated/types'
+import { SettingsPaymentMethodsDocument } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
 
 type PaymentMethod = {
@@ -22,10 +22,10 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookie = String(request.headers.get('cookie'))
 
   const res = await apolloClient.query<
-    GetFundingSourcesQuery,
-    GetFundingSourcesQueryVariables
+    SettingsPaymentMethodsQuery,
+    SettingsPaymentMethodsQueryVariables
   >({
-    query: GetFundingSourcesDocument,
+    query: SettingsPaymentMethodsDocument,
     context: {
       headers: {
         cookie: cookie

@@ -1,14 +1,3 @@
-query GetFundingSources {
-  fundingSources {
-    id
-    name
-    verificationStatus
-    mask
-    type
-    subType
-  }
-}
-
 mutation InitiateDeposit($input: DepositInput!) {
   initiateDeposit(input: $input) {
     code

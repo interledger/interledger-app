@@ -1,4 +1,4 @@
-query GetCountries {
+query Signup {
   countries {
     id
     name

@@ -276,29 +276,34 @@ export type WithdrawalMutationResponse = MutationResponse & {
   transaction?: Maybe<Transaction>;
 };
 
-export type GetActivityQueryVariables = Exact<{
+export type ActivityQueryVariables = Exact<{
   input: Pagination;
 }>;
 
 
-export type GetActivityQuery = { __typename?: 'Query', transactions: { __typename?: 'TransactionsConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, startCursor: string, endCursor: string }, edges: Array<{ __typename?: 'TransactionEdge', cursor: string, node: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } }> } };
+export type ActivityQuery = { __typename?: 'Query', transactions: { __typename?: 'TransactionsConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, startCursor: string, endCursor: string }, edges: Array<{ __typename?: 'TransactionEdge', cursor: string, node: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } }> } };
 
-export type GetActivityTransactionQueryVariables = Exact<{
+export type ActivityTransactionQueryVariables = Exact<{
   id: Scalars['String'];
 }>;
 
 
-export type GetActivityTransactionQuery = { __typename?: 'Query', transaction: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } };
+export type ActivityTransactionQuery = { __typename?: 'Query', transaction: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } };
 
-export type GetHomeQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetHomeQuery = { __typename?: 'Query', account?: { __typename?: 'Account', id: string, balance: string, recentTransactions: Array<{ __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string }> } | null | undefined };
-
-export type GetFundingSourcesQueryVariables = Exact<{ [key: string]: never; }>;
+export type HomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetFundingSourcesQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
+export type HomeQuery = { __typename?: 'Query', account?: { __typename?: 'Account', id: string, balance: string, recentTransactions: Array<{ __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string }> } | null | undefined };
+
+export type SettingsPaymentMethodsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SettingsPaymentMethodsQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
+
+export type FlowsDepositPaymentMethodQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FlowsDepositPaymentMethodQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
 
 export type InitiateDepositMutationVariables = Exact<{
   input: DepositInput;
@@ -328,6 +333,11 @@ export type InitiateOutgoingPaymentMutationVariables = Exact<{
 
 export type InitiateOutgoingPaymentMutation = { __typename?: 'Mutation', initiateOutgoingPayment: { __typename?: 'OutgoingPaymentMutationResponse', code: string, success: boolean, message: string, outgoingPayment?: { __typename?: 'OutgoingPayment', id: string, destination: string, state: string, amount: string, timestamp: string } | null | undefined } };
 
+export type FlowsWithdrawPaymentMethodQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FlowsWithdrawPaymentMethodQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
+
 export type InitiateWithdrawalMutationVariables = Exact<{
   input: WithdrawalInput;
 }>;
@@ -335,10 +345,10 @@ export type InitiateWithdrawalMutationVariables = Exact<{
 
 export type InitiateWithdrawalMutation = { __typename?: 'Mutation', initiateWithdrawal: { __typename?: 'WithdrawalMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
 
-export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
+export type SignupQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetCountriesQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', id: string, name: string }> };
+export type SignupQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', id: string, name: string }> };
 
 export type OnboardAccountMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -346,8 +356,8 @@ export type OnboardAccountMutationVariables = Exact<{ [key: string]: never; }>;
 export type OnboardAccountMutation = { __typename?: 'Mutation', onboardAccount: { __typename?: 'CreateAccountMutationResponse', code: string, success: boolean, message: string, account?: { __typename?: 'Account', id: string } | null | undefined } };
 
 
-export const GetActivityDocument = gql`
-    query GetActivity($input: Pagination!) {
+export const ActivityDocument = gql`
+    query Activity($input: Pagination!) {
   transactions(input: $input) {
     pageInfo {
       hasNextPage
@@ -368,9 +378,9 @@ export const GetActivityDocument = gql`
   }
 }
     `;
-export type GetActivityQueryResult = Apollo.QueryResult<GetActivityQuery, GetActivityQueryVariables>;
-export const GetActivityTransactionDocument = gql`
-    query GetActivityTransaction($id: String!) {
+export type ActivityQueryResult = Apollo.QueryResult<ActivityQuery, ActivityQueryVariables>;
+export const ActivityTransactionDocument = gql`
+    query ActivityTransaction($id: String!) {
   transaction(id: $id) {
     id
     type
@@ -381,9 +391,9 @@ export const GetActivityTransactionDocument = gql`
   }
 }
     `;
-export type GetActivityTransactionQueryResult = Apollo.QueryResult<GetActivityTransactionQuery, GetActivityTransactionQueryVariables>;
-export const GetHomeDocument = gql`
-    query GetHome {
+export type ActivityTransactionQueryResult = Apollo.QueryResult<ActivityTransactionQuery, ActivityTransactionQueryVariables>;
+export const HomeDocument = gql`
+    query Home {
   account {
     id
     balance
@@ -398,9 +408,9 @@ export const GetHomeDocument = gql`
   }
 }
     `;
-export type GetHomeQueryResult = Apollo.QueryResult<GetHomeQuery, GetHomeQueryVariables>;
-export const GetFundingSourcesDocument = gql`
-    query GetFundingSources {
+export type HomeQueryResult = Apollo.QueryResult<HomeQuery, HomeQueryVariables>;
+export const SettingsPaymentMethodsDocument = gql`
+    query SettingsPaymentMethods {
   fundingSources {
     id
     name
@@ -411,7 +421,20 @@ export const GetFundingSourcesDocument = gql`
   }
 }
     `;
-export type GetFundingSourcesQueryResult = Apollo.QueryResult<GetFundingSourcesQuery, GetFundingSourcesQueryVariables>;
+export type SettingsPaymentMethodsQueryResult = Apollo.QueryResult<SettingsPaymentMethodsQuery, SettingsPaymentMethodsQueryVariables>;
+export const FlowsDepositPaymentMethodDocument = gql`
+    query FlowsDepositPaymentMethod {
+  fundingSources {
+    id
+    name
+    verificationStatus
+    mask
+    type
+    subType
+  }
+}
+    `;
+export type FlowsDepositPaymentMethodQueryResult = Apollo.QueryResult<FlowsDepositPaymentMethodQuery, FlowsDepositPaymentMethodQueryVariables>;
 export const InitiateDepositDocument = gql`
     mutation InitiateDeposit($input: DepositInput!) {
   initiateDeposit(input: $input) {
@@ -489,6 +512,19 @@ export const InitiateOutgoingPaymentDocument = gql`
 export type InitiateOutgoingPaymentMutationFn = Apollo.MutationFunction<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
 export type InitiateOutgoingPaymentMutationResult = Apollo.MutationResult<InitiateOutgoingPaymentMutation>;
 export type InitiateOutgoingPaymentMutationOptions = Apollo.BaseMutationOptions<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
+export const FlowsWithdrawPaymentMethodDocument = gql`
+    query FlowsWithdrawPaymentMethod {
+  fundingSources {
+    id
+    name
+    verificationStatus
+    mask
+    type
+    subType
+  }
+}
+    `;
+export type FlowsWithdrawPaymentMethodQueryResult = Apollo.QueryResult<FlowsWithdrawPaymentMethodQuery, FlowsWithdrawPaymentMethodQueryVariables>;
 export const InitiateWithdrawalDocument = gql`
     mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {
@@ -509,15 +545,15 @@ export const InitiateWithdrawalDocument = gql`
 export type InitiateWithdrawalMutationFn = Apollo.MutationFunction<InitiateWithdrawalMutation, InitiateWithdrawalMutationVariables>;
 export type InitiateWithdrawalMutationResult = Apollo.MutationResult<InitiateWithdrawalMutation>;
 export type InitiateWithdrawalMutationOptions = Apollo.BaseMutationOptions<InitiateWithdrawalMutation, InitiateWithdrawalMutationVariables>;
-export const GetCountriesDocument = gql`
-    query GetCountries {
+export const SignupDocument = gql`
+    query Signup {
   countries {
     id
     name
   }
 }
     `;
-export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetCountriesQueryVariables>;
+export type SignupQueryResult = Apollo.QueryResult<SignupQuery, SignupQueryVariables>;
 export const OnboardAccountDocument = gql`
     mutation OnboardAccount {
   onboardAccount {

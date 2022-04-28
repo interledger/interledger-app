@@ -7,10 +7,10 @@ import { Button, Router, Icon, RadioGroup } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type {
-  GetFundingSourcesQuery,
-  GetFundingSourcesQueryVariables
+  FlowsWithdrawPaymentMethodQuery,
+  FlowsWithdrawPaymentMethodQueryVariables
 } from '~/generated/types'
-import { GetFundingSourcesDocument } from '~/generated/types'
+import { FlowsWithdrawPaymentMethodDocument } from '~/generated/types'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)
@@ -18,10 +18,10 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   const cookie = String(request.headers.get('cookie'))
 
   const res = await apolloClient.query<
-    GetFundingSourcesQuery,
-    GetFundingSourcesQueryVariables
+    FlowsWithdrawPaymentMethodQuery,
+    FlowsWithdrawPaymentMethodQueryVariables
   >({
-    query: GetFundingSourcesDocument,
+    query: FlowsWithdrawPaymentMethodDocument,
     context: {
       headers: {
         cookie: cookie
