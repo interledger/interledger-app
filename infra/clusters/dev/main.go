@@ -227,7 +227,7 @@ func main() {
 			return err
 		}
 
-		rafikiDbPassword, err := random.NewRandomPassword(ctx, "rafiki-postgres", &random.RandomPasswordArgs{
+		postgresUserPassword, err := random.NewRandomPassword(ctx, "rafiki-postgres", &random.RandomPasswordArgs{
 			Length:  pulumi.Int(32),
 			Special: pulumi.Bool(true),
 		})
@@ -235,10 +235,8 @@ func main() {
 			return err
 		}
 		err = postgres.DeployPostgres(ctx, &postgres.DeployPostgresArgs{
-			ReadReplicasCount: 0,
-			Username:          "rafiki",
-			Database:          "rafiki",
-			Password:          rafikiDbPassword,
+			ReadReplicasCount:    0,
+			PostgresUserPassword: postgresUserPassword,
 		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
@@ -280,11 +278,13 @@ func main() {
 			return err
 		}
 		err = rafiki.DeployRafiki(ctx, &rafiki.DeployRafikiArgs{
-			ImageRepo:   fmt.Sprintf("%s/rafiki-backend", ecrRepo),
-			ImageTag:    "latest",
-			DbBaseUrl:   "postgresql://rafiki@postgres-postgresql/rafiki",
-			DbCert:      rafikiPostgresCert,
-			TbClusterID: "0",
+			Name:                    "rafiki",
+			DeployPlaygroundIngress: false,
+			ImageRepo:               fmt.Sprintf("%s/rafiki-backend", ecrRepo),
+			ImageTag:                "latest",
+			DbBaseUrl:               "postgresql://rafiki@postgres-postgresql/rafiki",
+			DbCert:                  rafikiPostgresCert,
+			TbClusterID:             "0",
 			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
 			// waiting for update for client to handle dns.
 			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.

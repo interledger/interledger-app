@@ -172,7 +172,7 @@ func main() {
 			return err
 		}
 
-		rafikiDbPassword, err := random.NewRandomPassword(ctx, "rafiki-postgres", &random.RandomPasswordArgs{
+		postgresUserPassword, err := random.NewRandomPassword(ctx, "rafiki-postgres", &random.RandomPasswordArgs{
 			Length:  pulumi.Int(32),
 			Special: pulumi.Bool(true),
 		})
@@ -180,10 +180,8 @@ func main() {
 			return err
 		}
 		err = postgres.DeployPostgres(ctx, &postgres.DeployPostgresArgs{
-			ReadReplicasCount: 0,
-			Username:          "rafiki",
-			Database:          "rafiki",
-			Password:          rafikiDbPassword,
+			ReadReplicasCount:    0,
+			PostgresUserPassword: postgresUserPassword,
 		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
@@ -223,19 +221,23 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// Fynbos' rafiki instance.
 		err = rafiki.DeployRafiki(ctx, &rafiki.DeployRafikiArgs{
-			ImageRepo:   "localhost:5005/rafiki-backend",
-			ImageTag:    "latest",
-			DbBaseUrl:   "postgresql://rafiki@postgres-postgresql/rafiki",
-			DbCert:      rafikiPostgresCert,
-			TbClusterID: "0",
+			Name:                    "rafiki",
+			DeployPlaygroundIngress: true,
+			ImageRepo:               "localhost:5005/rafiki-backend",
+			ImageTag:                "latest",
+			DbBaseUrl:               "postgresql://rafiki@postgres-postgresql/rafiki",
+			DbCert:                  rafikiPostgresCert,
+			TbClusterID:             "0",
 			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
 			// waiting for update for client to handle dns.
 			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
-			TbReplicaAddresses:         "[\"10.244.0.26:8080\"]",
+			TbReplicaAddresses:         "[\"10.244.0.21:8080\"]",
 			IlpAddress:                 "test.fynbos",
 			NonceRedisKey:              "noncefynbos",
-			RedisUrl:                   "redis://redis-master:6379",
+			RedisUrl:                   "redis://redis-master:6379/0",
 			RedisCert:                  rafikiRedisCert,
 			AuthServerGrantUrl:         "http://127.0.0.1:3006",
 			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
@@ -243,7 +245,59 @@ func main() {
 			AdminKey:                   streamSecret.Result,                     // re-using for local cluster
 			WebhookUrl:                 "https://end3sf6r22xva.x.pipedream.net", // using request bin for now
 			Hostname:                   "pay.fynbos.test",
-			PublicHost:                 "http://pay.fynbos.test",
+			PublicHost:                 "http://rafiki", // using rafiki as coredns will find rafiki
+		})
+		if err != nil {
+			return err
+		}
+
+		// Peer rafiki instance for dev testing.
+		err = ingress.DeployHost(ctx, &ingress.DeployHostArgs{
+			Name:     "peer-ingress",
+			Hostname: "peer.fynbos.test",
+		}, pulumi.DependsOnInputs(ingressChart.Ready))
+		if err != nil {
+			return err
+		}
+		peerPostgresCert, err := postgres.CreateClientCert(ctx, &postgres.ClientCertArgs{
+			Name:      "peer",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		})
+		if err != nil {
+			return err
+		}
+		peerRedisCert, err := redis.CreateClientCert(ctx, &redis.ClientCertArgs{
+			Name:      "peer",
+			Issuer:    "ca-issuer",
+			Namespace: "default",
+		})
+		if err != nil {
+			return err
+		}
+		err = rafiki.DeployRafiki(ctx, &rafiki.DeployRafikiArgs{
+			Name:                    "peer",
+			DeployPlaygroundIngress: true,
+			ImageRepo:               "localhost:5005/rafiki-backend",
+			ImageTag:                "latest",
+			DbBaseUrl:               "postgresql://peer@postgres-postgresql/peer",
+			DbCert:                  peerPostgresCert,
+			TbClusterID:             "0",
+			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
+			// waiting for update for client to handle dns.
+			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
+			TbReplicaAddresses:         "[\"10.244.0.21:8080\"]",
+			IlpAddress:                 "test.peer",
+			NonceRedisKey:              "noncepeer",
+			RedisUrl:                   "redis://redis-master:6379/1",
+			RedisCert:                  peerRedisCert,
+			AuthServerGrantUrl:         "http://127.0.0.1:3006",
+			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
+			StreamSecret:               streamSecretBase64,
+			AdminKey:                   streamSecret.Result,                     // re-using for local cluster
+			WebhookUrl:                 "https://end3sf6r22xva.x.pipedream.net", // using request bin for now
+			Hostname:                   "peer.fynbos.test",
+			PublicHost:                 "http://peer", // using peer as coredns will find peer
 		})
 		if err != nil {
 			return err

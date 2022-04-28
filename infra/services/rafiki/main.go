@@ -1,6 +1,8 @@
 package rafiki
 
 import (
+	"fmt"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
@@ -11,6 +13,8 @@ import (
 )
 
 type DeployRafikiArgs struct {
+	Name                       string
+	DeployPlaygroundIngress    bool
 	DbCert                     *apiextensions.CustomResource
 	DbBaseUrl                  string
 	TbClusterID                string
@@ -31,11 +35,11 @@ type DeployRafikiArgs struct {
 }
 
 func DeployRafiki(ctx *pulumi.Context, args *DeployRafikiArgs) error {
-	if err := deployService(ctx); err != nil {
+	if err := deployService(ctx, args.Name); err != nil {
 		return err
 	}
 
-	if err := deployRbac(ctx); err != nil {
+	if err := deployRbac(ctx, args.Name); err != nil {
 		return err
 	}
 
@@ -43,8 +47,14 @@ func DeployRafiki(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 		return err
 	}
 
-	if err := deployIngress(ctx, args.Hostname); err != nil {
+	if err := deployIngress(ctx, args.Hostname, args.Name); err != nil {
 		return err
+	}
+
+	if args.DeployPlaygroundIngress {
+		if err := deployPlaygroundIngress(ctx, args.Hostname, args.Name); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -52,13 +62,13 @@ func DeployRafiki(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 
 func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 	// store admin key and stream secret in a k8s secret.
-	streamSecret, err := corev1.NewSecret(ctx, "rafiki-stream-secret", &corev1.SecretArgs{
+	streamSecret, err := corev1.NewSecret(ctx, fmt.Sprintf("%s-stream-secret", args.Name), &corev1.SecretArgs{
 		ApiVersion: pulumi.String("v1"),
 		Kind:       pulumi.String("Secret"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki-stream-secret"),
+			Name: pulumi.String(fmt.Sprintf("%s-stream-secret", args.Name)),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(args.Name),
 			},
 		},
 		StringData: pulumi.StringMap{
@@ -69,13 +79,13 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 		return err
 	}
 
-	adminKey, err := corev1.NewSecret(ctx, "rafiki-admin-key", &corev1.SecretArgs{
+	adminKey, err := corev1.NewSecret(ctx, fmt.Sprintf("%s-admin-key", args.Name), &corev1.SecretArgs{
 		ApiVersion: pulumi.String("v1"),
 		Kind:       pulumi.String("Secret"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki-admin-key"),
+			Name: pulumi.String(fmt.Sprintf("%s-admin-key", args.Name)),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(args.Name),
 			},
 		},
 		StringData: pulumi.StringMap{
@@ -86,20 +96,20 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 		return err
 	}
 
-	_, err = appsv1.NewDeployment(ctx, "rafiki", &appsv1.DeploymentArgs{
+	_, err = appsv1.NewDeployment(ctx, args.Name, &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki"),
+			Name: pulumi.String(args.Name),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(args.Name),
 			},
 		},
 		Spec: &appsv1.DeploymentSpecArgs{
 			Replicas: pulumi.Int(1),
 			Selector: &metav1.LabelSelectorArgs{
 				MatchLabels: pulumi.StringMap{
-					"app": pulumi.String("rafiki"),
+					"app": pulumi.String(args.Name),
 				},
 			},
 			Strategy: &appsv1.DeploymentStrategyArgs{
@@ -112,7 +122,7 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 			Template: &corev1.PodTemplateSpecArgs{
 				Metadata: &metav1.ObjectMetaArgs{
 					Labels: pulumi.StringMap{
-						"app": pulumi.String("rafiki"),
+						"app": pulumi.String(args.Name),
 					},
 				},
 				Spec: &corev1.PodSpecArgs{
@@ -123,7 +133,7 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 						&corev1.VolumeArgs{
 							Name: pulumi.String("postgres-certs"),
 							Secret: &corev1.SecretVolumeSourceArgs{
-								SecretName: pulumi.String("postgresdb-rafiki"),
+								SecretName: pulumi.String(fmt.Sprintf("postgresdb-%s", args.Name)),
 								Items: corev1.KeyToPathArray{
 									&corev1.KeyToPathArgs{
 										Key:  pulumi.String("tls.key"),
@@ -143,7 +153,7 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 						&corev1.VolumeArgs{
 							Name: pulumi.String("redis-certs"),
 							Secret: &corev1.SecretVolumeSourceArgs{
-								SecretName: pulumi.String("redis-rafiki"),
+								SecretName: pulumi.String(fmt.Sprintf("redis-%s", args.Name)),
 								Items: corev1.KeyToPathArray{
 									&corev1.KeyToPathArgs{
 										Key:  pulumi.String("tls.key"),
@@ -161,10 +171,10 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 							},
 						},
 					},
-					ServiceAccountName: pulumi.String("rafiki"),
+					ServiceAccountName: pulumi.String(args.Name),
 					Containers: corev1.ContainerArray{
 						&corev1.ContainerArgs{
-							Name:            pulumi.String("rafiki"),
+							Name:            pulumi.String(args.Name),
 							Image:           pulumi.Sprintf("%s:%s", args.ImageRepo, args.ImageTag),
 							ImagePullPolicy: pulumi.String("Always"),
 							Ports: corev1.ContainerPortArray{
@@ -256,7 +266,7 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 									Name: pulumi.String("STREAM_SECRET"),
 									ValueFrom: corev1.EnvVarSourceArgs{
 										SecretKeyRef: corev1.SecretKeySelectorArgs{
-											Name: pulumi.String("rafiki-stream-secret"),
+											Name: pulumi.String(fmt.Sprintf("%s-stream-secret", args.Name)),
 											Key:  pulumi.String("streamSecret"),
 										},
 									},
@@ -265,7 +275,7 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 									Name: pulumi.String("ADMIN_KEY"),
 									ValueFrom: corev1.EnvVarSourceArgs{
 										SecretKeyRef: corev1.SecretKeySelectorArgs{
-											Name: pulumi.String("rafiki-admin-key"),
+											Name: pulumi.String(fmt.Sprintf("%s-admin-key", args.Name)),
 											Key:  pulumi.String("adminKey"),
 										},
 									},
@@ -307,14 +317,14 @@ func deployDeployment(ctx *pulumi.Context, args *DeployRafikiArgs) error {
 	return nil
 }
 
-func deployRbac(ctx *pulumi.Context) error {
-	_, err := corev1.NewServiceAccount(ctx, "rafiki-sa", &corev1.ServiceAccountArgs{
+func deployRbac(ctx *pulumi.Context, name string) error {
+	_, err := corev1.NewServiceAccount(ctx, fmt.Sprintf("%s-sa", name), &corev1.ServiceAccountArgs{
 		ApiVersion: pulumi.String("v1"),
 		Kind:       pulumi.String("ServiceAccount"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki"),
+			Name: pulumi.String(name),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(name),
 			},
 		},
 		AutomountServiceAccountToken: pulumi.Bool(false),
@@ -322,37 +332,37 @@ func deployRbac(ctx *pulumi.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = rbacv1.NewRole(ctx, "rafiki-role", &rbacv1.RoleArgs{
+	_, err = rbacv1.NewRole(ctx, fmt.Sprintf("%s-role", name), &rbacv1.RoleArgs{
 		ApiVersion: pulumi.String("rbac.authorization.k8s.io/v1"),
 		Kind:       pulumi.String("Role"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki"),
+			Name: pulumi.String(name),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(name),
 			},
 		},
 	})
 	if err != nil {
 		return err
 	}
-	_, err = rbacv1.NewRoleBinding(ctx, "rafiki-rb", &rbacv1.RoleBindingArgs{
+	_, err = rbacv1.NewRoleBinding(ctx, fmt.Sprintf("%s-rb", name), &rbacv1.RoleBindingArgs{
 		ApiVersion: pulumi.String("rbac.authorization.k8s.io/v1"),
 		Kind:       pulumi.String("RoleBinding"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki"),
+			Name: pulumi.String(name),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(name),
 			},
 		},
 		RoleRef: &rbacv1.RoleRefArgs{
 			ApiGroup: pulumi.String("rbac.authorization.k8s.io"),
 			Kind:     pulumi.String("Role"),
-			Name:     pulumi.String("rafiki"),
+			Name:     pulumi.String(name),
 		},
 		Subjects: rbacv1.SubjectArray{
 			&rbacv1.SubjectArgs{
 				Kind:      pulumi.String("ServiceAccount"),
-				Name:      pulumi.String("rafiki"),
+				Name:      pulumi.String(name),
 				Namespace: pulumi.String("default"),
 			},
 		},
@@ -363,14 +373,14 @@ func deployRbac(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployService(ctx *pulumi.Context) error {
-	_, err := corev1.NewService(ctx, "rafiki-service", &corev1.ServiceArgs{
+func deployService(ctx *pulumi.Context, name string) error {
+	_, err := corev1.NewService(ctx, fmt.Sprintf("%s-service", name), &corev1.ServiceArgs{
 		ApiVersion: pulumi.String("v1"),
 		Kind:       pulumi.String("Service"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("rafiki"),
+			Name: pulumi.String(name),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(name),
 			},
 		},
 		Spec: &corev1.ServiceSpecArgs{
@@ -382,7 +392,7 @@ func deployService(ctx *pulumi.Context) error {
 				},
 			},
 			Selector: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(name),
 			},
 		},
 	})
@@ -390,13 +400,13 @@ func deployService(ctx *pulumi.Context) error {
 		return err
 	}
 
-	_, err = corev1.NewService(ctx, "connector-service", &corev1.ServiceArgs{
+	_, err = corev1.NewService(ctx, fmt.Sprintf("%s-connector-service", name), &corev1.ServiceArgs{
 		ApiVersion: pulumi.String("v1"),
 		Kind:       pulumi.String("Service"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("connector"),
+			Name: pulumi.String(fmt.Sprintf("%s-connector", name)),
 			Labels: pulumi.StringMap{
-				"app": pulumi.String("connector"),
+				"app": pulumi.String(fmt.Sprintf("%s-connector", name)),
 			},
 		},
 		Spec: &corev1.ServiceSpecArgs{
@@ -408,7 +418,7 @@ func deployService(ctx *pulumi.Context) error {
 				},
 			},
 			Selector: pulumi.StringMap{
-				"app": pulumi.String("rafiki"),
+				"app": pulumi.String(name),
 			},
 		},
 	})
@@ -419,24 +429,28 @@ func deployService(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployIngress(ctx *pulumi.Context, hn string) error {
+func deployIngress(ctx *pulumi.Context, hn string, name string) error {
 	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
-		Name:     "rafiki",
+		Name:     name,
 		Hostname: hn,
 		Prefix:   "/",
 		Rewrite:  "/",
-		Service:  "rafiki",
+		Service:  name,
 	})
 	if err != nil {
 		return err
 	}
 
-	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
-		Name:     "rafiki-graphql",
+	return nil
+}
+
+func deployPlaygroundIngress(ctx *pulumi.Context, hn string, name string) error {
+	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
+		Name:     fmt.Sprintf("%s-graphql", name),
 		Hostname: hn,
 		Prefix:   "/graphql",
 		Rewrite:  "/graphql",
-		Service:  "rafiki",
+		Service:  name,
 	})
 	if err != nil {
 		return err
