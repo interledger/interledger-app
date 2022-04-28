@@ -6,8 +6,8 @@ import { Icon, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import type { FC } from 'react'
 import React from 'react'
-import type { GetHomeQuery, GetHomeQueryVariables } from '~/generated/types'
-import { GetHomeDocument, TransactionType } from '~/generated/types'
+import type { HomeQuery, HomeQueryVariables } from '~/generated/types'
+import { HomeDocument, TransactionType } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
 import { DateTime } from 'luxon'
 
@@ -36,8 +36,8 @@ export const loader: LoaderFunction = async ({ request }) => {
   const cookie = request.headers.get('cookie')
 
   const account = await apolloClient
-    .query<GetHomeQuery, GetHomeQueryVariables>({
-      query: GetHomeDocument,
+    .query<HomeQuery, HomeQueryVariables>({
+      query: HomeDocument,
       context: {
         headers: {
           cookie: cookie

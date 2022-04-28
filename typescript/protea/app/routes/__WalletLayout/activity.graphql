@@ -1,4 +1,4 @@
-query GetActivity($input: Pagination!) {
+query Activity($input: Pagination!) {
   transactions(input: $input) {
     pageInfo {
       hasNextPage

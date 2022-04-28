@@ -8,11 +8,11 @@ import { Icon } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
 import type {
-  GetActivityQuery,
-  GetActivityQueryVariables,
+  ActivityQuery,
+  ActivityQueryVariables,
   PageInfo
 } from '~/generated/types'
-import { GetActivityDocument, TransactionType } from '~/generated/types'
+import { ActivityDocument, TransactionType } from '~/generated/types'
 import { DateTime } from 'luxon'
 import { commitSession, getSession } from '~/sessions'
 
@@ -44,8 +44,8 @@ export const loader: LoaderFunction = async ({ request }) => {
   const pages = activitySettings?.pages || 1
 
   const activities = await apolloClient
-    .query<GetActivityQuery, GetActivityQueryVariables>({
-      query: GetActivityDocument,
+    .query<ActivityQuery, ActivityQueryVariables>({
+      query: ActivityDocument,
       variables: {
         input: {
           after: cursor,

@@ -1,4 +1,4 @@
-query GetActivityTransaction($id: String!) {
+query ActivityTransaction($id: String!) {
   transaction(id: $id) {
     id
     type

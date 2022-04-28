@@ -1,11 +1,8 @@
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import type {
-  GetCountriesQuery,
-  GetCountriesQueryVariables
-} from '~/generated/types'
-import { GetCountriesDocument } from '~/generated/types'
+import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
+import { SignupDocument } from '~/generated/types'
 import { Autocomplete, Button, Logo, Router, TextField } from '~/components'
 import React, { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
@@ -106,8 +103,8 @@ export const loader: LoaderFunction = async ({ request }) => {
   const flowId = url.searchParams.get('flow')
 
   const countries = await apolloClient
-    .query<GetCountriesQuery, GetCountriesQueryVariables>({
-      query: GetCountriesDocument,
+    .query<SignupQuery, SignupQueryVariables>({
+      query: SignupDocument,
       context: {
         headers: request.headers
       }

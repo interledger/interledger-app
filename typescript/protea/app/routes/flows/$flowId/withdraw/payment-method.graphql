@@ -1,4 +1,4 @@
-query GetFundingSources {
+query FlowsWithdrawPaymentMethod {
   fundingSources {
     id
     name

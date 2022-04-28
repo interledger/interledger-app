@@ -6,13 +6,10 @@ import { Icon } from '~/components'
 import { apolloClient } from '~/lib/apollo.server'
 import { requireUserSession } from '~/lib/kratos.server'
 import type {
-  GetActivityTransactionQuery,
-  GetActivityTransactionQueryVariables
+  ActivityTransactionQuery,
+  ActivityTransactionQueryVariables
 } from '~/generated/types'
-import {
-  GetActivityTransactionDocument,
-  TransactionType
-} from '~/generated/types'
+import { ActivityTransactionDocument, TransactionType } from '~/generated/types'
 import { DateTime } from 'luxon'
 
 type Activity = {
@@ -33,8 +30,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   await requireUserSession(request)
   const cookie = request.headers.get('cookie')
   const transaction = await apolloClient
-    .query<GetActivityTransactionQuery, GetActivityTransactionQueryVariables>({
-      query: GetActivityTransactionDocument,
+    .query<ActivityTransactionQuery, ActivityTransactionQueryVariables>({
+      query: ActivityTransactionDocument,
       variables: {
         id: String(params.id)
       },
