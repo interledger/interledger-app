@@ -1,6 +1,5 @@
 declare module "routes-gen" {
   export type RouteParams = {
-    "/blog/connecting-the-internet-economy": {};
     "/confirmation/:flowId": { flowId: string };
     "/confirmation/:flowId/payment-method": { flowId: string };
     "/confirmation/:flowId/withdraw": { flowId: string };
@@ -31,17 +30,17 @@ declare module "routes-gen" {
     "/flows/:flowId/send/amount": { flowId: string };
     "/flows/:flowId/send/review": { flowId: string };
     "/flows/:flowId/send/to": { flowId: string };
-    "/blog": {};
     "/recovery": {};
     "/logout": {};
     "/signup": {};
     "/verify": {};
     "/login": {};
+    "/blog": {};
+    "/blog/connecting-the-internet-economy": {};
   };
 
   export function route<
     T extends
-      | ["/blog/connecting-the-internet-economy"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
@@ -72,11 +71,12 @@ declare module "routes-gen" {
       | ["/flows/:flowId/send/amount", RouteParams["/flows/:flowId/send/amount"]]
       | ["/flows/:flowId/send/review", RouteParams["/flows/:flowId/send/review"]]
       | ["/flows/:flowId/send/to", RouteParams["/flows/:flowId/send/to"]]
-      | ["/blog"]
       | ["/recovery"]
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
       | ["/login"]
+      | ["/blog"]
+      | ["/blog/connecting-the-internet-economy"]
   >(...args: T): typeof args[0];
 }

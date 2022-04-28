@@ -1,24 +1,10 @@
-import { BlogLayout } from '~/components'
-import { cairin } from './authors'
-export default ({ children }) => (
-  <BlogLayout meta={metaData} children={children} />
-)
-
-export const metaData = {
-  title: 'Building the Fynbos blog that has a very very long title',
-  authors: [
-    cairin,
-    {
-      name: 'John does',
-      twitterHandle: 'notaperson',
-      avatar: '/fynbos.png'
-    }
-  ],
-  description: 'Somethings must be said.',
-  date: '2021-09-09',
-  slug: 'test',
-  preview: true
-}
+---
+meta:
+  title: Syntax example
+  authors:
+    - cairin
+  date: 2021-11-08
+---
 
 This won't deploy to the blog.
 
