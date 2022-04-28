@@ -246,6 +246,14 @@ export default function Page() {
           value={pages}
         />
         {/* Activity item */}
+        {transactions.length == 0 && (
+          <div className='col-span-full flex items-center justify-start space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <Icon>tips_and_updates</Icon>
+            <span className='font-sans text-sm font-normal'>
+              You don't have any activity yet.
+            </span>
+          </div>
+        )}
         {transactions.map((transaction, index) => (
           <React.Fragment key={transaction.id}>
             {(index == 0 ||
