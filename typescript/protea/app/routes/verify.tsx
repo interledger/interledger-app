@@ -154,7 +154,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   })
 }
 
-export default function VerifyPage() {
+export default function Page() {
   const { flow, email, csrfToken } = useLoaderData()
 
   return (

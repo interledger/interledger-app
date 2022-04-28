@@ -44,7 +44,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   })
 }
 
-export default function SettingsPaymentMethodsPage() {
+export default function Page() {
   const { paymentMethods } = useLoaderData()
 
   return (

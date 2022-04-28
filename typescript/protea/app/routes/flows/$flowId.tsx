@@ -27,7 +27,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function FlowLayout() {
+export default function Page() {
   const { flow } = useLoaderData()
 
   return (

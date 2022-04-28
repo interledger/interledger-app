@@ -1,6 +1,6 @@
 import { Container, HomeDecor, Footer, Header } from '~/components'
 
-export default function HomePage() {
+export default function Page() {
   return (
     <div className='relative w-full overflow-hidden'>
       <Container className='overflow-x-hidden'>

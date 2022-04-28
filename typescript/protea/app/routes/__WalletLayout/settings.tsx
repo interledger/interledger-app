@@ -33,7 +33,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   )
 }
 
-export default function SettingsPage() {
+export default function Page() {
   const { session, snackbar } = useLoaderData()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
   return (

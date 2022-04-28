@@ -116,7 +116,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
-export default function SettingsPasswordPage() {
+export default function Page() {
   const actionData = useActionData<ActionData>()
   const { flow, csrfToken } = useLoaderData()
 

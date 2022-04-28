@@ -5,7 +5,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return requireUserSession(request)
 }
 
-export default function ActivityFilterPage() {
+export default function Page() {
   return (
     // <WalletLayout backRoute={Routes.activity} header='Filter' hideNav>
     {

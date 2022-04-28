@@ -98,7 +98,7 @@ const activityIcon = (type: TransactionType, status: string) => {
   }
 }
 
-export default function ActivityTransactionPage() {
+export default function Page() {
   const navigate = useNavigate()
   const { transaction } = useLoaderData<LoaderData>()
   return (

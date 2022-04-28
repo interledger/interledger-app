@@ -41,7 +41,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function DepositPaymentMethodPage() {
+export default function Page() {
   const { paymentMethods, flow } = useLoaderData()
 
   const [selected, setSelected] = useState(paymentMethods[0])

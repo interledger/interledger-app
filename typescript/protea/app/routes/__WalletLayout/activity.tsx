@@ -148,7 +148,7 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
   )
 }
 
-export default function ActivityPage() {
+export default function Page() {
   const initialPage = useLoaderData<LoaderData>()
   const fetcher = useFetcher()
 

@@ -82,7 +82,7 @@ function Document({
   )
 }
 
-export default function App() {
+export default function Page() {
   return (
     <Document>
       <Outlet />

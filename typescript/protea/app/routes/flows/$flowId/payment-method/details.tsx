@@ -37,7 +37,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function PaymentMethodDetailsPage() {
+export default function Page() {
   const actionData = useActionData<ActionData>()
   const { accountTypes, flow } = useLoaderData()
 

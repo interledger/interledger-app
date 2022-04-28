@@ -23,7 +23,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function WithdrawAmountPage() {
+export default function Page() {
   // const actionData = useActionData<ActionData>()
   const { flow } = useLoaderData()
   const fetcher = useFetcher()

@@ -19,7 +19,7 @@ export const loader: LoaderFunction = async () => {
   })
 }
 
-export default function BlogPage() {
+export default function Page() {
   const { posts } = useLoaderData<LoaderData>()
   const location = useLocation()
   const isPost = location.pathname.search(/\/blog\/[A-z]+/) > -1

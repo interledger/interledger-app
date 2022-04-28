@@ -27,8 +27,8 @@ function showNavBar(pathname: string) {
   )
 }
 
-export default function WalletLayout() {
-  // We useLocation here as loader only runs on first load of WalletLayout.
+export default function Page() {
+  // We useLocation here as loader only runs on first load.
   const location = useLocation()
   return (
     <div className='flex flex-col text-medium sm:flex-row'>
