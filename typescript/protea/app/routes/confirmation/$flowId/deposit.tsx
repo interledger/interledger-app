@@ -12,7 +12,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function DepositConfirmationPage() {
+export default function Page() {
   const { flow } = useLoaderData()
   const { paymentMethodMask, displayAmount, displayFee, displayTotal } =
     flow?.data

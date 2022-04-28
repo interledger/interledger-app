@@ -32,7 +32,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function PaymentMethodTypePage() {
+export default function Page() {
   const { paymentTypes, flow } = useLoaderData()
 
   const [selected, setSelected] = useState(paymentTypes[0])

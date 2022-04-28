@@ -20,7 +20,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return json(flow)
 }
 
-export default function LoginPage() {
+export default function Page() {
   const loaderData = useLoaderData()
 
   return (

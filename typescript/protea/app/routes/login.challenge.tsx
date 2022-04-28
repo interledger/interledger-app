@@ -133,7 +133,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   })
 }
 
-export default function LoginChallengePage() {
+export default function Page() {
   const actionData = useActionData<ActionData>()
   const { flow, csrfToken, email } = useLoaderData()
 
