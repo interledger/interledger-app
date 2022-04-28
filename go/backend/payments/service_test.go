@@ -13,6 +13,7 @@ import (
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/providers/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -67,6 +68,26 @@ func TestPayments(s *testing.T) {
 			t.Fatal(err)
 		}
 
+		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   1000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  acc.LedgerAccountID,
+					Amount:          1000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		container.TemporalMock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
 			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
 				testWorkflowID := opts.ID
@@ -102,6 +123,7 @@ type TestContainer struct {
 	CountryService        _country.Service
 	NoopService           noop.Service
 	OnboardService        onboarding.Service
+	TransactionService    account_transactions.Service
 	PaymentService        Service
 	TemporalMock          *mocks.Client
 	PacioliContainer      *test_utils.PacioliContainer
@@ -223,6 +245,17 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.OnboardService = os
 
+	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
+		AccountService: as,
+		PacioliClient: pClient,
+		Db: db,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	c.TransactionService = ts
+
 	temporal := &mocks.Client{}
 	c.TemporalMock = temporal
 
@@ -260,4 +293,16 @@ func NewVerifiedAccount(
 	}
 
 	return acc, nil
+}
+
+func NewDeposit(
+	container *TestContainer,
+	args *account_transactions.CreateTransactionArgs,
+) (*account_transactions.AccountTransaction, error) {
+	trx, err := container.TransactionService.Create(container.Ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return trx, nil
 }

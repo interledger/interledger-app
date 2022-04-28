@@ -106,6 +106,9 @@ func (s *service) InitiateOutgoingPayment(
 	if !acc.IsVerified() {
 		return nil, fmt.Errorf("%w", ErrUnverifiedAccount)
 	}
+	if acc.AvailableBalance < int64(args.Amount) {
+		return nil, fmt.Errorf("%w", ErrInsufficientBalance)
+	}
 
 	var outgoingPayment OutgoingPayment
 	err = s.db.Get(&outgoingPayment, `INSERT INTO outgoing_payments
