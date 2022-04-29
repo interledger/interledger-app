@@ -3,13 +3,12 @@ mutation InitiateOutgoingPayment($input: OutgoingPaymentInput!) {
     code
     success
     message
-    transaction {
+    outgoingPayment {
       id
-      type
-      description
+      destination
+      state
       amount
       timestamp
-      status
     }
   }
 }
