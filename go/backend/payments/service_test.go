@@ -1,4 +1,3 @@
-
 package payments
 
 import (
@@ -114,6 +113,58 @@ func TestPayments(s *testing.T) {
 		assert.Equal(t, Created, p.State)
 		assert.Equal(t, acc.ID, p.AccountID)
 		assert.Equal(t, amount, p.Amount)
+	})
+
+	s.Run("initiating an outgoing payment with insufficient balance fails", func(t *testing.T) {
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+		acc, err := NewVerifiedAccount(
+			container,
+			&onboarding.CreateAccountArgs{
+				IdentityID:   user.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.LastName(),
+				MobileNumber: faker.E164PhoneNumber(),
+				Email:        user.Email,
+				Country:      "US",
+			},
+			&onboarding.VerifyAccountArgs{
+				DateOfBirth: faker.Date(),
+				Address:     []string{faker.Name()},
+				State:       faker.Name(),
+				City:        faker.Name(),
+				PostalCode:  faker.CCNumber(),
+				TaxIDNumber: faker.CCNumber(),
+			},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}	
+
+		container.TemporalMock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
+			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
+				testWorkflowID := opts.ID
+				testRunID := "test-runid"
+
+				mockWorkflowRun := &mocks.WorkflowRun{}
+				mockWorkflowRun.On("GetID").Return(testWorkflowID)
+				mockWorkflowRun.On("GetRunID").Return(testRunID)
+				mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
+				return mockWorkflowRun
+			}, nil,
+		).Times(1)
+
+		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
+			IdentityID: acc.IdentityID,
+			AccountID: acc.ID,
+			Amount: 100,
+			To: "$test.fynbos.test/alice",
+		})
+
+		assert.Nil(t, p)
+		assert.ErrorIs(t, err, ErrInsufficientBalance)
 	})
 }
 
