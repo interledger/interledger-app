@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
+	mockstaticresponseservers "gitlab.com/fynbos/infra/services/mock-static-response-servers"
 	pacioli "gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/protea"
@@ -234,13 +235,13 @@ func main() {
 			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
 			// waiting for update for client to handle dns.
 			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
-			TbReplicaAddresses:         "[\"10.244.0.21:8080\"]",
+			TbReplicaAddresses:         "[\"10.244.0.23:8080\"]",
 			IlpAddress:                 "test.fynbos",
 			NonceRedisKey:              "noncefynbos",
 			RedisUrl:                   "redis://redis-master:6379/0",
 			RedisCert:                  rafikiRedisCert,
-			AuthServerGrantUrl:         "http://127.0.0.1:3006",
-			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
+			AuthServerGrantUrl:         "http://mockauth",
+			AuthServerIntrospectionUrl: "http://mockauth",
 			StreamSecret:               streamSecretBase64,
 			AdminKey:                   streamSecret.Result,                     // re-using for local cluster
 			WebhookUrl:                 "https://end3sf6r22xva.x.pipedream.net", // using request bin for now
@@ -286,13 +287,13 @@ func main() {
 			// TbReplicaAddresses:         "[\"tigerbeetle-0.tigerbeetle.default.svc.cluster.local\"]",
 			// waiting for update for client to handle dns.
 			// you will need to manually look up the tigerbeetle-0 pod and get its ip address for now.
-			TbReplicaAddresses:         "[\"10.244.0.21:8080\"]",
+			TbReplicaAddresses:         "[\"10.244.0.23:8080\"]",
 			IlpAddress:                 "test.peer",
 			NonceRedisKey:              "noncepeer",
 			RedisUrl:                   "redis://redis-master:6379/1",
 			RedisCert:                  peerRedisCert,
-			AuthServerGrantUrl:         "http://127.0.0.1:3006",
-			AuthServerIntrospectionUrl: "http://127.0.0.1:3007",
+			AuthServerGrantUrl:         "http://mockauth",
+			AuthServerIntrospectionUrl: "http://mockauth",
 			StreamSecret:               streamSecretBase64,
 			AdminKey:                   streamSecret.Result,                     // re-using for local cluster
 			WebhookUrl:                 "https://end3sf6r22xva.x.pipedream.net", // using request bin for now
@@ -300,6 +301,10 @@ func main() {
 			PublicHost:                 "http://peer", // using peer as coredns will find peer
 		})
 		if err != nil {
+			return err
+		}
+
+		if err := mockstaticresponseservers.DeployMockGnapServer(ctx, "mockauth"); err != nil {
 			return err
 		}
 
