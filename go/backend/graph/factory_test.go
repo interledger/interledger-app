@@ -219,8 +219,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Db:   db,
 		As:   as,
 		Is:   is,
-		Ts:   ts,
-		Noop: noopProvider,
+		Tp:   tp,
 	})
 	if err != nil {
 		return nil, err
@@ -344,3 +343,16 @@ func NewDeposit(
 
 	return trx, nil
 }
+
+func NewOutgoingPayment(
+	c *TestContainer,
+	args *account_transactions.CreateTransactionArgs,
+) (*account_transactions.AccountTransaction, error) {
+	trx, err := c.TransactionService.Create(c.Ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	return trx, nil
+}
+
