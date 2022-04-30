@@ -25,7 +25,7 @@ func OutgoingPaymentWorkflow(ctx workflow.Context, id string) error {
 	}
 
 	var trxId string
-	err = workflow.ExecuteActivity(ctx, a.CreatePendingTransaction, id).Get(ctx, &trxId)
+	err = workflow.ExecuteActivity(ctx, a.CreatePendingOutgoingPayment, id).Get(ctx, &trxId)
 	if err != nil {
 		logger.Error("error creating pending transaction", err)
 		return err
@@ -37,7 +37,7 @@ func OutgoingPaymentWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.PostPendingTransaction, trxId).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostPendingOutgoingPayment, trxId).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error posting pending transaction", err)
 		return err

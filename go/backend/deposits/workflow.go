@@ -32,7 +32,7 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 
 	// Prepare the withdrawal from the account (if insufficient mark as failed)
 	var trxId string
-	err = workflow.ExecuteActivity(ctx, a.CreatePendingTransaction, id).Get(ctx, &trxId)
+	err = workflow.ExecuteActivity(ctx, a.CreatePendingDeposit, id).Get(ctx, &trxId)
 	if err != nil {
 		logger.Error("error creating pending transaction", err)
 		return err
@@ -44,7 +44,7 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.PostPendingTransaction, trxId).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostPendingDeposit, trxId).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error posting pending transaction", err)
 		return err
