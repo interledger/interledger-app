@@ -43,7 +43,7 @@ func (s *UnitTestSuite) Test_DepositWorkflow_Success() {
 			s.Equal(depositId.String(), id)
 			return nil
 		})
-	s.env.OnActivity(s.da.CreatePendingTransaction, mock.Anything, mock.Anything).Return(
+	s.env.OnActivity(s.da.CreatePendingDeposit, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, id string) (string, error) {
 			s.Equal(depositId.String(), id)
 			return trxId.String(), nil
@@ -53,7 +53,7 @@ func (s *UnitTestSuite) Test_DepositWorkflow_Success() {
 			s.Equal(depositId.String(), id)
 			return nil
 		})
-	s.env.OnActivity(s.da.PostPendingTransaction, mock.Anything, mock.Anything).Return(
+	s.env.OnActivity(s.da.PostPendingDeposit, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, id string) error {
 			s.Equal(trxId.String(), id)
 			return nil

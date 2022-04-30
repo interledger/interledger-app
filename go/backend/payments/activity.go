@@ -42,7 +42,7 @@ func NewActivity(args ActivityArgs) (*Activity, error) {
 	}, nil
 }
 
-func (s *Activity) CreatePendingTransaction(ctx context.Context, outgoingPaymentId string) (string, error) {
+func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPaymentId string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating pending transaction")
 
@@ -117,7 +117,7 @@ func (s *Activity) ProcessNoopOutgoingPayment(ctx context.Context, outgoingPayme
 	return nil
 }
 
-func (s *Activity) VoidPendingTransaction(ctx context.Context, trxId string) error {
+func (s *Activity) VoidPendingOutgoingPayment(ctx context.Context, trxId string) error {
 
 	_, err := s.ts.VoidPending(ctx, trxId)
 	if err != nil {
@@ -127,7 +127,7 @@ func (s *Activity) VoidPendingTransaction(ctx context.Context, trxId string) err
 	return nil
 }
 
-func (s *Activity) PostPendingTransaction(ctx context.Context, trxId string) error {
+func (s *Activity) PostPendingOutgoingPayment(ctx context.Context, trxId string) error {
 
 	_, err := s.ts.PostPending(ctx, trxId)
 	if err != nil {
