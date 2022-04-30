@@ -221,8 +221,7 @@ func start(args *cli.StartArgs) {
 		Db:   db,
 		As:   as,
 		Is:   id,
-		Ts:   ts,
-		Noop: nos,
+		Tp:   tp,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -480,9 +479,20 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	ps, err := payments.NewService(&payments.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   id,
+		Tp:   tp,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Printf("Worker creating")
 	w, err := temporal.NewTemporalWorker(temporal.WorkerArgs{
 		Client: tp,
+		Ps:     ps,
 		Ds:     ds,
 		As:     as,
 		Np:     nos,

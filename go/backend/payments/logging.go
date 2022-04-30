@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +20,7 @@ func NewLoggingService(svc Service, logger *zap.Logger) Service {
 func (s *loggingService) InitiateOutgoingPayment(
 	ctx context.Context,
 	args *InitiateOutgoingPaymentArgs,
-) (acc *account_transactions.AccountTransaction, err error) {
+) (outgoingPayment *OutgoingPayment, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			s.logger.Error(
@@ -46,4 +45,45 @@ func (s *loggingService) InitiateOutgoingPayment(
 	}(time.Now())
 
 	return s.Service.InitiateOutgoingPayment(ctx, args)
+}
+
+func (s *loggingService) Get(
+	ctx context.Context,
+	id string,
+) (outgoingPayment *OutgoingPayment, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			s.logger.Error(
+				"Failed to get outgoing payment.",
+				zap.String("id", id),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Got outgoing payment.",
+			zap.String("id", id),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return s.Service.Get(ctx, id)
+}
+
+func (s *loggingService) SetState(
+	ctx context.Context,
+	id string,
+	state State,
+) error {
+	defer func(begin time.Time) {
+		s.logger.Debug(
+			"Set outgoing payment state.",
+			zap.String("id", id),
+			zap.String("state", state.String()),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return s.Service.SetState(ctx, id, state)
 }

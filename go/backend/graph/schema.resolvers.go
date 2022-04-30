@@ -529,13 +529,12 @@ func (r *mutationResolver) InitiateOutgoingPayment(ctx context.Context, input ge
 		Code:    "200",
 		Success: true,
 		Message: "Outgoing payment initiated.",
-		Transaction: &generated.Transaction{
-			ID:          outgoingPayment.ID,
-			Timestamp:   outgoingPayment.CreatedAt, // TODO: decide format
-			Amount:      strconv.FormatInt(outgoingPayment.NetAmount, 10),
-			Type:        generated.TransactionTypeSent,
-			Status:      outgoingPayment.State.String(),
-			Description: outgoingPayment.Description,
+		OutgoingPayment: &generated.OutgoingPayment{
+			ID:        outgoingPayment.ID,
+			Destination: outgoingPayment.Destination,
+			Timestamp: outgoingPayment.CreatedAt, // TODO: decide format
+			Amount:    strconv.FormatInt(int64(outgoingPayment.Amount), 10),
+			State:     outgoingPayment.State.String(),
 		},
 	}, nil
 }

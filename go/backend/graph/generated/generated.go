@@ -114,11 +114,19 @@ type ComplexityRoot struct {
 		VerifyUsdBankAccount    func(childComplexity int, input VerifyUsdBankAccountInput) int
 	}
 
+	OutgoingPayment struct {
+		Amount      func(childComplexity int) int
+		Destination func(childComplexity int) int
+		ID          func(childComplexity int) int
+		State       func(childComplexity int) int
+		Timestamp   func(childComplexity int) int
+	}
+
 	OutgoingPaymentMutationResponse struct {
-		Code        func(childComplexity int) int
-		Message     func(childComplexity int) int
-		Success     func(childComplexity int) int
-		Transaction func(childComplexity int) int
+		Code            func(childComplexity int) int
+		Message         func(childComplexity int) int
+		OutgoingPayment func(childComplexity int) int
+		Success         func(childComplexity int) int
 	}
 
 	PageInfo struct {
@@ -539,6 +547,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.VerifyUsdBankAccount(childComplexity, args["input"].(VerifyUsdBankAccountInput)), true
 
+	case "OutgoingPayment.amount":
+		if e.complexity.OutgoingPayment.Amount == nil {
+			break
+		}
+
+		return e.complexity.OutgoingPayment.Amount(childComplexity), true
+
+	case "OutgoingPayment.destination":
+		if e.complexity.OutgoingPayment.Destination == nil {
+			break
+		}
+
+		return e.complexity.OutgoingPayment.Destination(childComplexity), true
+
+	case "OutgoingPayment.id":
+		if e.complexity.OutgoingPayment.ID == nil {
+			break
+		}
+
+		return e.complexity.OutgoingPayment.ID(childComplexity), true
+
+	case "OutgoingPayment.state":
+		if e.complexity.OutgoingPayment.State == nil {
+			break
+		}
+
+		return e.complexity.OutgoingPayment.State(childComplexity), true
+
+	case "OutgoingPayment.timestamp":
+		if e.complexity.OutgoingPayment.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.OutgoingPayment.Timestamp(childComplexity), true
+
 	case "OutgoingPaymentMutationResponse.code":
 		if e.complexity.OutgoingPaymentMutationResponse.Code == nil {
 			break
@@ -553,19 +596,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OutgoingPaymentMutationResponse.Message(childComplexity), true
 
+	case "OutgoingPaymentMutationResponse.outgoingPayment":
+		if e.complexity.OutgoingPaymentMutationResponse.OutgoingPayment == nil {
+			break
+		}
+
+		return e.complexity.OutgoingPaymentMutationResponse.OutgoingPayment(childComplexity), true
+
 	case "OutgoingPaymentMutationResponse.success":
 		if e.complexity.OutgoingPaymentMutationResponse.Success == nil {
 			break
 		}
 
 		return e.complexity.OutgoingPaymentMutationResponse.Success(childComplexity), true
-
-	case "OutgoingPaymentMutationResponse.transaction":
-		if e.complexity.OutgoingPaymentMutationResponse.Transaction == nil {
-			break
-		}
-
-		return e.complexity.OutgoingPaymentMutationResponse.Transaction(childComplexity), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -1006,7 +1049,7 @@ type OutgoingPaymentMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  transaction: Transaction
+  outgoingPayment: OutgoingPayment
 }
 
 type Account {
@@ -1043,6 +1086,14 @@ type TransactionsConnection {
 
 type Deposit {
   id: ID!
+  state: String!
+  amount: String!
+  timestamp: String!
+}
+
+type OutgoingPayment {
+  id: ID!
+  destination: String!
   state: String!
   amount: String!
   timestamp: String!
@@ -2718,6 +2769,181 @@ func (ec *executionContext) _Mutation_initiateOutgoingPayment(ctx context.Contex
 	return ec.marshalNOutgoingPaymentMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐOutgoingPaymentMutationResponse(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _OutgoingPayment_id(ctx context.Context, field graphql.CollectedField, obj *OutgoingPayment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OutgoingPayment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OutgoingPayment_destination(ctx context.Context, field graphql.CollectedField, obj *OutgoingPayment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OutgoingPayment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Destination, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OutgoingPayment_state(ctx context.Context, field graphql.CollectedField, obj *OutgoingPayment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OutgoingPayment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OutgoingPayment_amount(ctx context.Context, field graphql.CollectedField, obj *OutgoingPayment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OutgoingPayment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Amount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OutgoingPayment_timestamp(ctx context.Context, field graphql.CollectedField, obj *OutgoingPayment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OutgoingPayment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _OutgoingPaymentMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *OutgoingPaymentMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2823,7 +3049,7 @@ func (ec *executionContext) _OutgoingPaymentMutationResponse_message(ctx context
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _OutgoingPaymentMutationResponse_transaction(ctx context.Context, field graphql.CollectedField, obj *OutgoingPaymentMutationResponse) (ret graphql.Marshaler) {
+func (ec *executionContext) _OutgoingPaymentMutationResponse_outgoingPayment(ctx context.Context, field graphql.CollectedField, obj *OutgoingPaymentMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2841,7 +3067,7 @@ func (ec *executionContext) _OutgoingPaymentMutationResponse_transaction(ctx con
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Transaction, nil
+		return obj.OutgoingPayment, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2850,9 +3076,9 @@ func (ec *executionContext) _OutgoingPaymentMutationResponse_transaction(ctx con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Transaction)
+	res := resTmp.(*OutgoingPayment)
 	fc.Result = res
-	return ec.marshalOTransaction2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransaction(ctx, field.Selections, res)
+	return ec.marshalOOutgoingPayment2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐOutgoingPayment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
@@ -6183,6 +6409,77 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var outgoingPaymentImplementors = []string{"OutgoingPayment"}
+
+func (ec *executionContext) _OutgoingPayment(ctx context.Context, sel ast.SelectionSet, obj *OutgoingPayment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, outgoingPaymentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OutgoingPayment")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OutgoingPayment_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "destination":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OutgoingPayment_destination(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "state":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OutgoingPayment_state(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "amount":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OutgoingPayment_amount(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "timestamp":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OutgoingPayment_timestamp(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var outgoingPaymentMutationResponseImplementors = []string{"OutgoingPaymentMutationResponse", "MutationResponse"}
 
 func (ec *executionContext) _OutgoingPaymentMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *OutgoingPaymentMutationResponse) graphql.Marshaler {
@@ -6223,9 +6520,9 @@ func (ec *executionContext) _OutgoingPaymentMutationResponse(ctx context.Context
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "transaction":
+		case "outgoingPayment":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._OutgoingPaymentMutationResponse_transaction(ctx, field, obj)
+				return ec._OutgoingPaymentMutationResponse_outgoingPayment(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -8015,6 +8312,13 @@ func (ec *executionContext) marshalOIdentity2ᚖgitlabᚗcomᚋfynbosᚋbackend�
 		return graphql.Null
 	}
 	return ec._Identity(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOutgoingPayment2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐOutgoingPayment(ctx context.Context, sel ast.SelectionSet, v *OutgoingPayment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._OutgoingPayment(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
