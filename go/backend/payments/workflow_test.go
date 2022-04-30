@@ -43,7 +43,7 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			s.Equal(paymentId.String(), id)
 			return nil
 		})
-	s.env.OnActivity(s.pa.CreatePendingTransaction, mock.Anything, mock.Anything).Return(
+	s.env.OnActivity(s.pa.CreatePendingOutgoingPayment, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, id string) (string, error) {
 			s.Equal(paymentId.String(), id)
 			return trxId.String(), nil
@@ -53,7 +53,7 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			s.Equal(paymentId.String(), id)
 			return nil
 		})
-	s.env.OnActivity(s.pa.PostPendingTransaction, mock.Anything, mock.Anything).Return(
+	s.env.OnActivity(s.pa.PostPendingOutgoingPayment, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, id string) error {
 			s.Equal(trxId.String(), id)
 			return nil
