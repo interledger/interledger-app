@@ -27,7 +27,7 @@ trigger_deploy_dev:
     - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
     - aws sts get-caller-identity
     - aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
-    - kubectl set image deployment/backend backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/backend backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA backend-migrations=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA worker=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA
     - kubectl set image deployment/protea protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA
     - kubectl set image deployment/pacioli pacioli-init=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA pacioli=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA
   variables:
