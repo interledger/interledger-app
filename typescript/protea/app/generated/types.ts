@@ -151,6 +151,15 @@ export type MutationResponse = {
   success: Scalars['Boolean'];
 };
 
+export type OutgoingPayment = {
+  __typename?: 'OutgoingPayment';
+  amount: Scalars['String'];
+  destination: Scalars['String'];
+  id: Scalars['ID'];
+  state: Scalars['String'];
+  timestamp: Scalars['String'];
+};
+
 export type OutgoingPaymentInput = {
   amount: Scalars['String'];
   to: Scalars['String'];
@@ -160,8 +169,8 @@ export type OutgoingPaymentMutationResponse = MutationResponse & {
   __typename?: 'OutgoingPaymentMutationResponse';
   code: Scalars['String'];
   message: Scalars['String'];
+  outgoingPayment?: Maybe<OutgoingPayment>;
   success: Scalars['Boolean'];
-  transaction?: Maybe<Transaction>;
 };
 
 export type PageInfo = {
@@ -317,7 +326,7 @@ export type InitiateOutgoingPaymentMutationVariables = Exact<{
 }>;
 
 
-export type InitiateOutgoingPaymentMutation = { __typename?: 'Mutation', initiateOutgoingPayment: { __typename?: 'OutgoingPaymentMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
+export type InitiateOutgoingPaymentMutation = { __typename?: 'Mutation', initiateOutgoingPayment: { __typename?: 'OutgoingPaymentMutationResponse', code: string, success: boolean, message: string, outgoingPayment?: { __typename?: 'OutgoingPayment', id: string, destination: string, state: string, amount: string, timestamp: string } | null | undefined } };
 
 export type InitiateWithdrawalMutationVariables = Exact<{
   input: WithdrawalInput;
@@ -467,13 +476,12 @@ export const InitiateOutgoingPaymentDocument = gql`
     code
     success
     message
-    transaction {
+    outgoingPayment {
       id
-      type
-      description
+      destination
+      state
       amount
       timestamp
-      status
     }
   }
 }

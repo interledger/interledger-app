@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/payments"
 	_user "gitlab.com/fynbos/backend/user"
 )
 
@@ -123,13 +122,22 @@ func TestTransactions(s *testing.T) {
 				},
 			})
 		} else {
-			transactionsAsc[i], err = c.Ps.InitiateOutgoingPayment(
-				ctx,
-				&payments.InitiateOutgoingPaymentArgs{
-					IdentityID: user.ID,
-					AccountID:  acc.ID,
-					Amount:     100,
-					To:         "$test.fynbos.dev/alice",
+			transactionsAsc[i], err = NewOutgoingPayment(
+				c, &account_transactions.CreateTransactionArgs{
+					AccountID:   acc.ID,
+					Description: "Sent to $test.fynbos.dev/alice",
+					Type:        "outgoingPayment",
+					NetAmount:   100,
+					LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+						{
+							LedgerID:        c.NoopService.GetLedgerID(),
+							DebitAccountID:  c.NoopService.GetEquityAccountID(),
+							CreditAccountID: acc.LedgerAccountID,
+							Amount:          100,
+							// Code: uint16,
+							Flags: account_transactions.LedgerTransferFlags{},
+						},
+					},
 				},
 			)
 		}
