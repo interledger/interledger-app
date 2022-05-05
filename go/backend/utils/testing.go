@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -151,13 +153,13 @@ type PacioliContainer struct {
 	Crdb           testcontainers.Container
 	Tb             testcontainers.Container
 	URI            string
-	Pacioli        testcontainers.Container
+	Pacioli        *exec.Cmd
 	PacioliUrl     string
 	PacioliNetwork testcontainers.Network
 }
 
 func (c *PacioliContainer) Terminate(ctx context.Context) error {
-	err := c.Pacioli.Terminate(ctx)
+	err := c.Pacioli.Process.Kill()
 	if err != nil {
 		return err
 	}
@@ -210,51 +212,50 @@ func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
 		return nil, err
 	}
 
-	fmt.Println("Building and starting pacioli.")
-	configPath := filepath.Join(filepath.Dir(moduleDir), "../../")
-	req := testcontainers.ContainerRequest{
-		FromDockerfile: testcontainers.FromDockerfile{
-			Context:    configPath,
-			Dockerfile: "pacioli/Dockerfile",
-		},
-		ExposedPorts: []string{"443/tcp"},
-		Env: map[string]string{
-			"ENV":           "testing",
-			"PORT":          "443",
-			"DB_URL":        "postgres://root@pacioli-crdb:26257/pacioli?sslmode=disable",
-			"TB_URL":        "pacioli-tigerbeetle:3000",
-			"TB_CLUSTER_ID": "0",
-		},
-		Networks:   []string{containerNetwork},
-		WaitingFor: wait.ForLog("grpc server").WithPollInterval(1 * time.Second),
-		Cmd:        []string{"start"},
-	}
-
-	pacioliContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
+	fmt.Println("Starting pacioli.")
+	port, err := getFreePort()
 	if err != nil {
 		return nil, err
 	}
-
-	mappedPort, err := pacioliContainer.MappedPort(ctx, "443")
-	if err != nil {
+	hostIP := "127.0.0.1"
+	pacioli := exec.Command(
+		"go",
+		"run",
+		filepath.Join(filepath.Dir(moduleDir), "../../pacioli/main.go"),
+		"start",
+	)
+	pacioli.Env = append(
+		os.Environ(),
+		"ENV=testing",
+		fmt.Sprintf("PORT=%d", port),
+		fmt.Sprintf("DB_URL=%s", crdb.URI),
+		fmt.Sprintf("TB_URL=%s", tb.URI),
+		"TB_CLUSTER_ID=0",
+	)
+	if err = pacioli.Start(); err != nil {
 		return nil, err
 	}
-
-	hostIP, err := pacioliContainer.Host(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	connString := fmt.Sprintf("%s:%s", hostIP, mappedPort.Port())
 
 	return &PacioliContainer{
 		Crdb:           crdb,
 		Tb:             tb,
-		Pacioli:        pacioliContainer,
-		PacioliUrl:     connString,
+		Pacioli:        pacioli,
+		PacioliUrl:     fmt.Sprintf("%s:%d", hostIP, port),
 		PacioliNetwork: network,
 	}, nil
+}
+
+func getFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+
+	return l.Addr().(*net.TCPAddr).Port, nil
 }
