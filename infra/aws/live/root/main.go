@@ -149,9 +149,20 @@ func main() {
 			Group:     fullAccessGroup.Name,
 			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AdministratorAccess"),
 		})
+		if err != nil {
+			return err
+		}
+
+		billingAccessGroup, err := iam.NewGroup(ctx, "billing-access", &iam.GroupArgs{
+			Path: pulumi.String("/users/"),
+		})
+
+		if err != nil {
+			return err
+		}
 		_, err = iam.NewGroupPolicyAttachment(ctx, "billing-access-attach", &iam.GroupPolicyAttachmentArgs{
-			Group:     fullAccessGroup.Name,
-			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AdministratorAccess"),
+			Group:     billingAccessGroup.Name,
+			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AWSBillingReadOnlyAccess"),
 		})
 		if err != nil {
 			return err
@@ -173,6 +184,23 @@ func main() {
 			User: userMatt.Name,
 			Groups: pulumi.StringArray{
 				fullAccessGroup.Name,
+				billingAccessGroup.Name,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		userAdrian, err := iam.NewUser(ctx, "user-adrian", &iam.UserArgs{
+			Name: pulumi.String("adrian"),
+			Path: pulumi.String("/"),
+		})
+		if err != nil {
+			return err
+		}
+		_, err = iam.NewUserGroupMembership(ctx, "adrian-group", &iam.UserGroupMembershipArgs{
+			User: userAdrian.Name,
+			Groups: pulumi.StringArray{
+				billingAccessGroup.Name,
 			},
 		})
 		if err != nil {
