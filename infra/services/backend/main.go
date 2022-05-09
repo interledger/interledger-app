@@ -432,6 +432,19 @@ func deployIngress(ctx *pulumi.Context, hn string) error {
 		Rewrite:  "/graphql",
 		Service:  "backend",
 	})
+
+	if err != nil {
+		return err
+	}
+
+	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
+		Name:     "backend-unit-webhooks",
+		Hostname: hn,
+		Prefix:   "/webhooks/unit",
+		Rewrite:  "/webhooks/unit",
+		Service:  "backend",
+	})
+
 	if err != nil {
 		return err
 	}
