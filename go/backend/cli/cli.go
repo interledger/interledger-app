@@ -14,6 +14,7 @@ type MigrationArgs struct {
 	ConnectionString    string
 	NoopLedgerID        uint16
 	NoopEquityAccountID string
+	UnitWebhookToken		string
 	PacioliUrl          string
 	UsdLedgerID         uint16
 	KratosUrl           string
@@ -93,6 +94,7 @@ type StartArgs struct {
 	NoopEquityAccountID  string
 	UnitToken            string
 	UnitBaseURL          string
+	UnitWebhookToken 	   string
 	GoogleOauth2ClientID string
 }
 
@@ -155,6 +157,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("UNIT_BASE_URL is required")
 	}
 
+	unitWebhookToken := os.Getenv("UNIT_WEBHOOK_TOKEN")
+	if unitWebhookToken == "" {
+		return nil, errors.New("UNIT_WEBHOOK_TOKEN is required")
+	}
+
 	googleOauth2ClientID := os.Getenv("GOOGLE_OUATH2_CLIENT_ID")
 	if googleOauth2ClientID == "" {
 		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
@@ -172,6 +179,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		NoopEquityAccountID:  noopEquityAccount,
 		UnitToken:            unitToken,
 		UnitBaseURL:          unitBaseURL,
+		UnitWebhookToken:     unitWebhookToken,
 		GoogleOauth2ClientID: googleOauth2ClientID,
 	}, nil
 }
