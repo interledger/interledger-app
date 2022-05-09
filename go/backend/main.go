@@ -4,14 +4,15 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"gitlab.com/fynbos/backend/temporal"
-	"go.temporal.io/sdk/worker"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"time"
+
+	"gitlab.com/fynbos/backend/temporal"
+	"go.temporal.io/sdk/worker"
+	"google.golang.org/grpc/credentials/insecure"
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
@@ -38,6 +39,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
@@ -173,6 +175,13 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	us, err := unit.NewService(unit.ServiceArgs{
+		WebhookToken: args.UnitWebhookToken,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   id,
 		As:   as,
@@ -256,6 +265,16 @@ func start(args *cli.StartArgs) {
 	})))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
+	}))
+	router.Post("/webhooks/unit", http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+		err := us.VerifyWebhook(context.Background(), request)
+
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(401)
+		} else {
+			w.WriteHeader(200)
+		}
 	}))
 
 	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)
