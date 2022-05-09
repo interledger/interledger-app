@@ -176,6 +176,7 @@ func main() {
 			UnitBaseUrl:          "https://api.s.unit.sh",
 			EnablePlayground:     true,
 			Hostname:             "dev.fynbos.dev",
+			UnitWebhookToken:     "",
 			GoogleOauth2ClientID: "572950914705-ith2keqq6l3cu652n262jd0gf9ffi7ka.apps.googleusercontent.com",
 		})
 		if err != nil {
