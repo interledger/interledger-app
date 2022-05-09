@@ -123,6 +123,7 @@ func main() {
 			NoopEquityAccountID:  "036c9b47-d0e4-4960-863e-a80224aa6ff3",
 			EnablePlayground:     true,
 			Hostname:             "fynbos.test",
+			UnitWebhookToken: 	 	"fynbos_local_unit_webhook_token",
 			GoogleOauth2ClientID: "572950914705-dv7oqq4r8bqljv3s831qqcan1n6f8vvs.apps.googleusercontent.com",
 		})
 		if err != nil {
