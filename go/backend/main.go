@@ -178,6 +178,7 @@ func start(args *cli.StartArgs) {
 	us, err := unit.NewService(unit.ServiceArgs{
 		BaseURL: args.UnitBaseURL,
 		Token:   args.UnitToken,
+		WebhookToken: args.UnitWebhookToken,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -267,6 +268,16 @@ func start(args *cli.StartArgs) {
 	})))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
+	}))
+	router.Post("/webhooks/unit", http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+		err := us.VerifyWebhook(context.Background(), request)
+
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(401)
+		} else {
+			w.WriteHeader(200)
+		}
 	}))
 
 	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)

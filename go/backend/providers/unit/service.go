@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
+	"errors"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -14,24 +17,27 @@ import (
 
 var (
 	ErrInternal = errors.New("unit: internal error")
+	ErrUnauthorized = errors.New("unit: unauthorized webhook request")
 )
 
 type Service interface {
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
+	VerifyWebhook(ctx context.Context, request *http.Request) error
 }
 
 type service struct {
 	validator *validator.Validate
 	baseURL   string
 	token     string
+	webhookToken string
 }
 
 type ServiceArgs struct {
 	BaseURL string `validate:"required"`
 	Token   string `validate:"required"`
+	WebhookToken string `validate:"required"`
 }
-
 func NewService(args ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
@@ -43,6 +49,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		validator: validator,
 		baseURL:   args.BaseURL,
 		token:     args.Token,
+		webhookToken: args.WebhookToken,
 	}, nil
 }
 
@@ -156,4 +163,27 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 		ID:  data.Data.ID,
 		URL: data.Data.Attr.Url,
 	}, nil
+}
+
+func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) error {
+	signature := request.Header.Get("x-unit-signature")
+	if signature == "" {
+		return ErrInternal
+	}
+
+	mac := hmac.New(sha1.New, []byte(self.webhookToken))
+
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		return ErrInternal
+	}
+
+	mac.Write(body)
+	sha := hex.EncodeToString(mac.Sum(nil))
+
+	if sha != signature {
+		return ErrUnauthorized
+	}
+
+	return nil
 }
