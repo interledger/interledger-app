@@ -91,6 +91,7 @@ type StartArgs struct {
 	LogOutputPath        string
 	NoopLedgerID         uint16
 	NoopEquityAccountID  string
+	UnitToken            string
 	GoogleOauth2ClientID string
 }
 
@@ -143,6 +144,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("NOOP_EQUITY_ACCOUNT_ID is required.")
 	}
 
+	unitToken := os.Getenv("UNIT_TOKEN")
+	if unitToken == "" {
+		return nil, errors.New("UNIT_TOKEN is required")
+	}
+
 	googleOauth2ClientID := os.Getenv("GOOGLE_OUATH2_CLIENT_ID")
 	if googleOauth2ClientID == "" {
 		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
@@ -158,6 +164,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		LogOutputPath:        logOutputPath,
 		NoopLedgerID:         uint16(usdLedgerID), // all on the same ledger at the moment.
 		NoopEquityAccountID:  noopEquityAccount,
+		UnitToken:            unitToken,
 		GoogleOauth2ClientID: googleOauth2ClientID,
 	}, nil
 }

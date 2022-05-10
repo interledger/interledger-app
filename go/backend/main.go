@@ -4,14 +4,15 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"gitlab.com/fynbos/backend/temporal"
-	"go.temporal.io/sdk/worker"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"time"
+
+	"gitlab.com/fynbos/backend/temporal"
+	"go.temporal.io/sdk/worker"
+	"google.golang.org/grpc/credentials/insecure"
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
@@ -38,6 +39,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
@@ -173,6 +175,13 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	us, err := unit.NewService(unit.ServiceArgs{
+		Token: args.UnitToken,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   id,
 		As:   as,
@@ -218,10 +227,10 @@ func start(args *cli.StartArgs) {
 	}
 
 	ps, err := payments.NewService(&payments.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   id,
-		Tp:   tp,
+		Db: db,
+		As: as,
+		Is: id,
+		Tp: tp,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -235,6 +244,7 @@ func start(args *cli.StartArgs) {
 		Country:                          cs,
 		User:                             users,
 		Noop:                             nos,
+		UnitService:                      us,
 		Fs:                               fs,
 		Ps:                               ps,
 		Os:                               os,
@@ -480,10 +490,10 @@ func startWorker(args *cli.StartArgs) {
 	}
 
 	ps, err := payments.NewService(&payments.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   id,
-		Tp:   tp,
+		Db: db,
+		As: as,
+		Is: id,
+		Tp: tp,
 	})
 	if err != nil {
 		log.Fatal(err)

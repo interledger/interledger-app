@@ -18,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -30,6 +31,7 @@ type GraphqlOpts struct {
 	Country                          country.Service              `validate:"required"`
 	AccountTransactions              account_transactions.Service `validate:"required"`
 	Noop                             noop.Service                 `validate:"required"`
+	UnitService                      unit.Service                 `validate:"required"`
 	Ds                               deposits.Service             `validate:"required"`
 	Os                               onboarding.Service           `validate:"required"`
 	Ws                               withdrawals.Service          `validate:"required"`
@@ -62,6 +64,7 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		AccountService:      opts.Account,
 		CountryService:      opts.Country,
 		NoopService:         opts.Noop,
+		UnitService:         opts.UnitService,
 		AccountTransactions: opts.AccountTransactions,
 		Ds:                  opts.Ds,
 		Os:                  opts.Os,

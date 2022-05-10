@@ -171,6 +171,7 @@ func main() {
 			ImageTag:             hash,
 			UsdLedgerCode:        100,
 			NoopEquityAccountID:  "7c63db4d-2f4c-4ab2-935e-7482bad12649",
+			UnitToken:            "todo token",
 			EnablePlayground:     true,
 			Hostname:             "dev.fynbos.dev",
 			GoogleOauth2ClientID: "572950914705-ith2keqq6l3cu652n262jd0gf9ffi7ka.apps.googleusercontent.com",
