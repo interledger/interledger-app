@@ -130,7 +130,7 @@ func main() {
 		if err != nil {
 			return err
 		}
-		_, err = kratos.DeployKratos(ctx, crCert, "https://dev.fynbos.dev")
+		_, err = kratos.DeployKratos(ctx, crCert, "https://dev.fynbos.dev", "PLEASE-CHANGE-ME-I-AM-VERY-INSECURE")
 		if err != nil {
 			return err
 		}
@@ -214,7 +214,10 @@ func main() {
 		if err != nil {
 			return err
 		}
-		_, err = retool.DeployRetool(ctx, "retool.fynbos.dev")
+		_, err = retool.DeployRetool(ctx, retool.Args{
+			Hostname:       "retool.fynbos.dev",
+			CreatePostgres: true,
+		})
 		if err != nil {
 			return err
 		}

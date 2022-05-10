@@ -13,7 +13,7 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 )
 
-func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domain string) (*helm.Chart, error) {
+func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domain string, defaultSecret string) (*helm.Chart, error) {
 
 	emailTemplates, err := GetEmailTemplates()
 	if err != nil {
@@ -130,8 +130,14 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 						"leak_sensitive_values": pulumi.Bool(true),
 					},
 					"secrets": pulumi.Map{
-						"session": pulumi.StringArray{
-							pulumi.String("PLEASE-CHANGE-ME-I-AM-VERY-INSECURE"),
+						"cookie": pulumi.StringArray{
+							pulumi.String(defaultSecret),
+						},
+						"cipher": pulumi.StringArray{
+							pulumi.String(defaultSecret),
+						},
+						"default": pulumi.StringArray{
+							pulumi.String(defaultSecret),
 						},
 					},
 					"hashers": pulumi.Map{

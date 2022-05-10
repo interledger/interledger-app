@@ -82,7 +82,7 @@ func main() {
 			Namespace: "default",
 			Name:      "kratos",
 		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
-		_, err = kratos.DeployKratos(ctx, crCert, "http://fynbos.test")
+		_, err = kratos.DeployKratos(ctx, crCert, "http://fynbos.test", "PLEASE-CHANGE-ME-I-AM-VERY-INSECURE")
 		if err != nil {
 			return err
 		}
@@ -160,7 +160,10 @@ func main() {
 			Name:     "retool-ingress",
 			Hostname: "localhost", // use localhost so Google will redirect.
 		}, pulumi.DependsOnInputs(ingressChart.Ready))
-		_, err = retool.DeployRetool(ctx, "localhost")
+		_, err = retool.DeployRetool(ctx, retool.Args{
+			Hostname:       "losthost",
+			CreatePostgres: true,
+		})
 		if err != nil {
 			return err
 		}

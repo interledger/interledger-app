@@ -13,7 +13,12 @@ import (
 	"gitlab.com/fynbos/infra/services/ingress"
 )
 
-func DeployRetool(ctx *pulumi.Context, hn string) (*helm.Chart, error) {
+type Args struct {
+	Hostname       string
+	CreatePostgres bool
+}
+
+func DeployRetool(ctx *pulumi.Context, args Args) (*helm.Chart, error) {
 	err := deployConfigmap(ctx)
 	if err != nil {
 		return nil, err
@@ -53,6 +58,10 @@ func DeployRetool(ctx *pulumi.Context, hn string) (*helm.Chart, error) {
 				},
 			},
 		},
+		"postgresql": pulumi.Map{
+			"enabled":                    pulumi.Bool(args.CreatePostgres),
+			"postgresqlPostgresPassword": pulumi.String("retool"),
+		},
 	}
 
 	chart, err := helm.NewChart(ctx, "retool", helm.ChartArgs{
@@ -67,7 +76,7 @@ func DeployRetool(ctx *pulumi.Context, hn string) (*helm.Chart, error) {
 		return nil, err
 	}
 
-	err = deployIngress(ctx, hn)
+	err = deployIngress(ctx, args.Hostname)
 	if err != nil {
 		return nil, err
 	}

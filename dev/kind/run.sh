@@ -24,3 +24,8 @@ docker push localhost:5005/temporalite
 docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1
 docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1 localhost:5005/tigerbeetle:patch-1
 docker push localhost:5005/tigerbeetle:patch-1
+
+# Pull and push rafiki
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/rafiki-backend
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/rafiki-backend localhost:5005/rafiki-backend
+docker push localhost:5005/rafiki-backend
