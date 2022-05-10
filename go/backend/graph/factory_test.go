@@ -2,11 +2,12 @@ package graph
 
 import (
 	"context"
+	"net/http/httptest"
+
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
-	"net/http/httptest"
 
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
@@ -31,6 +32,7 @@ import (
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -47,6 +49,7 @@ type TestContainer struct {
 	IdentityService      identity.Service
 	UserService          _user.Service
 	NoopService          _noop.Service
+	UnitService          unit.Service
 	DepositService       deposits.Service
 	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Service
@@ -154,6 +157,14 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.NoopService = noopProvider
 
+	us, err := unit.NewService(unit.ServiceArgs{
+		Token: "some token",
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.UnitService = us
+
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   is,
 		As:   as,
@@ -216,10 +227,10 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.WithdrawalService = ws
 
 	ps, err := payments.NewService(&payments.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Tp:   tp,
+		Db: db,
+		As: as,
+		Is: is,
+		Tp: tp,
 	})
 	if err != nil {
 		return nil, err
@@ -233,6 +244,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		Account:             as,
 		Country:             cs,
 		Noop:                noopProvider,
+		UnitService:         us,
 		AccountTransactions: ts,
 		Ds:                  ds,
 		Os:                  os,
@@ -355,4 +367,3 @@ func NewOutgoingPayment(
 
 	return trx, nil
 }
-

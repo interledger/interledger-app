@@ -18,6 +18,7 @@ type DeployBackendArgs struct {
 	ImageTag             string
 	UsdLedgerCode        uint16
 	NoopEquityAccountID  string
+	UnitToken            string
 	Hostname             string
 	EnablePlayground     bool
 	GoogleOauth2ClientID string // oauth client for the admin app
@@ -44,6 +45,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.Cert,
 		args.UsdLedgerCode,
 		args.NoopEquityAccountID,
+		args.UnitToken,
 		args.GoogleOauth2ClientID,
 	)
 	if err != nil {
@@ -122,6 +124,7 @@ func deployDeployment(
 	cert *apiextensions.CustomResource,
 	usdLedgerCode uint16,
 	noopEquityAccountID string,
+	unitToken string,
 	googleOauth2ClientID string,
 ) error {
 	_, err := appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
@@ -284,6 +287,10 @@ func deployDeployment(
 									Name:  pulumi.String("GOOGLE_OUATH2_CLIENT_ID"),
 									Value: pulumi.String(googleOauth2ClientID),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("UNIT_TOKEN"),
+									Value: pulumi.String(unitToken),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -325,6 +332,10 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("GOOGLE_OUATH2_CLIENT_ID"),
 									Value: pulumi.String(googleOauth2ClientID),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("UNIT_TOKEN"),
+									Value: pulumi.String(unitToken),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{

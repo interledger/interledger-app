@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/withdrawals"
 )
@@ -28,6 +29,7 @@ type Resolver struct {
 	CountryService      country.Service
 	AccountService      accounts.Service
 	NoopService         noop.Service
+	UnitService         unit.Service
 	Db                  *sqlx.DB
 	AccountTransactions account_transactions.Service
 	Ds                  deposits.Service
