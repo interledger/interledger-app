@@ -62,7 +62,7 @@ func main() {
 			Name:          "managed-ng-0",
 			Cluster:       cluster,
 			NodeRole:      roles.NodeGroup,
-			InstanceTypes: pulumi.StringArray{pulumi.String("t2.medium")},
+			InstanceTypes: pulumi.StringArray{pulumi.String("t2.large")},
 			MinSize:       1,
 			MaxSize:       5,
 			DesiredSize:   2,
