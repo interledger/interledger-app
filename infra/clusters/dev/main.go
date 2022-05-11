@@ -4,6 +4,9 @@ import (
 	"encoding/base64"
 	b64 "encoding/base64"
 	"fmt"
+	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
+	"gitlab.com/fynbos/infra/services/postgres"
+	"gitlab.com/fynbos/infra/services/rafiki"
 	"os/exec"
 	"strings"
 
@@ -11,7 +14,6 @@ import (
 
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
-	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	"gitlab.com/fynbos/infra/services/backend"
@@ -21,9 +23,7 @@ import (
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
 	"gitlab.com/fynbos/infra/services/pacioli"
-	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/protea"
-	"gitlab.com/fynbos/infra/services/rafiki"
 	"gitlab.com/fynbos/infra/services/redis"
 	"gitlab.com/fynbos/infra/services/retool"
 	"gitlab.com/fynbos/infra/services/temporal"
@@ -130,7 +130,7 @@ func main() {
 		if err != nil {
 			return err
 		}
-		_, err = kratos.DeployKratos(ctx, crCert, "https://dev.fynbos.dev", "PLEASE-CHANGE-ME-I-AM-VERY-INSECURE")
+		_, err = kratos.DeployKratos(ctx, crCert, "https://dev.fynbos.dev", "CHANGE-ME-I-AM-VERY-INSECURE1234")
 		if err != nil {
 			return err
 		}
