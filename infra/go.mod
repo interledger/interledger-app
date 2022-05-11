@@ -6,15 +6,15 @@ require (
 	github.com/hashicorp/boundary/api v0.0.19
 	github.com/hashicorp/boundary/sdk v0.0.10
 	github.com/pulumi/pulumi-aws-native/sdk v0.6.0
-	github.com/pulumi/pulumi-aws/sdk/v4 v4.24.0
+	github.com/pulumi/pulumi-aws/sdk/v4 v4.38.1
 	github.com/pulumi/pulumi-cloudflare/sdk/v3 v3.4.0
 	github.com/pulumi/pulumi-docker/sdk/v3 v3.1.0
-	github.com/pulumi/pulumi-eks/sdk v0.34.0
+	github.com/pulumi/pulumi-eks/sdk v0.37.1
 	github.com/pulumi/pulumi-kubernetes/sdk/v3 v3.14.0
 	github.com/pulumi/pulumi-random/sdk/v4 v4.2.0
 	github.com/pulumi/pulumi-tls/sdk/v4 v4.0.0
 	github.com/pulumi/pulumi-vault/sdk/v4 v4.5.0
-	github.com/pulumi/pulumi/sdk/v3 v3.16.0
+	github.com/pulumi/pulumi/sdk/v3 v3.25.0
 )
 
 require (
@@ -45,7 +45,6 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/gofrs/flock v0.7.1 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
@@ -101,6 +100,8 @@ require (
 	github.com/pierrec/lz4 v2.5.2+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/posener/complete v1.1.1 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
