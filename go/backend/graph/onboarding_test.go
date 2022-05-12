@@ -212,6 +212,23 @@ func TestUserOnboarding(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 	})
+
+	s.Run("can initiate onboarding which returns formUrl for unit", func(t *testing.T) {
+		user := &_user.User{
+			Email: faker.Email(),
+			ID:    uuid.NewString(),
+		}
+
+		response, err := initiateOnboarding(container, user)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "200", response.Code)
+		assert.Equal(t, true, response.Success)
+		assert.Equal(t, "Initiated onboarding.", response.Message)
+		assert.Equal(t, "https://application-form.sh/DXB4GXQMBGY377CD5KQ3OWX4XJEF4Z3DQPKTMDGF77CFQM7M55WOQR5C2C3D5N2NYP52AOCSVZX6JLLGSHRLI3DXZ45R43QPDIBWUAI7KL6I7ESUPTB7C7EFURQKMZZSINKSXYQ2N63L7TFPCQVQIW6TVQQLXUYJQP6FY", response.ProviderOnboarding.FormURL)
+	})
 }
 
 func createAccount(container *TestContainer, user *_user.User, input *generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {
@@ -287,7 +304,35 @@ func verifyAccount(container *TestContainer, user *_user.User, input *generated.
 	return &ret, nil
 }
 
-func onboardAccount(container *TestContainer, user *_user.User, input *generated.VerifyAccountInput) (*generated.CreateAccountMutationResponse, error) {
+func initiateOnboarding(container *TestContainer, user *_user.User) (*generated.InitiateOnboardingMutationResponse, error) {
+	req := graphql.NewRequest(`
+			    mutation {
+						initiateOnboarding {
+			            code
+			            success
+			            message
+  								providerOnboarding {
+										id
+										formUrl
+									}
+			        }
+			    }
+			`)
+	if err := _user.ActingAs(req, user); err != nil {
+		return nil, err
+	}
+
+	var response map[string]generated.InitiateOnboardingMutationResponse
+	if err := container.Client.Run(container.Ctx, req, &response); err != nil {
+		return nil, err
+	}
+
+	ret := response["initiateOnboarding"]
+
+	return &ret, nil
+}
+
+func onboardAccount(container *TestContainer, user *_user.User, input *generated.VerifyAccountInput) (*generated.OnboardingMutationResponse, error) {
 	req := graphql.NewRequest(`
 			    mutation {
 			        onboardAccount {

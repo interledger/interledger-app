@@ -78,6 +78,15 @@ type Identity struct {
 	Country      string `json:"country"`
 }
 
+type InitiateOnboardingMutationResponse struct {
+	Code               string                  `json:"code"`
+	Success            bool                    `json:"success"`
+	Message            string                  `json:"message"`
+	ProviderOnboarding *UnitProviderOnboarding `json:"providerOnboarding"`
+}
+
+func (InitiateOnboardingMutationResponse) IsMutationResponse() {}
+
 type LinkFundingSourceMutationResponse struct {
 	Code          string         `json:"code"`
 	Success       bool           `json:"success"`
@@ -154,6 +163,11 @@ type TransactionEdge struct {
 type TransactionsConnection struct {
 	PageInfo *PageInfo          `json:"pageInfo"`
 	Edges    []*TransactionEdge `json:"edges"`
+}
+
+type UnitProviderOnboarding struct {
+	ID      string `json:"id"`
+	FormURL string `json:"formUrl"`
 }
 
 type VerifyAccountInput struct {

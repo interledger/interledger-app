@@ -22,6 +22,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/withdrawals"
 )
 
@@ -62,6 +63,63 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 	}
 
 	return trxs, nil
+}
+
+func (r *mutationResolver) InitiateOnboarding(ctx context.Context) (*generated.InitiateOnboardingMutationResponse, error) {
+	user, err := r.UserService.ForContext(ctx)
+	if err != nil {
+		ForbiddenError(ctx)
+		return nil, nil
+	}
+
+	id, _ := r.IdentityService.Get(ctx, user.ID)
+	if id == nil {
+		id, err = r.IdentityService.Create(ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			switch {
+			case errors.Is(err, identity.ErrNotFound):
+				NotFoundError(ctx)
+				return nil, nil
+			case errors.Is(err, identity.ErrInvalidArgument):
+				InvalidArgument(ctx, err.Error())
+				return nil, nil
+			default:
+				InternalServerError(ctx)
+				return nil, nil
+			}
+		}
+	}
+
+	// Should check if the user has a unit application
+	unitApplicationForm, _ := r.UnitService.GetApplicationForm(ctx, id.ID)
+	if unitApplicationForm == nil {
+		unitApplicationForm, err = r.UnitService.CreateApplicationForm(ctx, &unit.CreateApplicationFormArgs{
+			ID:      id.ID,
+			Email:   id.Email,
+			Country: id.Country,
+		})
+		if err != nil {
+			InternalServerError(ctx)
+			return nil, err
+		}
+	}
+
+	return &generated.InitiateOnboardingMutationResponse{
+		Code:    "200",
+		Success: true,
+		Message: "Initiated onboarding.",
+		ProviderOnboarding: &generated.UnitProviderOnboarding{
+			ID:      unitApplicationForm.ID,
+			FormURL: unitApplicationForm.URL,
+		},
+	}, nil
 }
 
 func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.OnboardingMutationResponse, error) {
