@@ -8,6 +8,7 @@ type Query {
 }
 
 type Mutation {
+  initiateOnboarding: InitiateOnboardingMutationResponse!
   onboardAccount: OnboardingMutationResponse!
   createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
   verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
@@ -44,6 +45,18 @@ input CreateAccountInput {
   lastName: String!
   mobileNumber: String!
   country: String!
+}
+
+type InitiateOnboardingMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  providerOnboarding: UnitProviderOnboarding!
+}
+
+type UnitProviderOnboarding {
+  id: String!
+  formUrl: String!
 }
 
 type OnboardingMutationResponse implements MutationResponse {

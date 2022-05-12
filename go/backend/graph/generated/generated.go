@@ -95,6 +95,13 @@ type ComplexityRoot struct {
 		MobileNumber func(childComplexity int) int
 	}
 
+	InitiateOnboardingMutationResponse struct {
+		Code               func(childComplexity int) int
+		Message            func(childComplexity int) int
+		ProviderOnboarding func(childComplexity int) int
+		Success            func(childComplexity int) int
+	}
+
 	LinkFundingSourceMutationResponse struct {
 		Code          func(childComplexity int) int
 		FundingSource func(childComplexity int) int
@@ -105,6 +112,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateAccount           func(childComplexity int, input CreateAccountInput) int
 		InitiateDeposit         func(childComplexity int, input DepositInput) int
+		InitiateOnboarding      func(childComplexity int) int
 		InitiateOutgoingPayment func(childComplexity int, input OutgoingPaymentInput) int
 		InitiateWithdrawal      func(childComplexity int, input WithdrawalInput) int
 		LinkUsdBankAccount      func(childComplexity int, input LinkUsdBankAccountInput) int
@@ -169,6 +177,11 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	UnitProviderOnboarding struct {
+		FormURL func(childComplexity int) int
+		ID      func(childComplexity int) int
+	}
+
 	VerifyAccountMutationResponse struct {
 		Account func(childComplexity int) int
 		Code    func(childComplexity int) int
@@ -195,6 +208,7 @@ type AccountResolver interface {
 	RecentTransactions(ctx context.Context, obj *Account) ([]*Transaction, error)
 }
 type MutationResolver interface {
+	InitiateOnboarding(ctx context.Context) (*InitiateOnboardingMutationResponse, error)
 	OnboardAccount(ctx context.Context) (*OnboardingMutationResponse, error)
 	CreateAccount(ctx context.Context, input CreateAccountInput) (*CreateAccountMutationResponse, error)
 	VerifyAccount(ctx context.Context, input VerifyAccountInput) (*VerifyAccountMutationResponse, error)
@@ -434,6 +448,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Identity.MobileNumber(childComplexity), true
 
+	case "InitiateOnboardingMutationResponse.code":
+		if e.complexity.InitiateOnboardingMutationResponse.Code == nil {
+			break
+		}
+
+		return e.complexity.InitiateOnboardingMutationResponse.Code(childComplexity), true
+
+	case "InitiateOnboardingMutationResponse.message":
+		if e.complexity.InitiateOnboardingMutationResponse.Message == nil {
+			break
+		}
+
+		return e.complexity.InitiateOnboardingMutationResponse.Message(childComplexity), true
+
+	case "InitiateOnboardingMutationResponse.providerOnboarding":
+		if e.complexity.InitiateOnboardingMutationResponse.ProviderOnboarding == nil {
+			break
+		}
+
+		return e.complexity.InitiateOnboardingMutationResponse.ProviderOnboarding(childComplexity), true
+
+	case "InitiateOnboardingMutationResponse.success":
+		if e.complexity.InitiateOnboardingMutationResponse.Success == nil {
+			break
+		}
+
+		return e.complexity.InitiateOnboardingMutationResponse.Success(childComplexity), true
+
 	case "LinkFundingSourceMutationResponse.code":
 		if e.complexity.LinkFundingSourceMutationResponse.Code == nil {
 			break
@@ -485,6 +527,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.InitiateDeposit(childComplexity, args["input"].(DepositInput)), true
+
+	case "Mutation.initiateOnboarding":
+		if e.complexity.Mutation.InitiateOnboarding == nil {
+			break
+		}
+
+		return e.complexity.Mutation.InitiateOnboarding(childComplexity), true
 
 	case "Mutation.initiateOutgoingPayment":
 		if e.complexity.Mutation.InitiateOutgoingPayment == nil {
@@ -787,6 +836,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TransactionsConnection.PageInfo(childComplexity), true
 
+	case "UnitProviderOnboarding.formUrl":
+		if e.complexity.UnitProviderOnboarding.FormURL == nil {
+			break
+		}
+
+		return e.complexity.UnitProviderOnboarding.FormURL(childComplexity), true
+
+	case "UnitProviderOnboarding.id":
+		if e.complexity.UnitProviderOnboarding.ID == nil {
+			break
+		}
+
+		return e.complexity.UnitProviderOnboarding.ID(childComplexity), true
+
 	case "VerifyAccountMutationResponse.account":
 		if e.complexity.VerifyAccountMutationResponse.Account == nil {
 			break
@@ -945,6 +1008,7 @@ var sources = []*ast.Source{
 }
 
 type Mutation {
+  initiateOnboarding: InitiateOnboardingMutationResponse!
   onboardAccount: OnboardingMutationResponse!
   createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
   verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
@@ -981,6 +1045,18 @@ input CreateAccountInput {
   lastName: String!
   mobileNumber: String!
   country: String!
+}
+
+type InitiateOnboardingMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  providerOnboarding: UnitProviderOnboarding!
+}
+
+type UnitProviderOnboarding {
+  id: String!
+  formUrl: String!
 }
 
 type OnboardingMutationResponse implements MutationResponse {
@@ -2351,6 +2427,146 @@ func (ec *executionContext) _Identity_country(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _InitiateOnboardingMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *InitiateOnboardingMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InitiateOnboardingMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Code, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InitiateOnboardingMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *InitiateOnboardingMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InitiateOnboardingMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Success, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InitiateOnboardingMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *InitiateOnboardingMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InitiateOnboardingMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _InitiateOnboardingMutationResponse_providerOnboarding(ctx context.Context, field graphql.CollectedField, obj *InitiateOnboardingMutationResponse) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "InitiateOnboardingMutationResponse",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProviderOnboarding, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*UnitProviderOnboarding)
+	fc.Result = res
+	return ec.marshalNUnitProviderOnboarding2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐUnitProviderOnboarding(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LinkFundingSourceMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *LinkFundingSourceMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2486,6 +2702,41 @@ func (ec *executionContext) _LinkFundingSourceMutationResponse_fundingSource(ctx
 	res := resTmp.(*FundingSource)
 	fc.Result = res
 	return ec.marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_initiateOnboarding(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InitiateOnboarding(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*InitiateOnboardingMutationResponse)
+	fc.Result = res
+	return ec.marshalNInitiateOnboardingMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐInitiateOnboardingMutationResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_onboardAccount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4011,6 +4262,76 @@ func (ec *executionContext) _TransactionsConnection_edges(ctx context.Context, f
 	res := resTmp.([]*TransactionEdge)
 	fc.Result = res
 	return ec.marshalNTransactionEdge2ᚕᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐTransactionEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UnitProviderOnboarding_id(ctx context.Context, field graphql.CollectedField, obj *UnitProviderOnboarding) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UnitProviderOnboarding",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UnitProviderOnboarding_formUrl(ctx context.Context, field graphql.CollectedField, obj *UnitProviderOnboarding) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UnitProviderOnboarding",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FormURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _VerifyAccountMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *VerifyAccountMutationResponse) (ret graphql.Marshaler) {
@@ -5930,6 +6251,13 @@ func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.Selec
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case InitiateOnboardingMutationResponse:
+		return ec._InitiateOnboardingMutationResponse(ctx, sel, &obj)
+	case *InitiateOnboardingMutationResponse:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._InitiateOnboardingMutationResponse(ctx, sel, obj)
 	case OnboardingMutationResponse:
 		return ec._OnboardingMutationResponse(ctx, sel, &obj)
 	case *OnboardingMutationResponse:
@@ -6436,6 +6764,67 @@ func (ec *executionContext) _Identity(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var initiateOnboardingMutationResponseImplementors = []string{"InitiateOnboardingMutationResponse", "MutationResponse"}
+
+func (ec *executionContext) _InitiateOnboardingMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *InitiateOnboardingMutationResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, initiateOnboardingMutationResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("InitiateOnboardingMutationResponse")
+		case "code":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._InitiateOnboardingMutationResponse_code(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "success":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._InitiateOnboardingMutationResponse_success(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "message":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._InitiateOnboardingMutationResponse_message(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "providerOnboarding":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._InitiateOnboardingMutationResponse_providerOnboarding(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var linkFundingSourceMutationResponseImplementors = []string{"LinkFundingSourceMutationResponse", "MutationResponse"}
 
 func (ec *executionContext) _LinkFundingSourceMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *LinkFundingSourceMutationResponse) graphql.Marshaler {
@@ -6513,6 +6902,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "initiateOnboarding":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_initiateOnboarding(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "onboardAccount":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_onboardAccount(ctx, field)
@@ -7182,6 +7581,47 @@ func (ec *executionContext) _TransactionsConnection(ctx context.Context, sel ast
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var unitProviderOnboardingImplementors = []string{"UnitProviderOnboarding"}
+
+func (ec *executionContext) _UnitProviderOnboarding(ctx context.Context, sel ast.SelectionSet, obj *UnitProviderOnboarding) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, unitProviderOnboardingImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UnitProviderOnboarding")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UnitProviderOnboarding_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "formUrl":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UnitProviderOnboarding_formUrl(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7961,6 +8401,20 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) marshalNInitiateOnboardingMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐInitiateOnboardingMutationResponse(ctx context.Context, sel ast.SelectionSet, v InitiateOnboardingMutationResponse) graphql.Marshaler {
+	return ec._InitiateOnboardingMutationResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNInitiateOnboardingMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐInitiateOnboardingMutationResponse(ctx context.Context, sel ast.SelectionSet, v *InitiateOnboardingMutationResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._InitiateOnboardingMutationResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8228,6 +8682,16 @@ func (ec *executionContext) marshalNTransactionsConnection2ᚖgitlabᚗcomᚋfyn
 		return graphql.Null
 	}
 	return ec._TransactionsConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUnitProviderOnboarding2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐUnitProviderOnboarding(ctx context.Context, sel ast.SelectionSet, v *UnitProviderOnboarding) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UnitProviderOnboarding(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNVerifyAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyAccountInput(ctx context.Context, v interface{}) (VerifyAccountInput, error) {
