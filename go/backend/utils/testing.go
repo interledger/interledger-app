@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -258,4 +260,80 @@ func getFreePort() (int, error) {
 	defer l.Close()
 
 	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
+func SetupUnitMockServer(ctx context.Context) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/application-forms":
+			fmt.Println("HERE", r.Header.Get("Content-Type"), r.Header.Get("Authorization"))
+			if r.Header.Get("Content-Type") != "application/vnd.api+json" {
+				w.WriteHeader(400)
+				_, err := w.Write([]byte(fmt.Sprintf("Expected 'Content-Type: application/vnd.api+json' header, got: %s", r.Header.Get("Content-Type"))))
+				if err != nil {
+					w.WriteHeader(400)
+				}
+			}
+			if r.Header.Get("Authorization") != "Bearer test token" {
+				w.WriteHeader(400)
+				_, err := w.Write([]byte(fmt.Sprintf("Expected 'Authorization: Bearer test token' header, got: %s", r.Header.Get("Authorization"))))
+				if err != nil {
+					w.WriteHeader(400)
+				}
+			}
+			if r.Method == "POST" {
+				_, err := w.Write([]byte(`{
+					"data": {
+							"type": "applicationForm",
+							"id": "411479",
+							"attributes": {
+									"tags": {
+											"userId": "9fe19d6a-ce2e-4401-85f5-442dec6bf242"
+									},
+									"url": "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6",
+									"stage": "EnterIndividualInformation",
+									"applicantDetails": {
+											"applicationType": "Individual",
+											"nationality": "US",
+											"email": "peter@oscorp.com"
+									},
+									"allowedApplicationTypes": [
+											"Individual"
+									]
+							}
+					}
+			}`))
+				if err != nil {
+					w.WriteHeader(400)
+				}
+			} else if r.Method == "GET" {
+				_, err := w.Write([]byte(`{
+					"data": [
+							{
+									"type": "applicationForm",
+									"id": "411479",
+									"attributes": {
+											"tags": {
+													"userId": "9fe19d6a-ce2e-4401-85f5-442dec6bf242"
+											},
+											"url": "https://application-form.sh/DXB4GXQMBGY377CD5KQ3OWX4XJEF4Z3DQPKTMDGF77CFQM7M55WOQR5C2C3D5N2NYP52AOCSVZX6JLLGSHRLI3DXZ45R43QPDIBWUAI7KL6I7ESUPTB7C7EFURQKMZZSINKSXYQ2N63L7TFPCQVQIW6TVQQLXUYJQP6FY",
+											"stage": "EnterIndividualInformation",
+											"applicantDetails": {
+													"applicationType": "Individual",
+													"nationality": "US",
+													"email": "peter@oscorp.com"
+											},
+											"allowedApplicationTypes": [
+													"Individual"
+											]
+									}
+							}
+					]
+			}`))
+				if err != nil {
+					w.WriteHeader(400)
+				}
+			}
+		}
+	}))
 }

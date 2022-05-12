@@ -176,7 +176,8 @@ func start(args *cli.StartArgs) {
 	}
 
 	us, err := unit.NewService(unit.ServiceArgs{
-		Token: args.UnitToken,
+		BaseURL: args.UnitBaseURL,
+		Token:   args.UnitToken,
 	})
 	if err != nil {
 		log.Fatalln(err)

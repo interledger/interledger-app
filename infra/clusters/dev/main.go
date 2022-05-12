@@ -4,11 +4,12 @@ import (
 	"encoding/base64"
 	b64 "encoding/base64"
 	"fmt"
+	"os/exec"
+	"strings"
+
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/rafiki"
-	"os/exec"
-	"strings"
 
 	"os"
 
@@ -172,6 +173,7 @@ func main() {
 			UsdLedgerCode:        100,
 			NoopEquityAccountID:  "7c63db4d-2f4c-4ab2-935e-7482bad12649",
 			UnitToken:            "todo token",
+			UnitBaseUrl:          "https://api.s.unit.sh",
 			EnablePlayground:     true,
 			Hostname:             "dev.fynbos.dev",
 			GoogleOauth2ClientID: "572950914705-ith2keqq6l3cu652n262jd0gf9ffi7ka.apps.googleusercontent.com",
