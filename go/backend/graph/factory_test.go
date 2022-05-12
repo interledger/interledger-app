@@ -50,6 +50,7 @@ type TestContainer struct {
 	UserService          _user.Service
 	NoopService          _noop.Service
 	UnitService          unit.Service
+	UnitMockServer       *httptest.Server
 	DepositService       deposits.Service
 	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Service
@@ -157,8 +158,11 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	}
 	c.NoopService = noopProvider
 
+	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
+
 	us, err := unit.NewService(unit.ServiceArgs{
-		Token: "some token",
+		BaseURL: c.UnitMockServer.URL,
+		Token:   "test token",
 	})
 	if err != nil {
 		return nil, err
@@ -271,6 +275,8 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	c.UnitMockServer.Close()
 
 	err = c.Crdb.Container.Terminate(ctx)
 	if err != nil {
