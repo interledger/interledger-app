@@ -268,7 +268,7 @@ func main() {
 			Name:      "rafiki",
 			Issuer:    "ca-issuer",
 			Namespace: "default",
-		})
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}
@@ -276,7 +276,7 @@ func main() {
 			Name:      "rafiki",
 			Issuer:    "ca-issuer",
 			Namespace: "default",
-		})
+		}, pulumi.DependsOn([]pulumi.Resource{caResource}))
 		if err != nil {
 			return err
 		}

@@ -42,11 +42,12 @@ func main() {
 			return err
 		}
 
+		devLBDNS := "a72f11483d4ee4297b7348b4297aae9e-75814212bbc0fc08.elb.eu-west-1.amazonaws.com"
 		// Dev Cluster
 		_, err = cloudflare.NewRecord(ctx, "dev-cluster", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
 			Name:    pulumi.String("dev.fynbos.dev"),
-			Value:   pulumi.String("a3975af75c60c4a1197c33dade9480dd-8bd81ab13ea4f740.elb.eu-west-1.amazonaws.com"),
+			Value:   pulumi.String(devLBDNS),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
@@ -58,7 +59,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "dev-mail", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
 			Name:    pulumi.String("mail.fynbos.dev"),
-			Value:   pulumi.String("a3975af75c60c4a1197c33dade9480dd-8bd81ab13ea4f740.elb.eu-west-1.amazonaws.com"),
+			Value:   pulumi.String(devLBDNS),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
@@ -70,7 +71,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "dev-retool", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
 			Name:    pulumi.String("retool.fynbos.dev"),
-			Value:   pulumi.String("a3975af75c60c4a1197c33dade9480dd-8bd81ab13ea4f740.elb.eu-west-1.amazonaws.com"),
+			Value:   pulumi.String(devLBDNS),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
@@ -82,7 +83,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "dev-pay", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
 			Name:    pulumi.String("pay.fynbos.dev"),
-			Value:   pulumi.String("a3975af75c60c4a1197c33dade9480dd-8bd81ab13ea4f740.elb.eu-west-1.amazonaws.com"),
+			Value:   pulumi.String(devLBDNS),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
