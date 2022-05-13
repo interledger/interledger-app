@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/payments"
 
 	"github.com/bxcodec/faker/v3"
@@ -45,15 +46,23 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		acc, err := NewVerifiedAccount(
 			container,
 			&onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
+				IdentityID: id.ID,
+				Country:    id.Country,
 			},
 			&onboarding.VerifyAccountArgs{
 				DateOfBirth: faker.Date(),
@@ -119,15 +128,22 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		acc, err := NewVerifiedAccount(
 			container,
 			&onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
+				IdentityID: id.ID,
+				Country:    id.Country,
 			},
 			&onboarding.VerifyAccountArgs{
 				DateOfBirth: faker.Date(),
@@ -173,15 +189,23 @@ func TestUserOutgoingPayment(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		acc, err := NewAccount(
 			container,
 			&onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
+				IdentityID: id.ID,
+				Country:    id.Country,
 			},
 		)
 		if err != nil {

@@ -19,7 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
-	_identity "gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
@@ -64,7 +64,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 	return trxs, nil
 }
 
-func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.CreateAccountMutationResponse, error) {
+func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.OnboardingMutationResponse, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
@@ -75,7 +75,7 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 	acc, _ := r.AccountService.GetByIdentityID(ctx, user.ID)
 	if acc != nil {
 		floatBalance := float64(acc.AvailableBalance) / float64(100)
-		return &generated.CreateAccountMutationResponse{
+		return &generated.OnboardingMutationResponse{
 			Code:    "200",
 			Success: true,
 			Message: "Onboarded account.",
@@ -86,13 +86,34 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 		}, nil
 	}
 
+	id, _ := r.IdentityService.Get(ctx, user.ID)
+	if id == nil {
+		id, err = r.IdentityService.Create(ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			switch {
+			case errors.Is(err, identity.ErrNotFound):
+				NotFoundError(ctx)
+				return nil, nil
+			case errors.Is(err, identity.ErrInvalidArgument):
+				InvalidArgument(ctx, err.Error())
+				return nil, nil
+			default:
+				InternalServerError(ctx)
+				return nil, nil
+			}
+		}
+	}
+
 	acc, err = r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
-		IdentityID:   user.ID,
-		FirstName:    faker.FirstName(),
-		LastName:     faker.FirstName(),
-		MobileNumber: faker.E164PhoneNumber(),
-		Email:        user.Email,
-		Country:      "US",
+		IdentityID: id.ID,
+		Country:    id.Country,
 	})
 	if err != nil {
 		InternalServerError(ctx)
@@ -100,7 +121,7 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 	}
 
 	acc, err = r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
-		IdentityID:  user.ID,
+		IdentityID:  id.ID,
 		AccountID:   acc.ID,
 		DateOfBirth: faker.Date(),
 		Address:     []string{faker.Name()},
@@ -111,10 +132,10 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, _identity.ErrNotFound):
+		case errors.Is(err, identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
-		case errors.Is(err, _identity.ErrInvalidArgument):
+		case errors.Is(err, identity.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -124,7 +145,7 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Creat
 	}
 
 	floatBalance := float64(acc.AvailableBalance) / float64(100)
-	return &generated.CreateAccountMutationResponse{
+	return &generated.OnboardingMutationResponse{
 		Code:    "200",
 		Success: true,
 		Message: "Onboarded account.",
@@ -142,22 +163,46 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.Cr
 		return nil, nil
 	}
 
-	acc, err := r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
-		IdentityID:   user.ID,
-		FirstName:    input.FirstName,
-		LastName:     input.LastName,
-		MobileNumber: input.MobileNumber,
-		Email:        user.Email,
-		Country:      input.Country,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, _identity.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
+	id, _ := r.IdentityService.Get(ctx, user.ID)
+	if id == nil {
+		id, err = r.IdentityService.Create(ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			switch {
+			case errors.Is(err, identity.ErrNotFound):
+				NotFoundError(ctx)
+				return nil, nil
+			case errors.Is(err, identity.ErrInvalidArgument):
+				InvalidArgument(ctx, err.Error())
+				return nil, nil
+			default:
+				InternalServerError(ctx)
+				return nil, nil
+			}
+		}
+	}
+
+	acc, _ := r.AccountService.GetByIdentityID(ctx, id.ID)
+	if acc == nil {
+		acc, err = r.Os.CreateAccount(ctx, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
+		})
+		if err != nil {
+			switch {
+			case errors.Is(err, identity.ErrInvalidArgument):
+				InvalidArgument(ctx, err.Error())
+				return nil, nil
+			default:
+				InternalServerError(ctx)
+				return nil, nil
+			}
 		}
 	}
 
@@ -210,10 +255,10 @@ func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.Ve
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, _identity.ErrNotFound):
+		case errors.Is(err, identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
-		case errors.Is(err, _identity.ErrInvalidArgument):
+		case errors.Is(err, identity.ErrInvalidArgument):
 			InvalidArgument(ctx, err.Error())
 			return nil, nil
 		default:
@@ -530,35 +575,35 @@ func (r *mutationResolver) InitiateOutgoingPayment(ctx context.Context, input ge
 		Success: true,
 		Message: "Outgoing payment initiated.",
 		OutgoingPayment: &generated.OutgoingPayment{
-			ID:        outgoingPayment.ID,
+			ID:          outgoingPayment.ID,
 			Destination: outgoingPayment.Destination,
-			Timestamp: outgoingPayment.CreatedAt, // TODO: decide format
-			Amount:    strconv.FormatInt(int64(outgoingPayment.Amount), 10),
-			State:     outgoingPayment.State.String(),
+			Timestamp:   outgoingPayment.CreatedAt, // TODO: decide format
+			Amount:      strconv.FormatInt(int64(outgoingPayment.Amount), 10),
+			State:       outgoingPayment.State.String(),
 		},
 	}, nil
 }
 
-func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, error) {
+func (r *queryResolver) Identity(ctx context.Context) (*generated.Identity, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
 	}
 
-	var identity *_identity.Identity
+	var id *identity.Identity
 	err = crdbsqlx.ExecuteTx(ctx, r.Db, nil, func(tx *sqlx.Tx) error {
-		id, err := r.IdentityService.Get(ctx, user.ID)
+		localId, err := r.IdentityService.Get(ctx, user.ID)
 		if err != nil {
 			return err
 		}
 
-		identity = id
+		id = localId
 		return nil
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, _identity.ErrNotFound):
+		case errors.Is(err, identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
 		default:
@@ -567,7 +612,14 @@ func (r *queryResolver) Identity(ctx context.Context) (*_identity.Identity, erro
 		}
 	}
 
-	return identity, nil
+	return &generated.Identity{
+		ID:           id.ID,
+		FirstName:    id.FirstName,
+		LastName:     id.LastName,
+		MobileNumber: id.MobileNumber,
+		Email:        id.Email,
+		Country:      id.Country,
+	}, nil
 }
 
 func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.FundingSource, error) {
@@ -588,7 +640,7 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 	fs, err := r.Fs.GetByAccountId(ctx, acc.ID)
 	if err != nil {
 		switch {
-		case errors.Is(err, _identity.ErrNotFound):
+		case errors.Is(err, identity.ErrNotFound):
 			NotFoundError(ctx)
 			return nil, nil
 		default:

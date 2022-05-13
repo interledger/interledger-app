@@ -2,8 +2,9 @@ package admin
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
 	"net"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

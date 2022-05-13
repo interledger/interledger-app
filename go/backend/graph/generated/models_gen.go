@@ -69,6 +69,15 @@ type FundingSource struct {
 	SubType            string `json:"subType"`
 }
 
+type Identity struct {
+	ID           string `json:"id"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	MobileNumber string `json:"mobileNumber"`
+	Email        string `json:"email"`
+	Country      string `json:"country"`
+}
+
 type LinkFundingSourceMutationResponse struct {
 	Code          string         `json:"code"`
 	Success       bool           `json:"success"`
@@ -85,6 +94,15 @@ type LinkUsdBankAccountInput struct {
 	Institution   string `json:"institution"`
 	Type          string `json:"type"`
 }
+
+type OnboardingMutationResponse struct {
+	Code    string   `json:"code"`
+	Success bool     `json:"success"`
+	Message string   `json:"message"`
+	Account *Account `json:"account"`
+}
+
+func (OnboardingMutationResponse) IsMutationResponse() {}
 
 type OutgoingPayment struct {
 	ID          string `json:"id"`
@@ -186,20 +204,22 @@ func (WithdrawalMutationResponse) IsMutationResponse() {}
 type TransactionType string
 
 const (
-	TransactionTypeDeposit    TransactionType = "DEPOSIT"
-	TransactionTypeWithdrawal TransactionType = "WITHDRAWAL"
-	TransactionTypeSent       TransactionType = "SENT"
+	TransactionTypeDeposit         TransactionType = "DEPOSIT"
+	TransactionTypeWithdrawal      TransactionType = "WITHDRAWAL"
+	TransactionTypeOutgoingpayment TransactionType = "OUTGOINGPAYMENT"
+	TransactionTypeSent            TransactionType = "SENT"
 )
 
 var AllTransactionType = []TransactionType{
 	TransactionTypeDeposit,
 	TransactionTypeWithdrawal,
+	TransactionTypeOutgoingpayment,
 	TransactionTypeSent,
 }
 
 func (e TransactionType) IsValid() bool {
 	switch e {
-	case TransactionTypeDeposit, TransactionTypeWithdrawal, TransactionTypeSent:
+	case TransactionTypeDeposit, TransactionTypeWithdrawal, TransactionTypeOutgoingpayment, TransactionTypeSent:
 		return true
 	}
 	return false

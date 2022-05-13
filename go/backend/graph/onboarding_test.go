@@ -9,6 +9,7 @@ import (
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/graph/generated"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 )
@@ -40,9 +41,25 @@ func TestUserOnboarding(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		input := generateAccountInput()
 
-		response, err := createAccount(container, user, input)
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		response, err := createAccount(container, user, &generated.CreateAccountInput{
+			FirstName:    id.FirstName,
+			LastName:     id.LastName,
+			MobileNumber: id.MobileNumber,
+			Country:      id.Country,
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -66,35 +83,48 @@ func TestUserOnboarding(s *testing.T) {
 
 		Given a user has already created an account
 		When they try to signup again
-		Then we fail and say that they're trying to create a duplicate account
+		Then we return their original account
 	*/
-	s.Run("user tries to create a duplicate account", func(t *testing.T) {
+	s.Run("user tries to create multiple accounts", func(t *testing.T) {
 		user := &_user.User{
 			Email: faker.Email(),
 			ID:    uuid.NewString(),
 		}
-		input := generateAccountInput(withCountry("US"))
-		args := &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			FirstName:    input.FirstName,
-			LastName:     input.LastName,
-			MobileNumber: input.MobileNumber,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.FirstName(),
+			MobileNumber: faker.E164PhoneNumber(),
 			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
 		}
-		acc, err := NewAccount(container, args)
+
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, acc)
 
-		response, err := createAccount(container, user, input)
-		if err == nil {
-			t.Fatal("user cannot create a duplicate account.")
+		response, err := createAccount(container, user, &generated.CreateAccountInput{
+			FirstName:    id.FirstName,
+			LastName:     id.LastName,
+			MobileNumber: id.MobileNumber,
+			Country:      id.Country,
+		})
+		if err != nil {
+			t.Fatal("User cannot create a duplicate account, should return original account.")
 		}
 
-		assert.EqualError(t, err, "graphql: Unable to process request.")
-		assert.Nil(t, response)
+		assert.Equal(t, "200", response.Code)
+		assert.NotNil(t, response.Account)
+		assert.Equal(t, acc.ID, response.Account.ID)
 	})
 
 	/*
@@ -121,13 +151,20 @@ func TestUserOnboarding(s *testing.T) {
 			Email: faker.Email(),
 			ID:    uuid.NewString(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -221,12 +258,6 @@ func generateAccountInput(opts ...func(*generated.CreateAccountInput)) *generate
 	return args
 }
 
-func withCountry(country string) func(*generated.CreateAccountInput) {
-	return func(args *generated.CreateAccountInput) {
-		args.Country = country
-	}
-}
-
 func verifyAccount(container *TestContainer, user *_user.User, input *generated.VerifyAccountInput) (*generated.VerifyAccountMutationResponse, error) {
 	req := graphql.NewRequest(`
 			    mutation ($input: VerifyAccountInput!) {
@@ -275,7 +306,7 @@ func onboardAccount(container *TestContainer, user *_user.User, input *generated
 		return nil, err
 	}
 
-	var response map[string]generated.CreateAccountMutationResponse
+	var response map[string]generated.OnboardingMutationResponse
 	if err := container.Client.Run(container.Ctx, req, &response); err != nil {
 		return nil, err
 	}

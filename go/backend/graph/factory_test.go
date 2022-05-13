@@ -285,6 +285,18 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 	return nil
 }
 
+func NewIdentity(
+	container *TestContainer,
+	input *identity.CreateArgs,
+) (*identity.Identity, error) {
+	id, err := container.IdentityService.Create(container.Ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return id, nil
+}
+
 func NewAccount(
 	container *TestContainer,
 	input *onboarding.CreateAccountArgs,

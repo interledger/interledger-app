@@ -9,7 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
-	_identity "gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
 )
 
@@ -27,15 +27,15 @@ type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
 	as        accounts.Service
-	is        _identity.Service
+	is        identity.Service
 	noop      noop.Service
 }
 
 type ServiceArgs struct {
-	Db   *sqlx.DB          `validate:"required"`
-	As   accounts.Service  `validate:"required"`
-	Is   _identity.Service `validate:"required"`
-	Noop noop.Service      `validate:"required"`
+	Db   *sqlx.DB         `validate:"required"`
+	As   accounts.Service `validate:"required"`
+	Is   identity.Service `validate:"required"`
+	Noop noop.Service     `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -55,12 +55,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 }
 
 type CreateAccountArgs struct {
-	IdentityID   string `validate:"required,uuid"`
-	FirstName    string `validate:"required"`
-	LastName     string `validate:"required"`
-	MobileNumber string `validate:"required,e164"`
-	Email        string `validate:"required,email"`
-	Country      string `validate:"required,iso3166_1_alpha2"`
+	IdentityID string `validate:"required,uuid"`
+	Country    string `validate:"required,iso3166_1_alpha2"`
 }
 
 // Creating an account with Fynbos means that your identity is stored in our system and you get
@@ -74,29 +70,12 @@ func (s *service) CreateAccount(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	// TODO splitting up for now
-	var id *_identity.Identity
+	var account *accounts.Account
 	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		localId, err := s.is.Create(ctx, tx, _identity.CreateArgs{
-			ID:           args.IdentityID,
-			FirstName:    args.FirstName,
-			LastName:     args.LastName,
-			MobileNumber: args.MobileNumber,
-			Email:        args.Email,
-			Country:      args.Country,
-		})
+		id, err := s.is.Get(ctx, args.IdentityID)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-		id = localId
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var account *accounts.Account
-	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 		acc, err := s.as.Create(ctx, tx, &accounts.CreateAccountArgs{
 			IdentityID:                 id.ID,
 			Country:                    args.Country,

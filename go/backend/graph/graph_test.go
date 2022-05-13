@@ -54,7 +54,7 @@ func TestGraphql(s *testing.T) {
 			})
 			user := &_user.User{
 				ID:    uuid.New().String(),
-				Email: faker.Name(),
+				Email: faker.Email(),
 			}
 			req := getIdentityRequest()
 			err = _user.ActingAs(req, user)
@@ -79,13 +79,13 @@ func TestGraphql(s *testing.T) {
 				ID:    uuid.New().String(),
 				Email: faker.Email(),
 			}
-			input := generateAccountInput()
-			_, err := NewAccount(container, &onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
+
+			id, err := NewIdentity(container, &identity.CreateArgs{
+				ID:           user.ID,
+				FirstName:    faker.FirstName(),
+				LastName:     faker.FirstName(),
+				MobileNumber: faker.E164PhoneNumber(),
 				Email:        user.Email,
-				FirstName:    input.FirstName,
-				LastName:     input.LastName,
-				MobileNumber: input.MobileNumber,
 				Country:      "US",
 			})
 			if err != nil {
@@ -104,12 +104,12 @@ func TestGraphql(s *testing.T) {
 			}
 
 			response := getResp["identity"]
-			assert.Equal(tt, user.ID, response.ID)
-			assert.Equal(tt, input.FirstName, response.FirstName)
-			assert.Equal(tt, input.LastName, response.LastName)
-			assert.Equal(tt, input.MobileNumber, response.MobileNumber)
-			assert.Equal(tt, user.Email, response.Email)
-			assert.Equal(tt, input.Country, response.Country)
+			assert.Equal(tt, id.ID, response.ID)
+			assert.Equal(tt, id.FirstName, response.FirstName)
+			assert.Equal(tt, id.LastName, response.LastName)
+			assert.Equal(tt, id.MobileNumber, response.MobileNumber)
+			assert.Equal(tt, id.Email, response.Email)
+			assert.Equal(tt, id.Country, response.Country)
 		})
 	})
 
@@ -138,13 +138,21 @@ func TestGraphql(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		_, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
