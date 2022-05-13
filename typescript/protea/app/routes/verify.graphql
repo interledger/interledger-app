@@ -1,10 +1,11 @@
-mutation OnboardAccount {
-  onboardAccount {
+mutation InitiateOnboarding {
+  initiateOnboarding {
     code
     success
     message
-    account {
+    providerOnboarding {
       id
+      formUrl
     }
   }
 }

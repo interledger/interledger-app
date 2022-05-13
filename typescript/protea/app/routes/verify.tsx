@@ -10,10 +10,10 @@ import {
   handleFlowError
 } from '~/lib/kratos.server'
 import type {
-  OnboardAccountMutation,
-  OnboardAccountMutationVariables
+  InitiateOnboardingMutation,
+  InitiateOnboardingMutationVariables
 } from '~/generated/types'
-import { OnboardAccountDocument } from '~/generated/types'
+import { InitiateOnboardingDocument } from '~/generated/types'
 import type { Session } from '@ory/kratos-client'
 import { apolloClient } from '~/lib/apollo.server'
 
@@ -98,25 +98,27 @@ export const loader: LoaderFunction = async ({ request }) => {
   const userSession: Session = await session.json()
   if (session.status >= 400) handleFlowError(session, 'verify')
 
-  // TODO: Remove when proper onboarding is implemented
-  await apolloClient.mutate<
-    OnboardAccountMutation,
-    OnboardAccountMutationVariables
-  >({
-    mutation: OnboardAccountDocument,
-    context: {
-      headers: {
-        cookie: cookie
+  const onboarding = await apolloClient
+    .mutate<InitiateOnboardingMutation, InitiateOnboardingMutationVariables>({
+      mutation: InitiateOnboardingDocument,
+      context: {
+        headers: {
+          cookie: cookie
+        }
       }
-    }
-  })
+    })
+    .then((val) => val.data?.initiateOnboarding)
+  console.log(onboarding)
 
   // Check the user has at least one verifiable address.
   if (!userSession.identity.verifiable_addresses)
     return redirect(route('/signup'))
   // We currently only allow one email per user.
-  if (userSession.identity.verifiable_addresses[0].verified)
+  if (userSession.identity.verifiable_addresses[0].verified) {
+    if (onboarding?.success)
+      return redirect(onboarding?.providerOnboarding.formUrl)
     return redirect(route('/home'))
+  }
 
   // Ensure any redirects are thrown
   if (userSession instanceof Response) return session

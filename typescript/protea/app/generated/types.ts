@@ -82,6 +82,14 @@ export type Identity = {
   mobileNumber: Scalars['String'];
 };
 
+export type InitiateOnboardingMutationResponse = MutationResponse & {
+  __typename?: 'InitiateOnboardingMutationResponse';
+  code: Scalars['String'];
+  message: Scalars['String'];
+  providerOnboarding: UnitProviderOnboarding;
+  success: Scalars['Boolean'];
+};
+
 export type LinkFundingSourceMutationResponse = MutationResponse & {
   __typename?: 'LinkFundingSourceMutationResponse';
   code: Scalars['String'];
@@ -102,10 +110,11 @@ export type Mutation = {
   __typename?: 'Mutation';
   createAccount: CreateAccountMutationResponse;
   initiateDeposit: DepositMutationResponse;
+  initiateOnboarding: InitiateOnboardingMutationResponse;
   initiateOutgoingPayment: OutgoingPaymentMutationResponse;
   initiateWithdrawal: WithdrawalMutationResponse;
   linkUsdBankAccount: LinkFundingSourceMutationResponse;
-  onboardAccount: CreateAccountMutationResponse;
+  onboardAccount: OnboardingMutationResponse;
   verifyAccount: VerifyAccountMutationResponse;
   verifyUsdBankAccount: VerifyUsdBankAccountMutationResponse;
 };
@@ -146,6 +155,14 @@ export type MutationVerifyUsdBankAccountArgs = {
 };
 
 export type MutationResponse = {
+  code: Scalars['String'];
+  message: Scalars['String'];
+  success: Scalars['Boolean'];
+};
+
+export type OnboardingMutationResponse = MutationResponse & {
+  __typename?: 'OnboardingMutationResponse';
+  account: Account;
   code: Scalars['String'];
   message: Scalars['String'];
   success: Scalars['Boolean'];
@@ -232,6 +249,12 @@ export type TransactionsConnection = {
   __typename?: 'TransactionsConnection';
   edges: Array<TransactionEdge>;
   pageInfo: PageInfo;
+};
+
+export type UnitProviderOnboarding = {
+  __typename?: 'UnitProviderOnboarding';
+  formUrl: Scalars['String'];
+  id: Scalars['String'];
 };
 
 export type VerifyAccountInput = {
@@ -350,10 +373,10 @@ export type SignupQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type SignupQuery = { __typename?: 'Query', countries: Array<{ __typename?: 'Country', id: string, name: string }> };
 
-export type OnboardAccountMutationVariables = Exact<{ [key: string]: never; }>;
+export type InitiateOnboardingMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnboardAccountMutation = { __typename?: 'Mutation', onboardAccount: { __typename?: 'CreateAccountMutationResponse', code: string, success: boolean, message: string, account?: { __typename?: 'Account', id: string } | null | undefined } };
+export type InitiateOnboardingMutation = { __typename?: 'Mutation', initiateOnboarding: { __typename?: 'InitiateOnboardingMutationResponse', code: string, success: boolean, message: string, providerOnboarding: { __typename?: 'UnitProviderOnboarding', id: string, formUrl: string } } };
 
 
 export const ActivityDocument = gql`
@@ -554,18 +577,19 @@ export const SignupDocument = gql`
 }
     `;
 export type SignupQueryResult = Apollo.QueryResult<SignupQuery, SignupQueryVariables>;
-export const OnboardAccountDocument = gql`
-    mutation OnboardAccount {
-  onboardAccount {
+export const InitiateOnboardingDocument = gql`
+    mutation InitiateOnboarding {
+  initiateOnboarding {
     code
     success
     message
-    account {
+    providerOnboarding {
       id
+      formUrl
     }
   }
 }
     `;
-export type OnboardAccountMutationFn = Apollo.MutationFunction<OnboardAccountMutation, OnboardAccountMutationVariables>;
-export type OnboardAccountMutationResult = Apollo.MutationResult<OnboardAccountMutation>;
-export type OnboardAccountMutationOptions = Apollo.BaseMutationOptions<OnboardAccountMutation, OnboardAccountMutationVariables>;
+export type InitiateOnboardingMutationFn = Apollo.MutationFunction<InitiateOnboardingMutation, InitiateOnboardingMutationVariables>;
+export type InitiateOnboardingMutationResult = Apollo.MutationResult<InitiateOnboardingMutation>;
+export type InitiateOnboardingMutationOptions = Apollo.BaseMutationOptions<InitiateOnboardingMutation, InitiateOnboardingMutationVariables>;
