@@ -57,6 +57,8 @@ export async function requireUserSession(request: Request): Promise<Session> {
   ) {
     throw redirect(route('/verify'))
   }
+  //TODO: check if has provider account
+  // if not call onboarding and redirect to form
 
   return userSession
 }
