@@ -2,8 +2,9 @@ package accounts
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
 	"testing"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
@@ -122,7 +123,7 @@ func TestAccountsService(s *testing.T) {
 	s.Run("verify account", func(t *testing.T) {
 		var identity *_identity.Identity
 		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+			_identity, err := is.Create(ctx, &_identity.CreateArgs{
 				ID:           uuid.NewString(),
 				Email:        faker.Email(),
 				FirstName:    faker.Name(),
@@ -201,7 +202,7 @@ func TestAccountsService(s *testing.T) {
 			for _, scenario := range scenarios {
 				var identity *_identity.Identity
 				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+					_identity, err := is.Create(ctx, &_identity.CreateArgs{
 						ID:           uuid.NewString(),
 						Email:        faker.Email(),
 						FirstName:    faker.Name(),
@@ -285,7 +286,7 @@ func TestAccountsService(s *testing.T) {
 		t.Run("validates arguments", func(tt *testing.T) {
 			var identity *_identity.Identity
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+				_identity, err := is.Create(ctx, &_identity.CreateArgs{
 					ID:           uuid.NewString(),
 					Email:        faker.Email(),
 					FirstName:    faker.Name(),
@@ -355,7 +356,7 @@ func TestAccountsService(s *testing.T) {
 			assert.Equal(t, "SHUTDOWN", conn.GetState().String())
 			var identity *_identity.Identity
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_identity, err := is.Create(ctx, tx, _identity.CreateArgs{
+				_identity, err := is.Create(ctx, &_identity.CreateArgs{
 					ID:           uuid.NewString(),
 					Email:        faker.Email(),
 					FirstName:    faker.Name(),

@@ -3,8 +3,9 @@ package account_transactions
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 	"testing"
+
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -557,7 +558,7 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 	var identity *_identity.Identity
 
 	err := crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-		id, err := container.IdentityService.Create(container.Ctx, tx, _identity.CreateArgs{
+		id, err := container.IdentityService.Create(container.Ctx, &_identity.CreateArgs{
 			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),

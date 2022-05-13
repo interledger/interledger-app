@@ -13,6 +13,7 @@ import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 )
@@ -35,15 +36,22 @@ func TestTransactions(s *testing.T) {
 		ID:    uuid.NewString(),
 		Email: faker.Email(),
 	}
+	id, err := NewIdentity(c, &identity.CreateArgs{
+		ID:           user.ID,
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+		MobileNumber: faker.E164PhoneNumber(),
+		Email:        user.Email,
+		Country:      "US",
+	})
+	if err != nil {
+		s.Fatal(err)
+	}
 	acc, err := NewVerifiedAccount(
 		c,
 		&onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
-			MobileNumber: faker.E164PhoneNumber(),
-			Email:        user.Email,
-			Country:      "US",
+			IdentityID: id.ID,
+			Country:    id.Country,
 		},
 		&onboarding.VerifyAccountArgs{
 			DateOfBirth: faker.Date(),
@@ -61,15 +69,22 @@ func TestTransactions(s *testing.T) {
 		ID:    uuid.NewString(),
 		Email: faker.Email(),
 	}
+	otherUserId, err := NewIdentity(c, &identity.CreateArgs{
+		ID:           otherUser.ID,
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+		MobileNumber: faker.E164PhoneNumber(),
+		Email:        otherUser.Email,
+		Country:      "US",
+	})
+	if err != nil {
+		s.Fatal(err)
+	}
 	_, err = NewVerifiedAccount(
 		c,
 		&onboarding.CreateAccountArgs{
-			IdentityID:   otherUser.ID,
-			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
-			MobileNumber: faker.E164PhoneNumber(),
-			Email:        user.Email,
-			Country:      "US",
+			IdentityID: otherUser.ID,
+			Country:    otherUserId.Country,
 		},
 		&onboarding.VerifyAccountArgs{
 			DateOfBirth: faker.Date(),

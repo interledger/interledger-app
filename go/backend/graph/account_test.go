@@ -3,9 +3,11 @@ package graph
 import (
 	"context"
 	"fmt"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
 	"time"
+
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/identity"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
@@ -41,13 +43,21 @@ func TestUserAccount(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -112,13 +122,20 @@ func TestUserAccount(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)

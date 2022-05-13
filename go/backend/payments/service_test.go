@@ -1,19 +1,22 @@
 package payments
 
 import (
-	_user "gitlab.com/fynbos/backend/user"
 	"context"
+	"testing"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	_accounts "gitlab.com/fynbos/backend/accounts"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	_country "gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/identity"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/providers/noop"
+	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"go.temporal.io/sdk/client"
@@ -21,7 +24,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"testing"
 )
 
 func TestPayments(s *testing.T) {
@@ -44,15 +46,22 @@ func TestPayments(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+		id, err := container.IdentityService.Create(container.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		acc, err := NewVerifiedAccount(
 			container,
 			&onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
+				IdentityID: id.ID,
+				Country:    id.Country,
 			},
 			&onboarding.VerifyAccountArgs{
 				DateOfBirth: faker.Date(),
@@ -102,9 +111,9 @@ func TestPayments(s *testing.T) {
 
 		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
 			IdentityID: acc.IdentityID,
-			AccountID: acc.ID,
-			Amount: amount,
-			To: "$test.fynbos.test/alice",
+			AccountID:  acc.ID,
+			Amount:     amount,
+			To:         "$test.fynbos.test/alice",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -120,15 +129,22 @@ func TestPayments(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+		id, err := container.IdentityService.Create(container.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		acc, err := NewVerifiedAccount(
 			container,
 			&onboarding.CreateAccountArgs{
-				IdentityID:   user.ID,
-				FirstName:    faker.FirstName(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.E164PhoneNumber(),
-				Email:        user.Email,
-				Country:      "US",
+				IdentityID: id.ID,
+				Country:    id.Country,
 			},
 			&onboarding.VerifyAccountArgs{
 				DateOfBirth: faker.Date(),
@@ -141,7 +157,7 @@ func TestPayments(s *testing.T) {
 		)
 		if err != nil {
 			t.Fatal(err)
-		}	
+		}
 
 		container.TemporalMock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
 			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
@@ -158,9 +174,9 @@ func TestPayments(s *testing.T) {
 
 		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
 			IdentityID: acc.IdentityID,
-			AccountID: acc.ID,
-			Amount: 100,
-			To: "$test.fynbos.test/alice",
+			AccountID:  acc.ID,
+			Amount:     100,
+			To:         "$test.fynbos.test/alice",
 		})
 
 		assert.Nil(t, p)
@@ -169,21 +185,21 @@ func TestPayments(s *testing.T) {
 }
 
 type TestContainer struct {
-	IdentityService       _identity.Service
-	AccountService        _accounts.Service
-	CountryService        _country.Service
-	NoopService           noop.Service
-	OnboardService        onboarding.Service
-	TransactionService    account_transactions.Service
-	PaymentService        Service
-	TemporalMock          *mocks.Client
-	PacioliContainer      *test_utils.PacioliContainer
-	PacioliClient         pacioliv1.PacioliServiceClient
-	PacioliLedgerID       uint16
-	Db                    *sqlx.DB
-	Logger                *zap.Logger
-	Crdb                  *test_utils.CockroachDBContainer
-	Ctx                   context.Context
+	IdentityService    _identity.Service
+	AccountService     _accounts.Service
+	CountryService     _country.Service
+	NoopService        noop.Service
+	OnboardService     onboarding.Service
+	TransactionService account_transactions.Service
+	PaymentService     Service
+	TemporalMock       *mocks.Client
+	PacioliContainer   *test_utils.PacioliContainer
+	PacioliClient      pacioliv1.PacioliServiceClient
+	PacioliLedgerID    uint16
+	Db                 *sqlx.DB
+	Logger             *zap.Logger
+	Crdb               *test_utils.CockroachDBContainer
+	Ctx                context.Context
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
@@ -298,8 +314,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
 		AccountService: as,
-		PacioliClient: pClient,
-		Db: db,
+		PacioliClient:  pClient,
+		Db:             db,
 	})
 	if err != nil {
 		return nil, err

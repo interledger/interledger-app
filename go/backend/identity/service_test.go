@@ -68,7 +68,7 @@ func TestIdentityService(s *testing.T) {
 				t.Fatal(err)
 			}
 			country = c.Alpha_2
-			_identity, err := is.Create(ctx, tx, *args)
+			_identity, err := is.Create(ctx, args)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -103,7 +103,7 @@ func TestIdentityService(s *testing.T) {
 	s.Run("enforces 1-1 mapping between user and identity", func(t *testing.T) {
 		args := generateCreateArgs()
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_, err := is.Create(ctx, tx, *args)
+			_, err := is.Create(ctx, args)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func TestIdentityService(s *testing.T) {
 
 		var duplicate *Identity
 		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_duplicate, err := is.Create(ctx, tx, *args)
+			_duplicate, err := is.Create(ctx, args)
 			if err != nil {
 				return err
 			}
@@ -172,7 +172,7 @@ func TestIdentityService(s *testing.T) {
 		for _, scenario := range scenarios {
 			var identity *Identity
 			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_identity, err := is.Create(ctx, tx, scenario.Args)
+				_identity, err := is.Create(ctx, &scenario.Args)
 				if err != nil {
 					return err
 				}
@@ -216,7 +216,7 @@ func TestIdentityService(s *testing.T) {
 		email := faker.Email()
 		var identity *Identity
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Create(ctx, tx, *generateCreateArgs(withEmail(email), withID(userID)))
+			_identity, err := is.Create(ctx, generateCreateArgs(withEmail(email), withID(userID)))
 			if err != nil {
 				return err
 			}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +17,7 @@ func NewLoggingService(identityService Service, logger *zap.Logger) Service {
 	return &loggingService{childLogger, identityService}
 }
 
-func (s *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (identity *Identity, err error) {
+func (s *loggingService) Create(ctx context.Context, args *CreateArgs) (identity *Identity, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			s.logger.Error(
@@ -39,7 +38,7 @@ func (s *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args CreateArg
 		"Creating identity.",
 		zap.Stringer("args", args),
 	)
-	return s.Service.Create(ctx, tx, args)
+	return s.Service.Create(ctx, args)
 }
 
 func (s *loggingService) Get(ctx context.Context, id string) (identity *Identity, err error) {

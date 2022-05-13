@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
 )
@@ -41,13 +42,21 @@ func TestUserFundingSources(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -100,13 +109,21 @@ func TestUserFundingSources(s *testing.T) {
 			ID:    "",
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)

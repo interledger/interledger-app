@@ -2,8 +2,10 @@ package graph
 
 import (
 	"context"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"testing"
+
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/identity"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
@@ -42,13 +44,21 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -123,13 +133,21 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -180,13 +198,21 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   user.ID,
-			Email:        user.Email,
+
+		id, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -243,24 +269,40 @@ func TestUserWithdrawals(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
-		aliceAcc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   alice.ID,
-			Email:        alice.Email,
+		aliceId, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           alice.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        alice.Email,
 			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		bobAcc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   bob.ID,
-			Email:        bob.Email,
+
+		bobId, err := NewIdentity(container, &identity.CreateArgs{
+			ID:           bob.ID,
 			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
+			LastName:     faker.FirstName(),
 			MobileNumber: faker.E164PhoneNumber(),
+			Email:        bob.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		aliceAcc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: aliceId.ID,
+			Country:    aliceId.Country,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		bobAcc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: bobId.ID,
+			Country:    bobId.Country,
 		})
 		if err != nil {
 			t.Fatal(err)

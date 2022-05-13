@@ -2,6 +2,8 @@ package deposits
 
 import (
 	"context"
+	"testing"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -10,9 +12,11 @@ import (
 	_accounts "gitlab.com/fynbos/backend/accounts"
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/identity"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
+	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"go.temporal.io/sdk/client"
@@ -20,7 +24,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"testing"
 )
 
 func TestDeposits(s *testing.T) {
@@ -38,21 +41,32 @@ func TestDeposits(s *testing.T) {
 	})
 
 	s.Run("initiating a deposit adds a workflow", func(t *testing.T) {
-		userID := uuid.NewString()
-		amount := uint64(100)
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID:   userID,
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		id, err := container.IdentityService.Create(container.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        user.Email,
 			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
+		amount := uint64(100)
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		fs, err := container.FundingSourcesService.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
-			IdentityID:    userID,
+			IdentityID:    id.ID,
 			AccountID:     acc.ID,
 			Name:          "my account",
 			AccountNumber: "12345678",
@@ -64,7 +78,7 @@ func TestDeposits(s *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = container.FundingSourcesService.Verify(ctx, &fundingsources.VerifyArgs{
-			IdentityID:      userID,
+			IdentityID:      id.ID,
 			FundingSourceID: fs.ID,
 		})
 		if err != nil {
@@ -85,7 +99,7 @@ func TestDeposits(s *testing.T) {
 		).Times(1)
 
 		d, err := container.DepositService.InitiateDeposit(context.Background(), &InitiateDepositArgs{
-			IdentityID:      userID,
+			IdentityID:      id.ID,
 			AccountID:       acc.ID,
 			FundingSourceID: fs.ID,
 			Amount:          amount,

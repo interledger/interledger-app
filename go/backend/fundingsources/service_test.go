@@ -7,7 +7,9 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	_user "gitlab.com/fynbos/backend/user"
 )
 
 func TestFundingSources(s *testing.T) {
@@ -25,14 +27,25 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("validates create bank account arguments", func(t *testing.T) {
-		userID := uuid.NewString()
-		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   userID,
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		id, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -64,7 +77,7 @@ func TestFundingSources(s *testing.T) {
 			},
 			{
 				Name:                 "AccountID must exist to create bank account",
-				Args:                 generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(uuid.NewString())),
+				Args:                 generateCreateBankAccountArgs(withIdentityID(id.ID), withAccountID(uuid.NewString())),
 				ExpectedErrorMessage: "not found.",
 				ExpectedError:        ErrInternal,
 			},
@@ -113,20 +126,31 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("creates bank account", func(t *testing.T) {
-		userID := uuid.NewString()
-		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   userID,
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		id, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        user.Email,
 			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
+		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		args := generateCreateBankAccountArgs(
-			withIdentityID(userID),
+			withIdentityID(id.ID),
 			withAccountID(acc.ID),
 		)
 		fs, err := c.Fs.CreateBankAccount(ctx, args)
@@ -143,20 +167,31 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("verifies bank account", func(t *testing.T) {
-		userID := uuid.NewString()
-		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   userID,
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		id, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        user.Email,
 			Country:      "US",
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
+		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 		args := generateCreateBankAccountArgs(
-			withIdentityID(userID),
+			withIdentityID(id.ID),
 			withAccountID(acc.ID),
 		)
 		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
@@ -166,7 +201,7 @@ func TestFundingSources(s *testing.T) {
 		assert.Equal(t, "required", bankAccount.VerificationState)
 
 		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
-			IdentityID:      userID,
+			IdentityID:      id.ID,
 			FundingSourceID: bankAccount.ID,
 		})
 		if err != nil {
@@ -177,32 +212,55 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("returns not found if funding source does not belong to user", func(t *testing.T) {
-		otherUserID := uuid.NewString()
-		myID := uuid.NewString()
-		myAcc, err := NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   myID,
+		otherUser := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		otherUserID, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           otherUser.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        otherUser.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		myID, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			MobileNumber: faker.E164PhoneNumber(),
+			Email:        user.Email,
+			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		myAcc, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID: myID.ID,
+			Country:    myID.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 		_, err = NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   otherUserID,
-			FirstName:    faker.FirstName(),
-			LastName:     faker.LastName(),
-			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
-			Country:      "US",
+			IdentityID: otherUserID.ID,
+			Country:    otherUserID.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 		args := generateCreateBankAccountArgs(
-			withIdentityID(myID),
+			withIdentityID(myID.ID),
 			withAccountID(myAcc.ID),
 		)
 		bankAccount, err := c.Fs.CreateBankAccount(ctx, args)
@@ -212,7 +270,7 @@ func TestFundingSources(s *testing.T) {
 		assert.Equal(t, "required", bankAccount.VerificationState)
 
 		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
-			IdentityID:      otherUserID,
+			IdentityID:      otherUserID.ID,
 			FundingSourceID: bankAccount.ID,
 		})
 		if err == nil {
@@ -225,21 +283,32 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("returns not found if funding source does not exist", func(t *testing.T) {
-		userID := uuid.NewString()
-		_, err := NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   userID,
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		id, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
-			IdentityID:      userID,
+			IdentityID:      id.ID,
 			FundingSourceID: uuid.NewString(),
 		})
 		if err == nil {
@@ -252,28 +321,39 @@ func TestFundingSources(s *testing.T) {
 	})
 
 	s.Run("get user's funding sources", func(t *testing.T) {
-		userID := uuid.NewString()
-		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
-			IdentityID:   userID,
+		user := &_user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		id, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.LastName(),
 			MobileNumber: faker.E164PhoneNumber(),
-			Email:        faker.Email(),
+			Email:        user.Email,
 			Country:      "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		acc, err := NewAccount(c, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    id.Country,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 		fundingsource, err := c.Fs.CreateBankAccount(
 			ctx,
-			generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(acc.ID)),
+			generateCreateBankAccountArgs(withIdentityID(id.ID), withAccountID(acc.ID)),
 		)
 		if err != nil {
 			t.Fatal(err)
 		}
 		fundingsource1, err := c.Fs.CreateBankAccount(
 			ctx,
-			generateCreateBankAccountArgs(withIdentityID(userID), withAccountID(acc.ID)),
+			generateCreateBankAccountArgs(withIdentityID(id.ID), withAccountID(acc.ID)),
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -293,14 +373,25 @@ func TestFundingSources(s *testing.T) {
 		})
 
 		t.Run("returns an empty list if a user has no funding sources", func(tt *testing.T) {
-			otherUserID := uuid.NewString()
-			otherAcc, err := NewAccount(c, &onboarding.CreateAccountArgs{
-				IdentityID:   otherUserID,
+			user := &_user.User{
+				ID:    uuid.NewString(),
+				Email: faker.Email(),
+			}
+
+			id, err := c.Is.Create(c.Ctx, &identity.CreateArgs{
+				ID:           user.ID,
 				FirstName:    faker.FirstName(),
 				LastName:     faker.LastName(),
 				MobileNumber: faker.E164PhoneNumber(),
-				Email:        faker.Email(),
+				Email:        user.Email,
 				Country:      "US",
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			otherAcc, err := NewAccount(c, &onboarding.CreateAccountArgs{
+				IdentityID: id.ID,
+				Country:    id.Country,
 			})
 			if err != nil {
 				t.Fatal(err)

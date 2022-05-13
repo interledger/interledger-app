@@ -1,4 +1,4 @@
-type Query{
+type Query {
   identity: Identity
   fundingSources: [FundingSource]!
   account: Account
@@ -8,14 +8,20 @@ type Query{
 }
 
 type Mutation {
-  onboardAccount: CreateAccountMutationResponse!
+  onboardAccount: OnboardingMutationResponse!
   createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
   verifyAccount(input: VerifyAccountInput!): VerifyAccountMutationResponse!
-  linkUsdBankAccount(input: LinkUsdBankAccountInput!): LinkFundingSourceMutationResponse!
-  verifyUsdBankAccount(input: VerifyUsdBankAccountInput!): VerifyUsdBankAccountMutationResponse!
+  linkUsdBankAccount(
+    input: LinkUsdBankAccountInput!
+  ): LinkFundingSourceMutationResponse!
+  verifyUsdBankAccount(
+    input: VerifyUsdBankAccountInput!
+  ): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
   initiateWithdrawal(input: WithdrawalInput!): WithdrawalMutationResponse!
-  initiateOutgoingPayment(input: OutgoingPaymentInput!): OutgoingPaymentMutationResponse!
+  initiateOutgoingPayment(
+    input: OutgoingPaymentInput!
+  ): OutgoingPaymentMutationResponse!
 }
 
 interface MutationResponse {
@@ -38,6 +44,13 @@ input CreateAccountInput {
   lastName: String!
   mobileNumber: String!
   country: String!
+}
+
+type OnboardingMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  account: Account!
 }
 
 type CreateAccountMutationResponse implements MutationResponse {
@@ -138,7 +151,7 @@ type WithdrawalMutationResponse implements MutationResponse {
   transaction: Transaction
 }
 
-input OutgoingPaymentInput{
+input OutgoingPaymentInput {
   amount: String!
   to: String!
 }

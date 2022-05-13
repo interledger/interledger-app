@@ -46,7 +46,7 @@ type Identity struct {
 }
 
 type Service interface {
-	Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error)
+	Create(ctx context.Context, args *CreateArgs) (*Identity, error)
 	Get(ctx context.Context, id string) (*Identity, error)
 	GetByEmail(ctx context.Context, email string) (*Identity, error)
 }
@@ -100,7 +100,7 @@ func (args CreateArgs) String() string {
 
 // There is a 1-1 mapping between the identity and user stored in Kratos. The
 // Kratos ID is used as the identity ID.
-func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Identity, error) {
+func (s *service) Create(ctx context.Context, args *CreateArgs) (*Identity, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s.", ErrInvalidArgument, err)
@@ -112,31 +112,36 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args CreateArgs) (*Id
 	}
 
 	var identity identity
-	stmt, err := tx.PrepareNamed(`
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		stmt, err := tx.PrepareNamed(`
 			INSERT INTO identities (
 				id, first_name, last_name, mobile_number, email, country_id
 			)
 			VALUES (:id, :first_name, :last_name, :mobile_number, :email, :country_id)
 			RETURNING *;
 		`)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-
-	}
-
-	err = stmt.Stmt.Get(&identity,
-		args.ID,
-		args.FirstName,
-		args.LastName,
-		args.MobileNumber,
-		args.Email,
-		c.ID,
-	)
-	if err != nil {
-		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
-			return nil, ErrDuplicate
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+
+		err = stmt.Stmt.Get(&identity,
+			args.ID,
+			args.FirstName,
+			args.LastName,
+			args.MobileNumber,
+			args.Email,
+			c.ID,
+		)
+		if err != nil {
+			if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
+				return ErrDuplicate
+			}
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &Identity{
