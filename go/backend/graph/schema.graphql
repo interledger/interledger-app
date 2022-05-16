@@ -161,7 +161,7 @@ type WithdrawalMutationResponse implements MutationResponse {
   code: String!
   success: Boolean!
   message: String!
-  transaction: Transaction
+  withdrawal: Withdrawal
 }
 
 input OutgoingPaymentInput {
@@ -209,6 +209,13 @@ type TransactionsConnection {
 }
 
 type Deposit {
+  id: ID!
+  state: String!
+  amount: String!
+  timestamp: String!
+}
+
+type Withdrawal {
   id: ID!
   state: String!
   amount: String!

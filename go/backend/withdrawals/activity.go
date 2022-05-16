@@ -1,30 +1,31 @@
-package payments
+package withdrawals
 
 import (
 	"context"
-	"errors"
 	"fmt"
-
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"go.temporal.io/sdk/activity"
 )
 
 type Activity struct {
 	validator *validator.Validate
-	ps        Service
+	ws        Service
 	ts        transactions.Service
 	as        accounts.Service
 	noop      noop.Service
+	fs        fundingsources.Service
 }
 
 type ActivityArgs struct {
-	Ps Service              `validate:"required"`
-	As accounts.Service     `validate:"required"`
-	Np noop.Service         `validate:"required"`
-	Ts transactions.Service `validate:"required"`
+	Ws Service                `validate:"required"`
+	As accounts.Service       `validate:"required"`
+	Np noop.Service           `validate:"required"`
+	Ts transactions.Service   `validate:"required"`
+	Fs fundingsources.Service `validate:"required"`
 }
 
 func NewActivity(args ActivityArgs) (*Activity, error) {
@@ -36,80 +37,69 @@ func NewActivity(args ActivityArgs) (*Activity, error) {
 	return &Activity{
 		validator: v,
 		as:        args.As,
-		ps:        args.Ps,
+		ws:        args.Ws,
 		ts:        args.Ts,
 		noop:      args.Np,
+		fs:        args.Fs,
 	}, nil
 }
 
-func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPaymentId string) (string, error) {
+func (s *Activity) CreatePendingWithdrawalTransaction(ctx context.Context, withdrawalId string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating pending transaction")
 
-	outgoingPayment, err := s.ps.Get(ctx, outgoingPaymentId)
+	withdrawal, err := s.ws.Get(ctx, withdrawalId)
 	if err != nil {
 		return "", err
 	}
 
-	acc, err := s.as.Get(ctx, outgoingPayment.AccountID)
+	acc, err := s.as.Get(ctx, withdrawal.AccountID)
+	if err != nil {
+		return "", err
+	}
+
+	fs, err := s.fs.Get(ctx, withdrawal.FundingSourceId)
 	if err != nil {
 		return "", err
 	}
 
 	// TODO this needs to be better way to handle getting the data.
 	trx, err := s.ts.CreatePending(ctx, &transactions.CreatePendingTransactionArgs{
-		AccountID:   outgoingPayment.AccountID,
-		Type:        "outgoingPayment",
-		NetAmount:   outgoingPayment.Amount,
-		Description: "Sent to " + outgoingPayment.Destination,
+		AccountID:   withdrawal.AccountID,
+		Type:        "withdrawal",
+		NetAmount:   withdrawal.Amount,
+		Description: fmt.Sprintf("to %s bank account", fs.Name), // TODO Format to come from FS
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
 				LedgerID:        s.noop.GetLedgerID(),
-				DebitAccountID:  s.noop.GetEquityAccountID(),
 				CreditAccountID: acc.LedgerAccountID,
-				Amount:          outgoingPayment.Amount,
-				// Code: uint16
+				DebitAccountID:  s.noop.GetEquityAccountID(),
+				Amount:          withdrawal.Amount,
+				// Code: "1", // TODO: define ledger transfer codes.
 				Flags: transactions.LedgerTransferFlags{
 					TwoPhaseCommit: true,
 				},
 			},
 		},
 	})
-
 	// TODO need to work out retryable vs non retryable errors
 	if err != nil {
 		return "", err
 	}
 
-	if err != nil {
-		switch {
-		case errors.Is(err, transactions.ErrExceedsDebits):
-			return "", ErrInsufficientBalance
-		default:
-			return "", fmt.Errorf("%s %w", err.Error(), ErrInternal)
-		}
-	}
-
 	return trx.ID, nil
 }
 
-func (s *Activity) ProcessNoopOutgoingPayment(ctx context.Context, outgoingPaymentId string) error {
+func (s *Activity) ProcessNoopWithdrawal(ctx context.Context, withdrawalId string) error {
 
-	outgoingPayment, err := s.ps.Get(ctx, outgoingPaymentId)
+	withdrawal, err := s.ws.Get(ctx, withdrawalId)
 	if err != nil {
 		return err
 	}
 
-	_, err = s.as.Get(ctx, outgoingPayment.AccountID)
-	if err != nil {
-		return err
-	}
-
-	err = s.noop.InitiateOutgoingPayment(ctx, &noop.OutgoingPaymentArgs{
-		Amount: outgoingPayment.Amount,
-		To:     outgoingPayment.Destination,
+	err = s.noop.InitiateBankWithdrawal(ctx, &noop.BankWithdrawalArgs{
+		Amount: withdrawal.Amount,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -117,7 +107,7 @@ func (s *Activity) ProcessNoopOutgoingPayment(ctx context.Context, outgoingPayme
 	return nil
 }
 
-func (s *Activity) VoidPendingOutgoingPayment(ctx context.Context, trxId string) error {
+func (s *Activity) VoidPendingWithdrawalTransaction(ctx context.Context, trxId string) error {
 
 	_, err := s.ts.VoidPending(ctx, trxId)
 	if err != nil {
@@ -127,7 +117,7 @@ func (s *Activity) VoidPendingOutgoingPayment(ctx context.Context, trxId string)
 	return nil
 }
 
-func (s *Activity) PostPendingOutgoingPayment(ctx context.Context, trxId string) error {
+func (s *Activity) PostPendingWithdrawalTransaction(ctx context.Context, trxId string) error {
 
 	_, err := s.ts.PostPending(ctx, trxId)
 	if err != nil {
@@ -137,8 +127,8 @@ func (s *Activity) PostPendingOutgoingPayment(ctx context.Context, trxId string)
 	return nil
 }
 
-func (s *Activity) SetOutgoingPaymentState(ctx context.Context, outgoingPaymentId string, state State) error {
-	err := s.ps.SetState(ctx, outgoingPaymentId, state)
+func (s *Activity) SetWithdrawalState(ctx context.Context, withdrawalId string, state State) error {
+	err := s.ws.SetState(ctx, withdrawalId, state)
 	if err != nil {
 		return err
 	}

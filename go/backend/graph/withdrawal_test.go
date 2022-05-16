@@ -2,9 +2,10 @@ package graph
 
 import (
 	"context"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/withdrawals"
 	"testing"
 
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/identity"
 
 	"github.com/bxcodec/faker/v3"
@@ -113,11 +114,9 @@ func TestUserWithdrawals(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Withdrawal initiated.", response.Message)
-		assert.Equal(t, "10000", response.Transaction.Amount) // TODO: where do we pretty print?
-		assert.NotEqual(t, 0, response.Transaction.Timestamp) // TODO: format of timestamp
-		assert.Equal(t, account_transactions.Posted.String(), response.Transaction.Status)
-		assert.Equal(t, "to "+fundingSource.Mask+" bank account", response.Transaction.Description)
-		assert.Equal(t, generated.TransactionTypeWithdrawal, response.Transaction.Type)
+		assert.Equal(t, "10000", response.Withdrawal.Amount) // TODO: where do we pretty print?
+		assert.NotEqual(t, 0, response.Withdrawal.Timestamp) // TODO: format of timestamp
+		assert.Equal(t, withdrawals.Created.String(), response.Withdrawal.State)
 	})
 
 	/*
@@ -182,7 +181,7 @@ func TestUserWithdrawals(s *testing.T) {
 		assert.Equal(t, "422", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Withdrawal failed: Insufficient balance.", response.Message)
-		assert.Nil(t, response.Transaction)
+		assert.Nil(t, response.Withdrawal)
 	})
 
 	/*
@@ -235,6 +234,25 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+			AccountID:   acc.ID,
+			Description: "Test transaction",
+			Type:        "deposit",
+			NetAmount:   10000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+				{
+					LedgerID:        container.NoopService.GetLedgerID(),
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					DebitAccountID:  acc.LedgerAccountID,
+					Amount:          10000,
+					// Code: uint16,
+					Flags: account_transactions.LedgerTransferFlags{},
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		response, err := initiateWithdrawal(container, user, &generated.WithdrawalInput{
 			FundingSourceID: fundingSource.ID,
@@ -247,7 +265,7 @@ func TestUserWithdrawals(s *testing.T) {
 		assert.Equal(t, "403", response.Code)
 		assert.Equal(t, false, response.Success)
 		assert.Equal(t, "Withdrawal failed: Destination is unverified.", response.Message)
-		assert.Nil(t, response.Transaction)
+		assert.Nil(t, response.Withdrawal)
 	})
 
 	/*
@@ -382,13 +400,11 @@ func initiateWithdrawal(container *TestContainer, user *_user.User, input *gener
 			            code
 			            success
 			            message
-			            transaction {
+			            withdrawal {
 			            	id
-			            	type
-			            	description
 			            	amount
 			            	timestamp
-			            	status
+			            	state
 			            }
 			        }
 			    }

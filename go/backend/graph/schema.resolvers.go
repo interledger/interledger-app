@@ -564,13 +564,11 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 		Code:    "200",
 		Success: true,
 		Message: "Withdrawal initiated.",
-		Transaction: &generated.Transaction{
-			ID:          withdrawal.ID,
-			Timestamp:   withdrawal.CreatedAt, // TODO: decide format
-			Amount:      strconv.FormatInt(withdrawal.NetAmount, 10),
-			Type:        generated.TransactionTypeWithdrawal,
-			Status:      withdrawal.State.String(),
-			Description: withdrawal.Description,
+		Withdrawal: &generated.Withdrawal{
+			ID:        withdrawal.ID,
+			State:     withdrawal.State.String(),
+			Amount:    strconv.FormatInt(int64(withdrawal.Amount), 10),
+			Timestamp: withdrawal.CreatedAt,
 		},
 	}, nil
 }

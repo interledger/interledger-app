@@ -4,25 +4,72 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/client"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
-	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/noop"
 )
 
 var (
-	ErrUnverifiedFundingSource = errors.New("withdrawal service: unverified funding source")
-	ErrInvalidArgument         = errors.New("withdrawal service: invalid arguments")
-	ErrInternalError           = errors.New("withdrawal service: internal error")
-	ErrInsufficientBalance     = errors.New("withdrawal service: insufficient balance")
+	ErrUnauthorized            = errors.New("withdrawal: unauthorized")
+	ErrInternal                = errors.New("withdrawal: internal error")
+	ErrInvalidArgument         = errors.New("withdrawal: invalid argument")
+	ErrNotFound                = errors.New("withdrawal: not found")
+	ErrUnverifiedFundingSource = errors.New("withdrawal: unverified funding source")
+	ErrInsufficientBalance     = errors.New("withdrawal: insufficient balance")
 )
 
 type Service interface {
-	InitiateWithdrawal(ctx context.Context, args *InitiateWithdrawalArgs) (*transactions.AccountTransaction, error)
+	InitiateWithdrawal(ctx context.Context, args *InitiateWithdrawalArgs) (*Withdrawal, error)
+	Get(ctx context.Context, id string) (*Withdrawal, error)
+	SetState(ctx context.Context, id string, state State) error
+}
+
+type ServiceArgs struct {
+	Db *sqlx.DB               `validate:"required"`
+	As accounts.Service       `validate:"required"`
+	Is identity.Service       `validate:"required"`
+	Fs fundingsources.Service `validate:"required"`
+	Tp client.Client          `validate:"required"`
+}
+
+type service struct {
+	validator *validator.Validate
+	db        *sqlx.DB
+	as        accounts.Service
+	is        identity.Service
+	fs        fundingsources.Service
+	tp        client.Client
+}
+
+type Withdrawal struct {
+	ID              string
+	AccountID       string `db:"account_id"`
+	FundingSourceId string `db:"funding_source_id"`
+	Amount          uint64
+	State           State
+	CreatedAt       string `db:"created_at"`
+	UpdatedAt       string `db:"updated_at"`
+}
+
+func NewService(args *ServiceArgs) (Service, error) {
+	v := validator.New()
+	if err := v.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
+	}
+
+	return &service{
+		validator: v,
+		db:        args.Db,
+		as:        args.As,
+		is:        args.Is,
+		fs:        args.Fs,
+		tp:        args.Tp,
+	}, nil
 }
 
 type InitiateWithdrawalArgs struct {
@@ -32,111 +79,122 @@ type InitiateWithdrawalArgs struct {
 	Amount          uint64 `validate:"required,gt=0"`
 }
 
-type ServiceArgs struct {
-	Db   *sqlx.DB               `validate:"required"`
-	As   accounts.Service       `validate:"required"`
-	Is   identity.Service       `validate:"required"`
-	Fs   fundingsources.Service `validate:"required"`
-	Ts   transactions.Service   `validate:"required"`
-	Noop noop.Service           `validate:"required"`
-}
-
-type service struct {
-	db   *sqlx.DB
-	as   accounts.Service
-	is   identity.Service
-	fs   fundingsources.Service
-	ts   transactions.Service
-	noop noop.Service
-}
-
-func NewService(args *ServiceArgs) (Service, error) {
-	return &service{
-		db:   args.Db,
-		as:   args.As,
-		is:   args.Is,
-		fs:   args.Fs,
-		ts:   args.Ts,
-		noop: args.Noop,
-	}, nil
-}
-
-func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdrawalArgs) (*transactions.AccountTransaction, error) {
-
-	// get identity
+func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdrawalArgs) (*Withdrawal, error) {
+	if err := s.validator.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
+	}
+	/*
+		The flow should be as follows
+		* Check if existing withdrawal already
+		* Checks on Identity, Account, FS
+		* Create Withdrawal Object (accountId, funding source etc)
+		* Kickoff workflow
+	*/
 	id, err := s.is.Get(ctx, args.IdentityID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInternalError, err.Error())
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
-
-	// get acc
 	acc, err := s.as.Get(ctx, args.AccountID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInternalError, err.Error())
-	}
-	if acc.IdentityID != id.ID {
-		return nil, fmt.Errorf("account and identity dont match %w %s", ErrInternalError, err.Error())
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	// get funding source
-	fs, err := s.fs.Get(ctx, args.FundingSourceID)
+	if uint64(acc.AvailableBalance) < args.Amount {
+		return nil, fmt.Errorf("insuffient available balance available:%d requested:%d %w", acc.AvailableBalance, args.Amount, ErrInsufficientBalance)
+	}
+
+	fundingSource, err := s.fs.Get(ctx, args.FundingSourceID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInternalError, err.Error())
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
-	if fs.AccountID != args.AccountID {
-		return nil, fmt.Errorf("funding source and account dont match %w", ErrInternalError)
+	if fundingSource.AccountID != acc.ID {
+		return nil, ErrNotFound
 	}
-	if !fundingsources.IsVerified(fs) {
+	if fundingSource.VerificationState != "verified" {
 		return nil, ErrUnverifiedFundingSource
 	}
 
-	var transaction *transactions.AccountTransaction
-	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(sqlTx *sqlx.Tx) error {
+	if !s.as.CanMakeDeposit(acc, id.ID) {
+		return nil, ErrUnauthorized
+	}
 
-		// ask providers for plan of transfers - in future this will be get quote
-		equityAccountID := s.noop.GetEquityAccountID()
+	// TODO should this be an idempotent key?
+	var withdrawal Withdrawal
+	err = s.db.Get(&withdrawal, `INSERT INTO withdrawals
+		(account_id, funding_source_id, amount, state) VALUES ($1, $2, $3, $4)
+		RETURNING *;
+		`, acc.ID, fundingSource.ID, args.Amount, Created)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert into db %s %w", err.Error(), ErrInternal)
+	}
 
-		// prepare transactions and transfers
-		trx, err := s.ts.Create(ctx, &transactions.CreateTransactionArgs{
-			AccountID:   acc.ID,
-			Type:        "withdrawal",
-			NetAmount:   args.Amount,
-			Description: fmt.Sprintf("to %s bank account", fs.Mask), // TODO Format to come from FS
-			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
-				{
-					LedgerID:        s.noop.GetLedgerID(),
-					DebitAccountID:  equityAccountID,
-					CreditAccountID: acc.LedgerAccountID,
-					Amount:          args.Amount,
-					// Code: "1", // TODO: define ledger transfer codes.
-					Flags: transactions.LedgerTransferFlags{},
-				},
-			},
-		})
-		if err != nil {
-			switch {
-			case errors.Is(err, transactions.ErrExceedsDebits):
-				return ErrInsufficientBalance
-			default:
-				return fmt.Errorf("transaction failed %w %s", ErrInternalError, err.Error())
-			}
-		}
+	// TODO add mechanism to handle if withdrawal is created but workflow is not
+	workflowOptions := client.StartWorkflowOptions{
+		ID:                    "withdrawal_" + withdrawal.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+	_, err = s.tp.ExecuteWorkflow(context.Background(), workflowOptions, WithdrawalWorkflow, withdrawal.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert execute workflow %s %w", err.Error(), ErrInternal)
+	}
 
-		transaction = trx
+	return &withdrawal, nil
+}
 
-		// call out to provider to execute transfers
-		err = s.noop.InitiateBankWithdrawal(ctx, &noop.BankWithdrawalArgs{
-			Amount: args.Amount,
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+func (s *service) Get(ctx context.Context, id string) (*Withdrawal, error) {
+	var withdrawal Withdrawal
+	err := s.db.GetContext(ctx, &withdrawal, `select * from withdrawals where id = $1 LIMIT 1`, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return transaction, nil
+	return &withdrawal, nil
+}
+
+func (s *service) SetState(ctx context.Context, id string, state State) error {
+
+	withdrawal, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// TODO add checks for legitimate state changes
+
+	_, err = s.db.ExecContext(ctx, "update withdrawals set state = $1 where id = $2", state.String(), withdrawal.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type State string
+
+const (
+	Created    = State("CREATED")
+	Processing = State("PROCESSING")
+	Complete   = State("COMPLETE")
+	Failed     = State("FAILED")
+)
+
+func (s State) String() string {
+	return string(s)
+}
+
+func (s State) IsValid() bool {
+	switch s {
+	case Created, Processing, Complete, Failed:
+		return true
+	}
+	return false
+}
+
+func (s *State) Unmarshall(v string) error {
+	state := State(v)
+	if !state.IsValid() {
+		return fmt.Errorf("%s is not a valid State", v)
+	}
+	*s = state
+	return nil
 }

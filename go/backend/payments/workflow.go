@@ -1,13 +1,13 @@
 package payments
 
 import (
-	"time"
 	"go.temporal.io/sdk/workflow"
+	"time"
 )
 
 func OutgoingPaymentWorkflow(ctx workflow.Context, id string) error {
-	ao := workflow.ActivityOptions {
-		StartToCloseTimeout:		10 * time.Second,
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout:    10 * time.Second,
 		ScheduleToCloseTimeout: 15 * time.Second,
 	}
 

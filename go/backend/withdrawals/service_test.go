@@ -1,19 +1,19 @@
-package payments
+package withdrawals
 
 import (
 	"context"
-	"testing"
-
+	"errors"
+	"fmt"
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	_accounts "gitlab.com/fynbos/backend/accounts"
-	"gitlab.com/fynbos/backend/accounttransactions"
+	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	_country "gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
-	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
@@ -24,9 +24,10 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"testing"
 )
 
-func TestPayments(s *testing.T) {
+func TestWithdrawals(s *testing.T) {
 	ctx := context.Background()
 	container, err := NewTestContainer(ctx, s)
 	if err != nil {
@@ -40,12 +41,12 @@ func TestPayments(s *testing.T) {
 		}
 	})
 
-	s.Run("initiating an outgoing payment adds a workflow", func(t *testing.T) {
-		amount := uint64(100)
+	s.Run("initiating a withdrawal adds a workflow", func(t *testing.T) {
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+		amount := uint64(100)
 		id, err := container.IdentityService.Create(container.Ctx, &identity.CreateArgs{
 			ID:           user.ID,
 			FirstName:    faker.FirstName(),
@@ -57,38 +58,26 @@ func TestPayments(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		acc, err := NewVerifiedAccount(
-			container,
-			&onboarding.CreateAccountArgs{
-				IdentityID: id.ID,
-				Country:    id.Country,
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
-			},
-		)
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    "US",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
+		_, err = container.TransactionService.Create(ctx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
-			Description: "Test transaction",
+			Description: "Random Deposit",
 			Type:        "deposit",
 			NetAmount:   1000,
-			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
+			LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 				{
-					LedgerID:        container.NoopService.GetLedgerID(),
-					CreditAccountID: container.NoopService.GetEquityAccountID(),
+					LedgerID:        container.PacioliLedgerID,
 					DebitAccountID:  acc.LedgerAccountID,
+					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					Amount:          1000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            0,
+					Flags:           transactions.LedgerTransferFlags{},
 				},
 			},
 		})
@@ -96,6 +85,26 @@ func TestPayments(s *testing.T) {
 			t.Fatal(err)
 		}
 
+		fs, err := container.FundingSourcesService.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
+			IdentityID:    user.ID,
+			AccountID:     acc.ID,
+			Name:          "my account",
+			AccountNumber: "12345678",
+			RoutingNumber: "1234",
+			Institution:   "Bank",
+			Type:          "cheque",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = container.FundingSourcesService.Verify(ctx, &fundingsources.VerifyArgs{
+			IdentityID:      user.ID,
+			FundingSourceID: fs.ID,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		container.TemporalMock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
 			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
 				testWorkflowID := opts.ID
@@ -109,22 +118,23 @@ func TestPayments(s *testing.T) {
 			}, nil,
 		).Times(1)
 
-		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
-			IdentityID: acc.IdentityID,
-			AccountID:  acc.ID,
-			Amount:     amount,
-			To:         "$test.fynbos.test/alice",
+		w, err := container.WithdrawalService.InitiateWithdrawal(context.Background(), &InitiateWithdrawalArgs{
+			IdentityID:      user.ID,
+			AccountID:       acc.ID,
+			FundingSourceID: fs.ID,
+			Amount:          amount,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, Created, p.State)
-		assert.Equal(t, acc.ID, p.AccountID)
-		assert.Equal(t, amount, p.Amount)
+		assert.Equal(t, Created, w.State)
+		assert.Equal(t, acc.ID, w.AccountID)
+		assert.Equal(t, fs.ID, w.FundingSourceId)
+		assert.Equal(t, amount, w.Amount)
 	})
 
-	s.Run("initiating an outgoing payment with insufficient balance fails", func(t *testing.T) {
+	s.Run("insufficient balance wont create a withdrawal workflow", func(t *testing.T) {
 		user := &_user.User{
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
@@ -140,21 +150,30 @@ func TestPayments(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		acc, err := NewVerifiedAccount(
-			container,
-			&onboarding.CreateAccountArgs{
-				IdentityID: id.ID,
-				Country:    id.Country,
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
-			},
-		)
+		amount := uint64(100)
+		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+			IdentityID: id.ID,
+			Country:    "US",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		fs, err := container.FundingSourcesService.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
+			IdentityID:    user.ID,
+			AccountID:     acc.ID,
+			Name:          "my account",
+			AccountNumber: "12345678",
+			RoutingNumber: "1234",
+			Institution:   "Bank",
+			Type:          "cheque",
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = container.FundingSourcesService.Verify(ctx, &fundingsources.VerifyArgs{
+			IdentityID:      user.ID,
+			FundingSourceID: fs.ID,
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -172,34 +191,37 @@ func TestPayments(s *testing.T) {
 			}, nil,
 		).Times(1)
 
-		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
-			IdentityID: acc.IdentityID,
-			AccountID:  acc.ID,
-			Amount:     100,
-			To:         "$test.fynbos.test/alice",
+		_, err = container.WithdrawalService.InitiateWithdrawal(context.Background(), &InitiateWithdrawalArgs{
+			IdentityID:      user.ID,
+			AccountID:       acc.ID,
+			FundingSourceID: fs.ID,
+			Amount:          amount,
 		})
+		if err == nil {
+			t.Fatal(fmt.Errorf("error should occured"))
+		}
 
-		assert.Nil(t, p)
-		assert.ErrorIs(t, err, ErrInsufficientBalance)
+		assert.True(t, errors.Is(err, ErrInsufficientBalance))
 	})
 }
 
 type TestContainer struct {
-	IdentityService    _identity.Service
-	AccountService     _accounts.Service
-	CountryService     _country.Service
-	NoopService        noop.Service
-	OnboardService     onboarding.Service
-	TransactionService account_transactions.Service
-	PaymentService     Service
-	TemporalMock       *mocks.Client
-	PacioliContainer   *test_utils.PacioliContainer
-	PacioliClient      pacioliv1.PacioliServiceClient
-	PacioliLedgerID    uint16
-	Db                 *sqlx.DB
-	Logger             *zap.Logger
-	Crdb               *test_utils.CockroachDBContainer
-	Ctx                context.Context
+	IdentityService       identity.Service
+	AccountService        _accounts.Service
+	TransactionService    transactions.Service
+	CountryService        _country.Service
+	NoopService           noop.Service
+	OnboardService        onboarding.Service
+	FundingSourcesService fundingsources.Service
+	WithdrawalService     Service
+	TemporalMock          *mocks.Client
+	PacioliContainer      *test_utils.PacioliContainer
+	PacioliClient         pacioliv1.PacioliServiceClient
+	PacioliLedgerID       uint16
+	Db                    *sqlx.DB
+	Logger                *zap.Logger
+	Crdb                  *test_utils.CockroachDBContainer
+	Ctx                   context.Context
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
@@ -261,14 +283,14 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	cs := _country.NewService(db)
 	c.CountryService = cs
 
-	is, err := _identity.NewService(_identity.ServiceArgs{
+	is, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
 		Db:             db,
 	})
 	if err != nil {
 		s.Fatal(err)
 	}
-	c.IdentityService = _identity.NewLoggingService(is, logger)
+	c.IdentityService = identity.NewLoggingService(is, logger)
 
 	as, err := _accounts.NewService(&_accounts.ServiceArgs{
 		Is:              is,
@@ -301,6 +323,17 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.NoopService = np
 
+	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
+		Db:   db,
+		Is:   is,
+		As:   as,
+		Noop: c.NoopService,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.FundingSourcesService = fs
+
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
@@ -312,7 +345,22 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.OnboardService = os
 
-	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
+	temporal := &mocks.Client{}
+	c.TemporalMock = temporal
+
+	ws, err := NewService(&ServiceArgs{
+		Db: db,
+		Is: is,
+		As: as,
+		Fs: fs,
+		Tp: temporal,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.WithdrawalService = ws
+
+	at, err := transactions.NewService(&transactions.ServiceArgs{
 		AccountService: as,
 		PacioliClient:  pClient,
 		Db:             db,
@@ -320,56 +368,20 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-
-	c.TransactionService = ts
-
-	temporal := &mocks.Client{}
-	c.TemporalMock = temporal
-
-	ps, err := NewService(&ServiceArgs{
-		Db: db,
-		Is: is,
-		As: as,
-		Tp: temporal,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	c.PaymentService = ps
+	c.TransactionService = at
 
 	return c, nil
 }
 
-// Funcion will set the `AccountID` and `IdentityID` on the `verifyAccountArgs` for you.
-func NewVerifiedAccount(
+func NewAccount(
 	container *TestContainer,
-	createAccountArgs *onboarding.CreateAccountArgs,
-	verifyAccountArgs *onboarding.VerifyAccountArgs,
+	input *onboarding.CreateAccountArgs,
 ) (*_accounts.Account, error) {
-	acc, err := container.OnboardService.CreateAccount(container.Ctx, createAccountArgs)
-	if err != nil {
-		return nil, err
-	}
 
-	verifyAccountArgs.AccountID = acc.ID
-	verifyAccountArgs.IdentityID = acc.IdentityID
-	acc, err = container.OnboardService.VerifyAccount(container.Ctx, verifyAccountArgs)
+	acc, err := container.OnboardService.CreateAccount(container.Ctx, input)
 	if err != nil {
 		return nil, err
 	}
 
 	return acc, nil
-}
-
-func NewDeposit(
-	container *TestContainer,
-	args *account_transactions.CreateTransactionArgs,
-) (*account_transactions.AccountTransaction, error) {
-	trx, err := container.TransactionService.Create(container.Ctx, args)
-	if err != nil {
-		return nil, err
-	}
-
-	return trx, nil
 }
