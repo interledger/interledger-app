@@ -217,12 +217,11 @@ func start(args *cli.StartArgs) {
 	}
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   id,
-		Fs:   fs,
-		Ts:   ts,
-		Noop: nos,
+		Db: db,
+		As: as,
+		Is: id,
+		Fs: fs,
+		Tp: tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -511,6 +510,17 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 
+	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
+		Db: db,
+		As: as,
+		Is: id,
+		Fs: fs,
+		Tp: tp,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	log.Printf("Worker creating")
 	w, err := temporal.NewTemporalWorker(temporal.WorkerArgs{
 		Client: tp,
@@ -519,6 +529,8 @@ func startWorker(args *cli.StartArgs) {
 		As:     as,
 		Np:     nos,
 		Ts:     ts,
+		Ws:     ws,
+		Fs:     fs,
 	})
 	if err != nil {
 		log.Fatalln(err)

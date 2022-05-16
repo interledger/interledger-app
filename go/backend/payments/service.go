@@ -44,20 +44,20 @@ type service struct {
 }
 
 type OutgoingPayment struct {
-	ID                   string
-	AccountID            string `db:"account_id"`
-	Destination          string `db:"destination"`
-	Amount               uint64
-	State                State
-	CreatedAt            string `db:"created_at"`
-	UpdatedAt            string `db:"updated_at"`
+	ID          string
+	AccountID   string `db:"account_id"`
+	Destination string `db:"destination"`
+	Amount      uint64
+	State       State
+	CreatedAt   string `db:"created_at"`
+	UpdatedAt   string `db:"updated_at"`
 }
 
 type ServiceArgs struct {
-	Db   *sqlx.DB                     `validate:"required"`
-	As   accounts.Service             `validate:"required"`
-	Is   identity.Service             `validate:"required"`
-	Tp   client.Client                `validate:"required"`
+	Db *sqlx.DB         `validate:"required"`
+	As accounts.Service `validate:"required"`
+	Is identity.Service `validate:"required"`
+	Tp client.Client    `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {

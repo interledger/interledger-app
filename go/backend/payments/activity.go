@@ -14,10 +14,10 @@ import (
 
 type Activity struct {
 	validator *validator.Validate
-	ps         Service 
-	ts         transactions.Service
-	as         accounts.Service
-	noop       noop.Service
+	ps        Service
+	ts        transactions.Service
+	as        accounts.Service
+	noop      noop.Service
 }
 
 type ActivityArgs struct {
@@ -107,7 +107,7 @@ func (s *Activity) ProcessNoopOutgoingPayment(ctx context.Context, outgoingPayme
 
 	err = s.noop.InitiateOutgoingPayment(ctx, &noop.OutgoingPaymentArgs{
 		Amount: outgoingPayment.Amount,
-		To: outgoingPayment.Destination,
+		To:     outgoingPayment.Destination,
 	})
 
 	if err != nil {
