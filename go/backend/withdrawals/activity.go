@@ -72,8 +72,8 @@ func (s *Activity) CreatePendingWithdrawalTransaction(ctx context.Context, withd
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
 				LedgerID:        s.noop.GetLedgerID(),
-				DebitAccountID:  acc.LedgerAccountID,
-				CreditAccountID: s.noop.GetEquityAccountID(),
+				CreditAccountID: acc.LedgerAccountID,
+				DebitAccountID:  s.noop.GetEquityAccountID(),
 				Amount:          withdrawal.Amount,
 				// Code: "1", // TODO: define ledger transfer codes.
 				Flags: transactions.LedgerTransferFlags{
