@@ -219,12 +219,11 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.Os = os
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Fs:   fs,
-		Ts:   ts,
-		Noop: noopProvider,
+		Db: db,
+		As: as,
+		Is: is,
+		Fs: fs,
+		Tp: tp,
 	})
 	if err != nil {
 		return nil, err

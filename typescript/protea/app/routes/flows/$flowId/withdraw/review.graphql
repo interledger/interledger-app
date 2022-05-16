@@ -3,13 +3,11 @@ mutation InitiateWithdrawal($input: WithdrawalInput!) {
     code
     success
     message
-    transaction {
+    withdrawal {
       id
-      type
-      description
-      amount
       timestamp
-      status
+      amount
+      state
     }
   }
 }
