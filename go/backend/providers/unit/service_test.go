@@ -1,7 +1,12 @@
 package unit
 
 import (
+	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -36,6 +41,27 @@ func TestUnitProvider(s *testing.T) {
 		if err != nil {
 			return
 		}
+	})
+
+	s.Run("Verify incoming webhook request", func(t *testing.T) {
+		data := []byte(`{"test":"data"}`)
+
+		mac := hmac.New(sha1.New, []byte("test-webhook-token"))
+		mac.Write(data)
+
+		sha := hex.EncodeToString(mac.Sum(nil))
+
+		req, err := http.NewRequest("POST", "http://fynbos.test/webhooks/unit", bytes.NewBuffer(data))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req.Header.Set("x-unit-signature", sha)
+		req.Header.Set("Content-Type", "application/json")
+
+		err = c.UnitService.VerifyWebhook(c.Ctx, req)
+
+		assert.NoError(t, err)
 	})
 
 	s.Run("Successfully calls GetApplicationForm", func(t *testing.T) {
@@ -195,6 +221,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
 
 	us, err := NewService(ServiceArgs{
+		WebhookToken: "test-webhook-token",
 		BaseURL: c.UnitMockServer.URL,
 		Token:   "test token",
 	})
