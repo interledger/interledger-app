@@ -3,20 +3,20 @@ package unit
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
 )
 
 var (
-	ErrInternal = errors.New("unit: internal error")
+	ErrInternal     = errors.New("unit: internal error")
 	ErrUnauthorized = errors.New("unit: unauthorized webhook request")
 )
 
@@ -27,17 +27,18 @@ type Service interface {
 }
 
 type service struct {
-	validator *validator.Validate
-	baseURL   string
-	token     string
+	validator    *validator.Validate
+	baseURL      string
+	token        string
 	webhookToken string
 }
 
 type ServiceArgs struct {
-	BaseURL string `validate:"required"`
-	Token   string `validate:"required"`
+	BaseURL      string `validate:"required"`
+	Token        string `validate:"required"`
 	WebhookToken string `validate:"required"`
 }
+
 func NewService(args ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
@@ -46,9 +47,9 @@ func NewService(args ServiceArgs) (Service, error) {
 	}
 
 	return &service{
-		validator: validator,
-		baseURL:   args.BaseURL,
-		token:     args.Token,
+		validator:    validator,
+		baseURL:      args.BaseURL,
+		token:        args.Token,
 		webhookToken: args.WebhookToken,
 	}, nil
 }
