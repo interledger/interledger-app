@@ -286,6 +286,14 @@ export type VerifyUsdBankAccountMutationResponse = MutationResponse & {
   success: Scalars['Boolean'];
 };
 
+export type Withdrawal = {
+  __typename?: 'Withdrawal';
+  amount: Scalars['String'];
+  id: Scalars['ID'];
+  state: Scalars['String'];
+  timestamp: Scalars['String'];
+};
+
 export type WithdrawalInput = {
   amount: Scalars['String'];
   fundingSourceID: Scalars['ID'];
@@ -296,7 +304,7 @@ export type WithdrawalMutationResponse = MutationResponse & {
   code: Scalars['String'];
   message: Scalars['String'];
   success: Scalars['Boolean'];
-  transaction?: Maybe<Transaction>;
+  withdrawal?: Maybe<Withdrawal>;
 };
 
 export type ActivityQueryVariables = Exact<{
@@ -366,7 +374,7 @@ export type InitiateWithdrawalMutationVariables = Exact<{
 }>;
 
 
-export type InitiateWithdrawalMutation = { __typename?: 'Mutation', initiateWithdrawal: { __typename?: 'WithdrawalMutationResponse', code: string, success: boolean, message: string, transaction?: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } | null | undefined } };
+export type InitiateWithdrawalMutation = { __typename?: 'Mutation', initiateWithdrawal: { __typename?: 'WithdrawalMutationResponse', code: string, success: boolean, message: string, withdrawal?: { __typename?: 'Withdrawal', id: string, timestamp: string, amount: string, state: string } | null | undefined } };
 
 export type SignupQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -554,13 +562,11 @@ export const InitiateWithdrawalDocument = gql`
     code
     success
     message
-    transaction {
+    withdrawal {
       id
-      type
-      description
-      amount
       timestamp
-      status
+      amount
+      state
     }
   }
 }
