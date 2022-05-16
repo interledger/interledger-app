@@ -43,7 +43,7 @@ func TestUnitProvider(s *testing.T) {
 		}
 	})
 
-	s.Run("Verify incoming webhook request", func(t *testing.T) {
+	s.Run("Successfully verifies incoming webhook request", func(t *testing.T) {
 		data := []byte(`{"test":"data"}`)
 
 		mac := hmac.New(sha1.New, []byte("test-webhook-token"))
@@ -62,6 +62,28 @@ func TestUnitProvider(s *testing.T) {
 		err = c.UnitService.VerifyWebhook(c.Ctx, req)
 
 		assert.NoError(t, err)
+	})
+
+
+	s.Run("Fails if webhook tokens does not match", func(t *testing.T) {
+		data := []byte(`{"test":"data"}`)
+
+		mac := hmac.New(sha1.New, []byte("malicious-webhook-token"))
+		mac.Write(data)
+
+		sha := hex.EncodeToString(mac.Sum(nil))
+
+		req, err := http.NewRequest("POST", "http://fynbos.test/webhooks/unit", bytes.NewBuffer(data))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req.Header.Set("x-unit-signature", sha)
+		req.Header.Set("Content-Type", "application/json")
+
+		err = c.UnitService.VerifyWebhook(c.Ctx, req)
+
+		assert.ErrorIs(t, err, ErrUnauthorized)
 	})
 
 	s.Run("Successfully calls GetApplicationForm", func(t *testing.T) {
