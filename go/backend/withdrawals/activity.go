@@ -53,7 +53,7 @@ func (s *Activity) CreatePendingWithdrawalTransaction(ctx context.Context, withd
 		return "", err
 	}
 
-	acc, err := s.as.Get(ctx, withdrawal.ID)
+	acc, err := s.as.Get(ctx, withdrawal.AccountID)
 	if err != nil {
 		return "", err
 	}

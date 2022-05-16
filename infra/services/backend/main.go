@@ -22,7 +22,7 @@ type DeployBackendArgs struct {
 	UnitBaseUrl          string
 	Hostname             string
 	EnablePlayground     bool
-	UnitWebhookToken		 string
+	UnitWebhookToken     string
 	GoogleOauth2ClientID string // oauth client for the admin app
 }
 
@@ -302,7 +302,6 @@ func deployDeployment(
 									Value: pulumi.String(unitBaseUrl),
 								},
 								&corev1.EnvVarArgs{
-									Name:  pulumi.String("UNIT_BASE_URL"),
 									Name:  pulumi.String("UNIT_WEBHOOK_TOKEN"),
 									Value: pulumi.String(unitWebhookToken),
 								},
