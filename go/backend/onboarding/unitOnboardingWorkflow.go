@@ -6,7 +6,15 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func OnboardUnitCustomerWorkflow(ctx workflow.Context) error {
+type OnboardUnitCustomerArgs struct {
+	CustomerID string
+	Type       string
+	IdentityID string
+	Country    string
+}
+
+func OnboardUnitCustomerWorkflow(ctx workflow.Context, args *OnboardUnitCustomerArgs) error {
+	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
 		ScheduleToCloseTimeout: 15 * time.Second,
@@ -17,15 +25,23 @@ func OnboardUnitCustomerWorkflow(ctx workflow.Context) error {
 
 	logger.Info("Onboarding unit customer")
 
-	var a *Activity
-
-	err := workflow.ExecuteActivity(ctx, a.CreateAccount).Get(ctx, nil)
+	var accountID string
+	err := workflow.ExecuteActivity(
+		ctx,
+		a.CreateAccount,
+		args.IdentityID,
+		args.Country,
+	).Get(ctx, &accountID)
 	if err != nil {
 		logger.Error("Failed to create Fynbos account.", err)
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.MapCustomerToAccount).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.MapCustomerToAccount, &MapCustomerToAccountArgs{
+		CustomerID: args.CustomerID,
+		AccountID:  accountID,
+		Type:       args.Type,
+	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to map Unit customer to Fynbos account.", err)
 		return err
