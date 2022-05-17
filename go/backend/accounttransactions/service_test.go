@@ -554,9 +554,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 // Helper function that creates an identity and account for the user.
 func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *accounts.Account, error) {
-	var acc *accounts.Account
 	var identity *_identity.Identity
-
 	err := crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
 		id, err := container.IdentityService.Create(container.Ctx, &_identity.CreateArgs{
 			ID:           user.ID,
@@ -576,17 +574,9 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 		return nil, nil, err
 	}
 
-	err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-		_acc, err := container.AccountService.Create(container.Ctx, tx, &_accounts.CreateAccountArgs{
-			IdentityID: user.ID,
-			Country:    "US",
-		})
-		if err != nil {
-			return err
-		}
-		acc = _acc
-
-		return nil
+	acc, err := container.AccountService.Create(container.Ctx, &_accounts.CreateAccountArgs{
+		IdentityID: user.ID,
+		Country:    "US",
 	})
 	if err != nil {
 		return nil, nil, err

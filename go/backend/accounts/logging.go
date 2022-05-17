@@ -38,7 +38,7 @@ func (self *loggingService) Init(ctx context.Context) (err error) {
 	return self.Service.Init(ctx)
 }
 
-func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (account *Account, err error) {
+func (self *loggingService) Create(ctx context.Context, args *CreateAccountArgs) (account *Account, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			self.logger.Error(
@@ -60,7 +60,7 @@ func (self *loggingService) Create(ctx context.Context, tx *sqlx.Tx, args *Creat
 		zap.String("identityID", args.IdentityID),
 		zap.String("country", args.Country),
 	)
-	return self.Service.Create(ctx, tx, args)
+	return self.Service.Create(ctx, args)
 }
 
 func (self *loggingService) GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, identityID string) (account *Account, err error) {

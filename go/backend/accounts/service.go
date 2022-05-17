@@ -50,7 +50,7 @@ func (s Account) IsVerified() bool {
 
 type Service interface {
 	Init(ctx context.Context) error
-	Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error)
+	Create(ctx context.Context, args *CreateAccountArgs) (*Account, error)
 	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 	GetByIdentityID(ctx context.Context, id string) (*Account, error)
 	Get(ctx context.Context, id string) (*Account, error)
@@ -132,7 +132,7 @@ type CreateAccountArgs struct {
 // CRDB. It therefore suffers from the dual-write problem so we could end up with dangling accounts
 // in Pacioli.
 // We create the Pacioli account first so that the account in CRDB will always have a Pacioli ID.
-func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountArgs) (*Account, error) {
+func (s *service) Create(ctx context.Context, args *CreateAccountArgs) (*Account, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
@@ -143,38 +143,45 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateAccountAr
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	// pacioli client must be configured with retries and exponential backoff at higher level.
-	ledgerAccountID := uuid.NewString()
-	response, err := s.pacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
-		Args: []*pacioliv1.ConfigureAccountsArgs{
-			{
-				Id:       ledgerAccountID,
-				LedgerId: uint32(s.pacioliLedgerID),
-				Flags: &pacioliv1.AccountFlags{
-					Linked:                     args.Linked,
-					DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
-					CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
+	var ret Account
+	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
+		// pacioli client must be configured with retries and exponential backoff at higher level.
+		ledgerAccountID := uuid.NewString()
+		response, err := s.pacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
+			Args: []*pacioliv1.ConfigureAccountsArgs{
+				{
+					Id:       ledgerAccountID,
+					LedgerId: uint32(s.pacioliLedgerID),
+					Flags: &pacioliv1.AccountFlags{
+						Linked:                     args.Linked,
+						DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
+						CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
+					},
 				},
 			},
-		},
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+		eventErrors := response.GetErrors()
+		if len(eventErrors) > 0 {
+			return fmt.Errorf("Failed to create account in pacioli. %w %+v", ErrInternal, eventErrors)
+		}
+
+		stmt, err := tx.PrepareNamed("INSERT INTO accounts (identity_id, ledger_account_id) VALUES (:identityid, :ledgeraccountid) RETURNING *")
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccountID)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-	eventErrors := response.GetErrors()
-	if len(eventErrors) > 0 {
-		return nil, fmt.Errorf("Failed to create account in pacioli. %w %+v", ErrInternal, eventErrors)
-	}
-
-	stmt, err := tx.PrepareNamed("INSERT INTO accounts (identity_id, ledger_account_id) VALUES (:identityid, :ledgeraccountid) RETURNING *")
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
-	var ret Account
-	err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+		return nil, err
 	}
 
 	err = s.fetchFromPacioli(ctx, &ret)

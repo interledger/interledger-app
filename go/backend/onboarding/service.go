@@ -73,24 +73,18 @@ func (s *service) CreateAccount(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	var account *accounts.Account
-	err := crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		id, err := s.is.Get(ctx, args.IdentityID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err)
-		}
-		acc, err := s.as.Create(ctx, tx, &accounts.CreateAccountArgs{
-			IdentityID:                 id.ID,
-			Country:                    args.Country,
-			CreditsMustNotExceedDebits: true,
-		})
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err)
-		}
-		account = acc
-
-		return nil
+	id, err := s.is.Get(ctx, args.IdentityID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	account, err := s.as.Create(ctx, &accounts.CreateAccountArgs{
+		IdentityID:                 id.ID,
+		Country:                    args.Country,
+		CreditsMustNotExceedDebits: true,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
 	if err != nil {
 		return nil, err
 	}
