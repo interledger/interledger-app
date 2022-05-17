@@ -143,22 +143,14 @@ func TestAccountsService(s *testing.T) {
 		}
 
 		t.Run("updates verification state to verified", func(tt *testing.T) {
-			var acc *Account
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				localAcc, err := as.Create(ctx, tx, &CreateAccountArgs{
-					IdentityID: identity.ID,
-					Country:    identity.Country,
-				})
-				if err != nil {
-					return err
-				}
-				assert.False(tt, localAcc.IsVerified())
-				acc = localAcc
-				return nil
+			acc, err := as.Create(ctx, &CreateAccountArgs{
+				IdentityID: identity.ID,
+				Country:    identity.Country,
 			})
 			if err != nil {
 				tt.Fatal(err)
 			}
+			assert.False(tt, acc.IsVerified())
 			var verifiedAcc *Account
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &VerifyArgs{
@@ -222,20 +214,11 @@ func TestAccountsService(s *testing.T) {
 				}
 				assert.NotNil(t, identity)
 
-				var acc *Account
-				err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_acc, err := as.Create(ctx, tx, &CreateAccountArgs{
-						IdentityID:                 identity.ID,
-						Country:                    identity.Country,
-						DebitMustNotExceedCredits:  scenario.DebitsMustNotExceedCredits,
-						CreditsMustNotExceedDebits: scenario.CreditsMustNotExceedDebits,
-					})
-					if err != nil {
-						return err
-					}
-
-					acc = _acc
-					return nil
+				acc, err := as.Create(ctx, &CreateAccountArgs{
+					IdentityID:                 identity.ID,
+					Country:                    identity.Country,
+					DebitMustNotExceedCredits:  scenario.DebitsMustNotExceedCredits,
+					CreditsMustNotExceedDebits: scenario.CreditsMustNotExceedDebits,
 				})
 				if err != nil {
 					tt.Fatal(err)
@@ -333,16 +316,7 @@ func TestAccountsService(s *testing.T) {
 			}
 
 			for _, scenario := range scenarios {
-				var acc *Account
-				err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_acc, err := as.Create(ctx, tx, scenario.Args)
-					if err != nil {
-						return err
-					}
-
-					acc = _acc
-					return nil
-				})
+				acc, err := as.Create(ctx, scenario.Args)
 
 				assert.ErrorIs(tt, err, scenario.ExpectedError)
 				assert.Contains(tt, err.Error(), scenario.ExpectedErrorMessage)
@@ -376,18 +350,9 @@ func TestAccountsService(s *testing.T) {
 			}
 			assert.NotNil(t, identity)
 
-			var acc *Account
-			err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				_acc, err := as.Create(ctx, tx, &CreateAccountArgs{
-					IdentityID: identity.ID,
-					Country:    identity.Country,
-				})
-				if err != nil {
-					return err
-				}
-
-				acc = _acc
-				return nil
+			acc, err := as.Create(ctx, &CreateAccountArgs{
+				IdentityID: identity.ID,
+				Country:    identity.Country,
 			})
 
 			assert.Error(tt, err)
