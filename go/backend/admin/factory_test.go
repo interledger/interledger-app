@@ -2,11 +2,14 @@ package admin
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"testing"
 
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/osohq/go-oso"
@@ -17,6 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/proto/backend/v1"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -25,6 +29,7 @@ import (
 
 type TestContainer struct {
 	Ctx             context.Context
+	Ctrl            *gomock.Controller
 	Crdb            *test_utils.CockroachDBContainer
 	Pacioli         *test_utils.PacioliContainer
 	Db              *sqlx.DB
@@ -34,6 +39,7 @@ type TestContainer struct {
 	Os              onboarding.Service
 	Oso             *oso.Oso
 	Noop            noop.Service
+	Up              unit.Service
 	Tp              *mocks.Client
 	AdminConn       *grpc.ClientConn
 	AdminClient     backend.BackendServiceClient
@@ -69,7 +75,8 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 	return nil
 }
 
-func NewTestContainer(ctx context.Context) (*TestContainer, error) {
+// TODO: refactor how we spin up deps for tests.
+func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	crdb, err := test_utils.SetupTestCockroachDB(ctx)
 	if err != nil {
@@ -162,11 +169,14 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 	}
 	us := auth.NewMockService()
 
+	c.Ctrl = gomock.NewController(t)
+	c.Up = unit.NewMockService(c.Ctrl)
 	server, err := NewServer(&ServerArgs{
 		Hs: hs,
 		Is: is,
 		As: as,
 		Us: us,
+		Up: c.Up,
 	})
 	if err != nil {
 		return nil, err
@@ -186,4 +196,40 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 	c.AdminClient = backend.NewBackendServiceClient(adminConn)
 
 	return c, nil
+}
+
+// note https://github.com/golang/mock/issues/139
+// we run the grpc server in a goroutine so any errors from the mock will be swallowed.
+// TODO: see if there is a test server for grpc
+func NewAdminClient(t *testing.T, svr *grpc.Server) (client backend.BackendServiceClient, cleanup func()) {
+	port, err := test_utils.GetFreePort()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// run the server
+	go func() {
+		if err := svr.Serve(listener); err != nil {
+			panic(err)
+		}
+	}()
+
+	conn, err := grpc.Dial(fmt.Sprintf("0.0.0.0:%d", port), grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	client = backend.NewBackendServiceClient(conn)
+	cleanup = func() {
+		if err := conn.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return client, cleanup
 }
