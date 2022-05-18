@@ -41,6 +41,7 @@ import (
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
+	unitwh "gitlab.com/fynbos/backend/webhooks/unit"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
@@ -176,9 +177,10 @@ func start(args *cli.StartArgs) {
 	}
 
 	us, err := unit.NewService(unit.ServiceArgs{
-		BaseURL: args.UnitBaseURL,
-		Token:   args.UnitToken,
+		BaseURL:      args.UnitBaseURL,
+		Token:        args.UnitToken,
 		WebhookToken: args.UnitWebhookToken,
+		Db:           db,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -200,6 +202,7 @@ func start(args *cli.StartArgs) {
 		As:   as,
 		Is:   id,
 		Noop: nos,
+		Tp:   tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -260,6 +263,14 @@ func start(args *cli.StartArgs) {
 	}
 	graphql = graph.NewLoggingService(graphql, logger)
 
+	unitWebhook, err := unitwh.NewWebhook(&unitwh.WebhookArgs{
+		Up: us,
+		Os: os,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	router := chi.NewRouter()
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 	router.Handle("/graphql", user.MakeMiddleware(users)(graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
@@ -268,16 +279,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Post("/webhooks/unit", http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-		err := us.VerifyWebhook(context.Background(), request)
-
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(401)
-		} else {
-			w.WriteHeader(200)
-		}
-	}))
+	router.Post("/webhooks/unit", unitWebhook.MakeHttpHandler())
 
 	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)
 	go func() {
@@ -510,6 +512,27 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 
+	os, err := onboarding.NewService(&onboarding.ServiceArgs{
+		Db:   db,
+		As:   as,
+		Is:   id,
+		Noop: nos,
+		Tp:   tp,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	up, err := unit.NewService(unit.ServiceArgs{
+		BaseURL:      args.UnitBaseURL,
+		Token:        args.UnitToken,
+		WebhookToken: args.UnitWebhookToken,
+		Db:           db,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,
 		As: as,
@@ -529,6 +552,9 @@ func startWorker(args *cli.StartArgs) {
 		As:     as,
 		Np:     nos,
 		Ts:     ts,
+		Is:     id,
+		Os:     os,
+		Up:     up,
 		Ws:     ws,
 		Fs:     fs,
 	})

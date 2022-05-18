@@ -4,9 +4,12 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -21,6 +24,9 @@ type WorkerArgs struct {
 	Ts     transactions.Service
 	Ws     withdrawals.Service
 	Fs     fundingsources.Service
+	Os     onboarding.Service
+	Up     unit.Service
+	Is     identity.Service
 }
 
 func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
@@ -52,7 +58,7 @@ func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
 	}
 	w.RegisterActivity(paymentsActivities)
 
-	// Register Deposits Workflow
+	// Register Withdrawals Workflow
 	w.RegisterWorkflow(withdrawals.WithdrawalWorkflow)
 	withdrawalActivities, err := withdrawals.NewActivity(withdrawals.ActivityArgs{
 		As: args.As,
@@ -65,6 +71,18 @@ func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
 		return nil, err
 	}
 	w.RegisterActivity(withdrawalActivities)
+
+	// Register onboard unit customer workflow
+	w.RegisterWorkflow(onboarding.OnboardUnitCustomerWorkflow)
+	unitOnboardingActivity, err := onboarding.NewActivity(&onboarding.ActivityArgs{
+		Up: args.Up,
+		As: args.As,
+		Is: args.Is,
+	})
+	if err != nil {
+		return nil, err
+	}
+	w.RegisterActivity(unitOnboardingActivity)
 
 	return w, nil
 }
