@@ -17,7 +17,7 @@ import (
 
 func TestAccounts(s *testing.T) {
 	ctx := context.Background()
-	c, err := NewTestContainer(ctx)
+	c, err := NewTestContainer(ctx, s)
 	if err != nil {
 		s.Fatal(err)
 	}

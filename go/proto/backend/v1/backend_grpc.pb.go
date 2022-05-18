@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackendServiceClient interface {
 	GetUserAccountByEmail(ctx context.Context, in *GetUserAccountByEmailRequest, opts ...grpc.CallOption) (*Account, error)
+	GetUnitCustomerByAccountID(ctx context.Context, in *GetUnitCustomerByAccountRequest, opts ...grpc.CallOption) (*UnitCustomer, error)
 }
 
 type backendServiceClient struct {
@@ -42,11 +43,21 @@ func (c *backendServiceClient) GetUserAccountByEmail(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *backendServiceClient) GetUnitCustomerByAccountID(ctx context.Context, in *GetUnitCustomerByAccountRequest, opts ...grpc.CallOption) (*UnitCustomer, error) {
+	out := new(UnitCustomer)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetUnitCustomerByAccountID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
 type BackendServiceServer interface {
 	GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error)
+	GetUnitCustomerByAccountID(context.Context, *GetUnitCustomerByAccountRequest) (*UnitCustomer, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -55,6 +66,9 @@ type UnimplementedBackendServiceServer struct {
 
 func (UnimplementedBackendServiceServer) GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserAccountByEmail not implemented")
+}
+func (UnimplementedBackendServiceServer) GetUnitCustomerByAccountID(context.Context, *GetUnitCustomerByAccountRequest) (*UnitCustomer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUnitCustomerByAccountID not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -86,6 +100,24 @@ func _BackendService_GetUserAccountByEmail_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetUnitCustomerByAccountID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUnitCustomerByAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetUnitCustomerByAccountID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetUnitCustomerByAccountID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetUnitCustomerByAccountID(ctx, req.(*GetUnitCustomerByAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +128,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserAccountByEmail",
 			Handler:    _BackendService_GetUserAccountByEmail_Handler,
+		},
+		{
+			MethodName: "GetUnitCustomerByAccountID",
+			Handler:    _BackendService_GetUnitCustomerByAccountID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

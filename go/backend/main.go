@@ -301,6 +301,7 @@ func start(args *cli.StartArgs) {
 		Is: id,
 		As: as,
 		Us: adminUsers,
+		Up: us,
 	})
 	if err != nil {
 		log.Fatalln(err)

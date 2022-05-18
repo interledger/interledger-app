@@ -215,7 +215,7 @@ func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
 	}
 
 	fmt.Println("Starting pacioli.")
-	port, err := getFreePort()
+	port, err := GetFreePort()
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
 	}, nil
 }
 
-func getFreePort() (int, error) {
+func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
 		return 0, err
