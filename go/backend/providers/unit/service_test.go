@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	gomock "github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -63,7 +64,6 @@ func TestUnitProvider(s *testing.T) {
 
 		assert.NoError(t, err)
 	})
-
 
 	s.Run("Fails if webhook tokens does not match", func(t *testing.T) {
 		data := []byte(`{"test":"data"}`)
@@ -118,6 +118,68 @@ func TestUnitProvider(s *testing.T) {
 		assert.Equal(t, "411479", form.ID)
 		assert.Equal(t, "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6", form.URL)
 	})
+}
+
+func TestHandleCreatedCustomerEvent(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	os := onboarding.NewMockService(ctrl)
+	provider, err := NewService(ServiceArgs{
+		BaseURL:      "localhost:8080",
+		Token:        "token",
+		WebhookToken: "webhooktoken",
+		Os:           os,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	scenarios := []struct {
+		Name            string
+		OnboardingError error
+	}{
+		{
+			Name:            "Succeeds if unit onboarding is initiated.",
+			OnboardingError: nil,
+		},
+		{
+			Name:            "Returns ErrInternal if unit onboarding fails to initiate",
+			OnboardingError: onboarding.ErrInternal,
+		},
+	}
+	for _, scenario := range scenarios {
+		os.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), &onboarding.InitiateUnitCustomerOnboardingArgs{
+			IdentityID: customerCreatedEvent.Attributes.Tags[ApplicationFormUserIDTag],
+			Country:    "US",
+		}).Return(scenario.OnboardingError)
+
+		rawEvent := marshal(t, customerCreatedEvent)
+		err = provider.HandleEvent(context.Background(), CUSTOMER_CREATED, rawEvent.Bytes())
+
+		if scenario.OnboardingError != nil {
+			assert.ErrorIs(t, err, ErrInternal, scenario.Name)
+		} else {
+			assert.NoError(t, err, scenario.Name)
+		}
+	}
+}
+
+func TestDontFailForUnknownEvent(t *testing.T) {
+	// don't fail as Unit may add new event types.
+	ctrl := gomock.NewController(t)
+	os := onboarding.NewMockService(ctrl)
+	provider, err := NewService(ServiceArgs{
+		BaseURL:      "localhost:8080",
+		Token:        "token",
+		WebhookToken: "webhooktoken",
+		Os:           os,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rawEvent := marshal(t, customerCreatedEvent)
+	err = provider.HandleEvent(context.Background(), EventType("unknown"), rawEvent.Bytes())
+	assert.NoError(t, err)
 }
 
 type TestContainer struct {
@@ -240,18 +302,6 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.NoopService = np
 
-	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
-
-	us, err := NewService(ServiceArgs{
-		WebhookToken: "test-webhook-token",
-		BaseURL: c.UnitMockServer.URL,
-		Token:   "test token",
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.UnitService = us
-
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
@@ -262,6 +312,19 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 	c.OnboardService = os
+
+	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
+
+	us, err := NewService(ServiceArgs{
+		WebhookToken: "test-webhook-token",
+		BaseURL:      c.UnitMockServer.URL,
+		Token:        "test token",
+		Os:           os,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.UnitService = us
 
 	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
 		AccountService: as,

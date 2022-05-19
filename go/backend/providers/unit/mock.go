@@ -6,6 +6,7 @@ package unit
 
 import (
 	context "context"
+	json "encoding/json"
 	http "net/http"
 	reflect "reflect"
 
@@ -63,6 +64,20 @@ func (m *MockService) GetApplicationForm(ctx context.Context, userID string) (*A
 func (mr *MockServiceMockRecorder) GetApplicationForm(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetApplicationForm", reflect.TypeOf((*MockService)(nil).GetApplicationForm), ctx, userID)
+}
+
+// HandleEvent mocks base method.
+func (m *MockService) HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HandleEvent", ctx, eventType, rawEvent)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// HandleEvent indicates an expected call of HandleEvent.
+func (mr *MockServiceMockRecorder) HandleEvent(ctx, eventType, rawEvent interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockService)(nil).HandleEvent), ctx, eventType, rawEvent)
 }
 
 // VerifyWebhook mocks base method.

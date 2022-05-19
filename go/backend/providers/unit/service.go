@@ -1,5 +1,7 @@
 package unit
 
+//go:generate mockgen -destination=./mock.go -package=unit -source=./service.go
+
 import (
 	"bytes"
 	"context"
@@ -13,6 +15,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/backend/onboarding"
 )
 
 var (
@@ -20,10 +23,16 @@ var (
 	ErrUnauthorized = errors.New("unit: unauthorized webhook request")
 )
 
+const (
+	ApplicationFormUserIDTag = "userID"
+	SignatureHeader          = "x-unit-signature"
+)
+
 type Service interface {
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 	VerifyWebhook(ctx context.Context, request *http.Request) error
+	HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error
 }
 
 type service struct {
@@ -31,12 +40,14 @@ type service struct {
 	baseURL      string
 	token        string
 	webhookToken string
+	os           onboarding.Service
 }
 
 type ServiceArgs struct {
-	BaseURL      string `validate:"required"`
-	Token        string `validate:"required"`
-	WebhookToken string `validate:"required"`
+	BaseURL      string             `validate:"required"`
+	Token        string             `validate:"required"`
+	WebhookToken string             `validate:"required"`
+	Os           onboarding.Service `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -51,6 +62,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		baseURL:      args.BaseURL,
 		token:        args.Token,
 		webhookToken: args.WebhookToken,
+		os:           args.Os,
 	}, nil
 }
 
@@ -119,7 +131,7 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 			"type": "applicationForm",
 			"attributes": {
 				"tags": {
-					"userId": "%s"
+					"%s": "%s"
 				},
 				"allowedApplicationTypes": ["Individual"],
 				"applicantDetails": {
@@ -129,7 +141,7 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 				}
 			}
 		}
-	}`, args.ID, args.Country, args.Email))
+	}`, ApplicationFormUserIDTag, args.ID, args.Country, args.Email))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
@@ -167,7 +179,7 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 }
 
 func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) error {
-	signature := request.Header.Get("x-unit-signature")
+	signature := request.Header.Get(SignatureHeader)
 	if signature == "" {
 		return ErrInternal
 	}
@@ -184,6 +196,29 @@ func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) e
 
 	if sha != signature {
 		return ErrUnauthorized
+	}
+
+	return nil
+}
+
+func (s *service) HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error {
+	// TODO: log/store event
+	switch eventType {
+	case CUSTOMER_CREATED:
+		event := &CustomerCreatedEvent{}
+		if err := json.Unmarshal(rawEvent, event); err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+
+		err := s.os.InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
+			IdentityID: event.Attributes.Tags[ApplicationFormUserIDTag],
+			Country:    "US",
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+	default:
+		// don't fail as Unit may add new events.
 	}
 
 	return nil
