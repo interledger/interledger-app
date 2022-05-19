@@ -11,8 +11,34 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+var customerCreatedEvent = CustomerCreatedEvent{
+	ID:   "1",
+	Type: "customer.created",
+	Attributes: CustomerCreatedAttributes{
+		CreatedAt: "2020-07-29T12:53:05.882Z",
+		Tags: map[string]string{
+			ApplicationFormUserIDTag: uuid.NewString(),
+		},
+	},
+	Relationships: CustomerCreatedRelationships{
+		Customer: Customer{
+			Data: Data{
+				ID:   "52",
+				Type: "individualCustomer",
+			},
+		},
+		Application: Application{
+			Data: Data{
+				ID:   "52",
+				Type: "individualApplication",
+			},
+		},
+	},
+}
 
 func TestWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -21,30 +47,7 @@ func TestWebhook(t *testing.T) {
 	t.Cleanup(func() {
 		svr.Close()
 	})
-	event := CustomerCreatedEvent{
-		ID:   "1",
-		Type: "customer.created",
-		Attributes: CustomerCreatedAttributes{
-			CreatedAt: "2020-07-29T12:53:05.882Z",
-			Tags: map[string]string{
-				"tag": "value",
-			},
-		},
-		Relationships: CustomerCreatedRelationships{
-			Customer: Customer{
-				Data: Data{
-					ID:   "52",
-					Type: "individualCustomer",
-				},
-			},
-			Application: Application{
-				Data: Data{
-					ID:   "52",
-					Type: "individualApplication",
-				},
-			},
-		},
-	}
+
 	scenarios := []struct {
 		Name                   string
 		VerifyError            error
@@ -55,13 +58,13 @@ func TestWebhook(t *testing.T) {
 		{
 			Name:                   "Returns 200",
 			VerifyError:            nil,
-			Payload:                marshal(t, []CustomerCreatedEvent{event, event}),
+			Payload:                marshal(t, customerCreatedEvent, customerCreatedEvent),
 			ExpectedHttpStatusCode: 200,
 		},
 		{
 			Name:                   "Returns 500 if webhook fails verification",
 			VerifyError:            errors.New("test"),
-			Payload:                marshal(t, []CustomerCreatedEvent{event, event}),
+			Payload:                marshal(t, customerCreatedEvent, customerCreatedEvent),
 			ExpectedHttpStatusCode: 500,
 			ResponseMessage:        "Signature didn't match.",
 		},
@@ -75,6 +78,9 @@ func TestWebhook(t *testing.T) {
 	}
 
 	for _, scenario := range scenarios {
+		if scenario.ExpectedHttpStatusCode == 200 {
+			provider.EXPECT().HandleEvent(context.Background(), CUSTOMER_CREATED, gomock.Any()).Return(nil).Times(2)
+		}
 		provider.EXPECT().VerifyWebhook(context.Background(), gomock.Any()).Return(scenario.VerifyError)
 		resp, err := http.Post(svr.URL, "application/json", scenario.Payload)
 		if err != nil {
@@ -91,8 +97,17 @@ func TestWebhook(t *testing.T) {
 	}
 }
 
-func marshal(t *testing.T, data interface{}) *bytes.Buffer {
-	raw, err := json.Marshal(data)
+func marshal(t *testing.T, events ...interface{}) *bytes.Buffer {
+	body := Body{}
+	for _, event := range events {
+		rawEvent, err := json.Marshal(event)
+		if err != nil {
+			t.Fatal(err)
+		}
+		body.Data = append(body.Data, rawEvent)
+	}
+
+	raw, err := json.Marshal(body)
 	if err != nil {
 		t.Fatal(err)
 	}

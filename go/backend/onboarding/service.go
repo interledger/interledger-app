@@ -1,5 +1,7 @@
 package onboarding
 
+//go:generate mockgen -destination=./mock.go -package=onboarding -source=./service.go
+
 import (
 	"context"
 	"errors"
@@ -21,6 +23,7 @@ var (
 type Service interface {
 	CreateAccount(ctx context.Context, args *CreateAccountArgs) (*accounts.Account, error)
 	VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error)
+	InitiateUnitCustomerOnboarding(ctx context.Context, args *InitiateUnitCustomerOnboardingArgs) error
 }
 
 type service struct {
@@ -153,4 +156,14 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 	}
 
 	return verifiedAccount, nil
+}
+
+type InitiateUnitCustomerOnboardingArgs struct {
+	IdentityID string `validate:"required"`
+	Country    string `validate:"oneof=US"`
+}
+
+func (s *service) InitiateUnitCustomerOnboarding(ctx context.Context, args *InitiateUnitCustomerOnboardingArgs) error {
+	fmt.Println(fmt.Sprintf("initiating unit customer onboarding %+v", args))
+	return nil
 }
