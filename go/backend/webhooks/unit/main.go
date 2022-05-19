@@ -67,14 +67,14 @@ func (wh *webhook) HandleEvent(ctx context.Context, eventType EventType, rawEven
 
 func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := wh.up.VerifyWebhook(context.Background(), r); err != nil {
-			http.Error(w, "Signature didn't match.", 401)
-			return
-		}
-
 		payload, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Failed to parse payload", 500)
+			return
+		}
+
+		if err := wh.up.VerifyWebhook(context.Background(), payload, r.Header.Get(unit.SignatureHeader)); err != nil {
+			http.Error(w, "Signature didn't match.", 401)
 			return
 		}
 

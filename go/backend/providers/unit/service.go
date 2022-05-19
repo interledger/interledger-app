@@ -31,7 +31,7 @@ const (
 type Service interface {
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
-	VerifyWebhook(ctx context.Context, request *http.Request) error
+	VerifyWebhook(ctx context.Context, body []byte, signature string) error
 	CreateCustomer(ctx context.Context, args *CreateCustomerArgs) (*Customer, error)
 	GetCustomerByID(ctx context.Context, id string) (*Customer, error)
 	GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error)
@@ -182,22 +182,10 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 	}, nil
 }
 
-func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) error {
-	signature := request.Header.Get(SignatureHeader)
-	if signature == "" {
-		return ErrInternal
-	}
-
+func (self *service) VerifyWebhook(ctx context.Context, body []byte, signature string) error {
 	mac := hmac.New(sha1.New, []byte(self.webhookToken))
-
-	body, err := io.ReadAll(request.Body)
-	if err != nil {
-		return ErrInternal
-	}
-
 	mac.Write(body)
 	sha := base64.StdEncoding.EncodeToString(mac.Sum(nil))
-
 	if sha != signature {
 		return ErrUnauthorized
 	}

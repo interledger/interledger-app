@@ -102,7 +102,7 @@ func TestWebhook(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		os.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), gomock.Any()).Return(nil).Times(scenario.MockCallTimes)
-		provider.EXPECT().VerifyWebhook(context.Background(), gomock.Any()).Return(scenario.VerifyError)
+		provider.EXPECT().VerifyWebhook(context.Background(), gomock.Any(), gomock.Any()).Return(scenario.VerifyError)
 		resp, err := http.Post(svr.URL, "application/json", scenario.Payload)
 		if err != nil {
 			t.Fatal(err)
