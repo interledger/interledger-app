@@ -84,11 +84,12 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			return
 		}
 
+		didFail := false
 		for _, rawEvent := range body.Data {
 			var event Event
 			if err := json.Unmarshal(rawEvent, &event); err != nil {
-				http.Error(w, "Failed to parse payload", 500)
-				return
+				didFail = true
+				continue
 			}
 
 			// TODO: this should not fail. Event must be logged.
@@ -97,6 +98,13 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 				http.Error(w, "Failed to handle event", 500)
 				return
 			}
+		}
+
+		// Handling event must not fail. See TODO above.
+		// We therefore know it was an unmarshalling error.
+		if didFail {
+			http.Error(w, "Failed to parse payload", 500)
+			return
 		}
 
 		w.WriteHeader(200)
