@@ -1,12 +1,7 @@
 package unit
 
 import (
-	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/hex"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -43,38 +38,19 @@ func TestUnitProvider(s *testing.T) {
 	})
 
 	s.Run("Successfully verifies incoming webhook request", func(t *testing.T) {
-		data := []byte(`{"data":[{"id":"2504140","type":"customer.created","attributes":{"createdAt":"2022-05-18T14:35:00.702Z","tags":{"userID":"02242b61-a99e-4b44-bda7-cf6a4f535a5f","test":"webhook-tag","key":"another-tag","number":"111"}},"relationships":{"customer":{"data":{"id":"344063","type":"individualCustomer"}},"application":{"data":{"id":"404728","type":"individualApplication"}}}}]}`)
-		sha := "CmllgACV27KxvW0qP3fjnFfMPGg=" // key = fynbos_local_unit_webhook_token
-		req, err := http.NewRequest("POST", "http://fynbos.test/webhooks/unit", bytes.NewBuffer(data))
-		if err != nil {
-			t.Fatal(err)
-		}
+		body := []byte(`{"data":[{"id":"2504140","type":"customer.created","attributes":{"createdAt":"2022-05-18T14:35:00.702Z","tags":{"userID":"02242b61-a99e-4b44-bda7-cf6a4f535a5f","test":"webhook-tag","key":"another-tag","number":"111"}},"relationships":{"customer":{"data":{"id":"344063","type":"individualCustomer"}},"application":{"data":{"id":"404728","type":"individualApplication"}}}}]}`)
+		signature := "CmllgACV27KxvW0qP3fjnFfMPGg=" // key = fynbos_local_unit_webhook_token
 
-		req.Header.Set("x-unit-signature", sha)
-		req.Header.Set("Content-Type", "application/json")
-
-		err = c.UnitService.VerifyWebhook(c.Ctx, req)
+		err = c.UnitService.VerifyWebhook(c.Ctx, body, signature)
 
 		assert.NoError(t, err)
 	})
 
-	s.Run("Fails if webhook tokens does not match", func(t *testing.T) {
-		data := []byte(`{"test":"data"}`)
+	s.Run("Fails if signature of webhook body does not match provided one", func(t *testing.T) {
+		body := []byte(`{"test":"data"}`)
+		signature := "CmllgACV27KxvW0qP3fjnFfMPGg"
 
-		mac := hmac.New(sha1.New, []byte("malicious-webhook-token"))
-		mac.Write(data)
-
-		sha := hex.EncodeToString(mac.Sum(nil))
-
-		req, err := http.NewRequest("POST", "http://fynbos.test/webhooks/unit", bytes.NewBuffer(data))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		req.Header.Set("x-unit-signature", sha)
-		req.Header.Set("Content-Type", "application/json")
-
-		err = c.UnitService.VerifyWebhook(c.Ctx, req)
+		err = c.UnitService.VerifyWebhook(c.Ctx, body, signature)
 
 		assert.ErrorIs(t, err, ErrUnauthorized)
 	})
