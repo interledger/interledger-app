@@ -1,5 +1,7 @@
 package identity
 
+//go:generate mockgen -destination=./mock.go -package=identity -source=./service.go
+
 import (
 	"context"
 	"database/sql"

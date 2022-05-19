@@ -1,5 +1,7 @@
 package noop
 
+//go:generate mockgen -destination=./mock.go -package=noop -source=./service.go
+
 import (
 	"context"
 	"errors"

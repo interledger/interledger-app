@@ -128,6 +128,7 @@ type TestContainer struct {
 	PacioliClient         pacioliv1.PacioliServiceClient
 	PacioliLedgerID       uint16
 	Db                    *sqlx.DB
+	Tp                    *mocks.Client
 	Logger                *zap.Logger
 	Crdb                  *test_utils.CockroachDBContainer
 	Ctx                   context.Context
@@ -242,12 +243,13 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 	c.FundingSourcesService = fs
-
+	c.Tp = &mocks.Client{}
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
 		Is:   is,
 		Noop: np,
+		Tp:   c.Tp,
 	})
 	if err != nil {
 		return nil, err

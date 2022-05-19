@@ -144,8 +144,10 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	}
 	for _, scenario := range scenarios {
 		os.EXPECT().InitiateUnitCustomerOnboarding(gomock.Any(), &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID: customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag],
-			Country:    "US",
+			IdentityID:   customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag],
+			Country:      "US",
+			CustomerID:   customerCreatedEvent.Relationships.Customer.Data.ID,
+			CustomerType: customerCreatedEvent.Relationships.Customer.Data.Type,
 		}).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, customerCreatedEvent)

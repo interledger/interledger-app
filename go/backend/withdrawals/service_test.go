@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -24,7 +26,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"testing"
 )
 
 func TestWithdrawals(s *testing.T) {
@@ -334,19 +335,20 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.FundingSourcesService = fs
 
+	temporal := &mocks.Client{}
+	c.TemporalMock = temporal
+
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
 		Is:   is,
 		Noop: np,
+		Tp:   c.TemporalMock,
 	})
 	if err != nil {
 		return nil, err
 	}
 	c.OnboardService = os
-
-	temporal := &mocks.Client{}
-	c.TemporalMock = temporal
 
 	ws, err := NewService(&ServiceArgs{
 		Db: db,
