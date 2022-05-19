@@ -116,6 +116,39 @@ func TestUnitProvider(s *testing.T) {
 		assert.Equal(t, "411479", form.ID)
 		assert.Equal(t, "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6", form.URL)
 	})
+
+	s.Run("Creates and retrieves customer", func(t *testing.T) {
+		accountID := uuid.NewString()
+		customerID := uuid.NewString()
+		customerType := "individual"
+		customer, err := c.UnitService.CreateCustomer(c.Ctx, &CreateCustomerArgs{
+			ID:        customerID,
+			AccountID: accountID,
+			Type:      customerType,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, customerID, customer.ID)
+		assert.Equal(t, accountID, customer.AccountID)
+		assert.Equal(t, customerType, customer.Type)
+
+		customerByID, err := c.UnitService.GetCustomerByID(c.Ctx, customer.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, customerID, customerByID.ID)
+		assert.Equal(t, accountID, customerByID.AccountID)
+		assert.Equal(t, customerType, customerByID.Type)
+
+		customerByAccountID, err := c.UnitService.GetCustomerByAccountID(ctx, accountID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, customerID, customerByAccountID.ID)
+		assert.Equal(t, customerID, customerByAccountID.ID)
+		assert.Equal(t, customerType, customerByAccountID.Type)
+	})
 }
 
 type TestContainer struct {
@@ -243,6 +276,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		WebhookToken: "test-webhook-token",
 		BaseURL:      c.UnitMockServer.URL,
 		Token:        "test token",
+		Db:           db,
 	})
 	if err != nil {
 		return nil, err
