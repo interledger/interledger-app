@@ -13,6 +13,8 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/client"
 )
 
 var (
@@ -32,6 +34,7 @@ type service struct {
 	as        accounts.Service
 	is        identity.Service
 	noop      noop.Service
+	tp        client.Client
 }
 
 type ServiceArgs struct {
@@ -39,6 +42,7 @@ type ServiceArgs struct {
 	As   accounts.Service `validate:"required"`
 	Is   identity.Service `validate:"required"`
 	Noop noop.Service     `validate:"required"`
+	Tp   client.Client    `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -54,6 +58,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		as:        args.As,
 		is:        args.Is,
 		noop:      args.Noop,
+		tp:        args.Tp,
 	}, nil
 }
 
@@ -153,11 +158,33 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 }
 
 type InitiateUnitCustomerOnboardingArgs struct {
-	IdentityID string `validate:"required"`
-	Country    string `validate:"oneof=US"`
+	IdentityID   string `validate:"required"`
+	Country      string `validate:"oneof=US"`
+	CustomerID   string `validate:"required"`
+	CustomerType string `validate:"required"`
 }
 
 func (s *service) InitiateUnitCustomerOnboarding(ctx context.Context, args *InitiateUnitCustomerOnboardingArgs) error {
-	fmt.Println(fmt.Sprintf("initiating unit customer onboarding %+v", args))
+	if err := s.validator.Struct(args); err != nil {
+		return fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	_, err := s.tp.ExecuteWorkflow(
+		ctx,
+		client.StartWorkflowOptions{
+			ID:                    "new_unit_customer_" + args.CustomerID,
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		},
+		OnboardUnitCustomerWorkflow, &OnboardUnitCustomerArgs{
+			CustomerID: args.CustomerID,
+			Type:       args.CustomerType,
+			IdentityID: args.IdentityID,
+			Country:    args.Country,
+		})
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
 	return nil
 }

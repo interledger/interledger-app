@@ -1,5 +1,7 @@
 package accounts
 
+//go:generate mockgen -destination=./mock.go -package=accounts -source=./service.go
+
 import (
 	"context"
 	"database/sql"

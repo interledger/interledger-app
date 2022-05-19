@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/google/uuid"
@@ -33,6 +34,7 @@ type TestContainer struct {
 	Os              onboarding.Service
 	Oso             *oso.Oso
 	Noop            noop.Service
+	Tp              *mocks.Client
 	AdminConn       *grpc.ClientConn
 	AdminClient     backend.BackendServiceClient
 	AdminServer     *grpc.Server
@@ -136,12 +138,13 @@ func NewTestContainer(ctx context.Context) (*TestContainer, error) {
 		return nil, err
 	}
 	c.Noop = noopProvider
-
+	c.Tp = &mocks.Client{}
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
 		Is:   is,
 		Noop: noopProvider,
+		Tp:   c.Tp,
 	})
 	if err != nil {
 		return nil, err

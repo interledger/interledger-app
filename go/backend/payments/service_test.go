@@ -301,11 +301,15 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.NoopService = np
 
+	temporal := &mocks.Client{}
+	c.TemporalMock = temporal
+
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
 		Is:   is,
 		Noop: np,
+		Tp:   temporal,
 	})
 	if err != nil {
 		return nil, err
@@ -322,9 +326,6 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 
 	c.TransactionService = ts
-
-	temporal := &mocks.Client{}
-	c.TemporalMock = temporal
 
 	ps, err := NewService(&ServiceArgs{
 		Db: db,

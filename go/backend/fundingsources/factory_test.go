@@ -2,8 +2,10 @@ package fundingsources
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
 	"testing"
+
+	"go.temporal.io/sdk/mocks"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -33,6 +35,7 @@ type TestContainer struct {
 	PacioliContainer *test_utils.PacioliContainer
 	PacioliClient    pacioliv1.PacioliServiceClient
 	PacioliLedgerID  uint16
+	Tp               *mocks.Client
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -120,12 +123,13 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 	c.Noop = noop
-
+	c.Tp = &mocks.Client{}
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
 		Is:   is,
 		Noop: noop,
+		Tp:   c.Tp,
 	})
 	if err != nil {
 		return nil, err

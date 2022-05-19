@@ -213,6 +213,7 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 		As:   as,
 		Is:   is,
 		Noop: noopProvider,
+		Tp:   tp,
 	})
 	if err != nil {
 		return nil, err

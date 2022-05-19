@@ -50,8 +50,10 @@ func (wh *webhook) HandleEvent(ctx context.Context, eventType EventType, rawEven
 		}
 
 		err := wh.os.InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID: event.Attributes.Tags[unit.ApplicationFormUserIDTag],
-			Country:    "US",
+			IdentityID:   event.Attributes.Tags[unit.ApplicationFormUserIDTag],
+			Country:      "US",
+			CustomerID:   event.Relationships.Customer.Data.ID,
+			CustomerType: event.Relationships.Customer.Data.Type,
 		})
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
