@@ -7,7 +7,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha1"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -196,7 +196,7 @@ func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) e
 	}
 
 	mac.Write(body)
-	sha := hex.EncodeToString(mac.Sum(nil))
+	sha := base64.StdEncoding.EncodeToString(mac.Sum(nil))
 
 	if sha != signature {
 		return ErrUnauthorized

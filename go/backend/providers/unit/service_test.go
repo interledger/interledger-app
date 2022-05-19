@@ -43,13 +43,8 @@ func TestUnitProvider(s *testing.T) {
 	})
 
 	s.Run("Successfully verifies incoming webhook request", func(t *testing.T) {
-		data := []byte(`{"test":"data"}`)
-
-		mac := hmac.New(sha1.New, []byte("test-webhook-token"))
-		mac.Write(data)
-
-		sha := hex.EncodeToString(mac.Sum(nil))
-
+		data := []byte(`{"data":[{"id":"2504140","type":"customer.created","attributes":{"createdAt":"2022-05-18T14:35:00.702Z","tags":{"userID":"02242b61-a99e-4b44-bda7-cf6a4f535a5f","test":"webhook-tag","key":"another-tag","number":"111"}},"relationships":{"customer":{"data":{"id":"344063","type":"individualCustomer"}},"application":{"data":{"id":"404728","type":"individualApplication"}}}}]}`)
+		sha := "CmllgACV27KxvW0qP3fjnFfMPGg=" // key = fynbos_local_unit_webhook_token
 		req, err := http.NewRequest("POST", "http://fynbos.test/webhooks/unit", bytes.NewBuffer(data))
 		if err != nil {
 			t.Fatal(err)
@@ -273,7 +268,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
 
 	us, err := NewService(ServiceArgs{
-		WebhookToken: "test-webhook-token",
+		WebhookToken: "fynbos_local_unit_webhook_token",
 		BaseURL:      c.UnitMockServer.URL,
 		Token:        "test token",
 		Db:           db,
