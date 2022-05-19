@@ -65,12 +65,14 @@ func TestWebhook(t *testing.T) {
 		Payload                *bytes.Buffer
 		ExpectedHttpStatusCode int
 		ResponseMessage        string
+		MockCallTimes          int
 	}{
 		{
 			Name:                   "Returns 200",
 			VerifyError:            nil,
 			Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
 			ExpectedHttpStatusCode: 200,
+			MockCallTimes:          2,
 		},
 		{
 			Name:                   "Returns 500 if webhook fails verification",
@@ -78,6 +80,7 @@ func TestWebhook(t *testing.T) {
 			Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
 			ExpectedHttpStatusCode: 401,
 			ResponseMessage:        "Signature didn't match.\n",
+			MockCallTimes:          0,
 		},
 		{
 			Name:                   "Returns 500 if marshalling payload fails",
@@ -85,13 +88,20 @@ func TestWebhook(t *testing.T) {
 			Payload:                bytes.NewBuffer([]byte("")),
 			ExpectedHttpStatusCode: 500,
 			ResponseMessage:        "Failed to parse payload\n",
+			MockCallTimes:          0,
+		},
+		{
+			Name:                   "Tries to handle all events even if first one fails",
+			VerifyError:            nil,
+			Payload:                marshalBody(t, "", customerCreatedEvent),
+			ExpectedHttpStatusCode: 500,
+			ResponseMessage:        "Failed to parse payload\n",
+			MockCallTimes:          1,
 		},
 	}
 
 	for _, scenario := range scenarios {
-		if scenario.ExpectedHttpStatusCode == 200 {
-			os.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), gomock.Any()).Return(nil).Times(2)
-		}
+		os.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), gomock.Any()).Return(nil).Times(scenario.MockCallTimes)
 		provider.EXPECT().VerifyWebhook(context.Background(), gomock.Any()).Return(scenario.VerifyError)
 		resp, err := http.Post(svr.URL, "application/json", scenario.Payload)
 		if err != nil {
