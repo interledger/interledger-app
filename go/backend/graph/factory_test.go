@@ -161,9 +161,10 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
 
 	us, err := unit.NewService(unit.ServiceArgs{
-		BaseURL: c.UnitMockServer.URL,
+		BaseURL:      c.UnitMockServer.URL,
 		WebhookToken: "test-webhook-token",
-		Token:   "test token",
+		Token:        "test token",
+		Db:           db,
 	})
 	if err != nil {
 		return nil, err

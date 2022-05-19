@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
 )
 
 var (
@@ -31,20 +32,27 @@ type Service interface {
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 	VerifyWebhook(ctx context.Context, request *http.Request) error
+	CreateCustomer(ctx context.Context, args *CreateCustomerArgs) (*Customer, error)
+	GetCustomerByID(ctx context.Context, id string) (*Customer, error)
+	GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error)
 }
 
-type service struct {
-	validator    *validator.Validate
-	baseURL      string
-	token        string
-	webhookToken string
-}
+type (
+	service struct {
+		validator    *validator.Validate
+		baseURL      string
+		token        string
+		webhookToken string
+		db           *sqlx.DB
+	}
 
-type ServiceArgs struct {
-	BaseURL      string `validate:"required"`
-	Token        string `validate:"required"`
-	WebhookToken string `validate:"required"`
-}
+	ServiceArgs struct {
+		BaseURL      string   `validate:"required"`
+		Token        string   `validate:"required"`
+		WebhookToken string   `validate:"required"`
+		Db           *sqlx.DB `validate:"required"`
+	}
+)
 
 func NewService(args ServiceArgs) (Service, error) {
 	validator := validator.New()
@@ -58,6 +66,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		baseURL:      args.BaseURL,
 		token:        args.Token,
 		webhookToken: args.WebhookToken,
+		db:           args.Db,
 	}, nil
 }
 
@@ -194,4 +203,59 @@ func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) e
 	}
 
 	return nil
+}
+
+// maps the unit customer to the Fynbos account
+type (
+	Customer struct {
+		ID        string `db:"id"`
+		AccountID string `db:"account_id"`
+		Type      string `db:"type"`
+		CreatedAt string `db:"created_at"`
+		UpdatedAt string `db:"updated_at"`
+	}
+
+	CreateCustomerArgs struct {
+		ID        string
+		AccountID string
+		Type      string
+	}
+)
+
+func (s *service) CreateCustomer(
+	ctx context.Context,
+	args *CreateCustomerArgs,
+) (*Customer, error) {
+	var customer Customer
+	err := s.db.GetContext(
+		ctx,
+		&customer,
+		"INSERT INTO unit_customers (id, account_id, type) VALUES ($1, $2, $3) RETURNING *;",
+		args.ID,
+		args.AccountID,
+		args.Type,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &customer, nil
+}
+
+func (s *service) GetCustomerByID(ctx context.Context, id string) (*Customer, error) {
+	var customer Customer
+	if err := s.db.GetContext(ctx, &customer, "SELECT * FROM unit_customers WHERE id=$1", id); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &customer, nil
+}
+
+func (s *service) GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error) {
+	var customer Customer
+	if err := s.db.GetContext(ctx, &customer, "SELECT * FROM unit_customers WHERE account_id=$1", accountID); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &customer, nil
 }

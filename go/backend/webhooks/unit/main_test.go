@@ -12,6 +12,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -110,10 +111,12 @@ func TestWebhook(t *testing.T) {
 func TestHandleCreatedCustomerEvent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	os := onboarding.NewMockService(ctrl)
+	db := &sqlx.DB{}
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
 		Token:        "token",
 		WebhookToken: "webhooktoken",
+		Db:           db,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -160,10 +163,12 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 	// don't fail as Unit may add new event types.
 	ctrl := gomock.NewController(t)
 	os := onboarding.NewMockService(ctrl)
+	db := &sqlx.DB{}
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
 		Token:        "token",
 		WebhookToken: "webhooktoken",
+		Db:           db,
 	})
 	if err != nil {
 		t.Fatal(err)
