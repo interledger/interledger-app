@@ -15,7 +15,6 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/onboarding"
 )
 
 var (
@@ -32,7 +31,6 @@ type Service interface {
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 	VerifyWebhook(ctx context.Context, request *http.Request) error
-	HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error
 }
 
 type service struct {
@@ -40,14 +38,12 @@ type service struct {
 	baseURL      string
 	token        string
 	webhookToken string
-	os           onboarding.Service
 }
 
 type ServiceArgs struct {
-	BaseURL      string             `validate:"required"`
-	Token        string             `validate:"required"`
-	WebhookToken string             `validate:"required"`
-	Os           onboarding.Service `validate:"required"`
+	BaseURL      string `validate:"required"`
+	Token        string `validate:"required"`
+	WebhookToken string `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -62,7 +58,6 @@ func NewService(args ServiceArgs) (Service, error) {
 		baseURL:      args.BaseURL,
 		token:        args.Token,
 		webhookToken: args.WebhookToken,
-		os:           args.Os,
 	}, nil
 }
 
@@ -196,29 +191,6 @@ func (self *service) VerifyWebhook(ctx context.Context, request *http.Request) e
 
 	if sha != signature {
 		return ErrUnauthorized
-	}
-
-	return nil
-}
-
-func (s *service) HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error {
-	// TODO: log/store event
-	switch eventType {
-	case CUSTOMER_CREATED:
-		event := &CustomerCreatedEvent{}
-		if err := json.Unmarshal(rawEvent, event); err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err)
-		}
-
-		err := s.os.InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID: event.Attributes.Tags[ApplicationFormUserIDTag],
-			Country:    "US",
-		})
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err)
-		}
-	default:
-		// don't fail as Unit may add new events.
 	}
 
 	return nil

@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	gomock "github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,6 @@ import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -120,68 +118,6 @@ func TestUnitProvider(s *testing.T) {
 	})
 }
 
-func TestHandleCreatedCustomerEvent(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	os := onboarding.NewMockService(ctrl)
-	provider, err := NewService(ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Os:           os,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	scenarios := []struct {
-		Name            string
-		OnboardingError error
-	}{
-		{
-			Name:            "Succeeds if unit onboarding is initiated.",
-			OnboardingError: nil,
-		},
-		{
-			Name:            "Returns ErrInternal if unit onboarding fails to initiate",
-			OnboardingError: onboarding.ErrInternal,
-		},
-	}
-	for _, scenario := range scenarios {
-		os.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID: customerCreatedEvent.Attributes.Tags[ApplicationFormUserIDTag],
-			Country:    "US",
-		}).Return(scenario.OnboardingError)
-
-		rawEvent := marshal(t, customerCreatedEvent)
-		err = provider.HandleEvent(context.Background(), CUSTOMER_CREATED, rawEvent.Bytes())
-
-		if scenario.OnboardingError != nil {
-			assert.ErrorIs(t, err, ErrInternal, scenario.Name)
-		} else {
-			assert.NoError(t, err, scenario.Name)
-		}
-	}
-}
-
-func TestDontFailForUnknownEvent(t *testing.T) {
-	// don't fail as Unit may add new event types.
-	ctrl := gomock.NewController(t)
-	os := onboarding.NewMockService(ctrl)
-	provider, err := NewService(ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Os:           os,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rawEvent := marshal(t, customerCreatedEvent)
-	err = provider.HandleEvent(context.Background(), EventType("unknown"), rawEvent.Bytes())
-	assert.NoError(t, err)
-}
-
 type TestContainer struct {
 	UnitMockServer     *httptest.Server
 	UnitService        Service
@@ -189,7 +125,6 @@ type TestContainer struct {
 	AccountService     _accounts.Service
 	CountryService     _country.Service
 	NoopService        noop.Service
-	OnboardService     onboarding.Service
 	TransactionService account_transactions.Service
 	TemporalMock       *mocks.Client
 	PacioliContainer   *test_utils.PacioliContainer
@@ -302,24 +237,12 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.NoopService = np
 
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Noop: np,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.OnboardService = os
-
 	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
 
 	us, err := NewService(ServiceArgs{
 		WebhookToken: "test-webhook-token",
 		BaseURL:      c.UnitMockServer.URL,
 		Token:        "test token",
-		Os:           os,
 	})
 	if err != nil {
 		return nil, err
