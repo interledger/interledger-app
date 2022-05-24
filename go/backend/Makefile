@@ -15,7 +15,7 @@ testci:
 	go test -p 2 ./...
 	@echo "Tests complete."
 
-test: testEnvUp
+test: testenvup
 	@echo "Running tests"
 	go test -p 2 ./...
 	@echo "Not destroying test env as you may run tests again."

@@ -8,10 +8,26 @@ pull:
 	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1
 	@echo "Pull complete"
 
-test:
+testci: 
 	@echo "Running tests"
-	go test ./...
-	@echo "Tests complete"
+	go test -p 2 ./...
+	@echo "Tests complete."
+
+test: testenvup
+	@echo "Running tests"
+	go test -p 2 ./...
+	@echo "Not destroying test env as you may run tests again."
+	@echo "Tests complete."
+
+testenvup:
+	@echo "Starting test environment"
+	docker compose -f ./docker-compose-dev.yml up -d
+	@echo "Test environment started"
+
+testenvdown:
+	@echo "Destroy test environment"
+	docker compose -f ./docker-compose-dev.yml down
+	@echo "Test environment destoyed"
 
 format:
 	@echo "Formatting"

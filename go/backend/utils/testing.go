@@ -139,7 +139,7 @@ func TruncateDb(ctx context.Context, db *sqlx.DB) error {
 }
 
 type PacioliContainer struct {
-	Crdb           testcontainers.Container
+	DbCleanup      func()
 	Tb             testcontainers.Container
 	URI            string
 	Pacioli        *exec.Cmd
@@ -158,10 +158,7 @@ func (c *PacioliContainer) Terminate(ctx context.Context) error {
 		return err
 	}
 
-	err = c.Crdb.Terminate(ctx)
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
 	err = c.PacioliNetwork.Remove(ctx)
 	if err != nil {
@@ -171,7 +168,7 @@ func (c *PacioliContainer) Terminate(ctx context.Context) error {
 	return nil
 }
 
-func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
+func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 	fmt.Println("Starting pacioli test container.")
 	containerNetwork := "pacioli-" + uuid.NewString()
 	network, err := testcontainers.GenericNetwork(ctx, testcontainers.GenericNetworkRequest{
@@ -181,30 +178,24 @@ func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
 		},
 	})
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
-		return nil, errors.New("Could not get directory path for utils/testing.")
+		t.Fatal("Could not get directory path for utils/testing.")
 	}
 
-	fmt.Println("Starting pacioli crdb.")
-	crdb, err := pacioli_utils.SetupTestCockroachDB(ctx, containerNetwork)
-	if err != nil {
-		return nil, err
-	}
+	connString, _, dbCleanup := pacioli_utils.MigrateCockroachDB(t, ctx)
 
-	fmt.Println("Starting pacioli tb.")
 	tb, err := pacioli_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
-	fmt.Println("Starting pacioli.")
 	port, err := GetFreePort()
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 	hostIP := "127.0.0.1"
 	pacioli := exec.Command(
@@ -217,21 +208,21 @@ func SetupPacioli(ctx context.Context) (*PacioliContainer, error) {
 		os.Environ(),
 		"ENV=testing",
 		fmt.Sprintf("PORT=%d", port),
-		fmt.Sprintf("DB_URL=%s", crdb.URI),
+		fmt.Sprintf("DB_URL=%s", connString),
 		fmt.Sprintf("TB_URL=%s", tb.URI),
 		"TB_CLUSTER_ID=0",
 	)
 	if err = pacioli.Start(); err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
 	return &PacioliContainer{
-		Crdb:           crdb,
+		DbCleanup:      dbCleanup,
 		Tb:             tb,
 		Pacioli:        pacioli,
 		PacioliUrl:     fmt.Sprintf("%s:%d", hostIP, port),
 		PacioliNetwork: network,
-	}, nil
+	}
 }
 
 func GetFreePort() (int, error) {
