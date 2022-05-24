@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	k8s "gitlab.com/fynbos/infra/aws/modules/kubernetes"
@@ -15,13 +17,35 @@ func main() {
 
 		fynbosConf := config.New(ctx, "fynbos")
 		accountId := fynbosConf.Get("accountId")
-
-		err := k8s.ConfigureClusterRolesAndPsp(ctx)
+		k8sStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-eu-west-1-shared-k8s/main", nil)
+		if err != nil {
+			return err
+		}
+		kubeConfig := k8sStack.GetStringOutput(pulumi.String("kubeconfig"))
+		kubeProvider, err := kubernetes.NewProvider(ctx, "kubernetes-provider", &kubernetes.ProviderArgs{
+			Kubeconfig: kubeConfig,
+		})
 		if err != nil {
 			return err
 		}
 
-		err = k8s.DeployLoggingAndMonitoring(ctx, clusterName, "eu-west-1")
+		//Install
+		_, err = helm.NewChart(ctx, "cilium", helm.ChartArgs{
+			FetchArgs: &helm.FetchArgs{
+				Repo: pulumi.String("https://helm.cilium.io/"),
+			},
+			Namespace: pulumi.String("kube-system"),
+			Chart:     pulumi.String("cilium"),
+			Version:   pulumi.String("1.11.5"),
+			Values: pulumi.Map{
+				"egressMasqueradeInterfaces": pulumi.String("eth0"),
+			},
+		}, pulumi.Provider(kubeProvider))
+		if err != nil {
+			return err
+		}
+
+		err = k8s.ConfigureClusterRolesAndPsp(ctx, pulumi.Provider(kubeProvider))
 		if err != nil {
 			return err
 		}
@@ -42,23 +66,7 @@ func main() {
 			return err
 		}
 
-		err = k8s.DeployDefaultCSIStorageClass(ctx)
-		if err != nil {
-			return err
-		}
-
-		//calicoOperator, calicoCrds, err := k8s.DeployCalico(ctx)
-		//if err != nil { return err }
-		//
-		//err = k8s.ConfigureDefaultNetworkPolicy(ctx, []pulumi.Resource{calicoOperator, calicoCrds})
-		//if err != nil { return err }
-
-		// Configure Automation roles
-		err = k8s.ConfigureAutomationRole(ctx, "default")
-		if err != nil {
-			return err
-		}
-		err = k8s.ApplyAutomationRoleBindingToNamespace(ctx, "default")
+		err = k8s.DeployDefaultCSIStorageClass(ctx, pulumi.Provider(kubeProvider))
 		if err != nil {
 			return err
 		}

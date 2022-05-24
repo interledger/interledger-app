@@ -8,6 +8,7 @@ import (
 	metaV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
+	"gopkg.in/yaml.v3"
 )
 
 // This role is able to manage all eks resources and is intended
@@ -656,4 +657,90 @@ func NewIamTrustPolicyDocument(ctx *pulumi.Context, accountId string, oidcProvid
 	}
 
 	return policy.Json, nil
+}
+
+type ServiceRoleArgs struct {
+	Service           string
+	Description       string
+	ManagedPolicyArns []string
+}
+
+func NewServiceRole(ctx *pulumi.Context, name string, args *ServiceRoleArgs) (*iam.Role, error) {
+
+	assumePolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Effect: utils.StringPtr("Allow"),
+				Actions: []string{
+					"sts:AssumeRole",
+				},
+				Principals: []iam.GetPolicyDocumentStatementPrincipal{
+					{
+						Type: "Service",
+						Identifiers: []string{
+							args.Service,
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := iam.NewRole(ctx, name, &iam.RoleArgs{
+		Description:       pulumi.String(args.Description),
+		AssumeRolePolicy:  pulumi.String(assumePolicy.Json),
+		ManagedPolicyArns: pulumi.ToStringArray(args.ManagedPolicyArns),
+	})
+
+	return role, err
+}
+
+type RoleMap struct {
+	RoleArn  string   `yaml:"rolearn"`
+	Username string   `yaml:"username"`
+	Groups   []string `yaml:"groups"`
+}
+
+type ConfigData struct {
+	MapRoles string `yaml:"mapRoles"`
+}
+
+func RoleMappingConfig(instanceRoles []*iam.Role, mappings []RoleMap) pulumi.StringOutput {
+	var inputs []interface{}
+	for _, a := range instanceRoles {
+		inputs = append(inputs, a.Arn)
+	}
+
+	output := pulumi.All(inputs...).ApplyT(func(args []interface{}) (string, error) {
+		var roles []RoleMap
+
+		for i := 0; i < len(args); i++ {
+			roleArn := args[i].(string)
+			r := RoleMap{
+				RoleArn:  roleArn,
+				Username: "system:node:{{EC2PrivateDNSName}}",
+				Groups: []string{
+					"system:bootstrappers",
+					"system:nodes",
+				},
+			}
+			roles = append(roles, r)
+		}
+
+		for _, m := range mappings {
+			roles = append(roles, m)
+		}
+
+		srm, err := yaml.Marshal(&roles)
+		if err != nil {
+			return "", err
+		}
+
+		return string(srm), nil
+	}).(pulumi.StringOutput)
+
+	return output
 }
