@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"testing"
 
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -23,66 +25,51 @@ import (
 	pacioli_utils "gitlab.com/fynbos/pacioli/utils"
 )
 
-type CockroachDBContainer struct {
-	testcontainers.Container
-	URI string
-}
+const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
 
-// This will start the crdb test container and run the migrations.
-func SetupTestCockroachDB(ctx context.Context) (*CockroachDBContainer, error) {
-	fmt.Println("Starting CRDB test container.")
-
+// Assumes that CRDB is running locally on port 26257.
+func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB, cleanup func()) {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
-		return nil, errors.New("Could not get directory path for utils/testing.")
+		t.Fatal("Could not get directory path for utils/testing.")
 	}
 
-	req := testcontainers.ContainerRequest{
-		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1",
-		ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-		WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
-		Cmd:          []string{"start-single-node", "--insecure"},
+	dbName := "backend_test_" + strings.Replace(uuid.NewString(), "-", "", 4)
+	connString := os.Getenv("DB_URL")
+	if connString == "" {
+		connString = testingCrdbConnectionString
 	}
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	mappedPort, err := container.MappedPort(ctx, "26257")
-	if err != nil {
-		return nil, err
-	}
-
-	hostIP, err := container.Host(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	connString := fmt.Sprintf("postgres://root@%s:%s/backend?sslmode=disable", hostIP, mappedPort.Port())
+	connString = fmt.Sprintf(connString, dbName)
 	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
-	defer db.Close()
 
-	fmt.Println("Creating backend database")
-	const query = `CREATE DATABASE backend;`
+	query := fmt.Sprintf("CREATE DATABASE %s;", dbName)
 	_, err = db.ExecContext(ctx, query)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
 	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../migrations")
-	fmt.Println("Applying migrations from file://" + migrationsPath)
 	err = migrations.MigrateFromDir(connString, migrationsPath)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
-	return &CockroachDBContainer{Container: container, URI: connString}, nil
+	cleanup = func() {
+		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
+		_, err := db.ExecContext(ctx, cleanupQuery)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err = db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return db, cleanup
 }
 
 type KratosContainer struct {

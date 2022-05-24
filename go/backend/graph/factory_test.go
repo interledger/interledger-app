@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"net/http/httptest"
+	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/client"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -40,9 +40,9 @@ import (
 
 type TestContainer struct {
 	Ctx                  context.Context
-	Crdb                 *test_utils.CockroachDBContainer
 	Logger               *zap.Logger
 	Db                   *sqlx.DB
+	DbCleanup            func()
 	AccountService       _account.Service
 	CountryService       _country.Service
 	FundingSourceService fundingsources.Service
@@ -64,27 +64,19 @@ type TestContainer struct {
 	Server               *httptest.Server
 }
 
-func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContainer, error) {
+func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
 
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
+	db, cleanup := test_utils.MigrateCockroachDB(t, ctx)
+	c.Db = db
+	c.DbCleanup = cleanup
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, err
 	}
 	c.Logger = logger
-
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
-	c.Db = db
 
 	cs := _country.NewService(db)
 	c.CountryService = cs
@@ -273,19 +265,12 @@ func NewTestContainer(ctx context.Context, t gomock.TestReporter) (*TestContaine
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
 	c.Server.Close()
-	err := c.Db.Close()
-	if err != nil {
-		return err
-	}
 
 	c.UnitMockServer.Close()
 
-	err = c.Crdb.Container.Terminate(ctx)
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
-	err = c.PacioliContainer.Terminate(ctx)
+	err := c.PacioliContainer.Terminate(ctx)
 	if err != nil {
 		return err
 	}
