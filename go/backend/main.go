@@ -31,11 +31,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/backend/accounts"
-	_admin "gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph"
+	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
@@ -296,7 +296,7 @@ func start(args *cli.StartArgs) {
 	}
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
 
-	server, err := _admin.NewServer(&_admin.ServerArgs{
+	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		Hs: health,
 		Is: id,
 		As: as,
@@ -310,7 +310,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("admin grpc server: 0.0.0.0:%s", "8443")
+	log.Printf("grpc server: 0.0.0.0:%s", "8443")
 	err = server.Serve(listener)
 	if err != nil {
 		log.Fatalln(err)

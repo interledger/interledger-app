@@ -4,9 +4,12 @@ package backend.v1;
 
 option go_package = "./backend/v1;backend";
 
-service BackendService {
+service BackendAdminService {
   rpc GetUserAccountByEmail(GetUserAccountByEmailRequest) returns (Account);
   rpc GetUnitCustomerByAccountID(GetUnitCustomerByAccountRequest) returns (UnitCustomer);
+}
+
+service BackendService {
 }
 
 message GetUserAccountByEmailRequest {

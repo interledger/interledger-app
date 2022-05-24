@@ -3,71 +3,31 @@ package admin
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit"
-	"gitlab.com/fynbos/proto/backend/v1"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
-var (
-	ErrInvalidArgument = errors.New("admin grpc: invalid argument.")
-	ErrInternal        = errors.New("admin grpc: internal error.")
-)
-
-type ServerArgs struct {
-	Hs healthcheck.Service `validate:"required"`
-	Is identity.Service    `validate:"required"`
-	As accounts.Service    `validate:"required"`
-	Us auth.Service        `validate:"required"`
-	Up unit.Service        `validate:"required"`
+type AdminRpcServer struct {
+	backendv1.UnimplementedBackendAdminServiceServer
+	Validator       *validator.Validate
+	AccountsService accounts.Service
+	IdentityService identity.Service
+	AuthService     auth.Service
+	UnitService     unit.Service
 }
 
-func NewServer(args *ServerArgs) (*grpc.Server, error) {
-	v := validator.New()
-	if err := v.Struct(args); err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
-	}
-
-	server := grpc.NewServer(
-		args.Us.MakeUnaryInterceptors(),
-	)
-	backendv1.RegisterBackendServiceServer(server, &rpcServer{
-		validator: v,
-		as:        args.As,
-		is:        args.Is,
-		us:        args.Us,
-		up:        args.Up,
-	})
-	grpc_health_v1.RegisterHealthServer(server, args.Hs)
-	reflection.Register(server)
-	return server, nil
-}
-
-type rpcServer struct {
-	backendv1.UnimplementedBackendServiceServer
-	validator *validator.Validate
-	as        accounts.Service
-	is        identity.Service
-	us        auth.Service
-	up        unit.Service
-}
-
-func (s *rpcServer) GetUserAccountByEmail(
+func (s *AdminRpcServer) GetUserAccountByEmail(
 	ctx context.Context,
 	req *backendv1.GetUserAccountByEmailRequest,
 ) (*backendv1.Account, error) {
-	adminUser, err := s.us.ForContext(ctx)
+	adminUser, err := s.AuthService.ForContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
 	}
@@ -76,7 +36,7 @@ func (s *rpcServer) GetUserAccountByEmail(
 		return nil, status.Error(codes.PermissionDenied, "Forbidden.")
 	}
 
-	id, err := s.is.GetByEmail(ctx, req.GetEmail())
+	id, err := s.IdentityService.GetByEmail(ctx, req.GetEmail())
 	if err != nil {
 		switch {
 		case errors.Is(err, identity.ErrNotFound):
@@ -86,7 +46,7 @@ func (s *rpcServer) GetUserAccountByEmail(
 		}
 	}
 
-	acc, err := s.as.GetByIdentityID(ctx, id.ID)
+	acc, err := s.AccountsService.GetByIdentityID(ctx, id.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -101,11 +61,11 @@ func (s *rpcServer) GetUserAccountByEmail(
 	}, nil
 }
 
-func (s *rpcServer) GetUnitCustomerByAccountID(
+func (s *AdminRpcServer) GetUnitCustomerByAccountID(
 	ctx context.Context,
 	req *backendv1.GetUnitCustomerByAccountRequest,
-) (*backend.UnitCustomer, error) {
-	adminUser, err := s.us.ForContext(ctx)
+) (*backendv1.UnitCustomer, error) {
+	adminUser, err := s.AuthService.ForContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
 	}
@@ -114,7 +74,7 @@ func (s *rpcServer) GetUnitCustomerByAccountID(
 		return nil, status.Error(codes.PermissionDenied, "Forbidden.")
 	}
 
-	customer, err := s.up.GetCustomerByAccountID(ctx, req.GetAccountId())
+	customer, err := s.UnitService.GetCustomerByAccountID(ctx, req.GetAccountId())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
