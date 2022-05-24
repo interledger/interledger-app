@@ -76,13 +76,9 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.DbCleanup = dbCleanup
 	c.Db = db
 
-	pacioli, err := test_utils.SetupPacioli(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Pacioli = pacioli
+	c.Pacioli = test_utils.SetupPacioli(t, ctx)
 
-	pacioliConn, err := grpc.Dial(pacioli.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	pacioliConn, err := grpc.Dial(c.Pacioli.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

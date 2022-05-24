@@ -2,11 +2,12 @@ package rpc
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"testing"
 
-	"github.com/coilhq/tigerbeetle-go"
+	"google.golang.org/grpc/credentials/insecure"
+
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	"gitlab.com/fynbos/pacioli/ledger"
@@ -18,9 +19,9 @@ import (
 type TestContainer struct {
 	TbClient   tigerbeetle_go.Client
 	Ctx        context.Context
-	Crdb       *test_utils.CockroachDBContainer
 	Tb         *test_utils.TigerBeetleContainer
 	Db         *sqlx.DB
+	DbCleanup  func()
 	Ls         ledger.Service
 	Server     *grpc.Server
 	Client     pacioliv1.PacioliServiceClient
@@ -32,17 +33,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ctx = ctx
 	containerNetwork := "pacioli-test"
 
-	crdb, err := test_utils.SetupTestCockroachDB(ctx, containerNetwork)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
-
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
-	c.Db = db
+	_, c.Db, c.DbCleanup = test_utils.MigrateCockroachDB(t, ctx)
 
 	tb, err := test_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
@@ -57,7 +48,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.TbClient = tbClient
 
 	ls, err := ledger.NewService(&ledger.ServiceArgs{
-		Db: db,
+		Db: c.Db,
 		Tb: tbClient,
 	})
 	if err != nil {
@@ -96,19 +87,12 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 func (c *TestContainer) Cleanup() error {
 	c.Server.Stop()
-	err := c.Db.Close()
-	if err != nil {
-		return err
-	}
 
-	err = c.Crdb.Container.Terminate(c.Ctx)
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
 	c.TbClient.Close()
 
-	err = c.Tb.Terminate(c.Ctx)
+	err := c.Tb.Terminate(c.Ctx)
 	if err != nil {
 		return err
 	}

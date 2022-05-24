@@ -3,19 +3,20 @@ package ledger
 import (
 	"context"
 	"fmt"
-	"github.com/coilhq/tigerbeetle-go"
+	"testing"
+
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
-	"testing"
 )
 
 type TestContainer struct {
-	TbClient tigerbeetle_go.Client
-	Ctx      context.Context
-	Crdb     *test_utils.CockroachDBContainer
-	Tb       *test_utils.TigerBeetleContainer
-	Db       *sqlx.DB
-	Ls       Service
+	TbClient  tigerbeetle_go.Client
+	Ctx       context.Context
+	DbCleanup func()
+	Tb        *test_utils.TigerBeetleContainer
+	Db        *sqlx.DB
+	Ls        Service
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -23,17 +24,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ctx = ctx
 	containerNetwork := "pacioli-test"
 
-	crdb, err := test_utils.SetupTestCockroachDB(ctx, containerNetwork)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
-
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
-	c.Db = db
+	_, c.Db, c.DbCleanup = test_utils.MigrateCockroachDB(t, ctx)
 
 	tb, err := test_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
@@ -53,7 +44,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 
 	ls, err := NewService(&ServiceArgs{
-		Db: db,
+		Db: c.Db,
 		Tb: tbClient,
 	})
 	if err != nil {
@@ -65,19 +56,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 }
 
 func (c *TestContainer) Cleanup() error {
-	err := c.Db.Close()
-	if err != nil {
-		return err
-	}
-
-	err = c.Crdb.Container.Terminate(c.Ctx)
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
 	c.TbClient.Close()
 
-	err = c.Tb.Terminate(c.Ctx)
+	err := c.Tb.Terminate(c.Ctx)
 	if err != nil {
 		return err
 	}

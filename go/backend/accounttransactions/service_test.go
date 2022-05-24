@@ -498,14 +498,10 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.IdentityService = _identity.NewLoggingService(is, logger)
 
-	pacioliContainer, err := test_utils.SetupPacioli(ctx)
-	if err != nil {
-		s.Fatal(err)
-	}
-	c.PacioliContainer = pacioliContainer
+	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
 
 	c.PacioliLedgerID = uint16(1)
-	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		s.Fatal(err)
 	}

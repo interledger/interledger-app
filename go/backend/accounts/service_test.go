@@ -22,12 +22,9 @@ import (
 func TestAccountsService(s *testing.T) {
 	ctx := context.Background()
 
-	pacioliContainer, err := test_utils.SetupPacioli(ctx)
-	if err != nil {
-		s.Fatal(err)
-	}
+	pacioliContainer := test_utils.SetupPacioli(s, ctx)
 	defer func() {
-		err = pacioliContainer.Terminate(ctx)
+		err := pacioliContainer.Terminate(ctx)
 		if err != nil {
 			s.Fatal(err)
 		}

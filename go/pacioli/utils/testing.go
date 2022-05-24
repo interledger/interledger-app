@@ -3,15 +3,18 @@ package test_utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
@@ -19,80 +22,58 @@ import (
 	cli "gitlab.com/fynbos/pacioli/cli"
 )
 
-type CockroachDBContainer struct {
-	testcontainers.Container
-	URI string
-}
+const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
 
-// This will start the crdb test container and run the migrations.
-func SetupTestCockroachDB(ctx context.Context, network string) (*CockroachDBContainer, error) {
-	fmt.Println("Starting CRDB test container.")
-	containerNetwork := network
-	if containerNetwork == "" {
-		containerNetwork = "pacioli-test"
-	}
-
+func MigrateCockroachDB(t *testing.T, ctx context.Context) (URI string, db *sqlx.DB, cleanup func()) {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
-		return nil, errors.New("Could not get directory path for utils/testing.")
+		t.Fatal("Could not get directory path for utils/testing.")
 	}
 
-	req := testcontainers.ContainerRequest{
-		Image:          "823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1",
-		Networks:       []string{containerNetwork},
-		NetworkAliases: map[string][]string{containerNetwork: {"pacioli-crdb"}},
-		ExposedPorts:   []string{"26257/tcp", "8080/tcp"},
-		WaitingFor:     wait.ForHTTP("/health").WithPort("8080"),
-		Cmd:            []string{"start-single-node", "--insecure"},
+	dbName := "pacioli_test_" + strings.Replace(uuid.NewString(), "-", "", 4)
+	connString := os.Getenv("DB_URL")
+	if connString == "" {
+		connString = testingCrdbConnectionString
 	}
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	mappedPort, err := container.MappedPort(ctx, "26257")
-	if err != nil {
-		return nil, err
-	}
-
-	hostIP, err := container.Host(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	connString := fmt.Sprintf("postgres://root@%s:%s/pacioli?sslmode=disable", hostIP, mappedPort.Port())
+	connString = fmt.Sprintf(connString, dbName)
 	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
-	defer db.Close()
 
-	fmt.Println("Creating pacioli database")
-	const query = `CREATE DATABASE pacioli;`
+	query := fmt.Sprintf("CREATE DATABASE %s;", dbName)
 	_, err = db.ExecContext(ctx, query)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
 	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../migrations")
-	fmt.Println("Applying migrations from file://" + migrationsPath)
-
 	m, err := migrate.New(
 		"file://"+migrationsPath,
-		fmt.Sprintf("cockroach://root@%s:%s/pacioli?sslmode=disable", hostIP, mappedPort.Port()))
+		strings.Replace(connString, "postgres", "cockroach", 1),
+	)
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
 	// The expected behaviour is for it to return ErrNoChange
 	if err := m.Up(); err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
 
-	return &CockroachDBContainer{Container: container, URI: connString}, nil
+	cleanup = func() {
+		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
+		_, err := db.ExecContext(ctx, cleanupQuery)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err = db.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return connString, db, cleanup
 }
 
 func TruncateDb(ctx context.Context, db *sqlx.DB) error {
