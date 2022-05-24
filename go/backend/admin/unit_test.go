@@ -1,4 +1,4 @@
-package admin
+package admin_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
+	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -28,7 +29,7 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	svr, err := NewServer(&ServerArgs{
+	svr, err := _grpc.NewServer(&_grpc.ServerArgs{
 		Hs: hs,
 		Is: is,
 		As: as,

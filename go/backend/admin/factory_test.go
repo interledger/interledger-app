@@ -1,4 +1,4 @@
-package admin
+package admin_test
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/country"
+	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -42,7 +43,7 @@ type TestContainer struct {
 	Up              unit.Service
 	Tp              *mocks.Client
 	AdminConn       *grpc.ClientConn
-	AdminClient     backend.BackendServiceClient
+	AdminClient     backend.BackendAdminServiceClient
 	AdminServer     *grpc.Server
 	PacioliConn     *grpc.ClientConn
 	PacioliClient   pacioliv1.PacioliServiceClient
@@ -153,7 +154,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit.NewMockService(c.Ctrl)
-	server, err := NewServer(&ServerArgs{
+	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		Hs: hs,
 		Is: is,
 		As: as,
@@ -175,7 +176,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 	c.AdminConn = adminConn
-	c.AdminClient = backend.NewBackendServiceClient(adminConn)
+	c.AdminClient = backend.NewBackendAdminServiceClient(adminConn)
 
 	return c, nil
 }
@@ -183,7 +184,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 // note https://github.com/golang/mock/issues/139
 // we run the grpc server in a goroutine so any errors from the mock will be swallowed.
 // TODO: see if there is a test server for grpc
-func NewAdminClient(t *testing.T, svr *grpc.Server) (client backend.BackendServiceClient, cleanup func()) {
+func NewAdminClient(t *testing.T, svr *grpc.Server) (client backend.BackendAdminServiceClient, cleanup func()) {
 	port, err := test_utils.GetFreePort()
 	if err != nil {
 		t.Fatal(err)
@@ -206,7 +207,7 @@ func NewAdminClient(t *testing.T, svr *grpc.Server) (client backend.BackendServi
 		t.Fatal(err)
 	}
 
-	client = backend.NewBackendServiceClient(conn)
+	client = backend.NewBackendAdminServiceClient(conn)
 	cleanup = func() {
 		if err := conn.Close(); err != nil {
 			t.Fatal(err)
