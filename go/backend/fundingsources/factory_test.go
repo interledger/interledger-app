@@ -23,9 +23,9 @@ import (
 
 type TestContainer struct {
 	Ctx              context.Context
-	Crdb             *test_utils.CockroachDBContainer
 	Logger           *zap.Logger
 	Db               *sqlx.DB
+	DbCleanup        func()
 	Cs               country.Service
 	Noop             noop.Service
 	Is               _identity.Service
@@ -41,17 +41,9 @@ type TestContainer struct {
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
-
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
+	db, cleanup := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
+	c.DbCleanup = cleanup
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
@@ -151,17 +143,9 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 }
 
 func (c *TestContainer) Cleanup() error {
-	err := c.Db.Close()
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
-	err = c.Crdb.Container.Terminate(c.Ctx)
-	if err != nil {
-		return err
-	}
-
-	err = c.PacioliContainer.Terminate(c.Ctx)
+	err := c.PacioliContainer.Terminate(c.Ctx)
 	if err != nil {
 		return err
 	}

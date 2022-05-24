@@ -21,10 +21,6 @@ import (
 
 func TestAccountsService(s *testing.T) {
 	ctx := context.Background()
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		s.Fatal(err)
-	}
 
 	pacioliContainer, err := test_utils.SetupPacioli(ctx)
 	if err != nil {
@@ -39,14 +35,9 @@ func TestAccountsService(s *testing.T) {
 
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		s.Fatal(err)
-	}
+	db, cleanup := test_utils.MigrateCockroachDB(s, ctx)
 	defer func() {
-		if err := db.Close(); err != nil {
-			s.Fatal(err)
-		}
+		cleanup()
 	}()
 	logger, err := zap.NewDevelopment()
 	if err != nil {

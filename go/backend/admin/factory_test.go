@@ -30,9 +30,9 @@ import (
 type TestContainer struct {
 	Ctx             context.Context
 	Ctrl            *gomock.Controller
-	Crdb            *test_utils.CockroachDBContainer
 	Pacioli         *test_utils.PacioliContainer
 	Db              *sqlx.DB
+	DbCleanup       func()
 	As              accounts.Service
 	Is              identity.Service
 	Hs              healthcheck.Service
@@ -60,13 +60,7 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 
 	c.AdminServer.Stop()
 
-	if err := c.Db.Close(); err != nil {
-		return err
-	}
-
-	if err := c.Crdb.Container.Terminate(ctx); err != nil {
-		return err
-	}
+	c.DbCleanup()
 
 	if err := c.Pacioli.Terminate(ctx); err != nil {
 		return err
@@ -78,11 +72,9 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 // TODO: refactor how we spin up deps for tests.
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	c.DbCleanup = dbCleanup
+	c.Db = db
 
 	pacioli, err := test_utils.SetupPacioli(ctx)
 	if err != nil {
@@ -97,12 +89,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.PacioliConn = pacioliConn
 	c.PacioliClient = pacioliv1.NewPacioliServiceClient(pacioliConn)
 	c.PacioliLedgerID = 1
-
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
-	c.Db = db
 
 	cs := country.NewService(db)
 	is, err := identity.NewService(identity.ServiceArgs{

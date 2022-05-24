@@ -18,26 +18,9 @@ import (
 
 func TestIdentityService(s *testing.T) {
 	ctx := context.Background()
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		s.Fatal(err)
-	}
+	db, dbCleanup := test_utils.MigrateCockroachDB(s, ctx)
 	defer func() {
-		if err := crdb.Container.Terminate(ctx); err != nil {
-			s.Fatal(err)
-		}
-	}()
-
-	// the tests are run in serial. We use a global connection for
-	// each of the tests.
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		s.Fatal(err)
-	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			s.Fatal(err)
-		}
+		dbCleanup()
 	}()
 
 	logger, err := zap.NewDevelopment()

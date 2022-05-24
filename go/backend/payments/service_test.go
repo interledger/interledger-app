@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	_accounts "gitlab.com/fynbos/backend/accounts"
-	"gitlab.com/fynbos/backend/accounttransactions"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/identity"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -197,23 +197,15 @@ type TestContainer struct {
 	PacioliClient      pacioliv1.PacioliServiceClient
 	PacioliLedgerID    uint16
 	Db                 *sqlx.DB
+	DbCleanup          func()
 	Logger             *zap.Logger
-	Crdb               *test_utils.CockroachDBContainer
 	Ctx                context.Context
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
-	err := c.Db.Close()
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
-	err = c.Crdb.Container.Terminate(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = c.PacioliContainer.Terminate(ctx)
+	err := c.PacioliContainer.Terminate(ctx)
 	if err != nil {
 		return err
 	}
@@ -224,19 +216,9 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
-
-	// the tests are run in serial. We use a global connection for
-	// each of the tests.
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
+	db, cleanup := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
+	c.DbCleanup = cleanup
 
 	pacioliContainer, err := test_utils.SetupPacioli(ctx)
 	if err != nil {

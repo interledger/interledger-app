@@ -457,18 +457,15 @@ type TestContainer struct {
 	Ctrl               *gomock.Controller
 	TransactionService Service
 	Db                 *sqlx.DB
+	DbCleanup          func()
 	Logger             *zap.Logger
-	Crdb               *test_utils.CockroachDBContainer
 	Ctx                context.Context
 }
 
 func (c *TestContainer) Cleanup() error {
-	err := c.Db.Close()
-	if err != nil {
-		return err
-	}
+	c.DbCleanup()
 
-	err = c.PacioliContainer.Terminate(c.Ctx)
+	err := c.PacioliContainer.Terminate(c.Ctx)
 	if err != nil {
 		return err
 	}
@@ -479,19 +476,9 @@ func (c *TestContainer) Cleanup() error {
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
-	crdb, err := test_utils.SetupTestCockroachDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Crdb = crdb
-
-	// the tests are run in serial. We use a global connection for
-	// each of the tests.
-	db, err := sqlx.Connect("postgres", crdb.URI)
-	if err != nil {
-		return nil, err
-	}
+	db, dbCleanup := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
+	c.DbCleanup = dbCleanup
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
