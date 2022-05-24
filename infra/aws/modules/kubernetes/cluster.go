@@ -102,7 +102,7 @@ func NewEksControlPlane(ctx *pulumi.Context, args EksControlPlaneArgs) (*eks.Clu
 
 // This sets up a rescticted pod security policy and applies it to service accounts, using cluster role bindings,
 // running in the kube-system namespace as well as the automation group.
-func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
+func ConfigureClusterRolesAndPsp(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	_, err := policyV1.NewPodSecurityPolicy(ctx, "resitricted-psp", &policyV1.PodSecurityPolicyArgs{
 		Metadata: metaV1.ObjectMetaArgs{
 			Name: pulumi.String("restricted"),
@@ -150,7 +150,7 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 				},
 			},
 		},
-	})
+	}, opts...)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 				},
 			},
 		},
-	})
+	}, opts...)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 				Namespace: pulumi.String("kube-system"),
 			},
 		},
-	})
+	}, opts...)
 
 	// Create a ClusterRoleBinding for the RBAC group automation
 	// to the ClusterRole that uses the restrictive PodSecurityPolicy.
@@ -217,7 +217,7 @@ func ConfigureClusterRolesAndPsp(ctx *pulumi.Context) error {
 				Name: pulumi.String("automation"),
 			},
 		},
-	})
+	}, opts...)
 	return nil
 }
 

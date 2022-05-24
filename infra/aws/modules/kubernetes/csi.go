@@ -19,7 +19,7 @@ type EbsCsiArgs struct {
 func DeployEbsCsi(ctx *pulumi.Context, args EbsCsiArgs) error {
 
 	// Create Policy
-	policy, err := newPolicy(ctx, args.EbsKmsKeyArn)
+	policy, err := newPolicy(ctx, args.EbsKmsKeyArn, args.ClusterName)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func DeployEbsCsi(ctx *pulumi.Context, args EbsCsiArgs) error {
 
 	// Role
 	role, err := iam.NewRole(ctx, "eks-ebs-csi-role", &iam.RoleArgs{
-		Name: pulumi.String("AmazonEKSEBSCSIRole"),
+		Name: pulumi.Sprintf("%s-EBSCSIRole", args.ClusterName),
 		ManagedPolicyArns: pulumi.StringArray{
 			policy.Arn,
 		},
@@ -60,7 +60,7 @@ func DeployEbsCsi(ctx *pulumi.Context, args EbsCsiArgs) error {
 Generates a policy for CSI to be able to manage volumes for EKS as well as Encrypt and Decrypt with KMS key for EBS
 See https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html for more info
 */
-func newPolicy(ctx *pulumi.Context, ebsKmsKey pulumi.StringOutput) (*iam.Policy, error) {
+func newPolicy(ctx *pulumi.Context, ebsKmsKey pulumi.StringOutput, clusterName string) (*iam.Policy, error) {
 
 	policyDoc := pulumi.All(ebsKmsKey).ApplyT(func(args []interface{}) (string, error) {
 		key := args[0].(string)
@@ -297,7 +297,7 @@ func newPolicy(ctx *pulumi.Context, ebsKmsKey pulumi.StringOutput) (*iam.Policy,
 	})
 
 	policy, err := iam.NewPolicy(ctx, "aws-csi-ebs", &iam.PolicyArgs{
-		Name:        pulumi.String("AmazonEksEbsCsiDriverPolicy"),
+		Name:        pulumi.Sprintf("%sEbsCsiDriverPolicy", clusterName),
 		Description: pulumi.String("This policy provides the Amazon EBS Add on permission to manage EBS volumes and encryption"),
 		Path:        pulumi.String("/"),
 		Policy:      policyDoc,
@@ -309,7 +309,7 @@ func newPolicy(ctx *pulumi.Context, ebsKmsKey pulumi.StringOutput) (*iam.Policy,
 	return policy, nil
 }
 
-func DeployDefaultCSIStorageClass(ctx *pulumi.Context) error {
+func DeployDefaultCSIStorageClass(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	_, err := storagev1.NewStorageClass(ctx, "ebs-sc-default", &storagev1.StorageClassArgs{
 		Provisioner:       pulumi.String("ebs.csi.aws.com"),
 		VolumeBindingMode: pulumi.String("WaitForFirstConsumer"),
@@ -319,7 +319,7 @@ func DeployDefaultCSIStorageClass(ctx *pulumi.Context) error {
 				"storageclass.kubernetes.io/is-default-class": pulumi.String("true"),
 			},
 		},
-	})
+	}, opts...)
 	if err != nil {
 		return err
 	}
