@@ -9,6 +9,12 @@ RUN curl https://download.docker.com/linux/ubuntu/dists/impish/pool/stable/amd64
     && dpkg -i docker.deb \
     && rm -f docker.deb
 
+# Install docker compose plugin
+RUN DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker} \
+    && mkdir -p $DOCKER_CONFIG/cli-plugins \
+    && curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose \
+    && chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose 
+
 # Install golang
 RUN curl -OL https://golang.org/dl/go1.18.linux-amd64.tar.gz
 RUN tar -C /usr/local -xvf go1.18.linux-amd64.tar.gz
