@@ -1,5 +1,7 @@
 package fundingsources
 
+//go:generate mockgen -destination=./mock.go -package=fundingsources -source=./service.go
+
 import (
 	"context"
 	"database/sql"
@@ -29,6 +31,7 @@ type Service interface {
 	GetByAccountId(ctx context.Context, identityId string) ([]FundingSource, error)
 	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
+	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 }
 
 type service struct {
@@ -277,6 +280,9 @@ func (s *service) CreateBankAccount(
 	}
 
 	return fundingsource, nil
+}
+func (s *service) GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error) {
+	panic("not implemented.")
 }
 
 func IsVerified(fs *FundingSource) bool {

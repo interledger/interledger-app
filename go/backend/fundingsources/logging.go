@@ -126,3 +126,24 @@ func (s *loggingService) CreateBankAccount(ctx context.Context, args *CreateBank
 
 	return s.Service.CreateBankAccount(ctx, args)
 }
+
+func (s *loggingService) GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (url string, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			s.logger.Error(
+				"Failed to get mx connect widget.",
+				zap.String("accountID", accountID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Got mx connect widget",
+			zap.String("accountID", accountID),
+		)
+	}(time.Now())
+
+	return s.Service.GetMxConnectWidget(ctx, accountID, identityID)
+}
