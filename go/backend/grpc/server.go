@@ -48,7 +48,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 	}
 
 	server := grpc.NewServer(
-		args.AdminAuthService.MakeUnaryInterceptors(),
+		args.AdminAuthService.MakeUnaryInterceptors(_admin.AdminRpcServiceName),
 	)
 	backendv1.RegisterBackendServiceServer(server, &rpcService{
 		validator: v,
@@ -63,6 +63,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		IdentityService: args.IdentityService,
 		AuthService:     args.AdminAuthService,
 		UnitService:     args.UnitProvider,
+		Name:            _admin.AdminRpcServiceName,
 	})
 	grpc_health_v1.RegisterHealthServer(server, args.HealthCheckService)
 	reflection.Register(server)
