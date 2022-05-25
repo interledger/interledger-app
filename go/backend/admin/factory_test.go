@@ -22,6 +22,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/proto/backend/v1"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -160,6 +161,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		AccountsService:    as,
 		AdminAuthService:   us,
 		UnitProvider:       c.Up,
+		UserService:        user.NewMockService(),
 	})
 	if err != nil {
 		return nil, err
