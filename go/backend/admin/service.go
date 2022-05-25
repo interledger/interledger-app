@@ -14,6 +14,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Explicit name for the service. This is used by auth interceptors to decide whether to run.
+const AdminRpcServiceName = "admin"
+
 type AdminRpcService struct {
 	backendv1.UnimplementedBackendAdminServiceServer
 	Validator       *validator.Validate
@@ -21,6 +24,11 @@ type AdminRpcService struct {
 	IdentityService identity.Service
 	AuthService     auth.Service
 	UnitService     unit.Service
+	Name            string
+}
+
+func (s *AdminRpcService) GetName() string {
+	return s.Name
 }
 
 func (s *AdminRpcService) GetUserAccountByEmail(

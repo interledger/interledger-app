@@ -22,7 +22,7 @@ var (
 type Service interface {
 	GetAdminUser(ctx context.Context) (*AdminUser, error)
 	ForContext(ctx context.Context) (*AdminUser, error)
-	MakeUnaryInterceptors() grpc.ServerOption
+	MakeUnaryInterceptors(serviceName string) grpc.ServerOption
 }
 
 type contextKey struct {
@@ -105,13 +105,22 @@ func (s *service) ForContext(ctx context.Context) (*AdminUser, error) {
 	return raw, nil
 }
 
-func (s *service) MakeUnaryInterceptors() grpc.ServerOption {
+type grpcService interface {
+	GetName() string
+}
+
+func (s *service) MakeUnaryInterceptors(serviceName string) grpc.ServerOption {
 	return grpc.ChainUnaryInterceptor(func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
+		service := info.Server.(grpcService)
+		if service.GetName() != serviceName {
+			return handler(ctx, req)
+		}
+
 		user, err := s.GetAdminUser(ctx)
 		if err != nil {
 			if !errors.Is(err, ErrNoUserFound) {

@@ -48,10 +48,10 @@ func (s *loggingService) ForContext(ctx context.Context) (user *AdminUser, err e
 	return s.Service.ForContext(ctx)
 }
 
-func (s *loggingService) MakeUnaryInterceptors() grpc.ServerOption {
+func (s *loggingService) MakeUnaryInterceptors(serviceName string) grpc.ServerOption {
 	defer func() {
 		s.logger.Debug("Made auth unary interceptors.")
 	}()
 
-	return s.Service.MakeUnaryInterceptors()
+	return s.Service.MakeUnaryInterceptors(serviceName)
 }
