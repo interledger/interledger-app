@@ -9,9 +9,6 @@ service BackendAdminService {
   rpc GetUnitCustomerByAccountID(GetUnitCustomerByAccountRequest) returns (UnitCustomer);
 }
 
-service BackendService {
-}
-
 message GetUserAccountByEmailRequest {
 	string email = 1;
 }
@@ -33,4 +30,14 @@ message UnitCustomer {
   string id = 1;
   string account_id = 2; // Fynbos account id
   string type = 3;
+}
+
+service BackendService {
+  rpc GetBankAccountWidget (GetBankAccountWidgetRequest) returns (GetBankAccountWidgetResponse);
+}
+
+message GetBankAccountWidgetRequest {}
+
+message GetBankAccountWidgetResponse {
+  string url = 1;
 }

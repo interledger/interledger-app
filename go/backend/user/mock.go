@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"testing"
 
 	"github.com/machinebox/graphql"
+	"google.golang.org/grpc/metadata"
 )
 
 type mockService struct{}
@@ -60,6 +62,23 @@ func ActingAs(req *graphql.Request, user *User) error {
 	}
 
 	return nil
+}
+
+func ActingAsContext(t *testing.T, ctx context.Context, user *User) context.Context {
+	if user != nil {
+		b, err := json.Marshal(user)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		cookie := http.Cookie{
+			Name:  _testCookieName,
+			Value: url.QueryEscape(string(b)),
+		}
+		return metadata.AppendToOutgoingContext(ctx, cookieMetadataKey, cookie.String())
+	}
+
+	return ctx
 }
 
 func NewMockService() Service {

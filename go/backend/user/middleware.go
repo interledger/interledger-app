@@ -36,6 +36,8 @@ func MakeMiddleware(us Service) func(http.Handler) http.Handler {
 	}
 }
 
+const cookieMetadataKey = "cookies"
+
 // Our front-end will forward the raw http cookies in the metadata.
 func MakeUnaryInterceptor(us Service, serviceName string) grpc.ServerOption {
 	type grpcService interface {
@@ -56,9 +58,11 @@ func MakeUnaryInterceptor(us Service, serviceName string) grpc.ServerOption {
 		if !ok {
 			return nil, status.Error(codes.Internal, "Failed to parse metadata.")
 		}
-		rawCookies := meta.Get("cookies") // must match the metadata field key set on the front-end
-		r := http.Request{}               // use std lib to parse cookies
-		if len(rawCookies) > 1 {
+		rawCookies := meta.Get(cookieMetadataKey) // must match the metadata field key set on the front-end
+		r := http.Request{                        // use std lib to parse cookies
+			Header: http.Header{},
+		}
+		if len(rawCookies) >= 1 {
 			r.Header.Set("Cookie", rawCookies[0]) // we assume there'll be one
 		}
 
@@ -73,7 +77,7 @@ func MakeUnaryInterceptor(us Service, serviceName string) grpc.ServerOption {
 		// If no user don't add to context
 		if user != nil {
 			// put it in context
-			newCtx = context.WithValue(r.Context(), userCtxKey, user)
+			newCtx = context.WithValue(ctx, userCtxKey, user)
 		}
 
 		return handler(newCtx, req)
