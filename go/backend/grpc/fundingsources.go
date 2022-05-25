@@ -17,7 +17,17 @@ func (s *rpcService) GetBankAccountWidget(
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
 	}
 
+	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Unable to get account.")
+	}
+
+	url, err := s.fundingSourceService.GetMxConnectWidget(ctx, acc.ID, user.ID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Unable to get widget.")
+	}
+
 	return &backendv1.GetBankAccountWidgetResponse{
-		Url: user.ID,
+		Url: url,
 	}, nil
 }
