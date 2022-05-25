@@ -43,159 +43,123 @@ var customerCreatedEvent = CustomerCreatedEvent{
 	},
 }
 
-func TestWebhook(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	os := onboarding.NewMockService(ctrl)
-	provider := unit.NewMockService(ctrl)
-	wh, err := NewWebhook(&WebhookArgs{
-		Up: provider,
-		Os: os,
-	})
+func TestWebhooks(t *testing.T) {
+	ctx := context.Background()
+
+	c, err := NewTestContainer(ctx, t)
 	if err != nil {
 		t.Fatal(err)
 	}
-	svr := httptest.NewServer(wh.MakeHttpHandler())
+
 	t.Cleanup(func() {
-		svr.Close()
-	})
-
-	scenarios := []struct {
-		Name                   string
-		VerifyError            error
-		Payload                *bytes.Buffer
-		ExpectedHttpStatusCode int
-		ResponseMessage        string
-		MockCallTimes          int
-	}{
-		{
-			Name:                   "Returns 200",
-			VerifyError:            nil,
-			Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
-			ExpectedHttpStatusCode: 200,
-			MockCallTimes:          2,
-		},
-		{
-			Name:                   "Returns 500 if webhook fails verification",
-			VerifyError:            errors.New("test"),
-			Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
-			ExpectedHttpStatusCode: 401,
-			ResponseMessage:        "Signature didn't match.\n",
-			MockCallTimes:          0,
-		},
-		{
-			Name:                   "Returns 500 if marshalling payload fails",
-			VerifyError:            nil,
-			Payload:                bytes.NewBuffer([]byte("")),
-			ExpectedHttpStatusCode: 500,
-			ResponseMessage:        "Failed to parse payload\n",
-			MockCallTimes:          0,
-		},
-		{
-			Name:                   "Tries to handle all events even if first one fails",
-			VerifyError:            nil,
-			Payload:                marshalBody(t, "", customerCreatedEvent),
-			ExpectedHttpStatusCode: 500,
-			ResponseMessage:        "Failed to parse payload\n",
-			MockCallTimes:          1,
-		},
-	}
-
-	for _, scenario := range scenarios {
-		os.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), gomock.Any()).Return(nil).Times(scenario.MockCallTimes)
-		provider.EXPECT().VerifyWebhook(context.Background(), gomock.Any(), gomock.Any()).Return(scenario.VerifyError)
-		resp, err := http.Post(svr.URL, "application/json", scenario.Payload)
+		err := c.Cleanup(ctx)
 		if err != nil {
-			t.Fatal(err)
+			return
+		}
+	})
+
+	t.Run("Test webhooks", func(t *testing.T) {
+		t.Cleanup(func() {
+			c.SvrMockWh.Close()
+		})
+
+		scenarios := []struct {
+			Name                   string
+			VerifyError            error
+			Payload                *bytes.Buffer
+			ExpectedHttpStatusCode int
+			ResponseMessage        string
+			MockCallTimes          int
+		}{
+			{
+				Name:                   "Returns 200",
+				VerifyError:            nil,
+				Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
+				ExpectedHttpStatusCode: 200,
+				MockCallTimes:          2,
+			},
+			{
+				Name:                   "Returns 500 if webhook fails verification",
+				VerifyError:            errors.New("test"),
+				Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
+				ExpectedHttpStatusCode: 401,
+				ResponseMessage:        "Signature didn't match.\n",
+				MockCallTimes:          0,
+			},
+			{
+				Name:                   "Returns 500 if marshalling payload fails",
+				VerifyError:            nil,
+				Payload:                bytes.NewBuffer([]byte("")),
+				ExpectedHttpStatusCode: 500,
+				ResponseMessage:        "Failed to parse payload\n",
+				MockCallTimes:          0,
+			},
+			{
+				Name:                   "Tries to handle all events even if first one fails",
+				VerifyError:            nil,
+				Payload:                marshalBody(t, "", customerCreatedEvent),
+				ExpectedHttpStatusCode: 500,
+				ResponseMessage:        "Failed to parse payload\n",
+				MockCallTimes:          1,
+			},
 		}
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Fatal(err)
+		for _, scenario := range scenarios {
+			c.OsMock.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), gomock.Any()).Return(nil).Times(scenario.MockCallTimes)
+			c.ProviderMock.EXPECT().VerifyWebhook(context.Background(), gomock.Any(), gomock.Any()).Return(scenario.VerifyError)
+			resp, err := http.Post(c.SvrMockWh.URL, "application/json", scenario.Payload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, scenario.ExpectedHttpStatusCode, resp.StatusCode, scenario.Name)
+			assert.Equal(t, scenario.ResponseMessage, string(body), scenario.Name)
 		}
-
-		assert.Equal(t, scenario.ExpectedHttpStatusCode, resp.StatusCode, scenario.Name)
-		assert.Equal(t, scenario.ResponseMessage, string(body), scenario.Name)
-	}
-}
-
-func TestHandleCreatedCustomerEvent(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	os := onboarding.NewMockService(ctrl)
-	db := &sqlx.DB{}
-	provider, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Db:           db,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	wh, err := NewWebhook(&WebhookArgs{
-		Up: provider,
-		Os: os,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	scenarios := []struct {
-		Name            string
-		OnboardingError error
-	}{
-		{
-			Name:            "Succeeds if unit onboarding is initiated.",
-			OnboardingError: nil,
-		},
-		{
-			Name:            "Returns ErrInternal if unit onboarding fails to initiate",
-			OnboardingError: onboarding.ErrInternal,
-		},
-	}
-	for _, scenario := range scenarios {
-		os.EXPECT().InitiateUnitCustomerOnboarding(gomock.Any(), &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID:   customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag],
-			Country:      "US",
-			CustomerID:   customerCreatedEvent.Relationships.Customer.Data.ID,
-			CustomerType: customerCreatedEvent.Relationships.Customer.Data.Type,
-		}).Return(scenario.OnboardingError).Times(1)
-
-		rawEvent := marshalEvent(t, customerCreatedEvent)
-		err = wh.HandleEvent(context.Background(), CUSTOMER_CREATED, rawEvent)
-
-		if scenario.OnboardingError != nil {
-			assert.ErrorIs(t, err, ErrInternal, scenario.Name)
-		} else {
-			assert.NoError(t, err, scenario.Name)
+	t.Run("Handle created customer event", func(t *testing.T) {
+		scenarios := []struct {
+			Name            string
+			OnboardingError error
+		}{
+			{
+				Name:            "Succeeds if unit onboarding is initiated.",
+				OnboardingError: nil,
+			},
+			{
+				Name:            "Returns ErrInternal if unit onboarding fails to initiate",
+				OnboardingError: onboarding.ErrInternal,
+			},
 		}
-	}
-}
+		for _, scenario := range scenarios {
+			c.OsMock.EXPECT().InitiateUnitCustomerOnboarding(gomock.Any(), &onboarding.InitiateUnitCustomerOnboardingArgs{
+				IdentityID:   customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag],
+				Country:      "US",
+				CustomerID:   customerCreatedEvent.Relationships.Customer.Data.ID,
+				CustomerType: customerCreatedEvent.Relationships.Customer.Data.Type,
+			}).Return(scenario.OnboardingError).Times(1)
 
-func TestDontFailForUnknownEvent(t *testing.T) {
-	// don't fail as Unit may add new event types.
-	ctrl := gomock.NewController(t)
-	os := onboarding.NewMockService(ctrl)
-	db := &sqlx.DB{}
-	provider, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Db:           db,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	wh, err := NewWebhook(&WebhookArgs{
-		Up: provider,
-		Os: os,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+			rawEvent := marshalEvent(t, customerCreatedEvent)
+			err = c.Wh.HandleEvent(context.Background(), CUSTOMER_CREATED, rawEvent)
 
-	rawEvent := marshalBody(t, customerCreatedEvent)
-	err = wh.HandleEvent(context.Background(), EventType("unknown"), rawEvent.Bytes())
-	assert.NoError(t, err)
+			if scenario.OnboardingError != nil {
+				assert.ErrorIs(t, err, ErrInternal, scenario.Name)
+			} else {
+				assert.NoError(t, err, scenario.Name)
+			}
+		}
+	})
+
+	t.Run("Don't fail for unknown event", func(t *testing.T) {
+		rawEvent := marshalBody(t, customerCreatedEvent)
+		err = c.Wh.HandleEvent(context.Background(), EventType("unknown"), rawEvent.Bytes())
+		assert.NoError(t, err)
+	})
 }
 
 func marshalBody(t *testing.T, events ...interface{}) *bytes.Buffer {
@@ -223,4 +187,63 @@ func marshalEvent(t *testing.T, event interface{}) json.RawMessage {
 	}
 
 	return raw
+}
+
+type TestContainer struct {
+	Ctx 	context.Context
+	Ctrl *gomock.Controller
+	OsMock *onboarding.MockService
+	ProviderMock *unit.MockService
+	Provider unit.Service
+	Wh Webhook
+	WhMockProvider Webhook
+	Db *sqlx.DB
+	SvrMockWh *httptest.Server
+}
+
+func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
+	container := &TestContainer{}
+
+	container.Ctx = ctx
+
+	ctrl := gomock.NewController(t)
+	container.Ctrl = ctrl
+
+	osMock := onboarding.NewMockService(ctrl)
+	container.OsMock = osMock
+
+	providerMock := unit.NewMockService(ctrl)
+	container.ProviderMock = providerMock
+
+	whMockProvider, err := NewWebhook(&WebhookArgs{
+		Up: providerMock,
+		Os: osMock,
+	})
+	if err != nil {
+		return nil, err
+	}
+	container.WhMockProvider = whMockProvider
+
+	wh, err := NewWebhook(&WebhookArgs{
+		Up: providerMock,
+		Os: osMock,
+	})
+	if err != nil {
+		return nil, err
+	}
+	container.Wh = wh
+
+	db := &sqlx.DB{}
+	container.Db = db
+
+	svrMockWh := httptest.NewServer(whMockProvider.MakeHttpHandler())
+	container.SvrMockWh = svrMockWh
+
+	return container, nil
+}
+
+func (c *TestContainer) Cleanup(ctx context.Context) error {
+	c.SvrMockWh.Close()
+
+	return nil
 }
