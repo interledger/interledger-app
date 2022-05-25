@@ -297,11 +297,11 @@ func start(args *cli.StartArgs) {
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
 
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
-		Hs: health,
-		Is: id,
-		As: as,
-		Us: adminUsers,
-		Up: us,
+		HealthCheckService: health,
+		IdentityService:    id,
+		AccountsService:    as,
+		AdminAuthService:   adminUsers,
+		UnitProvider:       us,
 	})
 	if err != nil {
 		log.Fatalln(err)

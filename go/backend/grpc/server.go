@@ -23,14 +23,16 @@ var (
 )
 
 type ServerArgs struct {
-	Hs healthcheck.Service `validate:"required"`
-	Is identity.Service    `validate:"required"`
-	As accounts.Service    `validate:"required"`
-	Us auth.Service        `validate:"required"`
-	Up unit.Service        `validate:"required"`
+	HealthCheckService healthcheck.Service `validate:"required"`
+	IdentityService    identity.Service    `validate:"required"`
+	AccountsService    accounts.Service    `validate:"required"`
+	AdminAuthService   auth.Service        `validate:"required"`
+	UnitProvider       unit.Service        `validate:"required"`
 }
 
-type rpcServer struct {
+const rpcServiceName = "public"
+
+type rpcService struct {
 	backendv1.UnimplementedBackendServiceServer
 	validator *validator.Validate
 	as        accounts.Service
@@ -46,23 +48,23 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 	}
 
 	server := grpc.NewServer(
-		args.Us.MakeUnaryInterceptors(),
+		args.AdminAuthService.MakeUnaryInterceptors(),
 	)
-	backendv1.RegisterBackendServiceServer(server, &rpcServer{
+	backendv1.RegisterBackendServiceServer(server, &rpcService{
 		validator: v,
-		as:        args.As,
-		is:        args.Is,
-		us:        args.Us,
-		up:        args.Up,
+		as:        args.AccountsService,
+		is:        args.IdentityService,
+		us:        args.AdminAuthService,
+		up:        args.UnitProvider,
 	})
-	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcServer{
+	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,
-		AccountsService: args.As,
-		IdentityService: args.Is,
-		AuthService:     args.Us,
-		UnitService:     args.Up,
+		AccountsService: args.AccountsService,
+		IdentityService: args.IdentityService,
+		AuthService:     args.AdminAuthService,
+		UnitService:     args.UnitProvider,
 	})
-	grpc_health_v1.RegisterHealthServer(server, args.Hs)
+	grpc_health_v1.RegisterHealthServer(server, args.HealthCheckService)
 	reflection.Register(server)
 	return server, nil
 }

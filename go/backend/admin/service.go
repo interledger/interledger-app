@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type AdminRpcServer struct {
+type AdminRpcService struct {
 	backendv1.UnimplementedBackendAdminServiceServer
 	Validator       *validator.Validate
 	AccountsService accounts.Service
@@ -23,7 +23,7 @@ type AdminRpcServer struct {
 	UnitService     unit.Service
 }
 
-func (s *AdminRpcServer) GetUserAccountByEmail(
+func (s *AdminRpcService) GetUserAccountByEmail(
 	ctx context.Context,
 	req *backendv1.GetUserAccountByEmailRequest,
 ) (*backendv1.Account, error) {
@@ -61,7 +61,7 @@ func (s *AdminRpcServer) GetUserAccountByEmail(
 	}, nil
 }
 
-func (s *AdminRpcServer) GetUnitCustomerByAccountID(
+func (s *AdminRpcService) GetUnitCustomerByAccountID(
 	ctx context.Context,
 	req *backendv1.GetUnitCustomerByAccountRequest,
 ) (*backendv1.UnitCustomer, error) {
