@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	test_utils "gitlab.com/fynbos/backend/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -17,31 +18,6 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 )
-
-var customerCreatedEvent = CustomerCreatedEvent{
-	ID:   "1",
-	Type: "customer.created",
-	Attributes: CustomerCreatedAttributes{
-		CreatedAt: "2020-07-29T12:53:05.882Z",
-		Tags: map[string]string{
-			unit.ApplicationFormUserIDTag: uuid.NewString(),
-		},
-	},
-	Relationships: CustomerCreatedRelationships{
-		Customer: Customer{
-			Data: Data{
-				ID:   "52",
-				Type: "individualCustomer",
-			},
-		},
-		Application: Application{
-			Data: Data{
-				ID:   "52",
-				Type: "individualApplication",
-			},
-		},
-	},
-}
 
 func TestWebhooks(t *testing.T) {
 	ctx := context.Background()
@@ -74,14 +50,14 @@ func TestWebhooks(t *testing.T) {
 			{
 				Name:                   "Returns 200",
 				VerifyError:            nil,
-				Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
+				Payload:                marshalBody(t, NewCustomerCreatedEvent(), NewCustomerCreatedEvent()),
 				ExpectedHttpStatusCode: 200,
 				MockCallTimes:          2,
 			},
 			{
 				Name:                   "Returns 500 if webhook fails verification",
 				VerifyError:            errors.New("test"),
-				Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
+				Payload:                marshalBody(t, NewCustomerCreatedEvent(), NewCustomerCreatedEvent()),
 				ExpectedHttpStatusCode: 401,
 				ResponseMessage:        "Signature didn't match.\n",
 				MockCallTimes:          0,
@@ -97,7 +73,7 @@ func TestWebhooks(t *testing.T) {
 			{
 				Name:                   "Tries to handle all events even if first one fails",
 				VerifyError:            nil,
-				Payload:                marshalBody(t, "", customerCreatedEvent),
+				Payload:                marshalBody(t, "", NewCustomerCreatedEvent()),
 				ExpectedHttpStatusCode: 500,
 				ResponseMessage:        "Failed to parse payload\n",
 				MockCallTimes:          1,
@@ -137,6 +113,8 @@ func TestWebhooks(t *testing.T) {
 			},
 		}
 		for _, scenario := range scenarios {
+			customerCreatedEvent := NewCustomerCreatedEvent()
+
 			c.OsMock.EXPECT().InitiateUnitCustomerOnboarding(gomock.Any(), &onboarding.InitiateUnitCustomerOnboardingArgs{
 				IdentityID:   customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag],
 				Country:      "US",
@@ -145,7 +123,7 @@ func TestWebhooks(t *testing.T) {
 			}).Return(scenario.OnboardingError).Times(1)
 
 			rawEvent := marshalEvent(t, customerCreatedEvent)
-			err = c.Wh.HandleEvent(context.Background(), CUSTOMER_CREATED, rawEvent)
+			err = c.Wh.HandleEvent(context.Background(), Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
 
 			if scenario.OnboardingError != nil {
 				assert.ErrorIs(t, err, ErrInternal, scenario.Name)
@@ -156,9 +134,48 @@ func TestWebhooks(t *testing.T) {
 	})
 
 	t.Run("Don't fail for unknown event", func(t *testing.T) {
+		customerCreatedEvent := NewCustomerCreatedEvent()
+
 		rawEvent := marshalBody(t, customerCreatedEvent)
-		err = c.Wh.HandleEvent(context.Background(), EventType("unknown"), rawEvent.Bytes())
+		err = c.Wh.HandleEvent(context.Background(), Event{ ID: customerCreatedEvent.ID, Type: EventType("unknown")}, rawEvent.Bytes())
 		assert.NoError(t, err)
+	})
+
+	t.Run("Don't handle event if it already exist in database", func(t *testing.T) {
+		customerCreatedEvent := NewCustomerCreatedEvent()
+
+		testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
+		rawEvent := marshalEvent(t, customerCreatedEvent)
+
+		_, err := c.Wh.StoreEvent(context.Background(), testEvent, rawEvent)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = c.Wh.HandleEvent(context.Background(), testEvent, rawEvent)
+
+		assert.ErrorIs(t, err, ErrDuplicateEvent)
+	})
+
+	t.Run("Store event in the database successfully ", func(t *testing.T) {
+		customerCreatedEvent := NewCustomerCreatedEvent()
+		rawEvent := marshalEvent(t, customerCreatedEvent)
+		testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type) }
+
+		storedEvent, err := c.Wh.StoreEvent(c.Ctx, testEvent, rawEvent)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		storedEventTwo, err := c.Wh.GetEvent(c.Ctx, customerCreatedEvent.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, storedEvent, storedEventTwo)
+		assert.Equal(t, testEvent.ID, storedEvent.ID)
+		assert.Equal(t, testEvent.Type, EventType(storedEvent.Type))
+		assert.Equal(t, string(rawEvent), storedEvent.RawEvent)
 	})
 }
 
@@ -190,21 +207,26 @@ func marshalEvent(t *testing.T, event interface{}) json.RawMessage {
 }
 
 type TestContainer struct {
-	Ctx 	context.Context
-	Ctrl *gomock.Controller
-	OsMock *onboarding.MockService
-	ProviderMock *unit.MockService
-	Provider unit.Service
-	Wh Webhook
+	Ctx 				 	 context.Context
+	Ctrl 				 	 *gomock.Controller
+	OsMock 			 	 *onboarding.MockService
+	ProviderMock 	 *unit.MockService
+	Provider 		 	 unit.Service
+	Wh 					 	 Webhook
 	WhMockProvider Webhook
-	Db *sqlx.DB
-	SvrMockWh *httptest.Server
+	Db 						 *sqlx.DB
+	DbCleanup 		 func()
+	SvrMockWh 		 *httptest.Server
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	container := &TestContainer{}
 
 	container.Ctx = ctx
+
+	db, cleanup := test_utils.MigrateCockroachDB(t, ctx)
+	container.Db = db
+	container.DbCleanup = cleanup
 
 	ctrl := gomock.NewController(t)
 	container.Ctrl = ctrl
@@ -218,6 +240,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	whMockProvider, err := NewWebhook(&WebhookArgs{
 		Up: providerMock,
 		Os: osMock,
+		Db: db,
 	})
 	if err != nil {
 		return nil, err
@@ -227,14 +250,12 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	wh, err := NewWebhook(&WebhookArgs{
 		Up: providerMock,
 		Os: osMock,
+		Db: db,
 	})
 	if err != nil {
 		return nil, err
 	}
 	container.Wh = wh
-
-	db := &sqlx.DB{}
-	container.Db = db
 
 	svrMockWh := httptest.NewServer(whMockProvider.MakeHttpHandler())
 	container.SvrMockWh = svrMockWh
@@ -245,5 +266,34 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 func (c *TestContainer) Cleanup(ctx context.Context) error {
 	c.SvrMockWh.Close()
 
+	c.DbCleanup()
+
 	return nil
+}
+
+func NewCustomerCreatedEvent() CustomerCreatedEvent {
+	return CustomerCreatedEvent{ 
+		ID:   uuid.NewString(),
+		Type: "customer.created",
+		Attributes: CustomerCreatedAttributes{
+			CreatedAt: "2020-07-29T12:53:05.882Z",
+			Tags: map[string]string{
+				unit.ApplicationFormUserIDTag: uuid.NewString(),
+			},
+		},
+		Relationships: CustomerCreatedRelationships{
+			Customer: Customer{
+				Data: Data{
+					ID:   "52",
+					Type: "individualCustomer",
+				},
+			},
+			Application: Application{
+				Data: Data{
+					ID:   "52",
+					Type: "individualApplication",
+				},
+			},
+		},
+	}
 }

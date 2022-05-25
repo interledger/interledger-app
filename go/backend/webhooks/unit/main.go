@@ -9,22 +9,27 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 )
 
 var (
 	ErrInternal = errors.New("unit webhook: internal error.")
+	ErrDuplicateEvent = errors.New("unit webhook: duplicate event.") // event already stored in database.
 )
 
 type Webhook interface {
-	HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error
+	HandleEvent(ctx context.Context, event Event, rawEvent json.RawMessage) error
+	StoreEvent(ctx context.Context, event Event, rawEvent json.RawMessage) (*DbEvent, error)
+	GetEvent(ctx context.Context, id string) (*DbEvent, error)
 	MakeHttpHandler() http.HandlerFunc
 }
 
 type WebhookArgs struct {
 	Up unit.Service       `validate:"required"`
 	Os onboarding.Service `validate:"required"`
+	Db *sqlx.DB 					`validate:"required"`
 }
 
 func NewWebhook(args *WebhookArgs) (Webhook, error) {
@@ -32,17 +37,27 @@ func NewWebhook(args *WebhookArgs) (Webhook, error) {
 	if err := v.Struct(args); err != nil {
 		return nil, err
 	}
-	return &webhook{args.Up, args.Os}, nil
+	return &webhook{args.Up, args.Os, args.Db}, nil
 }
 
 type webhook struct {
 	up unit.Service
 	os onboarding.Service
+	db *sqlx.DB
 }
 
-func (wh *webhook) HandleEvent(ctx context.Context, eventType EventType, rawEvent json.RawMessage) error {
-	// TODO: log/store event
-	switch eventType {
+func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.RawMessage) error {
+	storedEvent, err := wh.GetEvent(ctx, event.ID)
+	if storedEvent != nil {
+		return fmt.Errorf("%w %s", ErrDuplicateEvent, err)
+	}
+
+	_, err = wh.StoreEvent(ctx, event, rawEvent)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	switch event.Type {
 	case CUSTOMER_CREATED:
 		event := &CustomerCreatedEvent{}
 		if err := json.Unmarshal(rawEvent, event); err != nil {
@@ -63,6 +78,28 @@ func (wh *webhook) HandleEvent(ctx context.Context, eventType EventType, rawEven
 	}
 
 	return nil
+}
+
+func (wh *webhook) StoreEvent(ctx context.Context, event Event, rawEvent json.RawMessage) (*DbEvent, error) {
+	var storedEvent DbEvent
+
+	err := wh.db.Get(&storedEvent, "INSERT INTO unit_events (id, event_type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, EventType(event.Type), string(rawEvent))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &storedEvent, nil
+}
+
+func (wh *webhook) GetEvent(ctx context.Context, id string) (*DbEvent, error) {
+	var storedEvent DbEvent
+
+	err := wh.db.GetContext(ctx, &storedEvent, `SELECT * FROM unit_events WHERE id = $1 LIMIT 1`, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &storedEvent, nil
 }
 
 func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
@@ -93,7 +130,7 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			}
 
 			// TODO: this should not fail. Event must be logged.
-			err := wh.HandleEvent(context.Background(), EventType(event.Type), rawEvent)
+			err := wh.HandleEvent(context.Background(), event, rawEvent)
 			if err != nil {
 				http.Error(w, "Failed to handle event", 500)
 				return
@@ -154,3 +191,11 @@ type (
 const (
 	CUSTOMER_CREATED = EventType("customer.created")
 )
+
+type DbEvent struct {
+	ID 			 	string `db:"id"`
+	Type 		 	string `db:"event_type"`
+	RawEvent	string `db:"raw_event"`
+	CreatedAt string `db:"created_at"`
+	UpdatedAt string `db:"updated_at"`
+}
