@@ -155,11 +155,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit.NewMockService(c.Ctrl)
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
-		Hs: hs,
-		Is: is,
-		As: as,
-		Us: us,
-		Up: c.Up,
+		HealthCheckService: hs,
+		IdentityService:    is,
+		AccountsService:    as,
+		AdminAuthService:   us,
+		UnitProvider:       c.Up,
 	})
 	if err != nil {
 		return nil, err

@@ -30,11 +30,11 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 		t.Fatal(err)
 	}
 	svr, err := _grpc.NewServer(&_grpc.ServerArgs{
-		Hs: hs,
-		Is: is,
-		As: as,
-		Us: us,
-		Up: up,
+		HealthCheckService: hs,
+		IdentityService:    is,
+		AccountsService:    as,
+		AdminAuthService:   us,
+		UnitProvider:       up,
 	})
 	if err != nil {
 		t.Fatal(err)
