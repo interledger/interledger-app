@@ -129,8 +129,13 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 				continue
 			}
 
+			storedEvent, _ := wh.GetEvent(context.Background(), event.ID)
+			if storedEvent != nil {
+				continue
+			}
+
 			// TODO: this should not fail. Event must be logged.
-			err := wh.HandleEvent(context.Background(), event, rawEvent)
+			err = wh.HandleEvent(context.Background(), event, rawEvent)
 			if err != nil {
 				http.Error(w, "Failed to handle event", 500)
 				return

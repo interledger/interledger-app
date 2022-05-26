@@ -35,9 +35,7 @@ func TestWebhooks(t *testing.T) {
 	})
 
 	t.Run("Test webhooks", func(t *testing.T) {
-		t.Cleanup(func() {
-			c.SvrMockWh.Close()
-		})
+		customerCreatedEvent := NewCustomerCreatedEvent()
 
 		scenarios := []struct {
 			Name                   string
@@ -76,6 +74,13 @@ func TestWebhooks(t *testing.T) {
 				Payload:                marshalBody(t, "", NewCustomerCreatedEvent()),
 				ExpectedHttpStatusCode: 500,
 				ResponseMessage:        "Failed to parse payload\n",
+				MockCallTimes:          1,
+			},
+			{
+				Name:                   "Doesn't handle same event twice",
+				VerifyError:            nil,
+				Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
+				ExpectedHttpStatusCode: 200,
 				MockCallTimes:          1,
 			},
 		}
