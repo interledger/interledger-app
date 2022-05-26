@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -16,6 +17,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
+	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/mocks"
 )
 
 func TestFundingSources(s *testing.T) {
@@ -408,17 +412,20 @@ func TestFundingSources(s *testing.T) {
 }
 
 func TestGetMxConnectWidget(t *testing.T) {
+	// TODO: refactor test container
 	ctrl := gomock.NewController(t)
 	as := accounts.NewMockService(ctrl)
 	is := identity.NewMockService(ctrl)
 	nos := noop.NewMockService(ctrl)
 	mx := _mx.NewMockService(ctrl)
+	tp := &mocks.Client{}
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
 		Db:   &sqlx.DB{},
 		Noop: nos,
 		Mx:   mx,
+		Tp:   tp,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -479,6 +486,122 @@ func TestGetMxConnectWidget(t *testing.T) {
 			assert.ErrorIs(t, err, scenario.ExpectedError, scenario.Name)
 			assert.Equal(t, "", url, scenario.Name)
 		}
+	}
+}
+
+func TestCreateMxBankAccount(t *testing.T) {
+	// TODO: refactor test container
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, context.Background())
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	ctrl := gomock.NewController(t)
+	as := accounts.NewMockService(ctrl)
+	is := identity.NewMockService(ctrl)
+	nos := noop.NewMockService(ctrl)
+	mx := _mx.NewMockService(ctrl)
+	tp := &mocks.Client{}
+	fs, err := NewService(&ServiceArgs{
+		Is:   is,
+		As:   as,
+		Db:   db,
+		Noop: nos,
+		Mx:   mx,
+		Tp:   tp,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	userID := uuid.NewString()
+	accountID := uuid.NewString()
+	mxUserGuid := uuid.NewString()
+	mxMemberGuid := uuid.NewString()
+	fundingSourceName := "test"
+
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Returns ErrUnauthorized if identity does not own account",
+			ExpectedError: ErrUnauthorized,
+			RunBefore: func() {
+				as.EXPECT().Get(gomock.Any(), accountID).Return(
+					&accounts.Account{
+						ID:         accountID,
+						IdentityID: uuid.NewString(),
+					},
+					nil,
+				).Times(1)
+			},
+		},
+		{
+			Name:          "Creates funding source and initiates workflow.",
+			ExpectedError: nil,
+			RunBefore: func() {
+				as.EXPECT().Get(gomock.Any(), accountID).Return(
+					&accounts.Account{
+						ID:         accountID,
+						IdentityID: userID,
+					},
+					nil,
+				).Times(2)
+				is.EXPECT().Get(gomock.Any(), userID).Return(&identity.Identity{
+					ID: userID,
+				}, nil).Times(1)
+				as.EXPECT().CanCreateFundingSource(gomock.Any(), userID).Return(true).Times(1)
+				tp.On(
+					"ExecuteWorkflow",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.MatchedBy(func(args *CreateMxBankAccountWorkflowArgs) bool {
+						_, err := uuid.Parse(args.FundingSourceID)
+						if err != nil {
+							return false
+						}
+						return args.MxMemberGuid == mxMemberGuid && args.MxUserGuid == mxUserGuid
+					}),
+				).Return(
+					func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
+						testWorkflowID := opts.ID
+						testRunID := "test-runid"
+
+						mockWorkflowRun := &mocks.WorkflowRun{}
+						mockWorkflowRun.On("GetID").Return(testWorkflowID)
+						mockWorkflowRun.On("GetRunID").Return(testRunID)
+						mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
+						return mockWorkflowRun
+					}, nil,
+				).Times(1)
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore()
+			fundingSource, err := fs.CreateMxBankAccount(
+				context.Background(),
+				&CreateMxBankAccountArgs{
+					IdentityID:   userID,
+					AccountID:    accountID,
+					MxUserGuid:   mxUserGuid,
+					MxMemberGuid: mxMemberGuid,
+					Name:         fundingSourceName,
+				},
+			)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err, scenario.Name)
+				assert.Equal(st, "processing", fundingSource.VerificationState, scenario.Name)
+			} else {
+				assert.ErrorIs(st, err, ErrUnauthorized, scenario.Name)
+				assert.Nil(st, fundingSource, scenario.Name)
+			}
+		})
 	}
 }
 

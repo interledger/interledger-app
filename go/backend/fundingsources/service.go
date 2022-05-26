@@ -10,12 +10,13 @@ import (
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/sdk/client"
 )
 
 var (
@@ -43,6 +44,7 @@ type service struct {
 	as        accounts.Service
 	noop      noop.Service
 	mx        _mx.Service
+	tp        client.Client
 }
 
 type ServiceArgs struct {
@@ -51,6 +53,7 @@ type ServiceArgs struct {
 	Db   *sqlx.DB          `validate:"required"`
 	Noop noop.Service      `validate:"required"`
 	Mx   _mx.Service       `validate:"required"`
+	Tp   client.Client     `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -67,6 +70,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		db:        args.Db,
 		noop:      args.Noop,
 		mx:        args.Mx,
+		tp:        args.Tp,
 	}, nil
 }
 
@@ -76,8 +80,7 @@ type FundingSource struct {
 	Name              string
 	VerificationState string `db:"verification_state"`
 	Mask              string
-	Type              string // pivot table type
-	TypeID            string `db:"type_id"` // pivot table typeID
+	Type              string
 	SubType           string `db:"subtype"`
 	CreatedAt         string `db:"created_at"`
 	UpdatedAt         string `db:"updated_at"`
@@ -87,10 +90,9 @@ type CreateArgs struct {
 	IdentityID        string `validate:"required,uuid4"`
 	AccountID         string `validate:"required,uuid4"`
 	Name              string `validate:"required"`
-	Mask              string `validate:"required"`
+	Mask              string
 	VerificationState string `validate:"required"`
-	Type              string `validate:"oneof=noop"`
-	TypeID            string `validate:"required,uuid4"`
+	Type              string `validate:"oneof=noop mx"`
 	SubType           string `validate:"required"`
 }
 
@@ -119,9 +121,9 @@ func (s *service) Create(ctx context.Context, args *CreateArgs) (*FundingSource,
 		&fs,
 		`
 			INSERT INTO funding_sources (
-				account_id, name, mask, verification_state, type, type_id, subtype
+				account_id, name, mask, verification_state, type, subtype
 			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING *;
 		`,
 		acc.ID,
@@ -129,7 +131,6 @@ func (s *service) Create(ctx context.Context, args *CreateArgs) (*FundingSource,
 		args.Mask,
 		args.VerificationState,
 		args.Type,
-		args.TypeID,
 		args.SubType,
 	)
 	if err != nil {
@@ -266,7 +267,6 @@ func (s *service) CreateBankAccount(
 		Mask:              args.AccountNumber[:4],
 		VerificationState: "required",
 		Type:              "noop",
-		TypeID:            uuid.NewString(),
 		SubType:           args.Type,
 	})
 	if err != nil {
@@ -310,7 +310,47 @@ func (s *service) CreateMxBankAccount(
 	ctx context.Context,
 	args *CreateMxBankAccountArgs,
 ) (*FundingSource, error) {
-	panic("not implemented")
+	acc, err := s.as.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if acc.IdentityID != args.IdentityID {
+		return nil, ErrUnauthorized
+	}
+
+	fundingSource, err := s.Create(ctx, &CreateArgs{
+		IdentityID:        args.IdentityID,
+		AccountID:         args.AccountID,
+		Name:              args.Name,
+		VerificationState: "processing",
+		Type:              "mx",
+		SubType:           "bank",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	_, err = s.tp.ExecuteWorkflow(
+		ctx,
+		client.StartWorkflowOptions{
+			ID:                    "create_mx_bank_account_" + fundingSource.ID,
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		},
+		CreateMxBankAccountWorkflow,
+		&CreateMxBankAccountWorkflowArgs{
+			FundingSourceID: fundingSource.ID,
+			MxUserGuid:      args.MxUserGuid,
+			MxMemberGuid:    args.MxMemberGuid,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return fundingSource, nil
+
 }
 
 func IsVerified(fs *FundingSource) bool {
