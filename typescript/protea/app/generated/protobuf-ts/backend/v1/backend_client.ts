@@ -7,6 +7,8 @@ import type { PhoneVerificationResponse } from "./backend";
 import type { SendPhoneVerificationRequest } from "./backend";
 import type { Onboarding } from "./backend";
 import type { GetOnboardingRequest } from "./backend";
+import type { FundingSource } from "./backend";
+import type { CreateBankAccountRequest } from "./backend";
 import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
@@ -65,6 +67,10 @@ export interface IBackendServiceClient {
      */
     getBankAccountWidget(input: GetBankAccountWidgetRequest, options?: RpcOptions): UnaryCall<GetBankAccountWidgetRequest, GetBankAccountWidgetResponse>;
     /**
+     * @generated from protobuf rpc: CreateBankAccount(backend.v1.CreateBankAccountRequest) returns (backend.v1.FundingSource);
+     */
+    createBankAccount(input: CreateBankAccountRequest, options?: RpcOptions): UnaryCall<CreateBankAccountRequest, FundingSource>;
+    /**
      * Returns the current onboarding flow.
      *
      * @generated from protobuf rpc: GetOnboarding(backend.v1.GetOnboardingRequest) returns (backend.v1.Onboarding);
@@ -104,12 +110,19 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetBankAccountWidgetRequest, GetBankAccountWidgetResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: CreateBankAccount(backend.v1.CreateBankAccountRequest) returns (backend.v1.FundingSource);
+     */
+    createBankAccount(input: CreateBankAccountRequest, options?: RpcOptions): UnaryCall<CreateBankAccountRequest, FundingSource> {
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateBankAccountRequest, FundingSource>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Returns the current onboarding flow.
      *
      * @generated from protobuf rpc: GetOnboarding(backend.v1.GetOnboardingRequest) returns (backend.v1.Onboarding);
      */
     getOnboarding(input: GetOnboardingRequest, options?: RpcOptions): UnaryCall<GetOnboardingRequest, Onboarding> {
-        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetOnboardingRequest, Onboarding>("unary", this._transport, method, opt, input);
     }
     /**
@@ -118,7 +131,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: UpdateOnboarding(backend.v1.Onboarding) returns (backend.v1.Onboarding);
      */
     updateOnboarding(input: Onboarding, options?: RpcOptions): UnaryCall<Onboarding, Onboarding> {
-        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
         return stackIntercept<Onboarding, Onboarding>("unary", this._transport, method, opt, input);
     }
     /**
@@ -127,14 +140,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: SendPhoneVerification(backend.v1.SendPhoneVerificationRequest) returns (backend.v1.PhoneVerificationResponse);
      */
     sendPhoneVerification(input: SendPhoneVerificationRequest, options?: RpcOptions): UnaryCall<SendPhoneVerificationRequest, PhoneVerificationResponse> {
-        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendPhoneVerificationRequest, PhoneVerificationResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CheckPhoneVerificationCode(backend.v1.CheckPhoneVerificationCodeRequest) returns (backend.v1.PhoneVerificationResponse);
      */
     checkPhoneVerificationCode(input: CheckPhoneVerificationCodeRequest, options?: RpcOptions): UnaryCall<CheckPhoneVerificationCodeRequest, PhoneVerificationResponse> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<CheckPhoneVerificationCodeRequest, PhoneVerificationResponse>("unary", this._transport, method, opt, input);
     }
 }
