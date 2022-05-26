@@ -24,27 +24,46 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func TestGetBankAccountWidget(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	health, err := healthcheck.NewService()
-	accountsService := accounts.NewMockService(ctrl)
-	identityService := identity.NewMockService(ctrl)
-	adminAuthService := auth.NewMockService()
-	userService := user.NewMockService()
-	fundingsourceService := fundingsources.NewMockService(ctrl)
+type TestContainer struct {
+	HealthService        healthcheck.Service
+	AccountService       *accounts.MockService
+	IdentityService      *identity.MockService
+	AdminAuthService     auth.Service
+	UserService          user.Service
+	FundingsourceService *fundingsources.MockService
+	OnboardingService    *onboarding.MockService
+	UnitProvider         *unit.MockService
+}
+
+type TestContainerOption func(*TestContainer)
+
+func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
+	hs, err := healthcheck.NewService()
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, client := startTestServer(t, &ServerArgs{
-		HealthCheckService:   health,
-		IdentityService:      identityService,
-		AccountsService:      accountsService,
-		AdminAuthService:     adminAuthService,
-		UserService:          userService,
+	c := &TestContainer{
+		HealthService:        hs,
+		AccountService:       accounts.NewMockService(ctrl),
+		IdentityService:      identity.NewMockService(ctrl),
+		AdminAuthService:     auth.NewMockService(),
+		UserService:          user.NewMockService(),
+		FundingsourceService: fundingsources.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
-		FundingSourceService: fundingsourceService,
 		OnboardingService:    onboarding.NewMockService(ctrl),
-	})
+	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c
+}
+
+func TestGetBankAccountWidget(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
 
 	userID := uuid.NewString()
 	accountID := uuid.NewString()
@@ -58,29 +77,29 @@ func TestGetBankAccountWidget(t *testing.T) {
 			Name:          "Returns the mx connect widget url.",
 			ExpectedError: "",
 			RunBefore: func() {
-				accountsService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
+				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
 					ID:         accountID,
 					IdentityID: userID,
 				}, nil).Times(1)
-				fundingsourceService.EXPECT().GetMxConnectWidget(gomock.Any(), accountID, userID).Return(widgetUrl, nil).Times(1)
+				c.FundingsourceService.EXPECT().GetMxConnectWidget(gomock.Any(), accountID, userID).Return(widgetUrl, nil).Times(1)
 			},
 		},
 		{
 			Name:          "Returns internal error if account not found.",
 			ExpectedError: "rpc error: code = Internal desc = Unable to get account.",
 			RunBefore: func() {
-				accountsService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(nil, accounts.ErrNotFound).Times(1)
+				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(nil, accounts.ErrNotFound).Times(1)
 			},
 		},
 		{
 			Name:          "Returns internal error if the connect widget url cannot be generated.",
 			ExpectedError: "rpc error: code = Internal desc = Unable to get widget.",
 			RunBefore: func() {
-				accountsService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
+				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
 					ID:         accountID,
 					IdentityID: userID,
 				}, nil).Times(1)
-				fundingsourceService.EXPECT().GetMxConnectWidget(gomock.Any(), accountID, userID).Return("", fundingsources.ErrInternal).Times(1)
+				c.FundingsourceService.EXPECT().GetMxConnectWidget(gomock.Any(), accountID, userID).Return("", fundingsources.ErrInternal).Times(1)
 			},
 		},
 	}
@@ -108,9 +127,17 @@ func TestGetBankAccountWidget(t *testing.T) {
 
 func startTestServer(
 	t *testing.T,
-	args *ServerArgs,
+	c *TestContainer,
 ) (*grpc.Server, backendv1.BackendAdminServiceClient, backendv1.BackendServiceClient) {
-	server, err := NewServer(args)
+	server, err := NewServer(&ServerArgs{
+		HealthCheckService:   c.HealthService,
+		IdentityService:      c.IdentityService,
+		AccountsService:      c.AccountService,
+		AdminAuthService:     c.AdminAuthService,
+		UserService:          c.UserService,
+		UnitProvider:         c.UnitProvider,
+		FundingSourceService: c.FundingsourceService,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type mockService struct{}
+type MockService struct{}
 
 var _testCookieName string = "test-cookie"
 
-func (self *mockService) GetUser(r http.Request) (*User, error) {
+func (self *MockService) GetUser(r http.Request) (*User, error) {
 	c, err := r.Cookie(_testCookieName)
 	if err != nil || c == nil {
 		return nil, ErrNoUserFound
@@ -36,7 +36,7 @@ func (self *mockService) GetUser(r http.Request) (*User, error) {
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
-func (self *mockService) ForContext(ctx context.Context) (*User, error) {
+func (self *MockService) ForContext(ctx context.Context) (*User, error) {
 	raw, ok := ctx.Value(userCtxKey).(*User)
 	if !ok {
 		return nil, ErrNoUserFound
@@ -82,5 +82,5 @@ func ActingAsContext(t *testing.T, ctx context.Context, user *User) context.Cont
 }
 
 func NewMockService() Service {
-	return &mockService{}
+	return &MockService{}
 }
