@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
@@ -14,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -35,9 +37,10 @@ type TestContainer struct {
 	PacioliClient    pacioliv1.PacioliServiceClient
 	PacioliLedgerID  uint16
 	Tp               *mocks.Client
+	Mx               *mx.MockService
 }
 
-func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
+func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
 	db := test_utils.MigrateCockroachDB(t, ctx)
@@ -122,11 +125,13 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Os = os
 
+	c.Mx = mx.NewMockService(ctrl)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
 		Db:   db,
 		Noop: noop,
+		Mx:   c.Mx,
 	})
 	if err != nil {
 		return nil, err

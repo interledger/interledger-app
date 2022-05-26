@@ -20,7 +20,8 @@ import (
 
 func TestFundingSources(s *testing.T) {
 	ctx := context.Background()
-	c, err := NewTestContainer(ctx, s)
+	ctrl := gomock.NewController(s)
+	c, err := NewTestContainer(ctx, s, ctrl)
 	if err != nil {
 		s.Fatal(err)
 	}

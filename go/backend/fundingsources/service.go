@@ -27,7 +27,7 @@ var (
 )
 
 type Service interface {
-	Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error)
+	Create(ctx context.Context, args *CreateArgs) (*FundingSource, error)
 	Get(ctx context.Context, id string) (*FundingSource, error)
 	GetByAccountId(ctx context.Context, identityId string) ([]FundingSource, error)
 	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
@@ -94,7 +94,7 @@ type CreateArgs struct {
 	SubType           string `validate:"required"`
 }
 
-func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error) {
+func (s *service) Create(ctx context.Context, args *CreateArgs) (*FundingSource, error) {
 	// TODO: refactor errors
 	err := s.validator.Struct(args)
 	if err != nil {
@@ -114,18 +114,16 @@ func (s *service) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*F
 	}
 
 	var fs FundingSource
-	stmt, err := tx.PrepareNamed(`
+	err = s.db.GetContext(
+		ctx,
+		&fs,
+		`
 			INSERT INTO funding_sources (
 				account_id, name, mask, verification_state, type, type_id, subtype
 			)
-			VALUES (:account_id, :name, :mask, :verification_state, :type, :type_id, :subtype)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			RETURNING *;
-		`)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
-	err = stmt.Stmt.Get(&fs,
+		`,
 		acc.ID,
 		args.Name,
 		args.Mask,
@@ -261,24 +259,15 @@ func (s *service) CreateBankAccount(
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
 	}
 
-	var fundingsource *FundingSource
-	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		fs, err := s.Create(ctx, tx, &CreateArgs{
-			IdentityID:        args.IdentityID,
-			AccountID:         args.AccountID,
-			Name:              args.Name,
-			Mask:              args.AccountNumber[:4],
-			VerificationState: "required",
-			Type:              "noop",
-			TypeID:            uuid.NewString(),
-			SubType:           args.Type,
-		})
-		if err != nil {
-			return err
-		}
-
-		fundingsource = fs
-		return nil
+	fundingsource, err := s.Create(ctx, &CreateArgs{
+		IdentityID:        args.IdentityID,
+		AccountID:         args.AccountID,
+		Name:              args.Name,
+		Mask:              args.AccountNumber[:4],
+		VerificationState: "required",
+		Type:              "noop",
+		TypeID:            uuid.NewString(),
+		SubType:           args.Type,
 	})
 	if err != nil {
 		return nil, err
