@@ -132,6 +132,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 		Db:   db,
 		Noop: noop,
 		Mx:   c.Mx,
+		Tp:   c.Tp,
 	})
 	if err != nil {
 		return nil, err

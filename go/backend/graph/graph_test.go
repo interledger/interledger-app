@@ -186,7 +186,6 @@ func TestGraphql(s *testing.T) {
 		assert.Equal(t, args.Name, fs.Name)
 		assert.Equal(t, "noop", fs.Type)
 		assert.Equal(t, args.Type, fs.SubType)
-		assert.NotEqual(t, "", fs.TypeID)
 		assert.NotEqual(t, args.AccountNumber, fs.Mask)
 		assert.NotEqual(t, args.RoutingNumber, fs.Mask)
 		assert.Equal(t, "required", fs.VerificationState)

@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	sqlx "github.com/jmoiron/sqlx"
 )
 
 // MockService is a mock of Service interface.
@@ -36,18 +35,18 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockService) Create(ctx context.Context, tx *sqlx.Tx, args *CreateArgs) (*FundingSource, error) {
+func (m *MockService) Create(ctx context.Context, args *CreateArgs) (*FundingSource, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, tx, args)
+	ret := m.ctrl.Call(m, "Create", ctx, args)
 	ret0, _ := ret[0].(*FundingSource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockServiceMockRecorder) Create(ctx, tx, args interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockService)(nil).Create), ctx, tx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockService)(nil).Create), ctx, args)
 }
 
 // CreateBankAccount mocks base method.
