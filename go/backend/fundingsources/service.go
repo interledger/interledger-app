@@ -32,6 +32,7 @@ type Service interface {
 	GetByAccountId(ctx context.Context, identityId string) ([]FundingSource, error)
 	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
+	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
 	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 }
 
@@ -306,6 +307,21 @@ func (s *service) GetMxConnectWidget(ctx context.Context, accountID string, iden
 	}
 
 	return url, nil
+}
+
+type CreateMxBankAccountArgs struct {
+	IdentityID   string `validate:"required"`
+	AccountID    string `validate:"required"`
+	MxUserGuid   string `validate:"required"`
+	MxMemberGuid string `validate:"required"`
+	Name         string `validate:"required"`
+}
+
+func (s *service) CreateMxBankAccount(
+	ctx context.Context,
+	args *CreateMxBankAccountArgs,
+) (*FundingSource, error) {
+	panic("not implemented")
 }
 
 func IsVerified(fs *FundingSource) bool {

@@ -65,6 +65,21 @@ func (mr *MockServiceMockRecorder) CreateBankAccount(ctx, args interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccount", reflect.TypeOf((*MockService)(nil).CreateBankAccount), ctx, args)
 }
 
+// CreateMxBankAccount mocks base method.
+func (m *MockService) CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMxBankAccount", ctx, args)
+	ret0, _ := ret[0].(*FundingSource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateMxBankAccount indicates an expected call of CreateMxBankAccount.
+func (mr *MockServiceMockRecorder) CreateMxBankAccount(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMxBankAccount", reflect.TypeOf((*MockService)(nil).CreateMxBankAccount), ctx, args)
+}
+
 // Get mocks base method.
 func (m *MockService) Get(ctx context.Context, id string) (*FundingSource, error) {
 	m.ctrl.T.Helper()
