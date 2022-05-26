@@ -83,7 +83,7 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 func (wh *webhook) StoreEvent(ctx context.Context, event Event, rawEvent json.RawMessage) (*DbEvent, error) {
 	var storedEvent DbEvent
 
-	err := wh.db.Get(&storedEvent, "INSERT INTO unit_events (id, type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, EventType(event.Type), string(rawEvent))
+	err := wh.db.GetContext(ctx, &storedEvent, "INSERT INTO unit_events (id, type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, EventType(event.Type), string(rawEvent))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
