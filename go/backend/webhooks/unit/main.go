@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -47,14 +48,11 @@ type webhook struct {
 }
 
 func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.RawMessage) error {
-	storedEvent, err := wh.GetEvent(ctx, event.ID)
-	if storedEvent != nil {
-		return fmt.Errorf("%w %s", ErrDuplicateEvent, err)
-	}
-
-	_, err = wh.StoreEvent(ctx, event, rawEvent)
+	_, err := wh.StoreEvent(ctx, event, rawEvent)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		if err != ErrDuplicateEvent {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
 	}
 
 	switch event.Type {
@@ -85,6 +83,9 @@ func (wh *webhook) StoreEvent(ctx context.Context, event Event, rawEvent json.Ra
 
 	err := wh.db.GetContext(ctx, &storedEvent, "INSERT INTO unit_events (id, type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, EventType(event.Type), string(rawEvent))
 	if err != nil {
+		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
+			return nil, fmt.Errorf("%w %s", ErrDuplicateEvent, err)
+		}
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
@@ -126,11 +127,6 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			var event Event
 			if err := json.Unmarshal(rawEvent, &event); err != nil {
 				didFail = true
-				continue
-			}
-
-			storedEvent, _ := wh.GetEvent(context.Background(), event.ID)
-			if storedEvent != nil {
 				continue
 			}
 
