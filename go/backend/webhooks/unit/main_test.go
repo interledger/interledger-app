@@ -35,8 +35,6 @@ func TestWebhooks(t *testing.T) {
 	})
 
 	t.Run("Test webhooks", func(t *testing.T) {
-		customerCreatedEvent := NewCustomerCreatedEvent()
-
 		scenarios := []struct {
 			Name                   string
 			VerifyError            error
@@ -74,13 +72,6 @@ func TestWebhooks(t *testing.T) {
 				Payload:                marshalBody(t, "", NewCustomerCreatedEvent()),
 				ExpectedHttpStatusCode: 500,
 				ResponseMessage:        "Failed to parse payload\n",
-				MockCallTimes:          1,
-			},
-			{
-				Name:                   "Doesn't handle same event twice",
-				VerifyError:            nil,
-				Payload:                marshalBody(t, customerCreatedEvent, customerCreatedEvent),
-				ExpectedHttpStatusCode: 200,
 				MockCallTimes:          1,
 			},
 		}
@@ -146,22 +137,6 @@ func TestWebhooks(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Don't handle event if it already exist in database", func(t *testing.T) {
-		customerCreatedEvent := NewCustomerCreatedEvent()
-
-		testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
-		rawEvent := marshalEvent(t, customerCreatedEvent)
-
-		_, err := c.Wh.StoreEvent(context.Background(), testEvent, rawEvent)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = c.Wh.HandleEvent(context.Background(), testEvent, rawEvent)
-
-		assert.ErrorIs(t, err, ErrDuplicateEvent)
-	})
-
 	t.Run("Store event in the database successfully ", func(t *testing.T) {
 		customerCreatedEvent := NewCustomerCreatedEvent()
 		rawEvent := marshalEvent(t, customerCreatedEvent)
@@ -181,6 +156,21 @@ func TestWebhooks(t *testing.T) {
 		assert.Equal(t, testEvent.ID, storedEvent.ID)
 		assert.Equal(t, testEvent.Type, EventType(storedEvent.Type))
 		assert.Equal(t, string(rawEvent), storedEvent.RawEvent)
+	})
+
+	t.Run("Don't store event if it already exist in database", func(t *testing.T) {
+		customerCreatedEvent := NewCustomerCreatedEvent()
+		rawEvent := marshalEvent(t, customerCreatedEvent)
+		testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type) }
+
+		_, err := c.Wh.StoreEvent(c.Ctx, testEvent, rawEvent)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, err = c.Wh.StoreEvent(c.Ctx, testEvent, rawEvent)
+
+		assert.ErrorIs(t, err, ErrDuplicateEvent)
 	})
 }
 
