@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"google.golang.org/grpc"
@@ -105,10 +106,6 @@ func (s *service) ForContext(ctx context.Context) (*AdminUser, error) {
 	return raw, nil
 }
 
-type grpcService interface {
-	GetName() string
-}
-
 func (s *service) MakeUnaryInterceptors(serviceName string) grpc.ServerOption {
 	return grpc.ChainUnaryInterceptor(func(
 		ctx context.Context,
@@ -116,8 +113,7 @@ func (s *service) MakeUnaryInterceptors(serviceName string) grpc.ServerOption {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		service := info.Server.(grpcService)
-		if service.GetName() != serviceName {
+		if !strings.Contains(info.FullMethod, "BackendAdminService") {
 			return handler(ctx, req)
 		}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -40,17 +41,13 @@ const cookieMetadataKey = "cookies"
 
 // Our front-end will forward the raw http cookies in the metadata.
 func MakeUnaryInterceptor(us Service, serviceName string) grpc.ServerOption {
-	type grpcService interface {
-		GetName() string
-	}
 	return grpc.ChainUnaryInterceptor(func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		service := info.Server.(grpcService)
-		if service.GetName() != serviceName {
+		if !strings.Contains(info.FullMethod, "BackendService") {
 			return handler(ctx, req)
 		}
 
