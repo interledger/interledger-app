@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -48,8 +49,7 @@ func (m *MockService) MakeUnaryInterceptors(serviceName string) grpc.ServerOptio
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		service := info.Server.(grpcService)
-		if service.GetName() != serviceName {
+		if !strings.Contains(info.FullMethod, "BackendAdminService") {
 			return handler(ctx, req)
 		}
 
