@@ -659,6 +659,58 @@ func NewIamTrustPolicyDocument(ctx *pulumi.Context, accountId string, oidcProvid
 	return policy.Json, nil
 }
 
+func NewIamTrustPolicyDocumentV2(ctx *pulumi.Context, accountId pulumi.StringPtrInput, oidcProvider pulumi.StringPtrInput, namespace pulumi.StringPtrInput, serviceAccount pulumi.StringPtrInput) pulumi.StringOutput {
+	return pulumi.All(accountId, oidcProvider, namespace, serviceAccount).ApplyT(func(args []interface{}) (string, error) {
+		aid := args[0].(string)
+		oidc := args[1].(string)
+		ns := args[2].(string)
+		sa := args[3].(string)
+
+		conditions := []iam.GetPolicyDocumentStatementCondition{
+			{
+				Test:     "StringEquals",
+				Values:   []string{"sts.amazonaws.com"},
+				Variable: fmt.Sprintf("%s:aud", oidc),
+			},
+		}
+
+		if ns != "" && sa != "" {
+			conditions = append(conditions, iam.GetPolicyDocumentStatementCondition{
+				Test: "StringEquals",
+				Values: []string{
+					fmt.Sprintf("system:serviceaccount:%s:%s", ns, sa),
+				},
+				Variable: fmt.Sprintf("%s:sub", oidc),
+			})
+		}
+
+		policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+			Statements: []iam.GetPolicyDocumentStatement{
+				{
+					Effect: utils.StringPtr("Allow"),
+					Actions: []string{
+						"sts:AssumeRoleWithWebIdentity",
+					},
+					Principals: []iam.GetPolicyDocumentStatementPrincipal{
+						{
+							Type: "Federated",
+							Identifiers: []string{
+								fmt.Sprintf("arn:aws:iam::%s:oidc-provider/%s", aid, oidc),
+							},
+						},
+					},
+					Conditions: conditions,
+				},
+			},
+		})
+		if err != nil {
+			return "", err
+		}
+
+		return policy.Json, nil
+	}).(pulumi.StringOutput)
+}
+
 type ServiceRoleArgs struct {
 	Service           string
 	Description       string
