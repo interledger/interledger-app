@@ -147,15 +147,9 @@ func TestWebhooks(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		storedEventTwo, err := c.Wh.GetEvent(c.Ctx, customerCreatedEvent.ID)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Equal(t, storedEvent, storedEventTwo)
 		assert.Equal(t, testEvent.ID, storedEvent.ID)
 		assert.Equal(t, testEvent.Type, EventType(storedEvent.Type))
-		assert.Equal(t, string(rawEvent), storedEvent.RawEvent)
+		assert.JSONEq(t, string(rawEvent), storedEvent.RawEvent.String())
 	})
 
 	t.Run("Don't store event if it already exist in database", func(t *testing.T) {

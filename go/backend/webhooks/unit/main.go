@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/types"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 )
@@ -194,9 +195,9 @@ const (
 )
 
 type DbEvent struct {
-	ID 			 	string `db:"id"`
-	Type 		 	string `db:"type"`
-	RawEvent	string `db:"raw_event"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
+	ID 			 	string 				 `db:"id"`
+	Type 		 	string 				 `db:"type"`
+	RawEvent	types.JSONText `db:"raw_event"`
+	CreatedAt string 				 `db:"created_at"`
+	UpdatedAt string 				 `db:"updated_at"`
 }
