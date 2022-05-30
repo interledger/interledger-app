@@ -105,6 +105,22 @@ func main() {
 			return err
 		}
 
+
+		// Zendesk
+
+		// Domain Verification Key: c786ca99dc1dfd77
+		// https://fynbos.zendesk.com/admin/channels/talk_and_email/email
+		_, err = cloudflare.NewRecord(ctx, "zendesk-verification", &cloudflare.RecordArgs{
+			ZoneId: zone.ID().ToStringOutput(),
+			Name:   pulumi.String("zendeskverification.fynbos.dev."),
+			Value:  pulumi.String("c786ca99dc1dfd77"),
+			Type:   pulumi.String("TXT"),
+			Ttl:    pulumi.Int(3600),
+		})
+		if err != nil {
+			return err
+		}
+
 		// email
 		// send both aggregate (rua) and forensic (ruf) reports to postmaster@fynbos.dev
 		// p=reject - reject all mails that fail DKIM or SPF checks
@@ -185,7 +201,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "spf", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("v=spf1 include:_spf.google.com -all"),
+			Value:  pulumi.String("v=spf1 include:_spf.google.com include:mail.zendesk.com -all"),
 			Type:   pulumi.String("SPF"),
 			Ttl:    pulumi.Int(3600),
 		})
@@ -194,11 +210,11 @@ func main() {
 		}
 
 		// Current SPF record - uses TXT
-		// Sending only from Google servers
+		// Sending only from Google servers and Zendesk servers
 		_, err = cloudflare.NewRecord(ctx, "spf_txt", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
 			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("v=spf1 include:_spf.google.com -all"),
+			Value:  pulumi.String("v=spf1 include:_spf.google.com include:mail.zendesk.com -all"),
 			Type:   pulumi.String("TXT"),
 			Ttl:    pulumi.Int(3600),
 		})
@@ -206,7 +222,9 @@ func main() {
 			return err
 		}
 
+
 		// DKIM
+
 		// Key provided by Google Workspaces - https://admin.google.com/ac/apps/gmail/authenticateemail
 		_, err = cloudflare.NewRecord(ctx, "domain_key", &cloudflare.RecordArgs{
 			ZoneId: zone.ID().ToStringOutput(),
@@ -214,6 +232,31 @@ func main() {
 			Value:  pulumi.String("v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnjoOga7xnV9J9GsunNAa97b8pJ2QV6x7IF+7h2rDftSjg9JgpOuu1ntryS1SWssuVzNcNJkDfeFnrBFbDDbMcviM+4UcZ4GqX/eBCxKYOTHWEpfEZFUKFZ5RxCOE7y1yDDP3Cp/5ne4JVM9Bq6EDSQmfYewLTRz5wabvknCq1h1aZQXd3dun4wNvcocyOXI8LUGFzkmEZz22vpQV1TxzXoP6AxYSslsINh+CtjLXHLIGZbkLzW/N9UWOJBb07oXMslFuInyAQuajeFORknO4uPhJt415cajcpHXeVAqOmphT6jl1+hJNJll09pAnXDtQ23YrxLUJn2Gp/Y4415Jl6QIDAQAB"),
 			Type:   pulumi.String("TXT"),
 			Ttl:    pulumi.Int(3600),
+		})
+		if err != nil {
+			return err
+		}
+
+		// Additional keys hosted by Zendesk - https://support.zendesk.com/hc/en-us/articles/4408822303386
+		_, err = cloudflare.NewRecord(ctx, "zendesk-dkim1", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("zendesk1._domainkey"),
+			Value:   pulumi.String("zendesk1._domainkey.zendesk.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(3600),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = cloudflare.NewRecord(ctx, "zendesk-dkim2", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("zendesk2._domainkey"),
+			Value:   pulumi.String("zendesk2._domainkey.zendesk.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(3600),
+			Proxied: pulumi.Bool(true),
 		})
 		if err != nil {
 			return err
