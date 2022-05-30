@@ -105,7 +105,6 @@ func main() {
 			return err
 		}
 
-
 		// Zendesk
 
 		// Domain Verification Key: c786ca99dc1dfd77
@@ -197,18 +196,6 @@ func main() {
 			return err
 		}
 
-		// Legacy SPF record
-		_, err = cloudflare.NewRecord(ctx, "spf", &cloudflare.RecordArgs{
-			ZoneId: zone.ID().ToStringOutput(),
-			Name:   pulumi.String("fynbos.dev."),
-			Value:  pulumi.String("v=spf1 include:_spf.google.com include:mail.zendesk.com -all"),
-			Type:   pulumi.String("SPF"),
-			Ttl:    pulumi.Int(3600),
-		})
-		if err != nil {
-			return err
-		}
-
 		// Current SPF record - uses TXT
 		// Sending only from Google servers and Zendesk servers
 		_, err = cloudflare.NewRecord(ctx, "spf_txt", &cloudflare.RecordArgs{
@@ -221,7 +208,6 @@ func main() {
 		if err != nil {
 			return err
 		}
-
 
 		// DKIM
 
@@ -239,24 +225,22 @@ func main() {
 
 		// Additional keys hosted by Zendesk - https://support.zendesk.com/hc/en-us/articles/4408822303386
 		_, err = cloudflare.NewRecord(ctx, "zendesk-dkim1", &cloudflare.RecordArgs{
-			ZoneId:  zone.ID().ToStringOutput(),
-			Name:    pulumi.String("zendesk1._domainkey"),
-			Value:   pulumi.String("zendesk1._domainkey.zendesk.com"),
-			Type:    pulumi.String("CNAME"),
-			Ttl:     pulumi.Int(3600),
-			Proxied: pulumi.Bool(true),
+			ZoneId: zone.ID().ToStringOutput(),
+			Name:   pulumi.String("zendesk1._domainkey"),
+			Value:  pulumi.String("zendesk1._domainkey.zendesk.com"),
+			Type:   pulumi.String("CNAME"),
+			Ttl:    pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "zendesk-dkim2", &cloudflare.RecordArgs{
-			ZoneId:  zone.ID().ToStringOutput(),
-			Name:    pulumi.String("zendesk2._domainkey"),
-			Value:   pulumi.String("zendesk2._domainkey.zendesk.com"),
-			Type:    pulumi.String("CNAME"),
-			Ttl:     pulumi.Int(3600),
-			Proxied: pulumi.Bool(true),
+			ZoneId: zone.ID().ToStringOutput(),
+			Name:   pulumi.String("zendesk2._domainkey"),
+			Value:  pulumi.String("zendesk2._domainkey.zendesk.com"),
+			Type:   pulumi.String("CNAME"),
+			Ttl:    pulumi.Int(3600),
 		})
 		if err != nil {
 			return err
