@@ -34,10 +34,29 @@ message UnitCustomer {
 
 service BackendService {
   rpc GetBankAccountWidget (GetBankAccountWidgetRequest) returns (GetBankAccountWidgetResponse);
+  // Returns the current onboarding flow.
+  rpc GetOnboarding (GetOnboardingRequest) returns (Onboarding);
+  // Creates the onboarding flow if it does not already exist.
+  rpc UpdateOnboarding (Onboarding) returns (Onboarding);
 }
 
 message GetBankAccountWidgetRequest {}
 
 message GetBankAccountWidgetResponse {
   string url = 1;
+}
+
+message GetOnboardingRequest {
+  string id = 1;
+}
+
+message Onboarding {
+  string id = 1;
+  string first_name = 2;
+	string last_name = 3;
+	string country_of_residence = 4;
+	string email = 5;
+	string phone = 6;
+	bool phone_verified = 7;
+	bool service_agreement = 8;
 }

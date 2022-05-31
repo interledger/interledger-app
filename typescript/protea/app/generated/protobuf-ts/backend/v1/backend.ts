@@ -90,6 +90,52 @@ export interface GetBankAccountWidgetResponse {
      */
     url: string;
 }
+/**
+ * @generated from protobuf message backend.v1.GetOnboardingRequest
+ */
+export interface GetOnboardingRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.Onboarding
+ */
+export interface Onboarding {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string first_name = 2;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string last_name = 3;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string country_of_residence = 4;
+     */
+    countryOfResidence: string;
+    /**
+     * @generated from protobuf field: string email = 5;
+     */
+    email: string;
+    /**
+     * @generated from protobuf field: string phone = 6;
+     */
+    phone: string;
+    /**
+     * @generated from protobuf field: bool phone_verified = 7;
+     */
+    phoneVerified: boolean;
+    /**
+     * @generated from protobuf field: bool service_agreement = 8;
+     */
+    serviceAgreement: boolean;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -400,6 +446,149 @@ class GetBankAccountWidgetResponse$Type extends MessageType<GetBankAccountWidget
  * @generated MessageType for protobuf message backend.v1.GetBankAccountWidgetResponse
  */
 export const GetBankAccountWidgetResponse = new GetBankAccountWidgetResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetOnboardingRequest$Type extends MessageType<GetOnboardingRequest> {
+    constructor() {
+        super("backend.v1.GetOnboardingRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetOnboardingRequest>): GetOnboardingRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetOnboardingRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetOnboardingRequest): GetOnboardingRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetOnboardingRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetOnboardingRequest
+ */
+export const GetOnboardingRequest = new GetOnboardingRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Onboarding$Type extends MessageType<Onboarding> {
+    constructor() {
+        super("backend.v1.Onboarding", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "first_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "last_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "country_of_residence", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "phone", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "phone_verified", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "service_agreement", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Onboarding>): Onboarding {
+        const message = { id: "", firstName: "", lastName: "", countryOfResidence: "", email: "", phone: "", phoneVerified: false, serviceAgreement: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Onboarding>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Onboarding): Onboarding {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string first_name */ 2:
+                    message.firstName = reader.string();
+                    break;
+                case /* string last_name */ 3:
+                    message.lastName = reader.string();
+                    break;
+                case /* string country_of_residence */ 4:
+                    message.countryOfResidence = reader.string();
+                    break;
+                case /* string email */ 5:
+                    message.email = reader.string();
+                    break;
+                case /* string phone */ 6:
+                    message.phone = reader.string();
+                    break;
+                case /* bool phone_verified */ 7:
+                    message.phoneVerified = reader.bool();
+                    break;
+                case /* bool service_agreement */ 8:
+                    message.serviceAgreement = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Onboarding, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string first_name = 2; */
+        if (message.firstName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.firstName);
+        /* string last_name = 3; */
+        if (message.lastName !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.lastName);
+        /* string country_of_residence = 4; */
+        if (message.countryOfResidence !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.countryOfResidence);
+        /* string email = 5; */
+        if (message.email !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.email);
+        /* string phone = 6; */
+        if (message.phone !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.phone);
+        /* bool phone_verified = 7; */
+        if (message.phoneVerified !== false)
+            writer.tag(7, WireType.Varint).bool(message.phoneVerified);
+        /* bool service_agreement = 8; */
+        if (message.serviceAgreement !== false)
+            writer.tag(8, WireType.Varint).bool(message.serviceAgreement);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Onboarding
+ */
+export const Onboarding = new Onboarding$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -411,5 +600,7 @@ export const BackendAdminService = new ServiceType("backend.v1.BackendAdminServi
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */
 export const BackendService = new ServiceType("backend.v1.BackendService", [
-    { name: "GetBankAccountWidget", options: {}, I: GetBankAccountWidgetRequest, O: GetBankAccountWidgetResponse }
+    { name: "GetBankAccountWidget", options: {}, I: GetBankAccountWidgetRequest, O: GetBankAccountWidgetResponse },
+    { name: "GetOnboarding", options: {}, I: GetOnboardingRequest, O: Onboarding },
+    { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding }
 ]);
