@@ -14,6 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
+	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 )
 
@@ -40,6 +41,7 @@ type service struct {
 	is        _identity.Service
 	as        accounts.Service
 	noop      noop.Service
+	mx        _mx.Service
 }
 
 type ServiceArgs struct {
@@ -47,6 +49,7 @@ type ServiceArgs struct {
 	As   accounts.Service  `validate:"required"`
 	Db   *sqlx.DB          `validate:"required"`
 	Noop noop.Service      `validate:"required"`
+	Mx   _mx.Service       `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -62,6 +65,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		as:        args.As,
 		db:        args.Db,
 		noop:      args.Noop,
+		mx:        args.Mx,
 	}, nil
 }
 
@@ -282,7 +286,26 @@ func (s *service) CreateBankAccount(
 	return fundingsource, nil
 }
 func (s *service) GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error) {
-	panic("not implemented.")
+	acc, err := s.as.Get(ctx, accountID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if acc.IdentityID != identityID {
+		return "", ErrUnauthorized
+	}
+
+	mxUserGuid, err := s.mx.CreateUser(ctx)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	url, err := s.mx.GetWidgetUrl(ctx, mxUserGuid)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return url, nil
 }
 
 func IsVerified(fs *FundingSource) bool {

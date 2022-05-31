@@ -5,10 +5,16 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	_mx "gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 )
 
@@ -398,6 +404,81 @@ func TestFundingSources(s *testing.T) {
 			assert.Equal(tt, 0, len(fs))
 		})
 	})
+}
+
+func TestGetMxConnectWidget(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	as := accounts.NewMockService(ctrl)
+	is := identity.NewMockService(ctrl)
+	nos := noop.NewMockService(ctrl)
+	mx := _mx.NewMockService(ctrl)
+	fs, err := NewService(&ServiceArgs{
+		Is:   is,
+		As:   as,
+		Db:   &sqlx.DB{},
+		Noop: nos,
+		Mx:   mx,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	accountID := uuid.NewString()
+	user := user.User{
+		ID: uuid.NewString(),
+	}
+	widgetUrl := "test"
+
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		AccountID     string
+		IdentityID    string
+		RunBefore     func()
+	}{
+		{
+			Name:          "Returns unauthorized if identity does not match that on account.",
+			ExpectedError: ErrUnauthorized,
+			AccountID:     accountID,
+			IdentityID:    uuid.NewString(),
+			RunBefore: func() {
+				as.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
+					ID:         accountID,
+					IdentityID: user.ID,
+				}, nil).Times(1)
+			},
+		},
+		{
+			Name:          "Creates mx user and generates widget url.",
+			ExpectedError: nil,
+			AccountID:     accountID,
+			IdentityID:    user.ID,
+			RunBefore: func() {
+				as.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
+					ID:         accountID,
+					IdentityID: user.ID,
+				}, nil).Times(1)
+
+				mxUserGuid := uuid.NewString()
+				mx.EXPECT().CreateUser(gomock.Any()).Return(mxUserGuid, nil).Times(1)
+				mx.EXPECT().GetWidgetUrl(gomock.Any(), mxUserGuid).Return(widgetUrl, nil)
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		scenario.RunBefore()
+
+		url, err := fs.GetMxConnectWidget(context.Background(), scenario.AccountID, scenario.IdentityID)
+
+		if scenario.ExpectedError == nil {
+			assert.NoError(t, err)
+			assert.Equal(t, widgetUrl, url)
+		} else {
+			assert.ErrorIs(t, err, scenario.ExpectedError, scenario.Name)
+			assert.Equal(t, "", url, scenario.Name)
+		}
+	}
 }
 
 func generateCreateBankAccountArgs(opts ...func(*CreateBankAccountArgs)) *CreateBankAccountArgs {
