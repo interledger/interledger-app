@@ -21,6 +21,9 @@ type VpcArgs struct {
 	PrivateOutboundNacls ec2.NetworkAclEgressArray
 	IntraInboundNacls    ec2.NetworkAclIngressArray
 	IntraOutboundNacls   ec2.NetworkAclEgressArray
+	PublicSubnetTags     pulumi.StringMapInput
+	PrivateSubnetTags    pulumi.StringMapInput
+	IntraSubnetTags      pulumi.StringMapInput
 }
 
 func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
@@ -60,6 +63,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 			VpcId:            vpc.ID(),
 			CidrBlock:        pulumi.String(s),
 			AvailabilityZone: pulumi.String(args.AvailabilityZones[i]),
+			Tags:             args.PublicSubnetTags,
 		})
 		if err != nil {
 			return nil, err
@@ -103,6 +107,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 			VpcId:            vpc.ID(),
 			CidrBlock:        pulumi.String(s),
 			AvailabilityZone: pulumi.String(args.AvailabilityZones[i]),
+			Tags:             args.PrivateSubnetTags,
 		})
 		if err != nil {
 			return nil, err
@@ -186,6 +191,7 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 				VpcId:            vpc.ID(),
 				CidrBlock:        pulumi.String(s),
 				AvailabilityZone: pulumi.String(args.AvailabilityZones[i]),
+				Tags:             args.IntraSubnetTags,
 			})
 			if err != nil {
 				return nil, err
@@ -277,7 +283,8 @@ func subnetArrayToCidrBlockArray(subnets []*ec2.Subnet) pulumi.StringArrayOutput
 	return pulumi.All(outputs...).ApplyT(func(vs []interface{}) []string {
 		var results []string
 		for _, v := range vs {
-			results = append(results, v.(string))
+			value := v.(*string)
+			results = append(results, *value)
 		}
 		return results
 	}).(pulumi.StringArrayOutput)
