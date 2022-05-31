@@ -2,7 +2,9 @@ package fundingsources
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
@@ -82,17 +84,39 @@ func (a *Activity) CreateMxAccount(
 
 func (a *Activity) StartIdentityAggregation(
 	ctx context.Context,
-	mxUserGuid string,
-	mxMemberGuid string,
+	mxFundingSourceID string,
 ) error {
+	if _, err := a.mx.StartIdentityAggregation(ctx, mxFundingSourceID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
+// Uses a ticker and go routine to poll every second for up to 10 seconds for aggregation to be
+// complete. Temporal recommends this over failing the activity task for polling at short intervals.
 func (a *Activity) WaitForIdentityAggregation(
 	ctx context.Context,
-	mxUserGuid string,
-	mxMemberGuid string,
+	mxFundingSourceID string,
 ) error {
+	now := time.Now()
+	ticker := time.NewTicker(time.Second)
+	for range ticker.C {
+		elapsed := time.Since(now)
+		if elapsed > 10*time.Second {
+			return errors.New("Timed out waiting for identity aggregation.")
+		}
+
+		member, err := a.mx.GetMemberStatus(ctx, mxFundingSourceID)
+		if err != nil {
+			continue
+		}
+
+		if !member.IsBeingAggregated {
+			return nil
+		}
+	}
+
 	return nil
 }
 

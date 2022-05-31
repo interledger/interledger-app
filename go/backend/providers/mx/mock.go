@@ -64,6 +64,21 @@ func (mr *MockServiceMockRecorder) CreateUser(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockService)(nil).CreateUser), ctx)
 }
 
+// GetMemberStatus mocks base method.
+func (m *MockService) GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMemberStatus", ctx, mxFundingSourceID)
+	ret0, _ := ret[0].(*Member)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMemberStatus indicates an expected call of GetMemberStatus.
+func (mr *MockServiceMockRecorder) GetMemberStatus(ctx, mxFundingSourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberStatus", reflect.TypeOf((*MockService)(nil).GetMemberStatus), ctx, mxFundingSourceID)
+}
+
 // GetMxFundingSource mocks base method.
 func (m *MockService) GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error) {
 	m.ctrl.T.Helper()
@@ -92,4 +107,19 @@ func (m *MockService) GetWidgetUrl(ctx context.Context, mxUserGuid string) (stri
 func (mr *MockServiceMockRecorder) GetWidgetUrl(ctx, mxUserGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetUrl", reflect.TypeOf((*MockService)(nil).GetWidgetUrl), ctx, mxUserGuid)
+}
+
+// StartIdentityAggregation mocks base method.
+func (m *MockService) StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartIdentityAggregation", ctx, mxFundingSourceID)
+	ret0, _ := ret[0].(*Member)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartIdentityAggregation indicates an expected call of StartIdentityAggregation.
+func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, mxFundingSourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartIdentityAggregation", reflect.TypeOf((*MockService)(nil).StartIdentityAggregation), ctx, mxFundingSourceID)
 }

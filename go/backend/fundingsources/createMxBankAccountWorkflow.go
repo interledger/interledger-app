@@ -48,13 +48,13 @@ func CreateMxBankAccountWorkflow(ctx workflow.Context, args *CreateMxBankAccount
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.StartIdentityAggregation, args.MxUserGuid, args.MxMemberGuid).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.StartIdentityAggregation, args.FundingSourceID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to start mx identity aggregation.", err)
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.WaitForIdentityAggregation, args.MxUserGuid, args.MxMemberGuid).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.WaitForIdentityAggregation, args.FundingSourceID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Mx identity aggregation failed.")
 		return err

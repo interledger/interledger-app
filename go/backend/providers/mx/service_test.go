@@ -103,3 +103,79 @@ func TestCreateAndGetAccount(t *testing.T) {
 	assert.ErrorIs(t, err, ErrDuplicate)
 	assert.Nil(t, idempotent)
 }
+
+func TestGetMemberStatus(t *testing.T) {
+	ctx := context.Background()
+	mockMxServer := NewMockServer()
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:  mockMxServer.URL,
+		Username: "test",
+		Password: "test",
+		Db:       db,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mxFs, err := mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+		ID:            uuid.NewString(),
+		AccountID:     uuid.NewString(),
+		MxUserGuid:    uuid.NewString(),
+		MxMemberGuid:  uuid.NewString(),
+		MxAccountGuid: uuid.NewString(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	member, err := mx.GetMemberStatus(ctx, mxFs.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, mxFs.MxUserGuid, member.UserGuid)
+	assert.Equal(t, mxFs.MxMemberGuid, member.Guid)
+	assert.Equal(t, false, member.IsBeingAggregated)
+}
+
+func TestStartIdentityAggregation(t *testing.T) {
+	ctx := context.Background()
+	mockMxServer := NewMockServer()
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:  mockMxServer.URL,
+		Username: "test",
+		Password: "test",
+		Db:       db,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mxFs, err := mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+		ID:            uuid.NewString(),
+		AccountID:     uuid.NewString(),
+		MxUserGuid:    uuid.NewString(),
+		MxMemberGuid:  uuid.NewString(),
+		MxAccountGuid: uuid.NewString(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	member, err := mx.StartIdentityAggregation(ctx, mxFs.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, mxFs.MxUserGuid, member.UserGuid)
+	assert.Equal(t, mxFs.MxMemberGuid, member.Guid)
+	assert.Equal(t, true, member.IsBeingAggregated)
+}
