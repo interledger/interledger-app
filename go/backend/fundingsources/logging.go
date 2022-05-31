@@ -168,3 +168,30 @@ func (s *loggingService) CreateMxBankAccount(ctx context.Context, args *CreateMx
 
 	return s.Service.CreateMxBankAccount(ctx, args)
 }
+
+func (s *loggingService) VerifyMxBankAccount(
+	ctx context.Context,
+	identityID string,
+	fundingsourceID string,
+) (fs *FundingSource, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			s.logger.Error(
+				"Failed to verify mx bank account.",
+				zap.String("identityID", identityID),
+				zap.String("fundingSourceID", fs.ID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Verified mx bank account",
+			zap.String("identityID", identityID),
+			zap.String("fundingSourceID", fs.ID),
+		)
+	}(time.Now())
+
+	return s.Service.VerifyMxBankAccount(ctx, identityID, fundingsourceID)
+}

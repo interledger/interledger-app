@@ -32,6 +32,7 @@ type (
 		GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error)
 		StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error)
 		GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error)
+		GetAccountOwner(ctx context.Context, mxFundingSourceID string) (*AccountOwner, error)
 	}
 
 	user struct {
@@ -54,6 +55,20 @@ type (
 		IsBeingAggregated        bool   `json:"is_being_aggregated"`
 		SuccessfullyAggregatedAt string `json:"successfully_aggregated_at"`
 		ConnectionStatus         string `json:"connection_status"`
+	}
+
+	AccountOwnersResponse struct {
+		AccountOwners []AccountOwner `json:"account_owners"`
+	}
+
+	AccountOwner struct {
+		AccountGuid string `json:"account_guid"`
+		OwnerName   string `json:"owner_name"`
+		Country     string
+		Email       string
+		Phone       string
+
+		// There are more fields (address, state etc.) but we wouldn't match on that at the moment.
 	}
 
 	ServiceArgs struct {
@@ -280,4 +295,52 @@ func (s *service) GetMemberStatus(ctx context.Context, mxFundingSourceID string)
 	}
 
 	return member, nil
+}
+
+func (s service) GetAccountOwner(
+	ctx context.Context,
+	mxFundingSourceID string,
+) (*AccountOwner, error) {
+	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/users/%s/members/%s/account_owners", s.baseUrl, mxFs.MxUserGuid, mxFs.MxMemberGuid)
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := s.mxClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	accountOwnersResp := AccountOwnersResponse{}
+	if err = json.Unmarshal(body, &accountOwnersResp); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var ret *AccountOwner = nil
+	for _, owner := range accountOwnersResp.AccountOwners {
+		if owner.AccountGuid == mxFs.MxAccountGuidID {
+			ret = &owner
+			break
+		}
+	}
+	if ret == nil {
+		return nil, fmt.Errorf(
+			"%w No account owner details found for mx account guid=%s",
+			ErrNotFound,
+			mxFs.MxAccountGuidID,
+		)
+	}
+
+	return ret, nil
 }

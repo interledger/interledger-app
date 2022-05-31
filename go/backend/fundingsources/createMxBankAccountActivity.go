@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
+	"go.temporal.io/sdk/temporal"
 )
 
 type (
@@ -123,10 +124,17 @@ func (a *Activity) WaitForIdentityAggregation(
 func (a *Activity) VerifyOwnership(
 	ctx context.Context,
 	fundingSourceID string,
-	mxUserGuid string,
-	mxMemberGuid string,
-	mxAccountGuid string,
+	identityID string,
 ) error {
+	_, err := a.fundingsourceService.VerifyMxBankAccount(ctx, identityID, fundingSourceID)
+	if errors.Is(err, ErrUnauthorized) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrUnauthorized", err)
+	} else if errors.Is(err, ErrInvalidArgument) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInvalidArgument", err)
+	} else if err != nil {
+		return temporal.NewApplicationError(err.Error(), "ErrInternal")
+	}
+
 	return nil
 }
 

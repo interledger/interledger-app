@@ -138,3 +138,18 @@ func (mr *MockServiceMockRecorder) Verify(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockService)(nil).Verify), ctx, args)
 }
+
+// VerifyMxBankAccount mocks base method.
+func (m *MockService) VerifyMxBankAccount(ctx context.Context, identityID, fundingsourceID string) (*FundingSource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyMxBankAccount", ctx, identityID, fundingsourceID)
+	ret0, _ := ret[0].(*FundingSource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyMxBankAccount indicates an expected call of VerifyMxBankAccount.
+func (mr *MockServiceMockRecorder) VerifyMxBankAccount(ctx, identityID, fundingsourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMxBankAccount", reflect.TypeOf((*MockService)(nil).VerifyMxBankAccount), ctx, identityID, fundingsourceID)
+}

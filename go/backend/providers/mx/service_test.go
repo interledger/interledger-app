@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -178,4 +179,98 @@ func TestStartIdentityAggregation(t *testing.T) {
 	assert.Equal(t, mxFs.MxUserGuid, member.UserGuid)
 	assert.Equal(t, mxFs.MxMemberGuid, member.Guid)
 	assert.Equal(t, true, member.IsBeingAggregated)
+}
+
+func TestGetAccountOwner(t *testing.T) {
+	ctx := context.Background()
+	mxAccountGuid := uuid.NewString()
+	accountOwners := []AccountOwner{
+		{
+			AccountGuid: mxAccountGuid,
+			OwnerName:   faker.Name(),
+			Country:     "US",
+			Email:       faker.Email(),
+			Phone:       faker.E164PhoneNumber(),
+		},
+	}
+	mockMxServer := NewMockServer(func(s *MockServerState) {
+		s.AccountOwners = accountOwners
+	})
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:  mockMxServer.URL,
+		Username: "test",
+		Password: "test",
+		Db:       db,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mxFundingSourceID := ""
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Returns account owner details",
+			ExpectedError: nil,
+			RunBefore: func() {
+				mxFs, err := mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     uuid.NewString(),
+					MxUserGuid:    uuid.NewString(),
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: mxAccountGuid,
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				mxFundingSourceID = mxFs.ID
+			},
+		},
+		{
+			Name:          "Returns ErrNotFound if mx account guid is not found.",
+			ExpectedError: ErrNotFound,
+			RunBefore: func() {
+				mxFs, err := mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     uuid.NewString(),
+					MxUserGuid:    uuid.NewString(),
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: uuid.NewString(),
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				mxFundingSourceID = mxFs.ID
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore()
+
+			accountOwner, err := mx.GetAccountOwner(ctx, mxFundingSourceID)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err, scenario.Name)
+				owner := accountOwners[0]
+				assert.Equal(st, mxAccountGuid, accountOwner.AccountGuid, scenario.Name)
+				assert.Equal(st, owner.Country, accountOwner.Country, scenario.Name)
+				assert.Equal(st, owner.OwnerName, accountOwner.OwnerName, scenario.Name)
+				assert.Equal(st, owner.Email, accountOwner.Email, scenario.Name)
+				assert.Equal(st, owner.Phone, accountOwner.Phone, scenario.Name)
+			} else {
+				assert.Nil(st, accountOwner, scenario.Name)
+				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
+			}
+		})
+	}
+
 }
