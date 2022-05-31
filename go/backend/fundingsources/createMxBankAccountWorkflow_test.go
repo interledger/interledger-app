@@ -1,0 +1,113 @@
+package fundingsources
+
+import (
+	"context"
+	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
+	"go.temporal.io/sdk/testsuite"
+)
+
+type UnitTestSuite struct {
+	suite.Suite
+	testsuite.WorkflowTestSuite
+
+	env      *testsuite.TestWorkflowEnvironment
+	activity *Activity
+}
+
+func (s *UnitTestSuite) SetupSuite() {
+	pa := Activity{}
+
+	s.activity = &pa
+}
+
+func (s *UnitTestSuite) SetupTest() {
+	s.env = s.NewTestWorkflowEnvironment()
+	s.env.RegisterActivity(s.activity)
+}
+
+func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
+	s.env.AssertExpectations(s.T())
+}
+
+func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
+	fundingsourceID := uuid.NewString()
+	mxUserGuid := uuid.NewString()
+	mxMemberGuid := uuid.NewString()
+	mxAccountGuid := uuid.NewString()
+	accountNumber := "test-account"
+
+	s.env.OnActivity(s.activity.GetSelectedMxAccountGuid, mock.Anything, mxUserGuid, mxMemberGuid).Return(
+		func(ctx context.Context, userGuid string, memberGuid string) (string, error) {
+			s.Equal(mxUserGuid, userGuid)
+			s.Equal(mxMemberGuid, memberGuid)
+			return mxAccountGuid, nil
+		})
+
+	s.env.OnActivity(s.activity.StartIdentityAggregation, mock.Anything, mxUserGuid, mxMemberGuid).Return(
+		func(ctx context.Context, userGuid string, memberGuid string) error {
+			s.Equal(mxUserGuid, userGuid)
+			s.Equal(mxMemberGuid, memberGuid)
+			return nil
+		})
+
+	s.env.OnActivity(s.activity.WaitForIdentityAggregation, mock.Anything, mxUserGuid, mxMemberGuid).Return(
+		func(ctx context.Context, userGuid string, memberGuid string) error {
+			s.Equal(mxUserGuid, userGuid)
+			s.Equal(mxMemberGuid, memberGuid)
+			return nil
+		})
+
+	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, fundingsourceID, mxUserGuid, mxMemberGuid, mxAccountGuid).Return(
+		func(ctx context.Context, fsID string, userGuid string, memberGuid string, accountGuid string) error {
+			s.Equal(fundingsourceID, fsID)
+			s.Equal(mxUserGuid, userGuid)
+			s.Equal(mxMemberGuid, memberGuid)
+			s.Equal(mxAccountGuid, accountGuid)
+			return nil
+		})
+
+	s.env.OnActivity(s.activity.GetBankAccountInfo, mock.Anything, mxUserGuid, mxAccountGuid).Return(
+		func(ctx context.Context, userGuid string, accountGuid string) (*AccountInfo, error) {
+			s.Equal(mxUserGuid, userGuid)
+			s.Equal(mxAccountGuid, accountGuid)
+			return &AccountInfo{
+				AccountNumber: accountNumber,
+			}, nil
+		})
+
+	s.env.OnActivity(s.activity.SetMask, mock.Anything, fundingsourceID, accountNumber).Return(
+		func(ctx context.Context, fsID string, accountNum string) error {
+			s.Equal(fundingsourceID, fsID)
+			s.Equal(accountNumber, accountNum)
+			return nil
+		})
+
+	s.env.OnActivity(s.activity.CreateUnitCounterParty, mock.Anything, fundingsourceID, &AccountInfo{
+		AccountNumber: accountNumber,
+	}).Return(
+		func(ctx context.Context, fsID string, accountInfo *AccountInfo) error {
+			s.Equal(fundingsourceID, fsID)
+			s.Equal(accountNumber, accountInfo.AccountNumber)
+			return nil
+		})
+
+	s.env.ExecuteWorkflow(CreateMxBankAccountWorkflow, &CreateMxBankAccountWorkflowArgs{
+		FundingSourceID: fundingsourceID,
+		MxUserGuid:      mxUserGuid,
+		MxMemberGuid:    mxMemberGuid,
+	})
+
+	s.True(s.env.IsWorkflowCompleted())
+	s.NoError(s.env.GetWorkflowError())
+}
+
+// TODO add more comprehensive testing for branching in workflow and rollbacks
+// see https://docs.temporal.io/docs/go/how-to-test-workflow-definitions-in-go/
+
+func TestCreateMxAccountTestSuite(t *testing.T) {
+	suite.Run(t, new(UnitTestSuite))
+}
