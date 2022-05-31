@@ -11,7 +11,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewMockServer() *httptest.Server {
+type MockServerState struct {
+	AccountOwners []AccountOwner
+}
+
+func NewMockServer(opts ...func(*MockServerState)) *httptest.Server {
+	state := &MockServerState{}
+	for _, opt := range opts {
+		opt(state)
+	}
+
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/users" {
 			if r.Method != "POST" {
@@ -22,9 +31,14 @@ func NewMockServer() *httptest.Server {
 			body, err := json.Marshal(user)
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
+				return
 			}
 
-			w.Write(body)
+			if _, err = w.Write(body); err != nil {
+				http.Error(w, "Failed to write response.", 500)
+				return
+			}
+
 			return
 		}
 
@@ -40,9 +54,14 @@ func NewMockServer() *httptest.Server {
 			body, err := json.Marshal(user)
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
+				return
 			}
 
-			w.Write(body)
+			if _, err = w.Write(body); err != nil {
+				http.Error(w, "Failed to write response.", 500)
+				return
+			}
+
 			return
 		}
 
@@ -67,9 +86,13 @@ func NewMockServer() *httptest.Server {
 			body, err := json.Marshal(member)
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
+				return
 			}
 
-			w.Write(body)
+			if _, err = w.Write(body); err != nil {
+				http.Error(w, "Failed to write response.", 500)
+				return
+			}
 			return
 		}
 
@@ -94,9 +117,33 @@ func NewMockServer() *httptest.Server {
 			body, err := json.Marshal(member)
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
+				return
 			}
 
-			w.Write(body)
+			if _, err = w.Write(body); err != nil {
+				http.Error(w, "Failed to write response.", 500)
+				return
+			}
+			return
+		}
+
+		accountOwnersRegex := regexp.MustCompile("/users/.*/members/.*/account_owners")
+		if accountOwnersRegex.Match([]byte(r.URL.Path)) {
+			if r.Method != "GET" {
+				http.Error(w, "Method not implemented.", 501)
+				return
+			}
+
+			body, err := json.Marshal(AccountOwnersResponse{state.AccountOwners})
+			if err != nil {
+				http.Error(w, "Failed to marshal response.", 500)
+				return
+			}
+
+			if _, err = w.Write(body); err != nil {
+				http.Error(w, "Failed to write response.", 500)
+				return
+			}
 			return
 		}
 

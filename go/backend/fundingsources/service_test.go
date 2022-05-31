@@ -562,7 +562,7 @@ func TestCreateMxBankAccount(t *testing.T) {
 						if err != nil {
 							return false
 						}
-						return args.MxMemberGuid == mxMemberGuid && args.MxUserGuid == mxUserGuid
+						return args.MxMemberGuid == mxMemberGuid && args.MxUserGuid == mxUserGuid && args.IdentityID == userID
 					}),
 				).Return(
 					func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
@@ -600,6 +600,188 @@ func TestCreateMxBankAccount(t *testing.T) {
 			} else {
 				assert.ErrorIs(st, err, ErrUnauthorized, scenario.Name)
 				assert.Nil(st, fundingSource, scenario.Name)
+			}
+		})
+	}
+}
+
+func TestVerifyMxBankAccount(t *testing.T) {
+	// TODO: refactor once we settle on a container pattern
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	as := accounts.NewMockService(ctrl)
+	is := identity.NewMockService(ctrl)
+	nos := noop.NewMockService(ctrl)
+	mx := _mx.NewMockService(ctrl)
+	tp := &mocks.Client{}
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	fs, err := NewService(&ServiceArgs{
+		Is:   is,
+		As:   as,
+		Db:   db,
+		Noop: nos,
+		Mx:   mx,
+		Tp:   tp,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	identityID := ""
+	accountID := ""
+	mxUserGuid := ""
+	mxMemberGuid := ""
+	mxAccountGuid := ""
+	fundingSourceID := ""
+	as.EXPECT().CanCreateFundingSource(gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+	as.EXPECT().CanVerifyFundingSource(gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Returns verified funding source.",
+			ExpectedError: nil,
+			RunBefore: func() {
+				email := faker.Email()
+				identityID = uuid.NewString()
+				accountID = uuid.NewString()
+				mxUserGuid = uuid.NewString()
+				mxMemberGuid = uuid.NewString()
+				mxAccountGuid = uuid.NewString()
+				fundingSourceID = uuid.NewString()
+				as.EXPECT().Get(ctx, accountID).Return(
+					&accounts.Account{
+						ID:         accountID,
+						IdentityID: identityID,
+					},
+					nil,
+				).Times(3)
+
+				is.EXPECT().Get(ctx, identityID).Return(
+					&identity.Identity{
+						ID:    identityID,
+						Email: email,
+					},
+					nil,
+				).Times(3)
+
+				fundingsource, err := fs.Create(ctx, &CreateArgs{
+					IdentityID:        identityID,
+					AccountID:         accountID,
+					Name:              "test",
+					VerificationState: string(PROCESSING),
+					Type:              "mx",
+					SubType:           "bank",
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				fundingSourceID = fundingsource.ID
+
+				mx.EXPECT().GetMxFundingSource(ctx, fundingSourceID).Return(
+					&_mx.MxFundingSource{
+						ID:              fundingsource.ID,
+						MxAccountGuidID: mxAccountGuid,
+						MxUserGuid:      mxUserGuid,
+						MxMemberGuid:    mxMemberGuid,
+						AccountID:       accountID,
+					},
+					nil,
+				).Times(1)
+
+				mx.EXPECT().GetAccountOwner(ctx, fundingSourceID).Return(
+					&_mx.AccountOwner{
+						AccountGuid: mxAccountGuid,
+						OwnerName:   faker.Name(),
+						Country:     "US",
+						Email:       email,
+						Phone:       faker.E164PhoneNumber(),
+					},
+					nil,
+				).Times(1)
+			},
+		},
+		{
+			Name:          "Returns ErrUnauthorized if user email does not match that returned from mx.",
+			ExpectedError: ErrUnauthorized,
+			RunBefore: func() {
+				identityID = uuid.NewString()
+				accountID = uuid.NewString()
+				mxUserGuid = uuid.NewString()
+				mxMemberGuid = uuid.NewString()
+				mxAccountGuid = uuid.NewString()
+				fundingSourceID = uuid.NewString()
+				as.EXPECT().Get(ctx, accountID).Return(
+					&accounts.Account{
+						ID:         accountID,
+						IdentityID: identityID,
+					},
+					nil,
+				).Times(2)
+
+				is.EXPECT().Get(ctx, identityID).Return(
+					&identity.Identity{
+						ID:    identityID,
+						Email: faker.Email(),
+					},
+					nil,
+				).Times(2)
+
+				fundingsource, err := fs.Create(ctx, &CreateArgs{
+					IdentityID:        identityID,
+					AccountID:         accountID,
+					Name:              "test",
+					VerificationState: string(PROCESSING),
+					Type:              "mx",
+					SubType:           "bank",
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				fundingSourceID = fundingsource.ID
+
+				mx.EXPECT().GetMxFundingSource(ctx, fundingSourceID).Return(
+					&_mx.MxFundingSource{
+						ID:              fundingsource.ID,
+						MxAccountGuidID: mxAccountGuid,
+						MxUserGuid:      mxUserGuid,
+						MxMemberGuid:    mxMemberGuid,
+						AccountID:       accountID,
+					},
+					nil,
+				).Times(1)
+
+				mx.EXPECT().GetAccountOwner(ctx, fundingSourceID).Return(
+					&_mx.AccountOwner{
+						AccountGuid: mxAccountGuid,
+						OwnerName:   faker.Name(),
+						Country:     "US",
+						Email:       faker.Email(),
+						Phone:       faker.E164PhoneNumber(),
+					},
+					nil,
+				).Times(1)
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore()
+
+			fundingsource, err := fs.VerifyMxBankAccount(ctx, identityID, fundingSourceID)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err)
+				assert.Equal(st, string(VERIFIED), fundingsource.VerificationState, scenario.Name)
+			} else {
+				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
+				assert.Nil(st, fundingsource, scenario.Name)
 			}
 		})
 	}

@@ -64,6 +64,21 @@ func (mr *MockServiceMockRecorder) CreateUser(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockService)(nil).CreateUser), ctx)
 }
 
+// GetAccountOwner mocks base method.
+func (m *MockService) GetAccountOwner(ctx context.Context, mxFundingSourceID string) (*AccountOwner, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountOwner", ctx, mxFundingSourceID)
+	ret0, _ := ret[0].(*AccountOwner)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountOwner indicates an expected call of GetAccountOwner.
+func (mr *MockServiceMockRecorder) GetAccountOwner(ctx, mxFundingSourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountOwner", reflect.TypeOf((*MockService)(nil).GetAccountOwner), ctx, mxFundingSourceID)
+}
+
 // GetMemberStatus mocks base method.
 func (m *MockService) GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error) {
 	m.ctrl.T.Helper()
