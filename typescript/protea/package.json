@@ -18,9 +18,13 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",
+    "@grpc/grpc-js": "^1.6.7",
     "@headlessui/react": "^1.6.0",
     "@mapbox/rehype-prism": "^0.7.0",
     "@ory/kratos-client": "0.8.2-alpha.1",
+    "@protobuf-ts/grpc-transport": "^2.6.0",
+    "@protobuf-ts/runtime": "^2.6.0",
+    "@protobuf-ts/runtime-rpc": "^2.6.0",
     "@remix-run/node": "^1.4.1",
     "@remix-run/react": "^1.4.1",
     "@remix-run/serve": "^1.4.1",
