@@ -1,5 +1,7 @@
 package mx
 
+//go:generate mockgen -destination=./mock.go -package=mx -source=./service.go
+
 import (
 	"bytes"
 	"context"
@@ -15,6 +17,7 @@ import (
 var (
 	ErrInvalidArgument = errors.New("mx provider: invalid argument.")
 	ErrInternal        = errors.New("mx provider: internal error.")
+	ErrNotFound        = errors.New("mx provider: not found.")
 )
 
 type (
@@ -30,6 +33,7 @@ type (
 
 	Account struct {
 		ID         string
+		AccountID  string // fynbos account id
 		MxID       string
 		MxUserID   string
 		MxMemberID string
