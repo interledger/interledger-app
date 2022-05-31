@@ -9,3 +9,7 @@ plugins:
     opt:
       - paths=source_relative
       - require_unimplemented_servers=false
+  - remote: buf.build/timostamm/plugins/protobuf-ts
+    out: ./../typescript/protea/app/generated/protobuf-ts
+    # https://github.com/timostamm/protobuf-ts/blob/master/MANUAL.md#the-protoc-plugin
+    opt: generate_dependencies,long_type_string

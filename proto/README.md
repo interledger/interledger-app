@@ -14,6 +14,6 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 Install https://docs.buf.build/installation
 
 ```shell
-# Will generate backend generated files
-buf generate
+# Will generate backend/frontend generated files, and ensure that the frontend client is formatted appropriately.
+make gen
 ```
