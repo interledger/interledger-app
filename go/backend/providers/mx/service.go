@@ -30,6 +30,8 @@ type (
 		GetWidgetUrl(ctx context.Context, mxUserGuid string) (string, error)
 		CreateMxFundingSource(ctx context.Context, args *CreateMxFundingSourceArgs) (*MxFundingSource, error)
 		GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error)
+		StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error)
+		GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error)
 	}
 
 	user struct {
@@ -43,6 +45,15 @@ type (
 		MxUserGuid      string `db:"mx_user_guid"`
 		MxMemberGuid    string `db:"mx_member_guid"`
 		MxAccountGuidID string `db:"mx_account_guid"`
+	}
+
+	Member struct {
+		Guid                     string
+		UserGuid                 string
+		AggregatedAt             string `json:"aggregated_at"`
+		IsBeingAggregated        bool   `json:"is_being_aggregated"`
+		SuccessfullyAggregatedAt string `json:"successfully_aggregated_at"`
+		ConnectionStatus         string `json:"connection_status"`
 	}
 
 	ServiceArgs struct {
@@ -209,4 +220,64 @@ func (s service) GetMxFundingSource(ctx context.Context, id string) (*MxFundingS
 	}
 
 	return ret, nil
+}
+
+func (s *service) StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error) {
+	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/users/%s/members/%s/identify", s.baseUrl, mxFs.MxUserGuid, mxFs.MxMemberGuid)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := s.mxClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	member := &Member{}
+	if err = json.Unmarshal(body, member); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return member, nil
+}
+
+func (s *service) GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error) {
+	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/users/%s/members/%s/status", s.baseUrl, mxFs.MxUserGuid, mxFs.MxMemberGuid)
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := s.mxClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	member := &Member{}
+	if err = json.Unmarshal(body, member); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return member, nil
 }
