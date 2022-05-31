@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
-	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"gitlab.com/fynbos/infra/aws/modules/networking"	
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
+	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+	"gitlab.com/fynbos/infra/aws/modules/networking"
 )
 
 func main() {
@@ -35,6 +35,12 @@ func main() {
 				"10.100.192.0/20",
 				"10.100.208.0/20",
 				"10.100.224.0/20",
+			},
+			PublicSubnetTags: pulumi.StringMap{
+				"kubernetes.io/role/elb": pulumi.String("1"),
+			},
+			PrivateSubnetTags: pulumi.StringMap{
+				"kubernetes.io/role/internal-elb": pulumi.String("1"),
 			},
 			EnableNatGateway: true,
 			SingleNatGateway: true,
