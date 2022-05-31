@@ -50,6 +50,21 @@ func (mr *MockServiceMockRecorder) CreateAccount(ctx, args interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockService)(nil).CreateAccount), ctx, args)
 }
 
+// GetOnboarding mocks base method.
+func (m *MockService) GetOnboarding(ctx context.Context, args *GetOnboardingArgs) (*Onboarding, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOnboarding", ctx, args)
+	ret0, _ := ret[0].(*Onboarding)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOnboarding indicates an expected call of GetOnboarding.
+func (mr *MockServiceMockRecorder) GetOnboarding(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOnboarding", reflect.TypeOf((*MockService)(nil).GetOnboarding), ctx, args)
+}
+
 // InitiateUnitCustomerOnboarding mocks base method.
 func (m *MockService) InitiateUnitCustomerOnboarding(ctx context.Context, args *InitiateUnitCustomerOnboardingArgs) error {
 	m.ctrl.T.Helper()
@@ -62,6 +77,21 @@ func (m *MockService) InitiateUnitCustomerOnboarding(ctx context.Context, args *
 func (mr *MockServiceMockRecorder) InitiateUnitCustomerOnboarding(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateUnitCustomerOnboarding", reflect.TypeOf((*MockService)(nil).InitiateUnitCustomerOnboarding), ctx, args)
+}
+
+// UpdateOnboarding mocks base method.
+func (m *MockService) UpdateOnboarding(ctx context.Context, args *UpdateOnboardingArgs) (*Onboarding, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOnboarding", ctx, args)
+	ret0, _ := ret[0].(*Onboarding)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateOnboarding indicates an expected call of UpdateOnboarding.
+func (mr *MockServiceMockRecorder) UpdateOnboarding(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOnboarding", reflect.TypeOf((*MockService)(nil).UpdateOnboarding), ctx, args)
 }
 
 // VerifyAccount mocks base method.

@@ -4,6 +4,7 @@ package onboarding
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -20,9 +21,25 @@ import (
 var (
 	ErrInternal        = errors.New("onboarding: internal error.")
 	ErrInvalidArgument = errors.New("onboarding: invalid argument.")
+	ErrNotFound        = errors.New("onboarding: not found.")
 )
 
+type Onboarding struct {
+	ID               string
+	FirstName        string `db:"first_name"`
+	LastName         string `db:"last_name"`
+	Country          string `db:"country_of_residence"`
+	Email            string `db:"email"`
+	Phone            string `db:"phone"`
+	PhoneVerified    bool   `db:"phone_verified"`
+	ServiceAgreement bool   `db:"service_agreement"`
+	CreatedAt        string `db:"created_at"`
+	UpdatedAt        string `db:"updated_at"`
+}
+
 type Service interface {
+	GetOnboarding(ctx context.Context, args *GetOnboardingArgs) (*Onboarding, error)
+	UpdateOnboarding(ctx context.Context, args *UpdateOnboardingArgs) (*Onboarding, error)
 	CreateAccount(ctx context.Context, args *CreateAccountArgs) (*accounts.Account, error)
 	VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error)
 	InitiateUnitCustomerOnboarding(ctx context.Context, args *InitiateUnitCustomerOnboardingArgs) error
@@ -60,6 +77,101 @@ func NewService(args *ServiceArgs) (Service, error) {
 		noop:      args.Noop,
 		tp:        args.Tp,
 	}, nil
+}
+
+type GetOnboardingArgs struct {
+	Id string `validate:"required,uuid"`
+}
+
+// Fetch a users onboarding data
+func (s *service) GetOnboarding(
+	ctx context.Context,
+	args *GetOnboardingArgs,
+) (*Onboarding, error) {
+	if err := s.validator.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	var onboarding Onboarding
+	err := s.db.GetContext(ctx, &onboarding, "SELECT * FROM  onboarding WHERE id = $1 LIMIT 1;", args.Id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	return &onboarding, err
+}
+
+type UpdateOnboardingArgs struct {
+	Id               string `validate:"omitempty,uuid"`
+	Country          string `validate:"omitempty,iso3166_1_alpha2"`
+	FirstName        string `validate:"omitempty"`
+	LastName         string `validate:"omitempty"`
+	Email            string `validate:"omitempty,email"`
+	Phone            string `validate:"omitempty,e164"`
+	PhoneVerified    bool   `validate:"omitempty,boolean"`
+	ServiceAgreement bool   `validate:"omitempty,boolean"`
+}
+
+func (s *service) UpdateOnboarding(
+	ctx context.Context,
+	args *UpdateOnboardingArgs,
+) (*Onboarding, error) {
+	if err := s.validator.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	var onboarding Onboarding
+	if args.Id == "" {
+		err := s.db.GetContext(ctx, &onboarding,
+			`INSERT INTO onboarding (first_name,last_name,country_of_residence,email,phone,phone_verified,service_agreement) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *;`,
+			args.FirstName, args.LastName, args.Country, args.Email, args.Phone, args.PhoneVerified, args.ServiceAgreement,
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		currentOnboarding, err := s.GetOnboarding(ctx, &GetOnboardingArgs{
+			Id: args.Id,
+		})
+		if err != nil {
+			return nil, err
+		}
+		// Manually replace currentOnboarding vals with args if arg not empty
+		if args.Country == "" {
+			args.Country = currentOnboarding.Country
+		}
+		if args.FirstName == "" {
+			args.FirstName = currentOnboarding.FirstName
+		}
+		if args.LastName == "" {
+			args.LastName = currentOnboarding.LastName
+		}
+		if args.Email == "" {
+			args.Email = currentOnboarding.Email
+		}
+		if args.Phone == "" {
+			args.Phone = currentOnboarding.Phone
+		}
+		if args.PhoneVerified != currentOnboarding.PhoneVerified {
+			args.PhoneVerified = currentOnboarding.PhoneVerified
+		}
+		if args.ServiceAgreement != currentOnboarding.ServiceAgreement {
+			args.ServiceAgreement = currentOnboarding.ServiceAgreement
+		}
+		err = s.db.GetContext(ctx, &onboarding,
+			`UPDATE onboarding SET (first_name,last_name,country_of_residence,email,phone,phone_verified,service_agreement) = ($2,$3,$4,$5,$6,$7,$8) WHERE id = $1 RETURNING *;`,
+			args.Id, args.FirstName, args.LastName, args.Country, args.Email, args.Phone, args.PhoneVerified, args.ServiceAgreement,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &onboarding, nil
 }
 
 type CreateAccountArgs struct {
