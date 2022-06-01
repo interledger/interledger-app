@@ -620,6 +620,7 @@ func TestVerifyMxBankAccount(t *testing.T) {
 	nos := noop.NewMockService(ctrl)
 	mx := _mx.NewMockService(ctrl)
 	tp := &mocks.Client{}
+	unit := _unit.NewMockService(ctrl)
 	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
 	t.Cleanup(func() {
 		dbCleanup()
@@ -631,6 +632,7 @@ func TestVerifyMxBankAccount(t *testing.T) {
 		Noop: nos,
 		Mx:   mx,
 		Tp:   tp,
+		Unit: unit,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -893,10 +895,7 @@ func TestCreateUnitCounterPartyFromMxAccount(t *testing.T) {
 					IdempotencyKey: string(key[0:]),
 				}).Return(
 					&_unit.CounterParty{
-						Type:          "achCounterparty",
-						ID:            unitCounterPartyID,
-						Attributes:    _unit.CounterPartyAttributes{},
-						Relationships: _unit.CounterPartyRelationships{},
+						ID: unitCounterPartyID,
 					},
 					nil,
 				).Times(1)

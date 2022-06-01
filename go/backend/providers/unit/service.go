@@ -53,41 +53,6 @@ type (
 		WebhookToken string   `validate:"required"`
 		Db           *sqlx.DB `validate:"required"`
 	}
-
-	createCounterPartyRequest struct {
-		Data CounterParty
-	}
-
-	createCounterPartyResponse struct {
-		Data CounterParty
-	}
-
-	CounterParty struct {
-		ID            string
-		Type          string
-		Attributes    CounterPartyAttributes
-		Relationships CounterPartyRelationships
-	}
-
-	CounterPartyRelationships struct {
-		Customer struct {
-			Data struct {
-				Type string
-				ID   string `json:"id"`
-			}
-		}
-	}
-
-	CounterPartyAttributes struct {
-		Name          string
-		CreatedAt     string `json:"createdAt"`
-		RoutingNumber string `json:"routingNumber"`
-		Bank          string
-		AccountNumber string `json:"accountNumber"`
-		AccountType   string `json:"accountType"`
-		Type          string
-		Permissions   string
-	}
 )
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -230,6 +195,7 @@ func (self *service) VerifyWebhook(ctx context.Context, body []byte, signature s
 }
 
 // maps the unit customer to the Fynbos account
+// TODO: this should be handled by the accounts service
 type (
 	Customer struct {
 		ID        string `db:"id"`
@@ -284,18 +250,80 @@ func (s *service) GetCustomerByAccountID(ctx context.Context, accountID string) 
 	return &customer, nil
 }
 
-type CreateCounterPartyArgs struct {
-	Name           string `validate:"required"`
-	RoutingNumber  string `validate:"required"`
-	AccountNumber  string `validate:"required"`
-	AccountType    string `validate:"required"`
-	Type           string `validate:"required"`
-	UnitCustomerID string `validate:"required"`
+type (
+	CreateCounterPartyArgs struct {
+		Name           string `validate:"required"`
+		UnitCustomerID string `validate:"required"`
+		RoutingNumber  string `validate:"required"`
+		AccountNumber  string `validate:"required"`
+		AccountType    string `validate:"required"`
+		Type           string `validate:"required"`
 
-	// This idempotency key is valid for 48 hours.
-	IdempotencyKey string `validate:"lte=255"`
-}
+		// This idempotency key is valid for 48 hours.
+		IdempotencyKey string `validate:"lte=255"`
+	}
+
+	CounterParty struct {
+		ID string
+	}
+)
 
 func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error) {
-	return nil, nil
+	url := fmt.Sprintf(`%s/counterparties`, s.baseURL)
+	var jsonStr = []byte(fmt.Sprintf(`{
+		"data": {
+			"type": "achCounterparty",
+			"attributes": {
+				"name": %s,
+				"routingNumber": %s,
+				"accountNumber": %s,
+				"accountType": %s,
+				"type": %s,
+				"idempotencyKey": %s
+			},
+			"relationships": {
+				"customer": {
+					"data": {
+						"type": "customer",
+						"id": %s
+					}
+				}
+			}
+		}
+	}`, args.Name, args.RoutingNumber, args.AccountNumber, args.AccountType, args.IdempotencyKey, args.Type, args.UnitCustomerID))
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Set("Content-Type", "application/vnd.api+json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	createCounterPartyResponse := &struct {
+		Data struct {
+			Type string
+			ID   string `json:"id"`
+		}
+	}{}
+	err = json.Unmarshal(body, createCounterPartyResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &CounterParty{createCounterPartyResponse.Data.ID}, nil
 }
