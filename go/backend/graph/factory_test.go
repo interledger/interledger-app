@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
@@ -31,6 +32,7 @@ import (
 	_account "gitlab.com/fynbos/backend/accounts"
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/providers/mx"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	_user "gitlab.com/fynbos/backend/user"
@@ -40,6 +42,7 @@ import (
 
 type TestContainer struct {
 	Ctx                  context.Context
+	Ctrl                 *gomock.Controller
 	Logger               *zap.Logger
 	Db                   *sqlx.DB
 	AccountService       _account.Service
@@ -47,6 +50,7 @@ type TestContainer struct {
 	FundingSourceService fundingsources.Service
 	IdentityService      identity.Service
 	UserService          _user.Service
+	Mx                   *mx.MockService
 	NoopService          _noop.Service
 	UnitService          unit.Service
 	UnitMockServer       *httptest.Server
@@ -66,6 +70,7 @@ type TestContainer struct {
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
+	c.Ctrl = gomock.NewController(t)
 
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
@@ -157,18 +162,22 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.UnitService = us
 
+	tp := &mocks.Client{}
+	c.Mx = mx.NewMockService(c.Ctrl)
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   is,
 		As:   as,
 		Db:   db,
 		Noop: noopProvider,
+		Unit: us,
+		Mx:   c.Mx,
+		Tp:   tp,
 	})
 	if err != nil {
 		return nil, err
 	}
 	c.FundingSourceService = fundingsources.NewLoggingService(fs, logger)
 
-	tp := &mocks.Client{}
 	tp.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
 		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
 			testWorkflowID := opts.ID

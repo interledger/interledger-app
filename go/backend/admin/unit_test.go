@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/fundingsources"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -27,19 +28,21 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 	is := identity.NewMockService(ctrl)
 	as := accounts.NewMockService(ctrl)
 	us := auth.NewMockService()
+	fs := fundingsources.NewMockService(ctrl)
 	hs, err := healthcheck.NewService()
 	onboardingService := onboarding.NewMockService(ctrl)
 	if err != nil {
 		t.Fatal(err)
 	}
 	svr, err := _grpc.NewServer(&_grpc.ServerArgs{
-		HealthCheckService: hs,
-		IdentityService:    is,
-		AccountsService:    as,
-		AdminAuthService:   us,
-		UnitProvider:       up,
-		UserService:        user.NewMockService(),
-		OnboardingService:  onboardingService,
+		HealthCheckService:   hs,
+		IdentityService:      is,
+		AccountsService:      as,
+		AdminAuthService:     us,
+		UnitProvider:         up,
+		UserService:          user.NewMockService(),
+		FundingSourceService: fs,
+		OnboardingService:    onboardingService,
 	})
 	if err != nil {
 		t.Fatal(err)

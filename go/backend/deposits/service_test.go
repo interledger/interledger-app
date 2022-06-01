@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,9 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
+	_unit "gitlab.com/fynbos/backend/providers/unit"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -109,6 +112,7 @@ func TestDeposits(s *testing.T) {
 }
 
 type TestContainer struct {
+	Ctrl                  *gomock.Controller
 	IdentityService       _identity.Service
 	AccountService        _accounts.Service
 	CountryService        _country.Service
@@ -116,6 +120,8 @@ type TestContainer struct {
 	OnboardService        onboarding.Service
 	FundingSourcesService fundingsources.Service
 	DepositService        Service
+	Mx                    *_mx.MockService
+	Unit                  *_unit.MockService
 	TemporalMock          *mocks.Client
 	PacioliContainer      *test_utils.PacioliContainer
 	PacioliClient         pacioliv1.PacioliServiceClient
@@ -129,6 +135,7 @@ type TestContainer struct {
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
+	c.Ctrl = gomock.NewController(s)
 	db := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
 
@@ -190,18 +197,22 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 	c.NoopService = np
-
+	c.Mx = _mx.NewMockService(c.Ctrl)
+	c.Unit = _unit.NewMockService(c.Ctrl)
+	c.Tp = &mocks.Client{}
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Db:   db,
 		Is:   is,
 		As:   as,
 		Noop: c.NoopService,
+		Mx:   c.Mx,
+		Unit: c.Unit,
+		Tp:   c.Tp,
 	})
 	if err != nil {
 		return nil, err
 	}
 	c.FundingSourcesService = fs
-	c.Tp = &mocks.Client{}
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
 		As:   as,
