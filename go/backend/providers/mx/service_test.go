@@ -274,3 +274,103 @@ func TestGetAccountOwner(t *testing.T) {
 	}
 
 }
+
+func TestGetMxAccount(t *testing.T) {
+	// TODO: refactor container setup
+	ctx := context.Background()
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	mxAccountGuid := uuid.NewString()
+	mxUserGuid := uuid.NewString()
+	mxMemberGuid := uuid.NewString()
+	expectedMxAccount := MxAccount{
+		Guid:              mxAccountGuid,
+		UserGuid:          mxUserGuid,
+		MemberGuid:        mxMemberGuid,
+		AccountNumber:     "123",
+		InstitutionNumber: "321",
+		RoutingNumber:     "68899990000000",
+		TransitNumber:     "123",
+		CurrencyCode:      "780",
+		Type:              "SAVINGS",
+		AvailableBalance:  500.00,
+		Balance:           500.00,
+	}
+	mockMxServer := NewMockServer(func(s *MockServerState) {
+		s.MxAccount = expectedMxAccount
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:  mockMxServer.URL,
+		Username: "test",
+		Password: "test",
+		Db:       db,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mxFundingSourceID := ""
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Returns account numbers",
+			ExpectedError: nil,
+			RunBefore: func() {
+				mxFs, err := mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     uuid.NewString(),
+					MxUserGuid:    mxUserGuid,
+					MxMemberGuid:  mxMemberGuid,
+					MxAccountGuid: mxAccountGuid,
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				mxFundingSourceID = mxFs.ID
+			},
+		},
+		{
+			Name:          "Returns ErrInternal if mx account guid is not found on mx.",
+			ExpectedError: ErrInternal,
+			RunBefore: func() {
+				mxFs, err := mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     uuid.NewString(),
+					MxUserGuid:    uuid.NewString(),
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: uuid.NewString(),
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				mxFundingSourceID = mxFs.ID
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore()
+
+			mxAccount, err := mx.GetMxAccount(ctx, mxFundingSourceID)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err, scenario.Name)
+				assert.Equal(st, mxAccountGuid, mxAccount.Guid, scenario.Name)
+				assert.Equal(st, expectedMxAccount.InstitutionNumber, mxAccount.InstitutionNumber, scenario.Name)
+				assert.Equal(st, expectedMxAccount.AvailableBalance, mxAccount.AvailableBalance, scenario.Name)
+				assert.Equal(st, expectedMxAccount.RoutingNumber, mxAccount.RoutingNumber, scenario.Name)
+				assert.Equal(st, expectedMxAccount.TransitNumber, mxAccount.TransitNumber, scenario.Name)
+			} else {
+				assert.Nil(st, mxAccount, scenario.Name)
+				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
+			}
+		})
+	}
+
+}

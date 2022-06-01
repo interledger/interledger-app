@@ -33,6 +33,7 @@ type (
 		StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error)
 		GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error)
 		GetAccountOwner(ctx context.Context, mxFundingSourceID string) (*AccountOwner, error)
+		GetMxAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error)
 	}
 
 	user struct {
@@ -69,6 +70,24 @@ type (
 		Phone       string
 
 		// There are more fields (address, state etc.) but we wouldn't match on that at the moment.
+	}
+
+	ReadAccountResponse struct {
+		Account MxAccount
+	}
+
+	MxAccount struct {
+		Guid              string
+		UserGuid          string `json:"user_guid"`
+		MemberGuid        string `json:"member_guid"`
+		AccountNumber     string `json:"account_number"`
+		InstitutionNumber string `json:"institution_number"`
+		RoutingNumber     string `json:"routing_number"`
+		TransitNumber     string `json:"transit_number"`
+		CurrencyCode      string `json:"currency_code"`
+		Type              string
+		AvailableBalance  float64 `json:"available_balance"`
+		Balance           float64
 	}
 
 	ServiceArgs struct {
@@ -343,4 +362,33 @@ func (s service) GetAccountOwner(
 	}
 
 	return ret, nil
+}
+
+func (s service) GetMxAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error) {
+	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/users/%s/accounts/%s", s.baseUrl, mxFs.MxUserGuid, mxFs.MxAccountGuidID)
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	resp, err := s.mxClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	ret := &ReadAccountResponse{}
+	if err = json.Unmarshal(body, ret); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &ret.Account, nil
 }

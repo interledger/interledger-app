@@ -13,6 +13,7 @@ import (
 
 type MockServerState struct {
 	AccountOwners []AccountOwner
+	MxAccount     MxAccount
 }
 
 func NewMockServer(opts ...func(*MockServerState)) *httptest.Server {
@@ -135,6 +136,33 @@ func NewMockServer(opts ...func(*MockServerState)) *httptest.Server {
 			}
 
 			body, err := json.Marshal(AccountOwnersResponse{state.AccountOwners})
+			if err != nil {
+				http.Error(w, "Failed to marshal response.", 500)
+				return
+			}
+
+			if _, err = w.Write(body); err != nil {
+				http.Error(w, "Failed to write response.", 500)
+				return
+			}
+			return
+		}
+
+		readAccountRegex := regexp.MustCompile("/users/.*/accounts/.*")
+		if readAccountRegex.Match([]byte(r.URL.Path)) {
+			if r.Method != "GET" {
+				http.Error(w, "Method not implemented", 501)
+				return
+			}
+
+			params := strings.Split(r.URL.Path, "/")
+			accountGuid := params[4]
+			if accountGuid != state.MxAccount.Guid {
+				http.Error(w, "Not found.", 404)
+				return
+			}
+
+			body, err := json.Marshal(&ReadAccountResponse{state.MxAccount})
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
 				return
