@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/fundingsources"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -35,6 +36,7 @@ type TestContainer struct {
 	Pacioli         *test_utils.PacioliContainer
 	Db              *sqlx.DB
 	As              accounts.Service
+	Fs              *fundingsources.MockService
 	Is              identity.Service
 	Hs              healthcheck.Service
 	Os              onboarding.Service
@@ -147,14 +149,16 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit.NewMockService(c.Ctrl)
+	c.Fs = fundingsources.NewMockService(c.Ctrl)
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
-		HealthCheckService: hs,
-		IdentityService:    is,
-		AccountsService:    as,
-		AdminAuthService:   us,
-		UnitProvider:       c.Up,
-		UserService:        user.NewMockService(),
-		OnboardingService:  os,
+		HealthCheckService:   hs,
+		IdentityService:      is,
+		AccountsService:      as,
+		AdminAuthService:     us,
+		UnitProvider:         c.Up,
+		UserService:          user.NewMockService(),
+		FundingSourceService: c.Fs,
+		OnboardingService:    os,
 	})
 	if err != nil {
 		return nil, err
