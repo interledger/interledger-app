@@ -1,0 +1,3 @@
+name: aws-shared-euwest1-strongdm
+runtime: go
+description: Strongdm gateway for shared eu-west-1
