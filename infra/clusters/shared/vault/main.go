@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
 
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
@@ -17,6 +18,11 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
+		vpcStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-euwest1-networking/main", nil)
+		if err != nil {
+			return err
+		}
+		dnsZoneId := vpcStack.GetStringOutput(pulumi.String("dnsZoneId"))
 		k8sStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-eu-west-1-shared-k8s/main", nil)
 		if err != nil {
 			return err
@@ -75,7 +81,7 @@ func main() {
 
 		vaultServerConfig := createVaultConfig(key.KeyId)
 
-		_, err = helm.NewChart(ctx, "vault", helm.ChartArgs{
+		chart, err := helm.NewChart(ctx, "vault", helm.ChartArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 			Chart:     pulumi.String("vault"),
 			Version:   pulumi.String("0.20.0"),
@@ -109,6 +115,60 @@ func main() {
 				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, serviceAccount, key}))
+
+		lbVault, err := corev1.NewService(ctx, "vault-lb", &corev1.ServiceArgs{
+			Metadata: &metav1.ObjectMetaArgs{
+				Namespace: namespace.Metadata.Name(),
+				Labels: pulumi.StringMap{
+					"app.kubernetes.io/name": pulumi.String("vault"),
+				},
+				Annotations: pulumi.StringMap{
+					"service.beta.kubernetes.io/aws-load-balancer-type":            pulumi.String("external"),
+					"service.beta.kubernetes.io/aws-load-balancer-nlb-target-type": pulumi.String("instance"),
+					"service.beta.kubernetes.io/aws-load-balancer-scheme":          pulumi.String("internal"),
+				},
+				Name: pulumi.String("vault-lb"),
+			},
+			Spec: &corev1.ServiceSpecArgs{
+				Ports: corev1.ServicePortArray{
+					corev1.ServicePortArgs{
+						Port:       pulumi.Int(8200),
+						TargetPort: pulumi.Int(8200),
+					},
+				},
+				Selector: pulumi.StringMap{
+					"app.kubernetes.io/name":     pulumi.String("vault"),
+					"app.kubernetes.io/instance": pulumi.String("vault"),
+					"component":                  pulumi.String("server"),
+				},
+				Type: pulumi.String("LoadBalancer"),
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{chart, namespace}))
+
+		endpoint := lbVault.Status.ApplyT(
+			func(status *corev1.ServiceStatus) *string {
+				if status.LoadBalancer.Ingress != nil {
+					ingress := status.LoadBalancer.Ingress[0]
+					if ingress.Hostname != nil {
+						return ingress.Hostname
+					}
+					return ingress.Ip
+				}
+
+				return nil
+			}).(pulumi.StringPtrOutput)
+
+		ctx.Export("endpoint", endpoint)
+		// create a simple record for vault.fynbos.dev for now as we only have one instance.
+		_, err = route53.NewRecord(ctx, "vault1.fynbos.cloud", &route53.RecordArgs{
+			ZoneId: dnsZoneId,
+			Name:   pulumi.String("vault1"),
+			Type:   pulumi.String("CNAME"),
+			Ttl:    pulumi.Int(300),
+			Records: pulumi.StringArray{
+				endpoint.Elem(),
+			},
+		})
 
 		return err
 	})
