@@ -34,6 +34,7 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 }
 
 func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
+	userID := uuid.NewString()
 	fundingsourceID := uuid.NewString()
 	mxUserGuid := uuid.NewString()
 	mxMemberGuid := uuid.NewString()
@@ -46,21 +47,7 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			return mxAccountGuid, nil
 		})
 
-	s.env.OnActivity(s.activity.StartIdentityAggregation, mock.Anything, mxUserGuid, mxMemberGuid).Return(
-		func(ctx context.Context, userGuid string, memberGuid string) error {
-			s.Equal(mxUserGuid, userGuid)
-			s.Equal(mxMemberGuid, memberGuid)
-			return nil
-		})
-
-	s.env.OnActivity(s.activity.WaitForIdentityAggregation, mock.Anything, mxUserGuid, mxMemberGuid).Return(
-		func(ctx context.Context, userGuid string, memberGuid string) error {
-			s.Equal(mxUserGuid, userGuid)
-			s.Equal(mxMemberGuid, memberGuid)
-			return nil
-		})
-
-	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, fundingsourceID, mxUserGuid, mxMemberGuid, mxAccountGuid).Return(
+	s.env.OnActivity(s.activity.CreateMxAccount, mock.Anything, fundingsourceID, mxUserGuid, mxMemberGuid, mxAccountGuid).Return(
 		func(ctx context.Context, fsID string, userGuid string, memberGuid string, accountGuid string) error {
 			s.Equal(fundingsourceID, fsID)
 			s.Equal(mxUserGuid, userGuid)
@@ -69,8 +56,27 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			return nil
 		})
 
+	s.env.OnActivity(s.activity.StartIdentityAggregation, mock.Anything, fundingsourceID).Return(
+		func(ctx context.Context, fsID string) error {
+			s.Equal(fundingsourceID, fsID)
+			return nil
+		})
+
+	s.env.OnActivity(s.activity.WaitForIdentityAggregation, mock.Anything, fundingsourceID).Return(
+		func(ctx context.Context, fsID string) error {
+			s.Equal(fundingsourceID, fsID)
+			return nil
+		})
+
+	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, fundingsourceID, userID).Return(
+		func(ctx context.Context, fsID string, identityID string) error {
+			s.Equal(fundingsourceID, fsID)
+			s.Equal(userID, identityID)
+			return nil
+		})
+
 	s.env.OnActivity(s.activity.SetMask, mock.Anything, fundingsourceID).Return(
-		func(ctx context.Context, fsID string, accountNum string) error {
+		func(ctx context.Context, fsID string) error {
 			s.Equal(fundingsourceID, fsID)
 			return nil
 		})
@@ -85,6 +91,7 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 		FundingSourceID: fundingsourceID,
 		MxUserGuid:      mxUserGuid,
 		MxMemberGuid:    mxMemberGuid,
+		IdentityID:      userID,
 	})
 
 	s.True(s.env.IsWorkflowCompleted())
@@ -94,6 +101,6 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 // TODO add more comprehensive testing for branching in workflow and rollbacks
 // see https://docs.temporal.io/docs/go/how-to-test-workflow-definitions-in-go/
 
-func TestCreateMxAccountTestSuite(t *testing.T) {
+func TestCreateMxAccountWorkflow(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }
