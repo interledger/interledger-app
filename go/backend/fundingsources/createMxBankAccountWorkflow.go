@@ -57,7 +57,7 @@ func CreateMxBankAccountWorkflow(ctx workflow.Context, args *CreateMxBankAccount
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, args.IdentityID, args.FundingSourceID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, args.FundingSourceID, args.IdentityID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Bank account is not owned by user.")
 		return err
