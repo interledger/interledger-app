@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -35,6 +36,7 @@ func TestGetBankAccountWidget(t *testing.T) {
 		AdminAuthService:   auth.NewMockService(),
 		UserService:        user.NewMockService(),
 		UnitProvider:       unit.NewMockService(ctrl),
+		OnboardingService:  onboarding.NewMockService(ctrl),
 	})
 
 	userID := uuid.NewString()
