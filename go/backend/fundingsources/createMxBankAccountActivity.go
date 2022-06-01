@@ -138,7 +138,12 @@ func (a *Activity) VerifyOwnership(
 	return nil
 }
 
-func (a *Activity) SetMask(ctx context.Context, fundingsourceID string, accountNumber string) error {
+func (a *Activity) SetMask(ctx context.Context, fundingsourceID string) error {
+	err := a.fundingsourceService.SetMxFundingSourceMask(ctx, fundingsourceID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

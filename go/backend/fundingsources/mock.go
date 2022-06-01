@@ -169,6 +169,35 @@ func (mr *MockServiceMockRecorder) GetUnitCounterParty(ctx, fundingsourceID inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnitCounterParty", reflect.TypeOf((*MockService)(nil).GetUnitCounterParty), ctx, fundingsourceID)
 }
 
+// SetMask mocks base method.
+func (m *MockService) SetMask(ctx context.Context, fundingsourceID, mask string) (*FundingSource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetMask", ctx, fundingsourceID, mask)
+	ret0, _ := ret[0].(*FundingSource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetMask indicates an expected call of SetMask.
+func (mr *MockServiceMockRecorder) SetMask(ctx, fundingsourceID, mask interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMask", reflect.TypeOf((*MockService)(nil).SetMask), ctx, fundingsourceID, mask)
+}
+
+// SetMxFundingSourceMask mocks base method.
+func (m *MockService) SetMxFundingSourceMask(ctx context.Context, fundigsourceID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetMxFundingSourceMask", ctx, fundigsourceID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetMxFundingSourceMask indicates an expected call of SetMxFundingSourceMask.
+func (mr *MockServiceMockRecorder) SetMxFundingSourceMask(ctx, fundigsourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMxFundingSourceMask", reflect.TypeOf((*MockService)(nil).SetMxFundingSourceMask), ctx, fundigsourceID)
+}
+
 // Verify mocks base method.
 func (m *MockService) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error) {
 	m.ctrl.T.Helper()

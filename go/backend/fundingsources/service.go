@@ -42,6 +42,8 @@ type Service interface {
 	CreateUnitCounterPartyFromMxAccount(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
 	GetUnitCounterParty(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
 	CreateUnitCounterParty(ctx context.Context, fundingsourceID string, unitCounterPartyID string) (*UnitCounterParty, error)
+	SetMxFundingSourceMask(ctx context.Context, fundigsourceID string) error
+	SetMask(ctx context.Context, fundingsourceID string, mask string) (*FundingSource, error)
 }
 
 type service struct {
@@ -513,6 +515,49 @@ func (s *service) GetUnitCounterParty(
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", ErrInternal, err)
 		}
+	}
+
+	return ret, nil
+}
+
+func (s *service) SetMxFundingSourceMask(ctx context.Context, fundingsourceID string) error {
+	info, err := s.mx.GetMxAccount(ctx, fundingsourceID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	start := len(info.AccountNumber) - 4
+	if start < 0 {
+		start = 0
+	}
+
+	_, err = s.SetMask(ctx, fundingsourceID, info.AccountNumber[start:])
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) SetMask(
+	ctx context.Context,
+	fundingsourceID string,
+	mask string,
+) (*FundingSource, error) {
+	ret := &FundingSource{}
+	err := s.db.GetContext(
+		ctx,
+		ret,
+		"UPDATE funding_sources SET mask=$1 WHERE id=$2 RETURNING *;",
+		mask,
+		fundingsourceID,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return ret, nil

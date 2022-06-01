@@ -267,3 +267,43 @@ func (s *loggingService) CreateUnitCounterParty(
 
 	return s.Service.CreateUnitCounterParty(ctx, fundingsourceID, unitCounterPartyID)
 }
+
+func (s *loggingService) SetMxFundingSourceMask(ctx context.Context, fundingsourceID string) (err error) {
+	defer func() {
+		if err != nil {
+			s.logger.Error(
+				"Failed to set mx fundingsource mask.",
+				zap.String("fundingsourceID", fundingsourceID),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Set mx fundingsource mask.",
+			zap.String("fundingsourceID", fundingsourceID),
+		)
+	}()
+
+	return s.Service.SetMxFundingSourceMask(ctx, fundingsourceID)
+}
+
+func (s *loggingService) SetMask(ctx context.Context, fundingsourceID string, mask string) (fs *FundingSource, err error) {
+	defer func() {
+		if err != nil {
+			s.logger.Error(
+				"Failed to set mask.",
+				zap.String("fundingsourceID", fundingsourceID),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Set mask.",
+			zap.String("fundingsourceID", fundingsourceID),
+		)
+	}()
+
+	return s.Service.SetMask(ctx, fundingsourceID, mask)
+}
