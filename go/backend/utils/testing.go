@@ -306,6 +306,22 @@ func SetupUnitMockServer(ctx context.Context) *httptest.Server {
 					w.WriteHeader(400)
 				}
 			}
+		case "/counterparties":
+			if r.Method != "POST" {
+				http.Error(w, "Method not implemented", 501)
+				return
+			}
+
+			_, err := w.Write([]byte(fmt.Sprintf(`{
+				"data": {
+					"type": "achCounterparty",
+					"id": %s
+				}
+			}`, uuid.NewString())))
+			if err != nil {
+				w.WriteHeader(500)
+			}
 		}
+
 	}))
 }
