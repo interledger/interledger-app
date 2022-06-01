@@ -12,6 +12,7 @@ import (
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/proto/backend/v1"
@@ -27,6 +28,7 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 	as := accounts.NewMockService(ctrl)
 	us := auth.NewMockService()
 	hs, err := healthcheck.NewService()
+	onboardingService := onboarding.NewMockService(ctrl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,6 +39,7 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 		AdminAuthService:   us,
 		UnitProvider:       up,
 		UserService:        user.NewMockService(),
+		OnboardingService:  onboardingService,
 	})
 	if err != nil {
 		t.Fatal(err)

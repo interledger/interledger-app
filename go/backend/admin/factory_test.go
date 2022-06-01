@@ -154,6 +154,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		AdminAuthService:   us,
 		UnitProvider:       c.Up,
 		UserService:        user.NewMockService(),
+		OnboardingService:  os,
 	})
 	if err != nil {
 		return nil, err

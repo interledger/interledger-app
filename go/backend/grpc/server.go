@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -30,18 +31,20 @@ type ServerArgs struct {
 	AdminAuthService   auth.Service        `validate:"required"`
 	UserService        user.Service        `validate:"required"`
 	UnitProvider       unit.Service        `validate:"required"`
+	OnboardingService  onboarding.Service  `validate:"required"`
 }
 
 const rpcServiceName = "public"
 
 type rpcService struct {
 	backendv1.UnimplementedBackendServiceServer
-	validator       *validator.Validate
-	accountsService accounts.Service
-	identityService identity.Service
-	userService     user.Service
-	unitProvider    unit.Service
-	name            string
+	validator         *validator.Validate
+	accountsService   accounts.Service
+	identityService   identity.Service
+	userService       user.Service
+	unitProvider      unit.Service
+	onboardingService onboarding.Service
+	name              string
 }
 
 func (s *rpcService) GetName() string {
@@ -59,12 +62,13 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		user.MakeUnaryInterceptor(args.UserService, rpcServiceName),
 	)
 	backendv1.RegisterBackendServiceServer(server, &rpcService{
-		validator:       v,
-		accountsService: args.AccountsService,
-		identityService: args.IdentityService,
-		userService:     args.UserService,
-		unitProvider:    args.UnitProvider,
-		name:            rpcServiceName,
+		validator:         v,
+		accountsService:   args.AccountsService,
+		identityService:   args.IdentityService,
+		userService:       args.UserService,
+		unitProvider:      args.UnitProvider,
+		onboardingService: args.OnboardingService,
+		name:              rpcServiceName,
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,

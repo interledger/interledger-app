@@ -303,6 +303,7 @@ func start(args *cli.StartArgs) {
 		AdminAuthService:   adminUsers,
 		UnitProvider:       us,
 		UserService:        users,
+		OnboardingService:  os,
 	})
 	if err != nil {
 		log.Fatalln(err)
