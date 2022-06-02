@@ -38,8 +38,9 @@ import (
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
+	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
-	"gitlab.com/fynbos/backend/providers/unit"
+	_unit "gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	unitwh "gitlab.com/fynbos/backend/webhooks/unit"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -176,11 +177,21 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	us, err := unit.NewService(unit.ServiceArgs{
+	us, err := _unit.NewService(_unit.ServiceArgs{
 		BaseURL:      args.UnitBaseURL,
 		Token:        args.UnitToken,
 		WebhookToken: args.UnitWebhookToken,
 		Db:           db,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	mx, err := _mx.NewService(&_mx.ServiceArgs{
+		BaseUrl:  args.MxBaseURL,
+		Username: args.MxUsername,
+		Password: args.MxPassword,
+		Db:       db,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -191,6 +202,9 @@ func start(args *cli.StartArgs) {
 		As:   as,
 		Db:   db,
 		Noop: nos,
+		Mx:   mx,
+		Unit: us,
+		Tp:   tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -298,13 +312,14 @@ func start(args *cli.StartArgs) {
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
 
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
-		HealthCheckService: health,
-		IdentityService:    id,
-		AccountsService:    as,
-		AdminAuthService:   adminUsers,
-		UnitProvider:       us,
-		UserService:        users,
-		OnboardingService:  os,
+		HealthCheckService:   health,
+		IdentityService:      id,
+		AccountsService:      as,
+		AdminAuthService:     adminUsers,
+		UnitProvider:         us,
+		UserService:          users,
+		FundingSourceService: fs,
+		OnboardingService:    os,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -479,21 +494,44 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	tp, err := temporal.NewTemporalClient()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	unit, err := _unit.NewService(_unit.ServiceArgs{
+		BaseURL:      args.UnitBaseURL,
+		Token:        args.UnitToken,
+		WebhookToken: args.UnitWebhookToken,
+		Db:           db,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	mx, err := _mx.NewService(&_mx.ServiceArgs{
+		BaseUrl:  args.MxBaseURL,
+		Username: args.MxUsername,
+		Password: args.MxPassword,
+		Db:       db,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   id,
 		As:   as,
 		Db:   db,
 		Noop: nos,
+		Unit: unit,
+		Mx:   mx,
+		Tp:   tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 	fs = fundingsources.NewLoggingService(fs, logger)
-
-	tp, err := temporal.NewTemporalClient()
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
@@ -527,16 +565,6 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 
-	up, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      args.UnitBaseURL,
-		Token:        args.UnitToken,
-		WebhookToken: args.UnitWebhookToken,
-		Db:           db,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,
 		As: as,
@@ -558,7 +586,7 @@ func startWorker(args *cli.StartArgs) {
 		Ts:     ts,
 		Is:     id,
 		Os:     os,
-		Up:     up,
+		Up:     unit,
 		Ws:     ws,
 		Fs:     fs,
 	})

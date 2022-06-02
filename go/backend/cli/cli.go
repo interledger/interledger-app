@@ -14,7 +14,7 @@ type MigrationArgs struct {
 	ConnectionString    string
 	NoopLedgerID        uint16
 	NoopEquityAccountID string
-	UnitWebhookToken		string
+	UnitWebhookToken    string
 	PacioliUrl          string
 	UsdLedgerID         uint16
 	KratosUrl           string
@@ -94,8 +94,11 @@ type StartArgs struct {
 	NoopEquityAccountID  string
 	UnitToken            string
 	UnitBaseURL          string
-	UnitWebhookToken 	   string
+	UnitWebhookToken     string
 	GoogleOauth2ClientID string
+	MxBaseURL            string
+	MxUsername           string
+	MxPassword           string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -167,6 +170,21 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
 	}
 
+	mxBaseURL := os.Getenv("MX_BASE_URL")
+	if googleOauth2ClientID == "" {
+		return nil, errors.New("MX_BASE_URL is required.")
+	}
+
+	mxUsername := os.Getenv("MX_USERNAME")
+	if mxUsername == "" {
+		return nil, errors.New("MX_USERNAME is required.")
+	}
+
+	mxPassword := os.Getenv("MX_PASSWORD")
+	if mxPassword == "" {
+		return nil, errors.New("MX_PASSWORD is required.")
+	}
+
 	return &StartArgs{
 		Port:                 port,
 		DbConnectionString:   connString,
@@ -181,5 +199,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		UnitBaseURL:          unitBaseURL,
 		UnitWebhookToken:     unitWebhookToken,
 		GoogleOauth2ClientID: googleOauth2ClientID,
+		MxBaseURL:            mxBaseURL,
+		MxUsername:           mxUsername,
+		MxPassword:           mxPassword,
 	}, nil
 }
