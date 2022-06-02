@@ -374,3 +374,109 @@ func TestGetMxAccount(t *testing.T) {
 	}
 
 }
+
+func TestGetMxUserByAccountID(t *testing.T) {
+	// TODO: refactor container setup
+	ctx := context.Background()
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:  "localhost:8080",
+		Username: "test",
+		Password: "test",
+		Db:       db,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	accountID := ""
+	expectedMxUserGuid := ""
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func(*testing.T)
+	}{
+		{
+			Name:          "Returns mx user guid",
+			ExpectedError: nil,
+			RunBefore: func(rbt *testing.T) {
+				accountID = uuid.NewString()
+				expectedMxUserGuid = uuid.NewString()
+				_, err = mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     accountID,
+					MxUserGuid:    expectedMxUserGuid,
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: uuid.NewString(),
+				})
+				if err != nil {
+					rbt.Fatal(err)
+				}
+				_, err = mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     accountID,
+					MxUserGuid:    expectedMxUserGuid,
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: uuid.NewString(),
+				})
+				if err != nil {
+					rbt.Fatal(err)
+				}
+			},
+		},
+		{
+			Name:          "Returns ErrInternal if there is more than one mx user for the account",
+			ExpectedError: ErrInternal,
+			RunBefore: func(rbt *testing.T) {
+				accountID = uuid.NewString()
+				expectedMxUserGuid = uuid.NewString()
+				_, err = mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     accountID,
+					MxUserGuid:    expectedMxUserGuid,
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: uuid.NewString(),
+				})
+				if err != nil {
+					rbt.Fatal(err)
+				}
+				_, err = mx.CreateMxFundingSource(ctx, &CreateMxFundingSourceArgs{
+					ID:            uuid.NewString(),
+					AccountID:     accountID,
+					MxUserGuid:    uuid.NewString(),
+					MxMemberGuid:  uuid.NewString(),
+					MxAccountGuid: uuid.NewString(),
+				})
+				if err != nil {
+					rbt.Fatal(err)
+				}
+			},
+		},
+		{
+			Name:          "Returns ErrNotFound if there is no mx user for the account.",
+			ExpectedError: ErrNotFound,
+			RunBefore: func(rbt *testing.T) {
+				accountID = uuid.NewString()
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore(st)
+
+			mxUserGuid, err := mx.GetMxUserByAccountID(ctx, accountID)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err, scenario.Name)
+				assert.Equal(st, expectedMxUserGuid, mxUserGuid)
+			} else {
+				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
+				assert.Equal(st, "", mxUserGuid, scenario.Name)
+			}
+		})
+	}
+}

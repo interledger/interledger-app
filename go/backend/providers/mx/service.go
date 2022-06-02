@@ -439,5 +439,24 @@ func (s service) GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, 
 }
 
 func (s service) GetMxUserByAccountID(ctx context.Context, accountID string) (string, error) {
-	panic("not implemented.")
+	mxUserGuids := []string{}
+	err := s.db.SelectContext(
+		ctx,
+		&mxUserGuids,
+		"SELECT DISTINCT mx_user_guid FROM mx_fundingsources WHERE account_id=$1;",
+		accountID,
+	)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if len(mxUserGuids) == 0 {
+		return "", fmt.Errorf("%w", ErrNotFound)
+	}
+
+	if len(mxUserGuids) != 1 {
+		return "", fmt.Errorf("%w There are %d mx users linked to accountID=%s", ErrInternal, len(mxUserGuids), accountID)
+	}
+
+	return mxUserGuids[0], nil
 }
