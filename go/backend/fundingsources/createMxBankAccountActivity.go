@@ -55,7 +55,12 @@ func (a *Activity) GetSelectedMxAccountGuid(
 	mxUserGuid string,
 	mxMemberGuid string,
 ) (string, error) {
-	return "", nil
+	mxAccountGuid, err := a.mx.GetSelectedAccountGuid(ctx, mxUserGuid, mxMemberGuid)
+	if err != nil {
+		return "", err
+	}
+
+	return mxAccountGuid, nil
 }
 
 func (a *Activity) CreateMxAccount(

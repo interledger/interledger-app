@@ -34,6 +34,7 @@ type (
 		GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error)
 		GetAccountOwner(ctx context.Context, mxFundingSourceID string) (*AccountOwner, error)
 		GetMxAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error)
+		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
 	}
 
 	user struct {
@@ -391,4 +392,47 @@ func (s service) GetMxAccount(ctx context.Context, mxFundingSourceID string) (*M
 	}
 
 	return &ret.Account, nil
+}
+
+// The mx connect widget will allow the user to log into their bank and select an account.
+// They do not pass this to us on the front end and so we need to call out to find out the
+// mx account guid of the account that was selected.
+// Calling the users/:users/members/:members/account_numbers should only have the account selected
+// by the user.
+func (s service) GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error) {
+	url := fmt.Sprintf("%s/users/%s/members/%s/account_numbers?page=1&records_per_page=10", s.baseUrl, mxUserGuid, mxMemberGuid)
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	resp, err := s.mxClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var accounts struct {
+		AccountNumbers []struct {
+			AccountGuid string `json:"account_guid"`
+			UserGuid    string `json:"user_guid"`
+			MemberGuid  string `json:"member_guid"`
+		} `json:"account_numbers"`
+	}
+	if err = json.Unmarshal(body, &accounts); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if len(accounts.AccountNumbers) != 1 {
+		return "", fmt.Errorf(
+			"%w Unable to find account user selected. %d accounts were returned.",
+			ErrInternal,
+			len(accounts.AccountNumbers),
+		)
+	}
+
+	return accounts.AccountNumbers[0].AccountGuid, nil
 }
