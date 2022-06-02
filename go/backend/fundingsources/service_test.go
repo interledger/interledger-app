@@ -472,24 +472,44 @@ func TestGetMxConnectWidget(t *testing.T) {
 				}, nil).Times(1)
 
 				mxUserGuid := uuid.NewString()
+				mx.EXPECT().GetMxUserByAccountID(gomock.Any(), accountID).Return("", _mx.ErrNotFound).Times(1)
 				mx.EXPECT().CreateUser(gomock.Any()).Return(mxUserGuid, nil).Times(1)
-				mx.EXPECT().GetWidgetUrl(gomock.Any(), mxUserGuid).Return(widgetUrl, nil)
+				mx.EXPECT().GetWidgetUrl(gomock.Any(), mxUserGuid).Return(widgetUrl, nil).Times(1)
+			},
+		},
+		{
+			Name:          "Does not create mx user if one exists for account.",
+			ExpectedError: nil,
+			AccountID:     accountID,
+			IdentityID:    user.ID,
+			RunBefore: func() {
+				as.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
+					ID:         accountID,
+					IdentityID: user.ID,
+				}, nil).Times(1)
+
+				mxUserGuid := uuid.NewString()
+				mx.EXPECT().GetMxUserByAccountID(gomock.Any(), accountID).Return(mxUserGuid, nil).Times(1)
+				mx.EXPECT().CreateUser(gomock.Any()).Times(0)
+				mx.EXPECT().GetWidgetUrl(gomock.Any(), mxUserGuid).Return(widgetUrl, nil).Times(1)
 			},
 		},
 	}
 
 	for _, scenario := range scenarios {
-		scenario.RunBefore()
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore()
 
-		url, err := fs.GetMxConnectWidget(context.Background(), scenario.AccountID, scenario.IdentityID)
+			url, err := fs.GetMxConnectWidget(context.Background(), scenario.AccountID, scenario.IdentityID)
 
-		if scenario.ExpectedError == nil {
-			assert.NoError(t, err)
-			assert.Equal(t, widgetUrl, url)
-		} else {
-			assert.ErrorIs(t, err, scenario.ExpectedError, scenario.Name)
-			assert.Equal(t, "", url, scenario.Name)
-		}
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err)
+				assert.Equal(st, widgetUrl, url)
+			} else {
+				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
+				assert.Equal(st, "", url, scenario.Name)
+			}
+		})
 	}
 }
 

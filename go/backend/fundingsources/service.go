@@ -305,9 +305,19 @@ func (s *service) GetMxConnectWidget(ctx context.Context, accountID string, iden
 		return "", ErrUnauthorized
 	}
 
-	mxUserGuid, err := s.mx.CreateUser(ctx)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	mxUserGuid := ""
+	mxUserGuid, err = s.mx.GetMxUserByAccountID(ctx, accountID)
+	if errors.Is(err, _mx.ErrNotFound) {
+		mxUserGuid, err = s.mx.CreateUser(ctx)
+		if err != nil {
+			return "", fmt.Errorf("%w %s", ErrInternal, err)
+		}
+	} else {
+		if err != nil {
+			return "", fmt.Errorf("%w %s", ErrInternal, err)
+		}
+
+		// mx user found so carry on.
 	}
 
 	url, err := s.mx.GetWidgetUrl(ctx, mxUserGuid)
