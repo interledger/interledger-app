@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"os"
 
 	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -115,6 +116,9 @@ func main() {
 			return err
 		}
 
+		// TODO: pull from Vault
+		mxUsername := os.Getenv("MX_USERNAME")
+		mxPassword := os.Getenv("MX_PASSWORD")
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
 			ImageRepo:            "localhost:5005",
 			Cert:                 beCert,
@@ -125,8 +129,11 @@ func main() {
 			UnitBaseUrl:          "https://api.s.unit.sh",
 			EnablePlayground:     true,
 			Hostname:             "fynbos.test",
-			UnitWebhookToken: 	 	"fynbos_local_unit_webhook_token",
+			UnitWebhookToken:     "fynbos_local_unit_webhook_token",
 			GoogleOauth2ClientID: "572950914705-dv7oqq4r8bqljv3s831qqcan1n6f8vvs.apps.googleusercontent.com",
+			MxBaseURL:            "https://int-api.mx.com",
+			MxUsername:           mxUsername,
+			MxPassword:           mxPassword,
 		})
 		if err != nil {
 			return err
