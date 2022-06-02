@@ -6,6 +6,7 @@ import (
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
+	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	rbacv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -24,6 +25,9 @@ type DeployBackendArgs struct {
 	EnablePlayground     bool
 	UnitWebhookToken     string
 	GoogleOauth2ClientID string // oauth client for the admin app
+	MxBaseURL            string
+	MxUsername           string
+	MxPassword           string
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -51,6 +55,9 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.UnitBaseUrl,
 		args.UnitWebhookToken,
 		args.GoogleOauth2ClientID,
+		args.MxPassword,
+		args.MxUsername,
+		args.MxBaseURL,
 	)
 	if err != nil {
 		return err
@@ -132,8 +139,29 @@ func deployDeployment(
 	unitBaseUrl string,
 	unitWebhookToken string,
 	googleOauth2ClientID string,
+	mxPassword string,
+	mxUsername string,
+	mxBaseUrl string,
 ) error {
-	_, err := appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
+	mxCredentials, err := v1.NewSecret(ctx, "mx-credentials", &v1.SecretArgs{
+		ApiVersion: pulumi.String("v1"),
+		Kind:       pulumi.String("Secret"),
+		Metadata: &metav1.ObjectMetaArgs{
+			Name: pulumi.String("mx-credentials"),
+			Labels: pulumi.StringMap{
+				"app": pulumi.String("backend"),
+			},
+		},
+		StringData: pulumi.StringMap{
+			"password": pulumi.String(mxPassword),
+			"username": pulumi.String(mxUsername),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = appsv1.NewDeployment(ctx, "backend-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
 		Metadata: &metav1.ObjectMetaArgs{
@@ -305,6 +333,28 @@ func deployDeployment(
 									Name:  pulumi.String("UNIT_WEBHOOK_TOKEN"),
 									Value: pulumi.String(unitWebhookToken),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("MX_BASE_URL"),
+									Value: pulumi.String(mxBaseUrl),
+								},
+								&corev1.EnvVarArgs{
+									Name: pulumi.String("MX_USERNAME"),
+									ValueFrom: corev1.EnvVarSourceArgs{
+										SecretKeyRef: corev1.SecretKeySelectorArgs{
+											Name: mxCredentials.Metadata.Name(),
+											Key:  pulumi.String("username"),
+										},
+									},
+								},
+								&corev1.EnvVarArgs{
+									Name: pulumi.String("MX_PASSWORD"),
+									ValueFrom: corev1.EnvVarSourceArgs{
+										SecretKeyRef: corev1.SecretKeySelectorArgs{
+											Name: mxCredentials.Metadata.Name(),
+											Key:  pulumi.String("password"),
+										},
+									},
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -358,6 +408,27 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("UNIT_WEBHOOK_TOKEN"),
 									Value: pulumi.String(unitWebhookToken),
+								}, &corev1.EnvVarArgs{
+									Name:  pulumi.String("MX_BASE_URL"),
+									Value: pulumi.String(mxBaseUrl),
+								},
+								&corev1.EnvVarArgs{
+									Name: pulumi.String("MX_USERNAME"),
+									ValueFrom: corev1.EnvVarSourceArgs{
+										SecretKeyRef: corev1.SecretKeySelectorArgs{
+											Name: mxCredentials.Metadata.Name(),
+											Key:  pulumi.String("username"),
+										},
+									},
+								},
+								&corev1.EnvVarArgs{
+									Name: pulumi.String("MX_PASSWORD"),
+									ValueFrom: corev1.EnvVarSourceArgs{
+										SecretKeyRef: corev1.SecretKeySelectorArgs{
+											Name: mxCredentials.Metadata.Name(),
+											Key:  pulumi.String("password"),
+										},
+									},
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{

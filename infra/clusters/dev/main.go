@@ -166,6 +166,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// TODO: pull from Vault
+		mxUsername := os.Getenv("MX_USERNAME")
+		mxPassword := os.Getenv("MX_PASSWORD")
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
 			ImageRepo:            ecrRepo,
 			Cert:                 beCert,
@@ -178,6 +182,9 @@ func main() {
 			Hostname:             "dev.fynbos.dev",
 			UnitWebhookToken:     "webhooktoken",
 			GoogleOauth2ClientID: "572950914705-ith2keqq6l3cu652n262jd0gf9ffi7ka.apps.googleusercontent.com",
+			MxBaseURL:            "https://api.mx.com",
+			MxUsername:           mxUsername,
+			MxPassword:           mxPassword,
 		})
 		if err != nil {
 			return err
