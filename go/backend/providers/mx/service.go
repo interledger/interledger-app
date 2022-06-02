@@ -35,6 +35,7 @@ type (
 		GetAccountOwner(ctx context.Context, mxFundingSourceID string) (*AccountOwner, error)
 		GetMxAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error)
 		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
+		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
 	}
 
 	user struct {
@@ -435,4 +436,8 @@ func (s service) GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, 
 	}
 
 	return accounts.AccountNumbers[0].AccountGuid, nil
+}
+
+func (s service) GetMxUserByAccountID(ctx context.Context, accountID string) (string, error) {
+	panic("not implemented.")
 }

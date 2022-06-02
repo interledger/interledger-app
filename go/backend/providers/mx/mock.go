@@ -124,6 +124,21 @@ func (mr *MockServiceMockRecorder) GetMxFundingSource(ctx, id interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMxFundingSource", reflect.TypeOf((*MockService)(nil).GetMxFundingSource), ctx, id)
 }
 
+// GetMxUserByAccountID mocks base method.
+func (m *MockService) GetMxUserByAccountID(ctx context.Context, accountID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMxUserByAccountID", ctx, accountID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMxUserByAccountID indicates an expected call of GetMxUserByAccountID.
+func (mr *MockServiceMockRecorder) GetMxUserByAccountID(ctx, accountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMxUserByAccountID", reflect.TypeOf((*MockService)(nil).GetMxUserByAccountID), ctx, accountID)
+}
+
 // GetSelectedAccountGuid mocks base method.
 func (m *MockService) GetSelectedAccountGuid(ctx context.Context, mxUserGuid, mxMemberGuid string) (string, error) {
 	m.ctrl.T.Helper()
