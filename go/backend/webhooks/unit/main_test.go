@@ -23,7 +23,7 @@ func TestWebhook(t *testing.T) {
 
 	ctx := context.Background()
 
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
 	providerMock := unit.NewMockService(ctrl)
@@ -40,7 +40,6 @@ func TestWebhook(t *testing.T) {
 	svr := httptest.NewServer(wh.MakeHttpHandler())
 
 	t.Cleanup(func() {
-		dbCleanup()
 		svr.Close()
 	})
 
@@ -112,7 +111,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
 	
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
@@ -132,10 +131,6 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Cleanup(func() {
-		dbCleanup()
-	})
 
 	scenarios := []struct {
 		Name            string
@@ -177,7 +172,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
 		Token:        "token",
@@ -195,10 +190,6 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Cleanup(func() {
-		dbCleanup()
-	})
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 
@@ -213,7 +204,7 @@ func TestStoreEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
 		Token:        "token",
@@ -231,10 +222,6 @@ func TestStoreEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Cleanup(func() {
-		dbCleanup()
-	})
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 	rawEvent := marshalEvent(t, customerCreatedEvent)
@@ -256,7 +243,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
 		Token:        "token",
@@ -274,10 +261,6 @@ func TestStoreDuplicateEvent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	t.Cleanup(func() {
-		dbCleanup()
-	})
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 	rawEvent := marshalEvent(t, customerCreatedEvent)

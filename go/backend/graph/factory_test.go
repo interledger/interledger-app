@@ -42,7 +42,6 @@ type TestContainer struct {
 	Ctx                  context.Context
 	Logger               *zap.Logger
 	Db                   *sqlx.DB
-	DbCleanup            func()
 	AccountService       _account.Service
 	CountryService       _country.Service
 	FundingSourceService fundingsources.Service
@@ -68,9 +67,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c := &TestContainer{}
 	c.Ctx = ctx
 
-	db, cleanup := test_utils.MigrateCockroachDB(t, ctx)
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
-	c.DbCleanup = cleanup
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
@@ -263,8 +261,6 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 	c.Server.Close()
 
 	c.UnitMockServer.Close()
-
-	c.DbCleanup()
 
 	err := c.PacioliContainer.Terminate(ctx)
 	if err != nil {
