@@ -2,6 +2,8 @@ package mx
 
 import (
 	"context"
+	"flag"
+	"os"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -10,6 +12,37 @@ import (
 	"github.com/stretchr/testify/assert"
 	test_utils "gitlab.com/fynbos/backend/utils"
 )
+
+var runIntegration = flag.Bool("integration", false, "Bool to run integration tests.")
+
+func TestIntegration(t *testing.T) {
+	if !*runIntegration {
+		t.Skip()
+	}
+	username := os.Getenv("MX_USERNAME")
+	password := os.Getenv("MX_PASSWORD")
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:  "https://int-api.mx.com",
+		Username: username,
+		Password: password,
+		Db:       &sqlx.DB{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	userGuid, err := mx.CreateUser(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.NotEqual(t, "", userGuid)
+
+	url, err := mx.GetWidgetUrl(context.Background(), userGuid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.NotEqual(t, "", url)
+}
 
 func TestCreateUser(t *testing.T) {
 	ctx := context.Background()
