@@ -195,3 +195,75 @@ func (s *loggingService) VerifyMxBankAccount(
 
 	return s.Service.VerifyMxBankAccount(ctx, identityID, fundingsourceID)
 }
+
+func (s *loggingService) CreateUnitCounterPartyFromMxAccount(
+	ctx context.Context,
+	fundingsourceID string,
+) (cp *UnitCounterParty, err error) {
+	defer func() {
+		if err != nil {
+			s.logger.Error(
+				"Failed to create unit counterparty from mx bank account.",
+				zap.String("fundingsourceID", fundingsourceID),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Created unit counterparty from mx account.",
+			zap.String("fundingsourceID", fundingsourceID),
+		)
+	}()
+
+	return s.Service.CreateUnitCounterPartyFromMxAccount(ctx, fundingsourceID)
+}
+
+func (s loggingService) GetUnitCounterParty(
+	ctx context.Context,
+	fundingsourceID string,
+) (cp *UnitCounterParty, err error) {
+	defer func() {
+		if err != nil {
+			s.logger.Error(
+				"Failed to get unit counterparty.",
+				zap.String("fundingsourceID", fundingsourceID),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Got unit counterparty.",
+			zap.String("fundingsourceID", fundingsourceID),
+		)
+	}()
+
+	return s.Service.GetUnitCounterParty(ctx, fundingsourceID)
+}
+
+func (s *loggingService) CreateUnitCounterParty(
+	ctx context.Context,
+	fundingsourceID string,
+	unitCounterPartyID string,
+) (cp *UnitCounterParty, err error) {
+	defer func() {
+		if err != nil {
+			s.logger.Error(
+				"Failed to create unit counterparty.",
+				zap.String("fundingsourceID", fundingsourceID),
+				zap.String("unitCounterpartyID", unitCounterPartyID),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"Created unit counterparty.",
+			zap.String("fundingsourceID", fundingsourceID),
+			zap.String("unitCounterpartyID", unitCounterPartyID),
+		)
+	}()
+
+	return s.Service.CreateUnitCounterParty(ctx, fundingsourceID, unitCounterPartyID)
+}

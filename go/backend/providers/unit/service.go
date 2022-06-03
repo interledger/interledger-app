@@ -35,6 +35,7 @@ type Service interface {
 	CreateCustomer(ctx context.Context, args *CreateCustomerArgs) (*Customer, error)
 	GetCustomerByID(ctx context.Context, id string) (*Customer, error)
 	GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error)
+	CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error)
 }
 
 type (
@@ -51,6 +52,41 @@ type (
 		Token        string   `validate:"required"`
 		WebhookToken string   `validate:"required"`
 		Db           *sqlx.DB `validate:"required"`
+	}
+
+	createCounterPartyRequest struct {
+		Data CounterParty
+	}
+
+	createCounterPartyResponse struct {
+		Data CounterParty
+	}
+
+	CounterParty struct {
+		ID            string
+		Type          string
+		Attributes    CounterPartyAttributes
+		Relationships CounterPartyRelationships
+	}
+
+	CounterPartyRelationships struct {
+		Customer struct {
+			Data struct {
+				Type string
+				ID   string `json:"id"`
+			}
+		}
+	}
+
+	CounterPartyAttributes struct {
+		Name          string
+		CreatedAt     string `json:"createdAt"`
+		RoutingNumber string `json:"routingNumber"`
+		Bank          string
+		AccountNumber string `json:"accountNumber"`
+		AccountType   string `json:"accountType"`
+		Type          string
+		Permissions   string
 	}
 )
 
@@ -246,4 +282,20 @@ func (s *service) GetCustomerByAccountID(ctx context.Context, accountID string) 
 	}
 
 	return &customer, nil
+}
+
+type CreateCounterPartyArgs struct {
+	Name           string `validate:"required"`
+	RoutingNumber  string `validate:"required"`
+	AccountNumber  string `validate:"required"`
+	AccountType    string `validate:"required"`
+	Type           string `validate:"required"`
+	UnitCustomerID string `validate:"required"`
+
+	// This idempotency key is valid for 48 hours.
+	IdempotencyKey string `validate:"lte=255"`
+}
+
+func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error) {
+	return nil, nil
 }

@@ -138,18 +138,15 @@ func (a *Activity) VerifyOwnership(
 	return nil
 }
 
-func (a *Activity) GetBankAccountInfo(
-	ctx context.Context,
-	mxUserGuid string,
-	mxAccountGuid string,
-) (*AccountInfo, error) {
-	return nil, nil
-}
-
 func (a *Activity) SetMask(ctx context.Context, fundingsourceID string, accountNumber string) error {
 	return nil
 }
 
-func (a *Activity) CreateUnitCounterParty(ctx context.Context, fundingsourceID string, accountInfo *AccountInfo) error {
+func (a *Activity) CreateUnitCounterParty(ctx context.Context, fundingsourceID string) error {
+	_, err := a.fundingsourceService.CreateUnitCounterPartyFromMxAccount(ctx, fundingsourceID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

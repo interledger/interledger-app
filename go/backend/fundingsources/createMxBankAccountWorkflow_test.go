@@ -38,7 +38,6 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 	mxUserGuid := uuid.NewString()
 	mxMemberGuid := uuid.NewString()
 	mxAccountGuid := uuid.NewString()
-	accountNumber := "test-account"
 
 	s.env.OnActivity(s.activity.GetSelectedMxAccountGuid, mock.Anything, mxUserGuid, mxMemberGuid).Return(
 		func(ctx context.Context, userGuid string, memberGuid string) (string, error) {
@@ -70,28 +69,15 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			return nil
 		})
 
-	s.env.OnActivity(s.activity.GetBankAccountInfo, mock.Anything, mxUserGuid, mxAccountGuid).Return(
-		func(ctx context.Context, userGuid string, accountGuid string) (*AccountInfo, error) {
-			s.Equal(mxUserGuid, userGuid)
-			s.Equal(mxAccountGuid, accountGuid)
-			return &AccountInfo{
-				AccountNumber: accountNumber,
-			}, nil
-		})
-
-	s.env.OnActivity(s.activity.SetMask, mock.Anything, fundingsourceID, accountNumber).Return(
+	s.env.OnActivity(s.activity.SetMask, mock.Anything, fundingsourceID).Return(
 		func(ctx context.Context, fsID string, accountNum string) error {
 			s.Equal(fundingsourceID, fsID)
-			s.Equal(accountNumber, accountNum)
 			return nil
 		})
 
-	s.env.OnActivity(s.activity.CreateUnitCounterParty, mock.Anything, fundingsourceID, &AccountInfo{
-		AccountNumber: accountNumber,
-	}).Return(
-		func(ctx context.Context, fsID string, accountInfo *AccountInfo) error {
+	s.env.OnActivity(s.activity.CreateUnitCounterParty, mock.Anything, fundingsourceID).Return(
+		func(ctx context.Context, fsID string) error {
 			s.Equal(fundingsourceID, fsID)
-			s.Equal(accountNumber, accountInfo.AccountNumber)
 			return nil
 		})
 

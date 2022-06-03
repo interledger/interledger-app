@@ -49,6 +49,21 @@ func (mr *MockServiceMockRecorder) CreateApplicationForm(ctx, args interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateApplicationForm", reflect.TypeOf((*MockService)(nil).CreateApplicationForm), ctx, args)
 }
 
+// CreateCounterParty mocks base method.
+func (m *MockService) CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCounterParty", ctx, args)
+	ret0, _ := ret[0].(*CounterParty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateCounterParty indicates an expected call of CreateCounterParty.
+func (mr *MockServiceMockRecorder) CreateCounterParty(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCounterParty", reflect.TypeOf((*MockService)(nil).CreateCounterParty), ctx, args)
+}
+
 // CreateCustomer mocks base method.
 func (m *MockService) CreateCustomer(ctx context.Context, args *CreateCustomerArgs) (*Customer, error) {
 	m.ctrl.T.Helper()
