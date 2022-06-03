@@ -589,6 +589,7 @@ func startWorker(args *cli.StartArgs) {
 		Up:     unit,
 		Ws:     ws,
 		Fs:     fs,
+		Mx:     mx,
 	})
 	if err != nil {
 		log.Fatalln(err)
