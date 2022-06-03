@@ -2,6 +2,7 @@ package fundingsources
 
 import (
 	"context"
+	"crypto/sha256"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -15,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
+	_unit "gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -419,6 +421,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 	nos := noop.NewMockService(ctrl)
 	mx := _mx.NewMockService(ctrl)
 	tp := &mocks.Client{}
+	unit := _unit.NewMockService(ctrl)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
@@ -426,6 +429,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 		Noop: nos,
 		Mx:   mx,
 		Tp:   tp,
+		Unit: unit,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -501,6 +505,7 @@ func TestCreateMxBankAccount(t *testing.T) {
 	nos := noop.NewMockService(ctrl)
 	mx := _mx.NewMockService(ctrl)
 	tp := &mocks.Client{}
+	unit := _unit.NewMockService(ctrl)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
@@ -508,6 +513,7 @@ func TestCreateMxBankAccount(t *testing.T) {
 		Noop: nos,
 		Mx:   mx,
 		Tp:   tp,
+		Unit: unit,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -782,6 +788,138 @@ func TestVerifyMxBankAccount(t *testing.T) {
 			} else {
 				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
 				assert.Nil(st, fundingsource, scenario.Name)
+			}
+		})
+	}
+}
+
+func TestCreateUnitCounterPartyFromMxAccount(t *testing.T) {
+	// TODO: refactor once we settle on a container pattern
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	as := accounts.NewMockService(ctrl)
+	is := identity.NewMockService(ctrl)
+	nos := noop.NewMockService(ctrl)
+	mx := _mx.NewMockService(ctrl)
+	tp := &mocks.Client{}
+	unit := _unit.NewMockService(ctrl)
+	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
+	t.Cleanup(func() {
+		dbCleanup()
+	})
+	fs, err := NewService(&ServiceArgs{
+		Is:   is,
+		As:   as,
+		Db:   db,
+		Noop: nos,
+		Mx:   mx,
+		Tp:   tp,
+		Unit: unit,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	userID := uuid.NewString()
+	accountID := uuid.NewString()
+	fundingsourceID := ""
+	unitCounterPartyID := ""
+	unitCustomerID := ""
+
+	as.EXPECT().Get(gomock.Any(), accountID).Return(
+		&accounts.Account{
+			ID:         accountID,
+			IdentityID: userID,
+		},
+		nil,
+	).AnyTimes()
+	is.EXPECT().Get(gomock.Any(), userID).Return(&identity.Identity{
+		ID: userID,
+	}, nil).AnyTimes()
+	as.EXPECT().CanCreateFundingSource(gomock.Any(), userID).Return(true).AnyTimes()
+
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Creates unit counter party",
+			ExpectedError: nil,
+			RunBefore: func() {
+				mxFs, err := fs.Create(ctx, &CreateArgs{
+					IdentityID:        userID,
+					AccountID:         accountID,
+					Name:              "test",
+					Mask:              "",
+					VerificationState: string(PROCESSING),
+					Type:              "mx",
+					SubType:           "bank",
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				fundingsourceID = mxFs.ID
+
+				mxAccount := &_mx.MxAccount{
+					Guid:              uuid.NewString(),
+					UserGuid:          uuid.NewString(),
+					MemberGuid:        uuid.NewString(),
+					AccountNumber:     "123",
+					InstitutionNumber: "321",
+					RoutingNumber:     "abc",
+					TransitNumber:     "cba",
+					CurrencyCode:      "780",
+					Type:              "SAVINGS",
+					AvailableBalance:  500.00,
+					Balance:           500.00,
+				}
+				mx.EXPECT().GetMxAccount(gomock.Any(), fundingsourceID).Return(mxAccount, nil).Times(1)
+				unit.EXPECT().GetCustomerByAccountID(gomock.Any(), accountID).Return(
+					&_unit.Customer{
+						ID:        unitCustomerID,
+						AccountID: accountID,
+					},
+					nil,
+				).Times(1)
+				key := sha256.Sum256([]byte(fundingsourceID))
+				unitCounterPartyID = uuid.NewString()
+				unit.EXPECT().CreateCounterParty(gomock.Any(), &_unit.CreateCounterPartyArgs{
+					Name:           mxFs.Name,
+					RoutingNumber:  mxAccount.RoutingNumber,
+					AccountNumber:  mxAccount.AccountNumber,
+					AccountType:    mxAccount.Type,
+					Type:           "person",
+					IdempotencyKey: string(key[0:]),
+				}).Return(
+					&_unit.CounterParty{
+						Type:          "achCounterparty",
+						ID:            unitCounterPartyID,
+						Attributes:    _unit.CounterPartyAttributes{},
+						Relationships: _unit.CounterPartyRelationships{},
+					},
+					nil,
+				).Times(1)
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(st *testing.T) {
+			scenario.RunBefore()
+
+			createdCp, err := fs.CreateUnitCounterPartyFromMxAccount(ctx, fundingsourceID)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(st, err, scenario.Name)
+
+				unitCp, err := fs.GetUnitCounterParty(ctx, fundingsourceID)
+
+				assert.NoError(st, err, scenario.Name)
+				assert.Equal(st, unitCounterPartyID, unitCp.UnitCounterpartyID, scenario.Name)
+			} else {
+				assert.ErrorIs(st, err, scenario.ExpectedError)
+				assert.Nil(st, createdCp, scenario.Name)
 			}
 		})
 	}

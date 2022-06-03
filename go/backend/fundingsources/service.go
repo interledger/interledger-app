@@ -4,6 +4,7 @@ package fundingsources
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	_identity "gitlab.com/fynbos/backend/identity"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
+	_unit "gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -37,6 +39,9 @@ type Service interface {
 	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
 	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 	VerifyMxBankAccount(ctx context.Context, identityID string, fundingsourceID string) (*FundingSource, error)
+	CreateUnitCounterPartyFromMxAccount(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
+	GetUnitCounterParty(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
+	CreateUnitCounterParty(ctx context.Context, fundingsourceID string, unitCounterPartyID string) (*UnitCounterParty, error)
 }
 
 type service struct {
@@ -47,6 +52,7 @@ type service struct {
 	noop      noop.Service
 	mx        _mx.Service
 	tp        client.Client
+	unit      _unit.Service
 }
 
 type ServiceArgs struct {
@@ -56,6 +62,7 @@ type ServiceArgs struct {
 	Noop noop.Service      `validate:"required"`
 	Mx   _mx.Service       `validate:"required"`
 	Tp   client.Client     `validate:"required"`
+	Unit _unit.Service     `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -73,6 +80,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		noop:      args.Noop,
 		mx:        args.Mx,
 		tp:        args.Tp,
+		unit:      args.Unit,
 	}, nil
 }
 
@@ -94,6 +102,13 @@ type FundingSource struct {
 	SubType           string `db:"subtype"`
 	CreatedAt         string `db:"created_at"`
 	UpdatedAt         string `db:"updated_at"`
+}
+
+type UnitCounterParty struct {
+	ID                 string
+	UnitCounterpartyID string `db:"unit_counterparty_id"`
+	CreatedAt          string `db:"created_at"`
+	UpdatedAt          string `db:"updated_at"`
 }
 
 type CreateArgs struct {
@@ -415,6 +430,92 @@ func (s *service) VerifyMxBankAccount(
 	}
 
 	return ret, verifyErr
+}
+
+func (s *service) CreateUnitCounterPartyFromMxAccount(
+	ctx context.Context,
+	fundingsourceID string,
+) (*UnitCounterParty, error) {
+	mxFs, err := s.Get(ctx, fundingsourceID)
+	if err != nil {
+		return nil, err
+	}
+	if mxFs.Type != "mx" {
+		return nil, fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	unitCustomer, err := s.unit.GetCustomerByAccountID(ctx, mxFs.AccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w No unit customer found for accountID=%s.", ErrInternal, mxFs.AccountID)
+	}
+
+	// perform this just before creating the counter party as we get charged for Mx api calls.
+	accountNumbers, err := s.mx.GetMxAccount(ctx, fundingsourceID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	idempotencyKey := sha256.Sum256([]byte(fundingsourceID))
+	cp, err := s.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
+		Name:           mxFs.Name,
+		RoutingNumber:  accountNumbers.RoutingNumber,
+		AccountNumber:  accountNumbers.AccountNumber,
+		AccountType:    accountNumbers.Type,
+		Type:           "person",
+		IdempotencyKey: string(idempotencyKey[0:]),
+		UnitCustomerID: unitCustomer.ID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	ret, err := s.CreateUnitCounterParty(ctx, fundingsourceID, cp.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret, err
+}
+
+func (s *service) CreateUnitCounterParty(
+	ctx context.Context,
+	fundingsourceID string,
+	unitCounterPartyID string,
+) (*UnitCounterParty, error) {
+	ret := &UnitCounterParty{}
+	err := s.db.GetContext(
+		ctx,
+		ret,
+		"INSERT INTO unit_counterparties (id, unit_counterparty_id) VALUES ($1, $2) RETURNING *;",
+		fundingsourceID,
+		unitCounterPartyID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+	}
+
+	return ret, nil
+}
+
+func (s *service) GetUnitCounterParty(
+	ctx context.Context,
+	fundingsourceID string,
+) (*UnitCounterParty, error) {
+	ret := &UnitCounterParty{}
+	err := s.db.GetContext(
+		ctx,
+		ret,
+		"SELECT * FROM unit_counterparties WHERE id=$1;",
+		fundingsourceID)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	} else {
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		}
+	}
+
+	return ret, nil
 }
 
 func IsVerified(fs *FundingSource) bool {

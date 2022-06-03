@@ -13,10 +13,6 @@ type CreateMxBankAccountWorkflowArgs struct {
 	MxMemberGuid    string `validate:"required"`
 }
 
-type AccountInfo struct {
-	AccountNumber string
-}
-
 func CreateMxBankAccountWorkflow(ctx workflow.Context, args *CreateMxBankAccountWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -67,20 +63,13 @@ func CreateMxBankAccountWorkflow(ctx workflow.Context, args *CreateMxBankAccount
 		return err
 	}
 
-	accountInfo := &AccountInfo{}
-	err = workflow.ExecuteActivity(ctx, a.GetBankAccountInfo, args.MxUserGuid, mxAccountID).Get(ctx, accountInfo)
-	if err != nil {
-		logger.Error("Failed to get bank account info.")
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SetMask, args.FundingSourceID, accountInfo.AccountNumber).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetMask, args.FundingSourceID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to set mask for funding source.")
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateUnitCounterParty, args.FundingSourceID, accountInfo).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateUnitCounterParty, args.FundingSourceID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to create unit counter party.")
 		return err

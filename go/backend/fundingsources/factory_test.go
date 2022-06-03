@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
+	_unit "gitlab.com/fynbos/backend/providers/unit"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"go.uber.org/zap"
@@ -38,6 +39,7 @@ type TestContainer struct {
 	PacioliLedgerID  uint16
 	Tp               *mocks.Client
 	Mx               *mx.MockService
+	Unit             *_unit.MockService
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller) (*TestContainer, error) {
@@ -126,6 +128,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	c.Os = os
 
 	c.Mx = mx.NewMockService(ctrl)
+	c.Unit = _unit.NewMockService(ctrl)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
@@ -133,6 +136,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 		Noop: noop,
 		Mx:   c.Mx,
 		Tp:   c.Tp,
+		Unit: c.Unit,
 	})
 	if err != nil {
 		return nil, err
