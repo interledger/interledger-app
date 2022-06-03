@@ -34,6 +34,21 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
+// CreateMxFundingSource mocks base method.
+func (m *MockService) CreateMxFundingSource(ctx context.Context, args *CreateMxFundingSourceArgs) (*MxFundingSource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMxFundingSource", ctx, args)
+	ret0, _ := ret[0].(*MxFundingSource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateMxFundingSource indicates an expected call of CreateMxFundingSource.
+func (mr *MockServiceMockRecorder) CreateMxFundingSource(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMxFundingSource", reflect.TypeOf((*MockService)(nil).CreateMxFundingSource), ctx, args)
+}
+
 // CreateUser mocks base method.
 func (m *MockService) CreateUser(ctx context.Context) (string, error) {
 	m.ctrl.T.Helper()
@@ -49,19 +64,19 @@ func (mr *MockServiceMockRecorder) CreateUser(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockService)(nil).CreateUser), ctx)
 }
 
-// GetUserGuidForAccount mocks base method.
-func (m *MockService) GetUserGuidForAccount(ctx context.Context, accountID string) (string, error) {
+// GetMxFundingSource mocks base method.
+func (m *MockService) GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserGuidForAccount", ctx, accountID)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "GetMxFundingSource", ctx, id)
+	ret0, _ := ret[0].(*MxFundingSource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserGuidForAccount indicates an expected call of GetUserGuidForAccount.
-func (mr *MockServiceMockRecorder) GetUserGuidForAccount(ctx, accountID interface{}) *gomock.Call {
+// GetMxFundingSource indicates an expected call of GetMxFundingSource.
+func (mr *MockServiceMockRecorder) GetMxFundingSource(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserGuidForAccount", reflect.TypeOf((*MockService)(nil).GetUserGuidForAccount), ctx, accountID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMxFundingSource", reflect.TypeOf((*MockService)(nil).GetMxFundingSource), ctx, id)
 }
 
 // GetWidgetUrl mocks base method.

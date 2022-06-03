@@ -62,6 +62,21 @@ func (a *Activity) CreateMxAccount(
 	mxMemberGuid string,
 	mxAccountGuid string,
 ) error {
+	fs, err := a.fundingsourceService.Get(ctx, fundingSourceID)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.mx.CreateMxFundingSource(ctx, &_mx.CreateMxFundingSourceArgs{
+		ID:            fundingSourceID, // we map 1-1 to fundingsource
+		AccountID:     fs.AccountID,
+		MxUserGuid:    mxUserGuid,
+		MxMemberGuid:  mxMemberGuid,
+		MxAccountGuid: mxAccountGuid,
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
