@@ -32,10 +32,7 @@ func TestAccountsService(s *testing.T) {
 
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.
-	db, cleanup := test_utils.MigrateCockroachDB(s, ctx)
-	defer func() {
-		cleanup()
-	}()
+	db := test_utils.MigrateCockroachDB(s, ctx)
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		s.Fatal(err)

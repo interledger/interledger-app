@@ -28,7 +28,7 @@ import (
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
 
 // Assumes that CRDB is running locally on port 26257.
-func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB, cleanup func()) {
+func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Could not get directory path for utils/testing.")
@@ -57,7 +57,7 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB, cleanup
 		t.Fatal(err)
 	}
 
-	cleanup = func() {
+	t.Cleanup(func() {
 		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
 		_, err := db.ExecContext(ctx, cleanupQuery)
 		if err != nil {
@@ -67,9 +67,9 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB, cleanup
 		if err = db.Close(); err != nil {
 			t.Fatal(err)
 		}
-	}
+	})
 
-	return db, cleanup
+	return db 
 }
 
 type KratosContainer struct {

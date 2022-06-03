@@ -18,10 +18,7 @@ import (
 
 func TestIdentityService(s *testing.T) {
 	ctx := context.Background()
-	db, dbCleanup := test_utils.MigrateCockroachDB(s, ctx)
-	defer func() {
-		dbCleanup()
-	}()
+	db := test_utils.MigrateCockroachDB(s, ctx)
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {

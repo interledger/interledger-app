@@ -128,15 +128,12 @@ type TestContainer struct {
 	PacioliClient         pacioliv1.PacioliServiceClient
 	PacioliLedgerID       uint16
 	Db                    *sqlx.DB
-	DbCleanup             func()
 	Tp                    *mocks.Client
 	Logger                *zap.Logger
 	Ctx                   context.Context
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
-	c.DbCleanup()
-
 	err := c.PacioliContainer.Terminate(ctx)
 	if err != nil {
 		return err
@@ -148,8 +145,7 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
-	db, dbCleanup := test_utils.MigrateCockroachDB(s, ctx)
-	c.DbCleanup = dbCleanup
+	db := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
 
 	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)

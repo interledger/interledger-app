@@ -34,7 +34,6 @@ type TestContainer struct {
 	Ctrl            *gomock.Controller
 	Pacioli         *test_utils.PacioliContainer
 	Db              *sqlx.DB
-	DbCleanup       func()
 	As              accounts.Service
 	Is              identity.Service
 	Hs              healthcheck.Service
@@ -62,8 +61,6 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 
 	c.AdminServer.Stop()
 
-	c.DbCleanup()
-
 	if err := c.Pacioli.Terminate(ctx); err != nil {
 		return err
 	}
@@ -74,8 +71,7 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 // TODO: refactor how we spin up deps for tests.
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	c.DbCleanup = dbCleanup
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
 
 	c.Pacioli = test_utils.SetupPacioli(t, ctx)

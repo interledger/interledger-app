@@ -457,14 +457,11 @@ type TestContainer struct {
 	Ctrl               *gomock.Controller
 	TransactionService Service
 	Db                 *sqlx.DB
-	DbCleanup          func()
 	Logger             *zap.Logger
 	Ctx                context.Context
 }
 
 func (c *TestContainer) Cleanup() error {
-	c.DbCleanup()
-
 	err := c.PacioliContainer.Terminate(c.Ctx)
 	if err != nil {
 		return err
@@ -476,9 +473,8 @@ func (c *TestContainer) Cleanup() error {
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
-	db, dbCleanup := test_utils.MigrateCockroachDB(s, ctx)
+	db := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
-	c.DbCleanup = dbCleanup
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
