@@ -5,25 +5,31 @@ package mx
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
 )
 
 var (
 	ErrInvalidArgument = errors.New("mx provider: invalid argument.")
 	ErrInternal        = errors.New("mx provider: internal error.")
 	ErrNotFound        = errors.New("mx provider: not found.")
+	ErrDuplicate       = errors.New("mx provider: duplicate.")
 )
 
 type (
 	Service interface {
 		CreateUser(ctx context.Context) (string, error)
 		GetWidgetUrl(ctx context.Context, mxUserGuid string) (string, error)
+		CreateMxFundingSource(ctx context.Context, args *CreateMxFundingSourceArgs) (*MxFundingSource, error)
+		GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error)
 	}
 
 	user struct {
@@ -31,25 +37,27 @@ type (
 		ConnectWidgetUrl string `json:"connect_widget_url"`
 	}
 
-	Account struct {
-		ID         string
-		AccountID  string // fynbos account id
-		MxID       string
-		MxUserID   string
-		MxMemberID string
+	MxFundingSource struct {
+		ID              string
+		AccountID       string `db:"account_id"`
+		MxUserGuid      string `db:"mx_user_guid"`
+		MxMemberGuid    string `db:"mx_member_guid"`
+		MxAccountGuidID string `db:"mx_account_guid"`
 	}
 
 	ServiceArgs struct {
 		// Db *sqlx.DB
-		BaseUrl  string `validate:"required"`
-		Username string `validate:"required"`
-		Password string `validate:"required"`
+		BaseUrl  string   `validate:"required"`
+		Username string   `validate:"required"`
+		Password string   `validate:"required"`
+		Db       *sqlx.DB `validate:"required"`
 	}
 
 	service struct {
 		v        *validator.Validate
 		mxClient *http.Client
 		baseUrl  string
+		db       *sqlx.DB
 	}
 )
 
@@ -85,6 +93,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		mxClient: &http.Client{
 			Transport: newBasicAuthTransport(args.Username, args.Password),
 		},
+		db: args.Db,
 	}, nil
 }
 
@@ -146,4 +155,58 @@ func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	return user.ConnectWidgetUrl, nil
+}
+
+type CreateMxFundingSourceArgs struct {
+	ID            string `validate:"uuid4"`
+	AccountID     string `validate:"uuid4"`
+	MxUserGuid    string `validate:"required"`
+	MxMemberGuid  string `validate:"required"`
+	MxAccountGuid string `validate:"required"`
+}
+
+func (s *service) CreateMxFundingSource(
+	ctx context.Context,
+	args *CreateMxFundingSourceArgs,
+) (*MxFundingSource, error) {
+	if err := s.v.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	ret := &MxFundingSource{}
+	err := s.db.GetContext(
+		ctx,
+		ret,
+		`
+		INSERT INTO mx_fundingsources (id, account_id, mx_user_guid, mx_member_guid, mx_account_guid)
+		VALUES ($1, $2, $3, $4, $5) RETURNING *;
+		`,
+		args.ID,
+		args.AccountID,
+		args.MxUserGuid,
+		args.MxMemberGuid,
+		args.MxAccountGuid,
+	)
+	if err != nil {
+		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
+			return nil, ErrDuplicate
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret, nil
+}
+
+func (s service) GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error) {
+	ret := &MxFundingSource{}
+	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_fundingsources WHERE id=$1", id)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("id=%s", id))
+	} else {
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		}
+	}
+
+	return ret, nil
 }
