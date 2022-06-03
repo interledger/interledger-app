@@ -28,8 +28,12 @@ func NewMockServer(opts ...func(*MockServerState)) *httptest.Server {
 				http.Error(w, "Method not implemented.", 501)
 				return
 			}
-			user := &user{Guid: uuid.NewString()}
-			body, err := json.Marshal(user)
+			data := struct {
+				User user
+			}{
+				User: user{Guid: uuid.NewString()},
+			}
+			body, err := json.Marshal(data)
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
 				return
@@ -51,8 +55,12 @@ func NewMockServer(opts ...func(*MockServerState)) *httptest.Server {
 
 			params := strings.Split(r.URL.Path, "/")
 
-			user := &user{Guid: params[1], ConnectWidgetUrl: "http://localhost/connectwidget"}
-			body, err := json.Marshal(user)
+			data := struct {
+				User user
+			}{
+				User: user{Guid: params[1], ConnectWidgetUrl: "http://localhost/connectwidget"},
+			}
+			body, err := json.Marshal(data)
 			if err != nil {
 				http.Error(w, "Failed to marshal response.", 500)
 				return

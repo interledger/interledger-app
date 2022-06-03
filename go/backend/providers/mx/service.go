@@ -5,6 +5,7 @@ package mx
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -117,14 +118,22 @@ type basicAuthTransport struct {
 
 func (t basicAuthTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.SetBasicAuth(t.userName, t.password)
+	r.Header.Set("Accept", "application/vnd.mx.api.v1+json")
+	r.Header.Set("Content-Type", "application/json")
 	return t.baseTransport.RoundTrip(r)
 }
 
 func newBasicAuthTransport(userName string, password string) *basicAuthTransport {
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		MaxVersion: tls.VersionTLS12,
+	}
 	return &basicAuthTransport{
-		baseTransport: http.DefaultTransport,
-		userName:      userName,
-		password:      password,
+		baseTransport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+		userName: userName,
+		password: password,
 	}
 }
 
@@ -145,7 +154,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 }
 
 func (s *service) CreateUser(ctx context.Context) (string, error) {
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/users", s.baseUrl), bytes.NewBuffer([]byte{}))
+	payload := `{ "user": { "is_disabled": false } }`
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/users", s.baseUrl), bytes.NewBuffer([]byte(payload)))
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -160,12 +170,14 @@ func (s *service) CreateUser(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	user := &user{}
-	if err = json.Unmarshal(body, user); err != nil {
+	data := &struct {
+		User user
+	}{}
+	if err = json.Unmarshal(body, data); err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return user.Guid, nil
+	return data.User.Guid, nil
 }
 
 func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, error) {
@@ -197,11 +209,13 @@ func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	user := &user{}
-	if err = json.Unmarshal(body, user); err != nil {
+	data := &struct {
+		User user
+	}{}
+	if err = json.Unmarshal(body, data); err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	return user.ConnectWidgetUrl, nil
+	return data.User.ConnectWidgetUrl, nil
 }
 
 type CreateMxFundingSourceArgs struct {
