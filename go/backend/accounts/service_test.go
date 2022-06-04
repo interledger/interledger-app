@@ -23,12 +23,6 @@ func TestAccountsService(s *testing.T) {
 	ctx := context.Background()
 
 	pacioliContainer := test_utils.SetupPacioli(s, ctx)
-	defer func() {
-		err := pacioliContainer.Terminate(ctx)
-		if err != nil {
-			s.Fatal(err)
-		}
-	}()
 
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.

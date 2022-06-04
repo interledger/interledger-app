@@ -21,7 +21,6 @@ type TestContainer struct {
 	Ctx        context.Context
 	Tb         *test_utils.TigerBeetleContainer
 	Db         *sqlx.DB
-	DbCleanup  func()
 	Ls         ledger.Service
 	Server     *grpc.Server
 	Client     pacioliv1.PacioliServiceClient
@@ -33,7 +32,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ctx = ctx
 	containerNetwork := "pacioli-test"
 
-	_, c.Db, c.DbCleanup = test_utils.MigrateCockroachDB(t, ctx)
+	_, c.Db = test_utils.MigrateCockroachDB(t, ctx)
 
 	tb, err := test_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
@@ -87,8 +86,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 func (c *TestContainer) Cleanup() error {
 	c.Server.Stop()
-
-	c.DbCleanup()
 
 	c.TbClient.Close()
 

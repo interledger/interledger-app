@@ -13,7 +13,6 @@ import (
 type TestContainer struct {
 	TbClient  tigerbeetle_go.Client
 	Ctx       context.Context
-	DbCleanup func()
 	Tb        *test_utils.TigerBeetleContainer
 	Db        *sqlx.DB
 	Ls        Service
@@ -24,7 +23,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ctx = ctx
 	containerNetwork := "pacioli-test"
 
-	_, c.Db, c.DbCleanup = test_utils.MigrateCockroachDB(t, ctx)
+	_, c.Db = test_utils.MigrateCockroachDB(t, ctx)
 
 	tb, err := test_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
@@ -56,8 +55,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 }
 
 func (c *TestContainer) Cleanup() error {
-	c.DbCleanup()
-
 	c.TbClient.Close()
 
 	err := c.Tb.Terminate(c.Ctx)

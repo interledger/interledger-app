@@ -19,13 +19,6 @@ func TestFundingSources(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	s.Cleanup(func() {
-		err = c.Cleanup()
-		if err != nil {
-			s.Fatal(err)
-		}
-	})
-
 	s.Run("validates create bank account arguments", func(t *testing.T) {
 		user := &_user.User{
 			ID:    uuid.NewString(),
