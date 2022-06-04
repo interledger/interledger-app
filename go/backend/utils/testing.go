@@ -139,7 +139,6 @@ func TruncateDb(ctx context.Context, db *sqlx.DB) error {
 }
 
 type PacioliContainer struct {
-	DbCleanup      func()
 	Tb             testcontainers.Container
 	URI            string
 	Pacioli        *exec.Cmd
@@ -147,29 +146,9 @@ type PacioliContainer struct {
 	PacioliNetwork testcontainers.Network
 }
 
-func (c *PacioliContainer) Terminate(ctx context.Context) error {
-	err := c.Pacioli.Process.Kill()
-	if err != nil {
-		return err
-	}
-
-	err = c.Tb.Terminate(ctx)
-	if err != nil {
-		return err
-	}
-
-	c.DbCleanup()
-
-	err = c.PacioliNetwork.Remove(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 	fmt.Println("Starting pacioli test container.")
+	c := &PacioliContainer{}
 	containerNetwork := "pacioli-" + uuid.NewString()
 	network, err := testcontainers.GenericNetwork(ctx, testcontainers.GenericNetworkRequest{
 		NetworkRequest: testcontainers.NetworkRequest{
@@ -180,24 +159,27 @@ func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.PacioliNetwork = network
 
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Could not get directory path for utils/testing.")
 	}
 
-	connString, _, dbCleanup := pacioli_utils.MigrateCockroachDB(t, ctx)
+	connString, _ := pacioli_utils.MigrateCockroachDB(t, ctx)
 
 	tb, err := pacioli_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.Tb = tb
 
 	port, err := GetFreePort()
 	if err != nil {
 		t.Fatal(err)
 	}
 	hostIP := "127.0.0.1"
+	c.PacioliUrl = fmt.Sprintf("%s:%d", hostIP, port)
 	pacioli := exec.Command(
 		"go",
 		"run",
@@ -215,14 +197,26 @@ func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 	if err = pacioli.Start(); err != nil {
 		t.Fatal(err)
 	}
+	c.Pacioli = pacioli
 
-	return &PacioliContainer{
-		DbCleanup:      dbCleanup,
-		Tb:             tb,
-		Pacioli:        pacioli,
-		PacioliUrl:     fmt.Sprintf("%s:%d", hostIP, port),
-		PacioliNetwork: network,
-	}
+	t.Cleanup(func() {
+		err := c.Pacioli.Process.Kill()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = c.Tb.Terminate(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = c.PacioliNetwork.Remove(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}	
+	})
+
+	return c
 }
 
 func GetFreePort() (int, error) {

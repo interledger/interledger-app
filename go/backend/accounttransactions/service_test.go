@@ -31,13 +31,6 @@ func TestAccountTransactions(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	s.Cleanup(func() {
-		err := container.Cleanup()
-		if err != nil {
-			return
-		}
-	})
-
 	s.Run("validates arguments", func(t *testing.T) {
 		type scenario struct {
 			Name            string
@@ -459,15 +452,6 @@ type TestContainer struct {
 	Db                 *sqlx.DB
 	Logger             *zap.Logger
 	Ctx                context.Context
-}
-
-func (c *TestContainer) Cleanup() error {
-	err := c.PacioliContainer.Terminate(c.Ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {

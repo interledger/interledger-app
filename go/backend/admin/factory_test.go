@@ -61,10 +61,6 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 
 	c.AdminServer.Stop()
 
-	if err := c.Pacioli.Terminate(ctx); err != nil {
-		return err
-	}
-
 	return nil
 }
 

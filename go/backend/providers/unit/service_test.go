@@ -142,11 +142,6 @@ type TestContainer struct {
 func (c *TestContainer) Cleanup(ctx context.Context) error {
 	c.UnitMockServer.Close()
 
-	err := c.PacioliContainer.Terminate(ctx)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

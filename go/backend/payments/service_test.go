@@ -33,13 +33,6 @@ func TestPayments(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	s.Cleanup(func() {
-		err := container.Cleanup(ctx)
-		if err != nil {
-			return
-		}
-	})
-
 	s.Run("initiating an outgoing payment adds a workflow", func(t *testing.T) {
 		amount := uint64(100)
 		user := &_user.User{
@@ -199,15 +192,6 @@ type TestContainer struct {
 	Db                 *sqlx.DB
 	Logger             *zap.Logger
 	Ctx                context.Context
-}
-
-func (c *TestContainer) Cleanup(ctx context.Context) error {
-	err := c.PacioliContainer.Terminate(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {

@@ -136,15 +136,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	return c, nil
 }
 
-func (c *TestContainer) Cleanup() error {
-	err := c.PacioliContainer.Terminate(c.Ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func NewAccount(
 	container *TestContainer,
 	input *onboarding.CreateAccountArgs,
