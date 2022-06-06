@@ -84,7 +84,7 @@ func TestGetOnboarding(s *testing.T) {
 		}
 
 		assert.Error(t, err)
-		assert.EqualError(t, err, "rpc error: code = NotFound desc = Not found.")
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = Not found.onboarding: not found.")
 		assert.Nil(t, resp)
 	})
 }
@@ -138,12 +138,12 @@ func TestUpdateOnboarding(s *testing.T) {
 		ID := uuid.NewString()
 		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
 			Id: ID,
-		}).Return(nil, onboarding.ErrNotFound).Times(1)
+		}).Return(nil, onboarding.ErrInternal).Times(1)
 
 		resp, err := client.UpdateOnboarding(
 			context.Background(),
 			&backendv1.Onboarding{
-				Id: ID,
+				Id: &ID,
 			},
 		)
 		if err == nil {
@@ -151,7 +151,7 @@ func TestUpdateOnboarding(s *testing.T) {
 		}
 
 		assert.Error(t, err)
-		assert.EqualError(t, err, "rpc error: code = NotFound desc = Not found.")
+		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error.onboarding: internal error.")
 		assert.Nil(t, resp)
 	})
 }

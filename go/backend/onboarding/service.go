@@ -112,8 +112,8 @@ type UpdateOnboardingArgs struct {
 	LastName         string `validate:"omitempty"`
 	Email            string `validate:"omitempty,email"`
 	Phone            string `validate:"omitempty,e164"`
-	PhoneVerified    bool   `validate:"omitempty,boolean"`
-	ServiceAgreement bool   `validate:"omitempty,boolean"`
+	PhoneVerified    bool   `validate:"omitempty"`
+	ServiceAgreement bool   `validate:"omitempty"`
 }
 
 func (s *service) UpdateOnboarding(
