@@ -104,37 +104,38 @@ export interface GetOnboardingRequest {
  */
 export interface Onboarding {
     /**
-     * @generated from protobuf field: string id = 1;
+     * @generated from protobuf field: optional string id = 1;
      */
-    id: string;
+    id?: string;
     /**
-     * @generated from protobuf field: string first_name = 2;
+     * @generated from protobuf field: optional string first_name = 2;
      */
-    firstName: string;
+    firstName?: string;
     /**
-     * @generated from protobuf field: string last_name = 3;
+     * @generated from protobuf field: optional string last_name = 3;
      */
-    lastName: string;
+    lastName?: string;
     /**
-     * @generated from protobuf field: string country_of_residence = 4;
+     * @generated from protobuf field: optional string country_of_residence = 4;
      */
-    countryOfResidence: string;
+    countryOfResidence?: string;
     /**
-     * @generated from protobuf field: string email = 5;
+     * @generated from protobuf field: optional string email = 5;
      */
-    email: string;
+    email?: string;
     /**
-     * @generated from protobuf field: string phone = 6;
+     * @generated from protobuf field: optional string phone = 6;
      */
-    phone: string;
+    phone?: string;
     /**
-     * @generated from protobuf field: bool phone_verified = 7;
+     * @generated from protobuf field: optional bool phone_verified = 7;
      */
-    phoneVerified: boolean;
+    phoneVerified?: boolean;
     /**
-     * @generated from protobuf field: bool service_agreement = 8;
+     * @generated from protobuf field: optional bool service_agreement = 8;
      */
-    serviceAgreement: boolean;
+    serviceAgreement?: boolean;
+}
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
@@ -497,18 +498,18 @@ export const GetOnboardingRequest = new GetOnboardingRequest$Type();
 class Onboarding$Type extends MessageType<Onboarding> {
     constructor() {
         super("backend.v1.Onboarding", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "first_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "last_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "country_of_residence", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "phone", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "phone_verified", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 8, name: "service_agreement", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 1, name: "id", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "first_name", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "last_name", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "country_of_residence", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "email", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "phone", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "phone_verified", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "service_agreement", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Onboarding>): Onboarding {
-        const message = { id: "", firstName: "", lastName: "", countryOfResidence: "", email: "", phone: "", phoneVerified: false, serviceAgreement: false };
+        const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Onboarding>(this, message, value);
@@ -519,28 +520,28 @@ class Onboarding$Type extends MessageType<Onboarding> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
+                case /* optional string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* string first_name */ 2:
+                case /* optional string first_name */ 2:
                     message.firstName = reader.string();
                     break;
-                case /* string last_name */ 3:
+                case /* optional string last_name */ 3:
                     message.lastName = reader.string();
                     break;
-                case /* string country_of_residence */ 4:
+                case /* optional string country_of_residence */ 4:
                     message.countryOfResidence = reader.string();
                     break;
-                case /* string email */ 5:
+                case /* optional string email */ 5:
                     message.email = reader.string();
                     break;
-                case /* string phone */ 6:
+                case /* optional string phone */ 6:
                     message.phone = reader.string();
                     break;
-                case /* bool phone_verified */ 7:
+                case /* optional bool phone_verified */ 7:
                     message.phoneVerified = reader.bool();
                     break;
-                case /* bool service_agreement */ 8:
+                case /* optional bool service_agreement */ 8:
                     message.serviceAgreement = reader.bool();
                     break;
                 default:
@@ -555,29 +556,29 @@ class Onboarding$Type extends MessageType<Onboarding> {
         return message;
     }
     internalBinaryWrite(message: Onboarding, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
+        /* optional string id = 1; */
+        if (message.id !== undefined)
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string first_name = 2; */
-        if (message.firstName !== "")
+        /* optional string first_name = 2; */
+        if (message.firstName !== undefined)
             writer.tag(2, WireType.LengthDelimited).string(message.firstName);
-        /* string last_name = 3; */
-        if (message.lastName !== "")
+        /* optional string last_name = 3; */
+        if (message.lastName !== undefined)
             writer.tag(3, WireType.LengthDelimited).string(message.lastName);
-        /* string country_of_residence = 4; */
-        if (message.countryOfResidence !== "")
+        /* optional string country_of_residence = 4; */
+        if (message.countryOfResidence !== undefined)
             writer.tag(4, WireType.LengthDelimited).string(message.countryOfResidence);
-        /* string email = 5; */
-        if (message.email !== "")
+        /* optional string email = 5; */
+        if (message.email !== undefined)
             writer.tag(5, WireType.LengthDelimited).string(message.email);
-        /* string phone = 6; */
-        if (message.phone !== "")
+        /* optional string phone = 6; */
+        if (message.phone !== undefined)
             writer.tag(6, WireType.LengthDelimited).string(message.phone);
-        /* bool phone_verified = 7; */
-        if (message.phoneVerified !== false)
+        /* optional bool phone_verified = 7; */
+        if (message.phoneVerified !== undefined)
             writer.tag(7, WireType.Varint).bool(message.phoneVerified);
-        /* bool service_agreement = 8; */
-        if (message.serviceAgreement !== false)
+        /* optional bool service_agreement = 8; */
+        if (message.serviceAgreement !== undefined)
             writer.tag(8, WireType.Varint).bool(message.serviceAgreement);
         let u = options.writeUnknownFields;
         if (u !== false)

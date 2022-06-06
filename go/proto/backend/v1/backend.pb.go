@@ -404,14 +404,14 @@ type Onboarding struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id                 string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FirstName          string `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
-	LastName           string `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
-	CountryOfResidence string `protobuf:"bytes,4,opt,name=country_of_residence,json=countryOfResidence,proto3" json:"country_of_residence,omitempty"`
-	Email              string `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`
-	Phone              string `protobuf:"bytes,6,opt,name=phone,proto3" json:"phone,omitempty"`
-	PhoneVerified      bool   `protobuf:"varint,7,opt,name=phone_verified,json=phoneVerified,proto3" json:"phone_verified,omitempty"`
-	ServiceAgreement   bool   `protobuf:"varint,8,opt,name=service_agreement,json=serviceAgreement,proto3" json:"service_agreement,omitempty"`
+	Id                 *string `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	FirstName          *string `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3,oneof" json:"first_name,omitempty"`
+	LastName           *string `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3,oneof" json:"last_name,omitempty"`
+	CountryOfResidence *string `protobuf:"bytes,4,opt,name=country_of_residence,json=countryOfResidence,proto3,oneof" json:"country_of_residence,omitempty"`
+	Email              *string `protobuf:"bytes,5,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Phone              *string `protobuf:"bytes,6,opt,name=phone,proto3,oneof" json:"phone,omitempty"`
+	PhoneVerified      *bool   `protobuf:"varint,7,opt,name=phone_verified,json=phoneVerified,proto3,oneof" json:"phone_verified,omitempty"`
+	ServiceAgreement   *bool   `protobuf:"varint,8,opt,name=service_agreement,json=serviceAgreement,proto3,oneof" json:"service_agreement,omitempty"`
 }
 
 func (x *Onboarding) Reset() {
@@ -447,57 +447,57 @@ func (*Onboarding) Descriptor() ([]byte, []int) {
 }
 
 func (x *Onboarding) GetId() string {
-	if x != nil {
-		return x.Id
+	if x != nil && x.Id != nil {
+		return *x.Id
 	}
 	return ""
 }
 
 func (x *Onboarding) GetFirstName() string {
-	if x != nil {
-		return x.FirstName
+	if x != nil && x.FirstName != nil {
+		return *x.FirstName
 	}
 	return ""
 }
 
 func (x *Onboarding) GetLastName() string {
-	if x != nil {
-		return x.LastName
+	if x != nil && x.LastName != nil {
+		return *x.LastName
 	}
 	return ""
 }
 
 func (x *Onboarding) GetCountryOfResidence() string {
-	if x != nil {
-		return x.CountryOfResidence
+	if x != nil && x.CountryOfResidence != nil {
+		return *x.CountryOfResidence
 	}
 	return ""
 }
 
 func (x *Onboarding) GetEmail() string {
-	if x != nil {
-		return x.Email
+	if x != nil && x.Email != nil {
+		return *x.Email
 	}
 	return ""
 }
 
 func (x *Onboarding) GetPhone() string {
-	if x != nil {
-		return x.Phone
+	if x != nil && x.Phone != nil {
+		return *x.Phone
 	}
 	return ""
 }
 
 func (x *Onboarding) GetPhoneVerified() bool {
-	if x != nil {
-		return x.PhoneVerified
+	if x != nil && x.PhoneVerified != nil {
+		return *x.PhoneVerified
 	}
 	return false
 }
 
 func (x *Onboarding) GetServiceAgreement() bool {
-	if x != nil {
-		return x.ServiceAgreement
+	if x != nil && x.ServiceAgreement != nil {
+		return *x.ServiceAgreement
 	}
 	return false
 }
