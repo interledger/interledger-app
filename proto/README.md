@@ -1,4 +1,4 @@
-Install for go compilation
+### Install for compilation
 
 ```shell
 $ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -17,3 +17,9 @@ Install https://docs.buf.build/installation
 # Will generate backend/frontend generated files, and ensure that the frontend client is formatted appropriately.
 make gen
 ```
+
+### Google proto
+
+We use some of googles API message definitions for rpc.
+
+https://github.com/googleapis/googleapis.git
