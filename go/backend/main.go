@@ -264,6 +264,7 @@ func start(args *cli.StartArgs) {
 	graphql = graph.NewLoggingService(graphql, logger)
 
 	unitWebhook, err := unitwh.NewWebhook(&unitwh.WebhookArgs{
+		Db: db,
 		Up: us,
 		Os: os,
 	})
