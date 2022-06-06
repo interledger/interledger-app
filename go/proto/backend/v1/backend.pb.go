@@ -7,6 +7,9 @@
 package backend
 
 import (
+	_ "google.golang.org/genproto/googleapis/rpc/code"
+	_ "google.golang.org/genproto/googleapis/rpc/errdetails"
+	_ "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

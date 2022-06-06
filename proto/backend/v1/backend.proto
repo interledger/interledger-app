@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package backend.v1;
 
+import "google/rpc/code.proto";
+import "google/rpc/error_details.proto";
+import "google/rpc/status.proto";
+
 option go_package = "./backend/v1;backend";
 
 service BackendAdminService {
