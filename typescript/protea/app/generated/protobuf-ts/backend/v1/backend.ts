@@ -136,6 +136,46 @@ export interface Onboarding {
      */
     serviceAgreement?: boolean;
 }
+/**
+ * @generated from protobuf message backend.v1.SendPhoneVerificationRequest
+ */
+export interface SendPhoneVerificationRequest {
+    /**
+     * @generated from protobuf field: string to = 1;
+     */
+    to: string;
+    /**
+     * @generated from protobuf field: string onboardingId = 2;
+     */
+    onboardingId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CheckPhoneVerificationCodeRequest
+ */
+export interface CheckPhoneVerificationCodeRequest {
+    /**
+     * @generated from protobuf field: string to = 1;
+     */
+    to: string;
+    /**
+     * @generated from protobuf field: string code = 2;
+     */
+    code: string;
+    /**
+     * @generated from protobuf field: string onboardingId = 3;
+     */
+    onboardingId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.PhoneVerificationResponse
+ */
+export interface PhoneVerificationResponse {
+    /**
+     * The status from twilio. Can be "approved" or "pending"
+     *
+     * @generated from protobuf field: string status = 1;
+     */
+    status: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
@@ -590,6 +630,168 @@ class Onboarding$Type extends MessageType<Onboarding> {
  * @generated MessageType for protobuf message backend.v1.Onboarding
  */
 export const Onboarding = new Onboarding$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SendPhoneVerificationRequest$Type extends MessageType<SendPhoneVerificationRequest> {
+    constructor() {
+        super("backend.v1.SendPhoneVerificationRequest", [
+            { no: 1, name: "to", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "onboardingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SendPhoneVerificationRequest>): SendPhoneVerificationRequest {
+        const message = { to: "", onboardingId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SendPhoneVerificationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SendPhoneVerificationRequest): SendPhoneVerificationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string to */ 1:
+                    message.to = reader.string();
+                    break;
+                case /* string onboardingId */ 2:
+                    message.onboardingId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SendPhoneVerificationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string to = 1; */
+        if (message.to !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.to);
+        /* string onboardingId = 2; */
+        if (message.onboardingId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.onboardingId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SendPhoneVerificationRequest
+ */
+export const SendPhoneVerificationRequest = new SendPhoneVerificationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CheckPhoneVerificationCodeRequest$Type extends MessageType<CheckPhoneVerificationCodeRequest> {
+    constructor() {
+        super("backend.v1.CheckPhoneVerificationCodeRequest", [
+            { no: 1, name: "to", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "onboardingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckPhoneVerificationCodeRequest>): CheckPhoneVerificationCodeRequest {
+        const message = { to: "", code: "", onboardingId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckPhoneVerificationCodeRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckPhoneVerificationCodeRequest): CheckPhoneVerificationCodeRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string to */ 1:
+                    message.to = reader.string();
+                    break;
+                case /* string code */ 2:
+                    message.code = reader.string();
+                    break;
+                case /* string onboardingId */ 3:
+                    message.onboardingId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckPhoneVerificationCodeRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string to = 1; */
+        if (message.to !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.to);
+        /* string code = 2; */
+        if (message.code !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.code);
+        /* string onboardingId = 3; */
+        if (message.onboardingId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.onboardingId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CheckPhoneVerificationCodeRequest
+ */
+export const CheckPhoneVerificationCodeRequest = new CheckPhoneVerificationCodeRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PhoneVerificationResponse$Type extends MessageType<PhoneVerificationResponse> {
+    constructor() {
+        super("backend.v1.PhoneVerificationResponse", [
+            { no: 1, name: "status", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PhoneVerificationResponse>): PhoneVerificationResponse {
+        const message = { status: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PhoneVerificationResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PhoneVerificationResponse): PhoneVerificationResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string status */ 1:
+                    message.status = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PhoneVerificationResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string status = 1; */
+        if (message.status !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.status);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PhoneVerificationResponse
+ */
+export const PhoneVerificationResponse = new PhoneVerificationResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -603,5 +805,7 @@ export const BackendAdminService = new ServiceType("backend.v1.BackendAdminServi
 export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetBankAccountWidget", options: {}, I: GetBankAccountWidgetRequest, O: GetBankAccountWidgetResponse },
     { name: "GetOnboarding", options: {}, I: GetOnboardingRequest, O: Onboarding },
-    { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding }
+    { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding },
+    { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: PhoneVerificationResponse },
+    { name: "CheckPhoneVerificationCode", options: {}, I: CheckPhoneVerificationCodeRequest, O: PhoneVerificationResponse }
 ]);

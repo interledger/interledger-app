@@ -155,3 +155,166 @@ func TestUpdateOnboarding(s *testing.T) {
 		assert.Nil(t, resp)
 	})
 }
+
+func TestSendPhoneVerification(s *testing.T) {
+	ctrl := gomock.NewController(s)
+	health, err := healthcheck.NewService()
+	if err != nil {
+		s.Fatal(err)
+	}
+
+	mockOnboardingService := onboarding.NewMockService(ctrl)
+
+	_, _, client := startTestServer(s, &ServerArgs{
+		HealthCheckService: health,
+		IdentityService:    identity.NewMockService(ctrl),
+		AccountsService:    accounts.NewMockService(ctrl),
+		AdminAuthService:   auth.NewMockService(),
+		UserService:        user.NewMockService(),
+		UnitProvider:       unit.NewMockService(ctrl),
+		OnboardingService:  mockOnboardingService,
+	})
+
+	s.Run("Can send a phone verification token", func(t *testing.T) {
+		ID, phone := uuid.NewString(), faker.E164PhoneNumber()
+		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+			Id:    ID,
+			Phone: phone,
+		}).Return(&onboarding.Onboarding{
+			ID:               ID,
+			FirstName:        "",
+			LastName:         "",
+			Country:          "",
+			Email:            "",
+			Phone:            phone,
+			PhoneVerified:    false,
+			ServiceAgreement: false,
+		}, nil).Times(1)
+		resp, err := client.SendPhoneVerification(
+			context.Background(),
+			&backendv1.SendPhoneVerificationRequest{
+				To:           phone,
+				OnboardingId: ID,
+			},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "pending", resp.GetStatus())
+	})
+
+	s.Run("Successfully validates input", func(t *testing.T) {
+		ID, phone := uuid.NewString(), faker.Phonenumber()
+		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+			Id:            ID,
+			PhoneVerified: true,
+		}).Return(&onboarding.Onboarding{
+			ID:               ID,
+			FirstName:        "",
+			LastName:         "",
+			Country:          "",
+			Email:            "",
+			Phone:            phone,
+			PhoneVerified:    false,
+			ServiceAgreement: false,
+		}, nil).Times(0)
+		resp, err := client.SendPhoneVerification(
+			context.Background(),
+			&backendv1.SendPhoneVerificationRequest{
+				To:           phone,
+				OnboardingId: ID,
+			},
+		)
+		if err == nil {
+			t.Fatal(err)
+		}
+		assert.Error(t, err)
+		// TODO: Figure out if there's a way to see the entire error validation code from the client.
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Some fields are incorrect.")
+		assert.Nil(t, resp)
+	})
+
+}
+
+func TestCheckPhoneVerificationCode(s *testing.T) {
+	ctrl := gomock.NewController(s)
+	health, err := healthcheck.NewService()
+	if err != nil {
+		s.Fatal(err)
+	}
+
+	mockOnboardingService := onboarding.NewMockService(ctrl)
+
+	_, _, client := startTestServer(s, &ServerArgs{
+		HealthCheckService: health,
+		IdentityService:    identity.NewMockService(ctrl),
+		AccountsService:    accounts.NewMockService(ctrl),
+		AdminAuthService:   auth.NewMockService(),
+		UserService:        user.NewMockService(),
+		UnitProvider:       unit.NewMockService(ctrl),
+		OnboardingService:  mockOnboardingService,
+	})
+
+	s.Run("Can check the verification token", func(t *testing.T) {
+		ID, phone, code := uuid.NewString(), faker.E164PhoneNumber(), "948372"
+		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+			Id:            ID,
+			PhoneVerified: true,
+		}).Return(&onboarding.Onboarding{
+			ID:               ID,
+			FirstName:        "",
+			LastName:         "",
+			Country:          "",
+			Email:            "",
+			Phone:            phone,
+			PhoneVerified:    false,
+			ServiceAgreement: false,
+		}, nil).Times(1)
+		resp, err := client.CheckPhoneVerificationCode(
+			context.Background(),
+			&backendv1.CheckPhoneVerificationCodeRequest{
+				To:           phone,
+				Code:         code,
+				OnboardingId: ID,
+			},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, "approved", resp.GetStatus())
+	})
+
+	s.Run("Successfully validates input", func(t *testing.T) {
+		ID, phone := uuid.NewString(), faker.Phonenumber()
+		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+			Id:            ID,
+			PhoneVerified: true,
+		}).Return(&onboarding.Onboarding{
+			ID:               ID,
+			FirstName:        "",
+			LastName:         "",
+			Country:          "",
+			Email:            "",
+			Phone:            phone,
+			PhoneVerified:    false,
+			ServiceAgreement: false,
+		}, nil).Times(0)
+		resp, err := client.CheckPhoneVerificationCode(
+			context.Background(),
+			&backendv1.CheckPhoneVerificationCodeRequest{
+				To:           phone,
+				OnboardingId: ID,
+			},
+		)
+		if err == nil {
+			t.Fatal(err)
+		}
+		assert.Error(t, err)
+		// TODO: Figure out if there's a way to see the entire error validation code from the client.
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Some fields are incorrect.")
+		assert.Nil(t, resp)
+	})
+
+}
