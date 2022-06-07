@@ -147,6 +147,9 @@ type BackendServiceClient interface {
 	GetOnboarding(ctx context.Context, in *GetOnboardingRequest, opts ...grpc.CallOption) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
 	UpdateOnboarding(ctx context.Context, in *Onboarding, opts ...grpc.CallOption) (*Onboarding, error)
+	// Allows sending and checking an sms verification.
+	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
+	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 }
 
 type backendServiceClient struct {
@@ -184,6 +187,24 @@ func (c *backendServiceClient) UpdateOnboarding(ctx context.Context, in *Onboard
 	return out, nil
 }
 
+func (c *backendServiceClient) SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error) {
+	out := new(PhoneVerificationResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SendPhoneVerification", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error) {
+	out := new(PhoneVerificationResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckPhoneVerificationCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -193,6 +214,9 @@ type BackendServiceServer interface {
 	GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
 	UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error)
+	// Allows sending and checking an sms verification.
+	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
+	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -207,6 +231,12 @@ func (UnimplementedBackendServiceServer) GetOnboarding(context.Context, *GetOnbo
 }
 func (UnimplementedBackendServiceServer) UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOnboarding not implemented")
+}
+func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
+}
+func (UnimplementedBackendServiceServer) CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPhoneVerificationCode not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -274,6 +304,42 @@ func _BackendService_UpdateOnboarding_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_SendPhoneVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendPhoneVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SendPhoneVerification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SendPhoneVerification",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SendPhoneVerification(ctx, req.(*SendPhoneVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CheckPhoneVerificationCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckPhoneVerificationCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CheckPhoneVerificationCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CheckPhoneVerificationCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CheckPhoneVerificationCode(ctx, req.(*CheckPhoneVerificationCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -292,6 +358,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateOnboarding",
 			Handler:    _BackendService_UpdateOnboarding_Handler,
+		},
+		{
+			MethodName: "SendPhoneVerification",
+			Handler:    _BackendService_SendPhoneVerification_Handler,
+		},
+		{
+			MethodName: "CheckPhoneVerificationCode",
+			Handler:    _BackendService_CheckPhoneVerificationCode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

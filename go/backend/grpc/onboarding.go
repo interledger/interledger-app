@@ -110,3 +110,94 @@ func (s *rpcService) UpdateOnboarding(
 		ServiceAgreement:   &onboard.ServiceAgreement,
 	}, nil
 }
+
+type validateSendPhoneVerification struct {
+	To           string `validate:"required,e164"`
+	OnboardingId string `validate:"required"`
+}
+
+func validateSendPhoneVerificationDescription(err validator.FieldError) string {
+	switch err.Tag() {
+	case "e164":
+		return "Phone number is invalid."
+	case "required":
+		return "Required."
+	}
+	return ""
+}
+
+func (s *rpcService) SendPhoneVerification(
+	ctx context.Context,
+	req *backendv1.SendPhoneVerificationRequest,
+) (*backendv1.PhoneVerificationResponse, error) {
+	if err := s.validator.Struct(&validateSendPhoneVerification{
+		To:           req.GetTo(),
+		OnboardingId: req.GetOnboardingId(),
+	}); err != nil {
+		return nil, ValidationError(err, validateSendPhoneVerificationDescription)
+	}
+
+	// TODO: Send a verification token from twilio
+
+	_, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+		Id:    req.GetOnboardingId(),
+		Phone: req.GetTo(),
+	})
+	if err != nil {
+		if errors.Is(err, onboarding.ErrNotFound) {
+			return nil, NotFoundError(err)
+		}
+		return nil, InternalError(err)
+	}
+
+	return &backendv1.PhoneVerificationResponse{
+		Status: "pending",
+	}, nil
+}
+
+type validateCheckPhoneVerificationCode struct {
+	To           string `validate:"required,e164"`
+	Code         string `validate:"required"`
+	OnboardingId string `validate:"required"`
+}
+
+func validateCheckPhoneVerificationCodeDescription(err validator.FieldError) string {
+	switch err.Tag() {
+	case "e164":
+		return "Phone number is invalid."
+	case "required":
+		return "Required."
+	}
+	return ""
+}
+
+func (s *rpcService) CheckPhoneVerificationCode(
+	ctx context.Context,
+	req *backendv1.CheckPhoneVerificationCodeRequest,
+) (*backendv1.PhoneVerificationResponse, error) {
+	if err := s.validator.Struct(&validateCheckPhoneVerificationCode{
+		To:           req.GetTo(),
+		Code:         req.GetCode(),
+		OnboardingId: req.GetOnboardingId(),
+	}); err != nil {
+		return nil, ValidationError(err, validateCheckPhoneVerificationCodeDescription)
+	}
+
+	// TODO Check the verification token with twilio.
+
+	// If successful set phoneVerified in onboarding table
+	_, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+		Id:            req.GetOnboardingId(),
+		PhoneVerified: true,
+	})
+	if err != nil {
+		if errors.Is(err, onboarding.ErrNotFound) {
+			return nil, NotFoundError(err)
+		}
+		return nil, InternalError(err)
+	}
+
+	return &backendv1.PhoneVerificationResponse{
+		Status: "approved",
+	}, nil
+}

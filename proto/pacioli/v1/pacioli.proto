@@ -25,7 +25,7 @@ message Ledger {
   uint32 id = 1;
   string name = 2;
   string asset = 3;
-  uint32 scale =4;
+  uint32 scale = 4;
 }
 
 message ConfigureLedgersRequest {
