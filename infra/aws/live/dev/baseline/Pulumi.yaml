@@ -1,0 +1,4 @@
+name: aws-dev-baseline
+runtime:
+  name: go
+description: AWS Dev Account
