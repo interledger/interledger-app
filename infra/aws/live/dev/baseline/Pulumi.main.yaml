@@ -1,0 +1,4 @@
+config:
+  aws:region: eu-west-1
+  fynbos:accountId: 634848879735
+  fynbos:securityAccountId: 952934770203
