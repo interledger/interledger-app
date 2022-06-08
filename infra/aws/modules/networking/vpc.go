@@ -182,6 +182,12 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 	}
 
 	// Create intra subnets
+	intraRouteTable, err := ec2.NewRouteTable(ctx, fmt.Sprintf("%s-intra", args.Name), &ec2.RouteTableArgs{
+		VpcId: vpc.ID(),
+	})
+	if err != nil {
+		return nil, err
+	}
 	var intraSubnets []*ec2.Subnet
 	if len(args.IntraSubnets) > 0 {
 		for i, s := range args.IntraSubnets {
@@ -197,12 +203,6 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 				return nil, err
 			}
 			intraSubnets = append(intraSubnets, subnet)
-		}
-		intraRouteTable, err := ec2.NewRouteTable(ctx, fmt.Sprintf("%s-intra", args.Name), &ec2.RouteTableArgs{
-			VpcId: vpc.ID(),
-		})
-		if err != nil {
-			return nil, err
 		}
 
 		// Associate all intra subnets to route table
@@ -258,6 +258,10 @@ func NewVpc(ctx *pulumi.Context, args *VpcArgs) (*ec2.Vpc, error) {
 	ctx.Export("privateSubnetsCidrBlocks", subnetArrayToCidrBlockArray(privateSubnets))
 	ctx.Export("intraSubnetsCidrBlocks", subnetArrayToCidrBlockArray(intraSubnets))
 
+	ctx.Export("publicRoutingTableId", publicRouteTable.ID())
+	ctx.Export("privateRoutingTableIds", routingTableArrayToPulumiIDArray(privateRouteTables))
+	ctx.Export("intraRoutingTableId", intraRouteTable.ID())
+
 	return vpc, nil
 }
 
@@ -288,4 +292,18 @@ func subnetArrayToCidrBlockArray(subnets []*ec2.Subnet) pulumi.StringArrayOutput
 		}
 		return results
 	}).(pulumi.StringArrayOutput)
+}
+
+func routingTableArrayToPulumiIDArray(subnets []*ec2.RouteTable) pulumi.IDArrayOutput {
+	var outputs []interface{}
+	for _, sn := range subnets {
+		outputs = append(outputs, sn.ID())
+	}
+	return pulumi.All(outputs...).ApplyT(func(vs []interface{}) []pulumi.ID {
+		var results []pulumi.ID
+		for _, v := range vs {
+			results = append(results, v.(pulumi.ID))
+		}
+		return results
+	}).(pulumi.IDArrayOutput)
 }
