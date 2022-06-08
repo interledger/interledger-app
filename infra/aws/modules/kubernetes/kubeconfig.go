@@ -77,7 +77,7 @@ func GenerateKubeconfig(name string, certData *string, server string) KubectlCon
 				Name: "aws",
 				User: KubectlUser{
 					Exec: KubectlUserExec{
-						ApiVersion: "client.authentication.k8s.io/v1alpha1",
+						ApiVersion: "client.authentication.k8s.io/v1beta1",
 						Args: []string{
 							"eks",
 							"get-token",
