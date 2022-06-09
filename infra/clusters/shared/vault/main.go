@@ -142,6 +142,10 @@ func main() {
 					"component":                  pulumi.String("server"),
 				},
 				Type: pulumi.String("LoadBalancer"),
+				LoadBalancerSourceRanges: pulumi.StringArray{
+					pulumi.String("10.100.0.0/16"),
+					pulumi.String("10.10.0.0/16"),
+				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{chart, namespace}))
 
