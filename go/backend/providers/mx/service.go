@@ -29,12 +29,12 @@ type (
 	Service interface {
 		CreateUser(ctx context.Context) (string, error)
 		GetWidgetUrl(ctx context.Context, mxUserGuid string) (string, error)
-		CreateMxFundingSource(ctx context.Context, args *CreateMxFundingSourceArgs) (*MxFundingSource, error)
-		GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error)
-		StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error)
-		GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error)
-		GetAccountOwner(ctx context.Context, mxFundingSourceID string) (*AccountOwner, error)
-		GetMxAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error)
+		CreateAccount(ctx context.Context, args *CreateAccountArgs) (*Account, error)
+		GetAccount(ctx context.Context, id string) (*Account, error)
+		StartIdentityAggregation(ctx context.Context, id string) (*Member, error)
+		GetMemberStatus(ctx context.Context, id string) (*Member, error)
+		GetAccountOwner(ctx context.Context, id string) (*AccountOwner, error)
+		ReadAccount(ctx context.Context, id string) (*MxAccount, error)
 		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
 		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
 	}
@@ -44,7 +44,7 @@ type (
 		ConnectWidgetUrl string `json:"connect_widget_url"`
 	}
 
-	MxFundingSource struct {
+	Account struct {
 		ID              string
 		AccountID       string `db:"account_id"`
 		MxUserGuid      string `db:"mx_user_guid"`
@@ -218,7 +218,7 @@ func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, er
 	return data.User.ConnectWidgetUrl, nil
 }
 
-type CreateMxFundingSourceArgs struct {
+type CreateAccountArgs struct {
 	ID            string `validate:"uuid4"`
 	AccountID     string `validate:"uuid4"`
 	MxUserGuid    string `validate:"required"`
@@ -226,15 +226,15 @@ type CreateMxFundingSourceArgs struct {
 	MxAccountGuid string `validate:"required"`
 }
 
-func (s *service) CreateMxFundingSource(
+func (s *service) CreateAccount(
 	ctx context.Context,
-	args *CreateMxFundingSourceArgs,
-) (*MxFundingSource, error) {
+	args *CreateAccountArgs,
+) (*Account, error) {
 	if err := s.v.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	ret := &MxFundingSource{}
+	ret := &Account{}
 	err := s.db.GetContext(
 		ctx,
 		ret,
@@ -258,8 +258,8 @@ func (s *service) CreateMxFundingSource(
 	return ret, nil
 }
 
-func (s service) GetMxFundingSource(ctx context.Context, id string) (*MxFundingSource, error) {
-	ret := &MxFundingSource{}
+func (s service) GetAccount(ctx context.Context, id string) (*Account, error) {
+	ret := &Account{}
 	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_fundingsources WHERE id=$1", id)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("id=%s", id))
@@ -273,12 +273,12 @@ func (s service) GetMxFundingSource(ctx context.Context, id string) (*MxFundingS
 }
 
 func (s *service) StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error) {
-	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/identify", s.baseUrl, mxFs.MxUserGuid, mxFs.MxMemberGuid)
+	url := fmt.Sprintf("%s/users/%s/members/%s/identify", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxMemberGuid)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -303,12 +303,12 @@ func (s *service) StartIdentityAggregation(ctx context.Context, mxFundingSourceI
 }
 
 func (s *service) GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error) {
-	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/status", s.baseUrl, mxFs.MxUserGuid, mxFs.MxMemberGuid)
+	url := fmt.Sprintf("%s/users/%s/members/%s/status", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxMemberGuid)
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -336,12 +336,12 @@ func (s service) GetAccountOwner(
 	ctx context.Context,
 	mxFundingSourceID string,
 ) (*AccountOwner, error) {
-	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/account_owners", s.baseUrl, mxFs.MxUserGuid, mxFs.MxMemberGuid)
+	url := fmt.Sprintf("%s/users/%s/members/%s/account_owners", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxMemberGuid)
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -364,7 +364,7 @@ func (s service) GetAccountOwner(
 
 	var ret *AccountOwner = nil
 	for _, owner := range accountOwnersResp.AccountOwners {
-		if owner.AccountGuid == mxFs.MxAccountGuidID {
+		if owner.AccountGuid == mxAccount.MxAccountGuidID {
 			ret = &owner
 			break
 		}
@@ -373,20 +373,20 @@ func (s service) GetAccountOwner(
 		return nil, fmt.Errorf(
 			"%w No account owner details found for mx account guid=%s",
 			ErrNotFound,
-			mxFs.MxAccountGuidID,
+			mxAccount.MxAccountGuidID,
 		)
 	}
 
 	return ret, nil
 }
 
-func (s service) GetMxAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error) {
-	mxFs, err := s.GetMxFundingSource(ctx, mxFundingSourceID)
+func (s service) ReadAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error) {
+	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/accounts/%s", s.baseUrl, mxFs.MxUserGuid, mxFs.MxAccountGuidID)
+	url := fmt.Sprintf("%s/users/%s/accounts/%s", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxAccountGuidID)
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)

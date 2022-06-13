@@ -75,7 +75,7 @@ func (a *Activity) CreateMxAccount(
 		return err
 	}
 
-	_, err = a.mx.CreateMxFundingSource(ctx, &_mx.CreateMxFundingSourceArgs{
+	_, err = a.mx.CreateAccount(ctx, &_mx.CreateAccountArgs{
 		ID:            fundingSourceID, // we map 1-1 to fundingsource
 		AccountID:     fs.AccountID,
 		MxUserGuid:    mxUserGuid,
