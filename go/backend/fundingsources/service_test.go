@@ -515,10 +515,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 
 func TestCreateMxBankAccount(t *testing.T) {
 	// TODO: refactor test container
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, context.Background())
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, context.Background())
 	ctrl := gomock.NewController(t)
 	as := accounts.NewMockService(ctrl)
 	is := identity.NewMockService(ctrl)
@@ -641,10 +638,7 @@ func TestVerifyMxBankAccount(t *testing.T) {
 	mx := _mx.NewMockService(ctrl)
 	tp := &mocks.Client{}
 	unit := _unit.NewMockService(ctrl)
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
@@ -825,10 +819,7 @@ func TestCreateUnitCounterPartyFromMxAccount(t *testing.T) {
 	mx := _mx.NewMockService(ctrl)
 	tp := &mocks.Client{}
 	unit := _unit.NewMockService(ctrl)
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
@@ -954,10 +945,7 @@ func TestSetMxFundingSourceMask(t *testing.T) {
 	mx := _mx.NewMockService(ctrl)
 	tp := &mocks.Client{}
 	unit := _unit.NewMockService(ctrl)
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,

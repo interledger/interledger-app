@@ -88,10 +88,7 @@ func TestGetWidgetUrl(t *testing.T) {
 
 func TestCreateAndGetAccount(t *testing.T) {
 	ctx := context.Background()
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:  mockMxServer.URL,
@@ -141,10 +138,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 func TestGetMemberStatus(t *testing.T) {
 	ctx := context.Background()
 	mockMxServer := NewMockServer()
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:  mockMxServer.URL,
 		Username: "test",
@@ -179,10 +173,7 @@ func TestGetMemberStatus(t *testing.T) {
 func TestStartIdentityAggregation(t *testing.T) {
 	ctx := context.Background()
 	mockMxServer := NewMockServer()
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:  mockMxServer.URL,
 		Username: "test",
@@ -229,10 +220,7 @@ func TestGetAccountOwner(t *testing.T) {
 	mockMxServer := NewMockServer(func(s *MockServerState) {
 		s.AccountOwners = accountOwners
 	})
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:  mockMxServer.URL,
 		Username: "test",
@@ -311,10 +299,7 @@ func TestGetAccountOwner(t *testing.T) {
 func TestGetMxAccount(t *testing.T) {
 	// TODO: refactor container setup
 	ctx := context.Background()
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	mxAccountGuid := uuid.NewString()
 	mxUserGuid := uuid.NewString()
 	mxMemberGuid := uuid.NewString()
@@ -411,10 +396,7 @@ func TestGetMxAccount(t *testing.T) {
 func TestGetMxUserByAccountID(t *testing.T) {
 	// TODO: refactor container setup
 	ctx := context.Background()
-	db, dbCleanup := test_utils.MigrateCockroachDB(t, ctx)
-	t.Cleanup(func() {
-		dbCleanup()
-	})
+	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:  "localhost:8080",
 		Username: "test",
