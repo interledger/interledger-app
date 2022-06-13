@@ -24,6 +24,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/proto/backend/v1"
@@ -147,6 +148,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Up = unit.NewMockService(c.Ctrl)
 	c.Fs = fundingsources.NewMockService(c.Ctrl)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
+	tw := twilio.NewMockService(c.Ctrl)
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   hs,
 		IdentityService:      is,
@@ -155,6 +157,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		UnitProvider:         c.Up,
 		UserService:          user.NewMockService(),
 		FundingSourceService: c.Fs,
+		TwilioService:        tw,
 		OnboardingService:    os,
 		MxProvider:           mx.NewMockService(c.Ctrl),
 		RafikiProvider:       c.RafikiProvider,
