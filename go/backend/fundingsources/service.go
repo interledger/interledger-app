@@ -403,7 +403,7 @@ func (s *service) VerifyMxBankAccount(
 	}
 
 	// TODO: authz on identityID
-	mxFs, err := s.mx.GetMxFundingSource(ctx, fundingsourceID) // we map 1-1 between funding source and mx account
+	mxFs, err := s.mx.GetAccount(ctx, fundingsourceID) // we map 1-1 between funding source and mx account
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -462,7 +462,7 @@ func (s *service) CreateUnitCounterPartyFromMxAccount(
 	}
 
 	// perform this just before creating the counter party as we get charged for Mx api calls.
-	accountNumbers, err := s.mx.GetMxAccount(ctx, fundingsourceID)
+	accountNumbers, err := s.mx.ReadAccount(ctx, fundingsourceID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -531,7 +531,7 @@ func (s *service) GetUnitCounterParty(
 }
 
 func (s *service) SetMxFundingSourceMask(ctx context.Context, fundingsourceID string) error {
-	info, err := s.mx.GetMxAccount(ctx, fundingsourceID)
+	info, err := s.mx.ReadAccount(ctx, fundingsourceID)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}

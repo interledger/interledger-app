@@ -705,8 +705,8 @@ func TestVerifyMxBankAccount(t *testing.T) {
 				}
 				fundingSourceID = fundingsource.ID
 
-				mx.EXPECT().GetMxFundingSource(ctx, fundingSourceID).Return(
-					&_mx.MxFundingSource{
+				mx.EXPECT().GetAccount(ctx, fundingSourceID).Return(
+					&_mx.Account{
 						ID:              fundingsource.ID,
 						MxAccountGuidID: mxAccountGuid,
 						MxUserGuid:      mxUserGuid,
@@ -767,8 +767,8 @@ func TestVerifyMxBankAccount(t *testing.T) {
 				}
 				fundingSourceID = fundingsource.ID
 
-				mx.EXPECT().GetMxFundingSource(ctx, fundingSourceID).Return(
-					&_mx.MxFundingSource{
+				mx.EXPECT().GetAccount(ctx, fundingSourceID).Return(
+					&_mx.Account{
 						ID:              fundingsource.ID,
 						MxAccountGuidID: mxAccountGuid,
 						MxUserGuid:      mxUserGuid,
@@ -887,7 +887,7 @@ func TestCreateUnitCounterPartyFromMxAccount(t *testing.T) {
 					AvailableBalance:  500.00,
 					Balance:           500.00,
 				}
-				mx.EXPECT().GetMxAccount(gomock.Any(), fundingsourceID).Return(mxAccount, nil).Times(1)
+				mx.EXPECT().ReadAccount(gomock.Any(), fundingsourceID).Return(mxAccount, nil).Times(1)
 				unit.EXPECT().GetCustomerByAccountID(gomock.Any(), accountID).Return(
 					&_unit.Customer{
 						ID:        unitCustomerID,
@@ -987,7 +987,7 @@ func TestSetMxFundingSourceMask(t *testing.T) {
 	}
 
 	accountNumber := "0123456789"
-	mx.EXPECT().GetMxAccount(ctx, mxFs.ID).Return(
+	mx.EXPECT().ReadAccount(ctx, mxFs.ID).Return(
 		&_mx.MxAccount{
 			AccountNumber: accountNumber,
 		},
