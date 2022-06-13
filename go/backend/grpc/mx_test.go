@@ -20,6 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -35,6 +36,7 @@ type TestContainer struct {
 	AdminAuthService     auth.Service
 	UserService          user.Service
 	FundingsourceService *fundingsources.MockService
+	TwilioService 			 *twilio.MockService
 	OnboardingService    *onboarding.MockService
 	UnitProvider         *unit.MockService
 	MxProvider           *mx.MockService
@@ -59,6 +61,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		AdminAuthService:     auth.NewMockService(),
 		UserService:          user.NewMockService(),
 		FundingsourceService: fundingsources.NewMockService(ctrl),
+		TwilioService: 				twilio.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
 		OnboardingService:    onboarding.NewMockService(ctrl),
 		MxProvider:           mx.NewMockService(ctrl),
@@ -249,6 +252,7 @@ func startTestServer(
 		UserService:          c.UserService,
 		UnitProvider:         c.UnitProvider,
 		FundingSourceService: c.FundingsourceService,
+		TwilioService: 				c.TwilioService,
 		OnboardingService:    c.OnboardingService,
 		MxProvider:           c.MxProvider,
 		RafikiProvider:       c.RafikiProvider,
