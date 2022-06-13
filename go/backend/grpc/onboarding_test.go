@@ -8,38 +8,18 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/accounts"
-	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/unit"
-	"gitlab.com/fynbos/backend/user"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestGetOnboarding(s *testing.T) {
 	ctrl := gomock.NewController(s)
-	health, err := healthcheck.NewService()
-	if err != nil {
-		s.Fatal(err)
-	}
-
-	mockOnboardingService := onboarding.NewMockService(ctrl)
-
-	_, _, client := startTestServer(s, &ServerArgs{
-		HealthCheckService: health,
-		IdentityService:    identity.NewMockService(ctrl),
-		AccountsService:    accounts.NewMockService(ctrl),
-		AdminAuthService:   auth.NewMockService(),
-		UserService:        user.NewMockService(),
-		UnitProvider:       unit.NewMockService(ctrl),
-		OnboardingService:  mockOnboardingService,
-	})
+	c := NewTestContainer(s, ctrl)
+	_, _, client := startTestServer(s, c)
 
 	s.Run("Successfully calls GetOnboarding", func(t *testing.T) {
 		ID, name, surname, country, email := uuid.NewString(), faker.FirstName(), faker.LastName(), "US", faker.Email()
-		mockOnboardingService.EXPECT().GetOnboarding(gomock.Any(), &onboarding.GetOnboardingArgs{
+		c.OnboardingService.EXPECT().GetOnboarding(gomock.Any(), &onboarding.GetOnboardingArgs{
 			Id: ID,
 		}).Return(&onboarding.Onboarding{
 			ID:               ID,
@@ -69,7 +49,7 @@ func TestGetOnboarding(s *testing.T) {
 
 	s.Run("Successfully handles errors from GetOnboarding", func(t *testing.T) {
 		ID := uuid.NewString()
-		mockOnboardingService.EXPECT().GetOnboarding(gomock.Any(), &onboarding.GetOnboardingArgs{
+		c.OnboardingService.EXPECT().GetOnboarding(gomock.Any(), &onboarding.GetOnboardingArgs{
 			Id: ID,
 		}).Return(nil, onboarding.ErrNotFound).Times(1)
 
@@ -91,26 +71,12 @@ func TestGetOnboarding(s *testing.T) {
 
 func TestUpdateOnboarding(s *testing.T) {
 	ctrl := gomock.NewController(s)
-	health, err := healthcheck.NewService()
-	if err != nil {
-		s.Fatal(err)
-	}
-
-	mockOnboardingService := onboarding.NewMockService(ctrl)
-
-	_, _, client := startTestServer(s, &ServerArgs{
-		HealthCheckService: health,
-		IdentityService:    identity.NewMockService(ctrl),
-		AccountsService:    accounts.NewMockService(ctrl),
-		AdminAuthService:   auth.NewMockService(),
-		UserService:        user.NewMockService(),
-		UnitProvider:       unit.NewMockService(ctrl),
-		OnboardingService:  mockOnboardingService,
-	})
+	c := NewTestContainer(s, ctrl)
+	_, _, client := startTestServer(s, c)
 
 	s.Run("Successfully calls UpdateOnboarding", func(t *testing.T) {
 		ID, name, surname, country, email := uuid.NewString(), faker.FirstName(), faker.LastName(), "US", faker.Email()
-		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{}).Return(&onboarding.Onboarding{
+		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{}).Return(&onboarding.Onboarding{
 			ID:               ID,
 			FirstName:        name,
 			LastName:         surname,
@@ -136,7 +102,7 @@ func TestUpdateOnboarding(s *testing.T) {
 
 	s.Run("Successfully handles errors from UpdateOnboarding", func(t *testing.T) {
 		ID := uuid.NewString()
-		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
 			Id: ID,
 		}).Return(nil, onboarding.ErrInternal).Times(1)
 
@@ -158,26 +124,12 @@ func TestUpdateOnboarding(s *testing.T) {
 
 func TestSendPhoneVerification(s *testing.T) {
 	ctrl := gomock.NewController(s)
-	health, err := healthcheck.NewService()
-	if err != nil {
-		s.Fatal(err)
-	}
-
-	mockOnboardingService := onboarding.NewMockService(ctrl)
-
-	_, _, client := startTestServer(s, &ServerArgs{
-		HealthCheckService: health,
-		IdentityService:    identity.NewMockService(ctrl),
-		AccountsService:    accounts.NewMockService(ctrl),
-		AdminAuthService:   auth.NewMockService(),
-		UserService:        user.NewMockService(),
-		UnitProvider:       unit.NewMockService(ctrl),
-		OnboardingService:  mockOnboardingService,
-	})
+	c := NewTestContainer(s, ctrl)
+	_, _, client := startTestServer(s, c)
 
 	s.Run("Can send a phone verification token", func(t *testing.T) {
 		ID, phone := uuid.NewString(), faker.E164PhoneNumber()
-		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
 			Id:    ID,
 			Phone: phone,
 		}).Return(&onboarding.Onboarding{
@@ -206,7 +158,7 @@ func TestSendPhoneVerification(s *testing.T) {
 
 	s.Run("Successfully validates input", func(t *testing.T) {
 		ID, phone := uuid.NewString(), faker.Phonenumber()
-		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
 			Id:            ID,
 			PhoneVerified: true,
 		}).Return(&onboarding.Onboarding{
@@ -239,26 +191,12 @@ func TestSendPhoneVerification(s *testing.T) {
 
 func TestCheckPhoneVerificationCode(s *testing.T) {
 	ctrl := gomock.NewController(s)
-	health, err := healthcheck.NewService()
-	if err != nil {
-		s.Fatal(err)
-	}
-
-	mockOnboardingService := onboarding.NewMockService(ctrl)
-
-	_, _, client := startTestServer(s, &ServerArgs{
-		HealthCheckService: health,
-		IdentityService:    identity.NewMockService(ctrl),
-		AccountsService:    accounts.NewMockService(ctrl),
-		AdminAuthService:   auth.NewMockService(),
-		UserService:        user.NewMockService(),
-		UnitProvider:       unit.NewMockService(ctrl),
-		OnboardingService:  mockOnboardingService,
-	})
+	c := NewTestContainer(s, ctrl)
+	_, _, client := startTestServer(s, c)
 
 	s.Run("Can check the verification token", func(t *testing.T) {
 		ID, phone, code := uuid.NewString(), faker.E164PhoneNumber(), "948372"
-		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
 			Id:            ID,
 			PhoneVerified: true,
 		}).Return(&onboarding.Onboarding{
@@ -288,7 +226,7 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 
 	s.Run("Successfully validates input", func(t *testing.T) {
 		ID, phone := uuid.NewString(), faker.Phonenumber()
-		mockOnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
+		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
 			Id:            ID,
 			PhoneVerified: true,
 		}).Return(&onboarding.Onboarding{
