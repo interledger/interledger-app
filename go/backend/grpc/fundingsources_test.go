@@ -242,6 +242,7 @@ func startTestServer(
 		UserService:          c.UserService,
 		UnitProvider:         c.UnitProvider,
 		FundingSourceService: c.FundingsourceService,
+		OnboardingService:    c.OnboardingService,
 	})
 	if err != nil {
 		t.Fatal(err)
