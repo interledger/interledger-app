@@ -94,6 +94,21 @@ func (mr *MockServiceMockRecorder) GetApplicationForm(ctx, userID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetApplicationForm", reflect.TypeOf((*MockService)(nil).GetApplicationForm), ctx, userID)
 }
 
+// GetCounterPartyByFundingsourceID mocks base method.
+func (m *MockService) GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCounterPartyByFundingsourceID", ctx, fundingsourceID)
+	ret0, _ := ret[0].(*CounterParty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCounterPartyByFundingsourceID indicates an expected call of GetCounterPartyByFundingsourceID.
+func (mr *MockServiceMockRecorder) GetCounterPartyByFundingsourceID(ctx, fundingsourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounterPartyByFundingsourceID", reflect.TypeOf((*MockService)(nil).GetCounterPartyByFundingsourceID), ctx, fundingsourceID)
+}
+
 // GetCustomerByAccountID mocks base method.
 func (m *MockService) GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error) {
 	m.ctrl.T.Helper()

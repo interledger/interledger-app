@@ -38,8 +38,6 @@ type Service interface {
 	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
 	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 	CreateUnitCounterPartyFromMxAccount(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
-	GetUnitCounterParty(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
-	CreateUnitCounterParty(ctx context.Context, fundingsourceID string, unitCounterPartyID string) (*UnitCounterParty, error)
 	SetMxFundingSourceMask(ctx context.Context, fundigsourceID string) error
 	SetMask(ctx context.Context, fundingsourceID string, mask string) (*FundingSource, error)
 }
@@ -425,47 +423,6 @@ func (s *service) CreateUnitCounterPartyFromMxAccount(
 	}
 
 	return ret, err
-}
-
-func (s *service) CreateUnitCounterParty(
-	ctx context.Context,
-	fundingsourceID string,
-	unitCounterPartyID string,
-) (*UnitCounterParty, error) {
-	ret := &UnitCounterParty{}
-	err := s.db.GetContext(
-		ctx,
-		ret,
-		"INSERT INTO unit_counterparties (id, unit_counterparty_id) VALUES ($1, $2) RETURNING *;",
-		fundingsourceID,
-		unitCounterPartyID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
-	}
-
-	return ret, nil
-}
-
-func (s *service) GetUnitCounterParty(
-	ctx context.Context,
-	fundingsourceID string,
-) (*UnitCounterParty, error) {
-	ret := &UnitCounterParty{}
-	err := s.db.GetContext(
-		ctx,
-		ret,
-		"SELECT * FROM unit_counterparties WHERE id=$1;",
-		fundingsourceID)
-	if err == sql.ErrNoRows {
-		return nil, ErrNotFound
-	} else {
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", ErrInternal, err)
-		}
-	}
-
-	return ret, nil
 }
 
 func (s *service) SetMxFundingSourceMask(ctx context.Context, fundingsourceID string) error {
