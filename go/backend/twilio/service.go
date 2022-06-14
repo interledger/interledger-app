@@ -8,13 +8,15 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/twilio/twilio-go"
-	openapi "github.com/twilio/twilio-go/rest/verify/v2"
+	"github.com/twilio/twilio-go/client"
+	verify "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
 type ServiceArgs struct {
 	AccountSid   string `validate:"required"`
 	AccountToken string `validate:"required"`
 	ServiceSid   string `validate:"required"`
+	ApiBaseUrl   string // use this to override the default base url
 }
 
 var (
@@ -46,9 +48,17 @@ func NewService(args *ServiceArgs) (Service, error) {
 		return nil, err
 	}
 
+	customClient := &CustomClient{
+		Client: client.Client{
+			Credentials: client.NewCredentials(args.AccountSid, args.AccountToken),
+		},
+	}
+
+	customClient.SetAccountSid(args.AccountSid)
+	customClient.BaseURL = args.ApiBaseUrl
+
 	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username: args.AccountSid,
-		Password: args.AccountToken,
+		Client: customClient,
 	})
 
 	return &service{
@@ -59,7 +69,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 }
 
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error) {
-	params := &openapi.CreateVerificationParams{}
+	params := &verify.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
 
@@ -81,7 +91,7 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
-	params := &openapi.CreateVerificationCheckParams{}
+	params := &verify.CreateVerificationCheckParams{}
 	params.SetTo(args.PhoneNumber)
 	params.SetCode(args.Code)
 
