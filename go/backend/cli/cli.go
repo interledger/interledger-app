@@ -102,6 +102,9 @@ type StartArgs struct {
 	MxApiKey             string
 	RafikiGraphqlUrl     string
 	TemporalUrl          string
+	TwilioSid            string
+	TwilioSecret         string
+	TwilioServiceSid     string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -207,6 +210,21 @@ func ParseStartArgs() (*StartArgs, error) {
 		temporalUrl = "temporal:7233"
 	}
 
+	TwilioSid := os.Getenv("TWILIO_ACCOUNT_SID")
+	if TwilioSid == "" {
+		return nil, errors.New("TWILIO_ACCOUNT_SID is required.")
+	}
+
+	TwilioSecret := os.Getenv("TWILIO_ACCOUNT_TOKEN")
+	if TwilioSecret == "" {
+		return nil, errors.New("TWILIO_ACCOUNT_TOKEN is required.")
+	}
+
+	twilioServiceSid := os.Getenv("TWILIO_SERVICE_SID")
+	if twilioServiceSid == "" {
+		return nil, errors.New("TWILIO_SERVICE_SID is required.")
+	}
+
 	return &StartArgs{
 		Port:                 port,
 		DbConnectionString:   connString,
@@ -226,5 +244,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		MxApiKey:             mxApiKey,
 		RafikiGraphqlUrl:     rafikiGraphqlUrl,
 		TemporalUrl:          temporalUrl,
+		TwilioSid:            TwilioSid,
+		TwilioSecret:         TwilioSecret,
+		TwilioServiceSid:     twilioServiceSid,
 	}, nil
 }
