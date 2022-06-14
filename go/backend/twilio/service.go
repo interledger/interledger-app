@@ -28,9 +28,15 @@ type service struct {
 	twilioClient *twilio.RestClient
 }
 
+type VerificationStatus struct {
+	Sid         string
+	Status      string
+	PhoneNumber string
+}
+
 type Service interface {
-	SendVerificationCode(ctx context.Context, phoneNumber string) (*openapi.VerifyV2Verification, error)
-	CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*openapi.VerifyV2VerificationCheck, error)
+	SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error)
+	CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error)
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -52,7 +58,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	}, nil
 }
 
-func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*openapi.VerifyV2Verification, error) {
+func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error) {
 	params := &openapi.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
@@ -62,7 +68,11 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, err
 	}
 
-	return res, nil
+	return &VerificationStatus{
+		Sid:         *res.Sid,
+		PhoneNumber: *res.To,
+		Status:      *res.Status,
+	}, nil
 }
 
 type CheckVerificationCodeArgs struct {
@@ -70,7 +80,7 @@ type CheckVerificationCodeArgs struct {
 	Code        string `validate:"required"`
 }
 
-func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*openapi.VerifyV2VerificationCheck, error) {
+func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
 	params := &openapi.CreateVerificationCheckParams{}
 	params.SetTo(args.PhoneNumber)
 	params.SetCode(args.Code)
@@ -84,5 +94,9 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 		return nil, ErrInvalidCode
 	}
 
-	return res, nil
+	return &VerificationStatus{
+		Sid:         *res.Sid,
+		PhoneNumber: *res.To,
+		Status:      *res.Status,
+	}, nil
 }
