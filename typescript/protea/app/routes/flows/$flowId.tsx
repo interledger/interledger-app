@@ -11,7 +11,7 @@ import type { FC } from 'react'
 import React from 'react'
 import { Icon, Error } from '~/components'
 import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'
-import { requireUserSession } from '~/lib/kratos.server'
+import { requireNoUserSession, requireUserSession } from '~/lib/kratos.server'
 
 /**
  * Steps:
@@ -20,7 +20,10 @@ import { requireUserSession } from '~/lib/kratos.server'
  */
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-  await requireUserSession(request)
+  const url = new URL(request.url)
+  // Only flow that doesn't require auth is signup
+  if (!url.pathname.includes('/signup/')) await requireUserSession(request)
+  else await requireNoUserSession(request)
   const flow = await requireFlow(request, params)
   return json({
     flow
