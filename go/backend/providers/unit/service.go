@@ -36,6 +36,7 @@ type Service interface {
 	GetCustomerByID(ctx context.Context, id string) (*Customer, error)
 	GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error)
 	CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error)
+	GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error)
 }
 
 type (
@@ -195,7 +196,6 @@ func (self *service) VerifyWebhook(ctx context.Context, body []byte, signature s
 }
 
 // maps the unit customer to the Fynbos account
-// TODO: this should be handled by the accounts service
 type (
 	Customer struct {
 		ID        string `db:"id"`
@@ -252,22 +252,27 @@ func (s *service) GetCustomerByAccountID(ctx context.Context, accountID string) 
 
 type (
 	CreateCounterPartyArgs struct {
-		Name           string `validate:"required"`
-		UnitCustomerID string `validate:"required"`
-		RoutingNumber  string `validate:"required"`
-		AccountNumber  string `validate:"required"`
-		AccountType    string `validate:"required"`
-		Type           string `validate:"required"`
+		FundingsourceID string `validate:uuid4`
+		Name            string `validate:"required"`
+		UnitCustomerID  string `validate:"required"`
+		RoutingNumber   string `validate:"required"`
+		AccountNumber   string `validate:"required"`
+		AccountType     string `validate:"required"`
+		Type            string `validate:"required"`
 
-		// This idempotency key is valid for 48 hours.
+		// This idempotency key is valid for 48 hours on Unit's api.
 		IdempotencyKey string `validate:"lte=255"`
 	}
 
 	CounterParty struct {
-		ID string
+		ID              string
+		FundingsourceID string `db:"fundingsource_id"`
+		CreatedAt       string `db:"created_at"`
+		UpdatedAt       string `db:"updated_at"`
 	}
 )
 
+// This will create the counter party on Unit and store a record of it in our database.
 func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error) {
 	url := fmt.Sprintf(`%s/counterparties`, s.baseURL)
 	var jsonStr = []byte(fmt.Sprintf(`{
@@ -324,6 +329,32 @@ func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPar
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	ret := &CounterParty{}
+	err = s.db.GetContext(
+		ctx,
+		ret,
+		"INSERT INTO unit_counterparties (id, fundingsource_id) VALUES ($1, $2) RETURNING *;",
+		createCounterPartyResponse.Data.ID,
+		args.FundingsourceID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+	}
 
-	return &CounterParty{createCounterPartyResponse.Data.ID}, nil
+	return ret, nil
+}
+
+func (s service) GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error) {
+	ret := &CounterParty{}
+	err := s.db.GetContext(
+		ctx,
+		ret,
+		"SELECT * FROM unit_counterparties WHERE fundingsource_id=$1 LIMIT 1;",
+		fundingsourceID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret, nil
 }

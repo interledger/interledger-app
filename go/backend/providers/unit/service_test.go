@@ -6,42 +6,24 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	_accounts "gitlab.com/fynbos/backend/accounts"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
-	_country "gitlab.com/fynbos/backend/country"
-	_identity "gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
-	"go.temporal.io/sdk/mocks"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func TestUnitProvider(s *testing.T) {
+	s.Parallel()
 	ctx := context.Background()
-	c, err := NewTestContainer(ctx, s)
-	if err != nil {
-		s.Fatal(err)
-	}
-
-	s.Cleanup(func() {
-		err := c.Cleanup(ctx)
-		if err != nil {
-			return
-		}
-	})
+	c := NewTestContainer(s)
 
 	s.Run("Successfully verifies incoming webhook request", func(t *testing.T) {
 		body := []byte(`{"data":[{"id":"2504140","type":"customer.created","attributes":{"createdAt":"2022-05-18T14:35:00.702Z","tags":{"userID":"02242b61-a99e-4b44-bda7-cf6a4f535a5f","test":"webhook-tag","key":"another-tag","number":"111"}},"relationships":{"customer":{"data":{"id":"344063","type":"individualCustomer"}},"application":{"data":{"id":"404728","type":"individualApplication"}}}}]}`)
 		signature := "CmllgACV27KxvW0qP3fjnFfMPGg=" // key = fynbos_local_unit_webhook_token
 
-		err = c.UnitService.VerifyWebhook(c.Ctx, body, signature)
+		err := c.UnitService.VerifyWebhook(ctx, body, signature)
 
 		assert.NoError(t, err)
 	})
@@ -50,7 +32,7 @@ func TestUnitProvider(s *testing.T) {
 		body := []byte(`{"test":"data"}`)
 		signature := "CmllgACV27KxvW0qP3fjnFfMPGg"
 
-		err = c.UnitService.VerifyWebhook(c.Ctx, body, signature)
+		err := c.UnitService.VerifyWebhook(ctx, body, signature)
 
 		assert.ErrorIs(t, err, ErrUnauthorized)
 	})
@@ -61,7 +43,7 @@ func TestUnitProvider(s *testing.T) {
 			Email: faker.Email(),
 		}
 
-		form, err := c.UnitService.GetApplicationForm(c.Ctx, user.ID)
+		form, err := c.UnitService.GetApplicationForm(ctx, user.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -75,7 +57,7 @@ func TestUnitProvider(s *testing.T) {
 			Email: faker.Email(),
 		}
 
-		form, err := c.UnitService.CreateApplicationForm(c.Ctx, &CreateApplicationFormArgs{
+		form, err := c.UnitService.CreateApplicationForm(ctx, &CreateApplicationFormArgs{
 			ID:      user.ID,
 			Email:   user.Email,
 			Country: "US",
@@ -92,7 +74,7 @@ func TestUnitProvider(s *testing.T) {
 		accountID := uuid.NewString()
 		customerID := uuid.NewString()
 		customerType := "individual"
-		customer, err := c.UnitService.CreateCustomer(c.Ctx, &CreateCustomerArgs{
+		customer, err := c.UnitService.CreateCustomer(ctx, &CreateCustomerArgs{
 			ID:        customerID,
 			AccountID: accountID,
 			Type:      customerType,
@@ -104,7 +86,7 @@ func TestUnitProvider(s *testing.T) {
 		assert.Equal(t, accountID, customer.AccountID)
 		assert.Equal(t, customerType, customer.Type)
 
-		customerByID, err := c.UnitService.GetCustomerByID(c.Ctx, customer.ID)
+		customerByID, err := c.UnitService.GetCustomerByID(ctx, customer.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -122,96 +104,49 @@ func TestUnitProvider(s *testing.T) {
 	})
 }
 
+func TestCreateAndGetCounterParty(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	c := NewTestContainer(t)
+
+	args := &CreateCounterPartyArgs{
+		FundingsourceID: uuid.NewString(),
+		Name:            "test name",
+		UnitCustomerID:  uuid.NewString(),
+		RoutingNumber:   faker.CCNumber(),
+		AccountNumber:   faker.CCNumber(),
+		AccountType:     faker.CCType(),
+		Type:            "person",
+		IdempotencyKey:  "test",
+	}
+
+	unitCounterparty, err := c.UnitService.CreateCounterParty(ctx, args)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, args.FundingsourceID, args.FundingsourceID)
+	assert.NotEqual(t, "", unitCounterparty.ID)
+
+	freshCounterParty, err := c.UnitService.GetCounterPartyByFundingsourceID(ctx, args.FundingsourceID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, args.FundingsourceID, freshCounterParty.FundingsourceID)
+	assert.NotEqual(t, "", freshCounterParty.ID)
+}
+
 type TestContainer struct {
-	UnitMockServer     *httptest.Server
-	UnitService        Service
-	IdentityService    _identity.Service
-	AccountService     _accounts.Service
-	CountryService     _country.Service
-	NoopService        noop.Service
-	TransactionService account_transactions.Service
-	TemporalMock       *mocks.Client
-	PacioliContainer   *test_utils.PacioliContainer
-	PacioliClient      pacioliv1.PacioliServiceClient
-	PacioliLedgerID    uint16
-	Db                 *sqlx.DB
-	Logger             *zap.Logger
-	Ctx                context.Context
+	Ctrl           *gomock.Controller
+	UnitMockServer *httptest.Server
+	UnitService    Service
+	Db             *sqlx.DB
 }
 
-func (c *TestContainer) Cleanup(ctx context.Context) error {
-	c.UnitMockServer.Close()
-
-	return nil
-}
-
-func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
+func NewTestContainer(s *testing.T) *TestContainer {
 	c := &TestContainer{}
-	c.Ctx = ctx
-	db := test_utils.MigrateCockroachDB(s, ctx)
+	db := test_utils.MigrateCockroachDB(s, context.Background())
 	c.Db = db
-
-	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
-
-	c.PacioliLedgerID = uint16(1)
-	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	c.PacioliClient = pClient
-
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		return nil, err
-	}
-	c.Logger = logger
-
-	cs := _country.NewService(db)
-	c.CountryService = cs
-
-	is, err := _identity.NewService(_identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	c.IdentityService = _identity.NewLoggingService(is, logger)
-
-	as, err := _accounts.NewService(&_accounts.ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: c.PacioliLedgerID,
-		PacioliClient:   pClient,
-		Db:              db,
-	})
-	if err != nil {
-		return nil, err
-	}
-	err = as.Init(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.AccountService = _accounts.NewLoggingService(as, logger)
-
-	np, err := noop.NewService(noop.ServiceArgs{
-		LedgerID:      c.PacioliLedgerID,
-		EquityAccID:   uuid.NewString(),
-		PacioliTenant: "dev",
-		PacioliClient: pClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	err = np.Init(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.NoopService = np
-
-	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
-
+	c.UnitMockServer = test_utils.SetupUnitMockServer(context.Background())
 	us, err := NewService(ServiceArgs{
 		WebhookToken: "fynbos_local_unit_webhook_token",
 		BaseURL:      c.UnitMockServer.URL,
@@ -219,23 +154,13 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		Db:           db,
 	})
 	if err != nil {
-		return nil, err
+		s.Fatal(err)
 	}
 	c.UnitService = us
 
-	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+	s.Cleanup(func() {
+		c.UnitMockServer.Close()
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	c.TransactionService = ts
-
-	temporal := &mocks.Client{}
-	c.TemporalMock = temporal
-
-	return c, nil
+	return c
 }

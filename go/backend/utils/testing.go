@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -69,7 +70,7 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
 		}
 	})
 
-	return db 
+	return db
 }
 
 type KratosContainer struct {
@@ -213,7 +214,7 @@ func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 		err = c.PacioliNetwork.Remove(ctx)
 		if err != nil {
 			t.Fatal(err)
-		}	
+		}
 	})
 
 	return c
@@ -315,9 +316,9 @@ func SetupUnitMockServer(ctx context.Context) *httptest.Server {
 			_, err := w.Write([]byte(fmt.Sprintf(`{
 				"data": {
 					"type": "achCounterparty",
-					"id": %s
+					"id": "%d"
 				}
-			}`, uuid.NewString())))
+			}`, rand.Intn(100))))
 			if err != nil {
 				w.WriteHeader(500)
 			}
