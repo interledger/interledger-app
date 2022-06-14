@@ -41,6 +41,7 @@ import (
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
+	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
@@ -167,6 +168,15 @@ func start(args *cli.StartArgs) {
 		EquityAccID:   args.NoopEquityAccountID,
 		PacioliTenant: "dev",
 		PacioliClient: pClient,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+		AccountSid:   args.TwilioSid,
+		AccountToken: args.TwilioSecret,
+		ServiceSid:   args.TwilioServiceSid,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -330,6 +340,7 @@ func start(args *cli.StartArgs) {
 		OnboardingService:    os,
 		MxProvider:           mx,
 		RafikiProvider:       rafikiProvider,
+		TwilioService:        twilioService,
 	})
 	if err != nil {
 		log.Fatalln(err)
