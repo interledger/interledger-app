@@ -1,0 +1,37 @@
+import React from 'react'
+
+interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
+  className?: string
+  // The message from errors produced by form validation.
+  errorMessage?: string
+}
+
+export const Checkbox = React.forwardRef<any, CheckboxProps>(
+  ({ className, errorMessage, children, ...inputProps }, ref) => {
+    return (
+      <div className={className || 'min-w-full'}>
+        <div className='flex h-6 w-6 items-center'>
+          <input
+            ref={ref}
+            {...inputProps}
+            type='checkbox'
+            className='h-[1.125rem] w-[1.125rem] cursor-pointer rounded-sm border-2 border-base text-transparent focus:ring-transparent focus-visible:ring-primary'
+          />
+        </div>
+        <div className='ml-3 text-sm'>
+          <label htmlFor={inputProps.id} className='cursor-pointer text-strong'>
+            {children}
+          </label>
+          <div className='h-7 pt-2 pl-2'>
+            {errorMessage && (
+              <p className='text-sm text-error'>{errorMessage}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+)
+
+Checkbox.displayName = 'Checkbox'

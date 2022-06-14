@@ -56,7 +56,7 @@ export const Autocomplete: FC<AutocompleteProps> = ({
               <Combobox.Input
                 autoComplete='off'
                 type='text'
-                className='w-full overflow-hidden border-none focus:ring-0 '
+                className='w-full overflow-hidden border-none focus:ring-0'
                 displayValue={(value: AutocompleteOptions) => value?.name}
                 onChange={(event) => onQuery(event.target.value)}
               />
