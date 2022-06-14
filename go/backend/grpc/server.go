@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc"
@@ -40,6 +41,7 @@ type ServerArgs struct {
 	MxProvider           mx.Service             `validate:"required"`
 	RafikiProvider       rafiki.Service         `validate:"required"`
 	DepositService       deposits.Service       `validate:"required"`
+	TwilioService        twilio.Service         `validate:"required"`
 }
 
 type rpcService struct {
@@ -54,6 +56,7 @@ type rpcService struct {
 	mxProvider           mx.Service
 	rafikiProvider       rafiki.Service
 	depositService       deposits.Service
+	twilioService        twilio.Service
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -77,6 +80,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		mxProvider:           args.MxProvider,
 		rafikiProvider:       args.RafikiProvider,
 		depositService:       args.DepositService,
+		twilioService:        args.TwilioService,
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,
