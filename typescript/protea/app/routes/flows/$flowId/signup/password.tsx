@@ -1,0 +1,270 @@
+import React from 'react'
+import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Button, Checkbox, Router, TextField } from '~/components'
+import { getCurrentFlow } from '~/lib/flows.server'
+import type { GrpcError } from '~/lib/proto.server'
+import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import {
+  KRATOS_URL,
+  getCsrfTokenFromFlow,
+  handleFlowError
+} from '~/lib/kratos.server'
+import { route } from 'routes-gen'
+
+export const loader: LoaderFunction = async ({ request, params }) => {
+  const flow = await getCurrentFlow(request, params)
+  const cookie = String(request.headers.get('cookie'))
+
+  const url = new URL(request.url)
+  const kratosFlowId = url.searchParams.get('flow')
+
+  let kratosFlow
+  if (kratosFlowId) {
+    // If ?flow=.. was in the URL, we fetch it
+    const flowRes = await fetch(
+      `${KRATOS_URL}/self-service/registration/flows?id=${kratosFlowId}`,
+      {
+        headers: {
+          cookie: cookie,
+          Accept: 'application/json'
+        }
+      }
+    )
+    kratosFlow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'signup')
+  } else {
+    // Otherwise we initialize it
+    const flowRes = await fetch(
+      `${KRATOS_URL}/self-service/registration/browser?${url.searchParams}`,
+      { headers: { Accept: 'application/json' } }
+    )
+    kratosFlow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'signup')
+    return redirect(
+      `/flows/${flow?.id}/signup/password?flow=${kratosFlow.id}`,
+      {
+        headers: flowRes.headers
+      }
+    )
+  }
+  return json({
+    flow,
+    kratosFlowId,
+    csrfToken: getCsrfTokenFromFlow(kratosFlow)
+  })
+}
+
+export default function Page() {
+  const actionData = useActionData<ActionData>()
+  const { flow, kratosFlowId, csrfToken } = useLoaderData()
+
+  return (
+    <>
+      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <span className='font-display text-2xl font-medium'>
+          Create a password
+        </span>
+        <span>You will need your password to log in to your account.</span>
+      </div>
+      <Form
+        id='signup-password'
+        action={`/flows/${flow.id}/signup/password?flow=${kratosFlowId}`}
+        method='post'
+        className='hidden'
+      />
+      <TextField
+        id='password'
+        label='Password'
+        name='password'
+        form='signup-password'
+        defaultValue={actionData?.fields?.password}
+        type='password'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={Boolean(actionData?.fieldErrors?.password) || undefined}
+        aria-describedby={
+          actionData?.fieldErrors?.password ? 'password-error' : undefined
+        }
+        required
+        errorMessage={actionData?.fieldErrors?.password}
+      />
+
+      <Checkbox
+        id='service-agreement'
+        name='service-agreement'
+        form='signup-password'
+        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={
+          Boolean(actionData?.fieldErrors?.serviceAgreement) || undefined
+        }
+        aria-describedby={
+          actionData?.fieldErrors?.serviceAgreement
+            ? 'serviceAgreement-error'
+            : undefined
+        }
+        errorMessage={actionData?.fieldErrors?.serviceAgreement}
+      >
+        I agree to the Fynbos&nbsp;
+        <Router className='text-primary' to='/privacy-policy'>
+          Privacy Policy
+        </Router>
+        ,&nbsp;
+        <Router className='text-primary' to='/privacy-policy'>
+          Consent to Electronic Disclosures
+        </Router>
+        ,&nbsp;
+        <Router className='text-primary' to='/privacy-policy'>
+          Deposit Terms &amp; Conditions
+        </Router>
+        ,&nbsp;
+        <Router className='text-primary' to='/privacy-policy'>
+          Client Terms of Service
+        </Router>
+      </Checkbox>
+
+      <input
+        defaultValue={csrfToken}
+        name='csrf_token'
+        form='signup-password'
+        type='hidden'
+      />
+      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Button form='signup-password' type='submit'>
+          Confirm
+        </Button>
+      </div>
+    </>
+  )
+}
+
+type ActionData = {
+  formError?: string
+  fieldErrors?: {
+    serviceAgreement: string | undefined
+    password: string | undefined
+  }
+  fields?: {
+    serviceAgreement: boolean
+    password: string
+  }
+}
+
+// The field names given by the backend for field violations
+type fieldErrorsMap = 'ServiceAgreement'
+
+function mapper(field: fieldErrorsMap): 'serviceAgreement' | null {
+  switch (field) {
+    case 'ServiceAgreement':
+      return 'serviceAgreement'
+    default:
+      return null
+  }
+}
+
+/**
+ * parseError handles potention errors from grpc client calls.
+ * @param response The response from a grpc call
+ * @param fields Any data passed to the grpc call
+ * @returns ActionData response for field validation errors, throws other errors or null if not an error
+ */
+function parseError(response: any, fields: any): Response | null {
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      let fieldErrors: ActionData['fieldErrors'] = {
+        serviceAgreement: '',
+        password: ''
+      }
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({
+        fields,
+        fieldErrors
+      })
+    } else throw response
+  }
+  return null
+}
+
+const badRequest = (data: ActionData) => json(data, { status: 400 })
+
+export const action: ActionFunction = async ({ request, params }) => {
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow') as string
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const password = form.get('password')
+  const serviceAgreement = form.get('service-agreement') as string
+
+  if (serviceAgreement == null) {
+    return badRequest({
+      fieldErrors: {
+        serviceAgreement: 'You are required to accept this to proceed.',
+        password: ''
+      }
+    })
+  }
+
+  const flow = await getCurrentFlow(request, params)
+  const onboardingId = flow?.data.id
+  const email = flow?.data.email
+
+  let call = await grpcClient
+    .updateOnboarding({
+      id: onboardingId,
+      serviceAgreement: true
+    })
+    .then((v) => v)
+    .catch(StatusError)
+
+  const actionData = parseError(call, {
+    serviceAgreement
+  })
+
+  if (actionData != null) return actionData
+
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/registration?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'password',
+        traits: {
+          email: email
+        },
+        password: password,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
+  const data = await res.json()
+
+  if (res.status >= 400) {
+    let fieldErrors: ActionData['fieldErrors'] = {
+      serviceAgreement: '',
+      password: ''
+    }
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return badRequest({ fieldErrors: fieldErrors })
+  }
+
+  // TODO: Exit flow
+  return redirect(route('/onboarding/unit'), {
+    headers: res.headers
+  })
+}
