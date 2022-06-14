@@ -154,6 +154,21 @@ func (mr *MockServiceMockRecorder) GetWidgetUrl(ctx, mxUserGuid interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetUrl", reflect.TypeOf((*MockService)(nil).GetWidgetUrl), ctx, mxUserGuid)
 }
 
+// InitiateCreateAccount mocks base method.
+func (m *MockService) InitiateCreateAccount(ctx context.Context, args *CreateAccountArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InitiateCreateAccount", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InitiateCreateAccount indicates an expected call of InitiateCreateAccount.
+func (mr *MockServiceMockRecorder) InitiateCreateAccount(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateCreateAccount", reflect.TypeOf((*MockService)(nil).InitiateCreateAccount), ctx, args)
+}
+
 // ReadAccount mocks base method.
 func (m *MockService) ReadAccount(ctx context.Context, id string) (*MxAccount, error) {
 	m.ctrl.T.Helper()
@@ -182,4 +197,18 @@ func (m *MockService) StartIdentityAggregation(ctx context.Context, id string) (
 func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartIdentityAggregation", reflect.TypeOf((*MockService)(nil).StartIdentityAggregation), ctx, id)
+}
+
+// VerifyOwnership mocks base method.
+func (m *MockService) VerifyOwnership(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyOwnership", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyOwnership indicates an expected call of VerifyOwnership.
+func (mr *MockServiceMockRecorder) VerifyOwnership(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyOwnership", reflect.TypeOf((*MockService)(nil).VerifyOwnership), ctx, id)
 }

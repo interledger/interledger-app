@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -38,7 +37,6 @@ type Service interface {
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
 	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
 	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
-	VerifyMxBankAccount(ctx context.Context, identityID string, fundingsourceID string) (*FundingSource, error)
 	CreateUnitCounterPartyFromMxAccount(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
 	GetUnitCounterParty(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
 	CreateUnitCounterParty(ctx context.Context, fundingsourceID string, unitCounterPartyID string) (*UnitCounterParty, error)
@@ -382,66 +380,6 @@ func (s *service) CreateMxBankAccount(
 
 	return fundingSource, nil
 
-}
-
-func (s *service) VerifyMxBankAccount(
-	ctx context.Context,
-	identityID string,
-	fundingsourceID string,
-) (*FundingSource, error) {
-	if identityID == "" {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "IdentityID is required.")
-	}
-
-	if fundingsourceID == "" {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "FundingSourceID is required.")
-	}
-
-	_, err := s.Get(ctx, fundingsourceID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	// TODO: authz on identityID
-	mxFs, err := s.mx.GetAccount(ctx, fundingsourceID) // we map 1-1 between funding source and mx account
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	ownerDetails, err := s.mx.GetAccountOwner(ctx, mxFs.ID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	acc, err := s.as.Get(ctx, mxFs.AccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	user, err := s.is.Get(ctx, acc.IdentityID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	// TODO: how do we verify ownership
-	var ret *FundingSource = nil
-	var verifyErr error
-	if user.Email == strings.TrimSpace(ownerDetails.Email) {
-		ret, verifyErr = s.Verify(ctx, &VerifyArgs{
-			IdentityID:      identityID,
-			FundingSourceID: fundingsourceID,
-		})
-	} else {
-		// TODO: surface to customer service for manual verification.
-		verifyErr = fmt.Errorf(
-			"%w user does not own bank account. userID=%s, fundingsourceID=%s",
-			ErrUnauthorized,
-			user.ID,
-			fundingsourceID,
-		)
-	}
-
-	return ret, verifyErr
 }
 
 func (s *service) CreateUnitCounterPartyFromMxAccount(
