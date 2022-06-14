@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -49,6 +50,18 @@ func main() {
 			}
 			return nil
 		})
+
+		peerVpcStack, err := pulumi.NewStackReference(ctx, "fynbos/aws-shared-euwest1-networking/main", nil)
+		if err != nil {
+			return err
+		}
+		_, err = route53.NewZoneAssociation(ctx, "shared-zone-association", &route53.ZoneAssociationArgs{
+			VpcId:  vpcStack.GetStringOutput(pulumi.String("vpcId")),
+			ZoneId: peerVpcStack.GetStringOutput(pulumi.String("dnsZoneId")),
+		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
