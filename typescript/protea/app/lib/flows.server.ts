@@ -9,6 +9,7 @@ export enum flowType {
   Deposit = 'deposit',
   Withdraw = 'withdraw',
   Send = 'send',
+  Signup = 'signup',
   PaymentMethod = 'payment-method'
 }
 
@@ -337,6 +338,36 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
         ],
         complete: false,
         exitTo: '/settings/payment-methods'
+      }
+    case flowType.Signup:
+      return {
+        id,
+        type: flowType.Signup,
+        name: 'Logo',
+        stepIndex: 0,
+        data: {},
+        steps: [
+          {
+            name: 'About',
+            route: route('/flows/:flowId/signup/about', { flowId: id })
+          },
+          {
+            name: 'Phone',
+            route: route('/flows/:flowId/signup/phone', {
+              flowId: id
+            })
+          },
+          {
+            name: 'SMS',
+            route: route('/flows/:flowId/signup/sms', { flowId: id })
+          },
+          {
+            name: 'Password',
+            route: route('/flows/:flowId/signup/password', { flowId: id })
+          }
+        ],
+        complete: false,
+        exitTo: '/'
       }
   }
 }
