@@ -96,8 +96,13 @@ export function handleFlowError(
     | 'recovery'
     | 'recovery/password'
     | 'verify'
-    | 'logout'
+    | 'logout',
+  // This is the fynbos flow, for redirect purposes
+  flowId?: string
 ): void {
+  let redirectRoute =
+    flowType == 'signup' ? `/flows/${flowId}/signup/password` : `/${flowType}`
+
   switch (flow.error.id) {
     case 'session_inactive':
       // The user doesn't have a session
@@ -114,16 +119,16 @@ export function handleFlowError(
       throw redirect(`/login/challenge`)
     case 'self_service_flow_return_to_forbidden':
       // The return_to address is not allowed.
-      throw redirect('/' + flowType)
+      throw redirect(redirectRoute)
     case 'self_service_flow_expired':
       // The flow expired, let's request a new one.
-      throw redirect('/' + flowType)
+      throw redirect(redirectRoute)
     case 'security_csrf_violation':
       // A CSRF violation occurred. Best to just refresh the flow!
-      throw redirect('/' + flowType)
+      throw redirect(redirectRoute)
     case 'security_identity_mismatch':
       // The requested item was intended for someone else. Let's request a new flow...
-      throw redirect('/' + flowType)
+      throw redirect(redirectRoute)
     case 'browser_location_change_required':
       // Ory Kratos asked us to point the user to this URL.
       throw redirect(flow.error.redirect_browser_to)

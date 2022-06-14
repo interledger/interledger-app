@@ -23,12 +23,16 @@ declare module "routes-gen" {
     "/flows/:flowId/payment-method/details": { flowId: string };
     "/flows/:flowId/payment-method/review": { flowId: string };
     "/flows/:flowId/payment-method/type": { flowId: string };
+    "/flows/:flowId/signup/password": { flowId: string };
     "/flows/:flowId/withdraw/amount": { flowId: string };
     "/flows/:flowId/withdraw/review": { flowId: string };
     "/flows/:flowId/deposit/amount": { flowId: string };
     "/flows/:flowId/deposit/review": { flowId: string };
+    "/flows/:flowId/signup/about": { flowId: string };
+    "/flows/:flowId/signup/phone": { flowId: string };
     "/flows/:flowId/send/amount": { flowId: string };
     "/flows/:flowId/send/review": { flowId: string };
+    "/flows/:flowId/signup/sms": { flowId: string };
     "/flows/:flowId/send/to": { flowId: string };
     "/recovery": {};
     "/logout": {};
@@ -64,12 +68,16 @@ declare module "routes-gen" {
       | ["/flows/:flowId/payment-method/details", RouteParams["/flows/:flowId/payment-method/details"]]
       | ["/flows/:flowId/payment-method/review", RouteParams["/flows/:flowId/payment-method/review"]]
       | ["/flows/:flowId/payment-method/type", RouteParams["/flows/:flowId/payment-method/type"]]
+      | ["/flows/:flowId/signup/password", RouteParams["/flows/:flowId/signup/password"]]
       | ["/flows/:flowId/withdraw/amount", RouteParams["/flows/:flowId/withdraw/amount"]]
       | ["/flows/:flowId/withdraw/review", RouteParams["/flows/:flowId/withdraw/review"]]
       | ["/flows/:flowId/deposit/amount", RouteParams["/flows/:flowId/deposit/amount"]]
       | ["/flows/:flowId/deposit/review", RouteParams["/flows/:flowId/deposit/review"]]
+      | ["/flows/:flowId/signup/about", RouteParams["/flows/:flowId/signup/about"]]
+      | ["/flows/:flowId/signup/phone", RouteParams["/flows/:flowId/signup/phone"]]
       | ["/flows/:flowId/send/amount", RouteParams["/flows/:flowId/send/amount"]]
       | ["/flows/:flowId/send/review", RouteParams["/flows/:flowId/send/review"]]
+      | ["/flows/:flowId/signup/sms", RouteParams["/flows/:flowId/signup/sms"]]
       | ["/flows/:flowId/send/to", RouteParams["/flows/:flowId/send/to"]]
       | ["/recovery"]
       | ["/logout"]
