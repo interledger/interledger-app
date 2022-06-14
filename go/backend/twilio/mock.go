@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	v2 "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
 // MockService is a mock of Service interface.
@@ -36,10 +35,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CheckVerificationCode mocks base method.
-func (m *MockService) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*v2.VerifyV2VerificationCheck, error) {
+func (m *MockService) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckVerificationCode", ctx, args)
-	ret0, _ := ret[0].(*v2.VerifyV2VerificationCheck)
+	ret0, _ := ret[0].(*VerificationStatus)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +50,10 @@ func (mr *MockServiceMockRecorder) CheckVerificationCode(ctx, args interface{}) 
 }
 
 // SendVerificationCode mocks base method.
-func (m *MockService) SendVerificationCode(ctx context.Context, phoneNumber string) (*v2.VerifyV2Verification, error) {
+func (m *MockService) SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendVerificationCode", ctx, phoneNumber)
-	ret0, _ := ret[0].(*v2.VerifyV2Verification)
+	ret0, _ := ret[0].(*VerificationStatus)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
