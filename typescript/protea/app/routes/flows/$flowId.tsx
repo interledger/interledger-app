@@ -9,7 +9,7 @@ import {
 } from '@remix-run/react'
 import type { FC } from 'react'
 import React from 'react'
-import { Icon, Error } from '~/components'
+import { Icon, Error, Logo } from '~/components'
 import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'
 import { requireNoUserSession, requireUserSession } from '~/lib/kratos.server'
 
@@ -56,7 +56,8 @@ export default function Page() {
             </button>
           )}
           <div className='flex items-center justify-start font-display text-2xl font-medium'>
-            {flow.name}
+            {flow.name === 'Logo' && <Logo className='h-8' />}
+            {flow.name !== 'Logo' && flow.name}
           </div>
         </div>
         <button form='flow-control' name='route' value='exit'>
