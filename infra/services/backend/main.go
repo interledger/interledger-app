@@ -21,6 +21,9 @@ type DeployBackendArgs struct {
 	NoopEquityAccountID  string
 	UnitToken            string
 	UnitBaseUrl          string
+	TwilioSID 	 	 			 string	
+	TwilioSecret   			 string
+	TwilioServiceSID     string
 	Hostname             string
 	EnablePlayground     bool
 	UnitWebhookToken     string
@@ -55,6 +58,9 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.UnitToken,
 		args.UnitBaseUrl,
 		args.UnitWebhookToken,
+		args.TwilioSID,
+		args.TwilioSecret,
+		args.TwilioServiceSID,
 		args.GoogleOauth2ClientID,
 		args.MxApiKey,
 		args.MxClientID,
@@ -131,15 +137,18 @@ func deployService(ctx *pulumi.Context) error {
 }
 
 func deployDeployment(
-	ctx *pulumi.Context,
-	imageRepo string,
-	imageTag string,
-	cert *apiextensions.CustomResource,
-	usdLedgerCode uint16,
-	noopEquityAccountID string,
-	unitToken string,
-	unitBaseUrl string,
-	unitWebhookToken string,
+	ctx 								 *pulumi.Context,
+	imageRepo 					 string,
+	imageTag 						 string,
+	cert 								 *apiextensions.CustomResource,
+	usdLedgerCode 			 uint16,
+	noopEquityAccountID  string,
+	unitToken 					 string,
+	unitBaseUrl 				 string,
+	unitWebhookToken 		 string,
+	TwilioSID 		 			 string,
+	TwilioSecret 	 			 string,
+	twilioServiceSID 		 string,
 	googleOauth2ClientID string,
 	mxApiKey string,
 	mxClientID string,
@@ -362,6 +371,18 @@ func deployDeployment(
 									Name:  pulumi.String("RAFIKI_GRAPHQL_URL"),
 									Value: pulumi.String(rafikiGraphqlUrl),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TWILIO_ACCOUNT_SID"),
+									Value: pulumi.String(TwilioSID),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TWILIO_ACCOUNT_TOKEN"),
+									Value: pulumi.String(TwilioSecret),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TWILIO_SERVICE_SID"),
+									Value: pulumi.String(twilioServiceSID),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -440,6 +461,18 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("RAFIKI_GRAPHQL_URL"),
 									Value: pulumi.String(rafikiGraphqlUrl),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TWILIO_ACCOUNT_SID"),
+									Value: pulumi.String(TwilioSID),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TWILIO_ACCOUNT_TOKEN"),
+									Value: pulumi.String(TwilioSecret),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TWILIO_SERVICE_SID"),
+									Value: pulumi.String(twilioServiceSID),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
