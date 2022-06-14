@@ -17,14 +17,16 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/identity"
 	"go.temporal.io/sdk/client"
 )
 
 var (
-	ErrInvalidArgument = errors.New("mx provider: invalid argument.")
-	ErrInternal        = errors.New("mx provider: internal error.")
-	ErrNotFound        = errors.New("mx provider: not found.")
-	ErrDuplicate       = errors.New("mx provider: duplicate.")
+	ErrInvalidArgument      = errors.New("mx provider: invalid argument.")
+	ErrInternal             = errors.New("mx provider: internal error.")
+	ErrNotFound             = errors.New("mx provider: not found.")
+	ErrDuplicate            = errors.New("mx provider: duplicate.")
+	ErrOwnershipCheckFailed = errors.New("mx provider: ownership check failed.")
 )
 
 type (
@@ -39,6 +41,7 @@ type (
 		ReadAccount(ctx context.Context, id string) (*MxAccount, error)
 		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
 		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
+		VerifyOwnership(ctx context.Context, id string) error
 	}
 
 	user struct {
@@ -101,7 +104,8 @@ type (
 		Password        string           `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		AccountsService accounts.Service `validate:"required"`
-		Temporal        client.Client    `validate:"requried"`
+		IdentityService identity.Service `validate:"required"`
+		Temporal        client.Client    `validate:"required"`
 	}
 
 	service struct {
@@ -110,6 +114,7 @@ type (
 		baseUrl         string
 		db              *sqlx.DB
 		accountsService accounts.Service
+		identityService identity.Service
 		temporal        client.Client
 	}
 )
@@ -154,7 +159,10 @@ func NewService(args *ServiceArgs) (Service, error) {
 		mxClient: &http.Client{
 			Transport: newBasicAuthTransport(args.Username, args.Password),
 		},
-		db: args.Db,
+		db:              args.Db,
+		accountsService: args.AccountsService,
+		identityService: args.IdentityService,
+		temporal:        args.Temporal,
 	}, nil
 }
 
@@ -478,4 +486,32 @@ func (s service) GetMxUserByAccountID(ctx context.Context, accountID string) (st
 	}
 
 	return mxUserGuids[0], nil
+}
+
+func (s *service) VerifyOwnership(ctx context.Context, id string) error {
+	mxAccount, err := s.GetAccount(ctx, id)
+	if err != nil {
+		return err
+	}
+	acc, err := s.accountsService.Get(ctx, mxAccount.AccountID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	user, err := s.identityService.Get(ctx, acc.IdentityID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	ownerDetails, err := s.GetAccountOwner(ctx, mxAccount.ID)
+	if err != nil {
+		return err
+	}
+
+	// This verification can be extended in future.
+	if strings.TrimSpace(fmt.Sprintf("%s %s", user.FirstName, user.LastName)) != strings.TrimSpace(ownerDetails.OwnerName) {
+		return ErrOwnershipCheckFailed
+	}
+
+	return nil
 }

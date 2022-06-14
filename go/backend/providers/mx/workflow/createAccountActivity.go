@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
@@ -75,6 +77,11 @@ func (a *Activity) StartIdentityAggregation(
 	ctx context.Context,
 	mxAccountID string,
 ) error {
+	_, err := a.mx.StartIdentityAggregation(ctx, mxAccountID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -84,6 +91,24 @@ func (a *Activity) WaitForIdentityAggregation(
 	ctx context.Context,
 	mxAccountID string,
 ) error {
+	now := time.Now()
+	ticker := time.NewTicker(time.Second)
+	for range ticker.C {
+		elapsed := time.Since(now)
+		if elapsed > 10*time.Second {
+			return errors.New("Timed out waiting for identity aggregation.")
+		}
+
+		member, err := a.mx.GetMemberStatus(ctx, mxAccountID)
+		if err != nil {
+			continue
+		}
+
+		if !member.IsBeingAggregated {
+			return nil
+		}
+	}
+
 	return nil
 }
 
@@ -91,6 +116,11 @@ func (a *Activity) VerifyOwnership(
 	ctx context.Context,
 	mxAccountID string,
 ) error {
+	err := a.mx.VerifyOwnership(ctx, mxAccountID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

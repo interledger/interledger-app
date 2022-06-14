@@ -7,10 +7,14 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.temporal.io/sdk/mocks"
 )
 
 var runIntegration = flag.Bool("integration", false, "Bool to run integration tests.")
@@ -21,11 +25,15 @@ func TestIntegration(t *testing.T) {
 	}
 	username := os.Getenv("MX_USERNAME")
 	password := os.Getenv("MX_PASSWORD")
+	ctrl := gomock.NewController(t)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  "https://int-api.mx.com",
-		Username: username,
-		Password: password,
-		Db:       &sqlx.DB{},
+		BaseUrl:         "https://int-api.mx.com",
+		Username:        username,
+		Password:        password,
+		Db:              &sqlx.DB{},
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -45,13 +53,18 @@ func TestIntegration(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       &sqlx.DB{},
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              &sqlx.DB{},
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -66,13 +79,18 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestGetWidgetUrl(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       &sqlx.DB{},
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              &sqlx.DB{},
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -87,14 +105,19 @@ func TestGetWidgetUrl(t *testing.T) {
 }
 
 func TestCreateAndGetAccount(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       db,
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -136,14 +159,19 @@ func TestCreateAndGetAccount(t *testing.T) {
 }
 
 func TestGetMemberStatus(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	mockMxServer := NewMockServer()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       db,
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -171,14 +199,19 @@ func TestGetMemberStatus(t *testing.T) {
 }
 
 func TestStartIdentityAggregation(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	mockMxServer := NewMockServer()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       db,
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -206,7 +239,9 @@ func TestStartIdentityAggregation(t *testing.T) {
 }
 
 func TestGetAccountOwner(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	mxAccountGuid := uuid.NewString()
 	accountOwners := []AccountOwner{
 		{
@@ -222,10 +257,13 @@ func TestGetAccountOwner(t *testing.T) {
 	})
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       db,
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -297,8 +335,10 @@ func TestGetAccountOwner(t *testing.T) {
 }
 
 func TestGetMxAccount(t *testing.T) {
+	t.Parallel()
 	// TODO: refactor container setup
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mxAccountGuid := uuid.NewString()
 	mxUserGuid := uuid.NewString()
@@ -320,10 +360,13 @@ func TestGetMxAccount(t *testing.T) {
 		s.MxAccount = expectedMxAccount
 	})
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  mockMxServer.URL,
-		Username: "test",
-		Password: "test",
-		Db:       db,
+		BaseUrl:         mockMxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -394,14 +437,19 @@ func TestGetMxAccount(t *testing.T) {
 }
 
 func TestGetMxUserByAccountID(t *testing.T) {
+	t.Parallel()
 	// TODO: refactor container setup
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:  "localhost:8080",
-		Username: "test",
-		Password: "test",
-		Db:       db,
+		BaseUrl:         "localhost:8080",
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -491,6 +539,113 @@ func TestGetMxUserByAccountID(t *testing.T) {
 			} else {
 				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
 				assert.Equal(st, "", mxUserGuid, scenario.Name)
+			}
+		})
+	}
+}
+
+func TestVerifyOwnership(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	db := test_utils.MigrateCockroachDB(t, ctx)
+	accountService := accounts.NewMockService(ctrl)
+	identityService := identity.NewMockService(ctrl)
+	mxAccountGuid := uuid.NewString()
+	mxServer := NewMockServer(func(s *MockServerState) {
+		s.AccountOwners = []AccountOwner{
+			{
+				AccountGuid: mxAccountGuid,
+				OwnerName:   "James Bond",
+				Country:     "US",
+				Email:       faker.Email(),
+				Phone:       faker.E164PhoneNumber(),
+			},
+		}
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:         mxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accountService,
+		IdentityService: identityService,
+		Temporal:        &mocks.Client{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	userID := uuid.NewString()
+	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
+		ID:            uuid.NewString(),
+		AccountID:     uuid.NewString(),
+		MxUserGuid:    uuid.NewString(),
+		MxMemberGuid:  uuid.NewString(),
+		MxAccountGuid: mxAccountGuid,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testcases := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Verifies if account owner's name is the same as user's name",
+			ExpectedError: nil,
+			RunBefore: func() {
+				accountService.EXPECT().Get(gomock.Any(), mxAccount.AccountID).Return(
+					&accounts.Account{
+						ID:         mxAccount.ID,
+						IdentityID: userID,
+					},
+					nil,
+				).Times(1)
+				identityService.EXPECT().Get(ctx, userID).Return(
+					&identity.Identity{
+						ID:        userID,
+						FirstName: "James",
+						LastName:  "Bond",
+					},
+					nil,
+				).Times(1)
+			},
+		},
+		{
+			Name:          "Returns ErrOwnershipCheckFailed if account owner's name does not match user's name",
+			ExpectedError: ErrOwnershipCheckFailed,
+			RunBefore: func() {
+				accountService.EXPECT().Get(ctx, mxAccount.AccountID).Return(
+					&accounts.Account{
+						ID:         mxAccount.ID,
+						IdentityID: userID,
+					},
+					nil,
+				).Times(1)
+				identityService.EXPECT().Get(ctx, userID).Return(
+					&identity.Identity{
+						ID:        userID,
+						FirstName: "Home",
+						LastName:  "Bond",
+					},
+					nil,
+				).Times(1)
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.Name, func(t *testing.T) {
+			tc.RunBefore()
+
+			err = mx.VerifyOwnership(ctx, mxAccount.ID)
+
+			if tc.ExpectedError == nil {
+				assert.NoError(t, err, tc.Name)
+			} else {
+				assert.ErrorIs(t, err, tc.ExpectedError, tc.Name)
 			}
 		})
 	}
