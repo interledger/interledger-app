@@ -60,7 +60,6 @@ function isGrpcError(res: any): res is GrpcError {
  * @returns GrpcError - the error code and details
  */
 function StatusError(err: RpcError): GrpcError {
-  console.log('An error', err)
   if (!err.meta) {
     // return null
     throw new Error('No meta on error')
