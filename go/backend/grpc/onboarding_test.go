@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/twilio"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -142,6 +143,11 @@ func TestSendPhoneVerification(s *testing.T) {
 			PhoneVerified:    false,
 			ServiceAgreement: false,
 		}, nil).Times(1)
+		c.TwilioService.EXPECT().SendVerificationCode(gomock.Any(), phone).Return(&twilio.VerificationStatus{
+			Status: "pending",
+			PhoneNumber: phone,
+			Sid: "",
+		}, nil).Times(1)
 		resp, err := client.SendPhoneVerification(
 			context.Background(),
 			&backendv1.SendPhoneVerificationRequest{
@@ -208,6 +214,14 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 			Phone:            phone,
 			PhoneVerified:    false,
 			ServiceAgreement: false,
+		}, nil).Times(1)
+		c.TwilioService.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: phone,
+			Code: 			 code,
+		}).Return(&twilio.VerificationStatus{
+			Status: "approved",
+			PhoneNumber: phone,
+			Sid: "",
 		}, nil).Times(1)
 		resp, err := client.CheckPhoneVerificationCode(
 			context.Background(),
