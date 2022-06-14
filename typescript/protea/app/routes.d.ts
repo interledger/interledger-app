@@ -7,6 +7,7 @@ declare module "routes-gen" {
     "/confirmation/:flowId/send": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
+    "/onboarding/unit": {};
     "/": {};
     "/activity/transaction/:id": { id: string };
     "/settings/payment-methods": {};
@@ -52,6 +53,7 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
+      | ["/onboarding/unit"]
       | ["/"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/payment-methods"]
