@@ -7,10 +7,11 @@ import (
 )
 
 type CreateMxAccountWorkflowArgs struct {
-	ID           string `validate:"uuid4"`
-	AccountID    string `validate:"required"`
-	MxUserGuid   string `validate:"required"`
-	MxMemberGuid string `validate:"required"`
+	ID                string `validate:"uuid4"`
+	FundingsourceName string `validate:"required"`
+	AccountID         string `validate:"required"`
+	MxUserGuid        string `validate:"required"`
+	MxMemberGuid      string `validate:"required"`
 }
 
 func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflowArgs) error {
@@ -70,7 +71,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateFundingSource, args.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateFundingSource, args.ID, args.FundingsourceName).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to create funding source.")
 		return err
