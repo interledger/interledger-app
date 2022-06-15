@@ -34,7 +34,7 @@ type (
 		CreateUser(ctx context.Context) (string, error)
 		GetWidgetUrl(ctx context.Context, mxUserGuid string) (string, error)
 		CreateAccount(ctx context.Context, args *CreateAccountArgs) (*Account, error)
-		GetAccount(ctx context.Context, id string) (*Account, error)
+		GetAccount(ctx context.Context, guid string) (*Account, error)
 		StartIdentityAggregation(ctx context.Context, id string) (*Member, error)
 		GetMemberStatus(ctx context.Context, id string) (*Member, error)
 		GetAccountOwner(ctx context.Context, id string) (*AccountOwner, error)
@@ -50,11 +50,12 @@ type (
 	}
 
 	Account struct {
-		ID              string
-		AccountID       string `db:"account_id"`
-		MxUserGuid      string `db:"mx_user_guid"`
-		MxMemberGuid    string `db:"mx_member_guid"`
-		MxAccountGuidID string `db:"mx_account_guid"`
+		Guid       string //from mx
+		UserGuid   string `db:"user_guid"`   // from mx
+		MemberGuid string `db:"member_guid"` // from mx
+		AccountID  string `db:"account_id"`  // Fynbos account id
+		CreatedAt  string `db:"created_at"`
+		UpdatedAt  string `db:"updated_at"`
 	}
 
 	Member struct {
@@ -232,11 +233,10 @@ func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, er
 }
 
 type CreateAccountArgs struct {
-	ID            string `validate:"uuid4"`
-	AccountID     string `validate:"uuid4"`
-	MxUserGuid    string `validate:"required"`
-	MxMemberGuid  string `validate:"required"`
-	MxAccountGuid string `validate:"required"`
+	Guid       string `validate:"uuid4"`    // from mx
+	UserGuid   string `validate:"required"` // from mx
+	MemberGuid string `validate:"required"` // from mx
+	AccountID  string `validate:"uuid4"`
 }
 
 func (s *service) CreateAccount(
@@ -252,14 +252,18 @@ func (s *service) CreateAccount(
 		ctx,
 		ret,
 		`
-		INSERT INTO mx_fundingsources (id, account_id, mx_user_guid, mx_member_guid, mx_account_guid)
-		VALUES ($1, $2, $3, $4, $5) RETURNING *;
+		INSERT INTO mx_accounts (
+			guid,
+			user_guid,
+			member_guid,
+			account_id
+		)
+		VALUES ($1, $2, $3, $4) RETURNING *;
 		`,
-		args.ID,
+		args.Guid,
+		args.UserGuid,
+		args.MemberGuid,
 		args.AccountID,
-		args.MxUserGuid,
-		args.MxMemberGuid,
-		args.MxAccountGuid,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
@@ -271,11 +275,11 @@ func (s *service) CreateAccount(
 	return ret, nil
 }
 
-func (s service) GetAccount(ctx context.Context, id string) (*Account, error) {
+func (s service) GetAccount(ctx context.Context, guid string) (*Account, error) {
 	ret := &Account{}
-	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_fundingsources WHERE id=$1", id)
+	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE guid=$1", guid)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("id=%s", id))
+		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("guid=%s", guid))
 	} else {
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -291,7 +295,7 @@ func (s *service) StartIdentityAggregation(ctx context.Context, mxFundingSourceI
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/identify", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxMemberGuid)
+	url := fmt.Sprintf("%s/users/%s/members/%s/identify", s.baseUrl, mxAccount.UserGuid, mxAccount.MemberGuid)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -321,7 +325,7 @@ func (s *service) GetMemberStatus(ctx context.Context, mxFundingSourceID string)
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/status", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxMemberGuid)
+	url := fmt.Sprintf("%s/users/%s/members/%s/status", s.baseUrl, mxAccount.UserGuid, mxAccount.MemberGuid)
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -354,7 +358,7 @@ func (s service) GetAccountOwner(
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/account_owners", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxMemberGuid)
+	url := fmt.Sprintf("%s/users/%s/members/%s/account_owners", s.baseUrl, mxAccount.UserGuid, mxAccount.MemberGuid)
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -377,7 +381,7 @@ func (s service) GetAccountOwner(
 
 	var ret *AccountOwner = nil
 	for _, owner := range accountOwnersResp.AccountOwners {
-		if owner.AccountGuid == mxAccount.MxAccountGuidID {
+		if owner.AccountGuid == mxAccount.Guid {
 			ret = &owner
 			break
 		}
@@ -386,7 +390,7 @@ func (s service) GetAccountOwner(
 		return nil, fmt.Errorf(
 			"%w No account owner details found for mx account guid=%s",
 			ErrNotFound,
-			mxAccount.MxAccountGuidID,
+			mxAccount.Guid,
 		)
 	}
 
@@ -399,7 +403,7 @@ func (s service) ReadAccount(ctx context.Context, mxFundingSourceID string) (*Mx
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/accounts/%s", s.baseUrl, mxAccount.MxUserGuid, mxAccount.MxAccountGuidID)
+	url := fmt.Sprintf("%s/users/%s/accounts/%s", s.baseUrl, mxAccount.UserGuid, mxAccount.Guid)
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -470,7 +474,7 @@ func (s service) GetMxUserByAccountID(ctx context.Context, accountID string) (st
 	err := s.db.SelectContext(
 		ctx,
 		&mxUserGuids,
-		"SELECT DISTINCT mx_user_guid FROM mx_fundingsources WHERE account_id=$1;",
+		"SELECT DISTINCT user_guid FROM mx_accounts WHERE account_id=$1;",
 		accountID,
 	)
 	if err != nil {
@@ -503,7 +507,7 @@ func (s *service) VerifyOwnership(ctx context.Context, id string) error {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	ownerDetails, err := s.GetAccountOwner(ctx, mxAccount.ID)
+	ownerDetails, err := s.GetAccountOwner(ctx, mxAccount.Guid)
 	if err != nil {
 		return err
 	}
