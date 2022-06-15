@@ -263,6 +263,15 @@ func main() {
 		ctx.Export("dnsZoneName", zone.Name)
 		ctx.Export("dnsZoneId", zone.ID())
 
+		publicZone, err := route53.NewZone(ctx, "public-fynbos.cloud", &route53.ZoneArgs{
+			Name: pulumi.String("fynbos.cloud"),
+		})
+		if err != nil {
+			return err
+		}
+		ctx.Export("publicDnsZoneName", publicZone.Name)
+		ctx.Export("publicDnsZoneId", publicZone.ID())
+
 		return nil
 	})
 }
