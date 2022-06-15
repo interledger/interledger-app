@@ -16,6 +16,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/accounts"
+	"go.temporal.io/sdk/client"
 )
 
 var (
@@ -94,18 +96,21 @@ type (
 	}
 
 	ServiceArgs struct {
-		// Db *sqlx.DB
-		BaseUrl  string   `validate:"required"`
-		Username string   `validate:"required"`
-		Password string   `validate:"required"`
-		Db       *sqlx.DB `validate:"required"`
+		BaseUrl         string           `validate:"required"`
+		Username        string           `validate:"required"`
+		Password        string           `validate:"required"`
+		Db              *sqlx.DB         `validate:"required"`
+		AccountsService accounts.Service `validate:"required"`
+		Temporal        client.Client    `validate:"requried"`
 	}
 
 	service struct {
-		v        *validator.Validate
-		mxClient *http.Client
-		baseUrl  string
-		db       *sqlx.DB
+		v               *validator.Validate
+		mxClient        *http.Client
+		baseUrl         string
+		db              *sqlx.DB
+		accountsService accounts.Service
+		temporal        client.Client
 	}
 )
 
