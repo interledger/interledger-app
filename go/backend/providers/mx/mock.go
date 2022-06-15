@@ -65,18 +65,18 @@ func (mr *MockServiceMockRecorder) CreateUser(ctx interface{}) *gomock.Call {
 }
 
 // GetAccount mocks base method.
-func (m *MockService) GetAccount(ctx context.Context, id string) (*Account, error) {
+func (m *MockService) GetAccount(ctx context.Context, guid string) (*Account, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccount", ctx, id)
+	ret := m.ctrl.Call(m, "GetAccount", ctx, guid)
 	ret0, _ := ret[0].(*Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAccount indicates an expected call of GetAccount.
-func (mr *MockServiceMockRecorder) GetAccount(ctx, id interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetAccount(ctx, guid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockService)(nil).GetAccount), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockService)(nil).GetAccount), ctx, guid)
 }
 
 // GetAccountOwner mocks base method.
@@ -92,6 +92,21 @@ func (m *MockService) GetAccountOwner(ctx context.Context, id string) (*AccountO
 func (mr *MockServiceMockRecorder) GetAccountOwner(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountOwner", reflect.TypeOf((*MockService)(nil).GetAccountOwner), ctx, id)
+}
+
+// GetConnectWidget mocks base method.
+func (m *MockService) GetConnectWidget(ctx context.Context, accountID, identityID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConnectWidget", ctx, accountID, identityID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetConnectWidget indicates an expected call of GetConnectWidget.
+func (mr *MockServiceMockRecorder) GetConnectWidget(ctx, accountID, identityID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConnectWidget", reflect.TypeOf((*MockService)(nil).GetConnectWidget), ctx, accountID, identityID)
 }
 
 // GetMemberStatus mocks base method.
@@ -155,7 +170,7 @@ func (mr *MockServiceMockRecorder) GetWidgetUrl(ctx, mxUserGuid interface{}) *go
 }
 
 // InitiateCreateAccount mocks base method.
-func (m *MockService) InitiateCreateAccount(ctx context.Context, args *CreateAccountArgs) (string, error) {
+func (m *MockService) InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InitiateCreateAccount", ctx, args)
 	ret0, _ := ret[0].(string)

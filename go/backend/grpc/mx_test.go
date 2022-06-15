@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
@@ -34,6 +35,7 @@ type TestContainer struct {
 	FundingsourceService *fundingsources.MockService
 	OnboardingService    *onboarding.MockService
 	UnitProvider         *unit.MockService
+	MxProvider           *mx.MockService
 }
 
 type TestContainerOption func(*TestContainer)
@@ -52,6 +54,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		FundingsourceService: fundingsources.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
 		OnboardingService:    onboarding.NewMockService(ctrl),
+		MxProvider:           mx.NewMockService(ctrl),
 	}
 
 	for _, opt := range opts {
@@ -82,7 +85,7 @@ func TestGetBankAccountWidget(t *testing.T) {
 					ID:         accountID,
 					IdentityID: userID,
 				}, nil).Times(1)
-				c.FundingsourceService.EXPECT().GetMxConnectWidget(gomock.Any(), accountID, userID).Return(widgetUrl, nil).Times(1)
+				c.MxProvider.EXPECT().GetConnectWidget(gomock.Any(), accountID, userID).Return(widgetUrl, nil).Times(1)
 			},
 		},
 		{
@@ -100,7 +103,7 @@ func TestGetBankAccountWidget(t *testing.T) {
 					ID:         accountID,
 					IdentityID: userID,
 				}, nil).Times(1)
-				c.FundingsourceService.EXPECT().GetMxConnectWidget(gomock.Any(), accountID, userID).Return("", fundingsources.ErrInternal).Times(1)
+				c.MxProvider.EXPECT().GetConnectWidget(gomock.Any(), accountID, userID).Return("", fundingsources.ErrInternal).Times(1)
 			},
 		},
 	}
@@ -126,15 +129,16 @@ func TestGetBankAccountWidget(t *testing.T) {
 	}
 }
 
-func TestCreateMxBankAccount(t *testing.T) {
+func TestInitiateCreateBankAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
 
 	accountID := ""
-	user := &user.User{}
+	userID := ""
 	mxUserGuid := ""
 	mxMemberGuid := ""
+	workflowUuid := ""
 	fundingSourceName := "test"
 	scenarios := []struct {
 		Name          string
@@ -148,28 +152,22 @@ func TestCreateMxBankAccount(t *testing.T) {
 				mxMemberGuid = uuid.NewString()
 				mxUserGuid = uuid.NewString()
 				accountID = uuid.NewString()
-				user.ID = uuid.NewString()
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), user.ID).Return(
+				userID = uuid.NewString()
+				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
 					&accounts.Account{
 						ID:         accountID,
-						IdentityID: user.ID,
+						IdentityID: userID,
 					},
 					nil,
 				).Times(1)
-				c.FundingsourceService.EXPECT().CreateMxBankAccount(gomock.Any(), &fundingsources.CreateMxBankAccountArgs{
-					IdentityID:   user.ID,
-					AccountID:    accountID,
-					MxUserGuid:   mxUserGuid,
-					MxMemberGuid: mxMemberGuid,
-					Name:         fundingSourceName,
-				}).Return(
-					&fundingsources.FundingSource{
-						ID:        uuid.NewString(),
-						AccountID: accountID,
-						Name:      fundingSourceName,
-					},
-					nil,
-				).Times(1)
+				workflowUuid = uuid.NewString()
+				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), &mx.InitiateCreateAccountArgs{
+					IdentityID:        userID,
+					AccountID:         accountID,
+					UserGuid:          mxUserGuid,
+					MemberGuid:        mxMemberGuid,
+					FundingsourceName: fundingSourceName,
+				}).Return(workflowUuid, nil).Times(1)
 			},
 		},
 		{
@@ -177,12 +175,12 @@ func TestCreateMxBankAccount(t *testing.T) {
 			ExpectedError: "rpc error: code = Internal desc = Unable to get account.",
 			RunBefore: func() {
 				accountID = uuid.NewString()
-				user.ID = uuid.NewString()
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), user.ID).Return(
+				userID = uuid.NewString()
+				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
 					nil,
 					accounts.ErrNotFound,
 				).Times(1)
-				c.FundingsourceService.EXPECT().CreateMxBankAccount(gomock.Any(), gomock.Any()).Times(0)
+				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), gomock.Any()).Times(0)
 			},
 		},
 		{
@@ -190,17 +188,17 @@ func TestCreateMxBankAccount(t *testing.T) {
 			ExpectedError: "rpc error: code = Internal desc = Unable to create bank account.",
 			RunBefore: func() {
 				accountID = uuid.NewString()
-				user.ID = uuid.NewString()
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), user.ID).Return(
+				userID = uuid.NewString()
+				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
 					&accounts.Account{
 						ID:         accountID,
-						IdentityID: user.ID,
+						IdentityID: userID,
 					},
 					nil,
 				).Times(1)
-				c.FundingsourceService.EXPECT().CreateMxBankAccount(gomock.Any(), gomock.Any()).Return(
-					nil,
-					fundingsources.ErrInternal,
+				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), gomock.Any()).Return(
+					"",
+					mx.ErrInternal,
 				).Times(1)
 			},
 		},
@@ -210,9 +208,9 @@ func TestCreateMxBankAccount(t *testing.T) {
 		t.Run(scenario.Name, func(st *testing.T) {
 			scenario.RunBefore()
 
-			fs, err := client.CreateBankAccount(
-				_user.ActingAsContext(t, context.Background(), user),
-				&backendv1.CreateBankAccountRequest{
+			response, err := client.InitiateCreateBankAccount(
+				_user.ActingAsContext(t, context.Background(), &user.User{ID: userID}),
+				&backendv1.InitiateCreateBankAccountRequest{
 					UserGuid:   mxUserGuid,
 					MemberGuid: mxMemberGuid,
 					Name:       fundingSourceName,
@@ -221,10 +219,10 @@ func TestCreateMxBankAccount(t *testing.T) {
 
 			if scenario.ExpectedError == "" {
 				assert.NoError(t, err, scenario.Name)
-				assert.Equal(t, fundingSourceName, fundingSourceName, scenario.Name)
+				assert.Equal(t, workflowUuid, response.Reference, scenario.Name)
 			} else {
 				assert.Equal(t, scenario.ExpectedError, err.Error(), scenario.Name)
-				assert.Nil(t, fs, scenario.Name)
+				assert.Nil(t, response, scenario.Name)
 			}
 		})
 	}
@@ -243,6 +241,7 @@ func startTestServer(
 		UnitProvider:         c.UnitProvider,
 		FundingSourceService: c.FundingsourceService,
 		OnboardingService:    c.OnboardingService,
+		MxProvider:           c.MxProvider,
 	})
 	if err != nil {
 		t.Fatal(err)
