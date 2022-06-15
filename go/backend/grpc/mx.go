@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/providers/mx"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,7 +23,7 @@ func (s *rpcService) GetBankAccountWidget(
 		return nil, status.Error(codes.Internal, "Unable to get account.")
 	}
 
-	url, err := s.fundingSourceService.GetMxConnectWidget(ctx, acc.ID, user.ID)
+	url, err := s.mxProvider.GetConnectWidget(ctx, acc.ID, user.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Unable to get widget.")
 	}
@@ -33,10 +33,10 @@ func (s *rpcService) GetBankAccountWidget(
 	}, nil
 }
 
-func (s *rpcService) CreateBankAccount(
+func (s *rpcService) InitiateCreateBankAccount(
 	ctx context.Context,
-	req *backendv1.CreateBankAccountRequest,
-) (*backendv1.FundingSource, error) {
+	req *backendv1.InitiateCreateBankAccountRequest,
+) (*backendv1.InitiateCreateBankAccountResponse, error) {
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
@@ -47,21 +47,18 @@ func (s *rpcService) CreateBankAccount(
 		return nil, status.Error(codes.Internal, "Unable to get account.")
 	}
 
-	fs, err := s.fundingSourceService.CreateMxBankAccount(ctx, &fundingsources.CreateMxBankAccountArgs{
-		AccountID:    acc.ID,
-		IdentityID:   user.ID,
-		MxUserGuid:   req.GetUserGuid(),
-		MxMemberGuid: req.GetMemberGuid(),
-		Name:         req.GetName(),
+	workflowUuid, err := s.mxProvider.InitiateCreateAccount(ctx, &mx.InitiateCreateAccountArgs{
+		AccountID:         acc.ID,
+		IdentityID:        user.ID,
+		UserGuid:          req.GetUserGuid(),
+		MemberGuid:        req.GetMemberGuid(),
+		FundingsourceName: req.GetName(),
 	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Unable to create bank account.")
 	}
 
-	return &backendv1.FundingSource{
-		Id:    fs.ID,
-		State: fs.VerificationState,
-		Name:  fs.Name,
-		Mask:  fs.Mask,
+	return &backendv1.InitiateCreateBankAccountResponse{
+		Reference: workflowUuid,
 	}, nil
 }

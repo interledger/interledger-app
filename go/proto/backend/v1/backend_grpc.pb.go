@@ -143,7 +143,7 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackendServiceClient interface {
 	GetBankAccountWidget(ctx context.Context, in *GetBankAccountWidgetRequest, opts ...grpc.CallOption) (*GetBankAccountWidgetResponse, error)
-	CreateBankAccount(ctx context.Context, in *CreateBankAccountRequest, opts ...grpc.CallOption) (*FundingSource, error)
+	InitiateCreateBankAccount(ctx context.Context, in *InitiateCreateBankAccountRequest, opts ...grpc.CallOption) (*InitiateCreateBankAccountResponse, error)
 	// Returns the current onboarding flow.
 	GetOnboarding(ctx context.Context, in *GetOnboardingRequest, opts ...grpc.CallOption) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
@@ -170,9 +170,9 @@ func (c *backendServiceClient) GetBankAccountWidget(ctx context.Context, in *Get
 	return out, nil
 }
 
-func (c *backendServiceClient) CreateBankAccount(ctx context.Context, in *CreateBankAccountRequest, opts ...grpc.CallOption) (*FundingSource, error) {
-	out := new(FundingSource)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateBankAccount", in, out, opts...)
+func (c *backendServiceClient) InitiateCreateBankAccount(ctx context.Context, in *InitiateCreateBankAccountRequest, opts ...grpc.CallOption) (*InitiateCreateBankAccountResponse, error) {
+	out := new(InitiateCreateBankAccountResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/InitiateCreateBankAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (c *backendServiceClient) CheckPhoneVerificationCode(ctx context.Context, i
 // for forward compatibility
 type BackendServiceServer interface {
 	GetBankAccountWidget(context.Context, *GetBankAccountWidgetRequest) (*GetBankAccountWidgetResponse, error)
-	CreateBankAccount(context.Context, *CreateBankAccountRequest) (*FundingSource, error)
+	InitiateCreateBankAccount(context.Context, *InitiateCreateBankAccountRequest) (*InitiateCreateBankAccountResponse, error)
 	// Returns the current onboarding flow.
 	GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
@@ -237,8 +237,8 @@ type UnimplementedBackendServiceServer struct {
 func (UnimplementedBackendServiceServer) GetBankAccountWidget(context.Context, *GetBankAccountWidgetRequest) (*GetBankAccountWidgetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBankAccountWidget not implemented")
 }
-func (UnimplementedBackendServiceServer) CreateBankAccount(context.Context, *CreateBankAccountRequest) (*FundingSource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBankAccount not implemented")
+func (UnimplementedBackendServiceServer) InitiateCreateBankAccount(context.Context, *InitiateCreateBankAccountRequest) (*InitiateCreateBankAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InitiateCreateBankAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOnboarding not implemented")
@@ -282,20 +282,20 @@ func _BackendService_GetBankAccountWidget_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_CreateBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateBankAccountRequest)
+func _BackendService_InitiateCreateBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitiateCreateBankAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateBankAccount(ctx, in)
+		return srv.(BackendServiceServer).InitiateCreateBankAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CreateBankAccount",
+		FullMethod: "/backend.v1.BackendService/InitiateCreateBankAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateBankAccount(ctx, req.(*CreateBankAccountRequest))
+		return srv.(BackendServiceServer).InitiateCreateBankAccount(ctx, req.(*InitiateCreateBankAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -384,8 +384,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetBankAccountWidget_Handler,
 		},
 		{
-			MethodName: "CreateBankAccount",
-			Handler:    _BackendService_CreateBankAccount_Handler,
+			MethodName: "InitiateCreateBankAccount",
+			Handler:    _BackendService_InitiateCreateBankAccount_Handler,
 		},
 		{
 			MethodName: "GetOnboarding",

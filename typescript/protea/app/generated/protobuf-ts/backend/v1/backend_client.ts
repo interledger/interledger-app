@@ -7,8 +7,8 @@ import type { PhoneVerificationResponse } from "./backend";
 import type { SendPhoneVerificationRequest } from "./backend";
 import type { Onboarding } from "./backend";
 import type { GetOnboardingRequest } from "./backend";
-import type { FundingSource } from "./backend";
-import type { CreateBankAccountRequest } from "./backend";
+import type { InitiateCreateBankAccountResponse } from "./backend";
+import type { InitiateCreateBankAccountRequest } from "./backend";
 import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
@@ -67,9 +67,9 @@ export interface IBackendServiceClient {
      */
     getBankAccountWidget(input: GetBankAccountWidgetRequest, options?: RpcOptions): UnaryCall<GetBankAccountWidgetRequest, GetBankAccountWidgetResponse>;
     /**
-     * @generated from protobuf rpc: CreateBankAccount(backend.v1.CreateBankAccountRequest) returns (backend.v1.FundingSource);
+     * @generated from protobuf rpc: InitiateCreateBankAccount(backend.v1.InitiateCreateBankAccountRequest) returns (backend.v1.InitiateCreateBankAccountResponse);
      */
-    createBankAccount(input: CreateBankAccountRequest, options?: RpcOptions): UnaryCall<CreateBankAccountRequest, FundingSource>;
+    initiateCreateBankAccount(input: InitiateCreateBankAccountRequest, options?: RpcOptions): UnaryCall<InitiateCreateBankAccountRequest, InitiateCreateBankAccountResponse>;
     /**
      * Returns the current onboarding flow.
      *
@@ -110,11 +110,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetBankAccountWidgetRequest, GetBankAccountWidgetResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: CreateBankAccount(backend.v1.CreateBankAccountRequest) returns (backend.v1.FundingSource);
+     * @generated from protobuf rpc: InitiateCreateBankAccount(backend.v1.InitiateCreateBankAccountRequest) returns (backend.v1.InitiateCreateBankAccountResponse);
      */
-    createBankAccount(input: CreateBankAccountRequest, options?: RpcOptions): UnaryCall<CreateBankAccountRequest, FundingSource> {
+    initiateCreateBankAccount(input: InitiateCreateBankAccountRequest, options?: RpcOptions): UnaryCall<InitiateCreateBankAccountRequest, InitiateCreateBankAccountResponse> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CreateBankAccountRequest, FundingSource>("unary", this._transport, method, opt, input);
+        return stackIntercept<InitiateCreateBankAccountRequest, InitiateCreateBankAccountResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * Returns the current onboarding flow.
