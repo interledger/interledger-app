@@ -40,7 +40,7 @@ func MakeMiddleware(us Service) func(http.Handler) http.Handler {
 const cookieMetadataKey = "cookies"
 
 // Our front-end will forward the raw http cookies in the metadata.
-func MakeUnaryInterceptor(us Service, serviceName string) grpc.ServerOption {
+func MakeUnaryInterceptor(us Service) grpc.ServerOption {
 	return grpc.ChainUnaryInterceptor(func(
 		ctx context.Context,
 		req interface{},
