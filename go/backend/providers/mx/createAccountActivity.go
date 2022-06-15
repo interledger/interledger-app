@@ -64,13 +64,24 @@ func (a *Activity) GetSelectedMxAccountGuid(
 
 func (a *Activity) CreateMxAccount(
 	ctx context.Context,
-	id string, // id that will be used for our database row
+	fundingsourceID string,
 	accountID string,
-	mxUserGuid string,
-	mxMemberGuid string,
-	mxAccountGuid string, // id the mx generates
-) (string, error) {
-	return "", nil
+	userGuid string, // from mx
+	memberGuid string, // from mx
+	accountGuid string, // from mx
+) error {
+	_, err := a.mx.CreateAccount(ctx, &CreateAccountArgs{
+		Guid:            accountGuid,
+		UserGuid:        userGuid,
+		MemberGuid:      memberGuid,
+		AccountID:       accountID,
+		FundingsourceID: fundingsourceID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *Activity) StartIdentityAggregation(

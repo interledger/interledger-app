@@ -55,12 +55,13 @@ type (
 	}
 
 	Account struct {
-		Guid       string //from mx
-		UserGuid   string `db:"user_guid"`   // from mx
-		MemberGuid string `db:"member_guid"` // from mx
-		AccountID  string `db:"account_id"`  // Fynbos account id
-		CreatedAt  string `db:"created_at"`
-		UpdatedAt  string `db:"updated_at"`
+		Guid            string //from mx
+		UserGuid        string `db:"user_guid"`   // from mx
+		MemberGuid      string `db:"member_guid"` // from mx
+		AccountID       string `db:"account_id"`  // Fynbos account id
+		FundingsourceID string `db:"fundingsource_id"`
+		CreatedAt       string `db:"created_at"`
+		UpdatedAt       string `db:"updated_at"`
 	}
 
 	Member struct {
@@ -238,10 +239,11 @@ func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, er
 }
 
 type CreateAccountArgs struct {
-	Guid       string `validate:"uuid4"`    // from mx
-	UserGuid   string `validate:"required"` // from mx
-	MemberGuid string `validate:"required"` // from mx
-	AccountID  string `validate:"uuid4"`
+	Guid            string `validate:"uuid4"`    // from mx
+	UserGuid        string `validate:"required"` // from mx
+	MemberGuid      string `validate:"required"` // from mx
+	AccountID       string `validate:"uuid4"`
+	FundingsourceID string `validate:"uuid4"`
 }
 
 func (s *service) CreateAccount(
@@ -261,14 +263,16 @@ func (s *service) CreateAccount(
 			guid,
 			user_guid,
 			member_guid,
-			account_id
+			account_id,
+			fundingsource_id
 		)
-		VALUES ($1, $2, $3, $4) RETURNING *;
+		VALUES ($1, $2, $3, $4, $5) RETURNING *;
 		`,
 		args.Guid,
 		args.UserGuid,
 		args.MemberGuid,
 		args.AccountID,
+		args.FundingsourceID,
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {

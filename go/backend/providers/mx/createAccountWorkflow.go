@@ -15,6 +15,9 @@ type CreateMxAccountWorkflowArgs struct {
 	FundingsourceName string `validate:"required"`
 }
 
+// The output of this workflow is a fundingsource identified by args.ID.
+// Mx is used to pull the account owner information and verify ownership. The account routing
+// numbers are then pulled to create a unit counterparty which is also mapped to the fundingsource.
 func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -27,6 +30,8 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 
 	logger.Info("Creating mx bank account")
 
+	// we tie the funding source to this workflow by setting the fundingsourceID to the supplied ID.
+	fundingsourceID := args.ID
 	mxAccountGuid := "" // the id that mx generates
 	err := workflow.ExecuteActivity(ctx, a.GetSelectedMxAccountGuid, args.UserGuid, args.MemberGuid).Get(ctx, &mxAccountGuid)
 	if err != nil {
@@ -37,7 +42,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 	err = workflow.ExecuteActivity(
 		ctx,
 		a.CreateMxAccount,
-		args.ID,
+		fundingsourceID,
 		args.AccountID,
 		args.UserGuid,
 		args.MemberGuid,
@@ -72,7 +77,12 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateFundingSource, args.ID, args.FundingsourceName).Get(ctx, nil)
+	err = workflow.ExecuteActivity(
+		ctx,
+		a.CreateFundingSource,
+		fundingsourceID,
+		args.FundingsourceName,
+	).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to create funding source.")
 		return err

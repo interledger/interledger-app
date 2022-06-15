@@ -125,10 +125,11 @@ func TestCreateAndGetAccount(t *testing.T) {
 		t.Fatal(err)
 	}
 	args := &CreateAccountArgs{
-		Guid:       uuid.NewString(),
-		UserGuid:   uuid.NewString(),
-		MemberGuid: uuid.NewString(),
-		AccountID:  uuid.NewString(),
+		Guid:            uuid.NewString(),
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
 	}
 
 	mxAccount, err := mx.CreateAccount(ctx, args)
@@ -139,6 +140,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 	assert.Equal(t, args.AccountID, mxAccount.AccountID)
 	assert.Equal(t, args.UserGuid, mxAccount.UserGuid)
 	assert.Equal(t, args.MemberGuid, mxAccount.MemberGuid)
+	assert.Equal(t, args.FundingsourceID, mxAccount.FundingsourceID)
 
 	freshMxFs, err := mx.GetAccount(ctx, args.Guid)
 	if err != nil {
@@ -148,6 +150,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 	assert.Equal(t, args.AccountID, freshMxFs.AccountID)
 	assert.Equal(t, args.UserGuid, freshMxFs.UserGuid)
 	assert.Equal(t, args.MemberGuid, freshMxFs.MemberGuid)
+	assert.Equal(t, args.FundingsourceID, freshMxFs.FundingsourceID)
 
 	noAcc, err := mx.GetAccount(ctx, uuid.NewString())
 	assert.ErrorIs(t, err, ErrNotFound)
@@ -179,10 +182,11 @@ func TestGetMemberStatus(t *testing.T) {
 	}
 
 	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-		Guid:       uuid.NewString(),
-		UserGuid:   uuid.NewString(),
-		MemberGuid: uuid.NewString(),
-		AccountID:  uuid.NewString(),
+		Guid:            uuid.NewString(),
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -218,10 +222,11 @@ func TestStartIdentityAggregation(t *testing.T) {
 	}
 
 	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-		Guid:       uuid.NewString(),
-		UserGuid:   uuid.NewString(),
-		MemberGuid: uuid.NewString(),
-		AccountID:  uuid.NewString(),
+		Guid:            uuid.NewString(),
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -279,10 +284,11 @@ func TestGetAccountOwner(t *testing.T) {
 			ExpectedError: nil,
 			RunBefore: func() {
 				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       mxAccountGuid,
-					UserGuid:   uuid.NewString(),
-					MemberGuid: uuid.NewString(),
-					AccountID:  uuid.NewString(),
+					Guid:            mxAccountGuid,
+					UserGuid:        uuid.NewString(),
+					MemberGuid:      uuid.NewString(),
+					AccountID:       uuid.NewString(),
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					t.Fatal(err)
@@ -295,10 +301,11 @@ func TestGetAccountOwner(t *testing.T) {
 			ExpectedError: ErrNotFound,
 			RunBefore: func() {
 				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       uuid.NewString(),
-					UserGuid:   uuid.NewString(),
-					MemberGuid: uuid.NewString(),
-					AccountID:  uuid.NewString(),
+					Guid:            uuid.NewString(),
+					UserGuid:        uuid.NewString(),
+					MemberGuid:      uuid.NewString(),
+					AccountID:       uuid.NewString(),
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					t.Fatal(err)
@@ -380,10 +387,11 @@ func TestGetMxAccount(t *testing.T) {
 			ExpectedError: nil,
 			RunBefore: func() {
 				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       mxAccountGuid,
-					UserGuid:   mxUserGuid,
-					MemberGuid: mxMemberGuid,
-					AccountID:  uuid.NewString(),
+					Guid:            mxAccountGuid,
+					UserGuid:        mxUserGuid,
+					MemberGuid:      mxMemberGuid,
+					AccountID:       uuid.NewString(),
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					t.Fatal(err)
@@ -396,10 +404,11 @@ func TestGetMxAccount(t *testing.T) {
 			ExpectedError: ErrInternal,
 			RunBefore: func() {
 				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       uuid.NewString(),
-					UserGuid:   uuid.NewString(),
-					MemberGuid: uuid.NewString(),
-					AccountID:  uuid.NewString(),
+					Guid:            uuid.NewString(),
+					UserGuid:        uuid.NewString(),
+					MemberGuid:      uuid.NewString(),
+					AccountID:       uuid.NewString(),
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					t.Fatal(err)
@@ -464,19 +473,21 @@ func TestGetMxUserByAccountID(t *testing.T) {
 				accountID = uuid.NewString()
 				expectedMxUserGuid = uuid.NewString()
 				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       uuid.NewString(),
-					UserGuid:   expectedMxUserGuid,
-					MemberGuid: uuid.NewString(),
-					AccountID:  accountID,
+					Guid:            uuid.NewString(),
+					UserGuid:        expectedMxUserGuid,
+					MemberGuid:      uuid.NewString(),
+					AccountID:       accountID,
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					rbt.Fatal(err)
 				}
 				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       uuid.NewString(),
-					UserGuid:   expectedMxUserGuid,
-					MemberGuid: uuid.NewString(),
-					AccountID:  accountID,
+					Guid:            uuid.NewString(),
+					UserGuid:        expectedMxUserGuid,
+					MemberGuid:      uuid.NewString(),
+					AccountID:       accountID,
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					rbt.Fatal(err)
@@ -490,19 +501,21 @@ func TestGetMxUserByAccountID(t *testing.T) {
 				accountID = uuid.NewString()
 				expectedMxUserGuid = uuid.NewString()
 				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       uuid.NewString(),
-					UserGuid:   expectedMxUserGuid,
-					MemberGuid: uuid.NewString(),
-					AccountID:  accountID,
+					Guid:            uuid.NewString(),
+					UserGuid:        expectedMxUserGuid,
+					MemberGuid:      uuid.NewString(),
+					AccountID:       accountID,
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					rbt.Fatal(err)
 				}
 				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:       uuid.NewString(),
-					UserGuid:   uuid.NewString(),
-					MemberGuid: uuid.NewString(),
-					AccountID:  accountID,
+					Guid:            uuid.NewString(),
+					UserGuid:        uuid.NewString(),
+					MemberGuid:      uuid.NewString(),
+					AccountID:       accountID,
+					FundingsourceID: uuid.NewString(),
 				})
 				if err != nil {
 					rbt.Fatal(err)
@@ -568,10 +581,11 @@ func TestVerifyOwnership(t *testing.T) {
 	}
 	userID := uuid.NewString()
 	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-		Guid:       mxAccountGuid,
-		UserGuid:   uuid.NewString(),
-		MemberGuid: uuid.NewString(),
-		AccountID:  uuid.NewString(),
+		Guid:            mxAccountGuid,
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
 	})
 	if err != nil {
 		t.Fatal(err)
