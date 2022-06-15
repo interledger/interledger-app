@@ -176,5 +176,46 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID strin
 }
 
 func (a *Activity) CreateFundingSource(ctx context.Context, mxAccountID string) error {
+	mxAccount, err := a.mx.GetAccount(ctx, mxAccountID)
+	if err != nil {
+		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
+	if err != nil {
+		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	user, err := a.identityService.Get(ctx, acc.IdentityID)
+	if err != nil {
+		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	// calling this in the activity so it's accidently stored in temporal state.
+	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	start := len(accountNumbers.AccountNumber) - 4
+	if start < 0 {
+		start = 0
+	}
+	// we use the last 4 digits. If it less than 4 digits then we use the whole thing.
+	mask := accountNumbers.AccountNumber[start:]
+
+	_, err = a.fundingsourceService.Create(ctx, &fundingsources.CreateArgs{
+		IdentityID:        user.ID, // TODO: refactor ACL out of services
+		AccountID:         mxAccount.AccountID,
+		Name:              "string",
+		Mask:              mask,
+		VerificationState: string(fundingsources.VERIFIED), // TODO: remove verification state
+		Type:              "mx",
+		SubType:           "bank",
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
 	return nil
 }
