@@ -2,7 +2,9 @@ package workflow
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -12,6 +14,10 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
+)
+
+var (
+	ErrInternal = errors.New("create mx account activity: internal error.")
 )
 
 type (
@@ -125,6 +131,47 @@ func (a *Activity) VerifyOwnership(
 }
 
 func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID string) error {
+	mxAccount, err := a.mx.GetAccount(ctx, mxAccountID)
+	if err != nil {
+		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
+	if err != nil {
+		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	user, err := a.identityService.Get(ctx, acc.IdentityID)
+	if err != nil {
+		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+	}
+
+	unitCustomer, err := a.unit.GetCustomerByAccountID(ctx, mxAccount.AccountID)
+	if err != nil {
+		return fmt.Errorf("%w No unit customer found for accountID=%s.", ErrInternal, mxAccount.AccountID)
+	}
+
+	// perform this just before creating the counter party as we get charged for Mx api calls.
+	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	idempotencyKey := sha256.Sum256([]byte(mxAccount.ID))
+	_, err = a.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
+		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
+		RoutingNumber:   accountNumbers.RoutingNumber,
+		AccountNumber:   accountNumbers.AccountNumber,
+		AccountType:     accountNumbers.Type,
+		Type:            "person",
+		IdempotencyKey:  string(idempotencyKey[0:]),
+		UnitCustomerID:  unitCustomer.ID,
+		FundingsourceID: mxAccount.ID, // TODO: confusing - refactor mx account model
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
 	return nil
 }
 

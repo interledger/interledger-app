@@ -196,29 +196,6 @@ func (s *loggingService) VerifyMxBankAccount(
 	return s.Service.VerifyMxBankAccount(ctx, identityID, fundingsourceID)
 }
 
-func (s *loggingService) CreateUnitCounterPartyFromMxAccount(
-	ctx context.Context,
-	fundingsourceID string,
-) (cp *UnitCounterParty, err error) {
-	defer func() {
-		if err != nil {
-			s.logger.Error(
-				"Failed to create unit counterparty from mx bank account.",
-				zap.String("fundingsourceID", fundingsourceID),
-				zap.String("msg", err.Error()),
-			)
-			return
-		}
-
-		s.logger.Debug(
-			"Created unit counterparty from mx account.",
-			zap.String("fundingsourceID", fundingsourceID),
-		)
-	}()
-
-	return s.Service.CreateUnitCounterPartyFromMxAccount(ctx, fundingsourceID)
-}
-
 func (s *loggingService) SetMxFundingSourceMask(ctx context.Context, fundingsourceID string) (err error) {
 	defer func() {
 		if err != nil {
