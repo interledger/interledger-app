@@ -13,10 +13,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
-	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
 
@@ -34,7 +32,6 @@ type Service interface {
 	GetByAccountId(ctx context.Context, identityId string) ([]FundingSource, error)
 	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
-	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
 }
 
 type service struct {
@@ -43,7 +40,6 @@ type service struct {
 	is        _identity.Service
 	as        accounts.Service
 	noop      noop.Service
-	mx        _mx.Service
 	tp        client.Client
 	unit      _unit.Service
 }
@@ -53,7 +49,6 @@ type ServiceArgs struct {
 	As   accounts.Service  `validate:"required"`
 	Db   *sqlx.DB          `validate:"required"`
 	Noop noop.Service      `validate:"required"`
-	Mx   _mx.Service       `validate:"required"`
 	Tp   client.Client     `validate:"required"`
 	Unit _unit.Service     `validate:"required"`
 }
@@ -71,7 +66,6 @@ func NewService(args *ServiceArgs) (Service, error) {
 		as:        args.As,
 		db:        args.Db,
 		noop:      args.Noop,
-		mx:        args.Mx,
 		tp:        args.Tp,
 		unit:      args.Unit,
 	}, nil
@@ -285,62 +279,6 @@ func (s *service) CreateBankAccount(
 	}
 
 	return fundingsource, nil
-}
-
-type CreateMxBankAccountArgs struct {
-	IdentityID   string `validate:"required"`
-	AccountID    string `validate:"required"`
-	MxUserGuid   string `validate:"required"`
-	MxMemberGuid string `validate:"required"`
-	Name         string `validate:"required"`
-}
-
-func (s *service) CreateMxBankAccount(
-	ctx context.Context,
-	args *CreateMxBankAccountArgs,
-) (*FundingSource, error) {
-	acc, err := s.as.Get(ctx, args.AccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	if acc.IdentityID != args.IdentityID {
-		return nil, ErrUnauthorized
-	}
-
-	fundingSource, err := s.Create(ctx, &CreateArgs{
-		IdentityID:        args.IdentityID,
-		AccountID:         args.AccountID,
-		Name:              args.Name,
-		VerificationState: "processing",
-		Type:              "mx",
-		SubType:           "bank",
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	_, err = s.tp.ExecuteWorkflow(
-		ctx,
-		client.StartWorkflowOptions{
-			ID:                    "create_mx_bank_account_" + fundingSource.ID,
-			TaskQueue:             "backend",
-			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-		},
-		CreateMxBankAccountWorkflow,
-		&CreateMxBankAccountWorkflowArgs{
-			IdentityID:      args.IdentityID,
-			FundingSourceID: fundingSource.ID,
-			MxUserGuid:      args.MxUserGuid,
-			MxMemberGuid:    args.MxMemberGuid,
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return fundingSource, nil
-
 }
 
 func IsVerified(fs *FundingSource) bool {

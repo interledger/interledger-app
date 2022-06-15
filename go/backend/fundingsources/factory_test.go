@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -38,7 +37,6 @@ type TestContainer struct {
 	PacioliClient    pacioliv1.PacioliServiceClient
 	PacioliLedgerID  uint16
 	Tp               *mocks.Client
-	Mx               *mx.MockService
 	Unit             *_unit.MockService
 }
 
@@ -127,14 +125,12 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	}
 	c.Os = os
 
-	c.Mx = mx.NewMockService(ctrl)
 	c.Unit = _unit.NewMockService(ctrl)
 	fs, err := NewService(&ServiceArgs{
 		Is:   is,
 		As:   as,
 		Db:   db,
 		Noop: noop,
-		Mx:   c.Mx,
 		Tp:   c.Tp,
 		Unit: c.Unit,
 	})

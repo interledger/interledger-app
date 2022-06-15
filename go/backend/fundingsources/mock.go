@@ -64,51 +64,6 @@ func (mr *MockServiceMockRecorder) CreateBankAccount(ctx, args interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccount", reflect.TypeOf((*MockService)(nil).CreateBankAccount), ctx, args)
 }
 
-// CreateMxBankAccount mocks base method.
-func (m *MockService) CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateMxBankAccount", ctx, args)
-	ret0, _ := ret[0].(*FundingSource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateMxBankAccount indicates an expected call of CreateMxBankAccount.
-func (mr *MockServiceMockRecorder) CreateMxBankAccount(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMxBankAccount", reflect.TypeOf((*MockService)(nil).CreateMxBankAccount), ctx, args)
-}
-
-// CreateUnitCounterParty mocks base method.
-func (m *MockService) CreateUnitCounterParty(ctx context.Context, fundingsourceID, unitCounterPartyID string) (*UnitCounterParty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUnitCounterParty", ctx, fundingsourceID, unitCounterPartyID)
-	ret0, _ := ret[0].(*UnitCounterParty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateUnitCounterParty indicates an expected call of CreateUnitCounterParty.
-func (mr *MockServiceMockRecorder) CreateUnitCounterParty(ctx, fundingsourceID, unitCounterPartyID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUnitCounterParty", reflect.TypeOf((*MockService)(nil).CreateUnitCounterParty), ctx, fundingsourceID, unitCounterPartyID)
-}
-
-// CreateUnitCounterPartyFromMxAccount mocks base method.
-func (m *MockService) CreateUnitCounterPartyFromMxAccount(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUnitCounterPartyFromMxAccount", ctx, fundingsourceID)
-	ret0, _ := ret[0].(*UnitCounterParty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateUnitCounterPartyFromMxAccount indicates an expected call of CreateUnitCounterPartyFromMxAccount.
-func (mr *MockServiceMockRecorder) CreateUnitCounterPartyFromMxAccount(ctx, fundingsourceID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUnitCounterPartyFromMxAccount", reflect.TypeOf((*MockService)(nil).CreateUnitCounterPartyFromMxAccount), ctx, fundingsourceID)
-}
-
 // Get mocks base method.
 func (m *MockService) Get(ctx context.Context, id string) (*FundingSource, error) {
 	m.ctrl.T.Helper()
@@ -139,65 +94,6 @@ func (mr *MockServiceMockRecorder) GetByAccountId(ctx, identityId interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAccountId", reflect.TypeOf((*MockService)(nil).GetByAccountId), ctx, identityId)
 }
 
-// GetMxConnectWidget mocks base method.
-func (m *MockService) GetMxConnectWidget(ctx context.Context, accountID, identityID string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMxConnectWidget", ctx, accountID, identityID)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMxConnectWidget indicates an expected call of GetMxConnectWidget.
-func (mr *MockServiceMockRecorder) GetMxConnectWidget(ctx, accountID, identityID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMxConnectWidget", reflect.TypeOf((*MockService)(nil).GetMxConnectWidget), ctx, accountID, identityID)
-}
-
-// GetUnitCounterParty mocks base method.
-func (m *MockService) GetUnitCounterParty(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUnitCounterParty", ctx, fundingsourceID)
-	ret0, _ := ret[0].(*UnitCounterParty)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUnitCounterParty indicates an expected call of GetUnitCounterParty.
-func (mr *MockServiceMockRecorder) GetUnitCounterParty(ctx, fundingsourceID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnitCounterParty", reflect.TypeOf((*MockService)(nil).GetUnitCounterParty), ctx, fundingsourceID)
-}
-
-// SetMask mocks base method.
-func (m *MockService) SetMask(ctx context.Context, fundingsourceID, mask string) (*FundingSource, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetMask", ctx, fundingsourceID, mask)
-	ret0, _ := ret[0].(*FundingSource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SetMask indicates an expected call of SetMask.
-func (mr *MockServiceMockRecorder) SetMask(ctx, fundingsourceID, mask interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMask", reflect.TypeOf((*MockService)(nil).SetMask), ctx, fundingsourceID, mask)
-}
-
-// SetMxFundingSourceMask mocks base method.
-func (m *MockService) SetMxFundingSourceMask(ctx context.Context, fundigsourceID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetMxFundingSourceMask", ctx, fundigsourceID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetMxFundingSourceMask indicates an expected call of SetMxFundingSourceMask.
-func (mr *MockServiceMockRecorder) SetMxFundingSourceMask(ctx, fundigsourceID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMxFundingSourceMask", reflect.TypeOf((*MockService)(nil).SetMxFundingSourceMask), ctx, fundigsourceID)
-}
-
 // Verify mocks base method.
 func (m *MockService) Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error) {
 	m.ctrl.T.Helper()
@@ -211,19 +107,4 @@ func (m *MockService) Verify(ctx context.Context, args *VerifyArgs) (*FundingSou
 func (mr *MockServiceMockRecorder) Verify(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockService)(nil).Verify), ctx, args)
-}
-
-// VerifyMxBankAccount mocks base method.
-func (m *MockService) VerifyMxBankAccount(ctx context.Context, identityID, fundingsourceID string) (*FundingSource, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyMxBankAccount", ctx, identityID, fundingsourceID)
-	ret0, _ := ret[0].(*FundingSource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// VerifyMxBankAccount indicates an expected call of VerifyMxBankAccount.
-func (mr *MockServiceMockRecorder) VerifyMxBankAccount(ctx, identityID, fundingsourceID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyMxBankAccount", reflect.TypeOf((*MockService)(nil).VerifyMxBankAccount), ctx, identityID, fundingsourceID)
 }

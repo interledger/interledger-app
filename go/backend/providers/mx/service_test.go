@@ -11,9 +11,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 )
 
@@ -685,4 +687,112 @@ func TestGetMxConnectWidget(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.NotEqual(t, "", url)
+}
+
+func TestInitiateCreateAccount(t *testing.T) {
+	// TODO: refactor test container
+	ctrl := gomock.NewController(t)
+	accountsService := accounts.NewMockService(ctrl)
+	identityService := identity.NewMockService(ctrl)
+	temporal := &mocks.Client{}
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:         "http://localhost",
+		Username:        "test",
+		Password:        "test",
+		Db:              &sqlx.DB{},
+		AccountsService: accountsService,
+		IdentityService: identityService,
+		Temporal:        temporal,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	userID := uuid.NewString()
+	accountID := uuid.NewString()
+	userGuid := uuid.NewString()
+	memberGuid := uuid.NewString()
+	fundingSourceName := "test"
+	scenarios := []struct {
+		Name          string
+		ExpectedError error
+		RunBefore     func()
+	}{
+		{
+			Name:          "Returns ErrUnauthorized if identity does not own account",
+			ExpectedError: ErrUnauthorized,
+			RunBefore: func() {
+				accountsService.EXPECT().Get(gomock.Any(), accountID).Return(
+					&accounts.Account{
+						ID:         accountID,
+						IdentityID: uuid.NewString(),
+					},
+					nil,
+				).Times(1)
+			},
+		},
+		{
+			Name:          "Creates funding source and initiates workflow.",
+			ExpectedError: nil,
+			RunBefore: func() {
+				accountsService.EXPECT().Get(gomock.Any(), accountID).Return(
+					&accounts.Account{
+						ID:         accountID,
+						IdentityID: userID,
+					},
+					nil,
+				).Times(1)
+				temporal.On(
+					"ExecuteWorkflow",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.MatchedBy(func(args *CreateMxAccountWorkflowArgs) bool {
+						_, err := uuid.Parse(args.ID)
+						if err != nil {
+							return false
+						}
+						return args.MemberGuid == memberGuid && args.UserGuid == userGuid && args.IdentityID == userID
+					}),
+				).Return(
+					func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
+						testWorkflowID := opts.ID
+						testRunID := "test-runid"
+
+						mockWorkflowRun := &mocks.WorkflowRun{}
+						mockWorkflowRun.On("GetID").Return(testWorkflowID)
+						mockWorkflowRun.On("GetRunID").Return(testRunID)
+						mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
+						return mockWorkflowRun
+					}, nil,
+				).Times(1)
+			},
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.Name, func(tc *testing.T) {
+			scenario.RunBefore()
+			worflowUuid, err := mx.InitiateCreateAccount(
+				context.Background(),
+				&InitiateCreateAccountArgs{
+					IdentityID:        userID,
+					AccountID:         accountID,
+					UserGuid:          userGuid,
+					MemberGuid:        memberGuid,
+					FundingsourceName: fundingSourceName,
+				},
+			)
+
+			if scenario.ExpectedError == nil {
+				assert.NoError(tc, err, scenario.Name)
+				_, err = uuid.Parse(worflowUuid)
+				if err != nil {
+					tc.Fatal(err)
+				}
+			} else {
+				assert.ErrorIs(tc, err, scenario.ExpectedError, scenario.Name)
+			}
+		})
+	}
 }

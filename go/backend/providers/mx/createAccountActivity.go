@@ -1,4 +1,4 @@
-package workflow
+package mx
 
 import (
 	"context"
@@ -11,27 +11,21 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/mx"
-	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
-)
-
-var (
-	ErrInternal = errors.New("create mx account activity: internal error.")
 )
 
 type (
 	Activity struct {
 		validator            *validator.Validate
 		unit                 _unit.Service
-		mx                   mx.Service
+		mx                   Service
 		accountService       accounts.Service
 		identityService      identity.Service
 		fundingsourceService fundingsources.Service
 	}
 
 	ActivityArgs struct {
-		Mx                   _mx.Service            `validate:"required"`
+		Mx                   Service                `validate:"required"`
 		Unit                 _unit.Service          `validate:"required"`
 		AccountService       accounts.Service       `validate:"required"`
 		IdentityService      identity.Service       `validate:"required"`
