@@ -15,9 +15,11 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
 
@@ -27,6 +29,7 @@ var (
 	ErrNotFound             = errors.New("mx provider: not found.")
 	ErrDuplicate            = errors.New("mx provider: duplicate.")
 	ErrOwnershipCheckFailed = errors.New("mx provider: ownership check failed.")
+	ErrUnauthorized         = errors.New("mx provider: unauthorized.")
 )
 
 type (
@@ -43,6 +46,7 @@ type (
 		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
 		VerifyOwnership(ctx context.Context, id string) error
 		GetConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
+		InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error)
 	}
 
 	user struct {
@@ -552,4 +556,54 @@ func (s *service) GetConnectWidget(
 	}
 
 	return url, nil
+}
+
+type InitiateCreateAccountArgs struct {
+	UserGuid          string `validate:"required"` // from mx
+	MemberGuid        string `validate:"required"` // from mx
+	AccountID         string `validate:"uuid4"`
+	IdentityID        string `validate:"uuid4"`
+	FundingsourceName string `validate:"required"`
+}
+
+func (s *service) InitiateCreateAccount(
+	ctx context.Context,
+	args *InitiateCreateAccountArgs,
+) (string, error) {
+	if err := s.v.Struct(args); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	acc, err := s.accountsService.Get(ctx, args.AccountID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if acc.IdentityID != args.IdentityID {
+		return "", ErrUnauthorized
+	}
+
+	workflowUuid := uuid.NewString()
+	_, err = s.temporal.ExecuteWorkflow(
+		ctx,
+		client.StartWorkflowOptions{
+			ID:                    "create_mx_bank_account_" + workflowUuid,
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		},
+		CreateMxAccountWorkflow,
+		&CreateMxAccountWorkflowArgs{
+			ID:                workflowUuid,
+			IdentityID:        args.IdentityID,
+			AccountID:         args.AccountID,
+			UserGuid:          args.UserGuid,
+			MemberGuid:        args.MemberGuid,
+			FundingsourceName: args.FundingsourceName,
+		},
+	)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return workflowUuid, nil
 }

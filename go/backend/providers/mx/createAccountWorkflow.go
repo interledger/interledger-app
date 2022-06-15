@@ -1,4 +1,4 @@
-package workflow
+package mx
 
 import (
 	"time"
@@ -8,10 +8,11 @@ import (
 
 type CreateMxAccountWorkflowArgs struct {
 	ID                string `validate:"uuid4"`
-	FundingsourceName string `validate:"required"`
+	UserGuid          string `validate:"required"`
+	MemberGuid        string `validate:"required"`
 	AccountID         string `validate:"required"`
-	MxUserGuid        string `validate:"required"`
-	MxMemberGuid      string `validate:"required"`
+	IdentityID        string `validate:"uuid4"`
+	FundingsourceName string `validate:"required"`
 }
 
 func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflowArgs) error {
@@ -27,7 +28,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 	logger.Info("Creating mx bank account")
 
 	mxAccountGuid := "" // the id that mx generates
-	err := workflow.ExecuteActivity(ctx, a.GetSelectedMxAccountGuid, args.MxUserGuid, args.MxMemberGuid).Get(ctx, &mxAccountGuid)
+	err := workflow.ExecuteActivity(ctx, a.GetSelectedMxAccountGuid, args.UserGuid, args.MemberGuid).Get(ctx, &mxAccountGuid)
 	if err != nil {
 		logger.Error("Failed to find mx account.", err)
 		return err
@@ -38,8 +39,8 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		a.CreateMxAccount,
 		args.ID,
 		args.AccountID,
-		args.MxUserGuid,
-		args.MxMemberGuid,
+		args.UserGuid,
+		args.MemberGuid,
 		mxAccountGuid,
 	).Get(ctx, nil)
 	if err != nil {

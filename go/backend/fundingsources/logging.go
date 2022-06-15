@@ -125,25 +125,3 @@ func (s *loggingService) CreateBankAccount(ctx context.Context, args *CreateBank
 
 	return s.Service.CreateBankAccount(ctx, args)
 }
-
-func (s *loggingService) CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (fs *FundingSource, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			s.logger.Error(
-				"Failed to create mx bank account.",
-				zap.String("accountID", args.AccountID),
-				zap.Int64("took", time.Since(begin).Milliseconds()),
-				zap.String("msg", err.Error()),
-			)
-			return
-		}
-
-		s.logger.Debug(
-			"Created mx bank account",
-			zap.String("accountID", args.AccountID),
-			zap.String("fundingSourceID", fs.ID),
-		)
-	}(time.Now())
-
-	return s.Service.CreateMxBankAccount(ctx, args)
-}
