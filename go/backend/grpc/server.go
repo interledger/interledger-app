@@ -36,8 +36,6 @@ type ServerArgs struct {
 	OnboardingService    onboarding.Service     `validate:"required"`
 }
 
-const rpcServiceName = "public"
-
 type rpcService struct {
 	backendv1.UnimplementedBackendServiceServer
 	validator            *validator.Validate
@@ -47,11 +45,6 @@ type rpcService struct {
 	unitProvider         unit.Service
 	onboardingService    onboarding.Service
 	fundingSourceService fundingsources.Service
-	name                 string
-}
-
-func (s *rpcService) GetName() string {
-	return s.name
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -61,8 +54,8 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 	}
 
 	server := grpc.NewServer(
-		args.AdminAuthService.MakeUnaryInterceptors(_admin.AdminRpcServiceName),
-		user.MakeUnaryInterceptor(args.UserService, rpcServiceName),
+		args.AdminAuthService.MakeUnaryInterceptors(),
+		user.MakeUnaryInterceptor(args.UserService),
 	)
 	backendv1.RegisterBackendServiceServer(server, &rpcService{
 		validator:            v,
@@ -72,7 +65,6 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		unitProvider:         args.UnitProvider,
 		onboardingService:    args.OnboardingService,
 		fundingSourceService: args.FundingSourceService,
-		name:                 rpcServiceName,
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,
@@ -80,7 +72,6 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		IdentityService: args.IdentityService,
 		AuthService:     args.AdminAuthService,
 		UnitService:     args.UnitProvider,
-		Name:            _admin.AdminRpcServiceName,
 	})
 	grpc_health_v1.RegisterHealthServer(server, args.HealthCheckService)
 	reflection.Register(server)
