@@ -638,3 +638,51 @@ func TestVerifyOwnership(t *testing.T) {
 		})
 	}
 }
+
+func TestGetMxConnectWidget(t *testing.T) {
+	// TODO: refactor test container
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	db := test_utils.MigrateCockroachDB(t, ctx)
+	accountService := accounts.NewMockService(ctrl)
+	identityService := identity.NewMockService(ctrl)
+	mxAccountGuid := uuid.NewString()
+	mxServer := NewMockServer(func(s *MockServerState) {
+		s.AccountOwners = []AccountOwner{
+			{
+				AccountGuid: mxAccountGuid,
+				OwnerName:   "James Bond",
+				Country:     "US",
+				Email:       faker.Email(),
+				Phone:       faker.E164PhoneNumber(),
+			},
+		}
+	})
+	mx, err := NewService(&ServiceArgs{
+		BaseUrl:         mxServer.URL,
+		Username:        "test",
+		Password:        "test",
+		Db:              db,
+		AccountsService: accountService,
+		IdentityService: identityService,
+		Temporal:        &mocks.Client{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// TODO: service needs to be refactored so that can test that api calls were made.
+	accountID := uuid.NewString()
+	userID := uuid.NewString()
+	accountService.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
+		ID:         accountID,
+		IdentityID: userID,
+	}, nil).AnyTimes()
+
+	url, err := mx.GetConnectWidget(context.Background(), accountID, userID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.NotEqual(t, "", url)
+}
