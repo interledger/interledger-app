@@ -152,12 +152,12 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID strin
 	}
 
 	// perform this just before creating the counter party as we get charged for Mx api calls.
-	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.ID)
+	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	idempotencyKey := sha256.Sum256([]byte(mxAccount.ID))
+	idempotencyKey := sha256.Sum256([]byte(mxAccount.Guid))
 	_, err = a.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
 		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
 		RoutingNumber:   accountNumbers.RoutingNumber,
@@ -166,7 +166,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID strin
 		Type:            "person",
 		IdempotencyKey:  string(idempotencyKey[0:]),
 		UnitCustomerID:  unitCustomer.ID,
-		FundingsourceID: mxAccount.ID, // TODO: confusing - refactor mx account model
+		FundingsourceID: mxAccount.Guid, // TODO: confusing - refactor mx account model
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
@@ -192,7 +192,7 @@ func (a *Activity) CreateFundingSource(ctx context.Context, mxAccountID string) 
 	}
 
 	// calling this in the activity so it's accidently stored in temporal state.
-	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.ID)
+	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
