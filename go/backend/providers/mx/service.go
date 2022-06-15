@@ -42,6 +42,7 @@ type (
 		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
 		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
 		VerifyOwnership(ctx context.Context, id string) error
+		GetConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 	}
 
 	user struct {
@@ -518,4 +519,37 @@ func (s *service) VerifyOwnership(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (s *service) GetConnectWidget(
+	ctx context.Context,
+	accountID string,
+	identityID string,
+) (string, error) {
+	acc, err := s.accountsService.Get(ctx, accountID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	mxUserGuid := ""
+	mxUserGuid, err = s.GetMxUserByAccountID(ctx, acc.ID)
+	if errors.Is(err, ErrNotFound) {
+		mxUserGuid, err = s.CreateUser(ctx)
+		if err != nil {
+			return "", fmt.Errorf("%w %s", ErrInternal, err)
+		}
+	} else {
+		if err != nil {
+			return "", fmt.Errorf("%w %s", ErrInternal, err)
+		}
+
+		// mx user found so carry on.
+	}
+
+	url, err := s.GetWidgetUrl(ctx, mxUserGuid)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return url, nil
 }

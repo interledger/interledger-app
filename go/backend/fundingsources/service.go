@@ -35,7 +35,6 @@ type Service interface {
 	Verify(ctx context.Context, args *VerifyArgs) (*FundingSource, error)
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
 	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
-	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 }
 
 type service struct {
@@ -286,38 +285,6 @@ func (s *service) CreateBankAccount(
 	}
 
 	return fundingsource, nil
-}
-func (s *service) GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error) {
-	acc, err := s.as.Get(ctx, accountID)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	if acc.IdentityID != identityID {
-		return "", ErrUnauthorized
-	}
-
-	mxUserGuid := ""
-	mxUserGuid, err = s.mx.GetMxUserByAccountID(ctx, accountID)
-	if errors.Is(err, _mx.ErrNotFound) {
-		mxUserGuid, err = s.mx.CreateUser(ctx)
-		if err != nil {
-			return "", fmt.Errorf("%w %s", ErrInternal, err)
-		}
-	} else {
-		if err != nil {
-			return "", fmt.Errorf("%w %s", ErrInternal, err)
-		}
-
-		// mx user found so carry on.
-	}
-
-	url, err := s.mx.GetWidgetUrl(ctx, mxUserGuid)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return url, nil
 }
 
 type CreateMxBankAccountArgs struct {
