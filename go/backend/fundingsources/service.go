@@ -4,7 +4,6 @@ package fundingsources
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -37,7 +36,6 @@ type Service interface {
 	CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (*FundingSource, error)
 	CreateMxBankAccount(ctx context.Context, args *CreateMxBankAccountArgs) (*FundingSource, error)
 	GetMxConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
-	CreateUnitCounterPartyFromMxAccount(ctx context.Context, fundingsourceID string) (*UnitCounterParty, error)
 	SetMxFundingSourceMask(ctx context.Context, fundigsourceID string) error
 	SetMask(ctx context.Context, fundingsourceID string, mask string) (*FundingSource, error)
 }
@@ -378,51 +376,6 @@ func (s *service) CreateMxBankAccount(
 
 	return fundingSource, nil
 
-}
-
-func (s *service) CreateUnitCounterPartyFromMxAccount(
-	ctx context.Context,
-	fundingsourceID string,
-) (*UnitCounterParty, error) {
-	mxFs, err := s.Get(ctx, fundingsourceID)
-	if err != nil {
-		return nil, err
-	}
-	if mxFs.Type != "mx" {
-		return nil, fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
-	}
-
-	unitCustomer, err := s.unit.GetCustomerByAccountID(ctx, mxFs.AccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w No unit customer found for accountID=%s.", ErrInternal, mxFs.AccountID)
-	}
-
-	// perform this just before creating the counter party as we get charged for Mx api calls.
-	accountNumbers, err := s.mx.ReadAccount(ctx, fundingsourceID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	idempotencyKey := sha256.Sum256([]byte(fundingsourceID))
-	cp, err := s.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
-		Name:           mxFs.Name,
-		RoutingNumber:  accountNumbers.RoutingNumber,
-		AccountNumber:  accountNumbers.AccountNumber,
-		AccountType:    accountNumbers.Type,
-		Type:           "person",
-		IdempotencyKey: string(idempotencyKey[0:]),
-		UnitCustomerID: unitCustomer.ID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	ret, err := s.CreateUnitCounterParty(ctx, fundingsourceID, cp.ID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return ret, err
 }
 
 func (s *service) SetMxFundingSourceMask(ctx context.Context, fundingsourceID string) error {

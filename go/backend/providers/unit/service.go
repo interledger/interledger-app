@@ -252,7 +252,7 @@ func (s *service) GetCustomerByAccountID(ctx context.Context, accountID string) 
 
 type (
 	CreateCounterPartyArgs struct {
-		FundingsourceID string `validate:uuid4`
+		FundingsourceID string `validate:"uuid4"`
 		Name            string `validate:"required"`
 		UnitCustomerID  string `validate:"required"`
 		RoutingNumber   string `validate:"required"`
