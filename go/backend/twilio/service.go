@@ -28,6 +28,10 @@ type service struct {
 	twilioClient 		 *twilio.RestClient
 }
 
+type RateLimits struct {
+	PhoneNumberVerificationSendTimeout string `json:"phone_number_verification_send_timeout"` // this is the unique identifier of the service rate limit
+}
+
 type VerificationStatus struct {
 	Sid		 			string
 	Status 			string
@@ -62,6 +66,10 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 	params := &openapi.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
+	params.SetRateLimits(&RateLimits{
+		PhoneNumberVerificationSendTimeout: phoneNumber,
+	})
+	// TODO: add built-in timeout
 
 	res, err := s.twilioClient.VerifyV2.CreateVerification(s.serviceSid, params)
 	if err != nil {
