@@ -239,7 +239,7 @@ func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, er
 }
 
 type CreateAccountArgs struct {
-	Guid            string `validate:"uuid4"`    // from mx
+	Guid            string `validate:"required"` // from mx
 	UserGuid        string `validate:"required"` // from mx
 	MemberGuid      string `validate:"required"` // from mx
 	AccountID       string `validate:"uuid4"`
