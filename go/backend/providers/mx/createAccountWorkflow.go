@@ -53,7 +53,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.StartIdentityAggregation, args.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.StartIdentityAggregation, mxAccountGuid).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to start mx identity aggregation.", err)
 		return err
@@ -62,7 +62,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 	err = workflow.ExecuteActivity(
 		ctx,
 		a.WaitForIdentityAggregation,
-		args.ID,
+		mxAccountGuid,
 		10,
 		time.Second,
 	).Get(ctx, nil)
@@ -71,13 +71,13 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, args.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, mxAccountGuid).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Bank account is not owned by user.")
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateUnitCounterParty, args.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateUnitCounterParty, mxAccountGuid).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to create unit counter party.")
 		return err
@@ -86,7 +86,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 	err = workflow.ExecuteActivity(
 		ctx,
 		a.CreateFundingSource,
-		fundingsourceID,
+		mxAccountGuid,
 		args.FundingsourceName,
 	).Get(ctx, nil)
 	if err != nil {
