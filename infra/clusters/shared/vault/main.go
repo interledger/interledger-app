@@ -5,6 +5,7 @@ import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
 
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
@@ -43,6 +44,98 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// Create KMSIssuer for internal Vault TLS
+		kmsIssuer, err := apiextensions.NewCustomResource(ctx, "vault-kms-issuer", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("cert-manager.skyscanner.net/v1alpha1"),
+			Kind:       pulumi.String("KMSIssuer"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("vault-kms-issuer"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"keyId":      pulumi.String("alias/kms-issuer"),
+					"commonName": pulumi.String("Fynbos Vault Root CA"),
+					"duration":   pulumi.String("87600h"),
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace}))
+
+		cert, err := apiextensions.NewCustomResource(ctx, "vault-tls-cert", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("cert-manager.io/v1"),
+			Kind:       pulumi.String("Certificate"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("vault-tls-cert"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"secretName":  pulumi.String("vault-tls"),
+					"duration":    pulumi.String("720h"),
+					"renewBefore": pulumi.String("168h"),
+					"usages": pulumi.StringArray{
+						pulumi.String("server auth"),
+						pulumi.String("client auth"),
+					},
+					"privateKey": pulumi.Map{
+						"algorithm": pulumi.String("RSA"),
+						"size":      pulumi.Int(2048),
+					},
+					"commonName": pulumi.String("vault"),
+					"subject": pulumi.Map{
+						"organizations": pulumi.StringArray{
+							pulumi.String("Cockroach"),
+						},
+					},
+					"dnsNames": pulumi.StringArray{
+						pulumi.String("localhost"),
+						pulumi.String("127.0.0.1"),
+						pulumi.String("vault-internal"),
+						pulumi.String("*.vault-internal"),
+						pulumi.String("*.vault-internal.vault"),
+						pulumi.String("*.vault-internal.vault.svc.cluster.local"),
+					},
+					"issuerRef": pulumi.Map{
+						"name":  kmsIssuer.Metadata.Name(),
+						"kind":  kmsIssuer.Kind,
+						"group": pulumi.String("cert-manager.skyscanner.net"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, kmsIssuer}))
+
+		remoteCert, err := apiextensions.NewCustomResource(ctx, "vault-remote-cert", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("cert-manager.io/v1"),
+			Kind:       pulumi.String("Certificate"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("vault-remote-cert"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"secretName":  pulumi.String("vault-remote-tls"),
+					"duration":    pulumi.String("2160h"),
+					"renewBefore": pulumi.String("360h"),
+					"usages": pulumi.StringArray{
+						pulumi.String("server auth"),
+						pulumi.String("client auth"),
+					},
+					"privateKey": pulumi.Map{
+						"algorithm": pulumi.String("RSA"),
+						"size":      pulumi.Int(2048),
+					},
+					"dnsNames": pulumi.StringArray{
+						pulumi.String("vault1.fynbos.cloud"),
+					},
+					"issuerRef": pulumi.Map{
+						"name":  pulumi.String("fynbos-cloud-issuer"),
+						"kind":  pulumi.String("ClusterIssuer"),
+						"group": pulumi.String("cert-manager.io"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace}))
 
 		trustPolicy := fynbosK8s.NewIamTrustPolicyDocumentV2(ctx, pulumi.String(accountId), oidcProvider, namespace.Metadata.Name().Elem(), pulumi.String("vault"))
 		role, err := iam.NewRole(ctx, "eks-vault-sa-role", &iam.RoleArgs{
@@ -89,7 +182,11 @@ func main() {
 				Repo: pulumi.String("https://helm.releases.hashicorp.com"),
 			},
 			Values: pulumi.Map{
+				"global": pulumi.Map{
+					"tlsDisable": pulumi.Bool(false),
+				},
 				"server": pulumi.Map{
+					"updateStrategyType": pulumi.String("RollingUpdate"),
 					"nodeSelector": pulumi.StringMap{
 						"vault_in_k8s": pulumi.String("true"),
 					},
@@ -112,9 +209,33 @@ func main() {
 						"create": pulumi.Bool(false),
 						"name":   serviceAccount.Metadata.Name(),
 					},
+					"volumes": pulumi.MapArray{
+						pulumi.Map{
+							"name": pulumi.String("vault-tls"),
+							"secret": pulumi.Map{
+								"secretName": pulumi.String("vault-tls"),
+							},
+						},
+						pulumi.Map{
+							"name": pulumi.String("vault-remote-tls"),
+							"secret": pulumi.Map{
+								"secretName": pulumi.String("vault-remote-tls"),
+							},
+						},
+					},
+					"volumeMounts": pulumi.MapArray{
+						pulumi.Map{
+							"name":      pulumi.String("vault-tls"),
+							"mountPath": pulumi.String("/etc/vault/tls/"),
+						},
+						pulumi.Map{
+							"name":      pulumi.String("vault-remote-tls"),
+							"mountPath": pulumi.String("/etc/vault/remote-tls/"),
+						},
+					},
 				},
 			},
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, serviceAccount, key}))
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, serviceAccount, key, cert, remoteCert}))
 
 		lbVault, err := corev1.NewService(ctx, "vault-lb", &corev1.ServiceArgs{
 			Metadata: &metav1.ObjectMetaArgs{
@@ -133,7 +254,7 @@ func main() {
 				Ports: corev1.ServicePortArray{
 					corev1.ServicePortArgs{
 						Port:       pulumi.Int(8200),
-						TargetPort: pulumi.Int(8200),
+						TargetPort: pulumi.Int(8202),
 					},
 				},
 				Selector: pulumi.StringMap{
