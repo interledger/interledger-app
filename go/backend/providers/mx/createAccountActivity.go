@@ -86,9 +86,9 @@ func (a *Activity) CreateMxAccount(
 
 func (a *Activity) StartIdentityAggregation(
 	ctx context.Context,
-	mxAccountID string,
+	mxAccountGuid string,
 ) error {
-	_, err := a.mx.StartIdentityAggregation(ctx, mxAccountID)
+	_, err := a.mx.StartIdentityAggregation(ctx, mxAccountGuid)
 	if err != nil {
 		return err
 	}
@@ -96,28 +96,33 @@ func (a *Activity) StartIdentityAggregation(
 	return nil
 }
 
-// Uses a ticker and go routine to poll every second for up to 10 seconds for aggregation to be
-// complete. Temporal recommends this over failing the activity task for polling at short intervals.
+// Uses a ticker and go routine to poll for aggregation to be complete. Temporal recommends this
+// over failing the activity task for polling at short intervals.
+// This will always perform at least one api call. Thereafter it will retry up to maxRetries.
 func (a *Activity) WaitForIdentityAggregation(
 	ctx context.Context,
-	mxAccountID string,
+	mxAccountGuid string,
+	maxRetries uint8,
+	pollInterval time.Duration,
 ) error {
-	now := time.Now()
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(pollInterval)
+	retries := uint8(0)
 	for range ticker.C {
-		elapsed := time.Since(now)
-		if elapsed > 10*time.Second {
+		if retries > maxRetries {
 			return errors.New("Timed out waiting for identity aggregation.")
 		}
 
-		member, err := a.mx.GetMemberStatus(ctx, mxAccountID)
+		member, err := a.mx.GetMemberStatus(ctx, mxAccountGuid)
 		if err != nil {
+			retries += 1
 			continue
 		}
 
 		if !member.IsBeingAggregated {
-			return nil
+			break
 		}
+
+		retries += 1
 	}
 
 	return nil
@@ -135,25 +140,30 @@ func (a *Activity) VerifyOwnership(
 	return nil
 }
 
-func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID string) error {
-	mxAccount, err := a.mx.GetAccount(ctx, mxAccountID)
+// This will first validate that the associated mxAccount, account, user and unit customer exist.
+// It then fetches the account routing information from MX and uses it to create a counterparty
+// on unit.
+// Note: the sha256 of the fundingsourceID is used as the idempotency key when calling out to
+// Unit.
+func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid string) error {
+	mxAccount, err := a.mx.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
-		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
 	if err != nil {
-		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	user, err := a.identityService.Get(ctx, acc.IdentityID)
 	if err != nil {
-		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	unitCustomer, err := a.unit.GetCustomerByAccountID(ctx, mxAccount.AccountID)
 	if err != nil {
-		return fmt.Errorf("%w No unit customer found for accountID=%s.", ErrInternal, mxAccount.AccountID)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	// perform this just before creating the counter party as we get charged for Mx api calls.
@@ -162,7 +172,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID strin
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	idempotencyKey := sha256.Sum256([]byte(mxAccount.Guid))
+	idempotencyKey := sha256.Sum256([]byte(mxAccount.FundingsourceID))
 	_, err = a.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
 		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
 		RoutingNumber:   accountNumbers.RoutingNumber,
@@ -171,7 +181,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID strin
 		Type:            "person",
 		IdempotencyKey:  string(idempotencyKey[0:]),
 		UnitCustomerID:  unitCustomer.ID,
-		FundingsourceID: mxAccount.Guid, // TODO: confusing - refactor mx account model
+		FundingsourceID: mxAccount.FundingsourceID,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
@@ -180,23 +190,31 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountID strin
 	return nil
 }
 
-func (a *Activity) CreateFundingSource(ctx context.Context, mxAccountID string) error {
-	mxAccount, err := a.mx.GetAccount(ctx, mxAccountID)
+// This will first validate that the associated mxAccount, account and user exist before creating
+// a funding source.
+// The account number is then retrieved from MX and the last 4 digits used as the funding source
+// mask.
+func (a *Activity) CreateFundingSource(
+	ctx context.Context,
+	mxAccountGuid string,
+	fundingsourceName string,
+) error {
+	mxAccount, err := a.mx.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
-		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
 	if err != nil {
-		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	user, err := a.identityService.Get(ctx, acc.IdentityID)
 	if err != nil {
-		return fmt.Errorf("%w Funding source is not an mx account.", ErrInternal)
+		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	// calling this in the activity so it's accidently stored in temporal state.
+	// calling this in the activity so it's not accidently stored in temporal state.
 	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
@@ -212,7 +230,7 @@ func (a *Activity) CreateFundingSource(ctx context.Context, mxAccountID string) 
 	_, err = a.fundingsourceService.Create(ctx, &fundingsources.CreateArgs{
 		IdentityID:        user.ID, // TODO: refactor ACL out of services
 		AccountID:         mxAccount.AccountID,
-		Name:              "string",
+		Name:              fundingsourceName,
 		Mask:              mask,
 		VerificationState: string(fundingsources.VERIFIED), // TODO: remove verification state
 		Type:              "mx",
