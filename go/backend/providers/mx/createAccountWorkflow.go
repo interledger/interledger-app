@@ -59,7 +59,13 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.WaitForIdentityAggregation, args.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(
+		ctx,
+		a.WaitForIdentityAggregation,
+		args.ID,
+		10,
+		time.Second,
+	).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Mx identity aggregation failed.")
 		return err
