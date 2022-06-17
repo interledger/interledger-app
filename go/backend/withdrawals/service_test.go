@@ -298,7 +298,6 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		As:   as,
 		Noop: c.NoopService,
 		Unit: c.Unit,
-		Mx:   c.Mx,
 		Tp:   temporal,
 	})
 	if err != nil {

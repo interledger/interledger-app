@@ -86,8 +86,8 @@ func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
 	}
 	w.RegisterActivity(unitOnboardingActivity)
 
-	w.RegisterWorkflow(fundingsources.CreateMxBankAccountWorkflow)
-	createMxBankAccountActivity, err := fundingsources.NewActivity(&fundingsources.ActivityArgs{
+	w.RegisterWorkflow(mx.CreateMxAccountWorkflow)
+	createMxBankAccountActivity, err := mx.NewActivity(&mx.ActivityArgs{
 		Mx:                   args.Mx,
 		Unit:                 args.Up,
 		AccountService:       args.As,

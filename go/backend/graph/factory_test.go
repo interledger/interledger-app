@@ -170,7 +170,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		Db:   db,
 		Noop: noopProvider,
 		Unit: us,
-		Mx:   c.Mx,
 		Tp:   tp,
 	})
 	if err != nil {

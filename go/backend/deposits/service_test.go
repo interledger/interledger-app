@@ -205,7 +205,6 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		Is:   is,
 		As:   as,
 		Noop: c.NoopService,
-		Mx:   c.Mx,
 		Unit: c.Unit,
 		Tp:   c.Tp,
 	})
