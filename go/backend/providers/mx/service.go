@@ -298,8 +298,8 @@ func (s service) GetAccount(ctx context.Context, guid string) (*Account, error) 
 	return ret, nil
 }
 
-func (s *service) StartIdentityAggregation(ctx context.Context, mxFundingSourceID string) (*Member, error) {
-	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
+func (s *service) StartIdentityAggregation(ctx context.Context, mxAccountGuid string) (*Member, error) {
+	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
 		return nil, err
 	}
@@ -328,8 +328,9 @@ func (s *service) StartIdentityAggregation(ctx context.Context, mxFundingSourceI
 	return member, nil
 }
 
-func (s *service) GetMemberStatus(ctx context.Context, mxFundingSourceID string) (*Member, error) {
-	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
+// This is used to poll for the status of the aggregation.
+func (s *service) GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error) {
+	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
 		return nil, err
 	}
@@ -358,11 +359,13 @@ func (s *service) GetMemberStatus(ctx context.Context, mxFundingSourceID string)
 	return member, nil
 }
 
+// This will fetch the account owner information for the specified mx account. The identity
+// aggregation has to have been completed first.
 func (s service) GetAccountOwner(
 	ctx context.Context,
-	mxFundingSourceID string,
+	mxAccountGuid string,
 ) (*AccountOwner, error) {
-	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
+	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
 		return nil, err
 	}
@@ -406,8 +409,11 @@ func (s service) GetAccountOwner(
 	return ret, nil
 }
 
-func (s service) ReadAccount(ctx context.Context, mxFundingSourceID string) (*MxAccount, error) {
-	mxAccount, err := s.GetAccount(ctx, mxFundingSourceID)
+// This will fetch the account information from MX. The account routing information as well as
+// balance will be returned.
+// Note: the balance will be from the last time the account information was aggregated.
+func (s service) ReadAccount(ctx context.Context, mxAccountGuid string) (*MxAccount, error) {
+	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
 		return nil, err
 	}
