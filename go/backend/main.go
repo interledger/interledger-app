@@ -189,8 +189,8 @@ func start(args *cli.StartArgs) {
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
 		BaseUrl:         args.MxBaseURL,
-		Username:        args.MxUsername,
-		Password:        args.MxPassword,
+		ClientID: args.MxClientID,
+		ApiKey:   args.MxApiKey,
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,
@@ -514,8 +514,8 @@ func startWorker(args *cli.StartArgs) {
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
 		BaseUrl:         args.MxBaseURL,
-		Username:        args.MxUsername,
-		Password:        args.MxPassword,
+		ClientID: args.MxClientID,
+		ApiKey:   args.MxApiKey,
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,

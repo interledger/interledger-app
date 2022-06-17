@@ -107,8 +107,8 @@ type (
 
 	ServiceArgs struct {
 		BaseUrl         string           `validate:"required"`
-		Username        string           `validate:"required"`
-		Password        string           `validate:"required"`
+		ClientID        string           `validate:"required"`
+		ApiKey          string           `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		AccountsService accounts.Service `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
@@ -164,7 +164,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		v:       v,
 		baseUrl: args.BaseUrl,
 		mxClient: &http.Client{
-			Transport: newBasicAuthTransport(args.Username, args.Password),
+			Transport: newBasicAuthTransport(args.ClientID, args.ApiKey),
 		},
 		db:              args.Db,
 		accountsService: args.AccountsService,

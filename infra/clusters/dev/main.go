@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	b64 "encoding/base64"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -168,8 +169,14 @@ func main() {
 		}
 
 		// TODO: pull from Vault
-		mxUsername := os.Getenv("MX_USERNAME")
-		mxPassword := os.Getenv("MX_PASSWORD")
+		mxClientID := os.Getenv("MX_CLIENT_ID")
+		if mxClientID == "" {
+			return errors.New("MX_CLIENT_ID is required.")
+		}
+		mxApiKey := os.Getenv("MX_API_KEY")
+		if mxApiKey == "" {
+			return errors.New("MX_API_KEY is required.")
+		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
 			ImageRepo:            ecrRepo,
 			Cert:                 beCert,
@@ -183,8 +190,8 @@ func main() {
 			UnitWebhookToken:     "webhooktoken",
 			GoogleOauth2ClientID: "572950914705-ith2keqq6l3cu652n262jd0gf9ffi7ka.apps.googleusercontent.com",
 			MxBaseURL:            "https://api.mx.com",
-			MxUsername:           mxUsername,
-			MxPassword:           mxPassword,
+			MxClientID:           mxClientID,
+			MxApiKey:             mxApiKey,
 		})
 		if err != nil {
 			return err

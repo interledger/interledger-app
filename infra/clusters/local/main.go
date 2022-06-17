@@ -116,9 +116,14 @@ func main() {
 			return err
 		}
 
-		// TODO: pull from Vault
-		mxUsername := os.Getenv("MX_USERNAME")
-		mxPassword := os.Getenv("MX_PASSWORD")
+		mxClientID := os.Getenv("MX_CLIENT_ID")
+		if mxClientID == "" {
+			mxClientID = "test"
+		}
+		mxApiKey := os.Getenv("MX_API_KEY")
+		if mxApiKey == "" {
+			mxApiKey = "test"
+		}
 		err = backend.DeployBackend(ctx, backend.DeployBackendArgs{
 			ImageRepo:            "localhost:5005",
 			Cert:                 beCert,
@@ -132,8 +137,8 @@ func main() {
 			UnitWebhookToken:     "fynbos_local_unit_webhook_token",
 			GoogleOauth2ClientID: "572950914705-dv7oqq4r8bqljv3s831qqcan1n6f8vvs.apps.googleusercontent.com",
 			MxBaseURL:            "https://int-api.mx.com",
-			MxUsername:           mxUsername,
-			MxPassword:           mxPassword,
+			MxClientID:           mxClientID,
+			MxApiKey:             mxApiKey,
 		})
 		if err != nil {
 			return err

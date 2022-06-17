@@ -26,8 +26,8 @@ type DeployBackendArgs struct {
 	UnitWebhookToken     string
 	GoogleOauth2ClientID string // oauth client for the admin app
 	MxBaseURL            string
-	MxUsername           string
-	MxPassword           string
+	MxClientID           string
+	MxApiKey             string
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -55,8 +55,8 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.UnitBaseUrl,
 		args.UnitWebhookToken,
 		args.GoogleOauth2ClientID,
-		args.MxPassword,
-		args.MxUsername,
+		args.MxApiKey,
+		args.MxClientID,
 		args.MxBaseURL,
 	)
 	if err != nil {
@@ -139,8 +139,8 @@ func deployDeployment(
 	unitBaseUrl string,
 	unitWebhookToken string,
 	googleOauth2ClientID string,
-	mxPassword string,
-	mxUsername string,
+	mxApiKey string,
+	mxClientID string,
 	mxBaseUrl string,
 ) error {
 	mxCredentials, err := v1.NewSecret(ctx, "mx-credentials", &v1.SecretArgs{
@@ -153,8 +153,8 @@ func deployDeployment(
 			},
 		},
 		StringData: pulumi.StringMap{
-			"password": pulumi.String(mxPassword),
-			"username": pulumi.String(mxUsername),
+			"api_key":   pulumi.String(mxApiKey),
+			"client_id": pulumi.String(mxClientID),
 		},
 	})
 	if err != nil {
@@ -338,20 +338,20 @@ func deployDeployment(
 									Value: pulumi.String(mxBaseUrl),
 								},
 								&corev1.EnvVarArgs{
-									Name: pulumi.String("MX_USERNAME"),
+									Name: pulumi.String("MX_CLIENT_ID"),
 									ValueFrom: corev1.EnvVarSourceArgs{
 										SecretKeyRef: corev1.SecretKeySelectorArgs{
 											Name: mxCredentials.Metadata.Name(),
-											Key:  pulumi.String("username"),
+											Key:  pulumi.String("client_id"),
 										},
 									},
 								},
 								&corev1.EnvVarArgs{
-									Name: pulumi.String("MX_PASSWORD"),
+									Name: pulumi.String("MX_API_KEY"),
 									ValueFrom: corev1.EnvVarSourceArgs{
 										SecretKeyRef: corev1.SecretKeySelectorArgs{
 											Name: mxCredentials.Metadata.Name(),
-											Key:  pulumi.String("password"),
+											Key:  pulumi.String("api_key"),
 										},
 									},
 								},
@@ -413,20 +413,20 @@ func deployDeployment(
 									Value: pulumi.String(mxBaseUrl),
 								},
 								&corev1.EnvVarArgs{
-									Name: pulumi.String("MX_USERNAME"),
+									Name: pulumi.String("MX_CLIENT_ID"),
 									ValueFrom: corev1.EnvVarSourceArgs{
 										SecretKeyRef: corev1.SecretKeySelectorArgs{
 											Name: mxCredentials.Metadata.Name(),
-											Key:  pulumi.String("username"),
+											Key:  pulumi.String("client_id"),
 										},
 									},
 								},
 								&corev1.EnvVarArgs{
-									Name: pulumi.String("MX_PASSWORD"),
+									Name: pulumi.String("MX_API_KEY"),
 									ValueFrom: corev1.EnvVarSourceArgs{
 										SecretKeyRef: corev1.SecretKeySelectorArgs{
 											Name: mxCredentials.Metadata.Name(),
-											Key:  pulumi.String("password"),
+											Key:  pulumi.String("api_key"),
 										},
 									},
 								},
