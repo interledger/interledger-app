@@ -97,8 +97,8 @@ type StartArgs struct {
 	UnitWebhookToken     string
 	GoogleOauth2ClientID string
 	MxBaseURL            string
-	MxUsername           string
-	MxPassword           string
+	MxClientID           string
+	MxApiKey             string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -175,14 +175,14 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("MX_BASE_URL is required.")
 	}
 
-	mxUsername := os.Getenv("MX_USERNAME")
-	if mxUsername == "" {
-		return nil, errors.New("MX_USERNAME is required.")
+	mxClientID := os.Getenv("MX_CLIENT_ID")
+	if mxClientID == "" {
+		return nil, errors.New("MX_CLIENT_ID is required.")
 	}
 
-	mxPassword := os.Getenv("MX_PASSWORD")
-	if mxPassword == "" {
-		return nil, errors.New("MX_PASSWORD is required.")
+	mxApiKey := os.Getenv("MX_API_KEY")
+	if mxApiKey == "" {
+		return nil, errors.New("MX_API_KEY is required.")
 	}
 
 	return &StartArgs{
@@ -200,7 +200,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		UnitWebhookToken:     unitWebhookToken,
 		GoogleOauth2ClientID: googleOauth2ClientID,
 		MxBaseURL:            mxBaseURL,
-		MxUsername:           mxUsername,
-		MxPassword:           mxPassword,
+		MxClientID:           mxClientID,
+		MxApiKey:             mxApiKey,
 	}, nil
 }

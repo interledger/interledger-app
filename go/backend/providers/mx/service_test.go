@@ -25,13 +25,13 @@ func TestIntegration(t *testing.T) {
 	if !*runIntegration {
 		t.Skip()
 	}
-	username := os.Getenv("MX_USERNAME")
-	password := os.Getenv("MX_PASSWORD")
+	clientID := os.Getenv("MX_CLIENT_ID")
+	apiKey := os.Getenv("MX_API_KEY")
 	ctrl := gomock.NewController(t)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         "https://int-api.mx.com",
-		Username:        username,
-		Password:        password,
+		ClientID:        clientID,
+		ApiKey:          apiKey,
 		Db:              &sqlx.DB{},
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -61,8 +61,8 @@ func TestCreateUser(t *testing.T) {
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              &sqlx.DB{},
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -87,8 +87,8 @@ func TestGetWidgetUrl(t *testing.T) {
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              &sqlx.DB{},
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -114,8 +114,8 @@ func TestCreateAndGetAccount(t *testing.T) {
 	mockMxServer := NewMockServer()
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -170,8 +170,8 @@ func TestGetMemberStatus(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -210,8 +210,8 @@ func TestStartIdentityAggregation(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -262,8 +262,8 @@ func TestGetAccountOwner(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -365,8 +365,8 @@ func TestGetMxAccount(t *testing.T) {
 	})
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mockMxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -448,8 +448,8 @@ func TestGetMxUserByAccountID(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         "localhost:8080",
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -569,8 +569,8 @@ func TestVerifyOwnership(t *testing.T) {
 	})
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accountService,
 		IdentityService: identityService,
@@ -677,8 +677,8 @@ func TestGetMxConnectWidget(t *testing.T) {
 	})
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         mxServer.URL,
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              db,
 		AccountsService: accountService,
 		IdentityService: identityService,
@@ -711,8 +711,8 @@ func TestInitiateCreateAccount(t *testing.T) {
 	temporal := &mocks.Client{}
 	mx, err := NewService(&ServiceArgs{
 		BaseUrl:         "http://localhost",
-		Username:        "test",
-		Password:        "test",
+		ClientID:        "test",
+		ApiKey:          "test",
 		Db:              &sqlx.DB{},
 		AccountsService: accountsService,
 		IdentityService: identityService,
