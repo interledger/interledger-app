@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
@@ -114,6 +115,74 @@ func main() {
 				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{release, role}))
+
+		// Create KMS Key
+		kmsIssuerKey, err := kms.NewKey(ctx, "kms-issuer-key", &kms.KeyArgs{
+			DeletionWindowInDays:  pulumi.Int(30),
+			Description:           pulumi.String("KMS Issuer Key"),
+			CustomerMasterKeySpec: pulumi.String("RSA_2048"),
+			KeyUsage:              pulumi.String("SIGN_VERIFY"),
+		})
+		if err != nil {
+			return err
+		}
+
+		kmsIssuerAlias, err := kms.NewAlias(ctx, "kms-issuer-alias", &kms.AliasArgs{
+			TargetKeyId: kmsIssuerKey.KeyId,
+			Name:        pulumi.String("alias/kms-issuer"),
+		}, pulumi.DependsOn([]pulumi.Resource{kmsIssuerKey}))
+
+		// Create KMS Role
+		kmsRole, err := createKmsIssuerRole(ctx, CreateKmsIssuerRole{
+			AccountId:      pulumi.String(accountID),
+			OidcProvider:   oidcProvider,
+			Namespace:      pulumi.String("cert-manager"),
+			ServiceAccount: pulumi.String("kms-issuer"),
+			KmsKeyArn:      kmsIssuerKey.Arn,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = helm.NewRelease(ctx, "kms-issuer", &helm.ReleaseArgs{
+			Version:   pulumi.String("1.0.1"),
+			Chart:     pulumi.String("kms-issuer"),
+			Namespace: pulumi.String("cert-manager"),
+			RepositoryOpts: &helm.RepositoryOptsArgs{
+				Repo: pulumi.String("https://skyscanner.github.io/kms-issuer"),
+			},
+			Values: pulumi.Map{
+				"serviceAccount": pulumi.Map{
+					"name": pulumi.String("kms-issuer"),
+					"annotations": pulumi.Map{
+						"eks.amazonaws.com/role-arn": kmsRole.Arn,
+					},
+				},
+				"env": pulumi.MapArray{
+					pulumi.Map{
+						"name":  pulumi.String("AWS_REGION"),
+						"value": pulumi.String("eu-west-1"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{kmsRole, kmsIssuerAlias}))
+		if err != nil {
+			return err
+		}
+
+		_, err = helm.NewRelease(ctx, "csi-driver-cert-manager", &helm.ReleaseArgs{
+			Version:   pulumi.String("0.3.2"),
+			Chart:     pulumi.String("cert-manager-csi-driver"),
+			Namespace: pulumi.String("cert-manager"),
+			RepositoryOpts: &helm.RepositoryOptsArgs{
+				Repo: pulumi.String("https://charts.jetstack.io"),
+			},
+			Values: pulumi.Map{},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{release}))
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -267,4 +336,52 @@ func deployDnsOverHttpsProxy(ctx *pulumi.Context, provider pulumi.ProviderResour
 	}
 
 	return nil
+}
+
+type CreateKmsIssuerRole struct {
+	AccountId      pulumi.StringPtrInput
+	OidcProvider   pulumi.StringPtrInput
+	Namespace      pulumi.StringPtrInput
+	ServiceAccount pulumi.StringPtrInput
+	KmsKeyArn      pulumi.StringPtrInput
+}
+
+func createKmsIssuerRole(ctx *pulumi.Context, args CreateKmsIssuerRole) (*iam.Role, error) {
+	policy := pulumi.All(args.KmsKeyArn).ApplyT(func(args []interface{}) (string, error) {
+		keyArn := args[0].(string)
+
+		kmsAccess, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+			Statements: []iam.GetPolicyDocumentStatement{
+				{
+					Effect: stringPtr("Allow"),
+					Actions: []string{
+						"kms:DescribeKey",
+						"kms:Sign",
+						"kms:Verify",
+						"kms:GetPublicKey",
+					},
+					Resources: []string{
+						keyArn,
+					},
+				},
+			},
+		})
+		return kmsAccess.Json, err
+	}).(pulumi.StringOutput)
+
+	trustPolicy := k8s.NewIamTrustPolicyDocumentV2(ctx, args.AccountId, args.OidcProvider, args.Namespace, args.ServiceAccount)
+
+	role, err := iam.NewRole(ctx, "kms-issuer-role", &iam.RoleArgs{
+		Name:        pulumi.String("eks-shared-kms-issuer-role"),
+		Description: pulumi.String("AWS role for kms issuer within the shared EKS cluster"),
+		InlinePolicies: iam.RoleInlinePolicyArray{
+			iam.RoleInlinePolicyArgs{
+				Name:   pulumi.String("kms"),
+				Policy: policy,
+			},
+		},
+		AssumeRolePolicy: trustPolicy,
+	})
+
+	return role, err
 }
