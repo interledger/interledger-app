@@ -57,7 +57,7 @@ func TestCreateFundingsource(t *testing.T) {
 
 	fundingsourceName := "test-mx"
 	mocks.FundingsourceService.EXPECT().Create(ctx, &fundingsources.CreateArgs{
-		// TODO: specify ID
+		ID:                fundingsourceID,
 		IdentityID:        userID,
 		AccountID:         accountID,
 		Name:              fundingsourceName,

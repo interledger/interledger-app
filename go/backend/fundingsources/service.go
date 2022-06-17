@@ -10,6 +10,7 @@ import (
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -99,6 +100,7 @@ type UnitCounterParty struct {
 }
 
 type CreateArgs struct {
+	ID                string `validate:"omitempty,uuid4"`
 	IdentityID        string `validate:"required,uuid4"`
 	AccountID         string `validate:"required,uuid4"`
 	Name              string `validate:"required"`
@@ -127,17 +129,22 @@ func (s *service) Create(ctx context.Context, args *CreateArgs) (*FundingSource,
 		return nil, ErrUnauthorized
 	}
 
+	fundingsourceID := args.ID
+	if fundingsourceID == "" {
+		fundingsourceID = uuid.NewString()
+	}
 	var fs FundingSource
 	err = s.db.GetContext(
 		ctx,
 		&fs,
 		`
 			INSERT INTO funding_sources (
-				account_id, name, mask, verification_state, type, subtype
+				id, account_id, name, mask, verification_state, type, subtype
 			)
-			VALUES ($1, $2, $3, $4, $5, $6)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
 			RETURNING *;
 		`,
+		fundingsourceID,
 		acc.ID,
 		args.Name,
 		args.Mask,
