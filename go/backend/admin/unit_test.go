@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/proto/backend/v1"
@@ -43,6 +44,7 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 		UserService:          user.NewMockService(),
 		FundingSourceService: fs,
 		OnboardingService:    onboardingService,
+		MxProvider:           mx.NewMockService(ctrl),
 	})
 	if err != nil {
 		t.Fatal(err)

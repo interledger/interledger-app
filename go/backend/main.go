@@ -188,10 +188,13 @@ func start(args *cli.StartArgs) {
 	}
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
-		BaseUrl:  args.MxBaseURL,
-		Username: args.MxUsername,
-		Password: args.MxPassword,
-		Db:       db,
+		BaseUrl:         args.MxBaseURL,
+		Username:        args.MxUsername,
+		Password:        args.MxPassword,
+		Db:              db,
+		AccountsService: as,
+		IdentityService: id,
+		Temporal:        tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -202,7 +205,6 @@ func start(args *cli.StartArgs) {
 		As:   as,
 		Db:   db,
 		Noop: nos,
-		Mx:   mx,
 		Unit: us,
 		Tp:   tp,
 	})
@@ -320,6 +322,7 @@ func start(args *cli.StartArgs) {
 		UserService:          users,
 		FundingSourceService: fs,
 		OnboardingService:    os,
+		MxProvider:           mx,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -510,10 +513,13 @@ func startWorker(args *cli.StartArgs) {
 	}
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
-		BaseUrl:  args.MxBaseURL,
-		Username: args.MxUsername,
-		Password: args.MxPassword,
-		Db:       db,
+		BaseUrl:         args.MxBaseURL,
+		Username:        args.MxUsername,
+		Password:        args.MxPassword,
+		Db:              db,
+		AccountsService: as,
+		IdentityService: id,
+		Temporal:        tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -525,7 +531,6 @@ func startWorker(args *cli.StartArgs) {
 		Db:   db,
 		Noop: nos,
 		Unit: unit,
-		Mx:   mx,
 		Tp:   tp,
 	})
 	if err != nil {

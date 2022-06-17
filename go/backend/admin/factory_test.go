@@ -21,6 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
@@ -159,6 +160,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		UserService:          user.NewMockService(),
 		FundingSourceService: c.Fs,
 		OnboardingService:    os,
+		MxProvider:           mx.NewMockService(c.Ctrl),
 	})
 	if err != nil {
 		return nil, err
