@@ -228,13 +228,14 @@ func (a *Activity) CreateFundingSource(
 	mask := accountNumbers.AccountNumber[start:]
 
 	_, err = a.fundingsourceService.Create(ctx, &fundingsources.CreateArgs{
-		IdentityID:        user.ID, // TODO: refactor ACL out of services
+		IdentityID:        user.ID,
 		AccountID:         mxAccount.AccountID,
 		Name:              fundingsourceName,
 		Mask:              mask,
 		VerificationState: string(fundingsources.VERIFIED), // TODO: remove verification state
 		Type:              "mx",
 		SubType:           "bank",
+		ID:                mxAccount.FundingsourceID,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
