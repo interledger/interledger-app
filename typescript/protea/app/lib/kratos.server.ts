@@ -50,13 +50,6 @@ export async function requireUserSession(request: Request): Promise<Session> {
 
   const userSession: Session = await session.json()
 
-  // Always redirect if the users email isn't verified
-  if (
-    userSession.identity.verifiable_addresses &&
-    !userSession.identity.verifiable_addresses[0].verified
-  ) {
-    throw redirect(route('/verify'))
-  }
   //TODO: check if has provider account
   // if not call onboarding and redirect to form
 
