@@ -110,7 +110,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
-	
+
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	provider, err := unit.NewService(unit.ServiceArgs{
@@ -156,7 +156,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 		}).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, customerCreatedEvent)
-		err = wh.HandleEvent(context.Background(), Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
+		err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
 
 		if scenario.OnboardingError != nil {
 			assert.ErrorIs(t, err, ErrInternal, scenario.Name)
@@ -194,7 +194,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 	customerCreatedEvent := NewCustomerCreatedEvent()
 
 	rawEvent := marshalBody(t, customerCreatedEvent)
-	err = wh.HandleEvent(context.Background(), Event{ ID: customerCreatedEvent.ID, Type: EventType("unknown")}, rawEvent.Bytes())
+	err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType("unknown")}, rawEvent.Bytes())
 	assert.NoError(t, err)
 }
 
@@ -225,7 +225,7 @@ func TestStoreEvent(t *testing.T) {
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 	rawEvent := marshalEvent(t, customerCreatedEvent)
-	testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type) }
+	testEvent := Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
 
 	storedEvent, err := wh.StoreEvent(ctx, testEvent, rawEvent)
 	if err != nil {
@@ -264,7 +264,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 	rawEvent := marshalEvent(t, customerCreatedEvent)
-	testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type) }
+	testEvent := Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
 
 	_, err = wh.StoreEvent(ctx, testEvent, rawEvent)
 	if err != nil {
@@ -304,7 +304,7 @@ func marshalEvent(t *testing.T, event interface{}) json.RawMessage {
 }
 
 func NewCustomerCreatedEvent() CustomerCreatedEvent {
-	return CustomerCreatedEvent{ 
+	return CustomerCreatedEvent{
 		ID:   uuid.NewString(),
 		Type: "customer.created",
 		Attributes: CustomerCreatedAttributes{

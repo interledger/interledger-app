@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/twilio"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -142,6 +143,11 @@ func TestSendPhoneVerification(s *testing.T) {
 			PhoneVerified:    false,
 			ServiceAgreement: false,
 		}, nil).Times(1)
+		c.TwilioService.EXPECT().SendVerificationCode(gomock.Any(), phone).Return(&twilio.Verification{
+			Status:      "pending",
+			PhoneNumber: phone,
+			Sid:         "",
+		}, nil).Times(1)
 		resp, err := client.SendPhoneVerification(
 			context.Background(),
 			&backendv1.SendPhoneVerificationRequest{
@@ -209,6 +215,14 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 			PhoneVerified:    false,
 			ServiceAgreement: false,
 		}, nil).Times(1)
+		c.TwilioService.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: phone,
+			Code:        code,
+		}).Return(&twilio.Verification{
+			Status:      "approved",
+			PhoneNumber: phone,
+			Sid:         "",
+		}, nil).Times(1)
 		resp, err := client.CheckPhoneVerificationCode(
 			context.Background(),
 			&backendv1.CheckPhoneVerificationCodeRequest{
@@ -222,6 +236,28 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 		}
 
 		assert.Equal(t, "approved", resp.GetStatus())
+	})
+
+	s.Run("Fails if status is not approved", func(t *testing.T) {
+		ID, phone, code := uuid.NewString(), faker.E164PhoneNumber(), "948372"
+		c.TwilioService.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: phone,
+			Code:        code,
+		}).Return(&twilio.Verification{
+			Status:      "pending",
+			PhoneNumber: phone,
+			Sid:         "",
+		}, nil).Times(1)
+		_, err := client.CheckPhoneVerificationCode(
+			context.Background(),
+			&backendv1.CheckPhoneVerificationCodeRequest{
+				To:           phone,
+				Code:         code,
+				OnboardingId: ID,
+			},
+		)
+
+		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error. verification code status is not approved: pending")
 	})
 
 	s.Run("Successfully validates input", func(t *testing.T) {

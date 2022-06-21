@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/proto/backend/v1"
 )
@@ -30,6 +31,7 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 	as := accounts.NewMockService(ctrl)
 	us := auth.NewMockService()
 	fs := fundingsources.NewMockService(ctrl)
+	tw := twilio.NewMockService(ctrl)
 	hs, err := healthcheck.NewService()
 	onboardingService := onboarding.NewMockService(ctrl)
 	if err != nil {
@@ -43,6 +45,7 @@ func TestGetUnitCustomerByAccountID(t *testing.T) {
 		UnitProvider:         up,
 		UserService:          user.NewMockService(),
 		FundingSourceService: fs,
+		TwilioService:        tw,
 		OnboardingService:    onboardingService,
 		MxProvider:           mx.NewMockService(ctrl),
 	})

@@ -3,9 +3,11 @@ package grpc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/twilio"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -137,9 +139,12 @@ func (s *rpcService) SendPhoneVerification(
 		return nil, ValidationError(err, validateSendPhoneVerificationDescription)
 	}
 
-	// TODO: Send a verification token from twilio
+	_, err := s.twilioService.SendVerificationCode(ctx, req.GetTo())
+	if err != nil {
+		return nil, InternalError(err)
+	}
 
-	_, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:    req.GetOnboardingId(),
 		Phone: req.GetTo(),
 	})
@@ -183,10 +188,19 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		return nil, ValidationError(err, validateCheckPhoneVerificationCodeDescription)
 	}
 
-	// TODO Check the verification token with twilio.
+	verification, err := s.twilioService.CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		PhoneNumber: req.GetTo(),
+		Code:        req.GetCode(),
+	})
+	if err != nil {
+		return nil, InternalError(err)
+	}
+	if verification.Status != "approved" {
+		return nil, InternalError(fmt.Errorf(" verification code status is not approved: %s", verification.Status))
+	}
 
 	// If successful set phoneVerified in onboarding table
-	_, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:            req.GetOnboardingId(),
 		PhoneVerified: true,
 	})
