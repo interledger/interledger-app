@@ -44,6 +44,11 @@ func InternalError(err error) error {
 	return status.Error(codes.Internal, "Internal server error."+err.Error())
 }
 
+// Validation error will build an immutable error representing the status of the response.
+func ForbiddenError(err error) error {
+	return status.Error(codes.PermissionDenied, "Forbidden."+err.Error())
+}
+
 // Not found error will build an immutable error representing the status of the response.
 func NotFoundError(err error) error {
 	return status.Error(codes.NotFound, "Not found."+err.Error())

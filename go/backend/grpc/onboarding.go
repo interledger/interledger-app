@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -108,6 +109,62 @@ func (s *rpcService) UpdateOnboarding(
 		Phone:              &onboard.Phone,
 		PhoneVerified:      &onboard.PhoneVerified,
 		ServiceAgreement:   &onboard.ServiceAgreement,
+	}, nil
+}
+
+type validateCreateIdentity struct {
+	OnboardingId string `validate:"required,uuid"`
+}
+
+func validateCreateIdentityDescription(err validator.FieldError) string {
+	switch err.Tag() {
+	case "required":
+		return "Onboarding id is required."
+	case "uuid":
+		return "Invalid onboarding id."
+	}
+	return ""
+}
+
+func (s *rpcService) CreateIdentity(
+	ctx context.Context,
+	req *backendv1.CreateIdentityRequest,
+) (*backendv1.CreateIdentityResponse, error) {
+	if err := s.validator.Struct(&validateCreateIdentity{
+		OnboardingId: req.GetOnboardingId(),
+	}); err != nil {
+		return nil, ValidationError(err, validateCreateIdentityDescription)
+	}
+
+	user, err := s.userService.ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError(err)
+	}
+
+	onboarding, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
+		Id: req.GetOnboardingId(),
+	})
+	if err != nil {
+		return nil, NotFoundError(err)
+	}
+
+	id, _ := s.identityService.Get(ctx, user.ID)
+	if id == nil {
+		id, err = s.identityService.Create(ctx, &identity.CreateArgs{
+			ID:           user.ID,
+			FirstName:    onboarding.FirstName,
+			LastName:     onboarding.LastName,
+			MobileNumber: onboarding.Phone,
+			Email:        onboarding.Email,
+			Country:      onboarding.Country,
+		})
+		if err != nil {
+			return nil, InternalError(err)
+		}
+	}
+
+	return &backendv1.CreateIdentityResponse{
+		IdentityId: id.ID,
 	}, nil
 }
 
