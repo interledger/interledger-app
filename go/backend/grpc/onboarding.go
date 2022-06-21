@@ -196,7 +196,7 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		return nil, InternalError(err)
 	}
 	if verification.Status != "approved" {
-		return nil, InternalError(fmt.Errorf("verification code status is: %s", verification.Status))
+		return nil, InternalError(fmt.Errorf(" verification code status is not approved: %s", verification.Status))
 	}
 
 	// If successful set phoneVerified in onboarding table
