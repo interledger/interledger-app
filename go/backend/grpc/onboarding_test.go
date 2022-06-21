@@ -335,6 +335,28 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 		assert.Equal(t, "approved", resp.GetStatus())
 	})
 
+	s.Run("Fails if status is not approved", func(t *testing.T) {
+		ID, phone, code := uuid.NewString(), faker.E164PhoneNumber(), "948372"
+		c.TwilioService.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: phone,
+			Code:        code,
+		}).Return(&twilio.Verification{
+			Status:      "pending",
+			PhoneNumber: phone,
+			Sid:         "",
+		}, nil).Times(1)
+		_, err := client.CheckPhoneVerificationCode(
+			context.Background(),
+			&backendv1.CheckPhoneVerificationCodeRequest{
+				To:           phone,
+				Code:         code,
+				OnboardingId: ID,
+			},
+		)
+
+		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error. verification code status is not approved: pending")
+	})
+
 	s.Run("Successfully validates input", func(t *testing.T) {
 		ID, phone := uuid.NewString(), faker.Phonenumber()
 		c.OnboardingService.EXPECT().UpdateOnboarding(gomock.Any(), &onboarding.UpdateOnboardingArgs{
