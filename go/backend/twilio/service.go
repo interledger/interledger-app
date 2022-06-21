@@ -71,6 +71,11 @@ func NewService(args *ServiceArgs) (Service, error) {
 }
 
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
+	err := s.validator.Var(phoneNumber, "required,e164")
+	if err != nil {
+		return nil, err
+	}
+
 	params := &verify.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
@@ -89,10 +94,15 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 
 type CheckVerificationCodeArgs struct {
 	PhoneNumber string `validate:"required,e164"`
-	Code        string `validate:"required"`
+	Code        string `validate:"required,numeric,len=6"`
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, err
+	}
+
 	params := &verify.CreateVerificationCheckParams{}
 	params.SetTo(args.PhoneNumber)
 	params.SetCode(args.Code)
