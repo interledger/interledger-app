@@ -22,7 +22,7 @@ export const TextField = React.forwardRef<any, TextFieldProps>(
         <input
           ref={ref}
           {...inputProps}
-          className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus:border-focus focus:ring-focus'
+          className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus:border-focus focus:ring-0'
         />
         <div className='h-7 pt-2 pl-2'>
           {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
