@@ -110,10 +110,6 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 		return nil, err
 	}
 
-	if *res.Status != "approved" {
-		return nil, ErrInvalidCode
-	}
-
 	return &Verification{
 		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
