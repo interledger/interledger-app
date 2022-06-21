@@ -19,8 +19,8 @@ var (
 
 type (
 	Service interface {
-		SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error)
-		CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error)
+		SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error)
+		CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error)
 	}
 
 	ServiceArgs struct {
@@ -40,10 +40,10 @@ type (
 		PhoneNumberVerificationSendTimeout string `json:"phone_number_verification_send_timeout"` // this is the unique identifier of the service rate limit
 	}
 
-	VerificationStatus struct {
+	Verification struct {
 		Sid         string
-		Status      string
 		PhoneNumber string
+		Status      string
 	}
 )
 
@@ -74,7 +74,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	}, nil
 }
 
-func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error) {
+func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	params := &verify.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
@@ -88,7 +88,7 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, err
 	}
 
-	return &VerificationStatus{
+	return &Verification{
 		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
 		Status:      *res.Status,
@@ -100,7 +100,7 @@ type CheckVerificationCodeArgs struct {
 	Code        string `validate:"required"`
 }
 
-func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
+func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
 	params := &verify.CreateVerificationCheckParams{}
 	params.SetTo(args.PhoneNumber)
 	params.SetCode(args.Code)
@@ -114,7 +114,7 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 		return nil, ErrInvalidCode
 	}
 
-	return &VerificationStatus{
+	return &Verification{
 		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
 		Status:      *res.Status,
