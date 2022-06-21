@@ -179,9 +179,9 @@ func start(args *cli.StartArgs) {
 	}
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid: args.TwilioSid,
-		AccountToken:  args.TwilioSecret,
-		ServiceSid: args.TwilioServiceSid,
+		AccountSid:   args.TwilioSid,
+		AccountToken: args.TwilioSecret,
+		ServiceSid:   args.TwilioServiceSid,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -333,7 +333,7 @@ func start(args *cli.StartArgs) {
 		FundingSourceService: fs,
 		OnboardingService:    os,
 		MxProvider:           mx,
-		TwilioService: 				twilioService,
+		TwilioService:        twilioService,
 	})
 	if err != nil {
 		log.Fatalln(err)

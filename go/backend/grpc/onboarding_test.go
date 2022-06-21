@@ -144,9 +144,9 @@ func TestSendPhoneVerification(s *testing.T) {
 			ServiceAgreement: false,
 		}, nil).Times(1)
 		c.TwilioService.EXPECT().SendVerificationCode(gomock.Any(), phone).Return(&twilio.VerificationStatus{
-			Status: "pending",
+			Status:      "pending",
 			PhoneNumber: phone,
-			Sid: "",
+			Sid:         "",
 		}, nil).Times(1)
 		resp, err := client.SendPhoneVerification(
 			context.Background(),
@@ -217,11 +217,11 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 		}, nil).Times(1)
 		c.TwilioService.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
 			PhoneNumber: phone,
-			Code: 			 code,
+			Code:        code,
 		}).Return(&twilio.VerificationStatus{
-			Status: "approved",
+			Status:      "approved",
 			PhoneNumber: phone,
-			Sid: "",
+			Sid:         "",
 		}, nil).Times(1)
 		resp, err := client.CheckPhoneVerificationCode(
 			context.Background(),

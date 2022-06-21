@@ -99,8 +99,8 @@ type StartArgs struct {
 	MxBaseURL            string
 	MxClientID           string
 	MxApiKey             string
-	TwilioSid     			 string
-	TwilioSecret   			 string
+	TwilioSid            string
+	TwilioSecret         string
 	TwilioServiceSid     string
 }
 
@@ -220,8 +220,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		MxBaseURL:            mxBaseURL,
 		MxClientID:           mxClientID,
 		MxApiKey:             mxApiKey,
-		TwilioSid:     				TwilioSid,
-		TwilioSecret:   			TwilioSecret,
+		TwilioSid:            TwilioSid,
+		TwilioSecret:         TwilioSecret,
 		TwilioServiceSid:     twilioServiceSid,
 	}, nil
 }

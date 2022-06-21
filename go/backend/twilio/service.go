@@ -12,38 +12,40 @@ import (
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
-type ServiceArgs struct {
-	AccountSid	 		 string `validate:"required"`
-	AccountToken 		 string `validate:"required"`
-	ServiceSid string `validate:"required"`
-	ApiBaseUrl string // use this to override the default base url
-}
-
 var (
-	ErrInternal = errors.New("twilio service: internal error.")
+	ErrInternal    = errors.New("twilio service: internal error.")
 	ErrInvalidCode = errors.New("twilio service: invalid code.")
 )
 
-type service struct {
-	validator    		 *validator.Validate
-	serviceSid string
-	twilioClient 		 *twilio.RestClient
-}
+type (
+	Service interface {
+		SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error)
+		CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error)
+	}
 
-type RateLimits struct {
-	PhoneNumberVerificationSendTimeout string `json:"phone_number_verification_send_timeout"` // this is the unique identifier of the service rate limit
-}
+	ServiceArgs struct {
+		AccountSid   string `validate:"required"`
+		AccountToken string `validate:"required"`
+		ServiceSid   string `validate:"required"`
+		ApiBaseUrl   string // use this to override the default base url
+	}
 
-type VerificationStatus struct {
-	Sid		 			string
-	Status 			string
-	PhoneNumber string
-}
+	service struct {
+		validator    *validator.Validate
+		serviceSid   string
+		twilioClient *twilio.RestClient
+	}
 
-type Service interface {
-	SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error)
-	CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error)
-}
+	RateLimits struct {
+		PhoneNumberVerificationSendTimeout string `json:"phone_number_verification_send_timeout"` // this is the unique identifier of the service rate limit
+	}
+
+	VerificationStatus struct {
+		Sid         string
+		Status      string
+		PhoneNumber string
+	}
+)
 
 func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
@@ -66,9 +68,9 @@ func NewService(args *ServiceArgs) (Service, error) {
 	})
 
 	return &service{
-		validator: validator,
+		validator:    validator,
 		twilioClient: twilioClient,
-		serviceSid: args.ServiceSid,
+		serviceSid:   args.ServiceSid,
 	}, nil
 }
 
@@ -85,17 +87,17 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &VerificationStatus{
-		Sid: 				 *res.Sid,
+		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
-		Status: 		 *res.Status,
+		Status:      *res.Status,
 	}, nil
 }
 
 type CheckVerificationCodeArgs struct {
 	PhoneNumber string `validate:"required,e164"`
-	Code				string `validate:"required"`
+	Code        string `validate:"required"`
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
@@ -107,14 +109,14 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if *res.Status != "approved" {
 		return nil, ErrInvalidCode
 	}
 
 	return &VerificationStatus{
-		Sid: 				 *res.Sid,
+		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
-		Status: 		 *res.Status,
+		Status:      *res.Status,
 	}, nil
 }

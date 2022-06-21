@@ -26,7 +26,7 @@ func (c *CustomClient) SendRequest(method string, rawURL string, data url.Values
 	if err != nil {
 		return nil, err
 	}
-		
+
 	requestUrl.Scheme = baseUrl.Scheme
 	requestUrl.Host = baseUrl.Host
 

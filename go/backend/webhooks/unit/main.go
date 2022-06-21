@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	ErrInternal = errors.New("unit webhook: internal error.")
+	ErrInternal       = errors.New("unit webhook: internal error.")
 	ErrDuplicateEvent = errors.New("unit webhook: duplicate event.") // event already stored in database.
 )
 
@@ -31,7 +31,7 @@ type Webhook interface {
 type WebhookArgs struct {
 	Up unit.Service       `validate:"required"`
 	Os onboarding.Service `validate:"required"`
-	Db *sqlx.DB 					`validate:"required"`
+	Db *sqlx.DB           `validate:"required"`
 }
 
 func NewWebhook(args *WebhookArgs) (Webhook, error) {
@@ -195,9 +195,9 @@ const (
 )
 
 type DbEvent struct {
-	ID 			 	string 				 `db:"id"`
-	Type 		 	string 				 `db:"type"`
-	RawEvent	types.JSONText `db:"raw_event"`
-	CreatedAt string 				 `db:"created_at"`
-	UpdatedAt string 				 `db:"updated_at"`
+	ID        string         `db:"id"`
+	Type      string         `db:"type"`
+	RawEvent  types.JSONText `db:"raw_event"`
+	CreatedAt string         `db:"created_at"`
+	UpdatedAt string         `db:"updated_at"`
 }
