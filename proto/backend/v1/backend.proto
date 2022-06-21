@@ -43,6 +43,8 @@ service BackendService {
   rpc GetOnboarding(GetOnboardingRequest) returns (Onboarding);
   // Creates the onboarding flow if it does not already exist.
   rpc UpdateOnboarding(Onboarding) returns (Onboarding);
+  // Creates a user identity, with the data in onboarding.
+  rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
@@ -86,6 +88,14 @@ message Onboarding {
   optional string phone = 6;
   optional bool phone_verified = 7;
   optional bool service_agreement = 8;
+}
+
+message CreateIdentityRequest {
+  string onboardingId = 1;
+}
+
+message CreateIdentityResponse {
+  string identityId = 1;
 }
 
 message SendPhoneVerificationRequest {
