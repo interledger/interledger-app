@@ -5,6 +5,7 @@ package twilio
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/twilio/twilio-go"
@@ -13,8 +14,8 @@ import (
 )
 
 var (
-	ErrInternal    = errors.New("twilio service: internal error.")
-	ErrInvalidCode = errors.New("twilio service: invalid code.")
+	ErrInvalidArgument = errors.New("twilio error: invalid argument")
+	ErrInternal        = errors.New("twilio service: internal error.")
 )
 
 type (
@@ -47,7 +48,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
 	customClient := &CustomClient{
@@ -73,7 +74,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	err := s.validator.Var(phoneNumber, "required,e164")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
 	params := &verify.CreateVerificationParams{}
@@ -82,7 +83,11 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 
 	res, err := s.twilioClient.VerifyV2.CreateVerification(s.serviceSid, params)
 	if err != nil {
-		return nil, err
+		twilioError, ok := err.(*client.TwilioRestError)
+		if ok {
+			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+		}
+		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
 	}
 
 	return &Verification{
@@ -100,7 +105,7 @@ type CheckVerificationCodeArgs struct {
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
 	err := s.validator.Struct(args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
 	params := &verify.CreateVerificationCheckParams{}
@@ -109,7 +114,11 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 
 	res, err := s.twilioClient.VerifyV2.CreateVerificationCheck(s.serviceSid, params)
 	if err != nil {
-		return nil, err
+		twilioError, ok := err.(*client.TwilioRestError)
+		if ok {
+			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+		}
+		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
 	}
 
 	return &Verification{
