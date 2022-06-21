@@ -10,7 +10,8 @@ export enum flowType {
   Withdraw = 'withdraw',
   Send = 'send',
   Signup = 'signup',
-  PaymentMethod = 'payment-method'
+  PaymentMethod = 'payment-method',
+  UnitOnboarding = 'unit-onboarding'
 }
 
 type ProgressStep = {
@@ -368,6 +369,30 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
         ],
         complete: false,
         exitTo: '/'
+      }
+    case flowType.UnitOnboarding:
+      return {
+        id,
+        type: flowType.UnitOnboarding,
+        name: 'Logo',
+        stepIndex: 0,
+        data: {},
+        steps: [
+          {
+            name: 'Address',
+            route: route('/flows/:flowId/unit-onboarding/address', {
+              flowId: id
+            })
+          },
+          {
+            name: 'About',
+            route: route('/flows/:flowId/unit-onboarding/about', {
+              flowId: id
+            })
+          }
+        ],
+        complete: false,
+        exitTo: '/onboarding/unit'
       }
   }
 }
