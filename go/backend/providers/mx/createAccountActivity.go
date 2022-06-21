@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
+	"go.temporal.io/sdk/temporal"
 )
 
 type (
@@ -148,20 +149,50 @@ func (a *Activity) VerifyOwnership(
 func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid string) error {
 	mxAccount, err := a.mx.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
+		}
+
+		if errors.Is(err, ErrInvalidArgument) {
+			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInvalidArgument", err)
+		}
+
+		// retry here as this may be network related etc.
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		if errors.Is(err, accounts.ErrNotFound) || errors.Is(err, accounts.ErrInvalidArgument) {
+			return temporal.NewNonRetryableApplicationError(
+				wrappedError.Error(),
+				"ErrInternal",
+				wrappedError,
+			)
+		}
+
+		// retry here as this may be network related etc.
+		return wrappedError
 	}
 
 	user, err := a.identityService.Get(ctx, acc.IdentityID)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		if errors.Is(err, identity.ErrNotFound) || errors.Is(err, identity.ErrInvalidArgument) {
+			return temporal.NewNonRetryableApplicationError(
+				wrappedError.Error(),
+				"ErrInternal",
+				wrappedError,
+			)
+		}
+
+		// retry here as this may be network related etc.
+		return wrappedError
 	}
 
 	unitCustomer, err := a.unit.GetCustomerByAccountID(ctx, mxAccount.AccountID)
+	// TODO: unit needs to have ErrNotFound
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -169,6 +200,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 	// perform this just before creating the counter party as we get charged for Mx api calls.
 	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
+		// at this stage we know the mx account must exist so keep retrying.
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
@@ -201,31 +233,61 @@ func (a *Activity) CreateFundingSource(
 ) error {
 	mxAccount, err := a.mx.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
+		}
+
+		if errors.Is(err, ErrInvalidArgument) {
+			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInvalidArgument", err)
+		}
+
+		// retry here as this may be network related etc.
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		if errors.Is(err, accounts.ErrNotFound) || errors.Is(err, accounts.ErrInvalidArgument) {
+			return temporal.NewNonRetryableApplicationError(
+				wrappedError.Error(),
+				"ErrInternal",
+				wrappedError,
+			)
+		}
+
+		// retry here as this may be network related etc.
+		return wrappedError
 	}
 
 	user, err := a.identityService.Get(ctx, acc.IdentityID)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		if errors.Is(err, identity.ErrNotFound) || errors.Is(err, identity.ErrInvalidArgument) {
+			return temporal.NewNonRetryableApplicationError(
+				wrappedError.Error(),
+				"ErrInternal",
+				wrappedError,
+			)
+		}
+
+		// retry here as this may be network related etc.
+		return wrappedError
 	}
 
 	// calling this in the activity so it's not accidently stored in temporal state.
-	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
+	accountRoutingInfo, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
+		// at this stage we know the mx account must exist so keep retrying.
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	start := len(accountNumbers.AccountNumber) - 4
+	start := len(accountRoutingInfo.AccountNumber) - 4
 	if start < 0 {
 		start = 0
 	}
 	// we use the last 4 digits. If it less than 4 digits then we use the whole thing.
-	mask := accountNumbers.AccountNumber[start:]
+	mask := accountRoutingInfo.AccountNumber[start:]
 
 	_, err = a.fundingsourceService.Create(ctx, &fundingsources.CreateArgs{
 		IdentityID:        user.ID,

@@ -21,8 +21,8 @@ type CreateMxAccountWorkflowArgs struct {
 func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout:    10 * time.Second,
-		ScheduleToCloseTimeout: 15 * time.Second,
+		StartToCloseTimeout:    15 * time.Second, // we retry for up to 10s when waiting for aggregation
+		ScheduleToCloseTimeout: 5 * time.Minute,  // to accomodate failures on waiting for aggregation
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
