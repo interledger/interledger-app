@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -187,12 +188,15 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		return nil, ValidationError(err, validateCheckPhoneVerificationCodeDescription)
 	}
 
-	_, err := s.twilioService.CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+	verification, err := s.twilioService.CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
 		PhoneNumber: req.GetTo(),
 		Code:        req.GetCode(),
 	})
 	if err != nil {
 		return nil, InternalError(err)
+	}
+	if verification.Status != "approved" {
+		return nil, InternalError(fmt.Errorf("verification code status is: %s", verification.Status))
 	}
 
 	// If successful set phoneVerified in onboarding table
