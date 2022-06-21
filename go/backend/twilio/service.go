@@ -12,34 +12,36 @@ import (
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
-type ServiceArgs struct {
-	AccountSid   string `validate:"required"`
-	AccountToken string `validate:"required"`
-	ServiceSid   string `validate:"required"`
-	ApiBaseUrl   string // use this to override the default base url
-}
-
 var (
 	ErrInternal    = errors.New("twilio service: internal error.")
 	ErrInvalidCode = errors.New("twilio service: invalid code.")
 )
 
-type service struct {
-	validator    *validator.Validate
-	serviceSid   string
-	twilioClient *twilio.RestClient
-}
+type (
+	Service interface {
+		SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error)
+		CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error)
+	}
 
-type VerificationStatus struct {
-	Sid         string
-	Status      string
-	PhoneNumber string
-}
+	ServiceArgs struct {
+		AccountSid   string `validate:"required"`
+		AccountToken string `validate:"required"`
+		ServiceSid   string `validate:"required"`
+		ApiBaseUrl   string // use this to override the default base url
+	}
 
-type Service interface {
-	SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error)
-	CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error)
-}
+	service struct {
+		validator    *validator.Validate
+		serviceSid   string
+		twilioClient *twilio.RestClient
+	}
+
+	Verification struct {
+		Sid         string
+		PhoneNumber string
+		Status      string
+	}
+)
 
 func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
@@ -68,7 +70,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	}, nil
 }
 
-func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error) {
+func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	params := &verify.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
@@ -78,7 +80,7 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, err
 	}
 
-	return &VerificationStatus{
+	return &Verification{
 		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
 		Status:      *res.Status,
@@ -90,7 +92,7 @@ type CheckVerificationCodeArgs struct {
 	Code        string `validate:"required"`
 }
 
-func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
+func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
 	params := &verify.CreateVerificationCheckParams{}
 	params.SetTo(args.PhoneNumber)
 	params.SetCode(args.Code)
@@ -104,7 +106,7 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 		return nil, ErrInvalidCode
 	}
 
-	return &VerificationStatus{
+	return &Verification{
 		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
 		Status:      *res.Status,

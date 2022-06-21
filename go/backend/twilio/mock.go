@@ -35,10 +35,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CheckVerificationCode mocks base method.
-func (m *MockService) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*VerificationStatus, error) {
+func (m *MockService) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckVerificationCode", ctx, args)
-	ret0, _ := ret[0].(*VerificationStatus)
+	ret0, _ := ret[0].(*Verification)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockServiceMockRecorder) CheckVerificationCode(ctx, args interface{}) 
 }
 
 // SendVerificationCode mocks base method.
-func (m *MockService) SendVerificationCode(ctx context.Context, phoneNumber string) (*VerificationStatus, error) {
+func (m *MockService) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendVerificationCode", ctx, phoneNumber)
-	ret0, _ := ret[0].(*VerificationStatus)
+	ret0, _ := ret[0].(*Verification)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
