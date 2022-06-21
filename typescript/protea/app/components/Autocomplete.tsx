@@ -51,8 +51,8 @@ export const Autocomplete: FC<AutocompleteProps> = ({
       </label>
       <Combobox disabled={disabled} value={value} onChange={onChange}>
         <div className='relative'>
-          <div className='mt-1 h-12 min-w-full rounded-xl ring-2 ring-base focus:outline-none focus:ring focus:ring-focus focus-visible:ring focus-visible:ring-focus'>
-            <div className='flex h-full items-center justify-between overflow-hidden rounded-xl'>
+          <div className='mt-1 h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+            <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
               <Combobox.Input
                 autoComplete='off'
                 type='text'
