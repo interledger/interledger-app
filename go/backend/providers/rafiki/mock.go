@@ -49,6 +49,21 @@ func (mr *MockServiceMockRecorder) CreateIdentifier(ctx, args interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIdentifier", reflect.TypeOf((*MockService)(nil).CreateIdentifier), ctx, args)
 }
 
+// CreateQuote mocks base method.
+func (m *MockService) CreateQuote(ctx context.Context, args *CreateQuoteArgs) (*Quote, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateQuote", ctx, args)
+	ret0, _ := ret[0].(*Quote)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateQuote indicates an expected call of CreateQuote.
+func (mr *MockServiceMockRecorder) CreateQuote(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateQuote", reflect.TypeOf((*MockService)(nil).CreateQuote), ctx, args)
+}
+
 // GetIdentifier mocks base method.
 func (m *MockService) GetIdentifier(ctx context.Context, id string) (*Identifier, error) {
 	m.ctrl.T.Helper()

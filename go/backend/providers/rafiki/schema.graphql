@@ -1,0 +1,610 @@
+type Query {
+  account(id: String!): Account
+
+  asset(id: String!): Asset
+
+  "Fetch a page of assets."
+  assets(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+  ): AssetsConnection!
+
+  peer(id: String!): Peer
+
+  "Fetch a page of peers."
+  peers(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+  ): PeersConnection!
+
+  quote(id: String!): Quote
+  outgoingPayment(id: String!): OutgoingPayment
+}
+
+type Mutation {
+  createAccount(input: CreateAccountInput!): CreateAccountMutationResponse!
+
+  triggerAccountEvents(limit: Int!): TriggerAccountEventsMutationResponse!
+
+  "Create asset"
+  createAsset(input: CreateAssetInput!): AssetMutationResponse!
+
+  "Update asset withdrawal threshold"
+  updateAssetWithdrawalThreshold(
+    input: UpdateAssetInput!
+  ): AssetMutationResponse!
+
+  "Create peer"
+  createPeer(input: CreatePeerInput!): CreatePeerMutationResponse!
+
+  "Update peer"
+  updatePeer(input: UpdatePeerInput!): UpdatePeerMutationResponse!
+
+  "Delete peer"
+  deletePeer(id: String!): DeletePeerMutationResponse!
+
+  "Add peer liquidity"
+  addPeerLiquidity(input: AddPeerLiquidityInput!): LiquidityMutationResponse
+
+  "Add asset liquidity"
+  addAssetLiquidity(input: AddAssetLiquidityInput!): LiquidityMutationResponse
+
+  "Create liquidity withdrawal from peer"
+  createPeerLiquidityWithdrawal(
+    input: CreatePeerLiquidityWithdrawalInput!
+  ): LiquidityMutationResponse
+
+  "Create liquidity withdrawal from asset"
+  createAssetLiquidityWithdrawal(
+    input: CreateAssetLiquidityWithdrawalInput!
+  ): LiquidityMutationResponse
+
+  "Create liquidity withdrawal from Open Payments account"
+  createAccountWithdrawal(
+    input: CreateAccountWithdrawalInput!
+  ): AccountWithdrawalMutationResponse
+
+  "Finalize liquidity withdrawal"
+  finalizeLiquidityWithdrawal(
+    "The id of the liquidity withdrawal to finalize."
+    withdrawalId: String!
+  ): LiquidityMutationResponse
+
+  "Rollback liquidity withdrawal"
+  rollbackLiquidityWithdrawal(
+    "The id of the liquidity withdrawal to rollback."
+    withdrawalId: String!
+  ): LiquidityMutationResponse
+
+  createQuote(input: CreateQuoteInput!): QuoteResponse!
+
+  createOutgoingPayment(
+    input: CreateOutgoingPaymentInput!
+  ): OutgoingPaymentResponse!
+
+  "Deposit webhook event liquidity"
+  depositEventLiquidity(eventId: String!): LiquidityMutationResponse
+
+  "Withdraw webhook event liquidity"
+  withdrawEventLiquidity(eventId: String!): LiquidityMutationResponse
+
+  "Create API Key"
+  createApiKey(input: CreateApiKeyInput!): CreateApiKeyMutationResponse
+
+  "Delete all API Keys"
+  deleteAllApiKeys(
+    input: DeleteAllApiKeysInput!
+  ): DeleteAllApiKeysMutationResponse
+
+  "Redeem API Key"
+  redeemApiKey(input: RedeemApiKeyInput!): RedeemApiKeyMutationResponse
+
+  "Refresh Session"
+  refreshSession(input: RefreshSessionInput!): RefreshSessionMutationResponse
+
+  "Revoke Session"
+  revokeSession(input: RevokeSessionInput!): RevokeSessionMutationResponse
+}
+
+type PageInfo {
+  "Paginating forwards: the cursor to continue."
+  endCursor: String
+  "Paginating forwards: Are there more pages?"
+  hasNextPage: Boolean!
+  "Paginating backwards: Are there more pages?"
+  hasPreviousPage: Boolean!
+  "Paginating backwards: the cursor to continue."
+  startCursor: String
+}
+
+type AssetsConnection {
+  pageInfo: PageInfo!
+  edges: [AssetEdge!]!
+}
+
+type AssetEdge {
+  node: Asset!
+  cursor: String!
+}
+
+input CreateAssetInput {
+  code: String!
+  scale: Int!
+  withdrawalThreshold: UInt64
+}
+
+input UpdateAssetInput {
+  id: String!
+  withdrawalThreshold: UInt64
+}
+
+type PeersConnection {
+  pageInfo: PageInfo!
+  edges: [PeerEdge!]!
+}
+
+type PeerEdge {
+  node: Peer!
+  cursor: String!
+}
+
+input CreatePeerInput {
+  maxPacketAmount: UInt64
+  http: HttpInput!
+  asset: AssetInput!
+  staticIlpAddress: String!
+}
+
+input UpdatePeerInput {
+  id: String!
+  maxPacketAmount: UInt64
+  http: HttpInput
+  staticIlpAddress: String
+}
+
+input HttpInput {
+  incoming: HttpIncomingInput
+  outgoing: HttpOutgoingInput!
+}
+
+input HttpIncomingInput {
+  authTokens: [String!]!
+}
+
+input HttpOutgoingInput {
+  authToken: String!
+  endpoint: String!
+}
+
+input AssetInput {
+  code: String!
+  scale: Int!
+}
+
+input AddPeerLiquidityInput {
+  "The id of the peer to add liquidity."
+  peerId: String!
+  "Amount of liquidity to add."
+  amount: UInt64!
+  "The id of the transfer."
+  id: String!
+}
+
+input AddAssetLiquidityInput {
+  "The id of the asset to add liquidity."
+  assetId: String!
+  "Amount of liquidity to add."
+  amount: UInt64!
+  "The id of the transfer."
+  id: String!
+}
+
+input CreatePeerLiquidityWithdrawalInput {
+  "The id of the peer to create the withdrawal for."
+  peerId: String!
+  "Amount of withdrawal."
+  amount: UInt64!
+  "The id of the withdrawal."
+  id: String!
+}
+
+input CreateAssetLiquidityWithdrawalInput {
+  "The id of the asset to create the withdrawal for."
+  assetId: String!
+  "Amount of withdrawal."
+  amount: UInt64!
+  "The id of the withdrawal."
+  id: String!
+}
+
+input CreateAccountWithdrawalInput {
+  "The id of the Open Payments account to create the withdrawal for."
+  accountId: String!
+  "The id of the withdrawal."
+  id: String!
+}
+
+input CreateApiKeyInput {
+  "Account API key is created for."
+  accountId: String!
+}
+
+input DeleteAllApiKeysInput {
+  "Account API keys are deleted from."
+  accountId: String!
+}
+
+input RedeemApiKeyInput {
+  "API key"
+  key: String!
+  "Account API key was issued for."
+  accountId: String!
+}
+
+input RefreshSessionInput {
+  "Session key"
+  key: String!
+}
+
+input RevokeSessionInput {
+  "Session key"
+  key: String!
+}
+
+type Asset implements Model {
+  id: ID!
+  code: String!
+  scale: Int!
+  withdrawalThreshold: UInt64
+  createdAt: String!
+}
+
+enum LiquidityError {
+  AlreadyCommitted
+  AlreadyRolledBack
+  AmountZero
+  InsufficientBalance
+  InvalidId
+  TransferExists
+  UnknownAccount
+  UnknownAsset
+  UnknownIncomingPayment
+  UnknownPayment
+  UnknownPeer
+  UnknownTransfer
+}
+
+type Peer implements Model {
+  id: ID!
+  maxPacketAmount: UInt64
+  http: Http!
+  asset: Asset!
+  staticIlpAddress: String!
+  createdAt: String!
+}
+
+type Http {
+  outgoing: HttpOutgoing!
+}
+
+type HttpOutgoing {
+  authToken: String!
+  endpoint: String!
+}
+
+type Account implements Model {
+  id: ID!
+  asset: Asset!
+  incomingPayments(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+  ): IncomingPaymentConnection
+  quotes(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+  ): QuoteConnection
+  outgoingPayments(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+  ): OutgoingPaymentConnection
+  createdAt: String!
+}
+
+type IncomingPaymentConnection {
+  pageInfo: PageInfo!
+  edges: [IncomingPaymentEdge!]!
+}
+
+type IncomingPaymentEdge {
+  node: IncomingPayment!
+  cursor: String!
+}
+
+type IncomingPayment implements Model {
+  id: ID!
+  accountId: ID!
+  state: IncomingPaymentState!
+  expiresAt: String!
+  incomingAmount: Amount
+  receivedAmount: Amount!
+  description: String
+  externalRef: String
+  createdAt: String!
+}
+
+enum IncomingPaymentState {
+  "The payment has a state of PENDING when it is initially created."
+  PENDING
+  "As soon as payment has started (funds have cleared into the account) the state moves to PROCESSING"
+  PROCESSING
+  "The payment is either auto-completed once the received amount equals the expected `incomingAmount`, or it is completed manually via an API call."
+  COMPLETED
+  "If the payment expires before it is completed then the state will move to EXPIRED and no further payments will be accepted."
+  EXPIRED
+}
+
+type Amount {
+  value: UInt64!
+  assetCode: String!
+  assetScale: Int!
+}
+
+type OutgoingPaymentConnection {
+  pageInfo: PageInfo!
+  edges: [OutgoingPaymentEdge!]!
+}
+
+type OutgoingPaymentEdge {
+  node: OutgoingPayment!
+  cursor: String!
+}
+
+type OutgoingPayment implements Model {
+  id: ID!
+  accountId: ID!
+  state: OutgoingPaymentState!
+  error: String
+  stateAttempts: Int!
+  sendAmount: Amount!
+  receiveAmount: Amount!
+  receiver: String!
+  description: String
+  externalRef: String
+  quote: Quote
+  sentAmount: Amount!
+  createdAt: String!
+}
+
+enum OutgoingPaymentState {
+  "Will transition to SENDING once payment funds are reserved"
+  FUNDING
+  "Paying, will transition to COMPLETED on success"
+  SENDING
+  "Successful completion"
+  COMPLETED
+  "Payment failed"
+  FAILED
+}
+
+type QuoteConnection {
+  pageInfo: PageInfo!
+  edges: [QuoteEdge!]!
+}
+
+type QuoteEdge {
+  node: Quote!
+  cursor: String!
+}
+
+type Quote {
+  id: ID!
+  accountId: ID!
+  receiver: String!
+  sendAmount: Amount!
+  receiveAmount: Amount!
+  maxPacketAmount: UInt64!
+  minExchangeRate: Float!
+  lowEstimatedExchangeRate: Float!
+  highEstimatedExchangeRate: Float!
+  createdAt: String!
+  expiresAt: String!
+}
+
+input AmountInput {
+  value: UInt64!
+  assetCode: String!
+  assetScale: Int!
+}
+
+input CreateQuoteInput {
+  accountId: String!
+  sendAmount: AmountInput
+  receiveAmount: AmountInput
+  receiver: String!
+}
+
+type QuoteResponse {
+  code: String!
+  success: Boolean!
+  message: String
+  quote: Quote
+}
+
+input CreateOutgoingPaymentInput {
+  accountId: String!
+  quoteId: String!
+  description: String
+  externalRef: String
+}
+
+type OutgoingPaymentResponse {
+  code: String!
+  success: Boolean!
+  message: String
+  payment: OutgoingPayment
+}
+
+input CreateAccountInput {
+  asset: AssetInput!
+  publicName: String
+}
+
+type ApiKey implements Model {
+  id: ID!
+  accountId: String!
+  key: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Session {
+  key: String!
+  expiresAt: String!
+}
+
+type AccountWithdrawal {
+  id: ID!
+  amount: UInt64!
+  account: Account!
+}
+
+interface Model {
+  id: ID!
+  createdAt: String!
+}
+
+type CreateAccountMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  account: Account
+}
+
+type TriggerAccountEventsMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  count: Int
+}
+
+type AssetMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  asset: Asset
+}
+
+type CreatePeerMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  peer: Peer
+}
+
+type UpdatePeerMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  peer: Peer
+}
+
+type DeletePeerMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type TransferMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type LiquidityMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  error: LiquidityError
+}
+
+type AccountWithdrawalMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  error: LiquidityError
+  withdrawal: AccountWithdrawal
+}
+
+type CreateApiKeyMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  apiKey: ApiKey
+}
+
+type DeleteAllApiKeysMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type RedeemApiKeyMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  session: Session
+}
+
+type RefreshSessionMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  session: Session
+}
+
+type RevokeSessionMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+interface MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+scalar UInt64
+
+directive @auth on OBJECT | FIELD_DEFINITION
+directive @isAdmin on OBJECT | FIELD_DEFINITION
