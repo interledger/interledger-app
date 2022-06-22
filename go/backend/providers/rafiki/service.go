@@ -5,6 +5,7 @@ package rafiki
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,6 +30,11 @@ type (
 	Service interface {
 		CreateIdentifier(ctx context.Context, args *CreateIdentifierArgs) (*Identifier, error)
 		GetIdentifier(ctx context.Context, id string) (*Identifier, error)
+		GetIdentifierByAccountAndCurrency(
+			ctx context.Context,
+			accountID string,
+			currencyCode string,
+		) (*Identifier, error)
 		CreateQuote(ctx context.Context, args *CreateQuoteArgs) (*Quote, error)
 	}
 
@@ -132,7 +138,33 @@ func (s *service) GetIdentifier(ctx context.Context, id string) (*Identifier, er
 		id,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err) // TODO: handle not found by code.
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret, nil
+}
+
+// This will return the most recently created Identifier that matches the accountID and currencyCode.
+func (s *service) GetIdentifierByAccountAndCurrency(
+	ctx context.Context,
+	accountID string,
+	currencyCode string,
+) (*Identifier, error) {
+	ret := &Identifier{}
+	err := s.db.Get(
+		ret,
+		"SELECT * FROM rafiki_identifiers WHERE account_id=$1 AND asset_code=$2 ORDER BY created_at DESC LIMIT 1;",
+		accountID,
+		currencyCode,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	return ret, nil

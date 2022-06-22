@@ -87,6 +87,15 @@ func TestCreateIdentifier(t *testing.T) {
 	assert.Equal(t, accountID, freshIdentifer.AccountID)
 	assert.Equal(t, "740", freshIdentifer.AssetCode)
 	assert.Equal(t, uint8(2), freshIdentifer.AssetScale)
+
+	identifierByAccountAndCurrency, err := rafiki.GetIdentifierByAccountAndCurrency(ctx, accountID, "740")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, identifier.ID, identifierByAccountAndCurrency.ID)
+	assert.Equal(t, accountID, identifierByAccountAndCurrency.AccountID)
+	assert.Equal(t, "740", identifierByAccountAndCurrency.AssetCode)
+	assert.Equal(t, uint8(2), identifierByAccountAndCurrency.AssetScale)
 }
 
 func TestCreateQuote(t *testing.T) {
