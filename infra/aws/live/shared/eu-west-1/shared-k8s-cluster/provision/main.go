@@ -110,6 +110,7 @@ func main() {
 			return err
 		}
 		ctx.Export("clusterEndpoint", cluster.Endpoint)
+		ctx.Export("ca", cluster.CertificateAuthority.Data())
 
 		// Create Kubeconfig
 		kubeConfig := pulumi.All(cluster.Name, cluster.CertificateAuthority, cluster.Endpoint).ApplyT(func(args []interface{}) (string, error) {
