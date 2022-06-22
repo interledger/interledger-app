@@ -23,6 +23,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -45,6 +46,7 @@ type TestContainer struct {
 	Noop            noop.Service
 	Up              unit.Service
 	Tp              *mocks.Client
+	RafikiProvider  *rafiki.MockService
 	AdminConn       *grpc.ClientConn
 	AdminClient     backend.BackendAdminServiceClient
 	AdminServer     *grpc.Server
@@ -151,6 +153,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit.NewMockService(c.Ctrl)
 	c.Fs = fundingsources.NewMockService(c.Ctrl)
+	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   hs,
 		IdentityService:      is,
@@ -161,6 +164,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		FundingSourceService: c.Fs,
 		OnboardingService:    os,
 		MxProvider:           mx.NewMockService(c.Ctrl),
+		RafikiProvider:       c.RafikiProvider,
 	})
 	if err != nil {
 		return nil, err

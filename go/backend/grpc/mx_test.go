@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
@@ -36,11 +37,15 @@ type TestContainer struct {
 	OnboardingService    *onboarding.MockService
 	UnitProvider         *unit.MockService
 	MxProvider           *mx.MockService
+	RafikiProvider       *rafiki.MockService
 }
 
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
 	hs, err := healthcheck.NewService()
 	if err != nil {
 		t.Fatal(err)
@@ -55,6 +60,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		UnitProvider:         unit.NewMockService(ctrl),
 		OnboardingService:    onboarding.NewMockService(ctrl),
 		MxProvider:           mx.NewMockService(ctrl),
+		RafikiProvider:       rafiki.NewMockService(ctrl),
 	}
 
 	for _, opt := range opts {
@@ -242,6 +248,7 @@ func startTestServer(
 		FundingSourceService: c.FundingsourceService,
 		OnboardingService:    c.OnboardingService,
 		MxProvider:           c.MxProvider,
+		RafikiProvider:       c.RafikiProvider,
 	})
 	if err != nil {
 		t.Fatal(err)

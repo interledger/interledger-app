@@ -17,8 +17,7 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 		st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
 		br := &errdetails.BadRequest{}
 
-		for i, err := range validatorError {
-			fmt.Println(i, err.Field(), err.Value())
+		for _, err := range validatorError {
 			v := &errdetails.BadRequest_FieldViolation{
 				Field:       err.Field(),
 				Description: description(err),

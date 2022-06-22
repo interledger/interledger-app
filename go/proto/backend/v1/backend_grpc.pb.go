@@ -151,6 +151,8 @@ type BackendServiceClient interface {
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
+	// Will get a quote that details transaction fees and how much the receiver will get.
+	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 }
 
 type backendServiceClient struct {
@@ -215,6 +217,15 @@ func (c *backendServiceClient) CheckPhoneVerificationCode(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendServiceClient) GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error) {
+	out := new(Quote)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetQuote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -228,6 +239,8 @@ type BackendServiceServer interface {
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
+	// Will get a quote that details transaction fees and how much the receiver will get.
+	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -251,6 +264,9 @@ func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, 
 }
 func (UnimplementedBackendServiceServer) CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPhoneVerificationCode not implemented")
+}
+func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequest) (*Quote, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetQuote not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -372,6 +388,24 @@ func _BackendService_CheckPhoneVerificationCode_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetQuoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetQuote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetQuote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetQuote(ctx, req.(*GetQuoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -402,6 +436,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckPhoneVerificationCode",
 			Handler:    _BackendService_CheckPhoneVerificationCode_Handler,
+		},
+		{
+			MethodName: "GetQuote",
+			Handler:    _BackendService_GetQuote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
