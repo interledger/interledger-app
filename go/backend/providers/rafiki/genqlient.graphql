@@ -1,0 +1,46 @@
+mutation CreateAccount ($input: CreateAccountInput!) {
+	createAccount (input: $input) {
+		message
+		success
+		code
+		account {
+			id
+			asset {
+				code
+				scale
+			}
+		}
+	}
+}
+
+# @genqlient(for: "CreateQuoteInput.sendAmount", omitempty: true, pointer: true)
+# @genqlient(for: "CreateQuoteInput.receiveAmount", omitempty: false, pointer: true)
+mutation CreateQuote (
+	$input: CreateQuoteInput!
+) {
+	createQuote (input: $input) {
+		message
+		success
+		code
+		quote {
+			id
+			accountId
+			receiver
+			sendAmount {
+				value
+				assetCode
+				assetScale
+			}
+			receiveAmount {
+				value
+				assetCode
+				assetScale
+			}
+			maxPacketAmount
+			minExchangeRate
+			lowEstimatedExchangeRate
+			highEstimatedExchangeRate
+			expiresAt
+		}
+	}
+}

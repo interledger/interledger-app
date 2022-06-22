@@ -49,6 +49,44 @@ func NewMockRafikiGraphqlServer(t *testing.T) *httptest.Server {
 			return
 		}
 
+		if strings.Contains(query, "createQuote") {
+			fmt.Println(query)
+			jsonStr := fmt.Sprintf(`{
+				"data": {
+					"createQuote": {
+						"code": "200",
+						"success": true,
+						"message": "Created quote",
+						"quote": {
+							"id": "%s",
+							"accountId": "",
+							"receiver": "$ilp.test/receive",
+							"sendAmount": {
+								"value": 100,
+								"assetCode": "740",
+								"assetScale": 2
+							},
+							"receiveAmount": {
+								"value": 99,
+								"assetCode": "740",
+								"assetScale": 2
+							},
+							"maxPacketAmount": 100,
+							"minExchangeRate": 1.00,
+							"lowEstimatedExchangeRate": 1.00,
+							"highEstimatedExchangeRate": 1.00
+						}
+					}
+				}
+			}`, uuid.NewString())
+
+			_, err = w.Write([]byte(jsonStr))
+			if err != nil {
+				t.Fatal(err)
+			}
+			return
+		}
+
 		http.Error(w, "Unknown query/mutation.", 501)
 	}))
 	t.Cleanup(func() {
