@@ -1,3 +1,0 @@
-name: aws-clusters-dev1-cert-manager
-runtime: go
-description: Deploy cert manager to dev1 cluster
