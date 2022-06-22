@@ -78,3 +78,18 @@ func (mr *MockServiceMockRecorder) GetIdentifier(ctx, id interface{}) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIdentifier", reflect.TypeOf((*MockService)(nil).GetIdentifier), ctx, id)
 }
+
+// GetIdentifierByAccountAndCurrency mocks base method.
+func (m *MockService) GetIdentifierByAccountAndCurrency(ctx context.Context, accountID, currencyCode string) (*Identifier, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIdentifierByAccountAndCurrency", ctx, accountID, currencyCode)
+	ret0, _ := ret[0].(*Identifier)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIdentifierByAccountAndCurrency indicates an expected call of GetIdentifierByAccountAndCurrency.
+func (mr *MockServiceMockRecorder) GetIdentifierByAccountAndCurrency(ctx, accountID, currencyCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIdentifierByAccountAndCurrency", reflect.TypeOf((*MockService)(nil).GetIdentifierByAccountAndCurrency), ctx, accountID, currencyCode)
+}

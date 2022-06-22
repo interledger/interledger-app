@@ -46,6 +46,8 @@ service BackendService {
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
+  // Will get a quote that details transaction fees and how much the receiver will get.
+  rpc GetQuote(GetQuoteRequest) returns (Quote);
 }
 
 message GetBankAccountWidgetRequest {}
@@ -100,4 +102,27 @@ message CheckPhoneVerificationCodeRequest {
 message PhoneVerificationResponse {
   // The status from twilio. Can be "approved" or "pending"
   string status = 1;
+}
+
+message GetQuoteRequest {
+  // e.g. R1 -> receiveAmount = 100. Assumes assetScale = 2.
+  uint64 sendAmount = 1;
+  // ISO4217 code
+  string sendCurrencyCode = 2;
+  // e.g. R1 -> receiveAmount = 100. Assumes assetScale = 2.
+  uint64 receiveAmount = 3;
+  // ISO4217 code
+  string receiveCurrencyCode = 4;
+  // To whom the user is sending the payment
+  string receiver = 5;
+}
+
+// This is not finalised. Revisit when the `Quoting` service is implemented.
+message Quote {
+  string id = 1;
+  uint64 receiveAmount = 2;
+  string receiveCurrencyCode = 3;
+  uint64 sendAmount = 4;
+  string sendCurrencyCode = 5;
+  string expiresAt = 6;
 }
