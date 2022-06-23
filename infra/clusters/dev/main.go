@@ -192,6 +192,7 @@ func main() {
 			MxBaseURL:            "https://api.mx.com",
 			MxClientID:           mxClientID,
 			MxApiKey:             mxApiKey,
+			RafikiGraphqlUrl:     "http://rafiki/graphql",
 		})
 		if err != nil {
 			return err

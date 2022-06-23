@@ -28,6 +28,7 @@ type DeployBackendArgs struct {
 	MxBaseURL            string
 	MxClientID           string
 	MxApiKey             string
+	RafikiGraphqlUrl     string
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -58,6 +59,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.MxApiKey,
 		args.MxClientID,
 		args.MxBaseURL,
+		args.RafikiGraphqlUrl,
 	)
 	if err != nil {
 		return err
@@ -142,6 +144,7 @@ func deployDeployment(
 	mxApiKey string,
 	mxClientID string,
 	mxBaseUrl string,
+	rafikiGraphqlUrl string,
 ) error {
 	mxCredentials, err := v1.NewSecret(ctx, "mx-credentials", &v1.SecretArgs{
 		ApiVersion: pulumi.String("v1"),
@@ -355,6 +358,10 @@ func deployDeployment(
 										},
 									},
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("RAFIKI_GRAPHQL_URL"),
+									Value: pulumi.String(rafikiGraphqlUrl),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -429,6 +436,10 @@ func deployDeployment(
 											Key:  pulumi.String("api_key"),
 										},
 									},
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("RAFIKI_GRAPHQL_URL"),
+									Value: pulumi.String(rafikiGraphqlUrl),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
