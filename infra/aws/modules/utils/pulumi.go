@@ -19,7 +19,7 @@ func StringArrayOutputFromStack(stack *pulumi.StackReference, key string) pulumi
 	}).(pulumi.StringArrayOutput)
 }
 
-func ParseTemplate (data interface{}, filePath string) string {
+func ParseTemplate(data interface{}, filePath string) string {
 	tmp, err := template.ParseFiles(filePath)
 	if err != nil {
 		return ""
@@ -27,23 +27,27 @@ func ParseTemplate (data interface{}, filePath string) string {
 	document := &bytes.Buffer{}
 	err = tmp.Execute(document, data)
 	if err != nil {
+		panic(err)
 		return ""
 	}
 
 	return b64.StdEncoding.EncodeToString(document.Bytes())
 }
 
-func ParseTemplateAsBytes (data interface{}, filePath string) (*bytes.Buffer, error) {
+func ParseTemplateAsBytes(data interface{}, filePath string) (*bytes.Buffer, error) {
 	tmp, err := template.ParseFiles(filePath)
-	if err != nil { return nil, err	}
-	
+	if err != nil {
+		return nil, err
+	}
+
 	document := &bytes.Buffer{}
 	err = tmp.Execute(document, data)
-	if err != nil {	return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	return document, nil
 }
-
 
 func ValueFromStringArrayOutput(output pulumi.AnyOutput, index int) pulumi.StringOutput {
 	return output.ApplyT(func(arg interface{}) string {
