@@ -40,6 +40,7 @@ import (
 	"gitlab.com/fynbos/backend/migrations"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/rafiki"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
 	unitwh "gitlab.com/fynbos/backend/webhooks/unit"
@@ -189,8 +190,8 @@ func start(args *cli.StartArgs) {
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
 		BaseUrl:         args.MxBaseURL,
-		ClientID: args.MxClientID,
-		ApiKey:   args.MxApiKey,
+		ClientID:        args.MxClientID,
+		ApiKey:          args.MxApiKey,
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,
@@ -256,6 +257,14 @@ func start(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 	ps = payments.NewLoggingService(ps, logger)
+
+	rafikiProvider, err := rafiki.NewService(&rafiki.ServiceArgs{
+		Db:  db,
+		Url: args.RafikiGraphqlUrl,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
@@ -323,6 +332,7 @@ func start(args *cli.StartArgs) {
 		FundingSourceService: fs,
 		OnboardingService:    os,
 		MxProvider:           mx,
+		RafikiProvider:       rafikiProvider,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -514,8 +524,8 @@ func startWorker(args *cli.StartArgs) {
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
 		BaseUrl:         args.MxBaseURL,
-		ClientID: args.MxClientID,
-		ApiKey:   args.MxApiKey,
+		ClientID:        args.MxClientID,
+		ApiKey:          args.MxApiKey,
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,

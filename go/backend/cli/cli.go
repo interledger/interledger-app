@@ -99,6 +99,7 @@ type StartArgs struct {
 	MxBaseURL            string
 	MxClientID           string
 	MxApiKey             string
+	RafikiGraphqlUrl     string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -185,6 +186,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("MX_API_KEY is required.")
 	}
 
+	rafikiGraphqlUrl := os.Getenv("RAFIKI_GRAPHQL_URL")
+	if rafikiGraphqlUrl == "" {
+		return nil, errors.New("text RAFIKI_GRAPHQL_URL is required.")
+	}
 	return &StartArgs{
 		Port:                 port,
 		DbConnectionString:   connString,
@@ -202,5 +207,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		MxBaseURL:            mxBaseURL,
 		MxClientID:           mxClientID,
 		MxApiKey:             mxApiKey,
+		RafikiGraphqlUrl:     rafikiGraphqlUrl,
 	}, nil
 }
