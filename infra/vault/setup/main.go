@@ -42,6 +42,12 @@ func main() {
 			return err
 		}
 
+		_, err = vault.NewMount(ctx, "secret-kv-mount", &vault.MountArgs{
+			Path:        pulumi.String("secret"),
+			Type:        pulumi.String("kv-v2"),
+			Description: pulumi.String("Default KV v2 secret engine mount"),
+		})
+
 		return nil
 	})
 }
