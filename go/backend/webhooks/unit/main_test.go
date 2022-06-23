@@ -13,9 +13,11 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.temporal.io/sdk/mocks"
 )
 
 func TestWebhook(t *testing.T) {
@@ -27,11 +29,13 @@ func TestWebhook(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
 	providerMock := unit.NewMockService(ctrl)
+	temporalMockClient := &mocks.Client{}
 
 	wh, err := NewWebhook(&WebhookArgs{
 		Db: db,
 		Os: osMock,
 		Up: providerMock,
+		Tp: temporalMockClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +90,7 @@ func TestWebhook(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(t *testing.T) {
-			osMock.EXPECT().InitiateUnitCustomerOnboarding(context.Background(), gomock.Any()).Return(nil).Times(scenario.MockCallTimes)
+			temporalMockClient.On("SignalWorkflow", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(nil).Times(scenario.MockCallTimes)
 			providerMock.EXPECT().VerifyWebhook(context.Background(), gomock.Any(), gomock.Any()).Return(scenario.VerifyError)
 			resp, err := http.Post(svr.URL, "application/json", scenario.Payload)
 			if err != nil {
@@ -110,7 +114,8 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
-	
+	temporalMockClient := &mocks.Client{}
+
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	provider, err := unit.NewService(unit.ServiceArgs{
@@ -127,6 +132,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 		Up: provider,
 		Os: osMock,
 		Db: db,
+		Tp: temporalMockClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -148,15 +154,10 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	for _, scenario := range scenarios {
 		customerCreatedEvent := NewCustomerCreatedEvent()
 
-		osMock.EXPECT().InitiateUnitCustomerOnboarding(gomock.Any(), &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID:   customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag],
-			Country:      "US",
-			CustomerID:   customerCreatedEvent.Relationships.Customer.Data.ID,
-			CustomerType: customerCreatedEvent.Relationships.Customer.Data.Type,
-		}).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag], mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, customerCreatedEvent)
-		err = wh.HandleEvent(context.Background(), Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
+		err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
 
 		if scenario.OnboardingError != nil {
 			assert.ErrorIs(t, err, ErrInternal, scenario.Name)
@@ -172,6 +173,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
+	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
@@ -186,6 +188,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 		Db: db,
 		Os: osMock,
 		Up: provider,
+		Tp: temporalMockClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -194,7 +197,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 	customerCreatedEvent := NewCustomerCreatedEvent()
 
 	rawEvent := marshalBody(t, customerCreatedEvent)
-	err = wh.HandleEvent(context.Background(), Event{ ID: customerCreatedEvent.ID, Type: EventType("unknown")}, rawEvent.Bytes())
+	err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType("unknown")}, rawEvent.Bytes())
 	assert.NoError(t, err)
 }
 
@@ -204,6 +207,7 @@ func TestStoreEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
+	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
@@ -218,6 +222,7 @@ func TestStoreEvent(t *testing.T) {
 		Db: db,
 		Os: osMock,
 		Up: provider,
+		Tp: temporalMockClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -225,7 +230,7 @@ func TestStoreEvent(t *testing.T) {
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 	rawEvent := marshalEvent(t, customerCreatedEvent)
-	testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type) }
+	testEvent := Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
 
 	storedEvent, err := wh.StoreEvent(ctx, testEvent, rawEvent)
 	if err != nil {
@@ -243,6 +248,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	osMock := onboarding.NewMockService(ctrl)
+	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := unit.NewService(unit.ServiceArgs{
 		BaseURL:      "localhost:8080",
@@ -257,6 +263,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 		Db: db,
 		Os: osMock,
 		Up: provider,
+		Tp: temporalMockClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -264,7 +271,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
 	rawEvent := marshalEvent(t, customerCreatedEvent)
-	testEvent := Event{ ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type) }
+	testEvent := Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
 
 	_, err = wh.StoreEvent(ctx, testEvent, rawEvent)
 	if err != nil {
@@ -304,7 +311,7 @@ func marshalEvent(t *testing.T, event interface{}) json.RawMessage {
 }
 
 func NewCustomerCreatedEvent() CustomerCreatedEvent {
-	return CustomerCreatedEvent{ 
+	return CustomerCreatedEvent{
 		ID:   uuid.NewString(),
 		Type: "customer.created",
 		Attributes: CustomerCreatedAttributes{

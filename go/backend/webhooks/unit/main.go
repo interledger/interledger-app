@@ -14,10 +14,11 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"go.temporal.io/sdk/client"
 )
 
 var (
-	ErrInternal = errors.New("unit webhook: internal error.")
+	ErrInternal       = errors.New("unit webhook: internal error.")
 	ErrDuplicateEvent = errors.New("unit webhook: duplicate event.") // event already stored in database.
 )
 
@@ -31,7 +32,8 @@ type Webhook interface {
 type WebhookArgs struct {
 	Up unit.Service       `validate:"required"`
 	Os onboarding.Service `validate:"required"`
-	Db *sqlx.DB 					`validate:"required"`
+	Db *sqlx.DB           `validate:"required"`
+	Tp client.Client      `validate:"required"`
 }
 
 func NewWebhook(args *WebhookArgs) (Webhook, error) {
@@ -39,13 +41,14 @@ func NewWebhook(args *WebhookArgs) (Webhook, error) {
 	if err := v.Struct(args); err != nil {
 		return nil, err
 	}
-	return &webhook{args.Up, args.Os, args.Db}, nil
+	return &webhook{args.Up, args.Os, args.Db, args.Tp}, nil
 }
 
 type webhook struct {
 	up unit.Service
 	os onboarding.Service
 	db *sqlx.DB
+	tp client.Client
 }
 
 func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.RawMessage) error {
@@ -62,16 +65,13 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 		if err := json.Unmarshal(rawEvent, event); err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-
-		err := wh.os.InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
-			IdentityID:   event.Attributes.Tags[unit.ApplicationFormUserIDTag],
-			Country:      "US",
-			CustomerID:   event.Relationships.Customer.Data.ID,
-			CustomerType: event.Relationships.Customer.Data.Type,
-		})
+		// TODO Format the event as desired, probably don't need the entire thing.
+		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[unit.ApplicationFormUserIDTag], "", "onboard-unit-customer-created", event)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
+	case APPLICATION_AWAITING_DOCUMENTS:
+		// TODO Other webhooks for onboarding process.
 	default:
 		// don't fail as Unit may add new events.
 	}
@@ -191,13 +191,14 @@ type (
 )
 
 const (
-	CUSTOMER_CREATED = EventType("customer.created")
+	CUSTOMER_CREATED               = EventType("customer.created")
+	APPLICATION_AWAITING_DOCUMENTS = EventType("application.awaitingdocuments")
 )
 
 type DbEvent struct {
-	ID 			 	string 				 `db:"id"`
-	Type 		 	string 				 `db:"type"`
-	RawEvent	types.JSONText `db:"raw_event"`
-	CreatedAt string 				 `db:"created_at"`
-	UpdatedAt string 				 `db:"updated_at"`
+	ID        string         `db:"id"`
+	Type      string         `db:"type"`
+	RawEvent  types.JSONText `db:"raw_event"`
+	CreatedAt string         `db:"created_at"`
+	UpdatedAt string         `db:"updated_at"`
 }

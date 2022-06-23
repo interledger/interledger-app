@@ -292,6 +292,7 @@ func start(args *cli.StartArgs) {
 		Db: db,
 		Up: us,
 		Os: os,
+		Tp: tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
