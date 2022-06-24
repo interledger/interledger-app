@@ -13,9 +13,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"github.com/nyaruka/phonenumbers"
+	"gitlab.com/fynbos/backend/identity"
 )
 
 var (
@@ -24,13 +27,14 @@ var (
 )
 
 const (
-	ApplicationFormUserIDTag = "userID"
-	SignatureHeader          = "x-unit-signature"
+	ApplicationUserIDTag = "fynbosUserId"
+	SignatureHeader      = "x-unit-signature"
 )
 
 type Service interface {
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
+	CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
 	VerifyWebhook(ctx context.Context, body []byte, signature string) error
 	CreateCustomer(ctx context.Context, args *CreateCustomerArgs) (*Customer, error)
 	GetCustomerByID(ctx context.Context, id string) (*Customer, error)
@@ -41,18 +45,20 @@ type Service interface {
 
 type (
 	service struct {
-		validator    *validator.Validate
-		baseURL      string
-		token        string
-		webhookToken string
-		db           *sqlx.DB
+		validator       *validator.Validate
+		baseURL         string
+		token           string
+		webhookToken    string
+		db              *sqlx.DB
+		identityService identity.Service
 	}
 
 	ServiceArgs struct {
-		BaseURL      string   `validate:"required"`
-		Token        string   `validate:"required"`
-		WebhookToken string   `validate:"required"`
-		Db           *sqlx.DB `validate:"required"`
+		BaseURL         string           `validate:"required"`
+		Token           string           `validate:"required"`
+		WebhookToken    string           `validate:"required"`
+		Db              *sqlx.DB         `validate:"required"`
+		IdentityService identity.Service `validate:"required"`
 	}
 )
 
@@ -64,11 +70,12 @@ func NewService(args ServiceArgs) (Service, error) {
 	}
 
 	return &service{
-		validator:    validator,
-		baseURL:      args.BaseURL,
-		token:        args.Token,
-		webhookToken: args.WebhookToken,
-		db:           args.Db,
+		validator:       validator,
+		baseURL:         args.BaseURL,
+		token:           args.Token,
+		webhookToken:    args.WebhookToken,
+		db:              args.Db,
+		identityService: args.IdentityService,
 	}, nil
 }
 
@@ -147,7 +154,7 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 				}
 			}
 		}
-	}`, ApplicationFormUserIDTag, args.ID, args.Country, args.Email))
+	}`, ApplicationUserIDTag, args.ID, args.Country, args.Email))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
@@ -182,6 +189,126 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 		ID:  data.Data.ID,
 		URL: data.Data.Attr.Url,
 	}, nil
+}
+
+type CreateApplicationArgs struct {
+	Ssn               string `validate:"required"`
+	DateOfBirth       string `validate:"required"`
+	Street            string `validate:"required"`
+	Street2           string `validate:"required"`
+	City              string `validate:"required"`
+	State             string `validate:"required"`
+	PostalCode        string `validate:"required"`
+	IpAddress         string `validate:"required"`
+	UserID            string `validate:"required"`
+	DeviceFingerprint string `validate:"required"`
+}
+
+type Application struct {
+	Data struct {
+		Type       string `json:"type"`
+		ID         string `json:"id"`
+		Attributes struct {
+			Status string `json:"status"`
+			Tags   struct {
+				FynbosUserId string `json:"fynbosUserId"`
+			} `json:"tags"`
+			Archived bool `json:"archived"`
+		} `json:"attributes"`
+	} `json:"data"`
+}
+
+func (s *service) CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+	identity, err := s.identityService.Get(ctx, args.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	phoneNumber, err := phonenumbers.Parse(identity.MobileNumber, "")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	// https://docs.unit.co/applications/#create-individual-application
+	url := fmt.Sprintf(`%s/applications`, s.baseURL)
+
+	var jsonStr = []byte(fmt.Sprintf(`{
+		"data": {
+			"type": "individualApplication",
+			"attributes": {
+				"ssn": %s,
+				"fullName": {
+					"first": %s,
+					"last": %s
+				},
+				"dateOfBirth": %s,
+				"address": {
+					"street": %s,
+					"street2": %s,
+					"city": %s,
+					"state": %s,
+					"postalCode": %s,
+					"country": %s
+				},
+				"email": %s,
+				"phone": {
+					"countryCode": %s,
+					"number": %s
+				},
+				"ip": %s,
+				"tags": {
+					"%s": "%s"
+				},
+				"deviceFingerprints": [{
+					"provider": "iovation",
+  				"value": %s
+				}]
+			}
+		}
+	}`,
+		args.Ssn,
+		identity.FirstName,
+		identity.LastName,
+		args.DateOfBirth,
+		args.Street,
+		args.Street2,
+		args.City,
+		args.State,
+		args.PostalCode,
+		identity.Country,
+		identity.Email,
+		strconv.Itoa(int(*phoneNumber.CountryCode)),
+		strconv.Itoa(int(*phoneNumber.NationalNumber)),
+		args.IpAddress,
+		ApplicationUserIDTag,
+		args.UserID,
+		args.DeviceFingerprint,
+	))
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/vnd.api+json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.token))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var data Application
+
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }
 
 func (self *service) VerifyWebhook(ctx context.Context, body []byte, signature string) error {

@@ -66,7 +66,7 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 		// TODO Format the event as desired, probably don't need the entire thing.
-		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[unit.ApplicationFormUserIDTag], "", "onboard-unit-customer-created", event)
+		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[unit.ApplicationUserIDTag], "", "onboard-unit-customer-created", event)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
