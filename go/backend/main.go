@@ -179,10 +179,11 @@ func start(args *cli.StartArgs) {
 	}
 
 	us, err := _unit.NewService(_unit.ServiceArgs{
-		BaseURL:      args.UnitBaseURL,
-		Token:        args.UnitToken,
-		WebhookToken: args.UnitWebhookToken,
-		Db:           db,
+		BaseURL:         args.UnitBaseURL,
+		Token:           args.UnitToken,
+		WebhookToken:    args.UnitWebhookToken,
+		Db:              db,
+		IdentityService: id,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -514,10 +515,11 @@ func startWorker(args *cli.StartArgs) {
 	}
 
 	unit, err := _unit.NewService(_unit.ServiceArgs{
-		BaseURL:      args.UnitBaseURL,
-		Token:        args.UnitToken,
-		WebhookToken: args.UnitWebhookToken,
-		Db:           db,
+		BaseURL:         args.UnitBaseURL,
+		Token:           args.UnitToken,
+		WebhookToken:    args.UnitWebhookToken,
+		Db:              db,
+		IdentityService: id,
 	})
 	if err != nil {
 		log.Fatalln(err)

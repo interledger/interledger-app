@@ -154,7 +154,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	for _, scenario := range scenarios {
 		customerCreatedEvent := NewCustomerCreatedEvent()
 
-		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags[unit.ApplicationFormUserIDTag], mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags[unit.ApplicationUserIDTag], mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, customerCreatedEvent)
 		err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
@@ -317,7 +317,7 @@ func NewCustomerCreatedEvent() CustomerCreatedEvent {
 		Attributes: CustomerCreatedAttributes{
 			CreatedAt: "2020-07-29T12:53:05.882Z",
 			Tags: map[string]string{
-				unit.ApplicationFormUserIDTag: uuid.NewString(),
+				unit.ApplicationUserIDTag: uuid.NewString(),
 			},
 		},
 		Relationships: CustomerCreatedRelationships{

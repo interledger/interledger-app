@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 )
@@ -70,6 +71,40 @@ func TestUnitProvider(s *testing.T) {
 		assert.Equal(t, "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6", form.URL)
 	})
 
+	s.Run("Successfully calls CreateApplication", func(t *testing.T) {
+		user := _user.User{
+			ID:    uuid.NewString(),
+			Email: faker.Email(),
+		}
+
+		c.IdentityService.EXPECT().Get(gomock.Any(), user.ID).Return(&identity.Identity{
+			ID:           user.ID,
+			MobileNumber: faker.E164PhoneNumber(),
+			FirstName:    faker.FirstName(),
+			LastName:     faker.LastName(),
+			Country:      "US",
+			Email:        user.Email,
+		}, nil).Times(1)
+
+		form, err := c.UnitService.CreateApplication(ctx, &CreateApplicationArgs{
+			Ssn:               faker.Phonenumber(),
+			DateOfBirth:       faker.Date(),
+			Street:            faker.FirstName(),
+			Street2:           faker.FirstName(),
+			City:              faker.FirstName(),
+			State:             faker.FirstName(),
+			PostalCode:        faker.FirstName(),
+			IpAddress:         faker.FirstName(),
+			UserID:            user.ID,
+			DeviceFingerprint: faker.FirstName(),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.NotNil(t, form)
+		assert.Equal(t, form.Data.Attributes.Tags.FynbosUserId, "106a75e9-de77-4e25-9561-faffe59d7814")
+		assert.Equal(t, form.Data.Attributes.Status, "AwaitingDocuments")
+	})
 	s.Run("Creates and retrieves customer", func(t *testing.T) {
 		accountID := uuid.NewString()
 		customerID := uuid.NewString()
@@ -136,22 +171,27 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 }
 
 type TestContainer struct {
-	Ctrl           *gomock.Controller
-	UnitMockServer *httptest.Server
-	UnitService    Service
-	Db             *sqlx.DB
+	Ctrl            *gomock.Controller
+	UnitMockServer  *httptest.Server
+	UnitService     Service
+	IdentityService *identity.MockService
+	Db              *sqlx.DB
 }
 
 func NewTestContainer(s *testing.T) *TestContainer {
 	c := &TestContainer{}
 	db := test_utils.MigrateCockroachDB(s, context.Background())
 	c.Db = db
+	c.Ctrl = gomock.NewController(s)
+	identityService := identity.NewMockService(c.Ctrl)
+	c.IdentityService = identityService
 	c.UnitMockServer = test_utils.SetupUnitMockServer(context.Background())
 	us, err := NewService(ServiceArgs{
-		WebhookToken: "fynbos_local_unit_webhook_token",
-		BaseURL:      c.UnitMockServer.URL,
-		Token:        "test token",
-		Db:           db,
+		WebhookToken:    "fynbos_local_unit_webhook_token",
+		BaseURL:         c.UnitMockServer.URL,
+		Token:           "test token",
+		Db:              db,
+		IdentityService: identityService,
 	})
 	if err != nil {
 		s.Fatal(err)
