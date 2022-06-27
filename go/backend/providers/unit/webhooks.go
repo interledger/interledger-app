@@ -12,13 +12,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/types"
-	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/sdk/client"
 )
 
 var (
-	ErrInternal       = errors.New("unit webhook: internal error.")
 	ErrDuplicateEvent = errors.New("unit webhook: duplicate event.") // event already stored in database.
 )
 
@@ -30,10 +27,9 @@ type Webhook interface {
 }
 
 type WebhookArgs struct {
-	Up unit.Service       `validate:"required"`
-	Os onboarding.Service `validate:"required"`
-	Db *sqlx.DB           `validate:"required"`
-	Tp client.Client      `validate:"required"`
+	Up Service       `validate:"required"`
+	Db *sqlx.DB      `validate:"required"`
+	Tp client.Client `validate:"required"`
 }
 
 func NewWebhook(args *WebhookArgs) (Webhook, error) {
@@ -41,12 +37,11 @@ func NewWebhook(args *WebhookArgs) (Webhook, error) {
 	if err := v.Struct(args); err != nil {
 		return nil, err
 	}
-	return &webhook{args.Up, args.Os, args.Db, args.Tp}, nil
+	return &webhook{args.Up, args.Db, args.Tp}, nil
 }
 
 type webhook struct {
-	up unit.Service
-	os onboarding.Service
+	up Service
 	db *sqlx.DB
 	tp client.Client
 }
@@ -66,7 +61,7 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 		// TODO Format the event as desired, probably don't need the entire thing.
-		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[unit.ApplicationUserIDTag], "", "onboard-unit-customer-created", event)
+		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[ApplicationUserIDTag], "", "onboard-unit-customer-created", event)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
@@ -112,7 +107,7 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			return
 		}
 
-		if err := wh.up.VerifyWebhook(context.Background(), payload, r.Header.Get(unit.SignatureHeader)); err != nil {
+		if err := wh.up.VerifyWebhook(context.Background(), payload, r.Header.Get(SignatureHeader)); err != nil {
 			http.Error(w, "Signature didn't match.", 401)
 			return
 		}
@@ -172,15 +167,15 @@ type (
 	}
 
 	CustomerCreatedRelationships struct {
-		Customer    Customer    `json:"customer"`
-		Application Application `json:"application"`
+		Customer    JsonCustomer    `json:"customer"`
+		Application JsonApplication `json:"application"`
 	}
 
-	Customer struct {
+	JsonCustomer struct {
 		Data Data `json:"data"`
 	}
 
-	Application struct {
+	JsonApplication struct {
 		Data Data `json:"data"`
 	}
 

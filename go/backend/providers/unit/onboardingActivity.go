@@ -1,4 +1,4 @@
-package onboarding
+package unit
 
 import (
 	context "context"
@@ -7,19 +7,18 @@ import (
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/unit"
 )
 
 type (
 	Activity struct {
 		validator *validator.Validate
-		up        unit.Service
+		up        Service
 		as        accounts.Service
 		is        identity.Service
 	}
 
 	ActivityArgs struct {
-		Up unit.Service     `validate:"required"`
+		Up Service          `validate:"required"`
 		As accounts.Service `validate:"required"`
 		Is identity.Service `validate:"required"`
 	}
@@ -74,7 +73,7 @@ func (a *Activity) MapCustomerToAccount(ctx context.Context, args *MapCustomerTo
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	_, err = a.up.CreateCustomer(ctx, &unit.CreateCustomerArgs{
+	_, err = a.up.CreateCustomer(ctx, &CreateCustomerArgs{
 		ID:        args.CustomerID,
 		AccountID: args.AccountID,
 		Type:      args.Type,

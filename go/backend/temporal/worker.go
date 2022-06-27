@@ -75,8 +75,8 @@ func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
 	w.RegisterActivity(withdrawalActivities)
 
 	// Register onboard unit customer workflow
-	w.RegisterWorkflow(onboarding.OnboardUnitCustomerWorkflow)
-	unitOnboardingActivity, err := onboarding.NewActivity(&onboarding.ActivityArgs{
+	w.RegisterWorkflow(unit.OnboardCustomerWorkflow)
+	unitOnboardingActivity, err := unit.NewActivity(&unit.ActivityArgs{
 		Up: args.Up,
 		As: args.As,
 		Is: args.Is,
