@@ -10,9 +10,9 @@ func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 
 		rootPki, err := vault.NewMount(ctx, "root-mount", &vault.MountArgs{
-			Path:                   pulumi.String("pki"),
+			Path:                   pulumi.String("pki/dev"),
 			Type:                   pulumi.String("pki"),
-			Description:            pulumi.String("Root PKI"),
+			Description:            pulumi.String("Dev root PKI"),
 			DefaultLeaseTtlSeconds: pulumi.Int(60 * 60 * 24 * 365 * 20),
 			MaxLeaseTtlSeconds:     pulumi.Int(60 * 60 * 24 * 365 * 20),
 		})
@@ -23,7 +23,7 @@ func main() {
 		rootCert, err := pkisecret.NewSecretBackendRootCert(ctx, "root-cert", &pkisecret.SecretBackendRootCertArgs{
 			Backend:      rootPki.Path,
 			Type:         pulumi.String("internal"),
-			CommonName:   pulumi.String("Fynbos Root CA"),
+			CommonName:   pulumi.String("Fynbos Dev Root CA"),
 			Ttl:          pulumi.String("175320h"),
 			KeyType:      pulumi.String("ed25519"),
 			Organization: pulumi.String("Fynbos"),
@@ -46,9 +46,9 @@ func main() {
 		}
 
 		intPki, err := vault.NewMount(ctx, "int-mount", &vault.MountArgs{
-			Path:                   pulumi.String("pki_int"),
+			Path:                   pulumi.String("pki/dev-int"),
 			Type:                   pulumi.String("pki"),
-			Description:            pulumi.String("Intermediate PKI"),
+			Description:            pulumi.String("Dev Intermediate PKI"),
 			DefaultLeaseTtlSeconds: pulumi.Int(60 * 60 * 24 * 365 * 5),
 			MaxLeaseTtlSeconds:     pulumi.Int(60 * 60 * 24 * 365 * 5),
 		})
@@ -61,7 +61,7 @@ func main() {
 		intCSR, err := pkisecret.NewSecretBackendIntermediateCertRequest(ctx, "int-csr", &pkisecret.SecretBackendIntermediateCertRequestArgs{
 			Backend:      intPki.Path,
 			Type:         pulumi.String("internal"),
-			CommonName:   pulumi.String("Fynbos Intermediate Authority"),
+			CommonName:   pulumi.String("Fynbos Dev Intermediate Authority"),
 			KeyType:      pulumi.String("ed25519"),
 			Organization: pulumi.String("Fynbos"),
 		})
@@ -72,7 +72,7 @@ func main() {
 		intSigned, err := pkisecret.NewSecretBackendRootSignIntermediate(ctx, "int-signed", &pkisecret.SecretBackendRootSignIntermediateArgs{
 			Backend:      rootPki.Path,
 			Csr:          intCSR.Csr,
-			CommonName:   pulumi.String("Fynbos Intermediate Authority"),
+			CommonName:   pulumi.String("Fynbos Dev Intermediate Authority"),
 			Organization: pulumi.String("Fynbos"),
 			Ttl:          pulumi.String("43800h"),
 		})
@@ -87,6 +87,29 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// Generate CRDB Node Cert Role
+		// https://www.vaultproject.io/api-docs/secret/pki#create-update-role
+		_, err = pkisecret.NewSecretBackendRole(ctx, "crdb-node", &pkisecret.SecretBackendRoleArgs{
+			Name:             pulumi.String("crdb-node"),
+			Backend:          intPki.Path,
+			AllowBareDomains: pulumi.Bool(true),
+			AllowLocalhost:   pulumi.Bool(true),
+			AllowSubdomains:  pulumi.Bool(true),
+			AllowedDomains: pulumi.StringArray{
+				pulumi.String("localhost"),
+				pulumi.String("127.0.0.1"),
+				pulumi.String("crdb-public"),
+				pulumi.String("crdb-public.cockroachdb"),
+				pulumi.String("crdb-public.cockroachdb.svc.cluster.local"),
+				pulumi.String("crdb"),
+				pulumi.String("crdb.cockroachdb"),
+				pulumi.String("crdb.cockroachdb.svc.cluster.local"),
+				pulumi.String("node"),
+				pulumi.String("root"),
+			},
+			MaxTtl: pulumi.String("2765000"), // 32days in seconds
+		})
 
 		ctx.Export("rootCert", rootCert.Certificate)
 

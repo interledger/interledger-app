@@ -1,0 +1,3 @@
+name: aws-clusters-dev-euw1-crdb
+runtime: go
+description: Deploy cockroach to dev-euw1 cluster

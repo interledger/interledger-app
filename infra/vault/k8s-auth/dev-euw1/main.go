@@ -80,6 +80,11 @@ func main() {
 			return err
 		}
 
+		err = createCrdbNodeRole(ctx, k8sAuth.Path)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -109,4 +114,38 @@ func newPolicy(authAccessor pulumi.StringOutput) pulumi.StringOutput {
 		}
 		return parsedPolicy.String(), nil
 	}).(pulumi.StringOutput)
+}
+
+func createCrdbNodeRole(ctx *pulumi.Context, path pulumi.StringPtrInput) error {
+	policy, err := vault.NewPolicy(ctx, "crdb-node", &vault.PolicyArgs{
+		Name: pulumi.String("dev-euw1-crdb-node"),
+		Policy: pulumi.String(`
+path "pki/dev-int/sign/crdb-node"
+{
+  capabilities = ["read", "create", "update"]
+}
+`),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = vaultk8s.NewAuthBackendRole(ctx, "crdb-node-role", &vaultk8s.AuthBackendRoleArgs{
+		RoleName: pulumi.String("crdb-node"),
+		Backend:  path,
+		BoundServiceAccountNames: pulumi.StringArray{
+			pulumi.String("*"),
+		},
+		BoundServiceAccountNamespaces: pulumi.StringArray{
+			pulumi.String("cockroachdb"),
+		},
+		TokenPolicies: pulumi.StringArray{
+			policy.Name,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{policy}))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
