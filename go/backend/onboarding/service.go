@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -288,7 +289,7 @@ func (s *service) InitiateUnitCustomerOnboarding(ctx context.Context, args *Init
 			TaskQueue:             "backend",
 			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 		},
-		OnboardUnitCustomerWorkflow, &OnboardUnitCustomerArgs{
+		unit.OnboardCustomerWorkflow, &unit.OnboardCustomerArgs{
 			CustomerID: args.CustomerID,
 			Type:       args.CustomerType,
 			IdentityID: args.IdentityID,

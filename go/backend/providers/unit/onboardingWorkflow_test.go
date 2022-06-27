@@ -1,4 +1,4 @@
-package onboarding
+package unit
 
 import (
 	context "context"
@@ -33,7 +33,7 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 
 func (s *UnitTestSuite) TestOnboardingSuccess() {
 	accountID := uuid.NewString()
-	workflowArgs := &OnboardUnitCustomerArgs{
+	workflowArgs := &OnboardCustomerArgs{
 		CustomerID: uuid.NewString(),
 		Type:       "individual",
 		IdentityID: uuid.NewString(),
@@ -54,7 +54,7 @@ func (s *UnitTestSuite) TestOnboardingSuccess() {
 			return nil
 		},
 	)
-	s.env.ExecuteWorkflow(OnboardUnitCustomerWorkflow, workflowArgs)
+	s.env.ExecuteWorkflow(OnboardCustomerWorkflow, workflowArgs)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }

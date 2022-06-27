@@ -14,8 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/mocks"
 )
@@ -27,13 +26,11 @@ func TestWebhook(t *testing.T) {
 
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	ctrl := gomock.NewController(t)
-	osMock := onboarding.NewMockService(ctrl)
-	providerMock := unit.NewMockService(ctrl)
+	providerMock := NewMockService(ctrl)
 	temporalMockClient := &mocks.Client{}
 
 	wh, err := NewWebhook(&WebhookArgs{
 		Db: db,
-		Os: osMock,
 		Up: providerMock,
 		Tp: temporalMockClient,
 	})
@@ -113,16 +110,17 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	osMock := onboarding.NewMockService(ctrl)
+	identityMock := identity.NewMockService(ctrl)
 	temporalMockClient := &mocks.Client{}
 
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	provider, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Db:           db,
+	provider, err := NewService(ServiceArgs{
+		BaseURL:         "localhost:8080",
+		Token:           "token",
+		WebhookToken:    "webhooktoken",
+		Db:              db,
+		IdentityService: identityMock,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -130,7 +128,6 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 
 	wh, err := NewWebhook(&WebhookArgs{
 		Up: provider,
-		Os: osMock,
 		Db: db,
 		Tp: temporalMockClient,
 	})
@@ -146,15 +143,11 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 			Name:            "Succeeds if unit onboarding is initiated.",
 			OnboardingError: nil,
 		},
-		{
-			Name:            "Returns ErrInternal if unit onboarding fails to initiate",
-			OnboardingError: onboarding.ErrInternal,
-		},
 	}
 	for _, scenario := range scenarios {
 		customerCreatedEvent := NewCustomerCreatedEvent()
 
-		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags[unit.ApplicationUserIDTag], mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags[ApplicationUserIDTag], mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, customerCreatedEvent)
 		err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
@@ -172,21 +165,21 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	osMock := onboarding.NewMockService(ctrl)
+	identityMock := identity.NewMockService(ctrl)
 	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	provider, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Db:           db,
+	provider, err := NewService(ServiceArgs{
+		BaseURL:         "localhost:8080",
+		Token:           "token",
+		WebhookToken:    "webhooktoken",
+		Db:              db,
+		IdentityService: identityMock,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	wh, err := NewWebhook(&WebhookArgs{
 		Db: db,
-		Os: osMock,
 		Up: provider,
 		Tp: temporalMockClient,
 	})
@@ -206,21 +199,21 @@ func TestStoreEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	osMock := onboarding.NewMockService(ctrl)
+	identityMock := identity.NewMockService(ctrl)
 	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	provider, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Db:           db,
+	provider, err := NewService(ServiceArgs{
+		BaseURL:         "localhost:8080",
+		Token:           "token",
+		WebhookToken:    "webhooktoken",
+		Db:              db,
+		IdentityService: identityMock,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	wh, err := NewWebhook(&WebhookArgs{
 		Db: db,
-		Os: osMock,
 		Up: provider,
 		Tp: temporalMockClient,
 	})
@@ -247,21 +240,21 @@ func TestStoreDuplicateEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	osMock := onboarding.NewMockService(ctrl)
+	identityMock := identity.NewMockService(ctrl)
 	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	provider, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:      "localhost:8080",
-		Token:        "token",
-		WebhookToken: "webhooktoken",
-		Db:           db,
+	provider, err := NewService(ServiceArgs{
+		BaseURL:         "localhost:8080",
+		Token:           "token",
+		WebhookToken:    "webhooktoken",
+		Db:              db,
+		IdentityService: identityMock,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	wh, err := NewWebhook(&WebhookArgs{
 		Db: db,
-		Os: osMock,
 		Up: provider,
 		Tp: temporalMockClient,
 	})
@@ -317,17 +310,17 @@ func NewCustomerCreatedEvent() CustomerCreatedEvent {
 		Attributes: CustomerCreatedAttributes{
 			CreatedAt: "2020-07-29T12:53:05.882Z",
 			Tags: map[string]string{
-				unit.ApplicationUserIDTag: uuid.NewString(),
+				ApplicationUserIDTag: uuid.NewString(),
 			},
 		},
 		Relationships: CustomerCreatedRelationships{
-			Customer: Customer{
+			Customer: JsonCustomer{
 				Data: Data{
 					ID:   "52",
 					Type: "individualCustomer",
 				},
 			},
-			Application: Application{
+			Application: JsonApplication{
 				Data: Data{
 					ID:   "52",
 					Type: "individualApplication",

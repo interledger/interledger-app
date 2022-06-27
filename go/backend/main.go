@@ -43,7 +43,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
-	unitwh "gitlab.com/fynbos/backend/webhooks/unit"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
@@ -289,10 +288,9 @@ func start(args *cli.StartArgs) {
 	}
 	graphql = graph.NewLoggingService(graphql, logger)
 
-	unitWebhook, err := unitwh.NewWebhook(&unitwh.WebhookArgs{
+	unitWebhook, err := _unit.NewWebhook(&_unit.WebhookArgs{
 		Db: db,
 		Up: us,
-		Os: os,
 		Tp: tp,
 	})
 	if err != nil {

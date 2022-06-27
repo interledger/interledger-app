@@ -22,8 +22,10 @@ import (
 )
 
 var (
-	ErrInternal     = errors.New("unit: internal error")
-	ErrUnauthorized = errors.New("unit: unauthorized webhook request")
+	ErrInternal        = errors.New("unit: internal error")
+	ErrUnauthorized    = errors.New("unit: unauthorized webhook request")
+	ErrInvalidArgument = errors.New("unit: invalid argument.")
+	ErrNotFound        = errors.New("unit: not found.")
 )
 
 const (

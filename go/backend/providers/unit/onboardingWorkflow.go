@@ -1,4 +1,4 @@
-package onboarding
+package unit
 
 import (
 	"time"
@@ -6,14 +6,14 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type OnboardUnitCustomerArgs struct {
+type OnboardCustomerArgs struct {
 	CustomerID string
 	Type       string
 	IdentityID string
 	Country    string
 }
 
-func OnboardUnitCustomerWorkflow(ctx workflow.Context, args *OnboardUnitCustomerArgs) error {
+func OnboardCustomerWorkflow(ctx workflow.Context, args *OnboardCustomerArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
