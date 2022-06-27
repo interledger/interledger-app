@@ -1,0 +1,3 @@
+name: vault-pki-dev
+runtime: go
+description: Vault dev PKI setup
