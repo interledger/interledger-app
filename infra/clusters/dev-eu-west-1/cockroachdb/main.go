@@ -172,7 +172,7 @@ func main() {
 			return err
 		}
 
-		_, err = crdb.DeployStatefulSet(ctx, crdb.StatefulSetArgs{
+		statefulSet, err := crdb.DeployStatefulSet(ctx, crdb.StatefulSetArgs{
 			Namespace:          namespace.Metadata.Name().Elem(),
 			Replicas:           3,
 			ServiceAccountName: serviceAccount.Metadata.Name(),
@@ -193,6 +193,14 @@ func main() {
 		}
 
 		err = crdb.DeployPodDistributionBudget(ctx, pulumi.Provider(kubeProvider))
+		if err != nil {
+			return err
+		}
+
+		err = crdb.InitCrdbJob(ctx, crdb.InitCrdbJobArgs{
+			Namespace:      namespace.Metadata.Name().Elem(),
+			RootCertSecret: pulumi.String("cockroachdb-root"),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, statefulSet}))
 		if err != nil {
 			return err
 		}
