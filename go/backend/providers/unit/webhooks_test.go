@@ -160,6 +160,61 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	}
 }
 
+func TestHandleApplicationDeniedEvent(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	identityMock := identity.NewMockService(ctrl)
+	temporalMockClient := &mocks.Client{}
+
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	provider, err := NewService(ServiceArgs{
+		BaseURL:         "localhost:8080",
+		Token:           "token",
+		WebhookToken:    "webhooktoken",
+		Db:              db,
+		IdentityService: identityMock,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wh, err := NewWebhook(&WebhookArgs{
+		Up: provider,
+		Db: db,
+		Tp: temporalMockClient,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	scenarios := []struct {
+		Name            string
+		OnboardingError error
+	}{
+		{
+			Name:            "Succeeds if unit onboarding is initiated.",
+			OnboardingError: nil,
+		},
+	}
+	for _, scenario := range scenarios {
+		applicationDeniedEvent := NewApplicationDeniedEvent()
+
+		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+applicationDeniedEvent.Attributes.Tags[ApplicationUserIDTag], mock.AnythingOfType("string"), "onboard-unit-application-denied", mock.Anything).Return(scenario.OnboardingError).Times(1)
+
+		rawEvent := marshalEvent(t, applicationDeniedEvent)
+		err = wh.HandleEvent(context.Background(), Event{ID: applicationDeniedEvent.ID, Type: EventType(applicationDeniedEvent.Type)}, rawEvent)
+
+		if scenario.OnboardingError != nil {
+			assert.ErrorIs(t, err, ErrInternal, scenario.Name)
+		} else {
+			assert.NoError(t, err, scenario.Name)
+		}
+	}
+}
+
 func TestDontFailForUnknownEvent(t *testing.T) {
 	t.Parallel()
 
@@ -307,19 +362,40 @@ func NewCustomerCreatedEvent() CustomerCreatedEvent {
 	return CustomerCreatedEvent{
 		ID:   uuid.NewString(),
 		Type: "customer.created",
-		Attributes: CustomerCreatedAttributes{
+		Attributes: EventAttributes{
 			CreatedAt: "2020-07-29T12:53:05.882Z",
 			Tags: map[string]string{
 				ApplicationUserIDTag: uuid.NewString(),
 			},
 		},
-		Relationships: CustomerCreatedRelationships{
+		Relationships: EventRelationships{
 			Customer: JsonCustomer{
 				Data: Data{
 					ID:   "52",
 					Type: "individualCustomer",
 				},
 			},
+			Application: JsonApplication{
+				Data: Data{
+					ID:   "52",
+					Type: "individualApplication",
+				},
+			},
+		},
+	}
+}
+
+func NewApplicationDeniedEvent() ApplicationDeniedEvent {
+	return ApplicationDeniedEvent{
+		ID:   uuid.NewString(),
+		Type: "application.denied",
+		Attributes: EventAttributes{
+			CreatedAt: "2020-07-29T12:53:05.882Z",
+			Tags: map[string]string{
+				ApplicationUserIDTag: uuid.NewString(),
+			},
+		},
+		Relationships: EventRelationships{
 			Application: JsonApplication{
 				Data: Data{
 					ID:   "52",
