@@ -60,13 +60,19 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 		if err := json.Unmarshal(rawEvent, event); err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-		// TODO Format the event as desired, probably don't need the entire thing.
 		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[ApplicationUserIDTag], "", "onboard-unit-customer-created", event)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-	case APPLICATION_AWAITING_DOCUMENTS:
-		// TODO Other webhooks for onboarding process.
+	case APPLICATION_DENIED:
+		event := &ApplicationDeniedEvent{}
+		if err := json.Unmarshal(rawEvent, event); err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[ApplicationUserIDTag], "", "onboard-unit-application-denied", event)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
 	default:
 		// don't fail as Unit may add new events.
 	}
@@ -155,19 +161,26 @@ type (
 		Type EventType `json:"type"`
 	}
 	CustomerCreatedEvent struct {
-		ID            string                       `json:"id"`
-		Type          string                       `json:"type"`
-		Attributes    CustomerCreatedAttributes    `json:"attributes"`
-		Relationships CustomerCreatedRelationships `json:"relationships"`
+		ID            string             `json:"id"`
+		Type          string             `json:"type"`
+		Attributes    EventAttributes    `json:"attributes"`
+		Relationships EventRelationships `json:"relationships"`
 	}
 
-	CustomerCreatedAttributes struct {
+	ApplicationDeniedEvent struct {
+		ID            string             `json:"id"`
+		Type          string             `json:"type"`
+		Attributes    EventAttributes    `json:"attributes"`
+		Relationships EventRelationships `json:"relationships"`
+	}
+
+	EventAttributes struct {
 		CreatedAt string            `json:"createdAt"`
 		Tags      map[string]string `json:"tags"`
 	}
 
-	CustomerCreatedRelationships struct {
-		Customer    JsonCustomer    `json:"customer"`
+	EventRelationships struct {
+		Customer    JsonCustomer    `json:"customer,omitempty"`
 		Application JsonApplication `json:"application"`
 	}
 
@@ -188,6 +201,7 @@ type (
 const (
 	CUSTOMER_CREATED               = EventType("customer.created")
 	APPLICATION_AWAITING_DOCUMENTS = EventType("application.awaitingdocuments")
+	APPLICATION_DENIED             = EventType("application.denied")
 )
 
 type DbEvent struct {
