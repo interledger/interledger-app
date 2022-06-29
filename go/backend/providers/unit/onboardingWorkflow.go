@@ -17,7 +17,7 @@ type UnitOnboardCustomerState struct {
 	ApplicationArgs CreateApplicationArgs // TODO Change to key from vault
 }
 
-func UnitOnboardCustomerWorkflow(ctx workflow.Context, state *UnitOnboardCustomerState) error {
+func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomerState) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
