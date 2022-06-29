@@ -7,6 +7,8 @@ import type { GetQuoteRequest } from "./backend";
 import type { CheckPhoneVerificationCodeRequest } from "./backend";
 import type { PhoneVerificationResponse } from "./backend";
 import type { SendPhoneVerificationRequest } from "./backend";
+import type { InitiateUnitOnboardingResponse } from "./backend";
+import type { InitiateUnitOnboardingRequest } from "./backend";
 import type { CreateIdentityResponse } from "./backend";
 import type { CreateIdentityRequest } from "./backend";
 import type { Onboarding } from "./backend";
@@ -93,6 +95,10 @@ export interface IBackendServiceClient {
      */
     createIdentity(input: CreateIdentityRequest, options?: RpcOptions): UnaryCall<CreateIdentityRequest, CreateIdentityResponse>;
     /**
+     * @generated from protobuf rpc: InitiateUnitOnboarding(backend.v1.InitiateUnitOnboardingRequest) returns (backend.v1.InitiateUnitOnboardingResponse);
+     */
+    initiateUnitOnboarding(input: InitiateUnitOnboardingRequest, options?: RpcOptions): UnaryCall<InitiateUnitOnboardingRequest, InitiateUnitOnboardingResponse>;
+    /**
      * Allows sending and checking an sms verification.
      *
      * @generated from protobuf rpc: SendPhoneVerification(backend.v1.SendPhoneVerificationRequest) returns (backend.v1.PhoneVerificationResponse);
@@ -160,19 +166,26 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreateIdentityRequest, CreateIdentityResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: InitiateUnitOnboarding(backend.v1.InitiateUnitOnboardingRequest) returns (backend.v1.InitiateUnitOnboardingResponse);
+     */
+    initiateUnitOnboarding(input: InitiateUnitOnboardingRequest, options?: RpcOptions): UnaryCall<InitiateUnitOnboardingRequest, InitiateUnitOnboardingResponse> {
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        return stackIntercept<InitiateUnitOnboardingRequest, InitiateUnitOnboardingResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Allows sending and checking an sms verification.
      *
      * @generated from protobuf rpc: SendPhoneVerification(backend.v1.SendPhoneVerificationRequest) returns (backend.v1.PhoneVerificationResponse);
      */
     sendPhoneVerification(input: SendPhoneVerificationRequest, options?: RpcOptions): UnaryCall<SendPhoneVerificationRequest, PhoneVerificationResponse> {
-        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        const method = this.methods[6], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendPhoneVerificationRequest, PhoneVerificationResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CheckPhoneVerificationCode(backend.v1.CheckPhoneVerificationCodeRequest) returns (backend.v1.PhoneVerificationResponse);
      */
     checkPhoneVerificationCode(input: CheckPhoneVerificationCodeRequest, options?: RpcOptions): UnaryCall<CheckPhoneVerificationCodeRequest, PhoneVerificationResponse> {
-        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
         return stackIntercept<CheckPhoneVerificationCodeRequest, PhoneVerificationResponse>("unary", this._transport, method, opt, input);
     }
     /**

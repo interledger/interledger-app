@@ -45,6 +45,7 @@ service BackendService {
   rpc UpdateOnboarding(Onboarding) returns (Onboarding);
   // Creates a user identity, with the data in onboarding.
   rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
+  rpc InitiateUnitOnboarding(InitiateUnitOnboardingRequest) returns (InitiateUnitOnboardingResponse);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
@@ -95,6 +96,23 @@ message CreateIdentityRequest {
 }
 
 message CreateIdentityResponse {
+  string identityId = 1;
+}
+
+message InitiateUnitOnboardingRequest {
+  string ssn = 1;
+  string nationality = 2;
+  string date_of_birth = 3;
+  string street = 4;
+  string street2 = 5;
+  string city = 6;
+  string state = 7;
+  string postal_code = 8;
+  string ip = 9;
+  repeated string device_fingerprints = 10;
+}
+
+message InitiateUnitOnboardingResponse {
   string identityId = 1;
 }
 
