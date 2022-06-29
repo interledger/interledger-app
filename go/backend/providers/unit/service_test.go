@@ -102,8 +102,8 @@ func TestUnitProvider(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.NotNil(t, form)
-		assert.Equal(t, form.Data.Attributes.Tags.FynbosUserId, "106a75e9-de77-4e25-9561-faffe59d7814")
-		assert.Equal(t, form.Data.Attributes.Status, "AwaitingDocuments")
+		assert.Equal(t, form.FynbosUserId, "106a75e9-de77-4e25-9561-faffe59d7814")
+		assert.Equal(t, form.Status, "AwaitingDocuments")
 	})
 	s.Run("Creates and retrieves customer", func(t *testing.T) {
 		accountID := uuid.NewString()

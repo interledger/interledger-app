@@ -207,6 +207,15 @@ type CreateApplicationArgs struct {
 }
 
 type Application struct {
+	Type         string
+	ID           string
+	Status       string
+	FynbosUserId string
+	Archived     bool
+	CustomerID   string
+}
+
+type ApplicationJson struct {
 	Data struct {
 		Type       string `json:"type"`
 		ID         string `json:"id"`
@@ -217,6 +226,14 @@ type Application struct {
 			} `json:"tags"`
 			Archived bool `json:"archived"`
 		} `json:"attributes"`
+		Relationships struct {
+			Customer struct {
+				Data struct {
+					Type string `json:"type,omitempty"`
+					ID   string `json:"id,omitempty"`
+				} `json:"data,omitempty"`
+			} `json:"customer,omitempty"`
+		} `json:"relationships,omitempty"`
 	} `json:"data"`
 }
 
@@ -304,13 +321,20 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 
 	body, _ := io.ReadAll(resp.Body)
 
-	var data Application
+	var data ApplicationJson
 
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		return nil, err
 	}
-	return &data, nil
+	return &Application{
+		Type:         data.Data.Type,
+		ID:           data.Data.ID,
+		Status:       data.Data.Attributes.Status,
+		FynbosUserId: data.Data.Attributes.Tags.FynbosUserId,
+		Archived:     data.Data.Attributes.Archived,
+		CustomerID:   data.Data.Relationships.Customer.Data.ID,
+	}, nil
 }
 
 func (self *service) VerifyWebhook(ctx context.Context, body []byte, signature string) error {
