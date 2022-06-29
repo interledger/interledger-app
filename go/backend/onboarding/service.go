@@ -271,10 +271,16 @@ func (s *service) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*
 }
 
 type InitiateUnitCustomerOnboardingArgs struct {
-	IdentityID   string `validate:"required"`
-	Country      string `validate:"oneof=US"`
-	CustomerID   string `validate:"required"`
-	CustomerType string `validate:"required"`
+	IdentityID        string `validate:"required"`
+	Ssn               string `validate:"required"`
+	DateOfBirth       string `validate:"required"`
+	Street            string `validate:"required"`
+	Street2           string `validate:"required"`
+	City              string `validate:"required"`
+	State             string `validate:"required"`
+	PostalCode        string `validate:"required"`
+	IpAddress         string `validate:"required"`
+	DeviceFingerprint string `validate:"required"`
 }
 
 func (s *service) InitiateUnitCustomerOnboarding(ctx context.Context, args *InitiateUnitCustomerOnboardingArgs) error {
@@ -282,17 +288,32 @@ func (s *service) InitiateUnitCustomerOnboarding(ctx context.Context, args *Init
 		return fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
+	// TODO: store these args in vault and just pass the key to the workflow.
+
 	_, err := s.tp.ExecuteWorkflow(
 		ctx,
 		client.StartWorkflowOptions{
-			ID:                    "new_unit_customer_" + args.CustomerID,
+			ID:                    "unit_onboarding_" + args.IdentityID,
 			TaskQueue:             "backend",
 			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 		},
-		unit.UnitOnboardCustomerWorkflow, &unit.UnitOnboardCustomerState{
-			CustomerID: args.CustomerID,
-			Type:       args.CustomerType,
+		unit.UnitOnboardCustomerWorkflow, unit.UnitOnboardCustomerState{
+			CustomerID: "",
+			Type:       "",
 			IdentityID: args.IdentityID,
+			AccountID:  "",
+			ApplicationArgs: unit.CreateApplicationArgs{
+				Ssn:               args.Ssn,
+				DateOfBirth:       args.DateOfBirth,
+				Street:            args.Street,
+				Street2:           args.Street2,
+				City:              args.City,
+				State:             args.State,
+				PostalCode:        args.PostalCode,
+				IpAddress:         args.IpAddress,
+				UserID:            args.IdentityID,
+				DeviceFingerprint: args.DeviceFingerprint,
+			},
 		})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)

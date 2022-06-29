@@ -34,21 +34,42 @@ func TestInitiatesOnboarding(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	identityID := uuid.NewString()
+
 	args := &InitiateUnitCustomerOnboardingArgs{
-		IdentityID:   uuid.NewString(),
-		Country:      "US",
-		CustomerID:   uuid.NewString(),
-		CustomerType: "individual",
+		IdentityID:        identityID,
+		Ssn:               faker.CCNumber(),
+		DateOfBirth:       faker.Date(),
+		Street:            faker.Name(),
+		Street2:           faker.Name(),
+		City:              faker.Name(),
+		State:             faker.Name(),
+		PostalCode:        faker.Name(),
+		IpAddress:         faker.IPv4(),
+		DeviceFingerprint: faker.E164PhoneNumber(),
 	}
 	tp.On(
 		"ExecuteWorkflow",
 		mock.Anything,
 		mock.Anything,
 		mock.Anything,
-		&unit.UnitOnboardCustomerState{
-			CustomerID: args.CustomerID,
-			Type:       args.CustomerType,
+		unit.UnitOnboardCustomerState{
+			CustomerID: "",
+			Type:       "",
 			IdentityID: args.IdentityID,
+			AccountID:  "",
+			ApplicationArgs: unit.CreateApplicationArgs{
+				Ssn:               args.Ssn,
+				DateOfBirth:       args.DateOfBirth,
+				Street:            args.Street,
+				Street2:           args.Street2,
+				City:              args.City,
+				State:             args.State,
+				PostalCode:        args.PostalCode,
+				IpAddress:         args.IpAddress,
+				UserID:            args.IdentityID,
+				DeviceFingerprint: args.DeviceFingerprint,
+			},
 		},
 	).Return(
 		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {

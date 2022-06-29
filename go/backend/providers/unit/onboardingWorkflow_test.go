@@ -55,7 +55,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 	}
 	CustomerID, ApplicationType, AccountID := uuid.NewString(), "individualCustomer", uuid.NewString()
 
-	workflowState := &UnitOnboardCustomerState{
+	workflowState := UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -104,7 +104,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 	}
 	CustomerID, CustomerType, AccountID := uuid.NewString(), "individualCustomer", uuid.NewString()
 
-	workflowState := &UnitOnboardCustomerState{
+	workflowState := UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -180,7 +180,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyDenied() {
 	}
 	ApplicationType := "IndividualApplication"
 
-	workflowState := &UnitOnboardCustomerState{
+	workflowState := UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -213,7 +213,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithDeniedSignal
 	}
 	CustomerType := "individualCustomer"
 
-	workflowState := &UnitOnboardCustomerState{
+	workflowState := UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
