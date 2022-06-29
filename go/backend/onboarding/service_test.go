@@ -45,11 +45,10 @@ func TestInitiatesOnboarding(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 		mock.Anything,
-		&unit.OnboardCustomerArgs{
+		&unit.UnitOnboardCustomerState{
 			CustomerID: args.CustomerID,
 			Type:       args.CustomerType,
 			IdentityID: args.IdentityID,
-			Country:    args.Country,
 		},
 	).Return(
 		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {

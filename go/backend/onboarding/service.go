@@ -289,11 +289,10 @@ func (s *service) InitiateUnitCustomerOnboarding(ctx context.Context, args *Init
 			TaskQueue:             "backend",
 			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 		},
-		unit.OnboardCustomerWorkflow, &unit.OnboardCustomerArgs{
+		unit.UnitOnboardCustomerWorkflow, &unit.UnitOnboardCustomerState{
 			CustomerID: args.CustomerID,
 			Type:       args.CustomerType,
 			IdentityID: args.IdentityID,
-			Country:    args.Country,
 		})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)

@@ -11,16 +11,16 @@ import (
 
 type (
 	Activity struct {
-		validator *validator.Validate
-		up        Service
-		as        accounts.Service
-		is        identity.Service
+		validator       *validator.Validate
+		unitService     Service
+		accountsService accounts.Service
+		identityService identity.Service
 	}
 
 	ActivityArgs struct {
-		Up Service          `validate:"required"`
-		As accounts.Service `validate:"required"`
-		Is identity.Service `validate:"required"`
+		UnitService     Service          `validate:"required"`
+		AccountsService accounts.Service `validate:"required"`
+		IdentityService identity.Service `validate:"required"`
 	}
 )
 
@@ -31,23 +31,41 @@ func NewActivity(args *ActivityArgs) (*Activity, error) {
 	}
 
 	return &Activity{
-		validator: v,
-		up:        args.Up,
-		as:        args.As,
-		is:        args.Is,
+		validator:       v,
+		unitService:     args.UnitService,
+		accountsService: args.AccountsService,
+		identityService: args.IdentityService,
 	}, nil
 }
 
-func (a *Activity) CreateAccount(ctx context.Context, identityID string, country string) (string, error) {
+func (a *Activity) UnitCreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+	if err := a.validator.Struct(args); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
 	// make sure identity exists
-	_, err := a.is.Get(ctx, identityID)
+	_, err := a.identityService.Get(ctx, args.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	application, err := a.unitService.CreateApplication(ctx, args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return application, nil
+}
+
+func (a *Activity) UnitCreateAccount(ctx context.Context, identityID string) (string, error) {
+	identity, err := a.identityService.Get(ctx, identityID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	acc, err := a.as.Create(ctx, &accounts.CreateAccountArgs{
-		IdentityID: identityID,
-		Country:    country,
+	acc, err := a.accountsService.Create(ctx, &accounts.CreateAccountArgs{
+		IdentityID: identity.ID,
+		Country:    identity.Country,
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
@@ -56,24 +74,24 @@ func (a *Activity) CreateAccount(ctx context.Context, identityID string, country
 	return acc.ID, nil
 }
 
-type MapCustomerToAccountArgs struct {
+type UnitMapCustomerToAccountArgs struct {
 	CustomerID string `validate:"required"`
 	Type       string `validate:"required"`
 	AccountID  string `validate:"required"`
 }
 
-func (a *Activity) MapCustomerToAccount(ctx context.Context, args *MapCustomerToAccountArgs) error {
+func (a *Activity) UnitMapCustomerToAccount(ctx context.Context, args *UnitMapCustomerToAccountArgs) error {
 	if err := a.validator.Struct(args); err != nil {
 		return fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
 	// make sure account exists
-	_, err := a.as.Get(ctx, args.AccountID)
+	_, err := a.accountsService.Get(ctx, args.AccountID)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	_, err = a.up.CreateCustomer(ctx, &CreateCustomerArgs{
+	_, err = a.unitService.CreateCustomer(ctx, &CreateCustomerArgs{
 		ID:        args.CustomerID,
 		AccountID: args.AccountID,
 		Type:      args.Type,
