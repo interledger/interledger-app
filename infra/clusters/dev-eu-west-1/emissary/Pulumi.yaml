@@ -1,0 +1,3 @@
+name: aws-clusters-dev-euw1-emissary
+runtime: go
+description: Deploy emissary to dev-euw1 cluster
