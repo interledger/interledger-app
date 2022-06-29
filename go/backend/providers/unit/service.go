@@ -194,16 +194,16 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 }
 
 type CreateApplicationArgs struct {
-	Ssn               string `validate:"required"`
-	DateOfBirth       string `validate:"required"`
-	Street            string `validate:"required"`
-	Street2           string `validate:"required"`
-	City              string `validate:"required"`
-	State             string `validate:"required"`
-	PostalCode        string `validate:"required"`
-	IpAddress         string `validate:"required"`
-	UserID            string `validate:"required"`
-	DeviceFingerprint string `validate:"required"`
+	Ssn                string   `validate:"required"`
+	DateOfBirth        string   `validate:"required"`
+	Street             string   `validate:"required"`
+	Street2            string   `validate:"required"`
+	City               string   `validate:"required"`
+	State              string   `validate:"required"`
+	PostalCode         string   `validate:"required"`
+	IpAddress          string   `validate:"required"`
+	UserID             string   `validate:"required"`
+	DeviceFingerprints []string `validate:"required"`
 }
 
 type Application struct {
@@ -301,7 +301,7 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 		args.IpAddress,
 		ApplicationUserIDTag,
 		args.UserID,
-		args.DeviceFingerprint,
+		args.DeviceFingerprints,
 	))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))

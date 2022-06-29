@@ -35,18 +35,20 @@ func TestInitiatesOnboarding(t *testing.T) {
 	}
 
 	identityID := uuid.NewString()
+	deviceFingerprints := make([]string, 1)
+	deviceFingerprints = append(deviceFingerprints, "Some randon fingerprint")
 
 	args := &InitiateUnitCustomerOnboardingArgs{
-		IdentityID:        identityID,
-		Ssn:               faker.CCNumber(),
-		DateOfBirth:       faker.Date(),
-		Street:            faker.Name(),
-		Street2:           faker.Name(),
-		City:              faker.Name(),
-		State:             faker.Name(),
-		PostalCode:        faker.Name(),
-		IpAddress:         faker.IPv4(),
-		DeviceFingerprint: faker.E164PhoneNumber(),
+		IdentityID:         identityID,
+		Ssn:                faker.CCNumber(),
+		DateOfBirth:        faker.Date(),
+		Street:             faker.Name(),
+		Street2:            faker.Name(),
+		City:               faker.Name(),
+		State:              faker.Name(),
+		PostalCode:         faker.Name(),
+		IpAddress:          faker.IPv4(),
+		DeviceFingerprints: deviceFingerprints,
 	}
 	tp.On(
 		"ExecuteWorkflow",
@@ -59,16 +61,16 @@ func TestInitiatesOnboarding(t *testing.T) {
 			IdentityID: args.IdentityID,
 			AccountID:  "",
 			ApplicationArgs: unit.CreateApplicationArgs{
-				Ssn:               args.Ssn,
-				DateOfBirth:       args.DateOfBirth,
-				Street:            args.Street,
-				Street2:           args.Street2,
-				City:              args.City,
-				State:             args.State,
-				PostalCode:        args.PostalCode,
-				IpAddress:         args.IpAddress,
-				UserID:            args.IdentityID,
-				DeviceFingerprint: args.DeviceFingerprint,
+				Ssn:                args.Ssn,
+				DateOfBirth:        args.DateOfBirth,
+				Street:             args.Street,
+				Street2:            args.Street2,
+				City:               args.City,
+				State:              args.State,
+				PostalCode:         args.PostalCode,
+				IpAddress:          args.IpAddress,
+				UserID:             args.IdentityID,
+				DeviceFingerprints: args.DeviceFingerprints,
 			},
 		},
 	).Return(
