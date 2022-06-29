@@ -76,6 +76,8 @@ func TestUnitProvider(s *testing.T) {
 			ID:    uuid.NewString(),
 			Email: faker.Email(),
 		}
+		deviceFingerprints := make([]string, 1)
+		deviceFingerprints = append(deviceFingerprints, "Some randon fingerprint")
 
 		c.IdentityService.EXPECT().Get(gomock.Any(), user.ID).Return(&identity.Identity{
 			ID:           user.ID,
@@ -87,16 +89,16 @@ func TestUnitProvider(s *testing.T) {
 		}, nil).Times(1)
 
 		form, err := c.UnitService.CreateApplication(ctx, &CreateApplicationArgs{
-			Ssn:               faker.Phonenumber(),
-			DateOfBirth:       faker.Date(),
-			Street:            faker.FirstName(),
-			Street2:           faker.FirstName(),
-			City:              faker.FirstName(),
-			State:             faker.FirstName(),
-			PostalCode:        faker.FirstName(),
-			IpAddress:         faker.FirstName(),
-			UserID:            user.ID,
-			DeviceFingerprint: faker.FirstName(),
+			Ssn:                faker.Phonenumber(),
+			DateOfBirth:        faker.Date(),
+			Street:             faker.FirstName(),
+			Street2:            faker.FirstName(),
+			City:               faker.FirstName(),
+			State:              faker.FirstName(),
+			PostalCode:         faker.FirstName(),
+			IpAddress:          faker.FirstName(),
+			UserID:             user.ID,
+			DeviceFingerprints: deviceFingerprints,
 		})
 		if err != nil {
 			t.Fatal(err)
