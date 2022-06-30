@@ -255,9 +255,9 @@ export interface GetQuoteRequest {
     /**
      * To whom the user is sending the payment
      *
-     * @generated from protobuf field: string receiver = 5;
+     * @generated from protobuf field: string receiverPaymentPointer = 5;
      */
-    receiver: string;
+    receiverPaymentPointer: string;
 }
 /**
  * This is not finalised. Revisit when the `Quoting` service is implemented.
@@ -1089,11 +1089,11 @@ class GetQuoteRequest$Type extends MessageType<GetQuoteRequest> {
             { no: 2, name: "sendCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "receiveAmount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 4, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "receiver", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "receiverPaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetQuoteRequest>): GetQuoteRequest {
-        const message = { sendAmount: "0", sendCurrencyCode: "", receiveAmount: "0", receiveCurrencyCode: "", receiver: "" };
+        const message = { sendAmount: "0", sendCurrencyCode: "", receiveAmount: "0", receiveCurrencyCode: "", receiverPaymentPointer: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetQuoteRequest>(this, message, value);
@@ -1116,8 +1116,8 @@ class GetQuoteRequest$Type extends MessageType<GetQuoteRequest> {
                 case /* string receiveCurrencyCode */ 4:
                     message.receiveCurrencyCode = reader.string();
                     break;
-                case /* string receiver */ 5:
-                    message.receiver = reader.string();
+                case /* string receiverPaymentPointer */ 5:
+                    message.receiverPaymentPointer = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1143,9 +1143,9 @@ class GetQuoteRequest$Type extends MessageType<GetQuoteRequest> {
         /* string receiveCurrencyCode = 4; */
         if (message.receiveCurrencyCode !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.receiveCurrencyCode);
-        /* string receiver = 5; */
-        if (message.receiver !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.receiver);
+        /* string receiverPaymentPointer = 5; */
+        if (message.receiverPaymentPointer !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.receiverPaymentPointer);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

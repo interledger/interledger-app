@@ -29,7 +29,7 @@ func TestGetQuote(t *testing.T) {
 	currencyCode := "USD"
 	identifierID := uuid.NewString()
 	accountID := uuid.NewString()
-	receiver := "$ilp.test/receiver"
+	receiverPaymentPointer := "$ilp.test/receiver"
 	c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), user.ID).Return(
 		&accounts.Account{
 			ID:         accountID,
@@ -53,18 +53,18 @@ func TestGetQuote(t *testing.T) {
 	expiresAt := time.Now().Format(time.RFC3339)
 	c.RafikiProvider.EXPECT().CreateQuote(gomock.Any(),
 		&rafiki.CreateQuoteArgs{
-			IdentifierID:   identifierID,
-			Receiver:       receiver,
-			SendAssetCode:  currencyCode,
-			SendAssetScale: assetScale,
-			SendAmount:     sendAmount,
+			IdentifierID:           identifierID,
+			ReceiverPaymentPointer: receiverPaymentPointer,
+			SendAssetCode:          currencyCode,
+			SendAssetScale:         assetScale,
+			SendAmount:             sendAmount,
 		},
 	).Return(
 		&rafiki.Quote{
 			ID:                        uuid.NewString(),
 			IdentifierID:              identifierID,
 			ExpiresAt:                 expiresAt,
-			Receiver:                  receiver,
+			Receiver:                  receiverPaymentPointer,
 			SendAssetCode:             currencyCode,
 			SendAssetScale:            assetScale,
 			SendAmount:                sendAmount,
@@ -81,9 +81,9 @@ func TestGetQuote(t *testing.T) {
 	quote, err := client.GetQuote(
 		_user.ActingAsContext(t, context.Background(), user),
 		&backendv1.GetQuoteRequest{
-			SendAmount:       sendAmount,
-			SendCurrencyCode: currencyCode,
-			Receiver:         receiver,
+			SendAmount:             sendAmount,
+			SendCurrencyCode:       currencyCode,
+			ReceiverPaymentPointer: receiverPaymentPointer,
 		},
 	)
 	if err != nil {

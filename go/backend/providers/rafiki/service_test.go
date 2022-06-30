@@ -39,11 +39,11 @@ func TestIntegration(t *testing.T) {
 	}
 
 	_, err = rafiki.CreateQuote(ctx, &CreateQuoteArgs{
-		IdentifierID:   identifier.ID,
-		Receiver:       "$ilp.test/123",
-		SendAssetCode:  "740",
-		SendAssetScale: 2,
-		SendAmount:     100,
+		IdentifierID:           identifier.ID,
+		ReceiverPaymentPointer: "$ilp.test/123",
+		SendAssetCode:          "740",
+		SendAssetScale:         2,
+		SendAmount:             100,
 	})
 
 	// just checking that passes validation for now.
@@ -127,46 +127,46 @@ func TestCreateQuote(t *testing.T) {
 			Name:          "Send asset details required if SendAmount specified",
 			ExpectedError: ErrInvalidArgument,
 			Args: &CreateQuoteArgs{
-				IdentifierID: identifierID,
-				Receiver:     receiver,
-				SendAmount:   100,
+				IdentifierID:           identifierID,
+				ReceiverPaymentPointer: receiver,
+				SendAmount:             100,
 			},
 		},
 		{
 			Name:          "Receive asset details required if SendAmount specified",
 			ExpectedError: ErrInvalidArgument,
 			Args: &CreateQuoteArgs{
-				IdentifierID:  identifierID,
-				Receiver:      receiver,
-				ReceiveAmount: 100,
+				IdentifierID:           identifierID,
+				ReceiverPaymentPointer: receiver,
+				ReceiveAmount:          100,
 			},
 		},
 		{
 			Name:          "Either SendAmount or ReceiveAmount must be specified",
 			ExpectedError: ErrInvalidArgument,
 			Args: &CreateQuoteArgs{
-				IdentifierID: identifierID,
-				Receiver:     receiver,
+				IdentifierID:           identifierID,
+				ReceiverPaymentPointer: receiver,
 			},
 		},
 		{
 			Name: "Can specify SendAmount only",
 			Args: &CreateQuoteArgs{
-				IdentifierID:   identifierID,
-				Receiver:       receiver,
-				SendAssetCode:  expectedAssetCode,
-				SendAssetScale: expectedAssetScale,
-				SendAmount:     expectedSendAmount,
+				IdentifierID:           identifierID,
+				ReceiverPaymentPointer: receiver,
+				SendAssetCode:          expectedAssetCode,
+				SendAssetScale:         expectedAssetScale,
+				SendAmount:             expectedSendAmount,
 			},
 		},
 		{
 			Name: "Can specify ReceiveAmount only",
 			Args: &CreateQuoteArgs{
-				IdentifierID:      identifierID,
-				Receiver:          receiver,
-				ReceiveAssetCode:  expectedAssetCode,
-				ReceiveAssetScale: expectedAssetScale,
-				ReceiveAmount:     expectedReceiveAmount,
+				IdentifierID:           identifierID,
+				ReceiverPaymentPointer: receiver,
+				ReceiveAssetCode:       expectedAssetCode,
+				ReceiveAssetScale:      expectedAssetScale,
+				ReceiveAmount:          expectedReceiveAmount,
 			},
 		},
 	}
