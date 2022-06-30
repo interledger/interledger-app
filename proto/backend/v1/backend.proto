@@ -114,7 +114,7 @@ message GetQuoteRequest {
   // ISO4217 code
   string receiveCurrencyCode = 4;
   // To whom the user is sending the payment
-  string receiver = 5;
+  string receiverPaymentPointer = 5;
 }
 
 // This is not finalised. Revisit when the `Quoting` service is implemented.

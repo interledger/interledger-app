@@ -1,3 +1,5 @@
+# pinned to https://github.com/interledger/rafiki/commit/630caa1c4e797f66ea91595b283e19e4b0d7e144
+
 type Query {
   account(id: String!): Account
 

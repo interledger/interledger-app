@@ -171,20 +171,19 @@ func (s *service) GetIdentifierByAccountAndCurrency(
 }
 
 type CreateQuoteArgs struct {
-	IdentifierID string `validate:"required"`
-
-	// Address where payment is to be made.
-	Receiver          string `validate:"required"`
-	SendAssetCode     string `validate:"required_with=SendAmount"`
-	SendAssetScale    uint8  `validate:"required_with=SendAmount"`
-	SendAmount        uint64 `validate:"required_if=ReceiveAmount 0"`
-	ReceiveAssetCode  string `validate:"required_with=ReceiveAmount"`
-	ReceiveAssetScale uint8  `validate:"required_with=ReceiveAmount"`
-	ReceiveAmount     uint64 `validate:"required_if=SendAmount 0"`
+	IdentifierID           string `validate:"required"`
+	ReceiverPaymentPointer string `validate:"required"`
+	SendAssetCode          string `validate:"required_with=SendAmount"`
+	SendAssetScale         uint8  `validate:"required_with=SendAmount"`
+	SendAmount             uint64 `validate:"required_if=ReceiveAmount 0"`
+	ReceiveAssetCode       string `validate:"required_with=ReceiveAmount"`
+	ReceiveAssetScale      uint8  `validate:"required_with=ReceiveAmount"`
+	ReceiveAmount          uint64 `validate:"required_if=SendAmount 0"`
 }
 
-// Creates a quote to be sent from the specified `IdentifierID` to the `Receiver`. The `AssetCode`
-// and `AssetScale` describe the currency in which the payment will be made. Either `SendAmount`
+// Creates a quote to be sent from the specified `IdentifierID` to the `ReceiverPaymentPointer`.
+// The `AssetCode` and `AssetScale` describe the currency in which the payment will be made. Either
+// `SendAmount`
 // or `ReceiveAmount` must be specified.
 //
 // `SendAmount` specifies what will leave the account attached to the `Identifier`.
@@ -196,8 +195,9 @@ func (s service) CreateQuote(ctx context.Context, args *CreateQuoteArgs) (*Quote
 	}
 
 	input := CreateQuoteInput{
+		// Our identifier is mapped to Rafiki's internal account.
 		AccountId: args.IdentifierID,
-		Receiver:  args.Receiver,
+		Receiver:  args.ReceiverPaymentPointer,
 	}
 
 	if args.SendAmount != 0 {

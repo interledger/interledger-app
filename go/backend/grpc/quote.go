@@ -43,7 +43,7 @@ func (s *rpcService) GetQuote(
 		SendCurrencyCode:    req.GetSendCurrencyCode(),
 		ReceiveAmount:       req.GetReceiveAmount(),
 		ReceiveCurrencyCode: req.GetReceiveCurrencyCode(),
-		Receiver:            req.GetReceiver(),
+		Receiver:            req.GetReceiverPaymentPointer(),
 	}); err != nil {
 		return nil, ValidationError(err, validateGetQuoteDescription)
 	}
@@ -68,8 +68,8 @@ func (s *rpcService) GetQuote(
 	}
 
 	args := &rafiki.CreateQuoteArgs{
-		IdentifierID: identifier.ID,
-		Receiver:     req.GetReceiver(),
+		IdentifierID:           identifier.ID,
+		ReceiverPaymentPointer: req.GetReceiverPaymentPointer(),
 	}
 	if req.GetSendAmount() != 0 {
 		args.SendAmount = req.GetSendAmount()
