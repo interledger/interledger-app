@@ -267,6 +267,24 @@ func main() {
 			return err
 		}
 
+		// Main advanced cert
+		_, err = cloudflare.NewCertificatePack(ctx, "advanced-cert", &cloudflare.CertificatePackArgs{
+			CertificateAuthority: pulumi.String("digicert"),
+			CloudflareBranding:   pulumi.Bool(false),
+			Hosts: pulumi.StringArray{
+				pulumi.String("fynbos.dev"),
+				pulumi.String("*.fynbos.dev"),
+				pulumi.String("*.eu1.fynbos.dev"),
+			},
+			Type:             pulumi.String("advanced"),
+			ValidationMethod: pulumi.String("txt"),
+			ValidityDays:     pulumi.Int(30),
+			ZoneId:           zone.ID(),
+		})
+		if err != nil {
+			return err
+		}
+
 		boundaryPrivateKey, boundaryCert, err := newBoundaryCertificate(ctx)
 		if err != nil {
 			return nil
