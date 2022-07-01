@@ -7,3 +7,8 @@ path "secret/metadata/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccess
 {
   capabilities = ["read", "list"]
 }
+
+path "pki/dev-int/sign/crdb-client"
+{
+  capabilities = ["read", "create", "update"]
+}
