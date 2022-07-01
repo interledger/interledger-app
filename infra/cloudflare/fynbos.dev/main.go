@@ -246,6 +246,19 @@ func main() {
 			return err
 		}
 
+		// EU1 Dev Cluster
+		_, err = cloudflare.NewRecord(ctx, "eu1-dev-cluster", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("eu1.fynbos.dev"),
+			Value:   pulumi.String("k8s-emissary-emissary-ffb342d685-679be1c9b02820eb.elb.eu-west-1.amazonaws.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
 		// DNSSEC
 		_, err = cloudflare.NewZoneDnssec(ctx, "dnssec", &cloudflare.ZoneDnssecArgs{
 			ZoneId: zone.ID(),
@@ -271,6 +284,11 @@ func main() {
 
 		// Create CF Applications
 		err = CreateDevClusterAccess(ctx, zone.ID())
+		if err != nil {
+			return err
+		}
+
+		err = CreateEu1DevClusterAccess(ctx, zone.ID())
 		if err != nil {
 			return err
 		}
