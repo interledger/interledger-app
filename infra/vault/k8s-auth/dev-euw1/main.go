@@ -6,6 +6,7 @@ import (
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-vault/sdk/v5/go/vault"
 	vaultk8s "github.com/pulumi/pulumi-vault/sdk/v5/go/vault/kubernetes"
+	"github.com/pulumi/pulumi-vault/sdk/v5/go/vault/pkisecret"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
 )
@@ -86,6 +87,11 @@ func main() {
 		}
 
 		err = createEmissaryRole(ctx, k8sAuth.Path)
+		if err != nil {
+			return err
+		}
+
+		err = createCrdbClientRole(ctx, k8sAuth.Accessor, pulumi.String("pki/dev-int"))
 		if err != nil {
 			return err
 		}
@@ -187,4 +193,22 @@ path "pki/dev-int/sign/emissary"
 	}
 
 	return nil
+}
+
+// This is not where I would want to put this function, but its difficult to deal with as if it is in PKI, then PKI
+// needs to know the k8s-auth mount accessor. So not sure how best to handle that. As it becomes circular dependency.
+func createCrdbClientRole(ctx *pulumi.Context, authAccessor pulumi.StringOutput, pkiPath pulumi.StringInput) error {
+	_, err := pkisecret.NewSecretBackendRole(ctx, "crdb-client", &pkisecret.SecretBackendRoleArgs{
+		Name:                   pulumi.String("crdb-client"),
+		Backend:                pkiPath,
+		AllowBareDomains:       pulumi.Bool(true),
+		AllowLocalhost:         pulumi.Bool(false),
+		AllowSubdomains:        pulumi.Bool(false),
+		AllowedDomainsTemplate: pulumi.Bool(true),
+		AllowedDomains: pulumi.StringArray{
+			pulumi.Sprintf("{{identity.entity.aliases.%s.metadata.service_account_namespace}}", authAccessor),
+		},
+		MaxTtl: pulumi.String("2765000"), // 32days in seconds
+	})
+	return err
 }
