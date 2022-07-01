@@ -231,10 +231,25 @@ func main() {
 					"tlsSecret": pulumi.Map{
 						"name": pulumi.String("host-tls"),
 					},
-					"requestPolicy": pulumi.Map{
-						"insecure": pulumi.Map{
-							"action": pulumi.String("Route"),
-						},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{release, namespace, cert}))
+		if err != nil {
+			return err
+		}
+
+		_, err = apiextensions.NewCustomResource(ctx, "host-wild", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
+			Kind:       pulumi.String("Host"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("wildcard-host"),
+				Namespace: namespace.Metadata.Name().Elem(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"hostname": pulumi.String("*.eu1.fynbos.dev"),
+					"tlsSecret": pulumi.Map{
+						"name": pulumi.String("host-tls"),
 					},
 				},
 			},

@@ -7,6 +7,7 @@ import (
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"gitlab.com/fynbos/infra/services/kratos/v1"
+	"gitlab.com/fynbos/infra/services/mailhog/v1"
 )
 
 func main() {
@@ -131,6 +132,14 @@ func main() {
 			Hostname:  pulumi.String("eu1.fynbos.dev"),
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{chart, namespace}))
+		if err != nil {
+			return err
+		}
+
+		err = mailhog.DeployMailHog(ctx, mailhog.DeployMailHogArgs{
+			Domain:    "mail.eu1.fynbos.dev",
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider))
 		if err != nil {
 			return err
 		}
