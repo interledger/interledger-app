@@ -85,6 +85,11 @@ func main() {
 			return err
 		}
 
+		err = createEmissaryRole(ctx, k8sAuth.Path)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -138,6 +143,40 @@ path "pki/dev-int/sign/crdb-node"
 		},
 		BoundServiceAccountNamespaces: pulumi.StringArray{
 			pulumi.String("cockroachdb"),
+		},
+		TokenPolicies: pulumi.StringArray{
+			policy.Name,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{policy}))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createEmissaryRole(ctx *pulumi.Context, path pulumi.StringPtrInput) error {
+	policy, err := vault.NewPolicy(ctx, "emissary", &vault.PolicyArgs{
+		Name: pulumi.String("dev-euw1-emissary"),
+		Policy: pulumi.String(`
+path "pki/dev-int/sign/emissary"
+{
+  capabilities = ["read", "create", "update"]
+}
+`),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = vaultk8s.NewAuthBackendRole(ctx, "emissary-role", &vaultk8s.AuthBackendRoleArgs{
+		RoleName: pulumi.String("emissary"),
+		Backend:  path,
+		BoundServiceAccountNames: pulumi.StringArray{
+			pulumi.String("emissary"),
+		},
+		BoundServiceAccountNamespaces: pulumi.StringArray{
+			pulumi.String("emissary"),
 		},
 		TokenPolicies: pulumi.StringArray{
 			policy.Name,

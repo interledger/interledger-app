@@ -54,7 +54,7 @@ func main() {
 			return err
 		}
 
-		_, err = helm.NewRelease(ctx, "emissary", &helm.ReleaseArgs{
+		release, err := helm.NewRelease(ctx, "emissary", &helm.ReleaseArgs{
 			Version:         pulumi.String("8.0.0"),
 			Chart:           pulumi.String("emissary-ingress"),
 			Namespace:       namespace.Metadata.Name().Elem(),
@@ -110,7 +110,7 @@ func main() {
 			OtherFields: kubernetes.UntypedArgs{
 				"spec": pulumi.Map{
 					"port":          pulumi.Int(8080),
-					"protocol":      pulumi.String("HTTP"),
+					"protocol":      pulumi.String("HTTPS"),
 					"securityModel": pulumi.String("XFP"),
 					"hostBinding": pulumi.Map{
 						"namespace": pulumi.Map{
@@ -119,7 +119,7 @@ func main() {
 					},
 				},
 			},
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{crds, namespace}))
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{release, namespace}))
 		if err != nil {
 			return err
 		}
@@ -143,7 +143,102 @@ func main() {
 					},
 				},
 			},
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{crds, namespace}))
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{release, namespace}))
+		if err != nil {
+			return err
+		}
+
+		issuer, err := apiextensions.NewCustomResource(ctx, "host-issuer", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("cert-manager.io/v1"),
+			Kind:       pulumi.String("Issuer"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("host-issuer"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"vault": pulumi.Map{
+						"path":   pulumi.String("pki/dev-int/sign/emissary"),
+						"server": pulumi.String("https://vault1.fynbos.cloud:8200"),
+						"auth": pulumi.Map{
+							"kubernetes": pulumi.Map{
+								"role":      pulumi.String("emissary"),
+								"mountPath": pulumi.String("/v1/auth/k8s-dev-euw1"),
+								"secretRef": pulumi.Map{
+									"name": sa.Secrets.Index(pulumi.Int(0)).Name(),
+									"key":  pulumi.String("token"),
+								},
+							},
+						},
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, sa}))
+		if err != nil {
+			return err
+		}
+
+		cert, err := apiextensions.NewCustomResource(ctx, "host-tls-cert", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("cert-manager.io/v1"),
+			Kind:       pulumi.String("Certificate"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("host-tls-cert"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"secretName":  pulumi.String("host-tls"),
+					"duration":    pulumi.String("721h"),
+					"renewBefore": pulumi.String("168h"),
+					"usages": pulumi.StringArray{
+						pulumi.String("digital signature"),
+						pulumi.String("key encipherment"),
+						pulumi.String("server auth"),
+						pulumi.String("client auth"),
+					},
+					"commonName": pulumi.String("eu1.fynbos.dev"),
+					"subject": pulumi.Map{
+						"organizations": pulumi.StringArray{
+							pulumi.String("Fynbos"),
+						},
+					},
+					"dnsNames": pulumi.StringArray{
+						pulumi.String("*.eu1.fynbos.dev"),
+						pulumi.String("eu1.fynbos.dev"),
+					},
+					"issuerRef": pulumi.Map{
+						"name":  issuer.Metadata.Name(),
+						"kind":  issuer.Kind,
+						"group": pulumi.String("cert-manager.io"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, issuer}))
+		if err != nil {
+			return err
+		}
+
+		_, err = apiextensions.NewCustomResource(ctx, "host", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
+			Kind:       pulumi.String("Host"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("root-host"),
+				Namespace: namespace.Metadata.Name().Elem(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"hostname": pulumi.String("eu1.fynbos.dev"),
+					"tlsSecret": pulumi.Map{
+						"name": pulumi.String("host-tls"),
+					},
+					"requestPolicy": pulumi.Map{
+						"insecure": pulumi.Map{
+							"action": pulumi.String("Route"),
+						},
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{release, namespace, cert}))
 		if err != nil {
 			return err
 		}

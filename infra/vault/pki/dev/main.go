@@ -111,6 +111,18 @@ func main() {
 			MaxTtl: pulumi.String("2765000"), // 32days in seconds
 		})
 
+		// Allow emissary to sign for domains for dev cluster.
+		_, err = pkisecret.NewSecretBackendRole(ctx, "emissary", &pkisecret.SecretBackendRoleArgs{
+			Name:             pulumi.String("emissary"),
+			Backend:          intPki.Path,
+			AllowBareDomains: pulumi.Bool(true),
+			AllowSubdomains:  pulumi.Bool(true),
+			AllowedDomains: pulumi.StringArray{
+				pulumi.String("eu1.fynbos.dev"),
+			},
+			MaxTtl: pulumi.String("276500"), // 32days in seconds
+		})
+
 		ctx.Export("rootCert", rootCert.Certificate)
 
 		return nil
