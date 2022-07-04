@@ -146,7 +146,7 @@ func main() {
 			return err
 		}
 
-		err = temporal.DeployTemporalDev(ctx, ecrRepo, "latest")
+		err = temporal.DeployTemporalDev(ctx, ecrRepo, "latest", pulumi.String("default"))
 		if err != nil {
 			return err
 		}
