@@ -7,13 +7,13 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func DeployTemporalDev(ctx *pulumi.Context, imageRepo string, imageTag string) error {
-	err := deployment(ctx, imageRepo, imageTag)
+func DeployTemporalDev(ctx *pulumi.Context, imageRepo string, imageTag string, namespace pulumi.StringPtrInput, opts ...pulumi.ResourceOption) error {
+	err := deployment(ctx, imageRepo, imageTag, namespace, opts...)
 	if err != nil {
 		return err
 	}
 
-	err = service(ctx)
+	err = service(ctx, namespace, opts...)
 	if err != nil {
 		return err
 	}
@@ -21,12 +21,13 @@ func DeployTemporalDev(ctx *pulumi.Context, imageRepo string, imageTag string) e
 	return nil
 }
 
-func deployment(ctx *pulumi.Context, imageRepo string, imageTag string) error {
+func deployment(ctx *pulumi.Context, imageRepo string, imageTag string, namespace pulumi.StringPtrInput, opts ...pulumi.ResourceOption) error {
 	_, err := appsv1.NewDeployment(ctx, "temporal-dev", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("temporal"),
+			Name:      pulumi.String("temporal"),
+			Namespace: namespace,
 			Labels: pulumi.StringMap{
 				"app": pulumi.String("temporal"),
 			},
@@ -66,19 +67,20 @@ func deployment(ctx *pulumi.Context, imageRepo string, imageTag string) error {
 				},
 			},
 		},
-	})
+	}, opts...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func service(ctx *pulumi.Context) error {
+func service(ctx *pulumi.Context, namespace pulumi.StringPtrInput, opts ...pulumi.ResourceOption) error {
 	_, err := corev1.NewService(ctx, "temporal-service", &corev1.ServiceArgs{
 		ApiVersion: pulumi.String("v1"),
 		Kind:       pulumi.String("Service"),
 		Metadata: &metav1.ObjectMetaArgs{
-			Name: pulumi.String("temporal"),
+			Name:      pulumi.String("temporal"),
+			Namespace: namespace,
 			Labels: pulumi.StringMap{
 				"app": pulumi.String("temporal"),
 			},
@@ -100,7 +102,7 @@ func service(ctx *pulumi.Context) error {
 				"app": pulumi.String("temporal"),
 			},
 		},
-	})
+	}, opts...)
 	if err != nil {
 		return err
 	}
