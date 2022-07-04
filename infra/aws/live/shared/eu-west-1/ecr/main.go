@@ -4,7 +4,6 @@ import (
 	"github.com/pulumi/pulumi-docker/sdk/v3/go/docker"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
-
 	ecr "gitlab.com/fynbos/infra/aws/modules/ecr"
 )
 
@@ -12,21 +11,25 @@ func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		cfg := config.New(ctx, "fynbos")
 		accountID := cfg.Require("accountID")
-		backendEcrRepo, err := ecr.NewPrivateRepository(ctx, "backend", accountID)
+		crossAccountIds := []string{
+			"634848879735",
+		}
+
+		backendEcrRepo, err := ecr.NewPrivateRepository(ctx, "backend", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
-		proteaRepo, err := ecr.NewPrivateRepository(ctx, "protea", accountID)
+		proteaRepo, err := ecr.NewPrivateRepository(ctx, "protea", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
-		pacioliRepo, err := ecr.NewPrivateRepository(ctx, "pacioli", accountID)
+		pacioliRepo, err := ecr.NewPrivateRepository(ctx, "pacioli", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
 
 		// used to store our custom docker image that has the aws credential helper.
-		dockerRepo, err := ecr.NewPrivateRepository(ctx, "docker", accountID)
+		dockerRepo, err := ecr.NewPrivateRepository(ctx, "docker", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
@@ -41,7 +44,7 @@ func main() {
 		})
 
 		// used to store the custom image for deploying to eks
-		eksRepo, err := ecr.NewPrivateRepository(ctx, "eks", accountID)
+		eksRepo, err := ecr.NewPrivateRepository(ctx, "eks", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
@@ -56,23 +59,23 @@ func main() {
 		})
 
 		// Registry for dependent images
-		_, err = ecr.NewPrivateRepository(ctx, "cockroach", accountID)
+		_, err = ecr.NewPrivateRepository(ctx, "cockroach", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
-		_, err = ecr.NewPrivateRepository(ctx, "kratos", accountID)
+		_, err = ecr.NewPrivateRepository(ctx, "kratos", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
-		_, err = ecr.NewPrivateRepository(ctx, "tigerbeetle", accountID)
+		_, err = ecr.NewPrivateRepository(ctx, "tigerbeetle", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
-		_, err = ecr.NewPrivateRepository(ctx, "temporalite", accountID)
+		_, err = ecr.NewPrivateRepository(ctx, "temporalite", accountID, crossAccountIds)
 		if err != nil {
 			return err
 		}
-		if _, err = ecr.NewPrivateRepository(ctx, "rafiki-backend", accountID); err != nil {
+		if _, err = ecr.NewPrivateRepository(ctx, "rafiki-backend", accountID, crossAccountIds); err != nil {
 			return err
 		}
 
