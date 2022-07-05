@@ -37,9 +37,9 @@ func (s *rpcService) GetOnboarding(
 	})
 	if err != nil {
 		if errors.Is(err, onboarding.ErrNotFound) {
-			return nil, NotFoundError(err)
+			return nil, NotFoundError("Failed to find onboarding.")
 		}
-		return nil, InternalError(err)
+		return nil, InternalError("Get onboarding.")
 	}
 
 	return &backendv1.Onboarding{
@@ -95,9 +95,9 @@ func (s *rpcService) UpdateOnboarding(
 
 	if err != nil {
 		if errors.Is(err, onboarding.ErrNotFound) {
-			return nil, NotFoundError(err)
+			return nil, NotFoundError("Failed to find onboarding.")
 		}
-		return nil, InternalError(err)
+		return nil, InternalError("Update onboarding.")
 	}
 
 	return &backendv1.Onboarding{
@@ -138,14 +138,14 @@ func (s *rpcService) CreateIdentity(
 
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError(err)
+		return nil, ForbiddenError("Unauthenticated.")
 	}
 
 	onboarding, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
 		Id: req.GetOnboardingId(),
 	})
 	if err != nil {
-		return nil, NotFoundError(err)
+		return nil, NotFoundError("Failed to find onboarding.")
 	}
 
 	id, _ := s.identityService.Get(ctx, user.ID)
@@ -159,7 +159,7 @@ func (s *rpcService) CreateIdentity(
 			Country:      onboarding.Country,
 		})
 		if err != nil {
-			return nil, InternalError(err)
+			return nil, InternalError("Failed to create identity.")
 		}
 	}
 
@@ -202,9 +202,9 @@ func (s *rpcService) SendPhoneVerification(
 	})
 	if err != nil {
 		if errors.Is(err, onboarding.ErrNotFound) {
-			return nil, NotFoundError(err)
+			return nil, NotFoundError("Failed to find onboarding.")
 		}
-		return nil, InternalError(err)
+		return nil, InternalError("Update onboarding.")
 	}
 
 	return &backendv1.PhoneVerificationResponse{
@@ -249,9 +249,9 @@ func (s *rpcService) CheckPhoneVerificationCode(
 	})
 	if err != nil {
 		if errors.Is(err, onboarding.ErrNotFound) {
-			return nil, NotFoundError(err)
+			return nil, NotFoundError("Failed to find onboarding.")
 		}
-		return nil, InternalError(err)
+		return nil, InternalError("Update onboarding.")
 	}
 
 	return &backendv1.PhoneVerificationResponse{
@@ -266,7 +266,7 @@ func (s *rpcService) InitiateUnitOnboarding(
 
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError(err)
+		return nil, ForbiddenError("Unauthenticated.")
 	}
 
 	err = s.onboardingService.InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
@@ -283,7 +283,7 @@ func (s *rpcService) InitiateUnitOnboarding(
 	})
 
 	if err != nil {
-		return nil, InternalError(err)
+		return nil, InternalError("Initiate Unit customer onboarding.")
 	}
 
 	return &backendv1.InitiateUnitOnboardingResponse{

@@ -36,20 +36,20 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 	}
 
 	// Default to Internal error if not validation error.
-	return status.Error(codes.Internal, "Internal server error."+err.Error())
+	return status.Error(codes.Internal, "Internal server error: Validation error")
 }
 
 // Validation error will build an immutable error representing the status of the response.
-func InternalError(err error) error {
-	return status.Error(codes.Internal, "Internal server error."+err.Error())
+func InternalError(message string) error {
+	return status.Error(codes.Internal, "Internal server error: "+message)
 }
 
 // Validation error will build an immutable error representing the status of the response.
-func ForbiddenError(err error) error {
-	return status.Error(codes.PermissionDenied, "Forbidden."+err.Error())
+func ForbiddenError(message string) error {
+	return status.Error(codes.PermissionDenied, "Forbidden: "+message)
 }
 
 // Not found error will build an immutable error representing the status of the response.
-func NotFoundError(err error) error {
-	return status.Error(codes.NotFound, "Not found."+err.Error())
+func NotFoundError(message string) error {
+	return status.Error(codes.NotFound, "Not found: "+message)
 }

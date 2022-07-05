@@ -96,14 +96,14 @@ func TestGetBankAccountWidget(t *testing.T) {
 		},
 		{
 			Name:          "Returns internal error if account not found.",
-			ExpectedError: "rpc error: code = Internal desc = Unable to get account.",
+			ExpectedError: "rpc error: code = Internal desc = Internal server error: Unable to get account.",
 			RunBefore: func() {
 				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(nil, accounts.ErrNotFound).Times(1)
 			},
 		},
 		{
 			Name:          "Returns internal error if the connect widget url cannot be generated.",
-			ExpectedError: "rpc error: code = Internal desc = Unable to get widget.",
+			ExpectedError: "rpc error: code = Internal desc = Internal server error: Unable to get widget.",
 			RunBefore: func() {
 				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
 					ID:         accountID,
@@ -178,7 +178,7 @@ func TestInitiateCreateBankAccount(t *testing.T) {
 		},
 		{
 			Name:          "Returns ErrInternal if account not found",
-			ExpectedError: "rpc error: code = Internal desc = Unable to get account.",
+			ExpectedError: "rpc error: code = Internal desc = Internal server error: Unable to get account.",
 			RunBefore: func() {
 				accountID = uuid.NewString()
 				userID = uuid.NewString()
@@ -191,7 +191,7 @@ func TestInitiateCreateBankAccount(t *testing.T) {
 		},
 		{
 			Name:          "Returns ErrInternal if cannot create mx bank account",
-			ExpectedError: "rpc error: code = Internal desc = Unable to create bank account.",
+			ExpectedError: "rpc error: code = Internal desc = Internal server error: Unable to create bank account.",
 			RunBefore: func() {
 				accountID = uuid.NewString()
 				userID = uuid.NewString()

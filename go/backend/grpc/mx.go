@@ -5,8 +5,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/mx"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *rpcService) GetBankAccountWidget(
@@ -15,17 +13,17 @@ func (s *rpcService) GetBankAccountWidget(
 ) (*backendv1.GetBankAccountWidgetResponse, error) {
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
+		return nil, ForbiddenError("Unauthenticated.")
 	}
 
 	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unable to get account.")
+		return nil, InternalError("Unable to get account.")
 	}
 
 	url, err := s.mxProvider.GetConnectWidget(ctx, acc.ID, user.ID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unable to get widget.")
+		return nil, InternalError("Unable to get widget.")
 	}
 
 	return &backendv1.GetBankAccountWidgetResponse{
@@ -39,12 +37,12 @@ func (s *rpcService) InitiateCreateBankAccount(
 ) (*backendv1.InitiateCreateBankAccountResponse, error) {
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
+		return nil, ForbiddenError("Unauthenticated.")
 	}
 
 	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unable to get account.")
+		return nil, InternalError("Unable to get account.")
 	}
 
 	workflowUuid, err := s.mxProvider.InitiateCreateAccount(ctx, &mx.InitiateCreateAccountArgs{
@@ -55,7 +53,7 @@ func (s *rpcService) InitiateCreateBankAccount(
 		FundingsourceName: req.GetName(),
 	})
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unable to create bank account.")
+		return nil, InternalError("Unable to create bank account.")
 	}
 
 	return &backendv1.InitiateCreateBankAccountResponse{

@@ -66,7 +66,7 @@ func TestGetOnboarding(s *testing.T) {
 		}
 
 		assert.Error(t, err)
-		assert.EqualError(t, err, "rpc error: code = NotFound desc = Not found.onboarding: not found.")
+		assert.EqualError(t, err, "rpc error: code = NotFound desc = Not found: Failed to find onboarding.")
 		assert.Nil(t, resp)
 	})
 }
@@ -119,7 +119,7 @@ func TestUpdateOnboarding(s *testing.T) {
 		}
 
 		assert.Error(t, err)
-		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error.onboarding: internal error.")
+		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error: Update onboarding.")
 		assert.Nil(t, resp)
 	})
 }
