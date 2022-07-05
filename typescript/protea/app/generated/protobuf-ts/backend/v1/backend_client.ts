@@ -194,7 +194,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetQuote(backend.v1.GetQuoteRequest) returns (backend.v1.Quote);
      */
     getQuote(input: GetQuoteRequest, options?: RpcOptions): UnaryCall<GetQuoteRequest, Quote> {
-        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetQuoteRequest, Quote>("unary", this._transport, method, opt, input);
     }
 }
