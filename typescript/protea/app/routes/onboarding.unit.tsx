@@ -3,22 +3,8 @@ import { route } from 'routes-gen'
 import React from 'react'
 import { Logo, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import { grpcClient, StatusError } from '~/lib/proto.server'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
-  await grpcClient
-    .createIdentity(
-      {
-        onboardingId: params.onboardingId as string
-      },
-      {
-        meta: {
-          cookies: request.headers.get('cookie') as string
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
+export const loader: LoaderFunction = async ({ request }) => {
   return requireUserSession(request)
 }
 

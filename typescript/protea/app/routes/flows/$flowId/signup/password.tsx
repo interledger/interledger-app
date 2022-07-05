@@ -263,15 +263,30 @@ export const action: ActionFunction = async ({ request, params }) => {
     return badRequest({ fieldErrors: fieldErrors })
   }
 
-  return exitFlow(
-    request,
-    redirect(
-      route('/onboarding/unit/:onboardingId', {
-        onboardingId
-      }),
+  // Pull the kratos cookie from the res set-cookie
+  const kratoscookie = (res.headers.get('Set-Cookie') as string)
+    .split(', ')
+    .find((val: string) => val.startsWith('ory_kratos_session='))
+    ?.split('; ')[0]
+
+  await grpcClient
+    .createIdentity(
       {
-        headers: res.headers
+        onboardingId: onboardingId
+      },
+      {
+        meta: {
+          cookies: kratoscookie || ''
+        }
       }
     )
+    .then((v) => v)
+    .catch(StatusError)
+
+  return exitFlow(
+    request,
+    redirect(route('/onboarding/unit'), {
+      headers: res.headers
+    })
   )
 }
