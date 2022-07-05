@@ -1,7 +1,7 @@
 package rafiki
 
 //go:generate mockgen -destination=./mock.go -package=rafiki -source=./service.go
-//go:generate go run github.com/Khan/genqlient
+//go:generate genqlient
 
 import (
 	"context"
