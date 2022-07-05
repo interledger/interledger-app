@@ -215,28 +215,6 @@ type Application struct {
 	CustomerID   string
 }
 
-type ApplicationJson struct {
-	Data struct {
-		Type       string `json:"type"`
-		ID         string `json:"id"`
-		Attributes struct {
-			Status string `json:"status"`
-			Tags   struct {
-				FynbosUserId string `json:"fynbosUserId"`
-			} `json:"tags"`
-			Archived bool `json:"archived"`
-		} `json:"attributes"`
-		Relationships struct {
-			Customer struct {
-				Data struct {
-					Type string `json:"type,omitempty"`
-					ID   string `json:"id,omitempty"`
-				} `json:"data,omitempty"`
-			} `json:"customer,omitempty"`
-		} `json:"relationships,omitempty"`
-	} `json:"data"`
-}
-
 func (s *service) CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
 	identity, err := s.identityService.Get(ctx, args.UserID)
 	if err != nil {
@@ -251,63 +229,56 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	// https://docs.unit.co/applications/#create-individual-application
 	url := fmt.Sprintf(`%s/applications`, s.baseURL)
 
-	var jsonStr = []byte(fmt.Sprintf(`{
-		"data": {
-			"type": "individualApplication",
-			"attributes": {
-				"ssn": %s,
-				"fullName": {
-					"first": %s,
-					"last": %s
-				},
-				"dateOfBirth": %s,
-				"address": {
-					"street": %s,
-					"street2": %s,
-					"city": %s,
-					"state": %s,
-					"postalCode": %s,
-					"country": %s
-				},
-				"email": %s,
-				"phone": {
-					"countryCode": %s,
-					"number": %s
-				},
-				"ip": %s,
-				"tags": {
-					"%s": "%s"
-				},
-				"deviceFingerprints": [{
-					"provider": "iovation",
-  				"value": %s
-				}]
-			}
-		}
-	}`,
-		args.Ssn,
-		identity.FirstName,
-		identity.LastName,
-		args.DateOfBirth,
-		args.Street,
-		args.Street2,
-		args.City,
-		args.State,
-		args.PostalCode,
-		identity.Country,
-		identity.Email,
-		strconv.Itoa(int(*phoneNumber.CountryCode)),
-		strconv.Itoa(int(*phoneNumber.NationalNumber)),
-		args.IpAddress,
-		ApplicationUserIDTag,
-		args.UserID,
-		args.DeviceFingerprints,
-	))
+	deviceFingerprints := make([]DeviceFingerprint, len(args.DeviceFingerprints))
+	for _, fingerprint := range args.DeviceFingerprints {
+		deviceFingerprints = append(deviceFingerprints, DeviceFingerprint{
+			Provider: "iovation",
+			Value:    fingerprint,
+		})
+	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	application := &CreateApplicationRequest{
+		Data: CreateApplicationRequestData{
+			Type: "individualApplication",
+			Attributes: RequestApplicationAttributes{
+				Ssn: args.Ssn,
+				FullName: FullName{
+					First: identity.FirstName,
+					Last:  identity.LastName,
+				},
+				DateOfBirth: args.DateOfBirth,
+				Address: Address{
+					Street:     args.Street,
+					Street2:    args.Street2,
+					City:       args.City,
+					State:      args.State,
+					PostalCode: args.PostalCode,
+					Country:    identity.Country,
+				},
+				Email: identity.Email,
+				Phone: Phone{
+					CountryCode: strconv.Itoa(int(*phoneNumber.CountryCode)),
+					Number:      strconv.Itoa(int(*phoneNumber.NationalNumber)),
+				},
+				IP: args.IpAddress,
+				Tags: Tags{
+					FynbosUserId: args.UserID,
+				},
+				DeviceFingerprints: deviceFingerprints,
+			},
+		},
+	}
+
+	rawApplication, err := json.Marshal(application)
 	if err != nil {
 		return nil, err
 	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(rawApplication))
+	if err != nil {
+		return nil, err
+	}
+
 	req.Header.Set("Content-Type", "application/vnd.api+json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.token))
 
@@ -320,8 +291,7 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-
-	var data ApplicationJson
+	var data CreateApplicationResponse
 
 	err = json.Unmarshal(body, &data)
 	if err != nil {

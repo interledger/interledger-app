@@ -147,7 +147,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	for _, scenario := range scenarios {
 		customerCreatedEvent := NewCustomerCreatedEvent()
 
-		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags[ApplicationUserIDTag], mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags.FynbosUserId, mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, customerCreatedEvent)
 		err = wh.HandleEvent(context.Background(), Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}, rawEvent)
@@ -202,7 +202,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 	for _, scenario := range scenarios {
 		applicationDeniedEvent := NewApplicationDeniedEvent()
 
-		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+applicationDeniedEvent.Attributes.Tags[ApplicationUserIDTag], mock.AnythingOfType("string"), "onboard-unit-application-denied", mock.Anything).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+applicationDeniedEvent.Attributes.Tags.FynbosUserId, mock.AnythingOfType("string"), "onboard-unit-application-denied", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		rawEvent := marshalEvent(t, applicationDeniedEvent)
 		err = wh.HandleEvent(context.Background(), Event{ID: applicationDeniedEvent.ID, Type: EventType(applicationDeniedEvent.Type)}, rawEvent)
@@ -332,7 +332,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 }
 
 func marshalBody(t *testing.T, events ...interface{}) *bytes.Buffer {
-	body := Body{}
+	body := ResponseBody{}
 	for _, event := range events {
 		rawEvent, err := json.Marshal(event)
 		if err != nil {
@@ -364,8 +364,8 @@ func NewCustomerCreatedEvent() CustomerCreatedEvent {
 		Type: "customer.created",
 		Attributes: EventAttributes{
 			CreatedAt: "2020-07-29T12:53:05.882Z",
-			Tags: map[string]string{
-				ApplicationUserIDTag: uuid.NewString(),
+			Tags: Tags{
+				FynbosUserId: uuid.NewString(),
 			},
 		},
 		Relationships: EventRelationships{
@@ -391,8 +391,8 @@ func NewApplicationDeniedEvent() ApplicationDeniedEvent {
 		Type: "application.denied",
 		Attributes: EventAttributes{
 			CreatedAt: "2020-07-29T12:53:05.882Z",
-			Tags: map[string]string{
-				ApplicationUserIDTag: uuid.NewString(),
+			Tags: Tags{
+				FynbosUserId: uuid.NewString(),
 			},
 		},
 		Relationships: EventRelationships{

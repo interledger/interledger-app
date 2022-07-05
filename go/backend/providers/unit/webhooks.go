@@ -60,7 +60,7 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 		if err := json.Unmarshal(rawEvent, event); err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[ApplicationUserIDTag], "", "onboard-unit-customer-created", event)
+		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserId, "", "onboard-unit-customer-created", event)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
@@ -69,7 +69,7 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 		if err := json.Unmarshal(rawEvent, event); err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
-		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags[ApplicationUserIDTag], "", "onboard-unit-application-denied", event)
+		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserId, "", "onboard-unit-application-denied", event)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
@@ -118,7 +118,7 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			return
 		}
 
-		body := Body{}
+		body := ResponseBody{}
 		if err := json.Unmarshal(payload, &body); err != nil {
 			http.Error(w, "Failed to parse payload", 500)
 			return
@@ -150,53 +150,6 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 		w.WriteHeader(200)
 	}
 }
-
-type (
-	Body struct {
-		Data []json.RawMessage `json:"data"`
-	}
-	EventType string
-	Event     struct {
-		ID   string    `json:"id"`
-		Type EventType `json:"type"`
-	}
-	CustomerCreatedEvent struct {
-		ID            string             `json:"id"`
-		Type          string             `json:"type"`
-		Attributes    EventAttributes    `json:"attributes"`
-		Relationships EventRelationships `json:"relationships"`
-	}
-
-	ApplicationDeniedEvent struct {
-		ID            string             `json:"id"`
-		Type          string             `json:"type"`
-		Attributes    EventAttributes    `json:"attributes"`
-		Relationships EventRelationships `json:"relationships"`
-	}
-
-	EventAttributes struct {
-		CreatedAt string            `json:"createdAt"`
-		Tags      map[string]string `json:"tags"`
-	}
-
-	EventRelationships struct {
-		Customer    JsonCustomer    `json:"customer,omitempty"`
-		Application JsonApplication `json:"application"`
-	}
-
-	JsonCustomer struct {
-		Data Data `json:"data"`
-	}
-
-	JsonApplication struct {
-		Data Data `json:"data"`
-	}
-
-	Data struct {
-		ID   string `json:"id"`
-		Type string `json:"type"`
-	}
-)
 
 const (
 	CUSTOMER_CREATED               = EventType("customer.created")

@@ -275,7 +275,7 @@ type InitiateUnitCustomerOnboardingArgs struct {
 	Ssn                string   `validate:"required"`
 	DateOfBirth        string   `validate:"required"`
 	Street             string   `validate:"required"`
-	Street2            string   `validate:"required"`
+	Street2            string   `validate:""`
 	City               string   `validate:"required"`
 	State              string   `validate:"required"`
 	PostalCode         string   `validate:"required"`

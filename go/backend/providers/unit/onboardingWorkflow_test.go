@@ -130,8 +130,8 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 			Type: "customer.created",
 			Attributes: EventAttributes{
 				CreatedAt: "2020-07-29T12:53:05.882Z",
-				Tags: map[string]string{
-					ApplicationUserIDTag: identityID,
+				Tags: Tags{
+					FynbosUserId: identityID,
 				},
 			},
 			Relationships: EventRelationships{
@@ -239,8 +239,8 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithDeniedSignal
 			Type: "application.denied",
 			Attributes: EventAttributes{
 				CreatedAt: "2020-07-29T12:53:05.882Z",
-				Tags: map[string]string{
-					ApplicationUserIDTag: identityID,
+				Tags: Tags{
+					FynbosUserId: identityID,
 				},
 			},
 			Relationships: EventRelationships{
