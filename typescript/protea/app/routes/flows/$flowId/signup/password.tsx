@@ -4,7 +4,7 @@ import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Checkbox, Router, TextField } from '~/components'
-import { getCurrentFlow } from '~/lib/flows.server'
+import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 import {
@@ -263,13 +263,15 @@ export const action: ActionFunction = async ({ request, params }) => {
     return badRequest({ fieldErrors: fieldErrors })
   }
 
-  // TODO: Exit flow
-  return redirect(
-    route('/onboarding/unit/:onboardingId', {
-      onboardingId
-    }),
-    {
-      headers: res.headers
-    }
+  return exitFlow(
+    request,
+    redirect(
+      route('/onboarding/unit/:onboardingId', {
+        onboardingId
+      }),
+      {
+        headers: res.headers
+      }
+    )
   )
 }
