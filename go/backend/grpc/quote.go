@@ -7,8 +7,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type validateGetQuote struct {
@@ -50,11 +48,11 @@ func (s *rpcService) GetQuote(
 
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
+		return nil, ForbiddenError("Unauthenticated.")
 	}
 	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Account not found.")
+		return nil, InternalError("Account not found.")
 	}
 
 	// temporary until `Quoting` service is written.
@@ -64,7 +62,7 @@ func (s *rpcService) GetQuote(
 		"USD", // TODO: get currency from somewhere.
 	)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unable to get quote.")
+		return nil, InternalError("Unable to get quote.")
 	}
 
 	args := &rafiki.CreateQuoteArgs{
@@ -83,7 +81,7 @@ func (s *rpcService) GetQuote(
 	}
 	quote, err := s.rafikiProvider.CreateQuote(ctx, args)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Unable to get quote.")
+		return nil, InternalError("Unable to get quote.")
 	}
 
 	return &backendv1.Quote{
