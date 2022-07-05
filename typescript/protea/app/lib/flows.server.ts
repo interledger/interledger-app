@@ -204,15 +204,24 @@ export async function completeFlow(
  * Allows removing a flow from the stack and returning to the next flow in the stack,
  * Or returns to the flows exitTo route.
  * @param request Request
+ * @param response Response allows settings a response that will be updated and returned.
  * @returns Response
  */
-export async function exitFlow(request: Request): Promise<Response> {
+export async function exitFlow(
+  request: Request,
+  response?: Response
+): Promise<Response> {
   const userSettings = await getSession(request.headers.get('Cookie'))
 
   const flows: Flow[] = userSettings.get('flows') || []
   const lastFlow = flows.pop()
   const latestFlow = flows.at(-1)
   userSettings.set('flows', flows)
+
+  if (response) {
+    response.headers.append('Set-Cookie', await commitSession(userSettings))
+    return response
+  }
 
   if (latestFlow) {
     return redirect(latestFlow.steps[latestFlow.stepIndex].route, {
