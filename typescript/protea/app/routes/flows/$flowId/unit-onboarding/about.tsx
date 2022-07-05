@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Autocomplete, Button, Router, TextField } from '~/components'
+import { Autocomplete, Button, Checkbox, Router, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
 import { DateTime } from 'luxon'
+import { grpcClient, StatusError } from '~/lib/proto.server'
 
 type Country = {
   id: string
@@ -137,8 +138,28 @@ export default function Page() {
         required
         errorMessage={actionData?.fieldErrors?.ssn}
       />
+      <Checkbox
+        id='service-agreement'
+        name='service-agreement'
+        form='signup-password'
+        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={
+          Boolean(actionData?.fieldErrors?.serviceAgreement) || undefined
+        }
+        aria-describedby={
+          actionData?.fieldErrors?.serviceAgreement
+            ? 'serviceAgreement-error'
+            : undefined
+        }
+        errorMessage={actionData?.fieldErrors?.serviceAgreement}
+      >
+        I agree to the Fynbos&nbsp;
+        <Router className='text-primary' to='/privacy-policy'>
+          Deposit Terms &amp; Conditions
+        </Router>
+      </Checkbox>
 
-      <span className='col-span-full justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <span className='col-span-full justify-end pt-4 text-xs sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         By filling out this application, you understand and agree that Unit's
         use of your data is governed by its{' '}
         <Router.a
@@ -165,32 +186,65 @@ type ActionData = {
     birth: string | undefined
     country: string | undefined
     ssn: string | undefined
+    serviceAgreement: string | undefined
   }
   fields?: {
     birth: string
     country: string
     ssn: string
+    serviceAgreement: boolean
   }
 }
 export const action: ActionFunction = async ({ request, params }) => {
-  // Should have a fynbos user, that some of the data can be stored against.
+  const cookie = request.headers.get('Cookie') as string
   const form = await request.formData()
-  // Figure out how the heck we validate an address.
-  const street = form.get('street') as string
-  const apartment = form.get('apartment') as string
-  const city = form.get('city') as string
-  const state = form.get('state') as string
-  const country = form.get('country') as string
-  const zip = form.get('zip') as string
+  const ssn = form.get('ssn') as string
+  const dateOfBirth = form.get('birth') as string
+  const nationality = form.get('country') as string
+  const serviceAgreement = form.get('service-agreement') as string
 
-  const data = {
-    street,
-    apartment,
-    city,
-    state,
-    country,
-    zip
-  }
+  const flow = await getCurrentFlow(request, params)
+  const { street, apartment, city, state, zip } = flow?.data
+  const deviceFingerprints = ['TODO']
+  console.log(flow)
 
-  await stepFlow(request, data)
+  // This won't return data, but should notify success. Can just forward to a waiting page.
+  let call = await grpcClient
+    .initiateUnitOnboarding(
+      {
+        ssn: ssn,
+        nationality: nationality,
+        dateOfBirth: dateOfBirth,
+        street: street,
+        street2: apartment,
+        city: city,
+        state: state,
+        postalCode: zip,
+        ip: 'TODO',
+        deviceFingerprints: deviceFingerprints
+      },
+      {
+        meta: {
+          cookies: cookie
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  console.log(call)
+  return null
+  // TODO if call.status.code == 'OK' then redirect to waiting page.
+  // if (call.status.code)
+
+  // const data = {
+  //   street,
+  //   apartment,
+  //   city,
+  //   state,
+  //   country,
+  //   zip
+  // }
+
+  // await stepFlow(request, data)
 }

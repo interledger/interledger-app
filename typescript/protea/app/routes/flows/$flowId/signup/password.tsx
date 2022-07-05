@@ -264,7 +264,12 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 
   // TODO: Exit flow
-  return redirect(route('/onboarding/unit'), {
-    headers: res.headers
-  })
+  return redirect(
+    route('/onboarding/unit/:onboardingId', {
+      onboardingId
+    }),
+    {
+      headers: res.headers
+    }
+  )
 }
