@@ -220,7 +220,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         city: city,
         state: state,
         postalCode: zip,
-        ip: 'TODO',
+        ip: '41.71.7.119',
         deviceFingerprints: deviceFingerprints
       },
       {

@@ -229,13 +229,13 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	// https://docs.unit.co/applications/#create-individual-application
 	url := fmt.Sprintf(`%s/applications`, s.baseURL)
 
-	deviceFingerprints := make([]DeviceFingerprint, len(args.DeviceFingerprints))
-	for _, fingerprint := range args.DeviceFingerprints {
-		deviceFingerprints = append(deviceFingerprints, DeviceFingerprint{
-			Provider: "iovation",
-			Value:    fingerprint,
-		})
-	}
+	// deviceFingerprints := make([]DeviceFingerprint, len(args.DeviceFingerprints))
+	// for _, fingerprint := range args.DeviceFingerprints {
+	// 	deviceFingerprints = append(deviceFingerprints, DeviceFingerprint{
+	// 		Provider: "iovation",
+	// 		Value:    fingerprint,
+	// 	})
+	// }
 
 	application := &CreateApplicationRequest{
 		Data: CreateApplicationRequestData{
@@ -264,7 +264,7 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 				Tags: Tags{
 					FynbosUserId: args.UserID,
 				},
-				DeviceFingerprints: deviceFingerprints,
+				// DeviceFingerprints: deviceFingerprints,
 			},
 		},
 	}
