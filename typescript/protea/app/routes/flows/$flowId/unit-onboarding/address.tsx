@@ -2,20 +2,34 @@ import React from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, TextField } from '~/components'
+import { Button, Icon, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { apolloClient } from '~/lib/apollo.server'
+import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
+import { SignupDocument } from '~/generated/types'
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)
+  const countries = await apolloClient
+    .query<SignupQuery, SignupQueryVariables>({
+      query: SignupDocument,
+      context: {
+        headers: request.headers
+      }
+    })
+    .then((val) => val.data.countries)
+
+  const country = countries.find((country) => country.id == 'US')
 
   return json({
+    country,
     flow
   })
 }
 
 export default function Page() {
   const actionData = useActionData<ActionData>()
-  const { flow } = useLoaderData()
+  const { country, flow } = useLoaderData()
 
   return (
     <>
@@ -90,6 +104,20 @@ export default function Page() {
         }
         required
         errorMessage={actionData?.fieldErrors?.state}
+      />
+      <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex space-x-3'>
+          <Icon>flag</Icon>
+          <span className='font-sans text-base font-normal'>
+            {country.name}
+          </span>
+        </div>
+      </div>
+      <input
+        type='hidden'
+        form='unit-address'
+        name='country'
+        value={country.id}
       />
       <TextField
         id='zip'

@@ -1,5 +1,6 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/onboarding/unit/:onboardingId": { onboardingId: string };
     "/confirmation/:flowId": { flowId: string };
     "/confirmation/:flowId/payment-method": { flowId: string };
     "/confirmation/:flowId/withdraw": { flowId: string };
@@ -7,7 +8,6 @@ declare module "routes-gen" {
     "/confirmation/:flowId/send": { flowId: string };
     "/recovery/password": {};
     "/login/challenge": {};
-    "/onboarding/unit": {};
     "/": {};
     "/activity/transaction/:id": { id: string };
     "/settings/payment-methods": {};
@@ -48,6 +48,7 @@ declare module "routes-gen" {
 
   export function route<
     T extends
+      | ["/onboarding/unit/:onboardingId", RouteParams["/onboarding/unit/:onboardingId"]]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
@@ -55,7 +56,6 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
       | ["/recovery/password"]
       | ["/login/challenge"]
-      | ["/onboarding/unit"]
       | ["/"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/payment-methods"]

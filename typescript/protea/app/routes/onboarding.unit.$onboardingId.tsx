@@ -3,8 +3,22 @@ import { route } from 'routes-gen'
 import React from 'react'
 import { Logo, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
+import { grpcClient, StatusError } from '~/lib/proto.server'
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
+  await grpcClient
+    .createIdentity(
+      {
+        onboardingId: params.onboardingId as string
+      },
+      {
+        meta: {
+          cookies: request.headers.get('cookie') as string
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
   return requireUserSession(request)
 }
 
@@ -21,11 +35,18 @@ export default function Page() {
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <span className='font-display text-4xl font-medium'>
-            Our banking partner needs more info
+            Verify identity
           </span>
           <span className='text-medium'>
-            In order for us to provide financial serrvices, we are required to
-            collect some identifying information.
+            In order for us to provide financial services, we are required to
+            have a banking partner.
+          </span>
+          <span className='text-medium'>
+            They require some identifying information from you to get started.
+          </span>
+          <span className='text-medium'>
+            You can find out more at the disclosures page linked in the footer
+            of this page.
           </span>
         </div>
         <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
