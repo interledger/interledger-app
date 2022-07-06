@@ -1,5 +1,6 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/onboarding/country-access": {};
     "/confirmation/:flowId": { flowId: string };
     "/confirmation/:flowId/payment-method": { flowId: string };
     "/confirmation/:flowId/withdraw": { flowId: string };
@@ -48,6 +49,7 @@ declare module "routes-gen" {
 
   export function route<
     T extends
+      | ["/onboarding/country-access"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]

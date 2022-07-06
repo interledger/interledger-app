@@ -154,7 +154,8 @@ export async function stepFlow(
  */
 export async function updateFlowData(
   request: Request,
-  data?: any
+  data?: any,
+  response?: Response
 ): Promise<Response | undefined> {
   const userSettings = await getSession(request.headers.get('Cookie'))
 
@@ -166,6 +167,12 @@ export async function updateFlowData(
     }
     flows.push(currentFlow)
     userSettings.set('flows', flows)
+
+    if (response) {
+      response.headers.append('Set-Cookie', await commitSession(userSettings))
+      return response
+    }
+
     return json(data, {
       headers: {
         'Set-Cookie': await commitSession(userSettings)
