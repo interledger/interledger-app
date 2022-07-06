@@ -7872,6 +7872,13 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"libphonenumber-js@npm:^1.10.7":
+  version: 1.10.7
+  resolution: "libphonenumber-js@npm:1.10.7"
+  checksum: 46c5afec95c5b18f24c6a19958136922e28654287a2c3dd7d67e3bda5540f540c0c69bbfb0a9470110e636bf98cab4eada6462cf2122372da6ba47c0e8379ac6
+  languageName: node
+  linkType: hard
+
 "lilconfig@npm:^2.0.4":
   version: 2.0.4
   resolution: "lilconfig@npm:2.0.4"
@@ -10141,6 +10148,7 @@ autoprefixer@latest:
     eslint-config-prettier: ^8.3.0
     eslint-plugin-react: latest
     graphql: ^16.0.1
+    libphonenumber-js: ^1.10.7
     luxon: ^2.0.2
     postcss: latest
     prettier: ^2.3.2
