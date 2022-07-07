@@ -796,3 +796,91 @@ func RoleMappingConfig(instanceRoles []*iam.Role, mappings []RoleMap) pulumi.Str
 
 	return output
 }
+
+type RoleMapArg struct {
+	RoleArn  pulumi.StringInput
+	Username pulumi.StringInput
+	Groups   pulumi.StringArrayInput
+}
+
+// RoleMappingConfigV2 Allows us to define the role map using pulumi inputs, and it will generate the yaml
+func RoleMappingConfigV2(mappings []RoleMapArg) pulumi.StringOutput {
+
+	var roleMapping []pulumi.StringOutput
+
+	for _, r := range mappings {
+		output := pulumi.All(r.RoleArn, r.Username, r.Groups).ApplyT(func(args []interface{}) (string, error) {
+			role := RoleMap{
+				RoleArn:  args[0].(string),
+				Username: args[1].(string),
+				Groups:   args[2].([]string),
+			}
+			srm, err := yaml.Marshal(role)
+			if err != nil {
+				return "", err
+			}
+
+			return string(srm), nil
+		}).(pulumi.StringOutput)
+		roleMapping = append(roleMapping, output)
+	}
+
+	var inputs []interface{}
+	for _, a := range roleMapping {
+		inputs = append(inputs, a)
+	}
+
+	output := pulumi.All(inputs...).ApplyT(func(args []interface{}) (string, error) {
+		var roles []RoleMap
+
+		for _, a := range args {
+			var role RoleMap
+			err := yaml.Unmarshal([]byte(a.(string)), &role)
+			roles = append(roles, role)
+			if err != nil {
+				return "", err
+			}
+		}
+
+		srm, err := yaml.Marshal(roles)
+
+		return string(srm), err
+	}).(pulumi.StringOutput)
+
+	return output
+}
+
+func NewDeployRole(ctx *pulumi.Context, clusterName string, deployerRoleArn string) (*iam.Role, error) {
+
+	trustPolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Effect: utils.StringPtr("Allow"),
+				Actions: []string{
+					"sts:AssumeRole",
+				},
+				Principals: []iam.GetPolicyDocumentStatementPrincipal{
+					{
+						Type: "AWS",
+						Identifiers: []string{
+							deployerRoleArn,
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	deployerRole, err := iam.NewRole(ctx, "deploy-role", &iam.RoleArgs{
+		Name:             pulumi.String(fmt.Sprintf("eks-%s-deployer", clusterName)),
+		AssumeRolePolicy: pulumi.String(trustPolicy.Json),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return deployerRole, nil
+}
