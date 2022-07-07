@@ -128,6 +128,12 @@ func main() {
 			return err
 		}
 
+		deployRole, err := k8s.NewDeployRole(ctx, clusterName, "arn:aws:iam::823058932981:role/eksArgoRole")
+		if err != nil {
+			return err
+		}
+		ctx.Export("deployRoleArn", deployRole.Arn)
+
 		kubeProvider, err := kubernetes.NewProvider(ctx, "kubernetes-provider", &kubernetes.ProviderArgs{
 			Kubeconfig: kubeConfig,
 		})
@@ -135,12 +141,24 @@ func main() {
 			return err
 		}
 
-		roleConfig := k8s.RoleMappingConfig([]*iam.Role{
-			instanceRole,
-		}, []k8s.RoleMap{})
-		if err != nil {
-			return err
-		}
+		//roleConfig := k8s.RoleMappingConfig([]*iam.Role{instanceRole}, []k8s.RoleMap{})
+		roleConfig := k8s.RoleMappingConfigV2([]k8s.RoleMapArg{
+			{
+				RoleArn:  instanceRole.Arn,
+				Username: pulumi.String("system:node:{{EC2PrivateDNSName}}"),
+				Groups: pulumi.StringArray{
+					pulumi.String("system:bootstrappers"),
+					pulumi.String("system:nodes"),
+				},
+			},
+			{
+				RoleArn:  deployRole.Arn,
+				Username: pulumi.String("deployer"),
+				Groups: pulumi.StringArray{
+					pulumi.String("system:masters"),
+				},
+			},
+		})
 
 		authConfig, err := corev1.NewConfigMap(ctx, "aws-auth", &corev1.ConfigMapArgs{
 			Metadata: &metav1.ObjectMetaArgs{
@@ -153,6 +171,7 @@ func main() {
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{
 			instanceRole,
 			cluster,
+			deployRole,
 		}))
 		if err != nil {
 			return err
