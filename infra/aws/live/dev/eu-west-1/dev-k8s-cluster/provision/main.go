@@ -153,7 +153,7 @@ func main() {
 			},
 			{
 				RoleArn:  deployRole.Arn,
-				Username: pulumi.String("deployer"),
+				Username: deployRole.Arn,
 				Groups: pulumi.StringArray{
 					pulumi.String("system:masters"),
 				},
