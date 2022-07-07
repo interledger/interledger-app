@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
@@ -44,7 +45,7 @@ func main() {
 			return err
 		}
 
-		_, err = yaml.NewConfigFile(ctx, "argo", &yaml.ConfigFileArgs{
+		argo, err := yaml.NewConfigFile(ctx, "argo", &yaml.ConfigFileArgs{
 			File: "./argocd.yaml",
 			Transformations: []yaml.Transformation{
 				// Set the aws role arn on the correct service accounts
@@ -59,6 +60,16 @@ func main() {
 				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{role, namespace}))
+		if err != nil {
+			return err
+		}
+
+		err = newCluster(ctx, clusterArgs{
+			Name:             "dev-eu1",
+			ClusterName:      "dev-eu-west-1-cluster",
+			Namespace:        namespace.Metadata.Name().Elem(),
+			ClusterStackName: "fynbos/aws-dev-eu-west-1-dev-k8s/main",
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
 		if err != nil {
 			return err
 		}
@@ -162,5 +173,85 @@ func newTrustPolicy(ctx *pulumi.Context, accountId pulumi.StringPtrInput, oidcPr
 		}
 
 		return policy.Json, nil
+	}).(pulumi.StringOutput)
+}
+
+type clusterArgs struct {
+	Name             string
+	ClusterName      string
+	Namespace        pulumi.StringInput
+	ClusterStackName string
+}
+
+func newCluster(ctx *pulumi.Context, args clusterArgs, opts ...pulumi.ResourceOption) error {
+	stack, err := pulumi.NewStackReference(ctx, args.ClusterStackName, nil)
+	if err != nil {
+		return err
+	}
+	ca := stack.GetStringOutput(pulumi.String("ca"))
+	deployRoleArn := stack.GetStringOutput(pulumi.String("deployRoleArn"))
+	endpoint := stack.GetStringOutput(pulumi.String("clusterEndpoint"))
+
+	clusterCf := newClusterConfig(clusterConfigArgs{
+		ClusterName: pulumi.String(args.ClusterName),
+		RoleARN:     deployRoleArn,
+		CaData:      ca,
+	})
+
+	_, err = corev1.NewSecret(ctx, args.Name, &corev1.SecretArgs{
+		ApiVersion: pulumi.String("v1"),
+		Type:       pulumi.String("Opaque"),
+		Metadata: metav1.ObjectMetaArgs{
+			Name:      pulumi.Sprintf("%s-cluster", args.Name),
+			Namespace: args.Namespace,
+			Labels: pulumi.StringMap{
+				"argocd.argoproj.io/secret-type": pulumi.String("cluster"),
+			},
+		},
+		StringData: pulumi.StringMap{
+			"name":   pulumi.String(args.Name),
+			"server": endpoint,
+			"config": clusterCf,
+		},
+	}, opts...)
+
+	return nil
+}
+
+type awsAuthConfig struct {
+	ClusterName string `json:"clusterName"`
+	RoleARN     string `json:"roleARN"`
+}
+type tlsClientConfig struct {
+	CaData string `json:"caData"`
+}
+
+type clusterConfig struct {
+	AwsAuthConfig   awsAuthConfig   `json:"awsAuthConfig"`
+	TlsClientConfig tlsClientConfig `json:"tlsClientConfig"`
+}
+
+type clusterConfigArgs struct {
+	ClusterName pulumi.StringInput
+	RoleARN     pulumi.StringInput
+	CaData      pulumi.StringInput
+}
+
+func newClusterConfig(args clusterConfigArgs) pulumi.StringOutput {
+	return pulumi.All(args.ClusterName, args.RoleARN, args.CaData).ApplyT(func(args []interface{}) (string, error) {
+
+		c := clusterConfig{
+			AwsAuthConfig: awsAuthConfig{
+				ClusterName: args[0].(string),
+				RoleARN:     args[1].(string),
+			},
+			TlsClientConfig: tlsClientConfig{
+				CaData: args[2].(string),
+			},
+		}
+
+		configJson, err := json.Marshal(c)
+
+		return string(configJson), err
 	}).(pulumi.StringOutput)
 }
