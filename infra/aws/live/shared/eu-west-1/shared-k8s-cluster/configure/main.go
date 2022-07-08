@@ -115,7 +115,8 @@ func main() {
 					"name":   pulumi.String("aws-load-balancer-controller"),
 					"create": pulumi.Bool(false),
 				},
-				"hostNetwork": pulumi.Bool(true), // NB Required as we are using Cilium CNI
+				"hostNetwork":     pulumi.Bool(true), // NB Required as we are using Cilium CNI
+				"metricsBindAddr": pulumi.String(":8989"),
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{serviceAccount, kubeProvider}))
 		if err != nil {

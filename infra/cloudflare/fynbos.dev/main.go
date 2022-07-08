@@ -271,6 +271,31 @@ func main() {
 			return err
 		}
 
+		// Shared Cluster
+		_, err = cloudflare.NewRecord(ctx, "eu1-shared-cluster", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("mgnt.fynbos.dev"),
+			Value:   pulumi.String("k8s-emissary-emissary-a896348535-702945cedff89f60.elb.eu-west-1.amazonaws.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+		})
+
+		if err != nil {
+			return err
+		}
+		_, err = cloudflare.NewRecord(ctx, "eu1-shared-cluster-wild", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("*.mgnt.fynbos.dev"),
+			Value:   pulumi.String("k8s-emissary-emissary-a896348535-702945cedff89f60.elb.eu-west-1.amazonaws.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
 		// DNSSEC
 		_, err = cloudflare.NewZoneDnssec(ctx, "dnssec", &cloudflare.ZoneDnssecArgs{
 			ZoneId: zone.ID(),
@@ -287,6 +312,7 @@ func main() {
 				pulumi.String("fynbos.dev"),
 				pulumi.String("*.fynbos.dev"),
 				pulumi.String("*.eu1.fynbos.dev"),
+				pulumi.String("*.mgnt.fynbos.dev"),
 			},
 			Type:             pulumi.String("advanced"),
 			ValidationMethod: pulumi.String("txt"),
@@ -319,6 +345,11 @@ func main() {
 		}
 
 		err = CreateEu1DevClusterAccess(ctx, zone.ID())
+		if err != nil {
+			return err
+		}
+
+		err = CreateEu1SharedClusterAccess(ctx, zone.ID())
 		if err != nil {
 			return err
 		}

@@ -242,3 +242,75 @@ func CreateEu1DevClusterAccess(ctx *pulumi.Context, zoneId pulumi.IDOutput) erro
 
 	return nil
 }
+
+func CreateEu1SharedClusterAccess(ctx *pulumi.Context, zoneId pulumi.IDOutput) error {
+	app, err := cloudflare.NewAccessApplication(ctx, "eu1-shared-cluster-app", &cloudflare.AccessApplicationArgs{
+		AutoRedirectToIdentity: pulumi.Bool(true),
+		Domain:                 pulumi.String("mgnt.fynbos.dev"),
+		Name:                   pulumi.String("EU1 Shared Cluster"),
+		SessionDuration:        pulumi.String("24h"),
+		Type:                   pulumi.String("self_hosted"),
+		ZoneId:                 zoneId,
+		// Allowed IDP was manually created, so we don't need to store secrets when deploying it
+		AllowedIdps: pulumi.StringArray{
+			pulumi.String("4271ed52-0611-4386-b1f8-f8e8c1c8391d"),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = cloudflare.NewAccessPolicy(ctx, "eu1-shared-cluster-access-policy", &cloudflare.AccessPolicyArgs{
+		ApplicationId: app.ID(),
+		ZoneId:        zoneId,
+		Name:          pulumi.String("Eu1 Shared cluster policy"),
+		Precedence:    pulumi.Int(1),
+		Decision:      pulumi.String("allow"),
+		Includes: cloudflare.AccessPolicyIncludeArray{
+			&cloudflare.AccessPolicyIncludeArgs{
+				EmailDomains: pulumi.StringArray{
+					pulumi.String("fynbos.dev"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	appWild, err := cloudflare.NewAccessApplication(ctx, "eu1-shared-cluster-app-wild", &cloudflare.AccessApplicationArgs{
+		AutoRedirectToIdentity: pulumi.Bool(true),
+		Domain:                 pulumi.String("*.mgnt.fynbos.dev"),
+		Name:                   pulumi.String("EU1 Shared Cluster Wildcard"),
+		SessionDuration:        pulumi.String("24h"),
+		Type:                   pulumi.String("self_hosted"),
+		ZoneId:                 zoneId,
+		// Allowed IDP was manually created, so we don't need to store secrets when deploying it
+		AllowedIdps: pulumi.StringArray{
+			pulumi.String("4271ed52-0611-4386-b1f8-f8e8c1c8391d"),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = cloudflare.NewAccessPolicy(ctx, "eu1-shared-cluster-access-policy-wild", &cloudflare.AccessPolicyArgs{
+		ApplicationId: appWild.ID(),
+		ZoneId:        zoneId,
+		Name:          pulumi.String("Eu1 Shared cluster policy"),
+		Precedence:    pulumi.Int(1),
+		Decision:      pulumi.String("allow"),
+		Includes: cloudflare.AccessPolicyIncludeArray{
+			&cloudflare.AccessPolicyIncludeArgs{
+				EmailDomains: pulumi.StringArray{
+					pulumi.String("fynbos.dev"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
