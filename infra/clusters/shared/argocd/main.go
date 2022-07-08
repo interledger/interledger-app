@@ -74,6 +74,10 @@ func main() {
 			return err
 		}
 
+		err = newProteaApplicationSet(ctx, proteaApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+
 		ctx.Export("argoRoleArn", role.Arn)
 		return nil
 	})
