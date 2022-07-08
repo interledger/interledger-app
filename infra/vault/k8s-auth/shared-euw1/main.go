@@ -79,6 +79,12 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		err = createEmissaryRole(ctx, k8sAuth.Path)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -108,4 +114,38 @@ func newPolicy(authAccessor pulumi.StringOutput) pulumi.StringOutput {
 		}
 		return parsedPolicy.String(), nil
 	}).(pulumi.StringOutput)
+}
+
+func createEmissaryRole(ctx *pulumi.Context, path pulumi.StringPtrInput) error {
+	policy, err := vault.NewPolicy(ctx, "emissary", &vault.PolicyArgs{
+		Name: pulumi.String("shared-euw1-emissary"),
+		Policy: pulumi.String(`
+path "pki/shared-int/sign/emissary"
+{
+  capabilities = ["read", "create", "update"]
+}
+`),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = vaultk8s.NewAuthBackendRole(ctx, "emissary-role", &vaultk8s.AuthBackendRoleArgs{
+		RoleName: pulumi.String("emissary"),
+		Backend:  path,
+		BoundServiceAccountNames: pulumi.StringArray{
+			pulumi.String("emissary"),
+		},
+		BoundServiceAccountNamespaces: pulumi.StringArray{
+			pulumi.String("emissary"),
+		},
+		TokenPolicies: pulumi.StringArray{
+			policy.Name,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{policy}))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
