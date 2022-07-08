@@ -219,7 +219,7 @@ func (s *rpcService) SendPhoneVerification(
 
 type validateCheckPhoneVerificationCode struct {
 	To           string `validate:"required,e164"`
-	Code         string `validate:"required"`
+	Code         string `validate:"required,numeric,len=6"`
 	OnboardingId string `validate:"required"`
 }
 
