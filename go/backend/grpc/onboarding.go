@@ -198,7 +198,7 @@ func (s *rpcService) SendPhoneVerification(
 
 	_, err := s.twilioService.SendVerificationCode(ctx, req.GetTo())
 	if err != nil {
-		return nil, InternalError(err)
+		return nil, InternalError(err.Error())
 	}
 
 	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
@@ -250,10 +250,10 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		Code:        req.GetCode(),
 	})
 	if err != nil {
-		return nil, InternalError(err)
+		return nil, InternalError(err.Error())
 	}
 	if verification.Status != "approved" {
-		return nil, InternalError(fmt.Errorf(" verification code status is not approved: %s", verification.Status))
+		return nil, InternalError(fmt.Sprintf("verification code status is not approved: %s", verification.Status))
 	}
 
 	// If successful set phoneVerified in onboarding table
