@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	_user "gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/twilio"
+	_user "gitlab.com/fynbos/backend/user"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -354,7 +354,7 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 			},
 		)
 
-		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error. verification code status is not approved: pending")
+		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error: verification code status is not approved: pending")
 	})
 
 	s.Run("Successfully validates input", func(t *testing.T) {
