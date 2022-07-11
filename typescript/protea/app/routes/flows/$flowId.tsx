@@ -9,7 +9,8 @@ import {
 } from '@remix-run/react'
 import type { FC } from 'react'
 import React from 'react'
-import { Icon, Error, Logo } from '~/components'
+import { route } from 'routes-gen'
+import { Icon, Error, Logo, Router } from '~/components'
 import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'
 import { requireNoUserSession, requireUserSession } from '~/lib/kratos.server'
 
@@ -72,6 +73,20 @@ export default function Page() {
         <ProgressBar stepIndex={flow.stepIndex} steps={flow.steps} />
         <Outlet />
       </div>
+
+      {/* Footer */}
+      <footer className='sticky bottom-0 mx-auto flex h-16 w-full select-none items-center justify-between bg-white p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
+        <Router
+          className='text-primary'
+          to={route('/disclosures')}
+          aria-label='Interledger'
+        >
+          Disclosures
+        </Router>
+        <div className=''>
+          <span>&copy; Fynbos</span>
+        </div>
+      </footer>
     </div>
   )
 }

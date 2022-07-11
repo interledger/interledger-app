@@ -38,6 +38,7 @@ declare module "routes-gen" {
     "/flows/:flowId/send/review": { flowId: string };
     "/flows/:flowId/signup/sms": { flowId: string };
     "/flows/:flowId/send/to": { flowId: string };
+    "/disclosures": {};
     "/recovery": {};
     "/logout": {};
     "/signup": {};
@@ -87,6 +88,7 @@ declare module "routes-gen" {
       | ["/flows/:flowId/send/review", RouteParams["/flows/:flowId/send/review"]]
       | ["/flows/:flowId/signup/sms", RouteParams["/flows/:flowId/signup/sms"]]
       | ["/flows/:flowId/send/to", RouteParams["/flows/:flowId/send/to"]]
+      | ["/disclosures"]
       | ["/recovery"]
       | ["/logout"]
       | ["/signup"]
