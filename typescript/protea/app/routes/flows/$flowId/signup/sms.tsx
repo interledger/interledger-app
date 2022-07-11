@@ -2,7 +2,7 @@ import React from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, TextField } from '~/components'
+import { Button, Icon, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
@@ -33,6 +33,14 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex items-center space-x-3 text-medium'>
+          <Icon>phone</Icon>
+          <span className='font-sans text-base font-normal'>
+            {flow.data.phone}
+          </span>
+        </div>
+      </div>
 
       <TextField
         id='code'
@@ -50,9 +58,19 @@ export default function Page() {
         errorMessage={actionData?.fieldErrors?.code}
       />
 
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <div className='col-span-full flex justify-between pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Button
+          outline
+          className='font-display text-sm font-medium text-primary disabled:text-medium'
+          name='resend'
+          value={flow.data.phone}
+          form='signup-code-details'
+          disabled={Boolean(actionData?.fields?.resend)}
+        >
+          {actionData?.fields?.resend ? 'Code sent.' : 'Resend code'}
+        </Button>
         <Button form='signup-code-details' type='submit'>
-          Send SMS
+          Continue
         </Button>
       </div>
     </>
@@ -66,6 +84,7 @@ type ActionData = {
   }
   fields?: {
     code: string
+    resend: string
   }
 }
 
@@ -110,10 +129,26 @@ function parseError(response: any, fields: any): Response | null {
 export const action: ActionFunction = async ({ request, params }) => {
   const form = await request.formData()
   const code = form.get('code') as string
-
+  const resend = form.get('resend') as string
   const flow = await getCurrentFlow(request, params)
   const onboardingId = flow?.data.id
   const phone = flow?.data.phone
+
+  if (resend) {
+    await grpcClient
+      .sendPhoneVerification({
+        to: resend,
+        onboardingId
+      })
+      .then((v) => v)
+      .catch(StatusError)
+
+    return json({
+      fields: {
+        resend
+      }
+    })
+  }
 
   let call = await grpcClient
     .checkPhoneVerificationCode({
