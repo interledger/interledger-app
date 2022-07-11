@@ -9441,6 +9441,43 @@ metadata:
     app.kubernetes.io/name: argocd-cm
     app.kubernetes.io/part-of: argocd
   name: argocd-cm
+data:
+  url: https://argocd.mgnt.fynbos.dev
+  dex.config: |
+    connectors:
+    - type: saml
+      id: okta
+      name: Okta
+      config:
+        ssoURL: https://fynbos.okta.com/app/fynbos_argocd_1/exk1iilrofFjy49Hm697/sso/saml
+        caData: |
+          LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURuRENDQW9TZ0F3SUJBZ0lHQVlIc3R1YzdN
+          QTBHQ1NxR1NJYjNEUUVCQ3dVQU1JR09NUXN3Q1FZRFZRUUdFd0pWVXpFVE1CRUcKQTFVRUNBd0tR
+          MkZzYVdadmNtNXBZVEVXTUJRR0ExVUVCd3dOVTJGdUlFWnlZVzVqYVhOamJ6RU5NQXNHQTFVRUNn
+          d0VUMnQwWVRFVQpNQklHQTFVRUN3d0xVMU5QVUhKdmRtbGtaWEl4RHpBTkJnTlZCQU1NQm1aNWJt
+          SnZjekVjTUJvR0NTcUdTSWIzRFFFSkFSWU5hVzVtCmIwQnZhM1JoTG1OdmJUQWVGdzB5TWpBM01U
+          RXhNREF5TXpoYUZ3MHpNakEzTVRFeE1EQXpNemhhTUlHT01Rc3dDUVlEVlFRR0V3SlYKVXpFVE1C
+          RUdBMVVFQ0F3S1EyRnNhV1p2Y201cFlURVdNQlFHQTFVRUJ3d05VMkZ1SUVaeVlXNWphWE5qYnpF
+          Tk1Bc0dBMVVFQ2d3RQpUMnQwWVRFVU1CSUdBMVVFQ3d3TFUxTlBVSEp2ZG1sa1pYSXhEekFOQmdO
+          VkJBTU1CbVo1Ym1KdmN6RWNNQm9HQ1NxR1NJYjNEUUVKCkFSWU5hVzVtYjBCdmEzUmhMbU52YlRD
+          Q0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBS0hrUTI4d0pzcDgKRGw5
+          TnBjaWl3YUM0OWpsS2xKaW1MNFM5dWo4NVhvU3hMY2tIV045WjY5YnU2anlYVklkckpGYVozcTMr
+          T05zVEQrVDVCanJpUW1nRwpvTkN4dnRoZUNHbVV3SkJySGV3dXREYTBla2FUbGFqZVpDT0dhVWIw
+          dUh1TnZhWWpDMU9zY1ZmZXUvRGhLQklxQkxCTjZqS3ZDNVNDClRhVVJtd0tqZ1ZXdGpKbTl5RkxG
+          WldseklRMFg0TFZCSE4zOW9EZktORDFNUzh1ZmI0b1JlajVzeHJEQTJzbjZKd25Oci9La3VuV3gK
+          eUY1NThPMnZXN1BiVjIvckFSeHpEb1F6WVErYVJlV05zNW9aUVVYdWtzSTl2UVlVc1Fnb0J2Zk9j
+          NWkyK2Exa2p0akliVWRRRERkQwpUVENRSXpNTVE0MDdSTnBKVndxMCthTjNxQk1DQXdFQUFUQU5C
+          Z2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFtTWprN2tXakhoeWZxWVNSClQwZjAwMnZMNFNnWk5KVjk4
+          dGJ2aHlvaHZzTE4xc2tvdXptK0ZzOVBSNVRtMFRxYWFFbGZnUW8zZkRUQTJyaHQvZWZaMWFnb0No
+          WXYKY0JkL2tnbUhnd0RvVGlLUjQxa2JhT2c4WUhhOUhyZlNQaGV6Q0Jqa2ZkMzJJbVlOTkdlRlFw
+          WU9jbHlDeHdEVkZDbHhQendENTlFNAoycFlycEJ5NkRHMTk5THhRbHpBZTA1cE5DUUxqdE1ESHRF
+          dVZvaGhvN0FKcHhVb3dWTVVzRm1hUjQ4VFVmeUtOV3AyU0dlMzUzd1NvCm80cUVuMHBGb29qZkxt
+          UE0vc3FRbDhoalNocXcxbHZBbngvUXdkM2VyRXNOWTMwcThBL3dGQklQNWpFNjE1S0NPN0tIVTA4
+          VVhsdlEKdFRxd0luVlhUQzdlMmlrOEZMbnVZQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0=
+        redirectURI: https://argocd.mgnt.fynbos.dev/api/dex/callback
+        usernameAttr: email
+        emailAttr: email
+        groupsAttr: group
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -9470,6 +9507,11 @@ metadata:
     app.kubernetes.io/name: argocd-rbac-cm
     app.kubernetes.io/part-of: argocd
   name: argocd-rbac-cm
+data:
+  policy.default: role:readonly
+  policy.csv: |
+    g, argocd-admins, role:admin
+  scopes: '[email,groups]'
 ---
 apiVersion: v1
 data:
@@ -10179,6 +10221,7 @@ spec:
       containers:
         - command:
             - argocd-server
+            - --insecure
           env:
             - name: ARGOCD_SERVER_INSECURE
               valueFrom:

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/yaml"
@@ -60,6 +61,26 @@ func main() {
 				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{role, namespace}))
+		if err != nil {
+			return err
+		}
+
+		_, err = apiextensions.NewCustomResource(ctx, fmt.Sprintf("argocd-mapping-http"), &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
+			Kind:       pulumi.String("Mapping"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("argocd-server-ui"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"hostname": pulumi.String("argocd.mgnt.fynbos.dev"),
+					"prefix":   pulumi.String("/"),
+					"rewrite":  pulumi.String("/"),
+					"service":  pulumi.String("argocd-server:443"),
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, argo}))
 		if err != nil {
 			return err
 		}
