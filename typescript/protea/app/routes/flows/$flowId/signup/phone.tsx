@@ -1,23 +1,73 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, TextField } from '~/components'
+import { Autocomplete, Button, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import type { CountryCode } from 'libphonenumber-js'
+import { parsePhoneNumber } from 'libphonenumber-js'
+import { apolloClient } from '~/lib/apollo.server'
+import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
+import { SignupDocument } from '~/generated/types'
+
+type Country = {
+  id: string
+  name: string
+}
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const flow = await getCurrentFlow(request, params)
+  const countries = await apolloClient
+    .query<SignupQuery, SignupQueryVariables>({
+      query: SignupDocument,
+      context: {
+        headers: request.headers
+      }
+    })
+    .then((val) => val.data.countries)
 
   return json({
-    flow
+    flow,
+    countries
   })
 }
 
 export default function Page() {
   const actionData = useActionData<ActionData>()
-  const { flow } = useLoaderData()
+  const { flow, countries } = useLoaderData()
+
+  const [country, setCountry] = useState<Country>(
+    countries.find(
+      (country: Country) =>
+        country.id == actionData?.fields?.country ||
+        country.id == flow?.data.country
+    )
+  )
+
+  const [query, setQuery] = useState<string>('')
+  const [filteredCountries, setFilteredCountries] = useState(countries)
+
+  useEffect(() => {
+    if (query === '') setFilteredCountries(countries)
+    else {
+      setFilteredCountries(
+        countries.filter((country: Country) => {
+          return (
+            country.name
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
+            country.id
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, ''))
+          )
+        })
+      )
+    }
+  }, [query, countries])
 
   return (
     <>
@@ -35,6 +85,27 @@ export default function Page() {
         action={`/flows/${flow.id}/signup/phone`}
         method='post'
         className='hidden'
+      />
+
+      <Autocomplete
+        id='country'
+        value={country}
+        onChange={setCountry}
+        onQuery={setQuery}
+        options={filteredCountries}
+        label='Country'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={Boolean(actionData?.fieldErrors?.country) || undefined}
+        aria-describedby={
+          actionData?.fieldErrors?.country ? 'country-error' : undefined
+        }
+        errorMessage={actionData?.fieldErrors?.country}
+      />
+      <input
+        form='signup-phone-details'
+        value={String(country?.id)}
+        name='country'
+        type='hidden'
       />
 
       <TextField
@@ -66,9 +137,11 @@ type ActionData = {
   formError?: string
   fieldErrors?: {
     phone: string | undefined
+    country: string | undefined
   }
   fields?: {
     phone: string
+    country: string
   }
 }
 
@@ -94,7 +167,8 @@ function parseError(response: any, fields: any): Response | null {
   if (isGrpcError(response)) {
     if (response.code == 3) {
       let fieldErrors: ActionData['fieldErrors'] = {
-        phone: undefined
+        phone: undefined,
+        country: undefined
       }
       for (let violation of (response as GrpcError).details[0]
         .fieldViolations) {
@@ -111,16 +185,18 @@ function parseError(response: any, fields: any): Response | null {
 }
 
 export const action: ActionFunction = async ({ request, params }) => {
-  // TODO Possbily try format phone to e.164 here and return if failed. libphonenumber-js
   const form = await request.formData()
+  const country = form.get('country') as string
   const phone = form.get('phone') as string
 
   const flow = await getCurrentFlow(request, params)
   const onboardingId = flow?.data.id
 
+  const phoneNumber = parsePhoneNumber(phone, country as CountryCode)
+
   let call = await grpcClient
     .sendPhoneVerification({
-      to: phone,
+      to: phoneNumber.number,
       onboardingId
     })
     .then((v) => v)
@@ -132,6 +208,6 @@ export const action: ActionFunction = async ({ request, params }) => {
 
   if (actionData != null) return actionData
   await stepFlow(request, {
-    phone
+    phone: phoneNumber.number
   })
 }
