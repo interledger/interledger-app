@@ -28,11 +28,6 @@ type rpcServer struct {
 }
 
 // TODO: wire up grpc auth
-const DEV_TENANT string = "dev"
-
-func (s *rpcServer) ConfigureTenant(ctx context.Context, req *pacioliv1.ConfigureTenantRequest) (*pacioliv1.Empty, error) {
-	return &pacioliv1.Empty{}, status.Error(codes.Unimplemented, "Dev tenant only exists until auth is fully implemented.")
-}
 
 func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.ConfigureLedgersRequest) (*pacioliv1.ConfigureLedgersResponse, error) {
 	ledgers := make([]_ledger.ConfigureLedgerArgs, len(req.Args))
@@ -44,7 +39,7 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 			Scale: uint8(ledger.GetScale()),
 		}
 	}
-	eventErrors, err := s.ledger.ConfigureLedgers(ctx, DEV_TENANT, ledgers)
+	eventErrors, err := s.ledger.ConfigureLedgers(ctx, ledgers)
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -54,10 +49,10 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 	}
 
 	ret := make([]*pacioliv1.EventError, len(eventErrors))
-	for i, error := range eventErrors {
+	for i, err := range eventErrors {
 		ret[i] = &pacioliv1.EventError{
-			Index: error.Index,
-			Code:  error.Code,
+			Index: err.Index,
+			Code:  err.Code,
 		}
 	}
 
@@ -67,7 +62,7 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 }
 
 func (s *rpcServer) GetLedgers(ctx context.Context, req *pacioliv1.GetLedgersRequest) (*pacioliv1.GetLedgersResponse, error) {
-	ledgers, err := s.ledger.GetLedgers(ctx, DEV_TENANT, req.GetIds())
+	ledgers, err := s.ledger.GetLedgers(ctx, req.GetIds())
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -106,7 +101,7 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 			Flags:    flags,
 		}
 	}
-	eventErrors, err := s.ledger.ConfigureAccounts(ctx, DEV_TENANT, accounts)
+	eventErrors, err := s.ledger.ConfigureAccounts(ctx, accounts)
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -116,10 +111,10 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 	}
 
 	ret := make([]*pacioliv1.EventError, len(eventErrors))
-	for i, error := range eventErrors {
+	for i, err := range eventErrors {
 		ret[i] = &pacioliv1.EventError{
-			Index: error.Index,
-			Code:  error.Code,
+			Index: err.Index,
+			Code:  err.Code,
 		}
 	}
 
@@ -129,7 +124,7 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 }
 
 func (s *rpcServer) GetAccounts(ctx context.Context, req *pacioliv1.GetAccountsRequest) (*pacioliv1.GetAccountsResponse, error) {
-	accounts, err := s.ledger.GetAccounts(ctx, DEV_TENANT, req.GetIds())
+	accounts, err := s.ledger.GetAccounts(ctx, req.GetIds())
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -185,7 +180,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 		}
 	}
 
-	errors, err := s.ledger.CreateTransfers(ctx, DEV_TENANT, transferArgs)
+	errors, err := s.ledger.CreateTransfers(ctx, transferArgs)
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -207,7 +202,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 }
 
 func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfersRequest) (*pacioliv1.GetTransfersResponse, error) {
-	transfers, err := s.ledger.GetTransfers(ctx, DEV_TENANT, req.GetIds())
+	transfers, err := s.ledger.GetTransfers(ctx, req.GetIds())
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -253,7 +248,7 @@ func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTr
 		}
 	}
 
-	errors, err := s.ledger.CommitTransfers(ctx, DEV_TENANT, commitArgs)
+	errors, err := s.ledger.CommitTransfers(ctx, commitArgs)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Failed to commit transfers.")
 	}
