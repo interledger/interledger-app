@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
@@ -12,7 +13,8 @@ func TestSignAgreements(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	as, err := NewService(&ServiceArgs{
-		Db: db,
+		Db:            db,
+		AgreementsDir: "markdowns",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -27,5 +29,17 @@ func TestSignAgreements(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(signedAgreements)
+	assert.Equal(t, "1", signedAgreements.AgreementIDs[0])
+}
+
+func TestGetAllAgreements(t *testing.T) {
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	err := StoreAgreements(ctx, &StoreAgreementsArgs{
+		db:  db,
+		dir: "markdowns",
+	})
+
+	assert.NoError(t, err)
 }
