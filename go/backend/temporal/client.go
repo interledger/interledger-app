@@ -4,9 +4,9 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func NewTemporalClient() (client.Client, error) {
+func NewTemporalClient(temporalUrl string) (client.Client, error) {
 	c, err := client.NewClient(client.Options{
-		HostPort: "temporal:7233",
+		HostPort: temporalUrl,
 	})
 	if err != nil {
 		return nil, err

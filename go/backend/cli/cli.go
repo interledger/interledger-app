@@ -100,6 +100,7 @@ type StartArgs struct {
 	MxClientID           string
 	MxApiKey             string
 	RafikiGraphqlUrl     string
+	TemporalUrl          string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -190,6 +191,12 @@ func ParseStartArgs() (*StartArgs, error) {
 	if rafikiGraphqlUrl == "" {
 		return nil, errors.New("text RAFIKI_GRAPHQL_URL is required.")
 	}
+
+	temporalUrl := os.Getenv("TEMPORAL_URL")
+	if temporalUrl == "" {
+		temporalUrl = "temporal:7233"
+	}
+
 	return &StartArgs{
 		Port:                 port,
 		DbConnectionString:   connString,
@@ -208,5 +215,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		MxClientID:           mxClientID,
 		MxApiKey:             mxApiKey,
 		RafikiGraphqlUrl:     rafikiGraphqlUrl,
+		TemporalUrl:          temporalUrl,
 	}, nil
 }
