@@ -117,7 +117,7 @@ func start(args *cli.StartArgs) {
 	}
 	kratosClient := kratos.NewAPIClient(configuration)
 
-	tp, err := temporal.NewTemporalClient()
+	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -507,7 +507,7 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	tp, err := temporal.NewTemporalClient()
+	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
