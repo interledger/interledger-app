@@ -22,6 +22,7 @@ var (
 type (
 	Service interface {
 		SignAgreement(ctx context.Context, args *SignAgreementArgs) (*SignedAgreements, error)
+		GetAgreement(ctx context.Context, id string) (*Agreement, error)
 	}
 
 	ServiceArgs struct {
@@ -45,10 +46,12 @@ type (
 	}
 
 	Agreement struct {
-		ID      string
-		Name    string
-		Version string
-		Content string
+		ID        string `db:"id"`
+		Name      string `db:"name"`
+		Version   string `db:"version"`
+		Content   string `db:"content"`
+		CreatedAt string `db:"created_at"`
+		UpdatedAt string `db:"updated_at"`
 	}
 )
 
@@ -71,6 +74,17 @@ func NewService(args *ServiceArgs) (Service, error) {
 		db:            args.Db,
 		agreementsDir: args.AgreementsDir,
 	}, nil
+}
+
+func (s *service) GetAgreement(ctx context.Context, id string) (*Agreement, error) {
+	var agreement Agreement
+
+	err := s.db.GetContext(ctx, &agreement, "SELECT * FROM agreements WHERE id = $1", id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	return &agreement, nil
 }
 
 type SignAgreementArgs struct {
