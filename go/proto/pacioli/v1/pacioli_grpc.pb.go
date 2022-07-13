@@ -22,7 +22,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PacioliServiceClient interface {
-	ConfigureTenant(ctx context.Context, in *ConfigureTenantRequest, opts ...grpc.CallOption) (*Empty, error)
 	ConfigureLedgers(ctx context.Context, in *ConfigureLedgersRequest, opts ...grpc.CallOption) (*ConfigureLedgersResponse, error)
 	GetLedgers(ctx context.Context, in *GetLedgersRequest, opts ...grpc.CallOption) (*GetLedgersResponse, error)
 	ConfigureAccounts(ctx context.Context, in *ConfigureAccountsRequest, opts ...grpc.CallOption) (*ConfigureAccountsResponse, error)
@@ -38,15 +37,6 @@ type pacioliServiceClient struct {
 
 func NewPacioliServiceClient(cc grpc.ClientConnInterface) PacioliServiceClient {
 	return &pacioliServiceClient{cc}
-}
-
-func (c *pacioliServiceClient) ConfigureTenant(ctx context.Context, in *ConfigureTenantRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/ConfigureTenant", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *pacioliServiceClient) ConfigureLedgers(ctx context.Context, in *ConfigureLedgersRequest, opts ...grpc.CallOption) (*ConfigureLedgersResponse, error) {
@@ -116,7 +106,6 @@ func (c *pacioliServiceClient) CommitTransfers(ctx context.Context, in *CommitTr
 // All implementations should embed UnimplementedPacioliServiceServer
 // for forward compatibility
 type PacioliServiceServer interface {
-	ConfigureTenant(context.Context, *ConfigureTenantRequest) (*Empty, error)
 	ConfigureLedgers(context.Context, *ConfigureLedgersRequest) (*ConfigureLedgersResponse, error)
 	GetLedgers(context.Context, *GetLedgersRequest) (*GetLedgersResponse, error)
 	ConfigureAccounts(context.Context, *ConfigureAccountsRequest) (*ConfigureAccountsResponse, error)
@@ -130,9 +119,6 @@ type PacioliServiceServer interface {
 type UnimplementedPacioliServiceServer struct {
 }
 
-func (UnimplementedPacioliServiceServer) ConfigureTenant(context.Context, *ConfigureTenantRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigureTenant not implemented")
-}
 func (UnimplementedPacioliServiceServer) ConfigureLedgers(context.Context, *ConfigureLedgersRequest) (*ConfigureLedgersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureLedgers not implemented")
 }
@@ -164,24 +150,6 @@ type UnsafePacioliServiceServer interface {
 
 func RegisterPacioliServiceServer(s grpc.ServiceRegistrar, srv PacioliServiceServer) {
 	s.RegisterService(&PacioliService_ServiceDesc, srv)
-}
-
-func _PacioliService_ConfigureTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigureTenantRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).ConfigureTenant(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/ConfigureTenant",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).ConfigureTenant(ctx, req.(*ConfigureTenantRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _PacioliService_ConfigureLedgers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -317,10 +285,6 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pacioli.v1.PacioliService",
 	HandlerType: (*PacioliServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "ConfigureTenant",
-			Handler:    _PacioliService_ConfigureTenant_Handler,
-		},
 		{
 			MethodName: "ConfigureLedgers",
 			Handler:    _PacioliService_ConfigureLedgers_Handler,
