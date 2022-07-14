@@ -2,6 +2,7 @@ package agreements
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -21,7 +22,8 @@ var (
 
 type (
 	Service interface {
-		SignAgreement(ctx context.Context, args *SignAgreementArgs) (*SignedAgreements, error)
+		SignAgreement(ctx context.Context, args *SignAgreementArgs) (*AgreementSign, error)
+		GetAgreementSigns(ctx context.Context, identityID string) ([]AgreementSign, error)
 		GetAgreement(ctx context.Context, id string) (*Agreement, error)
 	}
 
@@ -36,13 +38,22 @@ type (
 		agreementsDir string
 	}
 
-	SignedAgreements struct {
+	agreementSign struct {
 		ID           string         `db:"id"`
 		AgreementIDs pq.StringArray `db:"agreement_ids"`
 		IdentityID   string         `db:"identity_id"`
 		IPAddress    string         `db:"ip_address"`
 		CreatedAt    string         `db:"created_at"`
 		UpdatedAt    string         `db:"updated_at"`
+	}
+
+	AgreementSign struct {
+		ID           string   `db:"id"`
+		AgreementIDs []string `db:"agreement_ids"`
+		IdentityID   string   `db:"identity_id"`
+		IPAddress    string   `db:"ip_address"`
+		CreatedAt    string   `db:"created_at"`
+		UpdatedAt    string   `db:"updated_at"`
 	}
 
 	Agreement struct {
@@ -93,19 +104,52 @@ type SignAgreementArgs struct {
 	IPAddress    string   `validate:"required,ip_addr"`
 }
 
-func (s *service) SignAgreement(ctx context.Context, args *SignAgreementArgs) (*SignedAgreements, error) {
+func (s *service) SignAgreement(ctx context.Context, args *SignAgreementArgs) (*AgreementSign, error) {
 	if err := s.validator.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	var signedAgreements SignedAgreements
+	var signRecord agreementSign
 
-	err := s.db.GetContext(ctx, &signedAgreements, "INSERT INTO signed_agreements (agreement_ids, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", pq.StringArray(args.AgreementIDs), args.IdentityID, args.IPAddress)
+	err := s.db.GetContext(ctx, &signRecord, "INSERT INTO agreement_signs (agreement_ids, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", pq.StringArray(args.AgreementIDs), args.IdentityID, args.IPAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	return &signedAgreements, nil
+	return &AgreementSign{
+		ID:           signRecord.ID,
+		AgreementIDs: signRecord.AgreementIDs,
+		IdentityID:   signRecord.IdentityID,
+		IPAddress:    signRecord.IPAddress,
+		CreatedAt:    signRecord.CreatedAt,
+		UpdatedAt:    signRecord.UpdatedAt,
+	}, nil
+}
+
+func (s *service) GetAgreementSigns(ctx context.Context, identityID string) ([]AgreementSign, error) {
+	var agreementSigns []agreementSign
+
+	err := s.db.SelectContext(ctx, &agreementSigns, "SELECT * FROM agreement_signs WHERE identity_id = $1", identityID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	var signs []AgreementSign
+	for _, agreementSign := range agreementSigns {
+		signs = append(signs, AgreementSign{
+			ID:           agreementSign.ID,
+			AgreementIDs: []string(agreementSign.AgreementIDs),
+			IdentityID:   agreementSign.IdentityID,
+			IPAddress:    agreementSign.IPAddress,
+			CreatedAt:    agreementSign.CreatedAt,
+			UpdatedAt:    agreementSign.UpdatedAt,
+		})
+	}
+
+	return signs, nil
 }
 
 type StoreAgreementsArgs struct {
