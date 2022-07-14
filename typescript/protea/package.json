@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",
+    "@googlemaps/google-maps-services-js": "^3.3.16",
     "@grpc/grpc-js": "^1.6.7",
     "@headlessui/react": "^1.6.0",
     "@mapbox/rehype-prism": "^0.7.0",

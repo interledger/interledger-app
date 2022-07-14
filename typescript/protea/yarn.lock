@@ -1110,6 +1110,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@googlemaps/google-maps-services-js@npm:^3.3.16":
+  version: 3.3.16
+  resolution: "@googlemaps/google-maps-services-js@npm:3.3.16"
+  dependencies:
+    "@googlemaps/url-signature": ^1.0.4
+    agentkeepalive: ^4.1.0
+    axios: ^0.27.0
+    query-string: ^7.0.1
+    retry-axios: ^2.2.1
+  checksum: c4d3fcd9b94ed6a7470174efdb1842985e86846196cc6bb34426aef8bd0481b39e038277187ccf8677fcb24301d43c8e2652078e9dc6ed176c0d777d3822b3e2
+  languageName: node
+  linkType: hard
+
+"@googlemaps/url-signature@npm:^1.0.4":
+  version: 1.0.25
+  resolution: "@googlemaps/url-signature@npm:1.0.25"
+  dependencies:
+    crypto-js: ^4.1.1
+  checksum: 3068a64c9c5e30085f07ba0c4defc4ece0aa2f7c00b6286f6de56a7206abd4e956f2af9f6ffdf30f52154ee04f6f0e1e17f957f0eeac768321a1f96752bdf407
+  languageName: node
+  linkType: hard
+
 "@graphql-codegen/cli@npm:2.2.2":
   version: 2.2.2
   resolution: "@graphql-codegen/cli@npm:2.2.2"
@@ -2897,6 +2919,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"agentkeepalive@npm:^4.1.0":
+  version: 4.2.1
+  resolution: "agentkeepalive@npm:4.2.1"
+  dependencies:
+    debug: ^4.1.0
+    depd: ^1.1.2
+    humanize-ms: ^1.2.1
+  checksum: 39cb49ed8cf217fd6da058a92828a0a84e0b74c35550f82ee0a10e1ee403c4b78ade7948be2279b188b7a7303f5d396ea2738b134731e464bf28de00a4f72a18
+  languageName: node
+  linkType: hard
+
 "agentkeepalive@npm:^4.1.3":
   version: 4.2.0
   resolution: "agentkeepalive@npm:4.2.0"
@@ -3255,6 +3288,16 @@ autoprefixer@latest:
   dependencies:
     follow-redirects: ^1.14.0
   checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
+  languageName: node
+  linkType: hard
+
+"axios@npm:^0.27.0":
+  version: 0.27.2
+  resolution: "axios@npm:0.27.2"
+  dependencies:
+    follow-redirects: ^1.14.9
+    form-data: ^4.0.0
+  checksum: 38cb7540465fe8c4102850c4368053c21683af85c5fdf0ea619f9628abbcb59415d1e22ebc8a6390d2bbc9b58a9806c874f139767389c862ec9b772235f06854
   languageName: node
   linkType: hard
 
@@ -4295,6 +4338,13 @@ autoprefixer@latest:
     undici: ^4.9.3
     web-streams-polyfill: ^3.2.0
   checksum: 52178563c53901ca262c645f3729d2a5ff7b02dd7ea8effa748b1135a44e9fc5514c2ee4638ef51ed8ed3accfb8940be76d9f58732f20716a0bd2e978031062e
+  languageName: node
+  linkType: hard
+
+"crypto-js@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "crypto-js@npm:4.1.1"
+  checksum: b3747c12ee3a7632fab3b3e171ea50f78b182545f0714f6d3e7e2858385f0f4101a15f2517e033802ce9d12ba50a391575ff4638c9de3dd9b2c4bc47768d5425
   languageName: node
   linkType: hard
 
@@ -5917,6 +5967,13 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"filter-obj@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "filter-obj@npm:1.1.0"
+  checksum: cf2104a7c45ff48e7f505b78a3991c8f7f30f28bd8106ef582721f321f1c6277f7751aacd5d83026cb079d9d5091082f588d14a72e7c5d720ece79118fa61e10
+  languageName: node
+  linkType: hard
+
 "finalhandler@npm:~1.1.2":
   version: 1.1.2
   resolution: "finalhandler@npm:1.1.2"
@@ -6002,6 +6059,16 @@ autoprefixer@latest:
     debug:
       optional: true
   checksum: 40c67899c2e3149a27e8b6498a338ff27f39fe138fde8d7f0756cb44b073ba0bfec3d52af28f20c5bdd67263d564d0d8d7b5efefd431de95c18c42f7b4aef457
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.14.9":
+  version: 1.15.1
+  resolution: "follow-redirects@npm:1.15.1"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 6aa4e3e3cdfa3b9314801a1cd192ba756a53479d9d8cca65bf4db3a3e8834e62139245cd2f9566147c8dfe2efff1700d3e6aefd103de4004a7b99985e71dd533
   languageName: node
   linkType: hard
 
@@ -10117,6 +10184,7 @@ autoprefixer@latest:
   resolution: "protea@workspace:."
   dependencies:
     "@apollo/client": ^3.4.17
+    "@googlemaps/google-maps-services-js": ^3.3.16
     "@graphql-codegen/cli": 2.2.2
     "@graphql-codegen/typescript": 2.3.1
     "@graphql-codegen/typescript-operations": 2.2.0
@@ -10247,6 +10315,18 @@ autoprefixer@latest:
   version: 6.9.7
   resolution: "qs@npm:6.9.7"
   checksum: 5bbd263332ccf320a1f36d04a2019a5834dc20bcb736431eaccde2a39dcba03fb26d2fd00174f5d7bc26aaad1cad86124b18440883ac042ea2a0fca6170c1bf1
+  languageName: node
+  linkType: hard
+
+"query-string@npm:^7.0.1":
+  version: 7.1.1
+  resolution: "query-string@npm:7.1.1"
+  dependencies:
+    decode-uri-component: ^0.2.0
+    filter-obj: ^1.1.0
+    split-on-first: ^1.0.0
+    strict-uri-encode: ^2.0.0
+  checksum: b227d1f588ae93f9f0ad078c6b811295fa151dc5a160a03bb2bac5fa0e6919cb1daa570aad1d288e77c8e89fde5362ba505b1014e6e793da9b1e885b59a690a6
   languageName: node
   linkType: hard
 
@@ -10811,6 +10891,15 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"retry-axios@npm:^2.2.1":
+  version: 2.6.0
+  resolution: "retry-axios@npm:2.6.0"
+  peerDependencies:
+    axios: "*"
+  checksum: cf7e63d89f00ead2633e60f00b504ec10217db8165327879b6feb0fa787fffe687d06ee145b2f43d2b4ea8916d42c951d34ee32ee1ea47c9d0b602d4963bd7f9
+  languageName: node
+  linkType: hard
+
 "retry@npm:^0.12.0":
   version: 0.12.0
   resolution: "retry@npm:0.12.0"
@@ -11362,6 +11451,13 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"split-on-first@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "split-on-first@npm:1.1.0"
+  checksum: 16ff85b54ddcf17f9147210a4022529b343edbcbea4ce977c8f30e38408b8d6e0f25f92cd35b86a524d4797f455e29ab89eb8db787f3c10708e0b47ebf528d30
+  languageName: node
+  linkType: hard
+
 "split-string@npm:^3.0.1, split-string@npm:^3.0.2":
   version: 3.1.0
   resolution: "split-string@npm:3.1.0"
@@ -11417,6 +11513,13 @@ autoprefixer@latest:
   version: 0.1.2
   resolution: "streamsearch@npm:0.1.2"
   checksum: d2db57cbfbf7947ab9c75a7b4c80a8ef8d24850cf0a1a24258bb6956c97317ce1eab7dbcbf9c5aba3e6198611af1053b02411057bbedb99bf9c64b8275248997
+  languageName: node
+  linkType: hard
+
+"strict-uri-encode@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "strict-uri-encode@npm:2.0.0"
+  checksum: eaac4cf978b6fbd480f1092cab8b233c9b949bcabfc9b598dd79a758f7243c28765ef7639c876fa72940dac687181b35486ea01ff7df3e65ce3848c64822c581
   languageName: node
   linkType: hard
 
