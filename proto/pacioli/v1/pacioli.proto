@@ -12,6 +12,7 @@ service PacioliService {
   rpc CreateTransfers(CreateTransfersRequest) returns (CreateTransfersResponse);
   rpc GetTransfers(GetTransfersRequest) returns (GetTransfersResponse);
   rpc CommitTransfers(CommitTransfersRequest) returns (CommitTransfersResponse);
+  rpc VoidTransfers(VoidTransfersRequest) returns (VoidTransfersResponse);
 }
 
 message Empty {}
@@ -87,12 +88,14 @@ message Transfer {
   uint32 code = 5;
   TransferFlags flags = 6;
   uint64 timeout = 7;
+  uint32 ledger = 8;
 }
 
 message TransferFlags {
   bool linked = 1;
-  bool twoPhaseCommit = 2;
-  bool condition = 3;
+  bool pending = 2;
+  bool postPending = 3;
+  bool voidPending = 4;
 }
 
 message CreateTransfersRequest {
@@ -116,22 +119,18 @@ message GetTransfersResponse {
   repeated Transfer transfers = 1;
 }
 
-message CommitFlags {
-  bool linked = 1;
-  bool reject = 2;
-  bool preimage = 3;
-}
-
-message Commit {
-  string id = 1;
-  uint32 code = 2;
-  CommitFlags flags = 3;
-}
-
 message CommitTransfersRequest {
-  repeated Commit commits = 1;
+  repeated string transferIds = 1;
 }
 
 message CommitTransfersResponse {
+  repeated EventError errors = 1;
+}
+
+message VoidTransfersRequest {
+  repeated string transferIds = 1;
+}
+
+message VoidTransfersResponse {
   repeated EventError errors = 1;
 }

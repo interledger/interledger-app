@@ -217,6 +217,10 @@ export interface Transfer {
      * @generated from protobuf field: uint64 timeout = 7;
      */
     timeout: string;
+    /**
+     * @generated from protobuf field: uint32 ledger = 8;
+     */
+    ledger: number;
 }
 /**
  * @generated from protobuf message pacioli.v1.TransferFlags
@@ -227,13 +231,17 @@ export interface TransferFlags {
      */
     linked: boolean;
     /**
-     * @generated from protobuf field: bool twoPhaseCommit = 2;
+     * @generated from protobuf field: bool pending = 2;
      */
-    twoPhaseCommit: boolean;
+    pending: boolean;
     /**
-     * @generated from protobuf field: bool condition = 3;
+     * @generated from protobuf field: bool postPending = 3;
      */
-    condition: boolean;
+    postPending: boolean;
+    /**
+     * @generated from protobuf field: bool voidPending = 4;
+     */
+    voidPending: boolean;
 }
 /**
  * @generated from protobuf message pacioli.v1.CreateTransfersRequest
@@ -285,52 +293,36 @@ export interface GetTransfersResponse {
     transfers: Transfer[];
 }
 /**
- * @generated from protobuf message pacioli.v1.CommitFlags
- */
-export interface CommitFlags {
-    /**
-     * @generated from protobuf field: bool linked = 1;
-     */
-    linked: boolean;
-    /**
-     * @generated from protobuf field: bool reject = 2;
-     */
-    reject: boolean;
-    /**
-     * @generated from protobuf field: bool preimage = 3;
-     */
-    preimage: boolean;
-}
-/**
- * @generated from protobuf message pacioli.v1.Commit
- */
-export interface Commit {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: uint32 code = 2;
-     */
-    code: number;
-    /**
-     * @generated from protobuf field: pacioli.v1.CommitFlags flags = 3;
-     */
-    flags?: CommitFlags;
-}
-/**
  * @generated from protobuf message pacioli.v1.CommitTransfersRequest
  */
 export interface CommitTransfersRequest {
     /**
-     * @generated from protobuf field: repeated pacioli.v1.Commit commits = 1;
+     * @generated from protobuf field: repeated string transferIds = 1;
      */
-    commits: Commit[];
+    transferIds: string[];
 }
 /**
  * @generated from protobuf message pacioli.v1.CommitTransfersResponse
  */
 export interface CommitTransfersResponse {
+    /**
+     * @generated from protobuf field: repeated pacioli.v1.EventError errors = 1;
+     */
+    errors: EventError[];
+}
+/**
+ * @generated from protobuf message pacioli.v1.VoidTransfersRequest
+ */
+export interface VoidTransfersRequest {
+    /**
+     * @generated from protobuf field: repeated string transferIds = 1;
+     */
+    transferIds: string[];
+}
+/**
+ * @generated from protobuf message pacioli.v1.VoidTransfersResponse
+ */
+export interface VoidTransfersResponse {
     /**
      * @generated from protobuf field: repeated pacioli.v1.EventError errors = 1;
      */
@@ -1049,11 +1041,12 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 4, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 5, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 6, name: "flags", kind: "message", T: () => TransferFlags },
-            { no: 7, name: "timeout", kind: "scalar", T: 4 /*ScalarType.UINT64*/ }
+            { no: 7, name: "timeout", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 8, name: "ledger", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0" };
+        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -1084,6 +1077,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* uint64 timeout */ 7:
                     message.timeout = reader.uint64().toString();
+                    break;
+                case /* uint32 ledger */ 8:
+                    message.ledger = reader.uint32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1118,6 +1114,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* uint64 timeout = 7; */
         if (message.timeout !== "0")
             writer.tag(7, WireType.Varint).uint64(message.timeout);
+        /* uint32 ledger = 8; */
+        if (message.ledger !== 0)
+            writer.tag(8, WireType.Varint).uint32(message.ledger);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1133,12 +1132,13 @@ class TransferFlags$Type extends MessageType<TransferFlags> {
     constructor() {
         super("pacioli.v1.TransferFlags", [
             { no: 1, name: "linked", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "twoPhaseCommit", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 3, name: "condition", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 2, name: "pending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 3, name: "postPending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "voidPending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<TransferFlags>): TransferFlags {
-        const message = { linked: false, twoPhaseCommit: false, condition: false };
+        const message = { linked: false, pending: false, postPending: false, voidPending: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<TransferFlags>(this, message, value);
@@ -1152,11 +1152,14 @@ class TransferFlags$Type extends MessageType<TransferFlags> {
                 case /* bool linked */ 1:
                     message.linked = reader.bool();
                     break;
-                case /* bool twoPhaseCommit */ 2:
-                    message.twoPhaseCommit = reader.bool();
+                case /* bool pending */ 2:
+                    message.pending = reader.bool();
                     break;
-                case /* bool condition */ 3:
-                    message.condition = reader.bool();
+                case /* bool postPending */ 3:
+                    message.postPending = reader.bool();
+                    break;
+                case /* bool voidPending */ 4:
+                    message.voidPending = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1173,12 +1176,15 @@ class TransferFlags$Type extends MessageType<TransferFlags> {
         /* bool linked = 1; */
         if (message.linked !== false)
             writer.tag(1, WireType.Varint).bool(message.linked);
-        /* bool twoPhaseCommit = 2; */
-        if (message.twoPhaseCommit !== false)
-            writer.tag(2, WireType.Varint).bool(message.twoPhaseCommit);
-        /* bool condition = 3; */
-        if (message.condition !== false)
-            writer.tag(3, WireType.Varint).bool(message.condition);
+        /* bool pending = 2; */
+        if (message.pending !== false)
+            writer.tag(2, WireType.Varint).bool(message.pending);
+        /* bool postPending = 3; */
+        if (message.postPending !== false)
+            writer.tag(3, WireType.Varint).bool(message.postPending);
+        /* bool voidPending = 4; */
+        if (message.voidPending !== false)
+            writer.tag(4, WireType.Varint).bool(message.voidPending);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1432,136 +1438,14 @@ class GetTransfersResponse$Type extends MessageType<GetTransfersResponse> {
  */
 export const GetTransfersResponse = new GetTransfersResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CommitFlags$Type extends MessageType<CommitFlags> {
-    constructor() {
-        super("pacioli.v1.CommitFlags", [
-            { no: 1, name: "linked", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "reject", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 3, name: "preimage", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CommitFlags>): CommitFlags {
-        const message = { linked: false, reject: false, preimage: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CommitFlags>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CommitFlags): CommitFlags {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* bool linked */ 1:
-                    message.linked = reader.bool();
-                    break;
-                case /* bool reject */ 2:
-                    message.reject = reader.bool();
-                    break;
-                case /* bool preimage */ 3:
-                    message.preimage = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CommitFlags, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool linked = 1; */
-        if (message.linked !== false)
-            writer.tag(1, WireType.Varint).bool(message.linked);
-        /* bool reject = 2; */
-        if (message.reject !== false)
-            writer.tag(2, WireType.Varint).bool(message.reject);
-        /* bool preimage = 3; */
-        if (message.preimage !== false)
-            writer.tag(3, WireType.Varint).bool(message.preimage);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message pacioli.v1.CommitFlags
- */
-export const CommitFlags = new CommitFlags$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class Commit$Type extends MessageType<Commit> {
-    constructor() {
-        super("pacioli.v1.Commit", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
-            { no: 3, name: "flags", kind: "message", T: () => CommitFlags }
-        ]);
-    }
-    create(value?: PartialMessage<Commit>): Commit {
-        const message = { id: "", code: 0 };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Commit>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Commit): Commit {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* uint32 code */ 2:
-                    message.code = reader.uint32();
-                    break;
-                case /* pacioli.v1.CommitFlags flags */ 3:
-                    message.flags = CommitFlags.internalBinaryRead(reader, reader.uint32(), options, message.flags);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Commit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* uint32 code = 2; */
-        if (message.code !== 0)
-            writer.tag(2, WireType.Varint).uint32(message.code);
-        /* pacioli.v1.CommitFlags flags = 3; */
-        if (message.flags)
-            CommitFlags.internalBinaryWrite(message.flags, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message pacioli.v1.Commit
- */
-export const Commit = new Commit$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class CommitTransfersRequest$Type extends MessageType<CommitTransfersRequest> {
     constructor() {
         super("pacioli.v1.CommitTransfersRequest", [
-            { no: 1, name: "commits", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Commit }
+            { no: 1, name: "transferIds", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CommitTransfersRequest>): CommitTransfersRequest {
-        const message = { commits: [] };
+        const message = { transferIds: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CommitTransfersRequest>(this, message, value);
@@ -1572,8 +1456,8 @@ class CommitTransfersRequest$Type extends MessageType<CommitTransfersRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated pacioli.v1.Commit commits */ 1:
-                    message.commits.push(Commit.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated string transferIds */ 1:
+                    message.transferIds.push(reader.string());
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1587,9 +1471,9 @@ class CommitTransfersRequest$Type extends MessageType<CommitTransfersRequest> {
         return message;
     }
     internalBinaryWrite(message: CommitTransfersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated pacioli.v1.Commit commits = 1; */
-        for (let i = 0; i < message.commits.length; i++)
-            Commit.internalBinaryWrite(message.commits[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated string transferIds = 1; */
+        for (let i = 0; i < message.transferIds.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.transferIds[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1647,6 +1531,100 @@ class CommitTransfersResponse$Type extends MessageType<CommitTransfersResponse> 
  * @generated MessageType for protobuf message pacioli.v1.CommitTransfersResponse
  */
 export const CommitTransfersResponse = new CommitTransfersResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VoidTransfersRequest$Type extends MessageType<VoidTransfersRequest> {
+    constructor() {
+        super("pacioli.v1.VoidTransfersRequest", [
+            { no: 1, name: "transferIds", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<VoidTransfersRequest>): VoidTransfersRequest {
+        const message = { transferIds: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VoidTransfersRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VoidTransfersRequest): VoidTransfersRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string transferIds */ 1:
+                    message.transferIds.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VoidTransfersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string transferIds = 1; */
+        for (let i = 0; i < message.transferIds.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.transferIds[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message pacioli.v1.VoidTransfersRequest
+ */
+export const VoidTransfersRequest = new VoidTransfersRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VoidTransfersResponse$Type extends MessageType<VoidTransfersResponse> {
+    constructor() {
+        super("pacioli.v1.VoidTransfersResponse", [
+            { no: 1, name: "errors", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => EventError }
+        ]);
+    }
+    create(value?: PartialMessage<VoidTransfersResponse>): VoidTransfersResponse {
+        const message = { errors: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VoidTransfersResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VoidTransfersResponse): VoidTransfersResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated pacioli.v1.EventError errors */ 1:
+                    message.errors.push(EventError.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VoidTransfersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated pacioli.v1.EventError errors = 1; */
+        for (let i = 0; i < message.errors.length; i++)
+            EventError.internalBinaryWrite(message.errors[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message pacioli.v1.VoidTransfersResponse
+ */
+export const VoidTransfersResponse = new VoidTransfersResponse$Type();
 /**
  * @generated ServiceType for protobuf service pacioli.v1.PacioliService
  */
@@ -1657,5 +1635,6 @@ export const PacioliService = new ServiceType("pacioli.v1.PacioliService", [
     { name: "GetAccounts", options: {}, I: GetAccountsRequest, O: GetAccountsResponse },
     { name: "CreateTransfers", options: {}, I: CreateTransfersRequest, O: CreateTransfersResponse },
     { name: "GetTransfers", options: {}, I: GetTransfersRequest, O: GetTransfersResponse },
-    { name: "CommitTransfers", options: {}, I: CommitTransfersRequest, O: CommitTransfersResponse }
+    { name: "CommitTransfers", options: {}, I: CommitTransfersRequest, O: CommitTransfersResponse },
+    { name: "VoidTransfers", options: {}, I: VoidTransfersRequest, O: VoidTransfersResponse }
 ]);
