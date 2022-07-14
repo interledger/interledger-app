@@ -152,8 +152,9 @@ func main() {
 		}
 
 		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
-			ImageRepo: ecrRepo,
-			ImageTag:  hash,
+			ImageRepo:        ecrRepo,
+			ImageTag:         hash,
+			GoogleMapsApiKey: "TODO",
 		})
 		if err != nil {
 			return err
