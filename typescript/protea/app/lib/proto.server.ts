@@ -18,8 +18,10 @@ import { Status } from '~/generated/protobuf-ts/google/rpc/status'
 import type { RpcError } from '@protobuf-ts/runtime-rpc'
 import { Any } from '~/generated/protobuf-ts/google/protobuf/any'
 
+const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend-admin:443'
+
 const transport = new GrpcTransport({
-  host: 'dns:backend-admin:443',
+  host: BACKEND_GRPC_URL,
   channelCredentials: ChannelCredentials.createInsecure()
 })
 
@@ -60,6 +62,7 @@ function isGrpcError(res: any): res is GrpcError {
  * @returns GrpcError - the error code and details
  */
 function StatusError(err: RpcError): GrpcError {
+  console.log('status err', err)
   if (!err.meta) {
     // return null
     throw new Error('No meta on error')

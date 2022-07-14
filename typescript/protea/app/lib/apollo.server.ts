@@ -12,8 +12,10 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (networkError) console.log(`[Network error]: ${networkError}`)
 })
 
+const BACKEND_GRAPHQL_URL = process.env.BACKEND_GRAPHQL_URL || 'http://backend/graphql'
+
 const Link = new HttpLink({
-  uri: 'http://backend/graphql'
+  uri: BACKEND_GRAPHQL_URL
 })
 
 export const apolloClient = new ApolloClient({
