@@ -16,6 +16,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jmoiron/sqlx v1.3.4
+	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
 	github.com/nyaruka/phonenumbers v1.1.0

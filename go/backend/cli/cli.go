@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"gitlab.com/fynbos/backend/migrations"
 )
 
@@ -104,6 +105,15 @@ type StartArgs struct {
 }
 
 func ParseStartArgs() (*StartArgs, error) {
+	envFile := os.Getenv("ENV_FILE")
+	if envFile != "" {
+		err := godotenv.Load(envFile)
+		if err != nil {
+			log.Fatal("Error loading .env file")
+			return nil, err
+		}
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
