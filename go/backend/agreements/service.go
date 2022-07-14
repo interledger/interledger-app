@@ -92,6 +92,9 @@ func (s *service) GetAgreement(ctx context.Context, id string) (*Agreement, erro
 
 	err := s.db.GetContext(ctx, &agreement, "SELECT * FROM agreements WHERE id = $1", id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%w %s", ErrNotFound, err.Error())
+		}
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
@@ -107,6 +110,13 @@ type SignAgreementArgs struct {
 func (s *service) SignAgreement(ctx context.Context, args *SignAgreementArgs) (*AgreementSign, error) {
 	if err := s.validator.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	for _, agreementID := range args.AgreementIDs {
+		_, err := s.GetAgreement(ctx, agreementID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		}
 	}
 
 	var signRecord agreementSign
