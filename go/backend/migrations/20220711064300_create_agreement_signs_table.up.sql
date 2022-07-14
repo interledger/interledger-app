@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS signed_agreements
+CREATE TABLE IF NOT EXISTS agreement_signs
 (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	agreement_ids STRING[] NOT NULL,
