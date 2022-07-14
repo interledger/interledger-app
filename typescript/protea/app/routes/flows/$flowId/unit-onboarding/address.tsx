@@ -1,8 +1,13 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Icon, TextField } from '~/components'
+import {
+  Form,
+  useActionData,
+  useFetcher,
+  useLoaderData
+} from '@remix-run/react'
+import { Autocomplete, Button, Icon, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
@@ -31,6 +36,29 @@ export default function Page() {
   const actionData = useActionData<ActionData>()
   const { country, flow } = useLoaderData()
 
+  const placeAutocompleteFetcher = useFetcher()
+  const geocodeFetcher = useFetcher()
+
+  const [query, setQuery] = useState<string>('')
+  const [placeId, setPlaceId] = useState<string>('')
+
+  useEffect(() => {
+    if (query.length >= 0) {
+      console.log('Calls query', country.id)
+      // TODO debounce this: https://developers.google.com/maps/documentation/places/web-service/autocomplete#cost_best_practices
+      placeAutocompleteFetcher.load(
+        `/api/maps/placesAutocomplete?country=${country.id}&query=${query}`
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query])
+
+  useEffect(() => {
+    // When place is set, fetch geocoded address
+    if (placeId) geocodeFetcher.load(`/api/maps/geocode?place-id=${placeId}`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placeId])
+
   return (
     <>
       <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -45,21 +73,33 @@ export default function Page() {
         className='hidden'
       />
 
-      <TextField
+      <Autocomplete
         id='street'
-        form='unit-address'
+        value={geocodeFetcher.data?.street}
+        // TODO figure out how to set the value
+        onChange={(place) => setPlaceId(place.id)}
+        onQuery={setQuery}
+        options={
+          placeAutocompleteFetcher.data?.predictions || [
+            { id: 'skjdhba', name: 'Searching for addresses' }
+          ]
+        }
         label='Street'
-        name='street'
-        defaultValue={actionData?.fields?.street || flow?.data.street}
-        type='text'
+        button={false}
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.fieldErrors?.street) || undefined}
         aria-describedby={
           actionData?.fieldErrors?.street ? 'street-error' : undefined
         }
-        required
         errorMessage={actionData?.fieldErrors?.street}
       />
+      <input
+        form='unit-address'
+        value={String(geocodeFetcher.data?.street.name)}
+        name='street'
+        type='hidden'
+      />
+
       <TextField
         id='apartment'
         form='unit-address'
@@ -80,7 +120,11 @@ export default function Page() {
         form='unit-address'
         label='City'
         name='city'
-        defaultValue={actionData?.fields?.city || flow?.data.city}
+        defaultValue={
+          actionData?.fields?.city ||
+          flow?.data.city ||
+          geocodeFetcher.data?.city
+        }
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.fieldErrors?.city) || undefined}
@@ -95,7 +139,11 @@ export default function Page() {
         form='unit-address'
         label='State'
         name='state'
-        defaultValue={actionData?.fields?.state || flow?.data.state}
+        defaultValue={
+          actionData?.fields?.state ||
+          flow?.data.state ||
+          geocodeFetcher.data?.state
+        }
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.fieldErrors?.state) || undefined}
@@ -122,9 +170,11 @@ export default function Page() {
       <TextField
         id='zip'
         form='unit-address'
-        label='Zip code'
+        label='Postal code'
         name='zip'
-        defaultValue={actionData?.fields?.zip || flow?.data.zip}
+        defaultValue={
+          actionData?.fields?.zip || flow?.data.zip || geocodeFetcher.data?.zip
+        }
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.fieldErrors?.zip) || undefined}
@@ -162,10 +212,8 @@ type ActionData = {
     zip: string
   }
 }
-export const action: ActionFunction = async ({ request, params }) => {
-  // Should have a fynbos user, that some of the data can be stored against.
+export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData()
-  // Figure out how the heck we validate an address.
   const street = form.get('street') as string
   const apartment = form.get('apartment') as string
   const city = form.get('city') as string
