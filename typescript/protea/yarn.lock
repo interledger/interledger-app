@@ -1804,6 +1804,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@playwright/test@npm:^1.23.3":
+  version: 1.23.3
+  resolution: "@playwright/test@npm:1.23.3"
+  dependencies:
+    "@types/node": "*"
+    playwright-core: 1.23.3
+  bin:
+    playwright: cli.js
+  checksum: 77e1ac3064c05cfb9d7ea165a2654433711f653cdf63e5040c08779002d1bdfcac4d55f4abd932e086d400fb4a84e37c5023f9535967d005f96b99aed4d3b858
+  languageName: node
+  linkType: hard
+
 "@protobuf-ts/grpc-transport@npm:^2.6.0":
   version: 2.6.0
   resolution: "@protobuf-ts/grpc-transport@npm:2.6.0"
@@ -9979,6 +9991,15 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"playwright-core@npm:1.23.3":
+  version: 1.23.3
+  resolution: "playwright-core@npm:1.23.3"
+  bin:
+    playwright: cli.js
+  checksum: e83cf0b05d791ded54e155fc8cb5689dcb57e02f315f23f5955d769fbb40685ce085218debbc6e617280b0d432e857631762c010586dfd19a6f14a5149384ecd
+  languageName: node
+  linkType: hard
+
 "posix-character-classes@npm:^0.1.0":
   version: 0.1.1
   resolution: "posix-character-classes@npm:0.1.1"
@@ -10193,6 +10214,7 @@ autoprefixer@latest:
     "@headlessui/react": ^1.6.0
     "@mapbox/rehype-prism": ^0.7.0
     "@ory/kratos-client": 0.8.2-alpha.1
+    "@playwright/test": ^1.23.3
     "@protobuf-ts/grpc-transport": ^2.6.0
     "@protobuf-ts/runtime": ^2.6.0
     "@protobuf-ts/runtime-rpc": ^2.6.0
