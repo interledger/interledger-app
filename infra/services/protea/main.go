@@ -10,8 +10,9 @@ import (
 )
 
 type DeployProteaArgs struct {
-	ImageRepo string
-	ImageTag  string
+	ImageRepo        string
+	ImageTag         string
+	GoogleMapsApiKey string
 }
 
 func DeployProtea(ctx *pulumi.Context, args DeployProteaArgs) error {
@@ -28,7 +29,7 @@ func DeployProtea(ctx *pulumi.Context, args DeployProteaArgs) error {
 	if err != nil {
 		return err
 	}
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.GoogleMapsApiKey)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func deployService(ctx *pulumi.Context) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string) error {
+func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, googleMapsApiKey string) error {
 	_, err := appsv1.NewDeployment(ctx, "protea-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
@@ -102,6 +103,10 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string) er
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("KRATOS_URL"),
 									Value: pulumi.String("http://kratos-public"),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("GOOGLE_MAPS_API_KEY"),
+									Value: pulumi.String(googleMapsApiKey),
 								},
 							},
 						},
