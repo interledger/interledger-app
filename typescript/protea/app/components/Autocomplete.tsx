@@ -12,6 +12,7 @@ interface AutocompleteProps {
   id: string
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
   className?: string
+  button?: boolean
   disabled?: boolean
   // The label value.
   label?: string
@@ -34,6 +35,7 @@ export const Autocomplete: FC<AutocompleteProps> = ({
   id,
   className,
   label,
+  button = true,
   errorMessage,
   value,
   onChange,
@@ -60,9 +62,11 @@ export const Autocomplete: FC<AutocompleteProps> = ({
                 displayValue={(value: AutocompleteOptions) => value?.name}
                 onChange={(event) => onQuery(event.target.value)}
               />
-              <Combobox.Button className='flex h-full items-center bg-container px-4 text-medium'>
-                <Icon>unfold_more</Icon>
-              </Combobox.Button>
+              {button && (
+                <Combobox.Button className='flex h-full items-center bg-container px-4 text-medium'>
+                  <Icon>unfold_more</Icon>
+                </Combobox.Button>
+              )}
             </div>
           </div>
           <Transition
