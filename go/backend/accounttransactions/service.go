@@ -114,7 +114,7 @@ type LedgerTransferFlags struct { // duplicate of Pacioli.TransferFlags
 
 // Arguments to create a transfer in TigerBeetle
 type CreateLedgerTransferArgs struct {
-	LedgerID        uint16
+	LedgerID        uint32
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Amount          uint64 `validate:"required"`
@@ -165,11 +165,9 @@ func (s *service) Create(
 				Amount:          transfer.Amount,
 				Code:            uint32(transfer.Code),
 				Flags: &pacioli.TransferFlags{
-					Linked:         transfer.Flags.Linked,
-					TwoPhaseCommit: false,
-					Condition:      false,
+					Linked:  transfer.Flags.Linked,
+					Pending: false,
 				},
-				// TODO: add ledger id once TB supports it
 			}
 		}
 
@@ -235,7 +233,7 @@ func (s *service) Create(
 		Description: transaction.Description,
 		State:       state,
 		NetAmount:   transaction.NetAmount,
-		TransferIDs: []string(transaction.TransferIDs),
+		TransferIDs: transaction.TransferIDs,
 		CreatedAt:   transaction.CreatedAt,
 		UpdatedAt:   transaction.UpdatedAt,
 	}, nil
@@ -288,12 +286,11 @@ func (s *service) CreatePending(
 				Amount:          transfer.Amount,
 				Code:            uint32(transfer.Code),
 				Timeout:         uint64(duration.Nanoseconds()),
+				Ledger:          transfer.LedgerID,
 				Flags: &pacioli.TransferFlags{
-					Linked:         transfer.Flags.Linked,
-					TwoPhaseCommit: true,
-					Condition:      false,
+					Linked:  transfer.Flags.Linked,
+					Pending: true,
 				},
-				// TODO: add ledger id once TB supports it
 			}
 		}
 
@@ -359,7 +356,7 @@ func (s *service) CreatePending(
 		Description: transaction.Description,
 		State:       state,
 		NetAmount:   transaction.NetAmount,
-		TransferIDs: []string(transaction.TransferIDs),
+		TransferIDs: transaction.TransferIDs,
 		CreatedAt:   transaction.CreatedAt,
 		UpdatedAt:   transaction.UpdatedAt,
 	}, nil
@@ -374,11 +371,11 @@ func (s *service) PostPending(ctx context.Context, id string) (*AccountTransacti
 			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
 			id,
 		)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return ErrNotFound
-			}
 
+		if err == sql.ErrNoRows {
+			return ErrNotFound
+		}
+		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
@@ -387,21 +384,8 @@ func (s *service) PostPending(ctx context.Context, id string) (*AccountTransacti
 			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
 		}
 
-		ledgerCommits := make([]*pacioli.Commit, len(trx.TransferIDs))
-		for i, transferId := range trx.TransferIDs {
-			ledgerCommits[i] = &pacioli.Commit{
-				Id:   transferId,
-				Code: uint32(1), // TODO what do we want the code to be here?
-				Flags: &pacioli.CommitFlags{
-					Linked:   false,
-					Reject:   false,
-					Preimage: false,
-				},
-			}
-		}
-
 		response, err := s.pacioli.CommitTransfers(ctx, &pacioli.CommitTransfersRequest{
-			Commits: ledgerCommits,
+			TransferIds: trx.TransferIDs,
 		})
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
@@ -429,11 +413,11 @@ func (s *service) PostPending(ctx context.Context, id string) (*AccountTransacti
 			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
 			id,
 		)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return ErrNotFound
-			}
 
+		if err == sql.ErrNoRows {
+			return ErrNotFound
+		}
+		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 		return nil
@@ -470,11 +454,10 @@ func (s *service) VoidPending(ctx context.Context, id string) (*AccountTransacti
 			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
 			id,
 		)
+		if err == sql.ErrNoRows {
+			return ErrNotFound
+		}
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return ErrNotFound
-			}
-
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
@@ -483,9 +466,23 @@ func (s *service) VoidPending(ctx context.Context, id string) (*AccountTransacti
 			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
 		}
 
-		fmt.Println(trx.TransferIDs)
+		resp, err := s.pacioli.VoidTransfers(ctx, &pacioli.VoidTransfersRequest{
+			TransferIds: trx.TransferIDs,
+		})
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
 
-		// call out to commit
+		// TODO need to handle the case where this was retried and is safe to do so... ie committed already.
+		voidErrors := resp.GetErrors()
+		if len(voidErrors) > 0 {
+			for _, err := range voidErrors {
+				switch err.Code {
+				default:
+					return fmt.Errorf("%w %+v", ErrInvalidLedgerTransfer, err)
+				}
+			}
+		}
 
 		_, err = s.db.Exec("UPDATE account_transactions set state = $1 where id = $2", Voided.String(), id)
 		if err != nil {
@@ -498,13 +495,13 @@ func (s *service) VoidPending(ctx context.Context, id string) (*AccountTransacti
 			"SELECT * FROM account_transactions WHERE id=$1 LIMIT 1;",
 			id,
 		)
+		if err == sql.ErrNoRows {
+			return ErrNotFound
+		}
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return ErrNotFound
-			}
-
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -524,7 +521,7 @@ func (s *service) VoidPending(ctx context.Context, id string) (*AccountTransacti
 		Description: trx.Description,
 		State:       state,
 		NetAmount:   trx.NetAmount,
-		TransferIDs: []string(trx.TransferIDs),
+		TransferIDs: trx.TransferIDs,
 		CreatedAt:   trx.CreatedAt,
 		UpdatedAt:   trx.UpdatedAt,
 	}, nil

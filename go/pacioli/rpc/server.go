@@ -33,7 +33,7 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 	ledgers := make([]_ledger.ConfigureLedgerArgs, len(req.Args))
 	for i, ledger := range req.Args {
 		ledgers[i] = _ledger.ConfigureLedgerArgs{
-			ID:    uint16(ledger.GetId()),
+			ID:    ledger.GetId(),
 			Name:  ledger.GetName(),
 			Asset: ledger.GetAsset(),
 			Scale: uint8(ledger.GetScale()),
@@ -96,7 +96,7 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 		}
 		accounts[i] = _ledger.ConfigureAccountArgs{
 			ID:       account.GetId(),
-			LedgerID: uint16(account.GetLedgerId()),
+			LedgerID: account.GetLedgerId(),
 			Code:     uint16(account.GetCode()),
 			Flags:    flags,
 		}
@@ -137,12 +137,12 @@ func (s *rpcServer) GetAccounts(ctx context.Context, req *pacioliv1.GetAccountsR
 	for i, account := range accounts {
 		ret[i] = &pacioliv1.Account{
 			Id:              account.ID,
-			LedgerId:        uint32(account.LedgerID),
+			LedgerId:        account.LedgerID,
 			Code:            uint32(account.Code),
-			DebitsReserved:  account.DebitsReserved,
-			DebitsAccepted:  account.DebitsAccepted,
-			CreditsAccepted: account.CreditsAccepted,
-			CreditsReserved: account.CreditsReserved,
+			DebitsReserved:  account.DebitsPending,
+			DebitsAccepted:  account.DebitsPosted,
+			CreditsAccepted: account.CreditsPosted,
+			CreditsReserved: account.CreditsPending,
 			Flags: &pacioliv1.AccountFlags{
 				Linked:                     account.Flags.Linked,
 				DebitsMustNotExceedCredits: account.Flags.DebitsMustNotExceedCredits,
@@ -162,11 +162,14 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	transfers := req.GetTransfers()
 	transferArgs := make([]_ledger.CreateTransferArgs, len(transfers))
 	for i, transfer := range transfers {
-		flags := _ledger.TransferFlags{}
-		if transfer.GetFlags() != nil {
-			flags.Linked = transfer.GetFlags().Linked
-			flags.Condition = transfer.GetFlags().Condition
-			flags.TwoPhaseCommit = transfer.GetFlags().TwoPhaseCommit
+		var flags _ledger.TransferFlags
+		if transfer.Flags != nil {
+			flags = _ledger.TransferFlags{
+				Linked:              transfer.Flags.Linked,
+				Pending:             transfer.Flags.Pending,
+				PostPendingTransfer: transfer.Flags.PostPending,
+				VoidPendingTransfer: transfer.Flags.VoidPending,
+			}
 		}
 
 		transferArgs[i] = _ledger.CreateTransferArgs{
@@ -175,8 +178,9 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 			DebitAccountID:  transfer.GetDebitAccountId(),
 			CreditAccountID: transfer.GetCreditAccountId(),
 			Flags:           flags,
-			Code:            transfer.GetCode(),
+			Code:            uint16(transfer.GetCode()),
 			Timeout:         transfer.GetTimeout(),
+			Ledger:          transfer.Ledger,
 		}
 	}
 
@@ -184,7 +188,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	if err != nil {
 		switch err.(type) {
 		default:
-			return nil, status.Error(codes.Internal, "Failed to create transfer.")
+			return nil, status.Error(codes.Internal, "Failed to create transfer."+err.Error())
 		}
 	}
 
@@ -217,11 +221,12 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 			DebitAccountId:  transfer.DebitAccountID,
 			CreditAccountId: transfer.CreditAccountID,
 			Amount:          transfer.Amount,
-			Code:            transfer.Code,
+			Code:            uint32(transfer.Code),
 			Flags: &pacioliv1.TransferFlags{
-				Linked:         transfer.Flags.Linked,
-				Condition:      transfer.Flags.Condition,
-				TwoPhaseCommit: transfer.Flags.TwoPhaseCommit,
+				Linked:      transfer.Flags.Linked,
+				Pending:     transfer.Flags.Pending,
+				PostPending: transfer.Flags.PostPendingTransfer,
+				VoidPending: transfer.Flags.VoidPendingTransfer,
 			},
 		}
 	}
@@ -232,25 +237,13 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 }
 
 func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTransfersRequest) (*pacioliv1.CommitTransfersResponse, error) {
-	commits := req.GetCommits()
-	commitArgs := make([]_ledger.CommitTransferArgs, len(commits))
-	for i, commit := range commits {
-		flags := _ledger.CommitFlags{}
-		if commit.GetFlags() != nil {
-			flags.Linked = commit.GetFlags().Linked
-			flags.Reject = commit.GetFlags().Reject
-			flags.Preimage = commit.GetFlags().Preimage
-		}
-		commitArgs[i] = _ledger.CommitTransferArgs{
-			ID:    commit.GetId(),
-			Flags: flags,
-			Code:  commit.GetCode(),
-		}
-	}
 
-	errors, err := s.ledger.CommitTransfers(ctx, commitArgs)
+	errors, err := s.ledger.CommitTransfers(ctx, req.TransferIds)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Failed to commit transfers.")
+		switch err.(type) {
+		default:
+			return nil, status.Error(codes.Internal, "Failed to committ transfer."+err.Error())
+		}
 	}
 
 	errorsToReturn := make([]*pacioliv1.EventError, len(errors))
@@ -262,6 +255,29 @@ func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTr
 	}
 
 	return &pacioliv1.CommitTransfersResponse{
+		Errors: errorsToReturn,
+	}, nil
+}
+
+func (s *rpcServer) VoidTransfers(ctx context.Context, req *pacioliv1.VoidTransfersRequest) (*pacioliv1.VoidTransfersResponse, error) {
+
+	errors, err := s.ledger.VoidTransfers(ctx, req.TransferIds)
+	if err != nil {
+		switch err.(type) {
+		default:
+			return nil, status.Error(codes.Internal, "Failed to committ transfer."+err.Error())
+		}
+	}
+
+	errorsToReturn := make([]*pacioliv1.EventError, len(errors))
+	for i, err := range errors {
+		errorsToReturn[i] = &pacioliv1.EventError{
+			Index: err.Index,
+			Code:  err.Code,
+		}
+	}
+
+	return &pacioliv1.VoidTransfersResponse{
 		Errors: errorsToReturn,
 	}, nil
 }

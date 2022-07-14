@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -44,15 +45,13 @@ func TestRpc(s *testing.T) {
 		assert.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, response.Status)
 	})
 
-	// TODO: tests to configure a tenant. At the moment DEV_TENANT is hardcoded.
-
 	s.Run("can configure ledgers", func(t *testing.T) {
 		name := faker.Name()
 		scale := uint8(2)
 		configureResponse, err := c.Client.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
 			Args: []*pacioliv1.Ledger{
 				{
-					Id:    uint32(ledgerID),
+					Id:    ledgerID,
 					Name:  name,
 					Asset: "840",
 					Scale: uint32(scale),
@@ -83,10 +82,12 @@ func TestRpc(s *testing.T) {
 				{
 					Id:       accountAID,
 					LedgerId: ledgerID,
+					Code:     1,
 				},
 				{
 					Id:       accountBID,
 					LedgerId: ledgerID,
+					Code:     1,
 				},
 			},
 		})
@@ -122,16 +123,18 @@ func TestRpc(s *testing.T) {
 					Amount:          100,
 					Code:            1,
 					Flags: &pacioliv1.TransferFlags{
-						TwoPhaseCommit: true,
+						Pending: true,
 					},
 					Timeout: uint64(10 * time.Millisecond),
+					Ledger:  ledgerID,
 				},
 				{ // This one will fail as the account IDs are the same.
 					Id:              transferB,
 					DebitAccountId:  accountAID,
 					CreditAccountId: accountAID,
 					Amount:          101,
-					Code:            2,
+					Code:            1,
+					Ledger:          ledgerID,
 				},
 			},
 		})
@@ -139,9 +142,12 @@ func TestRpc(s *testing.T) {
 			t.Fatal(err)
 		}
 		errors := createTransfersResponse.GetErrors()
+		for _, ev := range errors {
+			fmt.Println(ev.Code, ev.Index)
+		}
 		assert.Len(t, errors, 1)
 		assert.Equal(t, uint32(1), errors[0].Index)
-		assert.Equal(t, tb_types.TransferAccountsAreTheSame, errors[0].Code)
+		assert.Equal(t, tb_types.TransferAccountsMustBeDifferent, errors[0].Code)
 
 		response, err := c.Client.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
 			Ids: []string{transferA, transferB},
@@ -157,31 +163,23 @@ func TestRpc(s *testing.T) {
 		assert.Equal(t, uint32(1), transfers[0].GetCode())
 
 		flags := transfers[0].GetFlags()
-		assert.Equal(t, false, flags.GetCondition())
 		assert.Equal(t, false, flags.GetLinked())
-		assert.Equal(t, true, flags.GetTwoPhaseCommit())
+		assert.Equal(t, true, flags.Pending)
 	})
 
 	s.Run("can commit transfers", func(t *testing.T) {
 		scenarios := []struct {
 			Name       string
 			TransferID string
-			Reject     bool
 		}{
 			{
 				Name:       "can commit transfer",
 				TransferID: uuid.NewString(),
-				Reject:     false,
-			},
-			{
-				Name:       "can reject transfer",
-				TransferID: uuid.NewString(),
-				Reject:     true,
 			},
 		}
 
 		for _, scenario := range scenarios {
-			createTransfersResponse, err := c.Client.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
+			createResp, err := c.Client.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
 				Transfers: []*pacioliv1.Transfer{
 					{
 						Id:              scenario.TransferID,
@@ -190,35 +188,71 @@ func TestRpc(s *testing.T) {
 						Amount:          100,
 						Code:            1,
 						Flags: &pacioliv1.TransferFlags{
-							TwoPhaseCommit: true,
+							Pending: true,
 						},
 						Timeout: uint64(1 * time.Second),
+						Ledger:  ledgerID,
 					},
 				},
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
-			errors := createTransfersResponse.GetErrors()
-			assert.Len(t, errors, 0)
 
-			commitTransfersResponse, err := c.Client.CommitTransfers(ctx, &pacioliv1.CommitTransfersRequest{
-				Commits: []*pacioliv1.Commit{
-					{
-						Id:   scenario.TransferID,
-						Code: 1,
-						Flags: &pacioliv1.CommitFlags{
-							Reject: scenario.Reject,
-						},
-					},
-				},
+			assert.Len(t, createResp.Errors, 0)
+
+			commitResp, err := c.Client.CommitTransfers(ctx, &pacioliv1.CommitTransfersRequest{
+				TransferIds: []string{scenario.TransferID},
 			})
 			if err != nil {
 				t.Fatal(err)
 			}
-			errors = commitTransfersResponse.GetErrors()
-			assert.Len(t, errors, 0)
+
+			assert.Len(t, commitResp.Errors, 0)
 		}
 	})
 
+	s.Run("can void transfers", func(t *testing.T) {
+		scenarios := []struct {
+			Name       string
+			TransferID string
+		}{
+			{
+				Name:       "can commit transfer",
+				TransferID: uuid.NewString(),
+			},
+		}
+
+		for _, scenario := range scenarios {
+			createResp, err := c.Client.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
+				Transfers: []*pacioliv1.Transfer{
+					{
+						Id:              scenario.TransferID,
+						DebitAccountId:  accountAID,
+						CreditAccountId: accountBID,
+						Amount:          100,
+						Code:            1,
+						Flags: &pacioliv1.TransferFlags{
+							Pending: true,
+						},
+						Timeout: uint64(1 * time.Second),
+						Ledger:  ledgerID,
+					},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			errors := createResp.GetErrors()
+			assert.Len(t, errors, 0)
+
+			voidResp, err := c.Client.VoidTransfers(ctx, &pacioliv1.VoidTransfersRequest{
+				TransferIds: []string{scenario.TransferID},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Len(t, voidResp.Errors, 0)
+		}
+	})
 }
