@@ -1,3 +1,0 @@
-name: aws-clusters-dev-euw1-temporal
-runtime: go
-description: Deploy temporal to dev-euw1 cluster
