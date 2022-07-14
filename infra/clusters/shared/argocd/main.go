@@ -99,6 +99,22 @@ func main() {
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
 
+		err = newTigerbeetleApplicationSet(ctx, tigerbeetleApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+
+		err = newPacioliApplicationSet(ctx, pacioliApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+
+		err = newTemporaliteApplicationSet(ctx, temporaliteApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+
+		err = newBackendApplicationSet(ctx, backendApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+
 		ctx.Export("argoRoleArn", role.Arn)
 		return nil
 	})
