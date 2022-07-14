@@ -14,7 +14,9 @@
     "generate:watch": "graphql-codegen --watch --config codegen.yml",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
     "dev:css": "tailwindcss -w -i ./styles/app.css -o app/styles/app.css",
-    "precommit": "yarn format && yarn lint && yarn routes-gen && yarn generate && yarn build"
+    "precommit": "yarn format && yarn lint && yarn routes-gen && yarn generate && yarn build",
+    "test": "playwright test",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",
@@ -44,6 +46,7 @@
     "@graphql-codegen/typescript": "2.3.1",
     "@graphql-codegen/typescript-operations": "2.2.0",
     "@graphql-codegen/typescript-react-apollo": "^3.2.1",
+    "@playwright/test": "^1.23.3",
     "@remix-run/dev": "^1.4.1",
     "@remix-run/eslint-config": "^1.4.1",
     "@routes-gen/remix": "^0.2.10",
