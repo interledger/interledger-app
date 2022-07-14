@@ -29,6 +29,7 @@ type PacioliServiceClient interface {
 	CreateTransfers(ctx context.Context, in *CreateTransfersRequest, opts ...grpc.CallOption) (*CreateTransfersResponse, error)
 	GetTransfers(ctx context.Context, in *GetTransfersRequest, opts ...grpc.CallOption) (*GetTransfersResponse, error)
 	CommitTransfers(ctx context.Context, in *CommitTransfersRequest, opts ...grpc.CallOption) (*CommitTransfersResponse, error)
+	VoidTransfers(ctx context.Context, in *VoidTransfersRequest, opts ...grpc.CallOption) (*VoidTransfersResponse, error)
 }
 
 type pacioliServiceClient struct {
@@ -102,6 +103,15 @@ func (c *pacioliServiceClient) CommitTransfers(ctx context.Context, in *CommitTr
 	return out, nil
 }
 
+func (c *pacioliServiceClient) VoidTransfers(ctx context.Context, in *VoidTransfersRequest, opts ...grpc.CallOption) (*VoidTransfersResponse, error) {
+	out := new(VoidTransfersResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/VoidTransfers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PacioliServiceServer is the server API for PacioliService service.
 // All implementations should embed UnimplementedPacioliServiceServer
 // for forward compatibility
@@ -113,6 +123,7 @@ type PacioliServiceServer interface {
 	CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error)
 	GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error)
 	CommitTransfers(context.Context, *CommitTransfersRequest) (*CommitTransfersResponse, error)
+	VoidTransfers(context.Context, *VoidTransfersRequest) (*VoidTransfersResponse, error)
 }
 
 // UnimplementedPacioliServiceServer should be embedded to have forward compatible implementations.
@@ -139,6 +150,9 @@ func (UnimplementedPacioliServiceServer) GetTransfers(context.Context, *GetTrans
 }
 func (UnimplementedPacioliServiceServer) CommitTransfers(context.Context, *CommitTransfersRequest) (*CommitTransfersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CommitTransfers not implemented")
+}
+func (UnimplementedPacioliServiceServer) VoidTransfers(context.Context, *VoidTransfersRequest) (*VoidTransfersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VoidTransfers not implemented")
 }
 
 // UnsafePacioliServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -278,6 +292,24 @@ func _PacioliService_CommitTransfers_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PacioliService_VoidTransfers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidTransfersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PacioliServiceServer).VoidTransfers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pacioli.v1.PacioliService/VoidTransfers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PacioliServiceServer).VoidTransfers(ctx, req.(*VoidTransfersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PacioliService_ServiceDesc is the grpc.ServiceDesc for PacioliService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -312,6 +344,10 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CommitTransfers",
 			Handler:    _PacioliService_CommitTransfers_Handler,
+		},
+		{
+			MethodName: "VoidTransfers",
+			Handler:    _PacioliService_VoidTransfers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

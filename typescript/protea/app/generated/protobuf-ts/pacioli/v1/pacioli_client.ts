@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { PacioliService } from "./pacioli";
+import type { VoidTransfersResponse } from "./pacioli";
+import type { VoidTransfersRequest } from "./pacioli";
 import type { CommitTransfersResponse } from "./pacioli";
 import type { CommitTransfersRequest } from "./pacioli";
 import type { GetTransfersResponse } from "./pacioli";
@@ -53,6 +55,10 @@ export interface IPacioliServiceClient {
      * @generated from protobuf rpc: CommitTransfers(pacioli.v1.CommitTransfersRequest) returns (pacioli.v1.CommitTransfersResponse);
      */
     commitTransfers(input: CommitTransfersRequest, options?: RpcOptions): UnaryCall<CommitTransfersRequest, CommitTransfersResponse>;
+    /**
+     * @generated from protobuf rpc: VoidTransfers(pacioli.v1.VoidTransfersRequest) returns (pacioli.v1.VoidTransfersResponse);
+     */
+    voidTransfers(input: VoidTransfersRequest, options?: RpcOptions): UnaryCall<VoidTransfersRequest, VoidTransfersResponse>;
 }
 /**
  * @generated from protobuf service pacioli.v1.PacioliService
@@ -111,5 +117,12 @@ export class PacioliServiceClient implements IPacioliServiceClient, ServiceInfo 
     commitTransfers(input: CommitTransfersRequest, options?: RpcOptions): UnaryCall<CommitTransfersRequest, CommitTransfersResponse> {
         const method = this.methods[6], opt = this._transport.mergeOptions(options);
         return stackIntercept<CommitTransfersRequest, CommitTransfersResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: VoidTransfers(pacioli.v1.VoidTransfersRequest) returns (pacioli.v1.VoidTransfersResponse);
+     */
+    voidTransfers(input: VoidTransfersRequest, options?: RpcOptions): UnaryCall<VoidTransfersRequest, VoidTransfersResponse> {
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
+        return stackIntercept<VoidTransfersRequest, VoidTransfersResponse>("unary", this._transport, method, opt, input);
     }
 }
