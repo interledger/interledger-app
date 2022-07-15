@@ -61,7 +61,7 @@ type TestContainer struct {
 	Ps                   payments.Service
 	PacioliContainer     *test_utils.PacioliContainer
 	PacioliClient        pacioliv1.PacioliServiceClient
-	PacioliLedgerID      uint16
+	PacioliLedgerID      uint32
 	Graph                *handler.Server
 	Client               *graphql.Client
 	Server               *httptest.Server
@@ -95,7 +95,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 
-	c.PacioliLedgerID = uint16(1)
+	c.PacioliLedgerID = 1
 	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
