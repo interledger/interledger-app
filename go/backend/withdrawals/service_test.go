@@ -58,7 +58,6 @@ func TestWithdrawals(s *testing.T) {
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    "US",
-			Code:       1,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -153,7 +152,6 @@ func TestWithdrawals(s *testing.T) {
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    "US",
-			Code:       1,
 		})
 		if err != nil {
 			t.Fatal(err)

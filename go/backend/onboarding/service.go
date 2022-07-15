@@ -178,7 +178,6 @@ func (s *service) UpdateOnboarding(
 type CreateAccountArgs struct {
 	IdentityID string `validate:"required,uuid"`
 	Country    string `validate:"required,iso3166_1_alpha2"`
-	Code       uint32 `validate:"required"`
 }
 
 // Creating an account with Fynbos means that your identity is stored in our system and you get
@@ -200,7 +199,6 @@ func (s *service) CreateAccount(
 		IdentityID:                 id.ID,
 		Country:                    args.Country,
 		CreditsMustNotExceedDebits: true,
-		Code:                       args.Code,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
