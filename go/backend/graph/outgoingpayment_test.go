@@ -76,9 +76,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err != nil {
-			t.Fatal(err)
-		}
+
 		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
 			Description: "Test transaction",
@@ -90,8 +88,8 @@ func TestUserOutgoingPayment(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  acc.LedgerAccountID,
 					Amount:          10000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})
@@ -157,6 +155,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		assert.True(t, acc.IsVerified())
 		assert.Equal(t, int64(0), acc.AvailableBalance)
 
@@ -211,6 +210,7 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		assert.False(t, acc.IsVerified())
 
 		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
@@ -224,8 +224,8 @@ func TestUserOutgoingPayment(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  acc.LedgerAccountID,
 					Amount:          1000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})

@@ -58,7 +58,6 @@ func TestWithdrawals(s *testing.T) {
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    "US",
-			Code:       1,
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -153,11 +152,11 @@ func TestWithdrawals(s *testing.T) {
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    "US",
-			Code:       1,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		fs, err := container.FundingSourcesService.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
 			IdentityID:    user.ID,
 			AccountID:     acc.ID,
@@ -170,6 +169,7 @@ func TestWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		_, err = container.FundingSourcesService.Verify(ctx, &fundingsources.VerifyArgs{
 			IdentityID:      user.ID,
 			FundingSourceID: fs.ID,

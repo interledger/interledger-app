@@ -80,8 +80,8 @@ func TestPayments(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  acc.LedgerAccountID,
 					Amount:          1000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})
