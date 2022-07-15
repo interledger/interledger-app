@@ -208,6 +208,8 @@ github.com/coilhq/tigerbeetle-go v0.0.0-20220713024244-069ea894401d h1:BajvQ/FvQ
 github.com/coilhq/tigerbeetle-go v0.0.0-20220713024244-069ea894401d/go.mod h1:RNb/2wHV2SDusEWoEKsH7OkUd8ZVdVY+FrcivUAz67I=
 github.com/coilhq/tigerbeetle-go v0.0.0-20220714051220-ea30a30f6dd4 h1:2CeoLWwk4ZMzDTEWeRXQwAXJuVPl1atdxa7EsL/WyHA=
 github.com/coilhq/tigerbeetle-go v0.0.0-20220714051220-ea30a30f6dd4/go.mod h1:RNb/2wHV2SDusEWoEKsH7OkUd8ZVdVY+FrcivUAz67I=
+github.com/coilhq/tigerbeetle-go v0.0.0-20220714125414-8a5067cb7973 h1:zWBLvTQ3HfxXhwGn62N6oMAmaZR3j59uhNqyM1brHFU=
+github.com/coilhq/tigerbeetle-go v0.0.0-20220714125414-8a5067cb7973/go.mod h1:RNb/2wHV2SDusEWoEKsH7OkUd8ZVdVY+FrcivUAz67I=
 github.com/containerd/aufs v0.0.0-20200908144142-dab0cbea06f4/go.mod h1:nukgQABAEopAHvB6j7cnP5zJ+/3aVcE7hCYqvIwAHyE=
 github.com/containerd/aufs v0.0.0-20201003224125-76a6863f2989/go.mod h1:AkGGQs9NM2vtYHaUen+NljV0/baGCAPELGm2q9ZXpWU=
 github.com/containerd/aufs v0.0.0-20210316121734-20793ff83c97/go.mod h1:kL5kd6KM5TzQjR79jljyi4olc1Vrx6XBlcyj3gNv2PU=
