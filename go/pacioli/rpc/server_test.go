@@ -147,7 +147,7 @@ func TestRpc(s *testing.T) {
 		}
 		assert.Len(t, errors, 1)
 		assert.Equal(t, uint32(1), errors[0].Index)
-		assert.Equal(t, tb_types.TransferAccountsMustBeDifferent, errors[0].Code)
+		assert.Equal(t, tb_types.TransferAccountsMustBeDifferent, tb_types.CreateTransferResult(errors[0].Code))
 
 		response, err := c.Client.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
 			Ids: []string{transferA, transferB},
