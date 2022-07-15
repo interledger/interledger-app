@@ -150,6 +150,7 @@ func TestGraphql(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		_, err = NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
