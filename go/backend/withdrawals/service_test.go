@@ -217,7 +217,7 @@ type TestContainer struct {
 	TemporalMock          *mocks.Client
 	PacioliContainer      *test_utils.PacioliContainer
 	PacioliClient         pacioliv1.PacioliServiceClient
-	PacioliLedgerID       uint16
+	PacioliLedgerID       uint32
 	Db                    *sqlx.DB
 	Logger                *zap.Logger
 	Ctx                   context.Context
@@ -232,7 +232,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
 
-	c.PacioliLedgerID = uint16(1)
+	c.PacioliLedgerID = 1
 	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err

@@ -83,7 +83,7 @@ func TestUserAccount(s *testing.T) {
 					Amount:          20,
 
 					Flags: &pacioliv1.TransferFlags{
-						TwoPhaseCommit: true,
+						Pending: true,
 					},
 					Timeout: uint64(10 * time.Millisecond),
 				},

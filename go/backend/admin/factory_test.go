@@ -52,7 +52,7 @@ type TestContainer struct {
 	AdminServer     *grpc.Server
 	PacioliConn     *grpc.ClientConn
 	PacioliClient   pacioliv1.PacioliServiceClient
-	PacioliLedgerID uint16
+	PacioliLedgerID uint32
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {

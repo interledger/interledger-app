@@ -35,7 +35,7 @@ type TestContainer struct {
 	Ts               account_transactions.Service
 	PacioliContainer *test_utils.PacioliContainer
 	PacioliClient    pacioliv1.PacioliServiceClient
-	PacioliLedgerID  uint16
+	PacioliLedgerID  uint32
 	Tp               *mocks.Client
 	Unit             *_unit.MockService
 }
@@ -66,7 +66,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 
-	c.PacioliLedgerID = uint16(1)
+	c.PacioliLedgerID = 1
 	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
