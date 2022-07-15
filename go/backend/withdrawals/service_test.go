@@ -58,10 +58,12 @@ func TestWithdrawals(s *testing.T) {
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    "US",
+			Code:       1,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		_, err = container.TransactionService.Create(ctx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
 			Description: "Random Deposit",
@@ -73,7 +75,7 @@ func TestWithdrawals(s *testing.T) {
 					DebitAccountID:  acc.LedgerAccountID,
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					Amount:          1000,
-					Code:            0,
+					Code:            1,
 					Flags:           transactions.LedgerTransferFlags{},
 				},
 			},
@@ -151,6 +153,7 @@ func TestWithdrawals(s *testing.T) {
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    "US",
+			Code:       1,
 		})
 		if err != nil {
 			t.Fatal(err)

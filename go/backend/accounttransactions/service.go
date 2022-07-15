@@ -114,7 +114,7 @@ type LedgerTransferFlags struct { // duplicate of Pacioli.TransferFlags
 
 // Arguments to create a transfer in TigerBeetle
 type CreateLedgerTransferArgs struct {
-	LedgerID        uint32
+	LedgerID        uint32 `validate:"required"`
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Amount          uint64 `validate:"required"`
@@ -164,6 +164,7 @@ func (s *service) Create(
 				CreditAccountId: transfer.CreditAccountID,
 				Amount:          transfer.Amount,
 				Code:            uint32(transfer.Code),
+				Ledger:          transfer.LedgerID,
 				Flags: &pacioli.TransferFlags{
 					Linked:  transfer.Flags.Linked,
 					Pending: false,
@@ -181,7 +182,8 @@ func (s *service) Create(
 		transferErrors := response.GetErrors()
 		if len(transferErrors) > 0 {
 			for _, err := range transferErrors {
-				switch err.Code {
+				tr := tb_types.CreateTransferResult(err.Code)
+				switch tr {
 				case tb_types.TransferExceedsCredits:
 					return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
 				case tb_types.TransferExceedsDebits:
@@ -304,7 +306,8 @@ func (s *service) CreatePending(
 		transferErrors := response.GetErrors()
 		if len(transferErrors) > 0 {
 			for _, err := range transferErrors {
-				switch err.Code {
+				tr := tb_types.CreateTransferResult(err.Code)
+				switch tr {
 				case tb_types.TransferExceedsCredits:
 					return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
 				case tb_types.TransferExceedsDebits:
