@@ -123,7 +123,6 @@ func (s *service) Init(ctx context.Context) error {
 type CreateAccountArgs struct {
 	IdentityID string `validate:"required,uuid"`
 	Country    string `validate:"iso3166_1_alpha2"`
-	Code       uint32 `validate:"required"`
 
 	// Points to the next account in array. Last one in array cannot have linked flag set.
 	Linked                     bool
@@ -155,7 +154,7 @@ func (s *service) Create(ctx context.Context, args *CreateAccountArgs) (*Account
 				{
 					Id:       ledgerAccountID,
 					LedgerId: s.pacioliLedgerID,
-					Code:     args.Code,
+					Code:     1, // TODO: Get code from somewhere.
 					Flags: &pacioliv1.AccountFlags{
 						Linked:                     args.Linked,
 						DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
