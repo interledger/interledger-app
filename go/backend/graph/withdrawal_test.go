@@ -2,9 +2,10 @@ package graph
 
 import (
 	"context"
+	"testing"
+
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/withdrawals"
-	"testing"
 
 	"gitlab.com/fynbos/backend/identity"
 
@@ -57,6 +58,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
@@ -64,6 +66,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		verifyFundingSource := true
 		fsArgs := &fundingsources.CreateBankAccountArgs{
 			IdentityID:    user.ID,
@@ -94,8 +97,8 @@ func TestUserWithdrawals(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  acc.LedgerAccountID,
 					Amount:          10000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})
@@ -151,6 +154,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		verifyFundingSource := true
 		fundingSource, err := NewBankAccount(
 			container,
@@ -216,6 +220,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		verifyFundingSource := false
 		fundingSource, err := NewBankAccount(
 			container,
@@ -245,8 +250,8 @@ func TestUserWithdrawals(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  acc.LedgerAccountID,
 					Amount:          10000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})
@@ -318,6 +323,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		bobAcc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: bobId.ID,
 			Country:    bobId.Country,
@@ -325,6 +331,7 @@ func TestUserWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		verifyFundingSource := true
 		_, err = NewBankAccount(
 			container,
@@ -354,8 +361,8 @@ func TestUserWithdrawals(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  aliceAcc.LedgerAccountID,
 					Amount:          10000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})

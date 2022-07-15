@@ -47,6 +47,7 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+
 	acc, err := NewVerifiedAccount(
 		c,
 		&onboarding.CreateAccountArgs{
@@ -65,6 +66,7 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+
 	otherUser := &_user.User{
 		ID:    uuid.NewString(),
 		Email: faker.Email(),
@@ -80,6 +82,7 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+
 	_, err = NewVerifiedAccount(
 		c,
 		&onboarding.CreateAccountArgs{
@@ -98,6 +101,7 @@ func TestTransactions(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+
 	_, err = NewBankAccount(
 		c,
 		user,
@@ -131,8 +135,8 @@ func TestTransactions(s *testing.T) {
 						CreditAccountID: c.NoopService.GetEquityAccountID(),
 						DebitAccountID:  acc.LedgerAccountID,
 						Amount:          1000,
-						// Code: uint16,
-						Flags: account_transactions.LedgerTransferFlags{},
+						Code:            1,
+						Flags:           account_transactions.LedgerTransferFlags{},
 					},
 				},
 			})
@@ -149,8 +153,8 @@ func TestTransactions(s *testing.T) {
 							DebitAccountID:  c.NoopService.GetEquityAccountID(),
 							CreditAccountID: acc.LedgerAccountID,
 							Amount:          100,
-							// Code: uint16,
-							Flags: account_transactions.LedgerTransferFlags{},
+							Code:            1,
+							Flags:           account_transactions.LedgerTransferFlags{},
 						},
 					},
 				},
