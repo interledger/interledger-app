@@ -29,6 +29,7 @@ func newProteaApplicationSet(ctx *pulumi.Context, args proteaApplicationSetArgs,
 								pulumi.Map{
 									"cluster": pulumi.String("dev-eu1"),
 									"url":     pulumi.String("https://AF83FFCC8A31D16D2E1C9C1788205863.sk1.eu-west-1.eks.amazonaws.com"),
+									"project": pulumi.String("dev"),
 								},
 							},
 						},
@@ -39,7 +40,7 @@ func newProteaApplicationSet(ctx *pulumi.Context, args proteaApplicationSetArgs,
 						"name": pulumi.String("{{cluster}}-protea"),
 					},
 					"spec": pulumi.Map{
-						"project": pulumi.String("default"),
+						"project": pulumi.String("{{project}}"),
 						"source": pulumi.Map{
 							"repoURL":        pulumi.String("https://gitlab.com/fynbos/rooibos.git"),
 							"targetRevision": pulumi.String("main"),

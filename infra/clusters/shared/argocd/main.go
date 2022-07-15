@@ -95,25 +95,46 @@ func main() {
 			return err
 		}
 
+		err = NewDevProject(ctx, namespace.Metadata.Name().Elem(),
+			pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
+
 		err = newProteaApplicationSet(ctx, proteaApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
 
 		err = newTigerbeetleApplicationSet(ctx, tigerbeetleApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
 
 		err = newPacioliApplicationSet(ctx, pacioliApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
 
 		err = newTemporaliteApplicationSet(ctx, temporaliteApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
 
 		err = newBackendApplicationSet(ctx, backendApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
 
 		ctx.Export("argoRoleArn", role.Arn)
 		return nil
