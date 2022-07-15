@@ -113,7 +113,7 @@ func TestAccountTransactions(s *testing.T) {
 		transfer := transferResponse.GetTransfers()[0]
 		assert.Equal(t, transfer.CreditAccountId, equityAccID)
 		assert.Equal(t, transfer.DebitAccountId, acc.LedgerAccountID)
-		assert.Equal(t, transfer.Flags.TwoPhaseCommit, false)
+		assert.Equal(t, transfer.Flags.Pending, false)
 
 		// check that get works
 		var trxs []*AccountTransaction
@@ -198,7 +198,7 @@ func TestAccountTransactions(s *testing.T) {
 			transfer := transferResponse.GetTransfers()[0]
 			assert.Equal(t, transfer.CreditAccountId, equityAccID)
 			assert.Equal(t, transfer.DebitAccountId, acc.LedgerAccountID)
-			assert.Equal(t, transfer.Flags.TwoPhaseCommit, true)
+			assert.Equal(t, transfer.Flags.Pending, true)
 
 			// check that get works
 			var trxs []*AccountTransaction
@@ -446,7 +446,7 @@ type TestContainer struct {
 	CountryService     _country.Service
 	PacioliContainer   *test_utils.PacioliContainer
 	PacioliClient      pacioliv1.PacioliServiceClient
-	PacioliLedgerID    uint16
+	PacioliLedgerID    uint32
 	Ctrl               *gomock.Controller
 	TransactionService Service
 	Db                 *sqlx.DB
@@ -480,7 +480,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
 
-	c.PacioliLedgerID = uint16(1)
+	c.PacioliLedgerID = uint32(1)
 	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		s.Fatal(err)
