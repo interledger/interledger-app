@@ -3,15 +3,10 @@ package mx
 //go:generate mockgen -destination=./mock.go -package=mx -source=./service.go
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -19,6 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/mx/external"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -34,24 +30,24 @@ var (
 
 type (
 	Service interface {
-		CreateUser(ctx context.Context) (string, error)
-		GetWidgetUrl(ctx context.Context, mxUserGuid string) (string, error)
 		CreateAccount(ctx context.Context, args *CreateAccountArgs) (*Account, error)
-		GetAccount(ctx context.Context, guid string) (*Account, error)
-		StartIdentityAggregation(ctx context.Context, id string) (*Member, error)
-		GetMemberStatus(ctx context.Context, id string) (*Member, error)
-		GetAccountOwner(ctx context.Context, id string) (*AccountOwner, error)
-		ReadAccount(ctx context.Context, id string) (*MxAccount, error)
+		GetAccount(ctx context.Context, mxAccountGuid string) (*Account, error)
+		StartIdentityAggregation(ctx context.Context, mxAccountGuid string) (*Member, error)
+		GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error)
+		// This will fetch the account owner information for the specified mx account. The identity
+		// aggregation has to have been completed first.
+		GetAccountOwner(ctx context.Context, mxAccountGuid string) (*AccountOwner, error)
+		ReadAccount(ctx context.Context, mxAccountGuid string) (*AccountDetails, error)
+		// The mx connect widget will allow the user to log into their bank and select an account.
+		// They do not pass this to us on the front end and so we need to call out to find out the
+		// mx account guid of the account that was selected.
+		// Calling the users/:users/members/:members/account_numbers should only have the account selected
+		// by the user.
 		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
 		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
-		VerifyOwnership(ctx context.Context, id string) error
+		VerifyOwnership(ctx context.Context, mxAccountGuid string) error
 		GetConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 		InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error)
-	}
-
-	user struct {
-		Guid             string
-		ConnectWidgetUrl string `json:"connect_widget_url"`
 	}
 
 	Account struct {
@@ -73,25 +69,12 @@ type (
 		ConnectionStatus         string `json:"connection_status"`
 	}
 
-	AccountOwnersResponse struct {
-		AccountOwners []AccountOwner `json:"account_owners"`
-	}
-
 	AccountOwner struct {
-		AccountGuid string `json:"account_guid"`
-		OwnerName   string `json:"owner_name"`
-		Country     string
-		Email       string
-		Phone       string
-
-		// There are more fields (address, state etc.) but we wouldn't match on that at the moment.
+		AccountGuid string
+		OwnerName   string
 	}
 
-	ReadAccountResponse struct {
-		Account MxAccount
-	}
-
-	MxAccount struct {
+	AccountDetails struct {
 		Guid              string
 		UserGuid          string `json:"user_guid"`
 		MemberGuid        string `json:"member_guid"`
@@ -101,14 +84,10 @@ type (
 		TransitNumber     string `json:"transit_number"`
 		CurrencyCode      string `json:"currency_code"`
 		Type              string
-		AvailableBalance  float64 `json:"available_balance"`
-		Balance           float64
 	}
 
 	ServiceArgs struct {
-		BaseUrl         string           `validate:"required"`
-		ClientID        string           `validate:"required"`
-		ApiKey          string           `validate:"required"`
+		ExternalClient  external.Mx      `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		AccountsService accounts.Service `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
@@ -117,42 +96,13 @@ type (
 
 	service struct {
 		v               *validator.Validate
-		mxClient        *http.Client
-		baseUrl         string
+		externalClient  external.Mx
 		db              *sqlx.DB
 		accountsService accounts.Service
 		identityService identity.Service
 		temporal        client.Client
 	}
 )
-
-// This sets the basic auth credentials on every request.
-type basicAuthTransport struct {
-	baseTransport http.RoundTripper
-	userName      string
-	password      string
-}
-
-func (t basicAuthTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	r.SetBasicAuth(t.userName, t.password)
-	r.Header.Set("Accept", "application/vnd.mx.api.v1+json")
-	r.Header.Set("Content-Type", "application/json")
-	return t.baseTransport.RoundTrip(r)
-}
-
-func newBasicAuthTransport(userName string, password string) *basicAuthTransport {
-	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS12,
-		MaxVersion: tls.VersionTLS12,
-	}
-	return &basicAuthTransport{
-		baseTransport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-		userName: userName,
-		password: password,
-	}
-}
 
 func NewService(args *ServiceArgs) (Service, error) {
 	v := validator.New()
@@ -161,81 +111,13 @@ func NewService(args *ServiceArgs) (Service, error) {
 	}
 
 	return &service{
-		v:       v,
-		baseUrl: args.BaseUrl,
-		mxClient: &http.Client{
-			Transport: newBasicAuthTransport(args.ClientID, args.ApiKey),
-		},
+		v:               v,
+		externalClient:  args.ExternalClient,
 		db:              args.Db,
 		accountsService: args.AccountsService,
 		identityService: args.IdentityService,
 		temporal:        args.Temporal,
 	}, nil
-}
-
-func (s *service) CreateUser(ctx context.Context) (string, error) {
-	payload := `{ "user": { "is_disabled": false } }`
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/users", s.baseUrl), bytes.NewBuffer([]byte(payload)))
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	resp, err := s.mxClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	data := &struct {
-		User user
-	}{}
-	if err = json.Unmarshal(body, data); err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return data.User.Guid, nil
-}
-
-func (s *service) GetWidgetUrl(ctx context.Context, mxUserID string) (string, error) {
-	url := fmt.Sprintf("%s/users/%s/connect_widget_url", s.baseUrl, mxUserID)
-	payload := `{
-		"config": {
-		    "color_scheme": "light",
-		    "disable_institution_search": false,
-		    "include_transactions": false,
-		    "is_mobile_webview": false,
-		    "mode": "verification",
-		    "ui_message_version": 4,
-		    "wait_for_full_aggregation": true,
-		    "update_credentials": false
-		  }
-	}`
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(payload)))
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	resp, err := s.mxClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	data := &struct {
-		User user
-	}{}
-	if err = json.Unmarshal(body, data); err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	return data.User.ConnectWidgetUrl, nil
 }
 
 type CreateAccountArgs struct {
@@ -284,11 +166,11 @@ func (s *service) CreateAccount(
 	return ret, nil
 }
 
-func (s service) GetAccount(ctx context.Context, guid string) (*Account, error) {
+func (s service) GetAccount(ctx context.Context, mxAccountGuid string) (*Account, error) {
 	ret := &Account{}
-	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE guid=$1", guid)
+	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE guid=$1", mxAccountGuid)
 	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("guid=%s", guid))
+		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("mxAccountGuid=%s", mxAccountGuid))
 	} else {
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -304,63 +186,42 @@ func (s *service) StartIdentityAggregation(ctx context.Context, mxAccountGuid st
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/identify", s.baseUrl, mxAccount.UserGuid, mxAccount.MemberGuid)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
+	member, err := s.externalClient.AggregateIdentity(ctx, mxAccount.UserGuid, mxAccount.MemberGuid)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	resp, err := s.mxClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	member := &Member{}
-	if err = json.Unmarshal(body, member); err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return member, nil
+	return &Member{
+		Guid:                     member.Guid,
+		UserGuid:                 member.UserGuid,
+		AggregatedAt:             member.AggregatedAt,
+		IsBeingAggregated:        member.IsBeingAggregated,
+		SuccessfullyAggregatedAt: member.SuccessfullyAggregatedAt,
+		ConnectionStatus:         member.ConnectionStatus,
+	}, nil
 }
 
-// This is used to poll for the status of the aggregation.
 func (s *service) GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error) {
 	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/status", s.baseUrl, mxAccount.UserGuid, mxAccount.MemberGuid)
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	member, err := s.externalClient.GetMemberStatus(ctx, mxAccount.UserGuid, mxAccount.MemberGuid)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	resp, err := s.mxClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	member := &Member{}
-	if err = json.Unmarshal(body, member); err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return member, nil
+	return &Member{
+		Guid:                     member.Guid,
+		UserGuid:                 member.UserGuid,
+		AggregatedAt:             member.AggregatedAt,
+		IsBeingAggregated:        member.IsBeingAggregated,
+		SuccessfullyAggregatedAt: member.SuccessfullyAggregatedAt,
+		ConnectionStatus:         member.ConnectionStatus,
+	}, nil
 }
 
-// This will fetch the account owner information for the specified mx account. The identity
-// aggregation has to have been completed first.
 func (s service) GetAccountOwner(
 	ctx context.Context,
 	mxAccountGuid string,
@@ -370,31 +231,18 @@ func (s service) GetAccountOwner(
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/members/%s/account_owners", s.baseUrl, mxAccount.UserGuid, mxAccount.MemberGuid)
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	owners, err := s.externalClient.GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	resp, err := s.mxClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	accountOwnersResp := AccountOwnersResponse{}
-	if err = json.Unmarshal(body, &accountOwnersResp); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	var ret *AccountOwner = nil
-	for _, owner := range accountOwnersResp.AccountOwners {
+	for _, owner := range owners {
 		if owner.AccountGuid == mxAccount.Guid {
-			ret = &owner
+			ret = &AccountOwner{
+				OwnerName:   owner.OwnerName,
+				AccountGuid: owner.AccountGuid,
+			}
 			break
 		}
 	}
@@ -409,79 +257,46 @@ func (s service) GetAccountOwner(
 	return ret, nil
 }
 
-// This will fetch the account information from MX. The account routing information as well as
-// balance will be returned.
-// Note: the balance will be from the last time the account information was aggregated.
-func (s service) ReadAccount(ctx context.Context, mxAccountGuid string) (*MxAccount, error) {
+func (s service) ReadAccount(ctx context.Context, mxAccountGuid string) (*AccountDetails, error) {
 	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/users/%s/accounts/%s", s.baseUrl, mxAccount.UserGuid, mxAccount.Guid)
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	resp, err := s.mxClient.Do(req)
+	acc, err := s.externalClient.ReadAccount(ctx, mxAccount.UserGuid, mxAccount.Guid)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	ret := &ReadAccountResponse{}
-	if err = json.Unmarshal(body, ret); err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return &ret.Account, nil
+	return &AccountDetails{
+		Guid:              acc.Guid,
+		UserGuid:          acc.UserGuid,
+		MemberGuid:        acc.MemberGuid,
+		AccountNumber:     acc.AccountNumber,
+		InstitutionNumber: acc.InstitutionNumber,
+		RoutingNumber:     acc.RoutingNumber,
+		TransitNumber:     acc.TransitNumber,
+		CurrencyCode:      acc.CurrencyCode,
+		Type:              acc.Type,
+	}, nil
 }
 
-// The mx connect widget will allow the user to log into their bank and select an account.
-// They do not pass this to us on the front end and so we need to call out to find out the
-// mx account guid of the account that was selected.
-// Calling the users/:users/members/:members/account_numbers should only have the account selected
-// by the user.
 func (s service) GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error) {
-	url := fmt.Sprintf("%s/users/%s/members/%s/account_numbers?page=1&records_per_page=10", s.baseUrl, mxUserGuid, mxMemberGuid)
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	resp, err := s.mxClient.Do(req)
+	accountNumbers, err := s.externalClient.GetAccountNumbers(ctx, mxUserGuid, mxMemberGuid)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	var accounts struct {
-		AccountNumbers []struct {
-			AccountGuid string `json:"account_guid"`
-			UserGuid    string `json:"user_guid"`
-			MemberGuid  string `json:"member_guid"`
-		} `json:"account_numbers"`
-	}
-	if err = json.Unmarshal(body, &accounts); err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	if len(accounts.AccountNumbers) != 1 {
+	// there should be only 1 entry.
+	if len(accountNumbers) != 1 {
 		return "", fmt.Errorf(
 			"%w Unable to find account user selected. %d accounts were returned.",
 			ErrInternal,
-			len(accounts.AccountNumbers),
+			len(accountNumbers),
 		)
 	}
 
-	return accounts.AccountNumbers[0].AccountGuid, nil
+	return accountNumbers[0].AccountGuid, nil
 }
 
 func (s service) GetMxUserByAccountID(ctx context.Context, accountID string) (string, error) {
@@ -527,8 +342,11 @@ func (s *service) VerifyOwnership(ctx context.Context, id string) error {
 		return err
 	}
 
-	// This verification can be extended in future.
-	if strings.TrimSpace(fmt.Sprintf("%s %s", user.FirstName, user.LastName)) != strings.TrimSpace(ownerDetails.OwnerName) {
+	userFullName := strings.TrimSpace(fmt.Sprintf("%s %s", user.FirstName, user.LastName))
+	userFullName = strings.ToUpper(userFullName)
+	ownerName := strings.TrimSpace(ownerDetails.OwnerName)
+	ownerName = strings.ToUpper(ownerName)
+	if userFullName != ownerName {
 		return ErrOwnershipCheckFailed
 	}
 
@@ -548,19 +366,15 @@ func (s *service) GetConnectWidget(
 	mxUserGuid := ""
 	mxUserGuid, err = s.GetMxUserByAccountID(ctx, acc.ID)
 	if errors.Is(err, ErrNotFound) {
-		mxUserGuid, err = s.CreateUser(ctx)
+		mxUserGuid, err = s.externalClient.CreateUser(ctx)
 		if err != nil {
 			return "", fmt.Errorf("%w %s", ErrInternal, err)
 		}
-	} else {
-		if err != nil {
-			return "", fmt.Errorf("%w %s", ErrInternal, err)
-		}
-
-		// mx user found so carry on.
+	} else if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	url, err := s.GetWidgetUrl(ctx, mxUserGuid)
+	url, err := s.externalClient.GetWidgetUrl(ctx, mxUserGuid)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}

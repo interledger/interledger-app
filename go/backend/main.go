@@ -38,6 +38,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
+	_mxexternal "gitlab.com/fynbos/backend/providers/mx/external"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
@@ -186,9 +187,7 @@ func start(args *cli.StartArgs) {
 	}
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
-		BaseUrl:         args.MxBaseURL,
-		ClientID:        args.MxClientID,
-		ApiKey:          args.MxApiKey,
+		ExternalClient:  _mxexternal.NewClient(args.MxBaseURL, args.MxClientID, args.MxApiKey),
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,
@@ -436,9 +435,7 @@ func startWorker(args *cli.StartArgs) {
 	}
 
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
-		BaseUrl:         args.MxBaseURL,
-		ClientID:        args.MxClientID,
-		ApiKey:          args.MxApiKey,
+		ExternalClient:  _mxexternal.NewClient(args.MxBaseURL, args.MxClientID, args.MxApiKey),
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,

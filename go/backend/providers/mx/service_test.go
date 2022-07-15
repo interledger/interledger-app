@@ -2,8 +2,7 @@ package mx
 
 import (
 	"context"
-	"flag"
-	"os"
+	"errors"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -14,108 +13,20 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
+	external "gitlab.com/fynbos/backend/providers/mx/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 )
-
-var runIntegration = flag.Bool("integration", false, "Bool to run integration tests.")
-
-func TestIntegration(t *testing.T) {
-	if !*runIntegration {
-		t.Skip()
-	}
-	clientID := os.Getenv("MX_CLIENT_ID")
-	apiKey := os.Getenv("MX_API_KEY")
-	ctrl := gomock.NewController(t)
-	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         "https://int-api.mx.com",
-		ClientID:        clientID,
-		ApiKey:          apiKey,
-		Db:              &sqlx.DB{},
-		AccountsService: accounts.NewMockService(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
-		Temporal:        &mocks.Client{},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	userGuid, err := mx.CreateUser(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.NotEqual(t, "", userGuid)
-
-	url, err := mx.GetWidgetUrl(context.Background(), userGuid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.NotEqual(t, "", url)
-}
-
-func TestCreateUser(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	mockMxServer := NewMockServer()
-	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
-		Db:              &sqlx.DB{},
-		AccountsService: accounts.NewMockService(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
-		Temporal:        &mocks.Client{},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	userGuid, err := mx.CreateUser(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_ = uuid.MustParse(userGuid)
-}
-
-func TestGetWidgetUrl(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	mockMxServer := NewMockServer()
-	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
-		Db:              &sqlx.DB{},
-		AccountsService: accounts.NewMockService(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
-		Temporal:        &mocks.Client{},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	url, err := mx.GetWidgetUrl(ctx, uuid.NewString())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.NotEqual(t, "", url)
-}
 
 func TestCreateAndGetAccount(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockMxServer := NewMockServer()
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -166,12 +77,10 @@ func TestGetMemberStatus(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	mockMxServer := NewMockServer()
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -191,6 +100,15 @@ func TestGetMemberStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	mockExternalClient.EXPECT().GetMemberStatus(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+		Return(
+			&external.Member{
+				Guid:              mxAccount.MemberGuid,
+				UserGuid:          mxAccount.UserGuid,
+				IsBeingAggregated: false,
+			},
+			nil,
+		).Times(1)
 
 	member, err := mx.GetMemberStatus(ctx, mxAccount.Guid)
 	if err != nil {
@@ -206,12 +124,57 @@ func TestStartIdentityAggregation(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	mockMxServer := NewMockServer()
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
+		Db:              db,
+		AccountsService: accounts.NewMockService(ctrl),
+		IdentityService: identity.NewMockService(ctrl),
+		Temporal:        &mocks.Client{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
+		Guid:            uuid.NewString(),
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mockExternalClient.EXPECT().AggregateIdentity(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+		Return(
+			&external.Member{
+				Guid:              mxAccount.MemberGuid,
+				UserGuid:          mxAccount.UserGuid,
+				IsBeingAggregated: true,
+			},
+			nil,
+		).Times(1)
+
+	member, err := mx.StartIdentityAggregation(ctx, mxAccount.Guid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, mxAccount.UserGuid, member.UserGuid)
+	assert.Equal(t, mxAccount.MemberGuid, member.Guid)
+	assert.Equal(t, true, member.IsBeingAggregated)
+}
+
+func TestGetAccountOwner(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	db := test_utils.MigrateCockroachDB(t, ctx)
+	mockExternalClient := external.NewMockMx(ctrl)
+	mx, err := NewService(&ServiceArgs{
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -232,103 +195,46 @@ func TestStartIdentityAggregation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	member, err := mx.StartIdentityAggregation(ctx, mxAccount.Guid)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, mxAccount.UserGuid, member.UserGuid)
-	assert.Equal(t, mxAccount.MemberGuid, member.Guid)
-	assert.Equal(t, true, member.IsBeingAggregated)
-}
-
-func TestGetAccountOwner(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	mxAccountGuid := uuid.NewString()
-	accountOwners := []AccountOwner{
-		{
-			AccountGuid: mxAccountGuid,
-			OwnerName:   faker.Name(),
-			Country:     "US",
-			Email:       faker.Email(),
-			Phone:       faker.E164PhoneNumber(),
-		},
-	}
-	mockMxServer := NewMockServer(func(s *MockServerState) {
-		s.AccountOwners = accountOwners
-	})
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
-		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
-		Temporal:        &mocks.Client{},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	mxFundingSourceID := ""
 	scenarios := []struct {
 		Name          string
 		ExpectedError error
-		RunBefore     func()
+		AccountOwners []external.AccountOwner
 	}{
 		{
 			Name:          "Returns account owner details",
 			ExpectedError: nil,
-			RunBefore: func() {
-				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:            mxAccountGuid,
-					UserGuid:        uuid.NewString(),
-					MemberGuid:      uuid.NewString(),
-					AccountID:       uuid.NewString(),
-					FundingsourceID: uuid.NewString(),
-				})
-				if err != nil {
-					t.Fatal(err)
-				}
-				mxFundingSourceID = mxAccount.Guid
+			AccountOwners: []external.AccountOwner{
+				{
+					AccountGuid: mxAccount.Guid,
+					OwnerName:   faker.Name(),
+				},
 			},
 		},
 		{
 			Name:          "Returns ErrNotFound if mx account guid is not found.",
 			ExpectedError: ErrNotFound,
-			RunBefore: func() {
-				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:            uuid.NewString(),
-					UserGuid:        uuid.NewString(),
-					MemberGuid:      uuid.NewString(),
-					AccountID:       uuid.NewString(),
-					FundingsourceID: uuid.NewString(),
-				})
-				if err != nil {
-					t.Fatal(err)
-				}
-				mxFundingSourceID = mxAccount.Guid
+			AccountOwners: []external.AccountOwner{
+				{
+					AccountGuid: uuid.NewString(),
+					OwnerName:   faker.Name(),
+				},
 			},
 		},
 	}
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(st *testing.T) {
-			scenario.RunBefore()
+			mockExternalClient.EXPECT().
+				GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+				Return(scenario.AccountOwners, nil).Times(1)
 
-			accountOwner, err := mx.GetAccountOwner(ctx, mxFundingSourceID)
+			accountOwner, err := mx.GetAccountOwner(ctx, mxAccount.Guid)
 
 			if scenario.ExpectedError == nil {
 				assert.NoError(st, err, scenario.Name)
-				owner := accountOwners[0]
-				assert.Equal(st, mxAccountGuid, accountOwner.AccountGuid, scenario.Name)
-				assert.Equal(st, owner.Country, accountOwner.Country, scenario.Name)
+				owner := scenario.AccountOwners[0]
+				assert.Equal(st, mxAccount.Guid, accountOwner.AccountGuid, scenario.Name)
 				assert.Equal(st, owner.OwnerName, accountOwner.OwnerName, scenario.Name)
-				assert.Equal(st, owner.Email, accountOwner.Email, scenario.Name)
-				assert.Equal(st, owner.Phone, accountOwner.Phone, scenario.Name)
 			} else {
 				assert.Nil(st, accountOwner, scenario.Name)
 				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
@@ -338,35 +244,14 @@ func TestGetAccountOwner(t *testing.T) {
 
 }
 
-func TestGetMxAccount(t *testing.T) {
+func TestReadAccount(t *testing.T) {
 	t.Parallel()
-	// TODO: refactor container setup
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	mxAccountGuid := uuid.NewString()
-	mxUserGuid := uuid.NewString()
-	mxMemberGuid := uuid.NewString()
-	expectedMxAccount := MxAccount{
-		Guid:              mxAccountGuid,
-		UserGuid:          mxUserGuid,
-		MemberGuid:        mxMemberGuid,
-		AccountNumber:     "123",
-		InstitutionNumber: "321",
-		RoutingNumber:     "68899990000000",
-		TransitNumber:     "123",
-		CurrencyCode:      "780",
-		Type:              "SAVINGS",
-		AvailableBalance:  500.00,
-		Balance:           500.00,
-	}
-	mockMxServer := NewMockServer(func(s *MockServerState) {
-		s.MxAccount = expectedMxAccount
-	})
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mockMxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -376,61 +261,57 @@ func TestGetMxAccount(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mxFundingSourceID := ""
+	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
+		Guid:            uuid.NewString(),
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	scenarios := []struct {
-		Name          string
-		ExpectedError error
-		RunBefore     func()
+		Name                string
+		ExpectedError       error
+		ExternalClientError error
+		Account             *external.Account
 	}{
 		{
-			Name:          "Returns account numbers",
-			ExpectedError: nil,
-			RunBefore: func() {
-				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:            mxAccountGuid,
-					UserGuid:        mxUserGuid,
-					MemberGuid:      mxMemberGuid,
-					AccountID:       uuid.NewString(),
-					FundingsourceID: uuid.NewString(),
-				})
-				if err != nil {
-					t.Fatal(err)
-				}
-				mxFundingSourceID = mxAccount.Guid
+			Name:                "Returns account numbers",
+			ExpectedError:       nil,
+			ExternalClientError: nil,
+			Account: &external.Account{
+				AccountNumber:     "123",
+				InstitutionNumber: "321",
+				RoutingNumber:     "68899990000000",
+				TransitNumber:     "123",
+				CurrencyCode:      "780",
+				Type:              "SAVINGS",
+				AvailableBalance:  500.00,
+				Balance:           500.00,
 			},
 		},
 		{
-			Name:          "Returns ErrInternal if mx account guid is not found on mx.",
-			ExpectedError: ErrInternal,
-			RunBefore: func() {
-				mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-					Guid:            uuid.NewString(),
-					UserGuid:        uuid.NewString(),
-					MemberGuid:      uuid.NewString(),
-					AccountID:       uuid.NewString(),
-					FundingsourceID: uuid.NewString(),
-				})
-				if err != nil {
-					t.Fatal(err)
-				}
-				mxFundingSourceID = mxAccount.Guid
-			},
+			Name:                "Returns ErrInternal if mx account guid is not found on mx.",
+			ExpectedError:       ErrInternal,
+			ExternalClientError: errors.New("not found"),
 		},
 	}
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(st *testing.T) {
-			scenario.RunBefore()
+			mockExternalClient.EXPECT().ReadAccount(ctx, mxAccount.UserGuid, mxAccount.Guid).
+				Return(scenario.Account, scenario.ExternalClientError).Times(1)
 
-			mxAccount, err := mx.ReadAccount(ctx, mxFundingSourceID)
+			mxAccount, err := mx.ReadAccount(ctx, mxAccount.Guid)
 
 			if scenario.ExpectedError == nil {
 				assert.NoError(st, err, scenario.Name)
-				assert.Equal(st, mxAccountGuid, mxAccount.Guid, scenario.Name)
-				assert.Equal(st, expectedMxAccount.InstitutionNumber, mxAccount.InstitutionNumber, scenario.Name)
-				assert.Equal(st, expectedMxAccount.AvailableBalance, mxAccount.AvailableBalance, scenario.Name)
-				assert.Equal(st, expectedMxAccount.RoutingNumber, mxAccount.RoutingNumber, scenario.Name)
-				assert.Equal(st, expectedMxAccount.TransitNumber, mxAccount.TransitNumber, scenario.Name)
+				assert.Equal(st, mxAccount.Guid, mxAccount.Guid, scenario.Name)
+				assert.Equal(st, scenario.Account.InstitutionNumber, mxAccount.InstitutionNumber, scenario.Name)
+				assert.Equal(st, scenario.Account.RoutingNumber, mxAccount.RoutingNumber, scenario.Name)
+				assert.Equal(st, scenario.Account.TransitNumber, mxAccount.TransitNumber, scenario.Name)
 			} else {
 				assert.Nil(st, mxAccount, scenario.Name)
 				assert.ErrorIs(st, err, scenario.ExpectedError, scenario.Name)
@@ -442,14 +323,12 @@ func TestGetMxAccount(t *testing.T) {
 
 func TestGetMxUserByAccountID(t *testing.T) {
 	t.Parallel()
-	// TODO: refactor container setup
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         "localhost:8080",
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts.NewMockService(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
@@ -555,22 +434,9 @@ func TestVerifyOwnership(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	accountService := accounts.NewMockService(ctrl)
 	identityService := identity.NewMockService(ctrl)
-	mxAccountGuid := uuid.NewString()
-	mxServer := NewMockServer(func(s *MockServerState) {
-		s.AccountOwners = []AccountOwner{
-			{
-				AccountGuid: mxAccountGuid,
-				OwnerName:   "James Bond",
-				Country:     "US",
-				Email:       faker.Email(),
-				Phone:       faker.E164PhoneNumber(),
-			},
-		}
-	})
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accountService,
 		IdentityService: identityService,
@@ -581,7 +447,7 @@ func TestVerifyOwnership(t *testing.T) {
 	}
 	userID := uuid.NewString()
 	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-		Guid:            mxAccountGuid,
+		Guid:            uuid.NewString(),
 		UserGuid:        uuid.NewString(),
 		MemberGuid:      uuid.NewString(),
 		AccountID:       uuid.NewString(),
@@ -590,59 +456,53 @@ func TestVerifyOwnership(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	accountService.EXPECT().Get(gomock.Any(), mxAccount.AccountID).Return(
+		&accounts.Account{
+			ID:         mxAccount.Guid,
+			IdentityID: userID,
+		},
+		nil,
+	).AnyTimes()
+	identityService.EXPECT().Get(ctx, userID).Return(
+		&identity.Identity{
+			ID:        userID,
+			FirstName: "James",
+			LastName:  "Bond",
+		},
+		nil,
+	).AnyTimes()
 
 	testcases := []struct {
 		Name          string
 		ExpectedError error
-		RunBefore     func()
+		AccountOwners []external.AccountOwner
 	}{
 		{
 			Name:          "Verifies if account owner's name is the same as user's name",
 			ExpectedError: nil,
-			RunBefore: func() {
-				accountService.EXPECT().Get(gomock.Any(), mxAccount.AccountID).Return(
-					&accounts.Account{
-						ID:         mxAccount.Guid,
-						IdentityID: userID,
-					},
-					nil,
-				).Times(1)
-				identityService.EXPECT().Get(ctx, userID).Return(
-					&identity.Identity{
-						ID:        userID,
-						FirstName: "James",
-						LastName:  "Bond",
-					},
-					nil,
-				).Times(1)
+			AccountOwners: []external.AccountOwner{
+				{
+					AccountGuid: mxAccount.Guid,
+					OwnerName:   "James bond",
+				},
 			},
 		},
 		{
 			Name:          "Returns ErrOwnershipCheckFailed if account owner's name does not match user's name",
 			ExpectedError: ErrOwnershipCheckFailed,
-			RunBefore: func() {
-				accountService.EXPECT().Get(ctx, mxAccount.AccountID).Return(
-					&accounts.Account{
-						ID:         mxAccount.Guid,
-						IdentityID: userID,
-					},
-					nil,
-				).Times(1)
-				identityService.EXPECT().Get(ctx, userID).Return(
-					&identity.Identity{
-						ID:        userID,
-						FirstName: "Home",
-						LastName:  "Bond",
-					},
-					nil,
-				).Times(1)
+			AccountOwners: []external.AccountOwner{
+				{
+					AccountGuid: mxAccount.Guid,
+					OwnerName:   "James Blunt",
+				},
 			},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
-			tc.RunBefore()
+			mockExternalClient.EXPECT().GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+				Return(tc.AccountOwners, nil).Times(1)
 
 			err = mx.VerifyOwnership(ctx, mxAccount.Guid)
 
@@ -656,29 +516,15 @@ func TestVerifyOwnership(t *testing.T) {
 }
 
 func TestGetMxConnectWidget(t *testing.T) {
-	// TODO: refactor test container
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	accountService := accounts.NewMockService(ctrl)
 	identityService := identity.NewMockService(ctrl)
-	mxAccountGuid := uuid.NewString()
-	mxServer := NewMockServer(func(s *MockServerState) {
-		s.AccountOwners = []AccountOwner{
-			{
-				AccountGuid: mxAccountGuid,
-				OwnerName:   "James Bond",
-				Country:     "US",
-				Email:       faker.Email(),
-				Phone:       faker.E164PhoneNumber(),
-			},
-		}
-	})
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         mxServer.URL,
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accountService,
 		IdentityService: identityService,
@@ -688,31 +534,31 @@ func TestGetMxConnectWidget(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// TODO: service needs to be refactored so that can test that api calls were made.
 	accountID := uuid.NewString()
 	userID := uuid.NewString()
 	accountService.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
 		ID:         accountID,
 		IdentityID: userID,
 	}, nil).AnyTimes()
+	mxUserGuid := uuid.NewString()
+	mockExternalClient.EXPECT().CreateUser(ctx).Return(mxUserGuid, nil).Times(1)
+	mockExternalClient.EXPECT().GetWidgetUrl(ctx, mxUserGuid).Return("localhost", nil)
 
 	url, err := mx.GetConnectWidget(context.Background(), accountID, userID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.NotEqual(t, "", url)
+	assert.Equal(t, "localhost", url)
 }
 
 func TestInitiateCreateAccount(t *testing.T) {
-	// TODO: refactor test container
 	ctrl := gomock.NewController(t)
 	accountsService := accounts.NewMockService(ctrl)
 	identityService := identity.NewMockService(ctrl)
 	temporal := &mocks.Client{}
+	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
-		BaseUrl:         "http://localhost",
-		ClientID:        "test",
-		ApiKey:          "test",
+		ExternalClient:  mockExternalClient,
 		Db:              &sqlx.DB{},
 		AccountsService: accountsService,
 		IdentityService: identityService,

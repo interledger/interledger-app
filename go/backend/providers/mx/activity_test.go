@@ -48,7 +48,7 @@ func TestCreateFundingsource(t *testing.T) {
 		nil,
 	).Times(1)
 	mocks.Mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
-		&MxAccount{
+		&AccountDetails{
 			Guid:          mxAccountGuid,
 			AccountNumber: "81818181234", // will be used to set the mask on the funding source
 		},
@@ -122,7 +122,7 @@ func TestCreateUnitCounterparty(t *testing.T) {
 	)
 
 	mocks.Mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
-		&MxAccount{
+		&AccountDetails{
 			Guid:              mxAccountGuid,
 			AccountNumber:     "81818181234", // will be used to set the mask on the funding source
 			RoutingNumber:     "71717171717",
