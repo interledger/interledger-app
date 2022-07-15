@@ -114,7 +114,7 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 	for i, err := range eventErrors {
 		ret[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 
@@ -196,7 +196,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	for i, err := range errors {
 		errorsToReturn[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 
@@ -250,7 +250,7 @@ func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTr
 	for i, err := range errors {
 		errorsToReturn[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 
@@ -273,7 +273,7 @@ func (s *rpcServer) VoidTransfers(ctx context.Context, req *pacioliv1.VoidTransf
 	for i, err := range errors {
 		errorsToReturn[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 

@@ -97,8 +97,8 @@ func (s *service) Init(ctx context.Context) error {
 			Args: []*pacioliv1.ConfigureAccountsArgs{
 				{
 					Id:       s.equityAccountID,
-					LedgerId: uint32(s.ledgerID),
-					// Code: 1,
+					LedgerId: s.ledgerID,
+					Code:     1,
 				},
 			},
 		},
