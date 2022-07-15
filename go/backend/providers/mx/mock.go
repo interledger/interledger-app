@@ -49,21 +49,6 @@ func (mr *MockServiceMockRecorder) CreateAccount(ctx, args interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockService)(nil).CreateAccount), ctx, args)
 }
 
-// CreateUser mocks base method.
-func (m *MockService) CreateUser(ctx context.Context) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", ctx)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateUser indicates an expected call of CreateUser.
-func (mr *MockServiceMockRecorder) CreateUser(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockService)(nil).CreateUser), ctx)
-}
-
 // GetAccount mocks base method.
 func (m *MockService) GetAccount(ctx context.Context, guid string) (*Account, error) {
 	m.ctrl.T.Helper()
@@ -154,21 +139,6 @@ func (mr *MockServiceMockRecorder) GetSelectedAccountGuid(ctx, mxUserGuid, mxMem
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSelectedAccountGuid", reflect.TypeOf((*MockService)(nil).GetSelectedAccountGuid), ctx, mxUserGuid, mxMemberGuid)
 }
 
-// GetWidgetUrl mocks base method.
-func (m *MockService) GetWidgetUrl(ctx context.Context, mxUserGuid string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWidgetUrl", ctx, mxUserGuid)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetWidgetUrl indicates an expected call of GetWidgetUrl.
-func (mr *MockServiceMockRecorder) GetWidgetUrl(ctx, mxUserGuid interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetUrl", reflect.TypeOf((*MockService)(nil).GetWidgetUrl), ctx, mxUserGuid)
-}
-
 // InitiateCreateAccount mocks base method.
 func (m *MockService) InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error) {
 	m.ctrl.T.Helper()
@@ -185,10 +155,10 @@ func (mr *MockServiceMockRecorder) InitiateCreateAccount(ctx, args interface{}) 
 }
 
 // ReadAccount mocks base method.
-func (m *MockService) ReadAccount(ctx context.Context, id string) (*MxAccount, error) {
+func (m *MockService) ReadAccount(ctx context.Context, id string) (*AccountDetails, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadAccount", ctx, id)
-	ret0, _ := ret[0].(*MxAccount)
+	ret0, _ := ret[0].(*AccountDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

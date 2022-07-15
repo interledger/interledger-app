@@ -305,3 +305,9 @@ func (a *Activity) CreateFundingSource(
 
 	return nil
 }
+
+// This will start the balance aggregation. You will have to get the member's status to see when the
+// process has been completed.
+func (a *Activity) StartBalanceAggregation(ctx context.Context, mxAccountGuid string) error {
+	panic("not implemented.")
+}
