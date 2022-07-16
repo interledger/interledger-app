@@ -181,20 +181,12 @@ func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
 
 	for _, agreementFile := range agreementFiles {
 		if !regex.MatchString(agreementFile.Name()) {
-			continue
+			return fmt.Errorf("%w %s", ErrInternal, "invalid agreement file name format")
 		}
 
 		agreementID := agreementFile.Name()[:len(agreementFile.Name())-3]
-
 		agreementName := agreementID[:strings.Index(agreementID, "-")]
-		if agreementName == "" {
-			continue
-		}
-
 		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
-		if agreementVersion == "" {
-			continue
-		}
 
 		agreementContent, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", args.dir, agreementFile.Name()))
 		if err != nil {

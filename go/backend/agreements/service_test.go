@@ -11,11 +11,12 @@ import (
 )
 
 func TestSignAgreements(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	as, err := NewService(&ServiceArgs{
 		Db:            db,
-		AgreementsDir: "markdowns",
+		AgreementsDir: "../utils/agreements/test",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -34,11 +35,12 @@ func TestSignAgreements(t *testing.T) {
 }
 
 func TestAgreementSigns(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	as, err := NewService(&ServiceArgs{
 		Db:            db,
-		AgreementsDir: "markdowns",
+		AgreementsDir: "../utils/agreements/test",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -69,11 +71,12 @@ func TestAgreementSigns(t *testing.T) {
 }
 
 func TestGetAgreement(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	as, err := NewService(&ServiceArgs{
 		Db:            db,
-		AgreementsDir: "markdowns",
+		AgreementsDir: "../utils/agreements/test",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -89,13 +92,14 @@ func TestGetAgreement(t *testing.T) {
 	assert.Equal(t, "privacy policy content v2", agreement.Content)
 }
 
-func TestGetAllAgreements(t *testing.T) {
+func TestLiveAgreements(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	err := StoreAgreements(ctx, &StoreAgreementsArgs{
 		db:  db,
-		dir: "markdowns",
+		dir: "../utils/agreements/live",
 	})
 
 	assert.NoError(t, err)
