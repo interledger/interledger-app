@@ -14,7 +14,9 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
+	"go.temporal.io/sdk/temporal"
 
+	"gitlab.com/fynbos/backend/providers/mx/external"
 	"gitlab.com/fynbos/backend/providers/unit"
 )
 
@@ -166,6 +168,38 @@ func TestWaitForIdentityAggregation(t *testing.T) {
 	err := activity.WaitForIdentityAggregation(ctx, mxAccountGuid, 2, 10*time.Millisecond)
 
 	assert.NoError(t, err)
+}
+
+func TestStartBalanceAggregation(t *testing.T) {
+	ctx := context.Background()
+	activity, mocks := NewTestActivity(t)
+	mxAccountGuid := "acct_" + uuid.NewString()
+
+	t.Run("returns non retryable error if mx account not found", func(st *testing.T) {
+		mocks.Mx.EXPECT().StartBalanceAggregation(ctx, mxAccountGuid).Return(nil, ErrNotFound).Times(1)
+
+		err := activity.StartBalanceAggregation(ctx, mxAccountGuid)
+
+		assert.True(st, temporal.IsApplicationError(err))
+		applicationError := err.(*temporal.ApplicationError)
+		assert.True(st, applicationError.NonRetryable())
+	})
+
+	t.Run("returns non retryable error if member status indicates it cannot be aggregated", func(st *testing.T) {
+		mocks.Mx.EXPECT().StartBalanceAggregation(ctx, mxAccountGuid).Return(
+			&Member{
+				IsBeingAggregated: false,
+				ConnectionStatus:  external.CONNECTION_STATUS_CHALLENGED,
+			},
+			nil,
+		).Times(1)
+
+		err := activity.StartBalanceAggregation(ctx, mxAccountGuid)
+
+		assert.True(st, temporal.IsApplicationError(err))
+		applicationError := err.(*temporal.ApplicationError)
+		assert.True(st, applicationError.NonRetryable())
+	})
 }
 
 type MockArgs struct {

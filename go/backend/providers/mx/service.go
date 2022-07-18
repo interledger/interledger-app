@@ -32,6 +32,7 @@ type (
 	Service interface {
 		CreateAccount(ctx context.Context, args *CreateAccountArgs) (*Account, error)
 		GetAccount(ctx context.Context, mxAccountGuid string) (*Account, error)
+		GetAccountByFundingsource(ctx context.Context, fundingsourceID string) (*Account, error)
 		StartIdentityAggregation(ctx context.Context, mxAccountGuid string) (*Member, error)
 		GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error)
 		// This will fetch the account owner information for the specified mx account. The identity
@@ -179,10 +180,22 @@ func (s service) GetAccount(ctx context.Context, mxAccountGuid string) (*Account
 	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE guid=$1", mxAccountGuid)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("mxAccountGuid=%s", mxAccountGuid))
-	} else {
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", ErrInternal, err)
-		}
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret, nil
+}
+
+func (s service) GetAccountByFundingsource(ctx context.Context, fundingsourceID string) (*Account, error) {
+	ret := &Account{}
+	err := s.db.GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE fundingsource_id=$1", fundingsourceID)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("%w %s", ErrNotFound, fmt.Sprintf("fundingsourceID=%s", fundingsourceID))
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	return ret, nil
