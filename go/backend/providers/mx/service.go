@@ -48,6 +48,8 @@ type (
 		VerifyOwnership(ctx context.Context, mxAccountGuid string) error
 		GetConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 		InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error)
+		StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error)
+		GetAccountBalance(ctx context.Context, mxAccountGuid string) (*AccountBalance, error)
 	}
 
 	Account struct {
@@ -84,6 +86,12 @@ type (
 		TransitNumber     string `json:"transit_number"`
 		CurrencyCode      string `json:"currency_code"`
 		Type              string
+	}
+
+	AccountBalance struct {
+		AssetCode  string
+		AssetScale uint8
+		Value      int64
 	}
 
 	ServiceArgs struct {
@@ -430,4 +438,66 @@ func (s *service) InitiateCreateAccount(
 	}
 
 	return workflowUuid, nil
+}
+
+func (s *service) StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error) {
+	mxAcc, err := s.GetAccount(ctx, mxAccountGuid)
+	if err != nil {
+		return nil, err
+	}
+
+	member, err := s.externalClient.AggregateBalance(ctx, mxAcc.UserGuid, mxAcc.MemberGuid)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &Member{
+		Guid:                     member.Guid,
+		UserGuid:                 member.UserGuid,
+		AggregatedAt:             member.AggregatedAt,
+		IsBeingAggregated:        member.IsBeingAggregated,
+		SuccessfullyAggregatedAt: member.SuccessfullyAggregatedAt,
+		ConnectionStatus:         member.ConnectionStatus,
+	}, nil
+}
+
+func (s *service) GetAccountBalance(ctx context.Context, mxAccountGuid string) (*AccountBalance, error) {
+	mxAcc, err := s.GetAccount(ctx, mxAccountGuid)
+	if err != nil {
+		return nil, err
+	}
+
+	accountDetails, err := s.externalClient.ReadAccount(ctx, mxAcc.UserGuid, mxAcc.Guid)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	balanceInCents := accountDetails.AvailableBalance * 100 // assume assetScale=2
+	balance := int64(balanceInCents)                        // truncate after cents
+
+	return &AccountBalance{
+		AssetCode:  accountDetails.CurrencyCode,
+		AssetScale: 2,
+		Value:      balance,
+	}, nil
+}
+
+func CanAggregate(memberConnectionStatus string) bool {
+	switch memberConnectionStatus {
+	case external.CONNECTION_STATUS_CONNECTED,
+		external.CONNECTION_STATUS_CREATED,
+		external.CONNECTION_STATUS_DEGRADED,
+		external.CONNECTION_STATUS_DISCONNECTED,
+		external.CONNECTION_STATUS_EXPIRED,
+		external.CONNECTION_STATUS_FAILED,
+		external.CONNECTION_STATUS_IMPEDED,
+		external.CONNECTION_STATUS_RECONNECTED,
+		external.CONNECTION_STATUS_UPDATED,
+		external.CONNECTION_STATUS_DELAYED,
+		external.CONNECTION_STATUS_REJECTED,
+		external.CONNECTION_STATUS_RESUMED:
+		return true
+	default:
+		return false
+	}
 }

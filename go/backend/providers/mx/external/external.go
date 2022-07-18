@@ -95,7 +95,7 @@ type (
 
 	Mx interface {
 		CreateUser(ctx context.Context) (string, error)
-		CheckBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error)
+		AggregateBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error)
 		ReadAccount(ctx context.Context, userGuid, accountGuid string) (*Account, error)
 		GetWidgetUrl(ctx context.Context, userGuid string) (string, error)
 		GetAccountNumbers(ctx context.Context, userGuid, memberGuid string) ([]AccountNumbers, error)
@@ -174,7 +174,7 @@ func (c *client) CreateUser(ctx context.Context) (string, error) {
 	return data.User.Guid, nil
 }
 
-func (c *client) CheckBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
+func (c *client) AggregateBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
 	url := fmt.Sprintf("%s/users/%s/members/%s/check_balance", c.baseUrl, userGuid, memberGuid)
 	req, err := _http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
 	if err != nil {

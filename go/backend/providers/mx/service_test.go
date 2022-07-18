@@ -656,3 +656,79 @@ func TestInitiateCreateAccount(t *testing.T) {
 		})
 	}
 }
+
+func TestGetAccountBalance(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	accountsService := accounts.NewMockService(ctrl)
+	identityService := identity.NewMockService(ctrl)
+	temporal := &mocks.Client{}
+	mockExternalClient := external.NewMockMx(ctrl)
+	mx, err := NewService(&ServiceArgs{
+		ExternalClient:  mockExternalClient,
+		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
+		AccountsService: accountsService,
+		IdentityService: identityService,
+		Temporal:        temporal,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+		Guid:            uuid.NewString(),
+		UserGuid:        uuid.NewString(),
+		MemberGuid:      uuid.NewString(),
+		AccountID:       uuid.NewString(),
+		FundingsourceID: uuid.NewString(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		Name            string
+		FloatBalance    float64
+		ExpectedBalance int64
+	}{
+		{
+			Name:            "Parses positive float balance",
+			FloatBalance:    117.19,
+			ExpectedBalance: 11719,
+		},
+		{
+			Name:            "Parses negative float balance",
+			FloatBalance:    -129.13,
+			ExpectedBalance: -12913,
+		},
+		{
+			Name:            "Truncates after cents",
+			FloatBalance:    117.9999999,
+			ExpectedBalance: 11799,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(st *testing.T) {
+			mockExternalClient.EXPECT().ReadAccount(gomock.Any(), mxAccount.UserGuid, mxAccount.Guid).
+				Return(
+					&external.Account{
+						Guid:             mxAccount.Guid,
+						UserGuid:         mxAccount.UserGuid,
+						MemberGuid:       mxAccount.MemberGuid,
+						CurrencyCode:     "USD",
+						AvailableBalance: tc.FloatBalance,
+					},
+					nil,
+				).Times(1)
+
+			balance, err := mx.GetAccountBalance(context.Background(), mxAccount.Guid)
+			if err != nil {
+				st.Fatal(err)
+			}
+
+			assert.Equal(st, tc.ExpectedBalance, balance.Value, tc.Name)
+			assert.Equal(st, "USD", balance.AssetCode, tc.Name)
+			assert.Equal(st, uint8(2), balance.AssetScale, tc.Name)
+		})
+	}
+}
