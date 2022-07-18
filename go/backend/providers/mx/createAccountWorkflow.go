@@ -61,7 +61,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 
 	err = workflow.ExecuteActivity(
 		ctx,
-		a.WaitForIdentityAggregation,
+		a.WaitForAggregation,
 		mxAccountGuid,
 		10,
 		time.Second,

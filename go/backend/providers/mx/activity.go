@@ -100,7 +100,7 @@ func (a *Activity) StartIdentityAggregation(
 // Uses a ticker and go routine to poll for aggregation to be complete. Temporal recommends this
 // over failing the activity task for polling at short intervals.
 // This will always perform at least one api call. Thereafter it will retry up to maxRetries.
-func (a *Activity) WaitForIdentityAggregation(
+func (a *Activity) WaitForAggregation(
 	ctx context.Context,
 	mxAccountGuid string,
 	maxRetries uint8,
@@ -110,7 +110,7 @@ func (a *Activity) WaitForIdentityAggregation(
 	retries := uint8(0)
 	for range ticker.C {
 		if retries > maxRetries {
-			return errors.New("Timed out waiting for identity aggregation.")
+			return errors.New("Timed out waiting for aggregation.")
 		}
 
 		member, err := a.mx.GetMemberStatus(ctx, mxAccountGuid)
@@ -326,4 +326,34 @@ func (a *Activity) StartBalanceAggregation(ctx context.Context, mxAccountGuid st
 	}
 
 	return nil
+}
+
+func (a *Activity) GetMxAccountByFundingsource(
+	ctx context.Context,
+	fundingsourceID string,
+) (*Account, error) {
+	mxAcc, err := a.mx.GetAccountByFundingsource(ctx, fundingsourceID)
+	if errors.Is(err, ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err // retryable
+	}
+
+	return mxAcc, nil
+}
+
+func (a *Activity) GetMxAccountBalance(
+	ctx context.Context,
+	mxAccountGuid string,
+) (*AccountBalance, error) {
+	balance, err := a.mx.GetAccountBalance(ctx, mxAccountGuid)
+	if errors.Is(err, ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err // retryable
+	}
+
+	return balance, nil
 }

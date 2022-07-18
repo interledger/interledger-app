@@ -225,7 +225,7 @@ func (s *service) StartIdentityAggregation(ctx context.Context, mxAccountGuid st
 func (s *service) GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error) {
 	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, err
 	}
 
 	member, err := s.externalClient.GetMemberStatus(ctx, mxAccount.UserGuid, mxAccount.MemberGuid)

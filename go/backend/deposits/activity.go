@@ -2,12 +2,15 @@ package deposits
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
 )
 
 type Activity struct {
@@ -131,4 +134,16 @@ func (s *Activity) SetDepositState(ctx context.Context, depositId string, state 
 		return err
 	}
 	return nil
+}
+
+func (a *Activity) GetDeposit(ctx context.Context, id string) (*Deposit, error) {
+	deposit, err := a.ds.Get(ctx, id)
+	if errors.Is(err, ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return deposit, err
 }

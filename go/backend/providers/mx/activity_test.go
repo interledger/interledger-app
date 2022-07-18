@@ -150,7 +150,7 @@ func TestCreateUnitCounterparty(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestWaitForIdentityAggregation(t *testing.T) {
+func TestWaitForAggregation(t *testing.T) {
 	ctx := context.Background()
 	activity, mocks := NewTestActivity(t)
 	mxAccountGuid := "acct_" + uuid.NewString()
@@ -165,7 +165,7 @@ func TestWaitForIdentityAggregation(t *testing.T) {
 		nil,
 	).Times(1)
 
-	err := activity.WaitForIdentityAggregation(ctx, mxAccountGuid, 2, 10*time.Millisecond)
+	err := activity.WaitForAggregation(ctx, mxAccountGuid, 2, 10*time.Millisecond)
 
 	assert.NoError(t, err)
 }
