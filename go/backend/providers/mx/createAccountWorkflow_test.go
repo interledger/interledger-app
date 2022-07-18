@@ -65,7 +65,7 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	).Return(nil)
 
 	s.env.OnActivity(
-		s.activity.WaitForIdentityAggregation,
+		s.activity.WaitForAggregation,
 		mock.Anything,
 		mxAccountGuid,
 		mock.Anything,
