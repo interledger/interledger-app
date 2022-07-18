@@ -309,5 +309,21 @@ func (a *Activity) CreateFundingSource(
 // This will start the balance aggregation. You will have to get the member's status to see when the
 // process has been completed.
 func (a *Activity) StartBalanceAggregation(ctx context.Context, mxAccountGuid string) error {
-	panic("not implemented.")
+	member, err := a.mx.StartBalanceAggregation(ctx, mxAccountGuid)
+	if errors.Is(err, ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err // retryable
+	}
+
+	if !CanAggregate(member.ConnectionStatus) {
+		return temporal.NewNonRetryableApplicationError(
+			fmt.Sprintf("Cannot aggregrate member with status=%s", member.ConnectionStatus),
+			"ErrNotFound",
+			err,
+		)
+	}
+
+	return nil
 }

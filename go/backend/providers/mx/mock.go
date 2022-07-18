@@ -79,6 +79,21 @@ func (mr *MockServiceMockRecorder) GetAccountBalance(ctx, mxAccountGuid interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountBalance", reflect.TypeOf((*MockService)(nil).GetAccountBalance), ctx, mxAccountGuid)
 }
 
+// GetAccountByFundingsource mocks base method.
+func (m *MockService) GetAccountByFundingsource(ctx context.Context, fundingsourceID string) (*Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountByFundingsource", ctx, fundingsourceID)
+	ret0, _ := ret[0].(*Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountByFundingsource indicates an expected call of GetAccountByFundingsource.
+func (mr *MockServiceMockRecorder) GetAccountByFundingsource(ctx, fundingsourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountByFundingsource", reflect.TypeOf((*MockService)(nil).GetAccountByFundingsource), ctx, fundingsourceID)
+}
+
 // GetAccountOwner mocks base method.
 func (m *MockService) GetAccountOwner(ctx context.Context, mxAccountGuid string) (*AccountOwner, error) {
 	m.ctrl.T.Helper()
