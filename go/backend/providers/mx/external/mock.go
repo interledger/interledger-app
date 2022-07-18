@@ -34,6 +34,21 @@ func (m *MockMx) EXPECT() *MockMxMockRecorder {
 	return m.recorder
 }
 
+// AggregateBalance mocks base method.
+func (m *MockMx) AggregateBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AggregateBalance", ctx, userGuid, memberGuid)
+	ret0, _ := ret[0].(*Member)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AggregateBalance indicates an expected call of AggregateBalance.
+func (mr *MockMxMockRecorder) AggregateBalance(ctx, userGuid, memberGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AggregateBalance", reflect.TypeOf((*MockMx)(nil).AggregateBalance), ctx, userGuid, memberGuid)
+}
+
 // AggregateIdentity mocks base method.
 func (m *MockMx) AggregateIdentity(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
 	m.ctrl.T.Helper()
@@ -47,21 +62,6 @@ func (m *MockMx) AggregateIdentity(ctx context.Context, userGuid, memberGuid str
 func (mr *MockMxMockRecorder) AggregateIdentity(ctx, userGuid, memberGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AggregateIdentity", reflect.TypeOf((*MockMx)(nil).AggregateIdentity), ctx, userGuid, memberGuid)
-}
-
-// CheckBalance mocks base method.
-func (m *MockMx) CheckBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckBalance", ctx, userGuid, memberGuid)
-	ret0, _ := ret[0].(*Member)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckBalance indicates an expected call of CheckBalance.
-func (mr *MockMxMockRecorder) CheckBalance(ctx, userGuid, memberGuid interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckBalance", reflect.TypeOf((*MockMx)(nil).CheckBalance), ctx, userGuid, memberGuid)
 }
 
 // CreateUser mocks base method.

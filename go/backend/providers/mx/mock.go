@@ -50,33 +50,48 @@ func (mr *MockServiceMockRecorder) CreateAccount(ctx, args interface{}) *gomock.
 }
 
 // GetAccount mocks base method.
-func (m *MockService) GetAccount(ctx context.Context, guid string) (*Account, error) {
+func (m *MockService) GetAccount(ctx context.Context, mxAccountGuid string) (*Account, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccount", ctx, guid)
+	ret := m.ctrl.Call(m, "GetAccount", ctx, mxAccountGuid)
 	ret0, _ := ret[0].(*Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAccount indicates an expected call of GetAccount.
-func (mr *MockServiceMockRecorder) GetAccount(ctx, guid interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetAccount(ctx, mxAccountGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockService)(nil).GetAccount), ctx, guid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockService)(nil).GetAccount), ctx, mxAccountGuid)
+}
+
+// GetAccountBalance mocks base method.
+func (m *MockService) GetAccountBalance(ctx context.Context, mxAccountGuid string) (*AccountBalance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountBalance", ctx, mxAccountGuid)
+	ret0, _ := ret[0].(*AccountBalance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountBalance indicates an expected call of GetAccountBalance.
+func (mr *MockServiceMockRecorder) GetAccountBalance(ctx, mxAccountGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountBalance", reflect.TypeOf((*MockService)(nil).GetAccountBalance), ctx, mxAccountGuid)
 }
 
 // GetAccountOwner mocks base method.
-func (m *MockService) GetAccountOwner(ctx context.Context, id string) (*AccountOwner, error) {
+func (m *MockService) GetAccountOwner(ctx context.Context, mxAccountGuid string) (*AccountOwner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountOwner", ctx, id)
+	ret := m.ctrl.Call(m, "GetAccountOwner", ctx, mxAccountGuid)
 	ret0, _ := ret[0].(*AccountOwner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAccountOwner indicates an expected call of GetAccountOwner.
-func (mr *MockServiceMockRecorder) GetAccountOwner(ctx, id interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetAccountOwner(ctx, mxAccountGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountOwner", reflect.TypeOf((*MockService)(nil).GetAccountOwner), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountOwner", reflect.TypeOf((*MockService)(nil).GetAccountOwner), ctx, mxAccountGuid)
 }
 
 // GetConnectWidget mocks base method.
@@ -95,18 +110,18 @@ func (mr *MockServiceMockRecorder) GetConnectWidget(ctx, accountID, identityID i
 }
 
 // GetMemberStatus mocks base method.
-func (m *MockService) GetMemberStatus(ctx context.Context, id string) (*Member, error) {
+func (m *MockService) GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemberStatus", ctx, id)
+	ret := m.ctrl.Call(m, "GetMemberStatus", ctx, mxAccountGuid)
 	ret0, _ := ret[0].(*Member)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMemberStatus indicates an expected call of GetMemberStatus.
-func (mr *MockServiceMockRecorder) GetMemberStatus(ctx, id interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetMemberStatus(ctx, mxAccountGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberStatus", reflect.TypeOf((*MockService)(nil).GetMemberStatus), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberStatus", reflect.TypeOf((*MockService)(nil).GetMemberStatus), ctx, mxAccountGuid)
 }
 
 // GetMxUserByAccountID mocks base method.
@@ -155,45 +170,60 @@ func (mr *MockServiceMockRecorder) InitiateCreateAccount(ctx, args interface{}) 
 }
 
 // ReadAccount mocks base method.
-func (m *MockService) ReadAccount(ctx context.Context, id string) (*AccountDetails, error) {
+func (m *MockService) ReadAccount(ctx context.Context, mxAccountGuid string) (*AccountDetails, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadAccount", ctx, id)
+	ret := m.ctrl.Call(m, "ReadAccount", ctx, mxAccountGuid)
 	ret0, _ := ret[0].(*AccountDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReadAccount indicates an expected call of ReadAccount.
-func (mr *MockServiceMockRecorder) ReadAccount(ctx, id interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) ReadAccount(ctx, mxAccountGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAccount", reflect.TypeOf((*MockService)(nil).ReadAccount), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAccount", reflect.TypeOf((*MockService)(nil).ReadAccount), ctx, mxAccountGuid)
+}
+
+// StartBalanceAggregation mocks base method.
+func (m *MockService) StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartBalanceAggregation", ctx, mxAccountGuid)
+	ret0, _ := ret[0].(*Member)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartBalanceAggregation indicates an expected call of StartBalanceAggregation.
+func (mr *MockServiceMockRecorder) StartBalanceAggregation(ctx, mxAccountGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartBalanceAggregation", reflect.TypeOf((*MockService)(nil).StartBalanceAggregation), ctx, mxAccountGuid)
 }
 
 // StartIdentityAggregation mocks base method.
-func (m *MockService) StartIdentityAggregation(ctx context.Context, id string) (*Member, error) {
+func (m *MockService) StartIdentityAggregation(ctx context.Context, mxAccountGuid string) (*Member, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartIdentityAggregation", ctx, id)
+	ret := m.ctrl.Call(m, "StartIdentityAggregation", ctx, mxAccountGuid)
 	ret0, _ := ret[0].(*Member)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StartIdentityAggregation indicates an expected call of StartIdentityAggregation.
-func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, id interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, mxAccountGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartIdentityAggregation", reflect.TypeOf((*MockService)(nil).StartIdentityAggregation), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartIdentityAggregation", reflect.TypeOf((*MockService)(nil).StartIdentityAggregation), ctx, mxAccountGuid)
 }
 
 // VerifyOwnership mocks base method.
-func (m *MockService) VerifyOwnership(ctx context.Context, id string) error {
+func (m *MockService) VerifyOwnership(ctx context.Context, mxAccountGuid string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyOwnership", ctx, id)
+	ret := m.ctrl.Call(m, "VerifyOwnership", ctx, mxAccountGuid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyOwnership indicates an expected call of VerifyOwnership.
-func (mr *MockServiceMockRecorder) VerifyOwnership(ctx, id interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) VerifyOwnership(ctx, mxAccountGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyOwnership", reflect.TypeOf((*MockService)(nil).VerifyOwnership), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyOwnership", reflect.TypeOf((*MockService)(nil).VerifyOwnership), ctx, mxAccountGuid)
 }
