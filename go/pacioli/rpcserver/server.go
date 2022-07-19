@@ -1,7 +1,9 @@
-package rpc
+package rpcserver
 
 import (
 	"context"
+
+	"gitlab.com/fynbos/pacioli"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -14,9 +16,9 @@ import (
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
-func NewServer(ps _ledger.Service, hs healthcheck.Service) *grpc.Server {
+func NewServer(b _ledger.Backends, hs healthcheck.Service) *grpc.Server {
 	server := grpc.NewServer()
-	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{ledger: ps})
+	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{b: b})
 	grpc_health_v1.RegisterHealthServer(server, hs)
 	reflection.Register(server)
 	return server
@@ -24,22 +26,22 @@ func NewServer(ps _ledger.Service, hs healthcheck.Service) *grpc.Server {
 
 type rpcServer struct {
 	pacioliv1.UnimplementedPacioliServiceServer
-	ledger _ledger.Service
+	b _ledger.Backends
 }
 
 // TODO: wire up grpc auth
 
 func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.ConfigureLedgersRequest) (*pacioliv1.ConfigureLedgersResponse, error) {
-	ledgers := make([]_ledger.ConfigureLedgerArgs, len(req.Args))
+	ledgers := make([]pacioli.ConfigureLedgerArgs, len(req.Args))
 	for i, ledger := range req.Args {
-		ledgers[i] = _ledger.ConfigureLedgerArgs{
+		ledgers[i] = pacioli.ConfigureLedgerArgs{
 			ID:    ledger.GetId(),
 			Name:  ledger.GetName(),
 			Asset: ledger.GetAsset(),
 			Scale: uint8(ledger.GetScale()),
 		}
 	}
-	eventErrors, err := s.ledger.ConfigureLedgers(ctx, ledgers)
+	eventErrors, err := _ledger.ConfigureLedgers(ctx, s.b, ledgers)
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -62,7 +64,7 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 }
 
 func (s *rpcServer) GetLedgers(ctx context.Context, req *pacioliv1.GetLedgersRequest) (*pacioliv1.GetLedgersResponse, error) {
-	ledgers, err := s.ledger.GetLedgers(ctx, req.GetIds())
+	ledgers, err := _ledger.GetLedgers(ctx, s.b, req.GetIds())
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -86,22 +88,22 @@ func (s *rpcServer) GetLedgers(ctx context.Context, req *pacioliv1.GetLedgersReq
 }
 
 func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.ConfigureAccountsRequest) (*pacioliv1.ConfigureAccountsResponse, error) {
-	accounts := make([]_ledger.ConfigureAccountArgs, len(req.Args))
+	accounts := make([]pacioli.ConfigureAccountArgs, len(req.Args))
 	for i, account := range req.Args {
-		flags := _ledger.AccountFlags{}
+		flags := pacioli.AccountFlags{}
 		if account.GetFlags() != nil {
 			flags.Linked = account.GetFlags().Linked
 			flags.DebitsMustNotExceedCredits = account.GetFlags().DebitsMustNotExceedCredits
 			flags.CreditsMustNotExceedDebits = account.GetFlags().CreditsMustNotExceedDebits
 		}
-		accounts[i] = _ledger.ConfigureAccountArgs{
+		accounts[i] = pacioli.ConfigureAccountArgs{
 			ID:       account.GetId(),
 			LedgerID: account.GetLedgerId(),
 			Code:     uint16(account.GetCode()),
 			Flags:    flags,
 		}
 	}
-	eventErrors, err := s.ledger.ConfigureAccounts(ctx, accounts)
+	eventErrors, err := _ledger.ConfigureAccounts(ctx, s.b, accounts)
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -124,7 +126,7 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 }
 
 func (s *rpcServer) GetAccounts(ctx context.Context, req *pacioliv1.GetAccountsRequest) (*pacioliv1.GetAccountsResponse, error) {
-	accounts, err := s.ledger.GetAccounts(ctx, req.GetIds())
+	accounts, err := _ledger.GetAccounts(ctx, s.b, req.GetIds())
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -160,11 +162,11 @@ func (s *rpcServer) GetAccounts(ctx context.Context, req *pacioliv1.GetAccountsR
 // unopinionated and accept []byte.
 func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTransfersRequest) (*pacioliv1.CreateTransfersResponse, error) {
 	transfers := req.GetTransfers()
-	transferArgs := make([]_ledger.CreateTransferArgs, len(transfers))
+	transferArgs := make([]pacioli.CreateTransferArgs, len(transfers))
 	for i, transfer := range transfers {
-		var flags _ledger.TransferFlags
+		var flags pacioli.TransferFlags
 		if transfer.Flags != nil {
-			flags = _ledger.TransferFlags{
+			flags = pacioli.TransferFlags{
 				Linked:              transfer.Flags.Linked,
 				Pending:             transfer.Flags.Pending,
 				PostPendingTransfer: transfer.Flags.PostPending,
@@ -172,7 +174,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 			}
 		}
 
-		transferArgs[i] = _ledger.CreateTransferArgs{
+		transferArgs[i] = pacioli.CreateTransferArgs{
 			ID:              transfer.GetId(),
 			Amount:          transfer.GetAmount(),
 			DebitAccountID:  transfer.GetDebitAccountId(),
@@ -184,7 +186,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 		}
 	}
 
-	errors, err := s.ledger.CreateTransfers(ctx, transferArgs)
+	errors, err := _ledger.CreateTransfers(ctx, s.b, transferArgs)
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -206,7 +208,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 }
 
 func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfersRequest) (*pacioliv1.GetTransfersResponse, error) {
-	transfers, err := s.ledger.GetTransfers(ctx, req.GetIds())
+	transfers, err := _ledger.GetTransfers(ctx, s.b, req.GetIds())
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -238,7 +240,7 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 
 func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTransfersRequest) (*pacioliv1.CommitTransfersResponse, error) {
 
-	errors, err := s.ledger.CommitTransfers(ctx, req.TransferIds)
+	errors, err := _ledger.CommitTransfers(ctx, s.b, req.TransferIds)
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -261,7 +263,7 @@ func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTr
 
 func (s *rpcServer) VoidTransfers(ctx context.Context, req *pacioliv1.VoidTransfersRequest) (*pacioliv1.VoidTransfersResponse, error) {
 
-	errors, err := s.ledger.VoidTransfers(ctx, req.TransferIds)
+	errors, err := _ledger.VoidTransfers(ctx, s.b, req.TransferIds)
 	if err != nil {
 		switch err.(type) {
 		default:

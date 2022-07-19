@@ -3,16 +3,17 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/coilhq/tigerbeetle-go"
+	"log"
+	"net"
+	"os"
+
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
-	ledger "gitlab.com/fynbos/pacioli/ledger"
-	"gitlab.com/fynbos/pacioli/rpc"
-	"log"
-	"net"
-	"os"
+	"gitlab.com/fynbos/pacioli/rpcserver"
 )
 
 //go:embed migrations/**.*.sql
@@ -68,13 +69,7 @@ func start(args *cli.StartArgs) {
 	}
 	defer tbClient.Close()
 
-	ls, err := ledger.NewService(&ledger.ServiceArgs{
-		Db: db,
-		Tb: tbClient,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	b := MakeBackends(db, tbClient)
 
 	hs, err := healthcheck.NewService()
 	if err != nil {
@@ -86,7 +81,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	log.Printf("grpc server: 0.0.0.0:%s", args.Port)
-	server := rpc.NewServer(ls, hs)
+	server := rpcserver.NewServer(b, hs)
 	err = server.Serve(listener)
 	if err != nil {
 		log.Fatalln(err)

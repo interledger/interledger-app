@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.com/fynbos/backend/deposits/ops"
+
 	faker "github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
@@ -465,7 +467,7 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 		}
 	}
 
-	deposit, err := r.Ds.InitiateDeposit(ctx, &deposits.InitiateDepositArgs{
+	deposit, err := r.Ds.InitiateDeposit(ctx, &ops.InitiateDepositArgs{
 		IdentityID:      user.ID,
 		AccountID:       acc.ID,
 		FundingSourceID: input.FundingSourceID,

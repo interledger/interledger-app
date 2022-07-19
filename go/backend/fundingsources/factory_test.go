@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -73,7 +75,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	}
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	c.PacioliClient = pClient
-	as, err := accounts.NewService(&accounts.ServiceArgs{
+	as, err := ops.NewService(&ops.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
 		PacioliLedgerID: c.PacioliLedgerID,

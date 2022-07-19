@@ -1,8 +1,10 @@
-package accounts
+package ops
 
 import (
 	"context"
 	"testing"
+
+	"gitlab.com/fynbos/backend/accounts"
 
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -66,7 +68,7 @@ func TestAccountsService(s *testing.T) {
 	}
 
 	s.Run("GetByIdentityID requires identityID", func(t *testing.T) {
-		var acc *Account
+		var acc *accounts.Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 			_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, "")
 			if err != nil {
@@ -77,13 +79,13 @@ func TestAccountsService(s *testing.T) {
 			return nil
 		})
 
-		assert.ErrorIs(t, err, ErrInvalidArgument)
+		assert.ErrorIs(t, err, accounts.ErrInvalidArgument)
 		assert.Contains(t, err.Error(), "IdentityID is required.")
 		assert.Nil(t, acc)
 	})
 
 	s.Run("Get requires accountID", func(t *testing.T) {
-		var acc *Account
+		var acc *accounts.Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 			_acc, err := as.Get(ctx, "")
 			if err != nil {
@@ -94,7 +96,7 @@ func TestAccountsService(s *testing.T) {
 			return nil
 		})
 
-		assert.ErrorIs(t, err, ErrInvalidArgument)
+		assert.ErrorIs(t, err, accounts.ErrInvalidArgument)
 		assert.Contains(t, err.Error(), "AccountID is required.")
 		assert.Nil(t, acc)
 	})
@@ -122,7 +124,7 @@ func TestAccountsService(s *testing.T) {
 		}
 
 		t.Run("updates verification state to verified", func(tt *testing.T) {
-			acc, err := as.Create(ctx, &CreateAccountArgs{
+			acc, err := as.Create(ctx, &accounts.CreateAccountArgs{
 				IdentityID: identity.ID,
 				Country:    identity.Country,
 			})
@@ -130,9 +132,9 @@ func TestAccountsService(s *testing.T) {
 				tt.Fatal(err)
 			}
 			assert.False(tt, acc.IsVerified())
-			var verifiedAcc *Account
+			var verifiedAcc *accounts.Account
 			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &VerifyArgs{
+				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &accounts.VerifyArgs{
 					AccountID:  acc.ID,
 					Provider:   "noop",
 					ProviderID: "test-customer1",
@@ -193,7 +195,7 @@ func TestAccountsService(s *testing.T) {
 				}
 				assert.NotNil(t, identity)
 
-				acc, err := as.Create(ctx, &CreateAccountArgs{
+				acc, err := as.Create(ctx, &accounts.CreateAccountArgs{
 					IdentityID:                 identity.ID,
 					Country:                    identity.Country,
 					DebitMustNotExceedCredits:  scenario.DebitsMustNotExceedCredits,
@@ -210,7 +212,7 @@ func TestAccountsService(s *testing.T) {
 				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, acc.CreditsMustNotExceedDebits)
 				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, acc.DebitsMustNotExceedCredits)
 
-				var freshAcc *Account
+				var freshAcc *accounts.Account
 				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
 					_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
 					if err != nil {
@@ -269,28 +271,28 @@ func TestAccountsService(s *testing.T) {
 			assert.NotNil(t, identity)
 			type scenario struct {
 				Name                 string
-				Args                 *CreateAccountArgs
+				Args                 *accounts.CreateAccountArgs
 				ExpectedErrorMessage string
 				ExpectedError        error
 			}
 			scenarios := []scenario{
 				{
 					Name: "Country code must be valid.",
-					Args: &CreateAccountArgs{
+					Args: &accounts.CreateAccountArgs{
 						IdentityID: identity.ID,
 						Country:    "XCV",
 					},
 					ExpectedErrorMessage: "Key: 'CreateAccountArgs.Country' Error:Field validation for 'Country' failed on the 'iso3166_1_alpha2' tag",
-					ExpectedError:        ErrInvalidArgument,
+					ExpectedError:        accounts.ErrInvalidArgument,
 				},
 				{
 					Name: "Identity must exist",
-					Args: &CreateAccountArgs{
+					Args: &accounts.CreateAccountArgs{
 						IdentityID: uuid.NewString(),
 						Country:    "US",
 					},
 					ExpectedErrorMessage: "not found.",
-					ExpectedError:        ErrInternal,
+					ExpectedError:        accounts.ErrInternal,
 				},
 			}
 
@@ -329,7 +331,7 @@ func TestAccountsService(s *testing.T) {
 			}
 			assert.NotNil(t, identity)
 
-			acc, err := as.Create(ctx, &CreateAccountArgs{
+			acc, err := as.Create(ctx, &accounts.CreateAccountArgs{
 				IdentityID: identity.ID,
 				Country:    identity.Country,
 			})

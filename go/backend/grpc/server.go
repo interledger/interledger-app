@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/accounts"
 	_admin "gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -30,7 +31,7 @@ var (
 type ServerArgs struct {
 	HealthCheckService   healthcheck.Service    `validate:"required"`
 	IdentityService      identity.Service       `validate:"required"`
-	AccountsService      accounts.Service       `validate:"required"`
+	AccountsService      ops.Service            `validate:"required"`
 	AdminAuthService     auth.Service           `validate:"required"`
 	UserService          user.Service           `validate:"required"`
 	UnitProvider         unit.Service           `validate:"required"`
@@ -43,7 +44,7 @@ type ServerArgs struct {
 type rpcService struct {
 	backendv1.UnimplementedBackendServiceServer
 	validator            *validator.Validate
-	accountsService      accounts.Service
+	accountsService      ops.Service
 	identityService      identity.Service
 	userService          user.Service
 	unitProvider         unit.Service

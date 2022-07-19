@@ -1,8 +1,12 @@
-package deposits
+package flows
 
 import (
-	"go.temporal.io/sdk/workflow"
 	"time"
+
+	"gitlab.com/fynbos/backend/deposits"
+
+	"gitlab.com/fynbos/backend/deposits/ops"
+	"go.temporal.io/sdk/workflow"
 )
 
 /*
@@ -23,8 +27,8 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Begin deposit")
 
-	var a *Activity
-	err := workflow.ExecuteActivity(ctx, a.SetDepositState, id, Processing).Get(ctx, nil)
+	var a *ops.Activity
+	err := workflow.ExecuteActivity(ctx, a.SetDepositState, id, deposits.Processing).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error setting state", err)
 		return err
@@ -49,7 +53,7 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 		logger.Error("error posting pending transaction", err)
 		return err
 	}
-	err = workflow.ExecuteActivity(ctx, a.SetDepositState, id, Complete).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetDepositState, id, deposits.Complete).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error setting state", err)
 		return err

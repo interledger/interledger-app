@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -13,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/osohq/go-oso"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -37,7 +38,7 @@ type TestContainer struct {
 	Ctrl            *gomock.Controller
 	Pacioli         *test_utils.PacioliContainer
 	Db              *sqlx.DB
-	As              accounts.Service
+	As              ops.Service
 	Fs              *fundingsources.MockService
 	Is              identity.Service
 	Hs              healthcheck.Service
@@ -95,7 +96,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Is = is
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
+	as, err := ops.NewService(&ops.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
 		PacioliLedgerID: c.PacioliLedgerID,

@@ -1,11 +1,15 @@
-package deposits_test
+package flows_test
 
 import (
 	"context"
+	"testing"
+
+	"gitlab.com/fynbos/backend/deposits"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/fynbos/backend/deposits"
-	"testing"
+	"gitlab.com/fynbos/backend/deposits/flows"
+	"gitlab.com/fynbos/backend/deposits/ops"
 
 	"github.com/stretchr/testify/suite"
 
@@ -17,11 +21,11 @@ type UnitTestSuite struct {
 	testsuite.WorkflowTestSuite
 
 	env *testsuite.TestWorkflowEnvironment
-	da  *deposits.Activity
+	da  *ops.Activity
 }
 
 func (s *UnitTestSuite) SetupSuite() {
-	da := deposits.Activity{}
+	da := ops.Activity{}
 
 	s.da = &da
 }
@@ -59,7 +63,7 @@ func (s *UnitTestSuite) Test_DepositWorkflow_Success() {
 			return nil
 		})
 
-	s.env.ExecuteWorkflow(deposits.DepositWorkflow, depositId.String())
+	s.env.ExecuteWorkflow(flows.DepositWorkflow, depositId.String())
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())

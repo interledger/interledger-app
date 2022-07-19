@@ -1,70 +1,64 @@
-package deposits
+package ops
 
 import (
 	"context"
 	"fmt"
-	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/accounts"
+
+	"gitlab.com/fynbos/backend/deposits"
+
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"go.temporal.io/sdk/activity"
 )
 
 type Activity struct {
-	validator *validator.Validate
+	b Backends
+	/*validator *validator.Validate
 	ds        Service
 	ts        transactions.Service
 	as        accounts.Service
-	noop      noop.Service
+	noop      noop.Service*/
 }
 
+/*
 type ActivityArgs struct {
 	Ds Service              `validate:"required"`
 	As accounts.Service     `validate:"required"`
 	Np noop.Service         `validate:"required"`
 	Ts transactions.Service `validate:"required"`
-}
+}*/
 
-func NewActivity(args ActivityArgs) (*Activity, error) {
-	v := validator.New()
-	if err := v.Struct(args); err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
-	}
-
+func NewActivity(b Backends) (*Activity, error) {
 	return &Activity{
-		validator: v,
-		as:        args.As,
-		ds:        args.Ds,
-		ts:        args.Ts,
-		noop:      args.Np,
+		b: b,
 	}, nil
 }
 
-func (s *Activity) CreatePendingDeposit(ctx context.Context, depositId string) (string, error) {
+func (a *Activity) CreatePendingDeposit(ctx context.Context, depositId string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating pending transaction")
 
-	deposit, err := s.ds.Get(ctx, depositId)
+	deposit, err := Get(ctx, a.b, depositId)
 	if err != nil {
 		return "", err
 	}
 
-	acc, err := s.as.Get(ctx, deposit.AccountID)
+	acc, err := a.b.Accounts().Get(ctx, deposit.AccountID)
 	if err != nil {
 		return "", err
 	}
 
 	// TODO this needs to be better way to handle getting the data.
-	trx, err := s.ts.CreatePending(ctx, &transactions.CreatePendingTransactionArgs{
+	trx, err := a.b.Transactions().CreatePending(ctx, &transactions.CreatePendingTransactionArgs{
 		AccountID:   deposit.AccountID,
 		Type:        "deposit",
 		NetAmount:   deposit.Amount,
 		Description: fmt.Sprintf("from %s bank account", "test"), // TODO Format to come from FS
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
-				LedgerID:        s.noop.GetLedgerID(),
+				LedgerID:        a.b.Noop().GetLedgerID(),
 				DebitAccountID:  acc.LedgerAccountID,
-				CreditAccountID: s.noop.GetEquityAccountID(),
+				CreditAccountID: a.b.Noop().GetEquityAccountID(),
 				Amount:          deposit.Amount,
 				// Code: "1", // TODO: define ledger transfer codes.
 				Flags: transactions.LedgerTransferFlags{
@@ -81,19 +75,19 @@ func (s *Activity) CreatePendingDeposit(ctx context.Context, depositId string) (
 	return trx.ID, nil
 }
 
-func (s *Activity) ProcessNoopDeposit(ctx context.Context, depositId string) error {
+func (a *Activity) ProcessNoopDeposit(ctx context.Context, depositId string) error {
 
-	deposit, err := s.ds.Get(ctx, depositId)
+	deposit, err := Get(ctx, a.b, depositId)
 	if err != nil {
 		return err
 	}
 
-	acc, err := s.as.Get(ctx, deposit.AccountID)
+	acc, err := a.b.Accounts().Get(ctx, deposit.AccountID)
 	if err != nil {
 		return err
 	}
 
-	err = s.noop.InitiateBankDeposit(ctx, &noop.BankDepositArgs{
+	err = a.b.Noop().InitiateBankDeposit(ctx, &noop.BankDepositArgs{
 		IdentityID:      acc.IdentityID,
 		FundingSourceID: deposit.FundingSourceId,
 		Amount:          deposit.Amount,
@@ -105,9 +99,9 @@ func (s *Activity) ProcessNoopDeposit(ctx context.Context, depositId string) err
 	return nil
 }
 
-func (s *Activity) VoidPendingDeposit(ctx context.Context, trxId string) error {
+func (a *Activity) VoidPendingDeposit(ctx context.Context, trxId string) error {
 
-	_, err := s.ts.VoidPending(ctx, trxId)
+	_, err := a.b.Transactions().VoidPending(ctx, trxId)
 	if err != nil {
 		return err
 	}
@@ -115,9 +109,9 @@ func (s *Activity) VoidPendingDeposit(ctx context.Context, trxId string) error {
 	return nil
 }
 
-func (s *Activity) PostPendingDeposit(ctx context.Context, trxId string) error {
+func (a *Activity) PostPendingDeposit(ctx context.Context, trxId string) error {
 
-	_, err := s.ts.PostPending(ctx, trxId)
+	_, err := a.b.Transactions().PostPending(ctx, trxId)
 	if err != nil {
 		return err
 	}
@@ -125,8 +119,8 @@ func (s *Activity) PostPendingDeposit(ctx context.Context, trxId string) error {
 	return nil
 }
 
-func (s *Activity) SetDepositState(ctx context.Context, depositId string, state State) error {
-	err := s.ds.SetState(ctx, depositId, state)
+func (a *Activity) SetDepositState(ctx context.Context, depositId string, state deposits.State) error {
+	err := SetState(ctx, a.b, depositId, state)
 	if err != nil {
 		return err
 	}

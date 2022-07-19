@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/bxcodec/faker/v3"
@@ -442,7 +444,7 @@ func withLedgerTransfers(transfers []CreateLedgerTransferArgs) func(*CreateTrans
 
 type TestContainer struct {
 	IdentityService    _identity.Service
-	AccountService     _accounts.Service
+	AccountService     ops.Service
 	CountryService     _country.Service
 	PacioliContainer   *test_utils.PacioliContainer
 	PacioliClient      pacioliv1.PacioliServiceClient
@@ -487,7 +489,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	c.PacioliClient = pClient
-	as, err := _accounts.NewService(&accounts.ServiceArgs{
+	as, err := ops.NewService(&ops.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
 		PacioliLedgerID: c.PacioliLedgerID,
@@ -501,7 +503,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-	c.AccountService = _accounts.NewLoggingService(as, logger)
+	c.AccountService = ops.NewLoggingService(as, logger)
 
 	ts, err := NewService(&ServiceArgs{
 		AccountService: as,

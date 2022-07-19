@@ -4,6 +4,8 @@ import (
 	context "context"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
@@ -13,13 +15,13 @@ type (
 	Activity struct {
 		validator       *validator.Validate
 		unitService     Service
-		accountsService accounts.Service
+		accountsService ops.Service
 		identityService identity.Service
 	}
 
 	ActivityArgs struct {
 		UnitService     Service          `validate:"required"`
-		AccountsService accounts.Service `validate:"required"`
+		AccountsService ops.Service      `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
 	}
 )

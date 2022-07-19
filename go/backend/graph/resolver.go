@@ -8,7 +8,7 @@ package graph
 
 import (
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/accounts/ops"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
@@ -27,7 +27,7 @@ type Resolver struct {
 	IdentityService     identity.Service
 	UserService         user.Service
 	CountryService      country.Service
-	AccountService      accounts.Service
+	AccountService      ops.Service
 	NoopService         noop.Service
 	UnitService         unit.Service
 	Db                  *sqlx.DB

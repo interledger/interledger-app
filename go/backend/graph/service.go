@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"gitlab.com/fynbos/backend/accounts/ops"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -13,7 +14,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
@@ -27,7 +27,7 @@ type GraphqlOpts struct {
 	// TODO: refactor Identity -> Is etc.
 	Identity                         identity.Service             `validate:"required"`
 	User                             user.Service                 `validate:"required"`
-	Account                          accounts.Service             `validate:"required"`
+	Account                          ops.Service                  `validate:"required"`
 	Country                          country.Service              `validate:"required"`
 	AccountTransactions              account_transactions.Service `validate:"required"`
 	Noop                             noop.Service                 `validate:"required"`

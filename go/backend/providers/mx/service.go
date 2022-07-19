@@ -14,10 +14,11 @@ import (
 	"net/http"
 	"strings"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -110,7 +111,7 @@ type (
 		ClientID        string           `validate:"required"`
 		ApiKey          string           `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
-		AccountsService accounts.Service `validate:"required"`
+		AccountsService ops.Service      `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
 		Temporal        client.Client    `validate:"required"`
 	}
@@ -120,7 +121,7 @@ type (
 		mxClient        *http.Client
 		baseUrl         string
 		db              *sqlx.DB
-		accountsService accounts.Service
+		accountsService ops.Service
 		identityService identity.Service
 		temporal        client.Client
 	}

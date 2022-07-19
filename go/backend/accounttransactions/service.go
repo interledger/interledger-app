@@ -8,14 +8,16 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
+	"gitlab.com/fynbos/pacioli"
+
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"gitlab.com/fynbos/backend/accounts"
-	"gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 var (
@@ -80,15 +82,15 @@ type Service interface {
 
 type service struct {
 	validator *validator.Validate
-	as        accounts.Service
-	pacioli   pacioli.PacioliServiceClient
+	as        ops.Service
+	pacioli   pacioli.Client
 	db        *sqlx.DB
 }
 
 type ServiceArgs struct {
-	AccountService accounts.Service             `validate:"required"`
-	PacioliClient  pacioli.PacioliServiceClient `validate:"required"`
-	Db             *sqlx.DB                     `validate:"required"`
+	AccountService ops.Service    `validate:"required"`
+	PacioliClient  pacioli.Client `validate:"required"`
+	Db             *sqlx.DB       `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -153,37 +155,33 @@ func (s *service) Create(
 	var transaction accountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 
-		ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
+		ledgerTransfers := make([]pacioli.CreateTransferArgs, len(args.LedgerTransfers))
 		transferIDs := make([]string, len(args.LedgerTransfers))
 		for i, transfer := range args.LedgerTransfers {
 			id := uuid.NewString()
 			transferIDs[i] = id
-			ledgerTransfers[i] = &pacioli.Transfer{
-				Id:              id,
-				DebitAccountId:  transfer.DebitAccountID,
-				CreditAccountId: transfer.CreditAccountID,
+			ledgerTransfers[i] = pacioli.CreateTransferArgs{
+				ID:              id,
+				DebitAccountID:  transfer.DebitAccountID,
+				CreditAccountID: transfer.CreditAccountID,
 				Amount:          transfer.Amount,
-				Code:            uint32(transfer.Code),
+				Code:            transfer.Code,
 				Ledger:          transfer.LedgerID,
-				Flags: &pacioli.TransferFlags{
+				Flags: pacioli.TransferFlags{
 					Linked:  transfer.Flags.Linked,
 					Pending: false,
 				},
 			}
 		}
 
-		response, err := s.pacioli.CreateTransfers(ctx, &pacioli.CreateTransfersRequest{
-			Transfers: ledgerTransfers,
-		})
+		transferErrors, err := s.pacioli.CreateTransfers(ctx, ledgerTransfers)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
-		transferErrors := response.GetErrors()
 		if len(transferErrors) > 0 {
 			for _, err := range transferErrors {
-				tr := tb_types.CreateTransferResult(err.Code)
-				switch tr {
+				switch err.Code {
 				case tb_types.TransferExceedsCredits:
 					return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
 				case tb_types.TransferExceedsDebits:
@@ -276,38 +274,34 @@ func (s *service) CreatePending(
 	var transaction accountTransaction
 	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
 
-		ledgerTransfers := make([]*pacioli.Transfer, len(args.LedgerTransfers))
+		ledgerTransfers := make([]pacioli.CreateTransferArgs, len(args.LedgerTransfers))
 		transferIDs := make([]string, len(args.LedgerTransfers))
 		for i, transfer := range args.LedgerTransfers {
 			id := uuid.NewString()
 			transferIDs[i] = id
-			ledgerTransfers[i] = &pacioli.Transfer{
-				Id:              id,
-				DebitAccountId:  transfer.DebitAccountID,
-				CreditAccountId: transfer.CreditAccountID,
+			ledgerTransfers[i] = pacioli.CreateTransferArgs{
+				ID:              id,
+				DebitAccountID:  transfer.DebitAccountID,
+				CreditAccountID: transfer.CreditAccountID,
 				Amount:          transfer.Amount,
-				Code:            uint32(transfer.Code),
+				Code:            transfer.Code,
 				Timeout:         uint64(duration.Nanoseconds()),
 				Ledger:          transfer.LedgerID,
-				Flags: &pacioli.TransferFlags{
+				Flags: pacioli.TransferFlags{
 					Linked:  transfer.Flags.Linked,
 					Pending: true,
 				},
 			}
 		}
 
-		response, err := s.pacioli.CreateTransfers(ctx, &pacioli.CreateTransfersRequest{
-			Transfers: ledgerTransfers,
-		})
+		transferErrors, err := s.pacioli.CreateTransfers(ctx, ledgerTransfers)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
-		transferErrors := response.GetErrors()
 		if len(transferErrors) > 0 {
 			for _, err := range transferErrors {
-				tr := tb_types.CreateTransferResult(err.Code)
-				switch tr {
+				switch err.Code {
 				case tb_types.TransferExceedsCredits:
 					return fmt.Errorf("%w %+v", ErrExceedsCredits, err)
 				case tb_types.TransferExceedsDebits:
@@ -387,15 +381,12 @@ func (s *service) PostPending(ctx context.Context, id string) (*AccountTransacti
 			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
 		}
 
-		response, err := s.pacioli.CommitTransfers(ctx, &pacioli.CommitTransfersRequest{
-			TransferIds: trx.TransferIDs,
-		})
+		commitErrors, err := s.pacioli.CommitTransfers(ctx, trx.TransferIDs)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
 		// TODO need to handle the case where this was retried and is safe to do so... ie committed already.
-		commitErrors := response.GetErrors()
 		if len(commitErrors) > 0 {
 			for _, err := range commitErrors {
 				switch err.Code {
@@ -442,7 +433,7 @@ func (s *service) PostPending(ctx context.Context, id string) (*AccountTransacti
 		Description: trx.Description,
 		State:       state,
 		NetAmount:   trx.NetAmount,
-		TransferIDs: []string(trx.TransferIDs),
+		TransferIDs: trx.TransferIDs,
 		CreatedAt:   trx.CreatedAt,
 		UpdatedAt:   trx.UpdatedAt,
 	}, nil
@@ -469,15 +460,12 @@ func (s *service) VoidPending(ctx context.Context, id string) (*AccountTransacti
 			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
 		}
 
-		resp, err := s.pacioli.VoidTransfers(ctx, &pacioli.VoidTransfersRequest{
-			TransferIds: trx.TransferIDs,
-		})
+		voidErrors, err := s.pacioli.VoidTransfers(ctx, trx.TransferIDs)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
 		// TODO need to handle the case where this was retried and is safe to do so... ie committed already.
-		voidErrors := resp.GetErrors()
 		if len(voidErrors) > 0 {
 			for _, err := range voidErrors {
 				switch err.Code {

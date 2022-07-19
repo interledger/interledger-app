@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"gitlab.com/fynbos/backend/accounts/ops"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 )
 
@@ -38,7 +39,7 @@ type Service interface {
 type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
-	as        accounts.Service
+	as        ops.Service
 	is        identity.Service
 	tp        client.Client
 }
@@ -55,7 +56,7 @@ type OutgoingPayment struct {
 
 type ServiceArgs struct {
 	Db *sqlx.DB         `validate:"required"`
-	As accounts.Service `validate:"required"`
+	As ops.Service      `validate:"required"`
 	Is identity.Service `validate:"required"`
 	Tp client.Client    `validate:"required"`
 }

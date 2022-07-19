@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -17,7 +18,7 @@ import (
 type AdminRpcService struct {
 	backendv1.UnimplementedBackendAdminServiceServer
 	Validator       *validator.Validate
-	AccountsService accounts.Service
+	AccountsService ops.Service
 	IdentityService identity.Service
 	AuthService     auth.Service
 	UnitService     unit.Service

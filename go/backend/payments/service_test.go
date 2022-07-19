@@ -2,6 +2,7 @@ package payments
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/accounts/ops"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -179,7 +180,7 @@ func TestPayments(s *testing.T) {
 
 type TestContainer struct {
 	IdentityService    _identity.Service
-	AccountService     _accounts.Service
+	AccountService     ops.Service
 	CountryService     _country.Service
 	NoopService        noop.Service
 	OnboardService     onboarding.Service
@@ -228,7 +229,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.IdentityService = _identity.NewLoggingService(is, logger)
 
-	as, err := _accounts.NewService(&_accounts.ServiceArgs{
+	as, err := ops.NewService(&ops.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
 		PacioliLedgerID: c.PacioliLedgerID,
@@ -242,7 +243,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-	c.AccountService = _accounts.NewLoggingService(as, logger)
+	c.AccountService = ops.NewLoggingService(as, logger)
 
 	np, err := noop.NewService(noop.ServiceArgs{
 		LedgerID:      c.PacioliLedgerID,

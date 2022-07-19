@@ -5,6 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	_account "gitlab.com/fynbos/backend/accounts/ops"
+
+	"gitlab.com/fynbos/backend/deposits/ops"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/client"
@@ -29,7 +33,6 @@ import (
 	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/accounts"
-	_account "gitlab.com/fynbos/backend/accounts"
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -103,7 +106,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	c.PacioliClient = pClient
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
+	as, err := _account.NewService(&_account.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
 		PacioliLedgerID: c.PacioliLedgerID,
@@ -117,7 +120,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-	c.AccountService = accounts.NewLoggingService(as, logger)
+	c.AccountService = _account.NewLoggingService(as, logger)
 
 	users := _user.NewMockService()
 	c.UserService = _user.NewLoggingService(users, logger)
@@ -191,7 +194,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		}, nil,
 	)
 
-	ds, err := deposits.NewService(&deposits.ServiceArgs{
+	ds, err := ops.NewService(&ops.ServiceArgs{
 		Db: db,
 		As: as,
 		Is: is,

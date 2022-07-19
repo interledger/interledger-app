@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/pacioli"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 var (
@@ -43,7 +44,7 @@ type service struct {
 	// acts upon.
 	ledgerID        uint32
 	equityAccountID string
-	pacioliClient   pacioliv1.PacioliServiceClient
+	pacioliClient   pacioli.Client
 }
 
 type ServiceArgs struct {
@@ -51,7 +52,7 @@ type ServiceArgs struct {
 	LedgerID      uint32
 	EquityAccID   string `validate:"required"`
 	PacioliTenant string
-	PacioliClient pacioliv1.PacioliServiceClient `validate:"required"`
+	PacioliClient pacioli.Client `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
@@ -71,43 +72,36 @@ func NewService(args ServiceArgs) (Service, error) {
 
 func (s *service) Init(ctx context.Context) error {
 	// TODO: configure tenant
-	ledgerResponse, err := s.pacioliClient.ConfigureLedgers(
+	confErrs, err := s.pacioliClient.ConfigureLedgers(
 		ctx,
-		&pacioliv1.ConfigureLedgersRequest{
-			Args: []*pacioliv1.Ledger{
-				{
-					Id:    s.ledgerID,
-					Name:  "Fynbos ledger",
-					Asset: "840",
-					Scale: 2,
-				},
-			},
-		},
+		[]pacioli.ConfigureLedgerArgs{{
+
+			ID:    s.ledgerID,
+			Name:  "Fynbos ledger",
+			Asset: "840",
+			Scale: 2,
+		}},
 	)
 	if err != nil {
 		return fmt.Errorf("Failed to configure ledger.%s %w", err.Error(), ErrInternal)
 	}
-	if len(ledgerResponse.GetErrors()) > 0 {
-		return fmt.Errorf("%s %+v %w", "Failed to configure ledger.", ledgerResponse.GetErrors(), ErrInternal)
+	if len(confErrs) > 0 {
+		return fmt.Errorf("%s %+v %w", "Failed to configure ledger.", confErrs, ErrInternal)
 	}
 
-	accountResponse, err := s.pacioliClient.ConfigureAccounts(
+	accErrs, err := s.pacioliClient.ConfigureAccounts(
 		ctx,
-		&pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       s.equityAccountID,
-					LedgerId: s.ledgerID,
-					Code:     1,
-				},
-			},
-		},
+		[]pacioli.ConfigureAccountArgs{{
+			ID:       s.equityAccountID,
+			LedgerID: s.ledgerID,
+			Code:     1,
+		}},
 	)
 	if err != nil {
 		return fmt.Errorf("Failed to configure equity account.%s %w", err.Error(), ErrInternal)
 	}
-	if len(accountResponse.GetErrors()) > 0 {
-		return fmt.Errorf("%s %+v %w", "Failed to configure equity account.", accountResponse.GetErrors(), ErrInternal)
+	if len(accErrs) > 0 {
+		return fmt.Errorf("%s %+v %w", "Failed to configure equity account.", accErrs, ErrInternal)
 	}
 
 	return nil

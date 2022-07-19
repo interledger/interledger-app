@@ -8,11 +8,12 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/noop"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
@@ -39,7 +40,7 @@ type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
 	is        _identity.Service
-	as        accounts.Service
+	as        ops.Service
 	noop      noop.Service
 	tp        client.Client
 	unit      _unit.Service
@@ -47,7 +48,7 @@ type service struct {
 
 type ServiceArgs struct {
 	Is   _identity.Service `validate:"required"`
-	As   accounts.Service  `validate:"required"`
+	As   ops.Service       `validate:"required"`
 	Db   *sqlx.DB          `validate:"required"`
 	Noop noop.Service      `validate:"required"`
 	Tp   client.Client     `validate:"required"`

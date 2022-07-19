@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/deposits/ops"
+
 	"gitlab.com/fynbos/backend/identity"
 
 	"github.com/bxcodec/faker/v3"
@@ -96,7 +97,7 @@ func TestUserDeposits(s *testing.T) {
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Deposit initiated.", response.Message)
 		assert.Equal(t, "10000", response.Deposit.Amount) // TODO: where do we pretty print?
-		assert.Equal(t, deposits.Created.String(), response.Deposit.State)
+		assert.Equal(t, ops.Created.String(), response.Deposit.State)
 	})
 
 	/*

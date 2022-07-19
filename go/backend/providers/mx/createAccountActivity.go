@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -20,7 +22,7 @@ type (
 		validator            *validator.Validate
 		unit                 _unit.Service
 		mx                   Service
-		accountService       accounts.Service
+		accountService       ops.Service
 		identityService      identity.Service
 		fundingsourceService fundingsources.Service
 	}
@@ -28,7 +30,7 @@ type (
 	ActivityArgs struct {
 		Mx                   Service                `validate:"required"`
 		Unit                 _unit.Service          `validate:"required"`
-		AccountService       accounts.Service       `validate:"required"`
+		AccountService       ops.Service            `validate:"required"`
 		IdentityService      identity.Service       `validate:"required"`
 		FundingSourceService fundingsources.Service `validate:"required"`
 	}

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"go.temporal.io/sdk/activity"
@@ -16,13 +17,13 @@ type Activity struct {
 	validator *validator.Validate
 	ps        Service
 	ts        transactions.Service
-	as        accounts.Service
+	as        ops.Service
 	noop      noop.Service
 }
 
 type ActivityArgs struct {
 	Ps Service              `validate:"required"`
-	As accounts.Service     `validate:"required"`
+	As ops.Service          `validate:"required"`
 	Np noop.Service         `validate:"required"`
 	Ts transactions.Service `validate:"required"`
 }

@@ -10,13 +10,17 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/backend/deposits/client"
+
+	ops2 "gitlab.com/fynbos/backend/accounts/ops"
+	"gitlab.com/fynbos/backend/deposits/ops"
+
 	"gitlab.com/fynbos/backend/temporal"
 	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc/credentials/insecure"
 
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
@@ -30,7 +34,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -87,6 +90,7 @@ func main() {
 }
 
 func start(args *cli.StartArgs) {
+	var err error
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
@@ -104,6 +108,11 @@ func start(args *cli.StartArgs) {
 	}
 	cfg.OutputPaths = []string{args.LogOutputPath}
 	logger, err := cfg.Build()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	b, err := MakeBackends(args, db, logger)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -138,28 +147,9 @@ func start(args *cli.StartArgs) {
 	}
 	id = identity.NewLoggingService(id, logger)
 
-	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Db:              db,
-		Is:              id,
-		Cs:              cs,
-		PacioliClient:   pClient,
-		PacioliLedgerID: args.UsdLedgerID,
-		PacioliTenant:   "dev",
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	as = accounts.NewLoggingService(as, logger)
-
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
+		AccountService: b.Accounts(),
+		PacioliClient:  b.Pacioli(),
 		Db:             db,
 	})
 	if err != nil {
@@ -171,7 +161,7 @@ func start(args *cli.StartArgs) {
 		LedgerID:      args.NoopLedgerID,
 		EquityAccID:   args.NoopEquityAccountID,
 		PacioliTenant: "dev",
-		PacioliClient: pClient,
+		PacioliClient: b.Pacioli(),
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -193,7 +183,7 @@ func start(args *cli.StartArgs) {
 		ClientID:        args.MxClientID,
 		ApiKey:          args.MxApiKey,
 		Db:              db,
-		AccountsService: as,
+		AccountsService: b.Accounts(),
 		IdentityService: id,
 		Temporal:        tp,
 	})
@@ -203,7 +193,7 @@ func start(args *cli.StartArgs) {
 
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   id,
-		As:   as,
+		As:   b.Accounts(),
 		Db:   db,
 		Noop: nos,
 		Unit: us,
@@ -216,7 +206,7 @@ func start(args *cli.StartArgs) {
 
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
-		As:   as,
+		As:   b.Accounts(),
 		Is:   id,
 		Noop: nos,
 		Tp:   tp,
@@ -225,20 +215,9 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	ds, err := deposits.NewService(&deposits.ServiceArgs{
-		Db: db,
-		As: as,
-		Is: id,
-		Fs: fs,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,
-		As: as,
+		As: b.Accounts(),
 		Is: id,
 		Fs: fs,
 		Tp: tp,
@@ -249,7 +228,7 @@ func start(args *cli.StartArgs) {
 
 	ps, err := payments.NewService(&payments.ServiceArgs{
 		Db: db,
-		As: as,
+		As: b.Accounts(),
 		Is: id,
 		Tp: tp,
 	})
@@ -266,10 +245,12 @@ func start(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 
+	ds := client.Make(b)
+
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
 		Identity:                         id,
-		Account:                          as,
+		Account:                          b.Accounts(),
 		Country:                          cs,
 		User:                             users,
 		Noop:                             nos,
@@ -325,7 +306,7 @@ func start(args *cli.StartArgs) {
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   health,
 		IdentityService:      id,
-		AccountsService:      as,
+		AccountsService:      b.Accounts(),
 		AdminAuthService:     adminUsers,
 		UnitProvider:         us,
 		UserService:          users,
@@ -402,7 +383,7 @@ func configurePacioli(args *cli.MigrationArgs) error {
 	}
 
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	as, err := accounts.NewService(&accounts.ServiceArgs{
+	as, err := ops2.NewService(&ops2.ServiceArgs{
 		Db:              db,
 		Is:              id,
 		Cs:              cs,
@@ -413,7 +394,7 @@ func configurePacioli(args *cli.MigrationArgs) error {
 	if err != nil {
 		return err
 	}
-	as = accounts.NewLoggingService(as, logger)
+	as = ops2.NewLoggingService(as, logger)
 	err = as.Init(ctx)
 	if err != nil {
 		return err
@@ -474,7 +455,7 @@ func startWorker(args *cli.StartArgs) {
 	}
 
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	as, err := accounts.NewService(&accounts.ServiceArgs{
+	as, err := ops2.NewService(&ops2.ServiceArgs{
 		Db:              db,
 		Is:              id,
 		Cs:              cs,
@@ -485,7 +466,7 @@ func startWorker(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	as = accounts.NewLoggingService(as, logger)
+	as = ops2.NewLoggingService(as, logger)
 
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
 		AccountService: as,
@@ -549,7 +530,7 @@ func startWorker(args *cli.StartArgs) {
 	}
 	fs = fundingsources.NewLoggingService(fs, logger)
 
-	ds, err := deposits.NewService(&deposits.ServiceArgs{
+	ds, err := ops.NewService(&ops.ServiceArgs{
 		Db: db,
 		As: as,
 		Is: id,

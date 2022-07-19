@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	"gitlab.com/fynbos/backend/accounts/ops"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -208,7 +210,7 @@ func TestWithdrawals(s *testing.T) {
 type TestContainer struct {
 	Ctrl                  *gomock.Controller
 	IdentityService       identity.Service
-	AccountService        _accounts.Service
+	AccountService        ops.Service
 	TransactionService    transactions.Service
 	CountryService        _country.Service
 	NoopService           noop.Service
@@ -261,7 +263,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.IdentityService = identity.NewLoggingService(is, logger)
 
-	as, err := _accounts.NewService(&_accounts.ServiceArgs{
+	as, err := ops.NewService(&ops.ServiceArgs{
 		Is:              is,
 		Cs:              cs,
 		PacioliLedgerID: c.PacioliLedgerID,
@@ -275,7 +277,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-	c.AccountService = _accounts.NewLoggingService(as, logger)
+	c.AccountService = ops.NewLoggingService(as, logger)
 
 	np, err := noop.NewService(noop.ServiceArgs{
 		LedgerID:      c.PacioliLedgerID,

@@ -4,6 +4,8 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/deposits/flows"
+	"gitlab.com/fynbos/backend/deposits/ops"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -19,8 +21,8 @@ import (
 type WorkerArgs struct {
 	Client client.Client
 	Ps     payments.Service
-	Ds     deposits.Service
-	As     accounts.Service
+	Ds     deposits.Client
+	As     accounts.Client
 	Np     noop.Service
 	Ts     transactions.Service
 	Ws     withdrawals.Service
@@ -31,17 +33,12 @@ type WorkerArgs struct {
 	Is     identity.Service
 }
 
-func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, args WorkerArgs) (worker.Worker, error) {
 	w := worker.New(args.Client, "backend", worker.Options{})
 
 	// Register Deposits Workflow
-	w.RegisterWorkflow(deposits.DepositWorkflow)
-	depositActivities, err := deposits.NewActivity(deposits.ActivityArgs{
-		Ds: args.Ds,
-		As: args.As,
-		Np: args.Np,
-		Ts: args.Ts,
-	})
+	w.RegisterWorkflow(flows.DepositWorkflow)
+	depositActivities, err := ops.NewActivity(b)
 	if err != nil {
 		return nil, err
 	}
