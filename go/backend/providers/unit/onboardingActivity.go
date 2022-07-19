@@ -3,6 +3,7 @@ package unit
 import (
 	context "context"
 	"fmt"
+	"go.temporal.io/sdk/temporal"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
@@ -43,6 +44,7 @@ func (a *Activity) UnitCreateApplication(ctx context.Context, args *CreateApplic
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
+	// TODO: retryable/non-retryable errors
 	// make sure identity exists
 	_, err := a.identityService.Get(ctx, args.UserID)
 	if err != nil {
@@ -51,7 +53,11 @@ func (a *Activity) UnitCreateApplication(ctx context.Context, args *CreateApplic
 
 	application, err := a.unitService.CreateApplication(ctx, args)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		if IsRetryableError(err) {
+			return nil, err
+		} else {
+			return nil, temporal.NewNonRetryableApplicationError("failed to create application", "unit", err)
+		}
 	}
 
 	return application, nil
