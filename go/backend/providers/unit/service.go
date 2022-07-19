@@ -3,15 +3,12 @@ package unit
 //go:generate mockgen -destination=./mock.go -package=unit -source=./service.go
 
 import (
-	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 
@@ -19,6 +16,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/nyaruka/phonenumbers"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 )
 
 var (
@@ -29,6 +27,7 @@ var (
 	ErrServer          = errors.New("unit: server error")
 	ErrTimeout         = errors.New("unit: timeout error")
 	ErrRateLimit       = errors.New("unit: rate limit error")
+	ErrNotFound        = errors.New("unit: not found")
 )
 
 const (
@@ -51,8 +50,7 @@ type Service interface {
 type (
 	service struct {
 		validator       *validator.Validate
-		baseURL         string
-		token           string
+		externalClient  external.Unit
 		webhookToken    string
 		db              *sqlx.DB
 		identityService identity.Service
@@ -76,11 +74,10 @@ func NewService(args ServiceArgs) (Service, error) {
 
 	return &service{
 		validator:       validator,
-		baseURL:         args.BaseURL,
-		token:           args.Token,
 		webhookToken:    args.WebhookToken,
 		db:              args.Db,
 		identityService: args.IdentityService,
+		externalClient:  external.NewClient(args.BaseURL, args.Token),
 	}, nil
 }
 
@@ -90,53 +87,25 @@ type ApplicationForm struct {
 }
 
 func (self *service) GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error) {
-
-	url := fmt.Sprintf(`%s/application-forms?page[limit]=1&filter[tags]={"userId":"%s"}`, self.baseURL, userID)
-
-	req, err := http.NewRequest("GET", url, nil)
+	forms, err := self.externalClient.FilterApplicationFormsByUserID(ctx, userID)
 	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/vnd.api+json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", self.token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	statusOk := isStatusOkay(resp.StatusCode)
-	if !statusOk {
-		err = statusToError(resp.StatusCode)
-		return nil, err
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
+		}
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	body, _ := io.ReadAll(resp.Body)
-
-	var data struct {
-		Data []struct {
-			ID   string `json:"id"`
-			Attr struct {
-				Url string `json:"url"`
-			} `json:"attributes"`
-		} `json:"data"`
-	}
-
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data.Data) == 0 {
-		return nil, nil
+	if len(forms) != 1 {
+		return nil, ErrNotFound
 	}
 
 	return &ApplicationForm{
-		ID:  data.Data[0].ID,
-		URL: data.Data[0].Attr.Url,
+		ID:  forms[0].ID,
+		URL: forms[0].Attributes.Url,
 	}, nil
 }
 
@@ -146,65 +115,29 @@ type CreateApplicationFormArgs struct {
 	Country string `validate:"required"`
 }
 
-func (self *service) CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error) {
-
-	url := fmt.Sprintf(`%s/application-forms`, self.baseURL)
-
-	var jsonStr = []byte(fmt.Sprintf(`{
-		"data": {
-			"type": "applicationForm",
-			"attributes": {
-				"tags": {
-					"%s": "%s"
-				},
-				"allowedApplicationTypes": ["Individual"],
-				"applicantDetails": {
-					"applicationType": "Individual",
-					"nationality": "%s",
-					"email": "%s"
-				}
-			}
+func (self *service) CreateApplicationForm(
+	ctx context.Context,
+	args *CreateApplicationFormArgs,
+) (*ApplicationForm, error) {
+	form, err := self.externalClient.CreateApplicationForm(ctx, &external.CreateApplicationFormArgs{
+		ID:      args.ID,
+		Email:   args.Email,
+		Country: args.Country,
+	})
+	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
 		}
-	}`, ApplicationUserIDTag, args.ID, args.Country, args.Email))
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/vnd.api+json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", self.token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	defer resp.Body.Close()
-
-	statusOk := isStatusOkay(resp.StatusCode)
-	if !statusOk {
-		err = statusToError(resp.StatusCode)
-		return nil, err
-	}
-
-	body, _ := io.ReadAll(resp.Body)
-
-	var data struct {
-		Data struct {
-			ID   string `json:"id"`
-			Attr struct {
-				Url string `json:"url"`
-			} `json:"attributes"`
-		} `json:"data"`
-	}
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, err
-	}
 	return &ApplicationForm{
-		ID:  data.Data.ID,
-		URL: data.Data.Attr.Url,
+		ID:  form.ID,
+		URL: form.Attributes.Url,
 	}, nil
 }
 
@@ -232,7 +165,6 @@ type Application struct {
 
 func (s *service) CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
 	id, err := s.identityService.Get(ctx, args.UserID)
-	// TODO: how to bubbleup retryable/non retryable errors here?
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -242,9 +174,6 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	// https://docs.unit.co/applications/#create-individual-application
-	url := fmt.Sprintf(`%s/applications`, s.baseURL)
-
 	// deviceFingerprints := make([]DeviceFingerprint, len(args.DeviceFingerprints))
 	// for _, fingerprint := range args.DeviceFingerprints {
 	// 	deviceFingerprints = append(deviceFingerprints, DeviceFingerprint{
@@ -253,79 +182,46 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	// 	})
 	// }
 
-	application := &CreateApplicationRequest{
-		Data: CreateApplicationRequestData{
-			Type: "individualApplication",
-			Attributes: RequestApplicationAttributes{
-				Ssn: args.Ssn,
-				FullName: FullName{
-					First: id.FirstName,
-					Last:  id.LastName,
-				},
-				DateOfBirth: args.DateOfBirth,
-				Address: Address{
-					Street:     args.Street,
-					Street2:    args.Street2,
-					City:       args.City,
-					State:      args.State,
-					PostalCode: args.PostalCode,
-					Country:    id.Country,
-				},
-				Email: id.Email,
-				Phone: Phone{
-					CountryCode: strconv.Itoa(int(*phoneNumber.CountryCode)),
-					Number:      strconv.Itoa(int(*phoneNumber.NationalNumber)),
-				},
-				IP: args.IpAddress,
-				Tags: Tags{
-					FynbosUserId: args.UserID,
-				},
-				// DeviceFingerprints: deviceFingerprints,
-			},
+	application, err := s.externalClient.CreateApplication(ctx, &external.CreateApplicationArgs{
+		UserID:             args.UserID,
+		Email:              id.Email,
+		IpAddress:          args.IpAddress,
+		DateOfBirth:        args.DateOfBirth,
+		DeviceFingerprints: nil, // TODO: figure out why this isn't working
+		FirstName:          id.FirstName,
+		LastName:           id.LastName,
+		Ssn:                args.Ssn,
+		Address: external.Address{
+			Street:     args.Street,
+			Street2:    args.Street2,
+			City:       args.City,
+			State:      args.State,
+			PostalCode: args.PostalCode,
+			Country:    id.Country,
 		},
-	}
-
-	rawApplication, err := json.Marshal(application)
+		Phone: external.Phone{
+			CountryCode: strconv.Itoa(int(*phoneNumber.CountryCode)),
+			Number:      strconv.Itoa(int(*phoneNumber.NationalNumber)),
+		},
+	})
 	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(rawApplication))
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/vnd.api+json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
+		}
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	defer resp.Body.Close()
-
-	statusOk := isStatusOkay(resp.StatusCode)
-	if !statusOk {
-		err = statusToError(resp.StatusCode)
-		return nil, err
-	}
-
-	body, _ := io.ReadAll(resp.Body)
-	var data CreateApplicationResponse
-
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		return nil, err
-	}
 	return &Application{
-		Type:         data.Data.Type,
-		ID:           data.Data.ID,
-		Status:       data.Data.Attributes.Status,
-		FynbosUserId: data.Data.Attributes.Tags.FynbosUserId,
-		Archived:     data.Data.Attributes.Archived,
-		CustomerID:   data.Data.Relationships.Customer.Data.ID,
+		Type:         application.Type,
+		ID:           application.ID,
+		Status:       application.Attributes.Status,
+		FynbosUserId: application.Attributes.Tags.FynbosUserID,
+		Archived:     application.Attributes.Archived,
+		CustomerID:   application.Relationships.Customer.Data.ID,
 	}, nil
 }
 
@@ -419,73 +315,32 @@ type (
 
 // This will create the counter party on Unit and store a record of it in our database.
 func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error) {
-	url := fmt.Sprintf(`%s/counterparties`, s.baseURL)
-	var jsonStr = []byte(fmt.Sprintf(`{
-		"data": {
-			"type": "achCounterparty",
-			"attributes": {
-				"name": %s,
-				"routingNumber": %s,
-				"accountNumber": %s,
-				"accountType": %s,
-				"type": %s,
-				"idempotencyKey": %s
-			},
-			"relationships": {
-				"customer": {
-					"data": {
-						"type": "customer",
-						"id": %s
-					}
-				}
-			}
+	counterparty, err := s.externalClient.CreateCounterparty(ctx, &external.CreateCounterpartyArgs{
+		Name:           args.Name,
+		UnitCustomerID: args.UnitCustomerID,
+		RoutingNumber:  args.RoutingNumber,
+		AccountNumber:  args.AccountNumber,
+		AccountType:    args.AccountType,
+		Type:           args.Type,
+		IdempotencyKey: args.IdempotencyKey,
+	})
+	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
 		}
-	}`, args.Name, args.RoutingNumber, args.AccountNumber, args.AccountType, args.IdempotencyKey, args.Type, args.UnitCustomerID))
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	if err != nil {
-		return nil, err
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	req.Header.Set("Content-Type", "application/vnd.api+json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.token))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	defer resp.Body.Close()
-
-	statusOk := isStatusOkay(resp.StatusCode)
-	if !statusOk {
-		err = statusToError(resp.StatusCode)
-		return nil, err
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	createCounterPartyResponse := &struct {
-		Data struct {
-			Type string
-			ID   string `json:"id"`
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
 		}
-	}{}
-	err = json.Unmarshal(body, createCounterPartyResponse)
-	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
+
 	ret := &CounterParty{}
 	err = s.db.GetContext(
 		ctx,
 		ret,
 		"INSERT INTO unit_counterparties (id, fundingsource_id) VALUES ($1, $2) RETURNING *;",
-		createCounterPartyResponse.Data.ID,
+		counterparty.ID,
 		args.FundingsourceID,
 	)
 	if err != nil {
@@ -515,10 +370,6 @@ func IsRetryableError(err error) bool {
 		errors.Is(err, ErrRateLimit) ||
 		errors.Is(err, ErrServer) ||
 		errors.Is(err, ErrTimeout)
-}
-
-func isStatusOkay(statusCode int) bool {
-	return statusCode >= http.StatusOK && statusCode < http.StatusMultipleChoices
 }
 
 func statusToError(statusCode int) error {
