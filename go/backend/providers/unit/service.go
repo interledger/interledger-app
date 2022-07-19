@@ -24,8 +24,11 @@ import (
 var (
 	ErrInternal        = errors.New("unit: internal error")
 	ErrUnauthorized    = errors.New("unit: unauthorized webhook request")
-	ErrInvalidArgument = errors.New("unit: invalid argument.")
-	ErrNotFound        = errors.New("unit: not found.")
+	ErrInvalidArgument = errors.New("unit: invalid argument")
+	ErrClient          = errors.New("unit: client error")
+	ErrServer          = errors.New("unit: server error")
+	ErrTimeout         = errors.New("unit: timeout error")
+	ErrRateLimit       = errors.New("unit: rate limit error")
 )
 
 const (
@@ -105,6 +108,12 @@ func (self *service) GetApplicationForm(ctx context.Context, userID string) (*Ap
 
 	defer resp.Body.Close()
 
+	statusOk := isStatusOkay(resp.StatusCode)
+	if !statusOk {
+		err = statusToError(resp.StatusCode)
+		return nil, err
+	}
+
 	body, _ := io.ReadAll(resp.Body)
 
 	var data struct {
@@ -173,6 +182,12 @@ func (self *service) CreateApplicationForm(ctx context.Context, args *CreateAppl
 
 	defer resp.Body.Close()
 
+	statusOk := isStatusOkay(resp.StatusCode)
+	if !statusOk {
+		err = statusToError(resp.StatusCode)
+		return nil, err
+	}
+
 	body, _ := io.ReadAll(resp.Body)
 
 	var data struct {
@@ -216,12 +231,13 @@ type Application struct {
 }
 
 func (s *service) CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
-	identity, err := s.identityService.Get(ctx, args.UserID)
+	id, err := s.identityService.Get(ctx, args.UserID)
+	// TODO: how to bubbleup retryable/non retryable errors here?
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	phoneNumber, err := phonenumbers.Parse(identity.MobileNumber, "")
+	phoneNumber, err := phonenumbers.Parse(id.MobileNumber, "")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -243,8 +259,8 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 			Attributes: RequestApplicationAttributes{
 				Ssn: args.Ssn,
 				FullName: FullName{
-					First: identity.FirstName,
-					Last:  identity.LastName,
+					First: id.FirstName,
+					Last:  id.LastName,
 				},
 				DateOfBirth: args.DateOfBirth,
 				Address: Address{
@@ -253,9 +269,9 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 					City:       args.City,
 					State:      args.State,
 					PostalCode: args.PostalCode,
-					Country:    identity.Country,
+					Country:    id.Country,
 				},
-				Email: identity.Email,
+				Email: id.Email,
 				Phone: Phone{
 					CountryCode: strconv.Itoa(int(*phoneNumber.CountryCode)),
 					Number:      strconv.Itoa(int(*phoneNumber.NationalNumber)),
@@ -285,10 +301,16 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	defer resp.Body.Close()
+
+	statusOk := isStatusOkay(resp.StatusCode)
+	if !statusOk {
+		err = statusToError(resp.StatusCode)
+		return nil, err
+	}
 
 	body, _ := io.ReadAll(resp.Body)
 	var data CreateApplicationResponse
@@ -437,6 +459,12 @@ func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPar
 	}
 	defer resp.Body.Close()
 
+	statusOk := isStatusOkay(resp.StatusCode)
+	if !statusOk {
+		err = statusToError(resp.StatusCode)
+		return nil, err
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -480,4 +508,29 @@ func (s service) GetCounterPartyByFundingsourceID(ctx context.Context, fundingso
 	}
 
 	return ret, nil
+}
+
+func IsRetryableError(err error) bool {
+	return errors.Is(err, ErrClient) ||
+		errors.Is(err, ErrRateLimit) ||
+		errors.Is(err, ErrServer) ||
+		errors.Is(err, ErrTimeout)
+}
+
+func isStatusOkay(statusCode int) bool {
+	return statusCode >= http.StatusOK && statusCode < http.StatusMultipleChoices
+}
+
+func statusToError(statusCode int) error {
+	if statusCode == http.StatusRequestTimeout {
+		return ErrTimeout
+	}
+	if statusCode == http.StatusTooManyRequests {
+		return ErrRateLimit
+	}
+	if statusCode > http.StatusInternalServerError {
+		return ErrServer
+	} else {
+		return ErrInternal
+	}
 }
