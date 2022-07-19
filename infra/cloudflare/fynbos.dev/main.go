@@ -92,6 +92,17 @@ func main() {
 			return err
 		}
 
+		_, err = cloudflare.NewRecord(ctx, "dev-support", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("support.fynbos.dev"),
+			Value:   pulumi.String("fynbos.zendesk.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+		})
+		if err != nil {
+			return err
+		}
+
 		// google
 		_, err = cloudflare.NewRecord(ctx, "_domainconnect", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
