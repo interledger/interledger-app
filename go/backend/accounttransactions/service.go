@@ -387,7 +387,7 @@ func (s *service) PostPending(ctx context.Context, id string) (*AccountTransacti
 			return fmt.Errorf("account transaction: trx not in pending state actual is %s", trx.State)
 		}
 
-		response, err := s.pacioli.CommitTransfers(ctx, &pacioli.CommitTransfersRequest{
+		response, err := s.pacioli.PostTransfers(ctx, &pacioli.PostTransfersRequest{
 			TransferIds: trx.TransferIDs,
 		})
 		if err != nil {

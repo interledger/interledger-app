@@ -293,18 +293,18 @@ export interface GetTransfersResponse {
     transfers: Transfer[];
 }
 /**
- * @generated from protobuf message pacioli.v1.CommitTransfersRequest
+ * @generated from protobuf message pacioli.v1.PostTransfersRequest
  */
-export interface CommitTransfersRequest {
+export interface PostTransfersRequest {
     /**
      * @generated from protobuf field: repeated string transferIds = 1;
      */
     transferIds: string[];
 }
 /**
- * @generated from protobuf message pacioli.v1.CommitTransfersResponse
+ * @generated from protobuf message pacioli.v1.PostTransfersResponse
  */
-export interface CommitTransfersResponse {
+export interface PostTransfersResponse {
     /**
      * @generated from protobuf field: repeated pacioli.v1.EventError errors = 1;
      */
@@ -1438,20 +1438,20 @@ class GetTransfersResponse$Type extends MessageType<GetTransfersResponse> {
  */
 export const GetTransfersResponse = new GetTransfersResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CommitTransfersRequest$Type extends MessageType<CommitTransfersRequest> {
+class PostTransfersRequest$Type extends MessageType<PostTransfersRequest> {
     constructor() {
-        super("pacioli.v1.CommitTransfersRequest", [
+        super("pacioli.v1.PostTransfersRequest", [
             { no: 1, name: "transferIds", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CommitTransfersRequest>): CommitTransfersRequest {
+    create(value?: PartialMessage<PostTransfersRequest>): PostTransfersRequest {
         const message = { transferIds: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CommitTransfersRequest>(this, message, value);
+            reflectionMergePartial<PostTransfersRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CommitTransfersRequest): CommitTransfersRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PostTransfersRequest): PostTransfersRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1470,7 +1470,7 @@ class CommitTransfersRequest$Type extends MessageType<CommitTransfersRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: CommitTransfersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: PostTransfersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* repeated string transferIds = 1; */
         for (let i = 0; i < message.transferIds.length; i++)
             writer.tag(1, WireType.LengthDelimited).string(message.transferIds[i]);
@@ -1481,24 +1481,24 @@ class CommitTransfersRequest$Type extends MessageType<CommitTransfersRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message pacioli.v1.CommitTransfersRequest
+ * @generated MessageType for protobuf message pacioli.v1.PostTransfersRequest
  */
-export const CommitTransfersRequest = new CommitTransfersRequest$Type();
+export const PostTransfersRequest = new PostTransfersRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CommitTransfersResponse$Type extends MessageType<CommitTransfersResponse> {
+class PostTransfersResponse$Type extends MessageType<PostTransfersResponse> {
     constructor() {
-        super("pacioli.v1.CommitTransfersResponse", [
+        super("pacioli.v1.PostTransfersResponse", [
             { no: 1, name: "errors", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => EventError }
         ]);
     }
-    create(value?: PartialMessage<CommitTransfersResponse>): CommitTransfersResponse {
+    create(value?: PartialMessage<PostTransfersResponse>): PostTransfersResponse {
         const message = { errors: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CommitTransfersResponse>(this, message, value);
+            reflectionMergePartial<PostTransfersResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CommitTransfersResponse): CommitTransfersResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PostTransfersResponse): PostTransfersResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1517,7 +1517,7 @@ class CommitTransfersResponse$Type extends MessageType<CommitTransfersResponse> 
         }
         return message;
     }
-    internalBinaryWrite(message: CommitTransfersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: PostTransfersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* repeated pacioli.v1.EventError errors = 1; */
         for (let i = 0; i < message.errors.length; i++)
             EventError.internalBinaryWrite(message.errors[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
@@ -1528,9 +1528,9 @@ class CommitTransfersResponse$Type extends MessageType<CommitTransfersResponse> 
     }
 }
 /**
- * @generated MessageType for protobuf message pacioli.v1.CommitTransfersResponse
+ * @generated MessageType for protobuf message pacioli.v1.PostTransfersResponse
  */
-export const CommitTransfersResponse = new CommitTransfersResponse$Type();
+export const PostTransfersResponse = new PostTransfersResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class VoidTransfersRequest$Type extends MessageType<VoidTransfersRequest> {
     constructor() {
@@ -1635,6 +1635,6 @@ export const PacioliService = new ServiceType("pacioli.v1.PacioliService", [
     { name: "GetAccounts", options: {}, I: GetAccountsRequest, O: GetAccountsResponse },
     { name: "CreateTransfers", options: {}, I: CreateTransfersRequest, O: CreateTransfersResponse },
     { name: "GetTransfers", options: {}, I: GetTransfersRequest, O: GetTransfersResponse },
-    { name: "CommitTransfers", options: {}, I: CommitTransfersRequest, O: CommitTransfersResponse },
+    { name: "PostTransfers", options: {}, I: PostTransfersRequest, O: PostTransfersResponse },
     { name: "VoidTransfers", options: {}, I: VoidTransfersRequest, O: VoidTransfersResponse }
 ]);

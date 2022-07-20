@@ -6,8 +6,8 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { PacioliService } from "./pacioli";
 import type { VoidTransfersResponse } from "./pacioli";
 import type { VoidTransfersRequest } from "./pacioli";
-import type { CommitTransfersResponse } from "./pacioli";
-import type { CommitTransfersRequest } from "./pacioli";
+import type { PostTransfersResponse } from "./pacioli";
+import type { PostTransfersRequest } from "./pacioli";
 import type { GetTransfersResponse } from "./pacioli";
 import type { GetTransfersRequest } from "./pacioli";
 import type { CreateTransfersResponse } from "./pacioli";
@@ -52,9 +52,9 @@ export interface IPacioliServiceClient {
      */
     getTransfers(input: GetTransfersRequest, options?: RpcOptions): UnaryCall<GetTransfersRequest, GetTransfersResponse>;
     /**
-     * @generated from protobuf rpc: CommitTransfers(pacioli.v1.CommitTransfersRequest) returns (pacioli.v1.CommitTransfersResponse);
+     * @generated from protobuf rpc: PostTransfers(pacioli.v1.PostTransfersRequest) returns (pacioli.v1.PostTransfersResponse);
      */
-    commitTransfers(input: CommitTransfersRequest, options?: RpcOptions): UnaryCall<CommitTransfersRequest, CommitTransfersResponse>;
+    postTransfers(input: PostTransfersRequest, options?: RpcOptions): UnaryCall<PostTransfersRequest, PostTransfersResponse>;
     /**
      * @generated from protobuf rpc: VoidTransfers(pacioli.v1.VoidTransfersRequest) returns (pacioli.v1.VoidTransfersResponse);
      */
@@ -112,11 +112,11 @@ export class PacioliServiceClient implements IPacioliServiceClient, ServiceInfo 
         return stackIntercept<GetTransfersRequest, GetTransfersResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: CommitTransfers(pacioli.v1.CommitTransfersRequest) returns (pacioli.v1.CommitTransfersResponse);
+     * @generated from protobuf rpc: PostTransfers(pacioli.v1.PostTransfersRequest) returns (pacioli.v1.PostTransfersResponse);
      */
-    commitTransfers(input: CommitTransfersRequest, options?: RpcOptions): UnaryCall<CommitTransfersRequest, CommitTransfersResponse> {
+    postTransfers(input: PostTransfersRequest, options?: RpcOptions): UnaryCall<PostTransfersRequest, PostTransfersResponse> {
         const method = this.methods[6], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CommitTransfersRequest, CommitTransfersResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<PostTransfersRequest, PostTransfersResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: VoidTransfers(pacioli.v1.VoidTransfersRequest) returns (pacioli.v1.VoidTransfersResponse);

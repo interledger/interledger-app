@@ -236,7 +236,7 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 	}, nil
 }
 
-func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTransfersRequest) (*pacioliv1.CommitTransfersResponse, error) {
+func (s *rpcServer) PostTransfers(ctx context.Context, req *pacioliv1.PostTransfersRequest) (*pacioliv1.PostTransfersResponse, error) {
 
 	errors, err := s.ledger.CommitTransfers(ctx, req.TransferIds)
 	if err != nil {
@@ -254,7 +254,7 @@ func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTr
 		}
 	}
 
-	return &pacioliv1.CommitTransfersResponse{
+	return &pacioliv1.PostTransfersResponse{
 		Errors: errorsToReturn,
 	}, nil
 }
