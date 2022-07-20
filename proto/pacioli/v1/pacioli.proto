@@ -11,7 +11,7 @@ service PacioliService {
   rpc GetAccounts(GetAccountsRequest) returns (GetAccountsResponse);
   rpc CreateTransfers(CreateTransfersRequest) returns (CreateTransfersResponse);
   rpc GetTransfers(GetTransfersRequest) returns (GetTransfersResponse);
-  rpc CommitTransfers(CommitTransfersRequest) returns (CommitTransfersResponse);
+  rpc PostTransfers(PostTransfersRequest) returns (PostTransfersResponse);
   rpc VoidTransfers(VoidTransfersRequest) returns (VoidTransfersResponse);
 }
 
@@ -119,11 +119,11 @@ message GetTransfersResponse {
   repeated Transfer transfers = 1;
 }
 
-message CommitTransfersRequest {
+message PostTransfersRequest {
   repeated string transferIds = 1;
 }
 
-message CommitTransfersResponse {
+message PostTransfersResponse {
   repeated EventError errors = 1;
 }
 
