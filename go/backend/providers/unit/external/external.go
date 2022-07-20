@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	_http "net/http"
 )
 
 var (
@@ -17,12 +16,12 @@ var (
 )
 
 type ErrHttp struct {
-	Code int
-	Body []byte
+	Code   int
+	Errors []ResponseError
 }
 
 func (e *ErrHttp) Error() string {
-	return fmt.Sprintf("unit client: http error. statusCode=%d, body=%s", e.Code, string(e.Body))
+	return fmt.Sprintf("unit client: http error. statusCode=%d, errors=%+v", e.Code, e.Errors)
 }
 
 type (
@@ -41,17 +40,17 @@ type (
 
 	client struct {
 		baseUrl string
-		http    *_http.Client
+		http    *http.Client
 	}
 )
 
 type basicAuthTransport struct {
-	baseTransport _http.RoundTripper
+	baseTransport http.RoundTripper
 	apiToken      string
 }
 
 // This sets the basic auth credentials on every request.
-func (t basicAuthTransport) RoundTrip(r *_http.Request) (*_http.Response, error) {
+func (t basicAuthTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t.apiToken))
 	r.Header.Set("Content-Type", "application/vnd.api+json")
 	return t.baseTransport.RoundTrip(r)
@@ -59,7 +58,7 @@ func (t basicAuthTransport) RoundTrip(r *_http.Request) (*_http.Response, error)
 
 func newBasicAuthTransport(apiToken string) *basicAuthTransport {
 	return &basicAuthTransport{
-		baseTransport: &_http.Transport{},
+		baseTransport: &http.Transport{},
 		apiToken:      apiToken,
 	}
 }
@@ -67,7 +66,7 @@ func newBasicAuthTransport(apiToken string) *basicAuthTransport {
 func NewClient(baseUrl string, apiToken string) *client {
 	return &client{
 		baseUrl: baseUrl,
-		http: &_http.Client{
+		http: &http.Client{
 			Transport: newBasicAuthTransport(apiToken),
 		},
 	}
@@ -79,26 +78,14 @@ func (c *client) FilterApplicationFormsByUserID(ctx context.Context, userID stri
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	ret := []ApplicationForm{}
+	err = parseResponse(resp, &ret)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	if !isStatusOkay(resp.StatusCode) {
-		return nil, &ErrHttp{
-			Code: resp.StatusCode,
-			Body: body,
-		}
+		return nil, err
 	}
 
-	listFormResponse := &ListApplicationFormRequest{}
-	err = json.Unmarshal(body, listFormResponse)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return listFormResponse.Data, nil
+	return ret, nil
 }
 
 type CreateApplicationFormArgs struct {
@@ -112,7 +99,7 @@ func (c *client) CreateApplicationForm(
 	args *CreateApplicationFormArgs,
 ) (*ApplicationForm, error) {
 	url := fmt.Sprintf(`%s/application-forms`, c.baseUrl)
-	formRequest := &ApplicationFormRequest{
+	form := &ApplicationFormRequest{
 		Data: ApplicationForm{
 			Attributes: ApplicationFormAttributes{
 				Tags: ApplicationTags{
@@ -127,7 +114,7 @@ func (c *client) CreateApplicationForm(
 			},
 		},
 	}
-	payload, err := json.Marshal(formRequest)
+	payload, err := json.Marshal(form)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -141,25 +128,14 @@ func (c *client) CreateApplicationForm(
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	ret := &ApplicationForm{}
+	err = parseResponse(resp, ret)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	if !isStatusOkay(resp.StatusCode) {
-		return nil, &ErrHttp{
-			Code: resp.StatusCode,
-			Body: body,
-		}
-	}
-	formResponse := &ApplicationFormRequest{}
-	err = json.Unmarshal(body, formResponse)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, err
 	}
 
-	return &formResponse.Data, nil
+	return ret, nil
 }
 
 type CreateApplicationArgs struct {
@@ -216,26 +192,14 @@ func (c *client) CreateApplication(
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	ret := &Application{}
+	err = parseResponse(resp, ret)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	if !isStatusOkay(resp.StatusCode) {
-		return nil, &ErrHttp{
-			Code: resp.StatusCode,
-			Body: body,
-		}
+		return nil, err
 	}
 
-	applicationResponse := &ApplicationResponse{}
-	err = json.Unmarshal(body, applicationResponse)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return &applicationResponse.Data, nil
+	return ret, nil
 }
 
 type CreateCounterpartyArgs struct {
@@ -255,7 +219,7 @@ func (c *client) CreateCounterparty(
 	args *CreateCounterpartyArgs,
 ) (*Counterparty, error) {
 	url := fmt.Sprintf(`%s/counterparties`, c.baseUrl)
-	counterpartyRequest := &CounterpartyRequest{
+	counterparty := &CounterpartyRequest{
 		Data: Counterparty{
 			Type: "achCounterparty",
 			Attributes: CounterpartyAttributes{
@@ -276,7 +240,7 @@ func (c *client) CreateCounterparty(
 			},
 		},
 	}
-	rawCounterpartyRequest, err := json.Marshal(counterpartyRequest)
+	rawCounterpartyRequest, err := json.Marshal(counterparty)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -289,27 +253,45 @@ func (c *client) CreateCounterparty(
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	ret := &Counterparty{}
+	err = parseResponse(resp, ret)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	if !isStatusOkay(resp.StatusCode) {
-		return nil, &ErrHttp{
-			Code: resp.StatusCode,
-			Body: body,
-		}
-	}
-	counterpartyResponse := &CounterpartyRequest{}
-	err = json.Unmarshal(body, counterpartyResponse)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, err
 	}
 
-	return &counterpartyResponse.Data, nil
+	return ret, nil
 }
 
 func isStatusOkay(statusCode int) bool {
 	return statusCode >= http.StatusOK && statusCode < http.StatusMultipleChoices
+}
+
+func parseResponse(r *http.Response, data any) error {
+	defer r.Body.Close()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	response := &Response{}
+	err = json.Unmarshal(body, response)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if !isStatusOkay(r.StatusCode) || len(response.Errors) > 0 {
+		return &ErrHttp{
+			Code:   r.StatusCode,
+			Errors: response.Errors,
+		}
+	}
+
+	err = json.Unmarshal(response.Data, data)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
 }

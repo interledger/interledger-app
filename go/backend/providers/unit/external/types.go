@@ -1,6 +1,22 @@
 package external
 
+import "encoding/json"
+
 type (
+	Response struct {
+		Data   json.RawMessage `json:"data"`
+		Errors []ResponseError `json:"errors"`
+	}
+
+	ResponseError struct {
+		Title  string `json:"title"`
+		Status string `json:"status"`
+		Detail string `json:"detail"`
+		Meta   struct {
+			SupportId string `json:"supportId"`
+		} `json:"meta"`
+	}
+
 	TypeData struct {
 		ID   string `json:"id"`
 		Type string `json:"type"`
@@ -84,10 +100,6 @@ type (
 type (
 	ApplicationRequest struct {
 		Data ApplicationWithoutRelationships `json:"data,omitempty"`
-	}
-
-	ApplicationResponse struct {
-		Data Application `json:"data,omitempty"`
 	}
 
 	Application struct {
