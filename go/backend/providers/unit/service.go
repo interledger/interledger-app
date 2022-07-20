@@ -91,7 +91,7 @@ func (self *service) GetApplicationForm(ctx context.Context, userID string) (*Ap
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
-			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
 		}
 		if errors.Is(err, external.ErrRequest) {
 			return nil, fmt.Errorf("%w %s", ErrClient, err)
@@ -127,7 +127,7 @@ func (self *service) CreateApplicationForm(
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
-			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
 		}
 		if errors.Is(err, external.ErrRequest) {
 			return nil, fmt.Errorf("%w %s", ErrClient, err)
@@ -207,7 +207,7 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
-			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
 		}
 		if errors.Is(err, external.ErrRequest) {
 			return nil, fmt.Errorf("%w %s", ErrClient, err)
@@ -327,7 +327,7 @@ func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPar
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
-			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), string(errHttp.Body))
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
 		}
 		if errors.Is(err, external.ErrRequest) {
 			return nil, fmt.Errorf("%w %s", ErrClient, err)

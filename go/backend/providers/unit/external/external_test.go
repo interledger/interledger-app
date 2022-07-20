@@ -25,24 +25,30 @@ func TestCreateApplicationForm(t *testing.T) {
 			return
 		}
 
-		formResponse := &ApplicationFormRequest{
-			Data: ApplicationForm{
-				ID:   "411479",
-				Type: "applicationForm",
-				Attributes: ApplicationFormAttributes{
-					Tags: ApplicationTags{
-						FynbosUserID: "9fe19d6a-ce2e-4401-85f5-442dec6bf242",
-					},
-					Url:   "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6",
-					Stage: "EnterIndividualInformation",
-					ApplicationDetails: ApplicationFormPrefill{
-						ApplicationType: "Individual",
-						Nationality:     "US",
-						Email:           "peter@oscorp.com",
-					},
-					AllowedApplicationTypes: []string{"Individual"},
+		data := ApplicationForm{
+			ID:   "411479",
+			Type: "applicationForm",
+			Attributes: ApplicationFormAttributes{
+				Tags: ApplicationTags{
+					FynbosUserID: "9fe19d6a-ce2e-4401-85f5-442dec6bf242",
 				},
+				Url:   "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6",
+				Stage: "EnterIndividualInformation",
+				ApplicationDetails: ApplicationFormPrefill{
+					ApplicationType: "Individual",
+					Nationality:     "US",
+					Email:           "peter@oscorp.com",
+				},
+				AllowedApplicationTypes: []string{"Individual"},
 			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		formResponse := &Response{
+			Data: rawData,
 		}
 		payload, err := json.Marshal(formResponse)
 		if err != nil {
@@ -94,26 +100,32 @@ func TestGetApplicationForm(t *testing.T) {
 			t.Fatal("userID in tag does not match the userID specified.")
 		}
 
-		formResponse := &ListApplicationFormRequest{
-			Data: []ApplicationForm{
-				{
-					ID:   "411479",
-					Type: "applicationForm",
-					Attributes: ApplicationFormAttributes{
-						Tags: ApplicationTags{
-							FynbosUserID: userID,
-						},
-						Url:   "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6",
-						Stage: "EnterIndividualInformation",
-						ApplicationDetails: ApplicationFormPrefill{
-							ApplicationType: "Individual",
-							Nationality:     "US",
-							Email:           "peter@oscorp.com",
-						},
-						AllowedApplicationTypes: []string{"Individual"},
+		data := []ApplicationForm{
+			{
+				ID:   "411479",
+				Type: "applicationForm",
+				Attributes: ApplicationFormAttributes{
+					Tags: ApplicationTags{
+						FynbosUserID: userID,
 					},
+					Url:   "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6",
+					Stage: "EnterIndividualInformation",
+					ApplicationDetails: ApplicationFormPrefill{
+						ApplicationType: "Individual",
+						Nationality:     "US",
+						Email:           "peter@oscorp.com",
+					},
+					AllowedApplicationTypes: []string{"Individual"},
 				},
 			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		formResponse := &Response{
+			Data: rawData,
 		}
 		payload, err := json.Marshal(formResponse)
 		if err != nil {
@@ -154,37 +166,43 @@ func TestCreateApplication(t *testing.T) {
 			return
 		}
 
-		applicationResponse := &ApplicationResponse{
-			Data: Application{
-				Type: "individualApplication",
-				ID:   "53",
-				Attributes: ApplicationAttributes{
-					CreatedAt: "2020-01-14T14:05:04.718Z",
-					FullName: &FullName{
-						First: "Peter",
-						Last:  "Parker",
-					},
-					Ssn: "721074426",
-					Address: &Address{
-						Street:     "20 Ingram St",
-						State:      "NY",
-						City:       "Forest Hills",
-						PostalCode: "11375",
-						Country:    "US",
-					},
-					DateOfBirth: "2001-08-10",
-					Email:       "peter@oscorp.com",
-					Phone: &Phone{
-						CountryCode: "1",
-						Number:      "5555555555",
-					},
-					Status: "AwaitingDocuments",
-					IP:     "127.0.0.1",
-					Tags: &ApplicationTags{
-						FynbosUserID: userID,
-					},
+		data := Application{
+			Type: "individualApplication",
+			ID:   "53",
+			Attributes: ApplicationAttributes{
+				CreatedAt: "2020-01-14T14:05:04.718Z",
+				FullName: &FullName{
+					First: "Peter",
+					Last:  "Parker",
+				},
+				Ssn: "721074426",
+				Address: &Address{
+					Street:     "20 Ingram St",
+					State:      "NY",
+					City:       "Forest Hills",
+					PostalCode: "11375",
+					Country:    "US",
+				},
+				DateOfBirth: "2001-08-10",
+				Email:       "peter@oscorp.com",
+				Phone: &Phone{
+					CountryCode: "1",
+					Number:      "5555555555",
+				},
+				Status: "AwaitingDocuments",
+				IP:     "127.0.0.1",
+				Tags: &ApplicationTags{
+					FynbosUserID: userID,
 				},
 			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		applicationResponse := &Response{
+			Data: rawData,
 		}
 		payload, err := json.Marshal(applicationResponse)
 		if err != nil {
@@ -247,19 +265,25 @@ func TestCreateCounterparty(t *testing.T) {
 			return
 		}
 
-		counterpartyResponse := &CounterpartyRequest{
-			Data: Counterparty{
-				ID:   counterpartyID,
-				Type: "achCounterparty",
-				Relationships: CounterpartyRelationships{
-					Customer: Customer{
-						Data: TypeData{
-							ID:   unitCustomerID,
-							Type: "customer",
-						},
+		data := Counterparty{
+			ID:   counterpartyID,
+			Type: "achCounterparty",
+			Relationships: CounterpartyRelationships{
+				Customer: Customer{
+					Data: TypeData{
+						ID:   unitCustomerID,
+						Type: "customer",
 					},
 				},
 			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		counterpartyResponse := &Response{
+			Data: rawData,
 		}
 		payload, err := json.Marshal(counterpartyResponse)
 		if err != nil {
