@@ -45,7 +45,7 @@ func TestUserAccount(s *testing.T) {
 		}
 
 		ledgerID := uint32(1)
-		/*	_, err := container.PacioliClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
+		_, err := container.PacioliClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
 			Args: []*pacioliv1.Ledger{
 				{
 					Id:    ledgerID,
@@ -54,7 +54,10 @@ func TestUserAccount(s *testing.T) {
 					Scale: 2,
 				},
 			},
-		})*/
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		id, err := NewIdentity(container, &identity.CreateArgs{
 			ID:           user.ID,
@@ -67,6 +70,7 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
@@ -74,6 +78,7 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		transferResponse, err := container.PacioliClient.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
 			Transfers: []*pacioliv1.Transfer{
 				{
