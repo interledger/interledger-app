@@ -188,7 +188,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	if err != nil {
 		switch err.(type) {
 		default:
-			return nil, status.Error(codes.Internal, "Failed to create transfer."+err.Error())
+			return nil, status.Error(codes.Internal, "Failed to create transfer.")
 		}
 	}
 
@@ -242,7 +242,7 @@ func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTr
 	if err != nil {
 		switch err.(type) {
 		default:
-			return nil, status.Error(codes.Internal, "Failed to committ transfer."+err.Error())
+			return nil, status.Error(codes.Internal, "Failed to commit transfer.")
 		}
 	}
 
@@ -265,7 +265,7 @@ func (s *rpcServer) VoidTransfers(ctx context.Context, req *pacioliv1.VoidTransf
 	if err != nil {
 		switch err.(type) {
 		default:
-			return nil, status.Error(codes.Internal, "Failed to committ transfer."+err.Error())
+			return nil, status.Error(codes.Internal, "Failed to void transfer.")
 		}
 	}
 
