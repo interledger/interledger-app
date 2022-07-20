@@ -201,7 +201,7 @@ func TestRpc(s *testing.T) {
 
 			assert.Len(t, createResp.Errors, 0)
 
-			commitResp, err := c.Client.CommitTransfers(ctx, &pacioliv1.CommitTransfersRequest{
+			commitResp, err := c.Client.PostTransfers(ctx, &pacioliv1.PostTransfersRequest{
 				TransferIds: []string{scenario.TransferID},
 			})
 			if err != nil {

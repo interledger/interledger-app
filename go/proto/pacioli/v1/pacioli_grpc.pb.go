@@ -28,7 +28,7 @@ type PacioliServiceClient interface {
 	GetAccounts(ctx context.Context, in *GetAccountsRequest, opts ...grpc.CallOption) (*GetAccountsResponse, error)
 	CreateTransfers(ctx context.Context, in *CreateTransfersRequest, opts ...grpc.CallOption) (*CreateTransfersResponse, error)
 	GetTransfers(ctx context.Context, in *GetTransfersRequest, opts ...grpc.CallOption) (*GetTransfersResponse, error)
-	CommitTransfers(ctx context.Context, in *CommitTransfersRequest, opts ...grpc.CallOption) (*CommitTransfersResponse, error)
+	PostTransfers(ctx context.Context, in *PostTransfersRequest, opts ...grpc.CallOption) (*PostTransfersResponse, error)
 	VoidTransfers(ctx context.Context, in *VoidTransfersRequest, opts ...grpc.CallOption) (*VoidTransfersResponse, error)
 }
 
@@ -94,9 +94,9 @@ func (c *pacioliServiceClient) GetTransfers(ctx context.Context, in *GetTransfer
 	return out, nil
 }
 
-func (c *pacioliServiceClient) CommitTransfers(ctx context.Context, in *CommitTransfersRequest, opts ...grpc.CallOption) (*CommitTransfersResponse, error) {
-	out := new(CommitTransfersResponse)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CommitTransfers", in, out, opts...)
+func (c *pacioliServiceClient) PostTransfers(ctx context.Context, in *PostTransfersRequest, opts ...grpc.CallOption) (*PostTransfersResponse, error) {
+	out := new(PostTransfersResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/PostTransfers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ type PacioliServiceServer interface {
 	GetAccounts(context.Context, *GetAccountsRequest) (*GetAccountsResponse, error)
 	CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error)
 	GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error)
-	CommitTransfers(context.Context, *CommitTransfersRequest) (*CommitTransfersResponse, error)
+	PostTransfers(context.Context, *PostTransfersRequest) (*PostTransfersResponse, error)
 	VoidTransfers(context.Context, *VoidTransfersRequest) (*VoidTransfersResponse, error)
 }
 
@@ -148,8 +148,8 @@ func (UnimplementedPacioliServiceServer) CreateTransfers(context.Context, *Creat
 func (UnimplementedPacioliServiceServer) GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTransfers not implemented")
 }
-func (UnimplementedPacioliServiceServer) CommitTransfers(context.Context, *CommitTransfersRequest) (*CommitTransfersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CommitTransfers not implemented")
+func (UnimplementedPacioliServiceServer) PostTransfers(context.Context, *PostTransfersRequest) (*PostTransfersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostTransfers not implemented")
 }
 func (UnimplementedPacioliServiceServer) VoidTransfers(context.Context, *VoidTransfersRequest) (*VoidTransfersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VoidTransfers not implemented")
@@ -274,20 +274,20 @@ func _PacioliService_GetTransfers_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PacioliService_CommitTransfers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommitTransfersRequest)
+func _PacioliService_PostTransfers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostTransfersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PacioliServiceServer).CommitTransfers(ctx, in)
+		return srv.(PacioliServiceServer).PostTransfers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CommitTransfers",
+		FullMethod: "/pacioli.v1.PacioliService/PostTransfers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CommitTransfers(ctx, req.(*CommitTransfersRequest))
+		return srv.(PacioliServiceServer).PostTransfers(ctx, req.(*PostTransfersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -342,8 +342,8 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PacioliService_GetTransfers_Handler,
 		},
 		{
-			MethodName: "CommitTransfers",
-			Handler:    _PacioliService_CommitTransfers_Handler,
+			MethodName: "PostTransfers",
+			Handler:    _PacioliService_PostTransfers_Handler,
 		},
 		{
 			MethodName: "VoidTransfers",
