@@ -31,8 +31,7 @@ var (
 )
 
 const (
-	ApplicationUserIDTag = "fynbosUserId"
-	SignatureHeader      = "x-unit-signature"
+	SignatureHeader = "x-unit-signature"
 )
 
 type Service interface {
@@ -66,14 +65,14 @@ type (
 )
 
 func NewService(args ServiceArgs) (Service, error) {
-	validator := validator.New()
-	err := validator.Struct(args)
+	v := validator.New()
+	err := v.Struct(args)
 	if err != nil {
 		return nil, err
 	}
 
 	return &service{
-		validator:       validator,
+		validator:       v,
 		webhookToken:    args.WebhookToken,
 		db:              args.Db,
 		identityService: args.IdentityService,
@@ -86,8 +85,8 @@ type ApplicationForm struct {
 	URL string
 }
 
-func (self *service) GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error) {
-	forms, err := self.externalClient.FilterApplicationFormsByUserID(ctx, userID)
+func (s *service) GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error) {
+	forms, err := s.externalClient.FilterApplicationFormsByUserID(ctx, userID)
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
@@ -115,11 +114,11 @@ type CreateApplicationFormArgs struct {
 	Country string `validate:"required"`
 }
 
-func (self *service) CreateApplicationForm(
+func (s *service) CreateApplicationForm(
 	ctx context.Context,
 	args *CreateApplicationFormArgs,
 ) (*ApplicationForm, error) {
-	form, err := self.externalClient.CreateApplicationForm(ctx, &external.CreateApplicationFormArgs{
+	form, err := s.externalClient.CreateApplicationForm(ctx, &external.CreateApplicationFormArgs{
 		ID:      args.ID,
 		Email:   args.Email,
 		Country: args.Country,
@@ -225,8 +224,8 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	}, nil
 }
 
-func (self *service) VerifyWebhook(ctx context.Context, body []byte, signature string) error {
-	mac := hmac.New(sha1.New, []byte(self.webhookToken))
+func (s *service) VerifyWebhook(ctx context.Context, body []byte, signature string) error {
+	mac := hmac.New(sha1.New, []byte(s.webhookToken))
 	mac.Write(body)
 	sha := base64.StdEncoding.EncodeToString(mac.Sum(nil))
 	if sha != signature {
@@ -350,7 +349,7 @@ func (s *service) CreateCounterParty(ctx context.Context, args *CreateCounterPar
 	return ret, nil
 }
 
-func (s service) GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error) {
+func (s *service) GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error) {
 	ret := &CounterParty{}
 	err := s.db.GetContext(
 		ctx,
