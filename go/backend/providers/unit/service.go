@@ -9,8 +9,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -53,6 +55,7 @@ type (
 		webhookToken    string
 		db              *sqlx.DB
 		identityService identity.Service
+		logger          *zap.Logger
 	}
 
 	ServiceArgs struct {
@@ -61,6 +64,7 @@ type (
 		WebhookToken    string           `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
+		Logger          *zap.Logger      `validate:"required"`
 	}
 )
 
@@ -77,6 +81,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		db:              args.Db,
 		identityService: args.IdentityService,
 		externalClient:  external.NewClient(args.BaseURL, args.Token),
+		logger:          args.Logger.With(zap.String("service", "unit")),
 	}, nil
 }
 
@@ -162,15 +167,35 @@ type Application struct {
 	CustomerID   string
 }
 
-func (s *service) CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+func (s *service) CreateApplication(ctx context.Context, args *CreateApplicationArgs) (application *Application, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			s.logger.Error(
+				"failed to create unit application",
+				zap.String("userId", args.UserID),
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		s.logger.Debug(
+			"created unit application",
+			zap.String("userId", args.UserID),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
 	id, err := s.identityService.Get(ctx, args.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		err = fmt.Errorf("%w %s", ErrInternal, err)
+		return
 	}
 
 	phoneNumber, err := phonenumbers.Parse(id.MobileNumber, "")
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		err = fmt.Errorf("%w %s", ErrInternal, err)
+		return
 	}
 
 	// deviceFingerprints := make([]DeviceFingerprint, len(args.DeviceFingerprints))
@@ -181,7 +206,7 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	// 	})
 	// }
 
-	application, err := s.externalClient.CreateApplication(ctx, &external.CreateApplicationArgs{
+	app, err := s.externalClient.CreateApplication(ctx, &external.CreateApplicationArgs{
 		UserID:             args.UserID,
 		Email:              id.Email,
 		IpAddress:          args.IpAddress,
@@ -206,21 +231,24 @@ func (s *service) CreateApplication(ctx context.Context, args *CreateApplication
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
-			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
+			err = fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
+			return
 		}
 		if errors.Is(err, external.ErrRequest) {
-			return nil, fmt.Errorf("%w %s", ErrClient, err)
+			err = fmt.Errorf("%w %s", ErrClient, err)
+			return
 		}
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		err = fmt.Errorf("%w %s", ErrInternal, err)
+		return
 	}
 
 	return &Application{
-		Type:         application.Type,
-		ID:           application.ID,
-		Status:       application.Attributes.Status,
-		FynbosUserId: application.Attributes.Tags.FynbosUserID,
-		Archived:     application.Attributes.Archived,
-		CustomerID:   application.Relationships.Customer.Data.ID,
+		Type:         app.Type,
+		ID:           app.ID,
+		Status:       app.Attributes.Status,
+		FynbosUserId: app.Attributes.Tags.FynbosUserID,
+		Archived:     app.Attributes.Archived,
+		CustomerID:   app.Relationships.Customer.Data.ID,
 	}, nil
 }
 

@@ -3,6 +3,7 @@ package unit
 import (
 	"context"
 	"encoding/json"
+	"go.uber.org/zap"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,6 +28,7 @@ func TestVerifyWebhook(s *testing.T) {
 		Token:           "test token",
 		Db:              &sqlx.DB{},
 		IdentityService: identity.NewMockService(ctrl),
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		s.Fatal(err)
@@ -61,6 +63,7 @@ func TestCreateAndGetCustomer(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: identity.NewMockService(ctrl),
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -148,6 +151,7 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: identity.NewMockService(ctrl),
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)

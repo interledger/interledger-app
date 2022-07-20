@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"go.uber.org/zap"
 	"io"
 	http "net/http"
 	"net/http/httptest"
@@ -121,6 +122,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -176,6 +178,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -229,6 +232,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -263,6 +267,7 @@ func TestStoreEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -304,6 +309,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
