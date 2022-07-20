@@ -157,6 +157,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		Token:           "test token",
 		Db:              db,
 		IdentityService: is,
+		Logger:          logger,
 	})
 	if err != nil {
 		return nil, err

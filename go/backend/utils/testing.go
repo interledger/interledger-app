@@ -95,7 +95,6 @@ func SetupKratos() (*KratosContainer, error) {
 			Dockerfile: "Dockerfile",
 		},
 		ExposedPorts: []string{"4433/tcp", "4434/tcp"},
-		//WaitingFor:   wait.ForHTTP("/health/ready").WithPort("4434"),
 		Env: map[string]string{
 			"DSN": "sqlite:///tmp/some-db.sqlite?_fk=true",
 		},
