@@ -22,9 +22,9 @@ var (
 
 type (
 	Service interface {
-		SignAgreement(ctx context.Context, args *SignAgreementArgs) (*AgreementSign, error)
-		GetAgreementSigns(ctx context.Context, identityID string) ([]AgreementSign, error)
-		GetAgreement(ctx context.Context, id string) (*Agreement, error)
+		Sign(ctx context.Context, args *SignArgs) (*Signature, error)
+		GetSignatures(ctx context.Context, identityID string) ([]Signature, error)
+		Get(ctx context.Context, id string) (*Agreement, error)
 	}
 
 	ServiceArgs struct {
@@ -38,7 +38,7 @@ type (
 		agreementsDir string
 	}
 
-	agreementSign struct {
+	signature struct {
 		ID           string         `db:"id"`
 		AgreementIDs pq.StringArray `db:"agreement_ids"`
 		IdentityID   string         `db:"identity_id"`
@@ -47,7 +47,7 @@ type (
 		UpdatedAt    string         `db:"updated_at"`
 	}
 
-	AgreementSign struct {
+	Signature struct {
 		ID           string   `db:"id"`
 		AgreementIDs []string `db:"agreement_ids"`
 		IdentityID   string   `db:"identity_id"`
@@ -87,7 +87,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	}, nil
 }
 
-func (s *service) GetAgreement(ctx context.Context, id string) (*Agreement, error) {
+func (s *service) Get(ctx context.Context, id string) (*Agreement, error) {
 	var agreement Agreement
 
 	err := s.db.GetContext(ctx, &agreement, "SELECT * FROM agreements WHERE id = $1", id)
@@ -101,32 +101,32 @@ func (s *service) GetAgreement(ctx context.Context, id string) (*Agreement, erro
 	return &agreement, nil
 }
 
-type SignAgreementArgs struct {
+type SignArgs struct {
 	AgreementIDs []string `validate:"required"`
 	IdentityID   string   `validate:"required"`
 	IPAddress    string   `validate:"required,ip_addr"`
 }
 
-func (s *service) SignAgreement(ctx context.Context, args *SignAgreementArgs) (*AgreementSign, error) {
+func (s *service) Sign(ctx context.Context, args *SignArgs) (*Signature, error) {
 	if err := s.validator.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
 	for _, agreementID := range args.AgreementIDs {
-		_, err := s.GetAgreement(ctx, agreementID)
+		_, err := s.Get(ctx, agreementID)
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", ErrInternal, err)
 		}
 	}
 
-	var signRecord agreementSign
+	var signRecord signature
 
-	err := s.db.GetContext(ctx, &signRecord, "INSERT INTO agreement_signs (agreement_ids, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", pq.StringArray(args.AgreementIDs), args.IdentityID, args.IPAddress)
+	err := s.db.GetContext(ctx, &signRecord, "INSERT INTO agreement_signatures (agreement_ids, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", pq.StringArray(args.AgreementIDs), args.IdentityID, args.IPAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	return &AgreementSign{
+	return &Signature{
 		ID:           signRecord.ID,
 		AgreementIDs: signRecord.AgreementIDs,
 		IdentityID:   signRecord.IdentityID,
@@ -136,10 +136,10 @@ func (s *service) SignAgreement(ctx context.Context, args *SignAgreementArgs) (*
 	}, nil
 }
 
-func (s *service) GetAgreementSigns(ctx context.Context, identityID string) ([]AgreementSign, error) {
-	var agreementSigns []agreementSign
+func (s *service) GetSignatures(ctx context.Context, identityID string) ([]Signature, error) {
+	var agreementSigns []signature
 
-	err := s.db.SelectContext(ctx, &agreementSigns, "SELECT * FROM agreement_signs WHERE identity_id = $1", identityID)
+	err := s.db.SelectContext(ctx, &agreementSigns, "SELECT * FROM agreement_signatures WHERE identity_id = $1", identityID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
@@ -147,19 +147,19 @@ func (s *service) GetAgreementSigns(ctx context.Context, identityID string) ([]A
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	var signs []AgreementSign
-	for _, agreementSign := range agreementSigns {
-		signs = append(signs, AgreementSign{
-			ID:           agreementSign.ID,
-			AgreementIDs: []string(agreementSign.AgreementIDs),
-			IdentityID:   agreementSign.IdentityID,
-			IPAddress:    agreementSign.IPAddress,
-			CreatedAt:    agreementSign.CreatedAt,
-			UpdatedAt:    agreementSign.UpdatedAt,
+	var signatures []Signature
+	for _, sign := range agreementSigns {
+		signatures = append(signatures, Signature{
+			ID:           sign.ID,
+			AgreementIDs: []string(sign.AgreementIDs),
+			IdentityID:   sign.IdentityID,
+			IPAddress:    sign.IPAddress,
+			CreatedAt:    sign.CreatedAt,
+			UpdatedAt:    sign.UpdatedAt,
 		})
 	}
 
-	return signs, nil
+	return signatures, nil
 }
 
 type StoreAgreementsArgs struct {
