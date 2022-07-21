@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS agreement_signs;
+DROP TABLE IF EXISTS agreement_signatures;
