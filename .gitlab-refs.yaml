@@ -29,3 +29,8 @@
   environment:
     name: Dev
     url: https://dev.fynbos.dev
+
+.dev_eu1_environment:
+  environment:
+    name: Dev EU1
+    url: https://eu1.fynbos.dev
