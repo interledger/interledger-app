@@ -13,11 +13,11 @@ import (
 
 type MigrationArgs struct {
 	ConnectionString    string
-	NoopLedgerID        uint16
+	NoopLedgerID        uint32
 	NoopEquityAccountID string
 	UnitWebhookToken    string
 	PacioliUrl          string
-	UsdLedgerID         uint16
+	UsdLedgerID         uint32
 	KratosUrl           string
 	LogLevel            string
 	LogOutputPath       string
@@ -75,8 +75,8 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		ConnectionString:    connString,
 		PacioliUrl:          pacioliUrl,
 		NoopEquityAccountID: noopEquityAccount,
-		NoopLedgerID:        uint16(usdLedgerID),
-		UsdLedgerID:         uint16(usdLedgerID),
+		NoopLedgerID:        uint32(usdLedgerID),
+		UsdLedgerID:         uint32(usdLedgerID),
 		KratosUrl:           kratosUrl,
 		LogLevel:            logLevel,
 		LogOutputPath:       logOutputPath,
@@ -88,10 +88,10 @@ type StartArgs struct {
 	DbConnectionString   string
 	KratosUrl            string
 	PacioliUrl           string
-	UsdLedgerID          uint16
+	UsdLedgerID          uint32
 	LogLevel             string
 	LogOutputPath        string
-	NoopLedgerID         uint16
+	NoopLedgerID         uint32
 	NoopEquityAccountID  string
 	UnitToken            string
 	UnitBaseURL          string
@@ -142,7 +142,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	if usdLedgerIDString == "" {
 		return nil, errors.New("USD ledger code not specified.")
 	}
-	usdLedgerID, err := strconv.ParseUint(usdLedgerIDString, 10, 16)
+	usdLedgerID, err := strconv.ParseUint(usdLedgerIDString, 10, 32)
 	if err != nil {
 		return nil, errors.New("USD_LEDGER_ID must be a uint16.")
 	}
@@ -212,10 +212,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		DbConnectionString:   connString,
 		KratosUrl:            kratosUrl,
 		PacioliUrl:           pacioliUrl,
-		UsdLedgerID:          uint16(usdLedgerID),
+		UsdLedgerID:          uint32(usdLedgerID),
 		LogLevel:             logLevel,
 		LogOutputPath:        logOutputPath,
-		NoopLedgerID:         uint16(usdLedgerID), // all on the same ledger at the moment.
+		NoopLedgerID:         uint32(usdLedgerID), // all on the same ledger at the moment.
 		NoopEquityAccountID:  noopEquityAccount,
 		UnitToken:            unitToken,
 		UnitBaseURL:          unitBaseURL,

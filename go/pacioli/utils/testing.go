@@ -104,7 +104,7 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*T
 
 	fmt.Println("Starting TigerBeetle test container.")
 	req := testcontainers.ContainerRequest{
-		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle:patch-1", // TODO: host image
+		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977", // TODO: host image
 		ExposedPorts: []string{TIGERBEETLE_PORT},
 		WaitingFor:   wait.ForLog("init").WithPollInterval(1 * time.Second),
 		Entrypoint: []string{

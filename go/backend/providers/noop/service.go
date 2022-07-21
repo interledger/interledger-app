@@ -33,7 +33,7 @@ type Service interface {
 	InitiateOutgoingPayment(ctx context.Context, args *OutgoingPaymentArgs) error
 
 	GetEquityAccountID() string
-	GetLedgerID() uint16
+	GetLedgerID() uint32
 	CreateCustomer(args *CreateCustomerArgs) (*Customer, error)
 }
 
@@ -41,14 +41,14 @@ type service struct {
 	validator *validator.Validate
 	// TODO: configuring and management of ledgers and ledger accounts that this provider
 	// acts upon.
-	ledgerID        uint16
+	ledgerID        uint32
 	equityAccountID string
 	pacioliClient   pacioliv1.PacioliServiceClient
 }
 
 type ServiceArgs struct {
 	// TODO: configuring and management of ledgers and ledger accounts
-	LedgerID      uint16
+	LedgerID      uint32
 	EquityAccID   string `validate:"required"`
 	PacioliTenant string
 	PacioliClient pacioliv1.PacioliServiceClient `validate:"required"`
@@ -76,7 +76,7 @@ func (s *service) Init(ctx context.Context) error {
 		&pacioliv1.ConfigureLedgersRequest{
 			Args: []*pacioliv1.Ledger{
 				{
-					Id:    uint32(s.ledgerID),
+					Id:    s.ledgerID,
 					Name:  "Fynbos ledger",
 					Asset: "840",
 					Scale: 2,
@@ -97,8 +97,8 @@ func (s *service) Init(ctx context.Context) error {
 			Args: []*pacioliv1.ConfigureAccountsArgs{
 				{
 					Id:       s.equityAccountID,
-					LedgerId: uint32(s.ledgerID),
-					// Code: 1,
+					LedgerId: s.ledgerID,
+					Code:     1,
 				},
 			},
 		},
@@ -165,7 +165,7 @@ func (s *service) GetEquityAccountID() string {
 	return s.equityAccountID
 }
 
-func (s *service) GetLedgerID() uint16 {
+func (s *service) GetLedgerID() uint32 {
 	return s.ledgerID
 }
 

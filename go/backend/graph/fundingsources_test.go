@@ -54,6 +54,7 @@ func TestUserFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
@@ -61,6 +62,7 @@ func TestUserFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		verifyFundingSource := true
 		fundingSource, err := NewBankAccount(
 			container,
@@ -121,6 +123,7 @@ func TestUserFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
@@ -128,6 +131,7 @@ func TestUserFundingSources(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		verifyFundingSource := true
 		_, err = NewBankAccount(
 			container,

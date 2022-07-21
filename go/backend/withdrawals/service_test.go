@@ -62,6 +62,7 @@ func TestWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		_, err = container.TransactionService.Create(ctx, &transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,
 			Description: "Random Deposit",
@@ -73,7 +74,7 @@ func TestWithdrawals(s *testing.T) {
 					DebitAccountID:  acc.LedgerAccountID,
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					Amount:          1000,
-					Code:            0,
+					Code:            1,
 					Flags:           transactions.LedgerTransferFlags{},
 				},
 			},
@@ -155,6 +156,7 @@ func TestWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		fs, err := container.FundingSourcesService.CreateBankAccount(ctx, &fundingsources.CreateBankAccountArgs{
 			IdentityID:    user.ID,
 			AccountID:     acc.ID,
@@ -167,6 +169,7 @@ func TestWithdrawals(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		_, err = container.FundingSourcesService.Verify(ctx, &fundingsources.VerifyArgs{
 			IdentityID:      user.ID,
 			FundingSourceID: fs.ID,
@@ -217,7 +220,7 @@ type TestContainer struct {
 	TemporalMock          *mocks.Client
 	PacioliContainer      *test_utils.PacioliContainer
 	PacioliClient         pacioliv1.PacioliServiceClient
-	PacioliLedgerID       uint16
+	PacioliLedgerID       uint32
 	Db                    *sqlx.DB
 	Logger                *zap.Logger
 	Ctx                   context.Context
@@ -232,7 +235,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
 
-	c.PacioliLedgerID = uint16(1)
+	c.PacioliLedgerID = 1
 	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err

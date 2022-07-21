@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/coilhq/tigerbeetle-go"
 	tigerbeetleTypes "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -33,7 +34,7 @@ const (
 
 // Models
 type Ledger struct {
-	ID        uint16 `json:"id"` // maps to TigerBeetle's `unit` (soon to be ledger) field on an account.
+	ID        uint32 `json:"id"` // maps to TigerBeetle's `unit` (soon to be ledger) field on an account.
 	Name      string `json:"name"`
 	Asset     string `json:"string"`
 	Scale     uint8  `json:"scale"`
@@ -42,14 +43,14 @@ type Ledger struct {
 }
 
 type Account struct {
-	ID              string
-	LedgerID        uint16
-	Flags           AccountFlags
-	Code            uint16
-	DebitsReserved  uint64
-	DebitsAccepted  uint64
-	CreditsReserved uint64
-	CreditsAccepted uint64
+	ID             string
+	LedgerID       uint32
+	Flags          AccountFlags
+	Code           uint16
+	DebitsPending  uint64
+	DebitsPosted   uint64
+	CreditsPending uint64
+	CreditsPosted  uint64
 }
 
 type Transfer struct {
@@ -59,31 +60,31 @@ type Transfer struct {
 	CreditAccountID string
 	Amount          uint64
 	Flags           TransferFlags
-	Code            uint32
+	Code            uint16
 	Timeout         uint64
 }
 
-type CommitFlags = tigerbeetleTypes.CommitFlags
 type TransferFlags = tigerbeetleTypes.TransferFlags
 type AccountFlags = tigerbeetleTypes.AccountFlags
 type EventResult = tigerbeetleTypes.EventResult
+type TransferResult = tigerbeetleTypes.TransferEventResult
+type AccountResult = tigerbeetleTypes.AccountEventResult
 
 type Service interface {
-	// This is declaritive and won't fail if the tenant exists.
-	ConfigureTenant(ctx context.Context, name string) error
 
 	// This is declaritive and will not fail if the ledger exists. It will fail if one exists with
 	// different fields.
-	ConfigureLedgers(ctx context.Context, tenant string, args []ConfigureLedgerArgs) ([]EventResult, error)
-	GetLedgers(ctx context.Context, tenant string, ledgerIDs []uint32) ([]Ledger, error)
+	ConfigureLedgers(ctx context.Context, args []ConfigureLedgerArgs) ([]EventResult, error)
+	GetLedgers(ctx context.Context, ledgerIDs []uint32) ([]Ledger, error)
 
 	// This is declaritive and will not fail if the account exists. It will fail if one exists with
 	// different fields.
-	ConfigureAccounts(ctx context.Context, tenant string, args []ConfigureAccountArgs) ([]EventResult, error)
-	GetAccounts(ctx context.Context, tenant string, accountIDs []string) ([]Account, error)
-	CreateTransfers(ctx context.Context, tenant string, args []CreateTransferArgs) ([]EventResult, error)
-	GetTransfers(ctx context.Context, tenant string, transferIDs []string) ([]Transfer, error)
-	CommitTransfers(ctx context.Context, tenant string, args []CommitTransferArgs) ([]EventResult, error)
+	ConfigureAccounts(ctx context.Context, args []ConfigureAccountArgs) ([]AccountResult, error)
+	GetAccounts(ctx context.Context, accountIDs []string) ([]Account, error)
+	CreateTransfers(ctx context.Context, args []CreateTransferArgs) ([]TransferResult, error)
+	GetTransfers(ctx context.Context, transferIDs []string) ([]Transfer, error)
+	CommitTransfers(ctx context.Context, transferIDs []string) ([]TransferResult, error)
+	VoidTransfers(ctx context.Context, transferIDs []string) ([]TransferResult, error)
 }
 
 type service struct {
@@ -107,21 +108,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 	return &service{db: args.Db, tb: args.Tb, validator: validator}, nil
 }
 
-// This is declaritive and won't fail if the tenant exists.
-func (s *service) ConfigureTenant(ctx context.Context, name string) error {
-	_, err := s.db.ExecContext(ctx, "INSERT into tenants (id) VALUES ($1);", name)
-	if err != nil {
-		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
-			return nil
-		}
-		return fmt.Errorf("%s %w", err.Error(), ErrInternal)
-	}
-
-	return nil
-}
-
 type ConfigureLedgerArgs struct {
-	ID    uint16
+	ID    uint32
 	Name  string `validate:"required"`
 	Asset string `validate:"required"`
 	Scale uint8  `validate:"gt=0"`
@@ -131,7 +119,6 @@ type ConfigureLedgerArgs struct {
 // different fields.
 func (s *service) ConfigureLedgers(
 	ctx context.Context,
-	tenant string,
 	args []ConfigureLedgerArgs,
 ) ([]EventResult, error) {
 	ledgerIds := make([]uint32, len(args))
@@ -144,7 +131,7 @@ func (s *service) ConfigureLedgers(
 		ledgerIds[i] = uint32(ledger.ID)
 	}
 
-	existingLedgers, err := s.GetLedgers(ctx, tenant, ledgerIds)
+	existingLedgers, err := s.GetLedgers(ctx, ledgerIds)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +224,7 @@ func canCreateLedger(args ConfigureLedgerArgs, existingLedger Ledger) uint8 {
 	return LEDGER_OK
 }
 
-func (s service) GetLedgers(ctx context.Context, tenant string, ids []uint32) ([]Ledger, error) {
+func (s service) GetLedgers(ctx context.Context, ids []uint32) ([]Ledger, error) {
 	// TODO: ACL
 
 	var ledgers []Ledger
@@ -255,7 +242,7 @@ func (s service) GetLedgers(ctx context.Context, tenant string, ids []uint32) ([
 
 type ConfigureAccountArgs struct {
 	ID       string `validate:"required,uuid4"`
-	LedgerID uint16
+	LedgerID uint32
 	Code     uint16
 	Flags    AccountFlags
 }
@@ -264,7 +251,7 @@ type ConfigureAccountArgs struct {
 // TODO: see if there is a better way to do this.
 func UuidToU128(value string) (*tigerbeetleTypes.Uint128, error) {
 	src := strings.Replace(value, "-", "", -1)
-	ret := new(tigerbeetleTypes.Uint128)
+	var ret tigerbeetleTypes.Uint128
 	bytesWritten, err := hex.Decode(ret[:], []byte(src))
 	if err != nil {
 		return nil, err
@@ -273,7 +260,7 @@ func UuidToU128(value string) (*tigerbeetleTypes.Uint128, error) {
 		return nil, errors.New("String could not be converted into uint128.")
 	}
 
-	return ret, nil
+	return &ret, nil
 }
 
 // Helper function to extract the uuid we put into the u128.
@@ -288,12 +275,11 @@ func U128ToUuid(value tigerbeetleTypes.Uint128) string {
 // different fields.
 func (s *service) ConfigureAccounts(
 	ctx context.Context,
-	tenant string,
 	args []ConfigureAccountArgs,
-) ([]EventResult, error) {
+) ([]AccountResult, error) {
 	// TODO: ACL
 	ledgerIDs := []uint32{}
-	keys := map[uint16]uint8{}
+	keys := map[uint32]uint8{}
 	const (
 		LOOKING_UP uint8 = 1
 		EXISTS     uint8 = 2
@@ -306,7 +292,7 @@ func (s *service) ConfigureAccounts(
 		}
 	}
 
-	ledgers, err := s.GetLedgers(ctx, tenant, ledgerIDs)
+	ledgers, err := s.GetLedgers(ctx, ledgerIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -317,8 +303,8 @@ func (s *service) ConfigureAccounts(
 	}
 
 	// size to len(args) to avoid appending
-	eventErrors := make([]EventResult, len(args))
-	errors := uint32(0) // number of errors
+	eventErrors := make([]AccountResult, len(args))
+	errs := uint32(0) // number of errors
 	accountsToCreate := make([]tigerbeetleTypes.Account, len(args))
 	index := uint32(0) // number of accounts to create
 
@@ -331,11 +317,11 @@ func (s *service) ConfigureAccounts(
 		}
 
 		if keys[acc.LedgerID] != EXISTS {
-			eventErrors[errors] = EventResult{
+			eventErrors[errs] = AccountResult{
 				Index: uint32(i),
-				Code:  uint32(ACCOUNT_LEDGER_DOES_NOT_EXIST),
+				Code:  tigerbeetleTypes.CreateAccountResult(ACCOUNT_LEDGER_DOES_NOT_EXIST),
 			}
-			errors++
+			errs++
 			continue
 		}
 
@@ -344,10 +330,10 @@ func (s *service) ConfigureAccounts(
 			return nil, err
 		}
 		accountsToCreate[index] = tigerbeetleTypes.Account{
-			ID:    *tbAccID,
-			Unit:  acc.LedgerID,
-			Code:  acc.Code,
-			Flags: acc.Flags.ToUint32(),
+			ID:     *tbAccID,
+			Code:   acc.Code,
+			Flags:  acc.Flags.ToUint16(),
+			Ledger: acc.LedgerID,
 		}
 		mapToEventErrorSlot[index] = uint32(i)
 		index++
@@ -362,20 +348,19 @@ func (s *service) ConfigureAccounts(
 		index, present := mapToEventErrorSlot[tbErr.Index]
 		if !present {
 			// the mapping is broken
-			panic("Unable to map Tb event errors back to our create account errors.")
+			panic("Unable to map Tb event errs back to our create account errs.")
 		}
 		if tbErr.Code != tigerbeetleTypes.AccountExists {
-			eventErrors[errors] = EventResult{Index: index, Code: tbErr.Code}
-			errors++
+			eventErrors[errs] = AccountResult{Index: index, Code: tbErr.Code}
+			errs++
 		}
 	}
 
-	return eventErrors[:errors], nil
+	return eventErrors[:errs], nil
 }
 
 func (s *service) GetAccounts(
 	ctx context.Context,
-	tenant string,
 	accountIDs []string,
 ) ([]Account, error) {
 	tbAccIDs := []tigerbeetleTypes.Uint128{}
@@ -400,15 +385,15 @@ func (s *service) GetAccounts(
 	ret := make([]Account, len(results))
 	for i, result := range results {
 		ret[i] = Account{
-			ID:              U128ToUuid(result.ID),
-			LedgerID:        result.Unit,
-			Code:            result.Code,
-			DebitsReserved:  result.DebitsReserved,
-			DebitsAccepted:  result.DebitsAccepted,
-			CreditsReserved: result.CreditsReserved,
-			CreditsAccepted: result.CreditsAccepted,
+			ID:             U128ToUuid(result.ID),
+			LedgerID:       result.Ledger,
+			Code:           result.Code,
+			DebitsPending:  result.DebitsPending,
+			DebitsPosted:   result.DebitsPosted,
+			CreditsPending: result.CreditsPending,
+			CreditsPosted:  result.CreditsPosted,
 			Flags: AccountFlags{
-				Linked:                     result.Flags&(1<<0) == 1,
+				Linked:                     result.Flags&(1<<0) == 1, // TODO: Create consts
 				DebitsMustNotExceedCredits: result.Flags&(1<<1) == 2,
 				CreditsMustNotExceedDebits: result.Flags&(1<<2) == 4,
 			},
@@ -426,13 +411,14 @@ type CreateTransferArgs struct {
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Flags           TransferFlags
-	Code            uint32
+	Code            uint16
 	Timeout         uint64
+	Ledger          uint32
 }
 
 // TODO: Assuming that IDs are uuids and are being generated by another service for now. Might be better to be
 // unopinionated and accept []byte.
-func (s *service) CreateTransfers(ctx context.Context, tenant string, args []CreateTransferArgs) ([]EventResult, error) {
+func (s *service) CreateTransfers(ctx context.Context, args []CreateTransferArgs) ([]TransferResult, error) {
 	// TODO: collect ledgers and perform ACL. TigerBeetle will introduce the ledger field onto
 	// a transfer.
 	tbTransfers := make([]tigerbeetleTypes.Transfer, len(args))
@@ -462,8 +448,9 @@ func (s *service) CreateTransfers(ctx context.Context, tenant string, args []Cre
 			CreditAccountID: *creditAccountID,
 			Amount:          transfer.Amount,
 			Code:            transfer.Code,
-			Flags:           transfer.Flags.ToUint32(),
+			Flags:           transfer.Flags.ToUint16(),
 			Timeout:         transfer.Timeout,
+			Ledger:          transfer.Ledger,
 		}
 	}
 
@@ -475,7 +462,7 @@ func (s *service) CreateTransfers(ctx context.Context, tenant string, args []Cre
 	return eventErrors, nil
 }
 
-func (s *service) GetTransfers(ctx context.Context, tenant string, transferIDs []string) ([]Transfer, error) {
+func (s *service) GetTransfers(ctx context.Context, transferIDs []string) ([]Transfer, error) {
 	tbTransferIDs := make([]tigerbeetleTypes.Uint128, len(transferIDs))
 	for i, id := range transferIDs {
 		_, err := uuid.Parse(id)
@@ -504,9 +491,10 @@ func (s *service) GetTransfers(ctx context.Context, tenant string, transferIDs [
 			Amount:          transfer.Amount,
 			Code:            transfer.Code,
 			Flags: TransferFlags{
-				Linked:         transfer.Flags&(1<<0) == 1,
-				TwoPhaseCommit: transfer.Flags&(1<<1) == 2,
-				Condition:      transfer.Flags&(1<<2) == 4,
+				Linked:              transfer.Flags&(1<<0) == 1,
+				Pending:             transfer.Flags&(1<<1) == 2,
+				PostPendingTransfer: transfer.Flags&(1<<2) == 4,
+				VoidPendingTransfer: transfer.Flags&(1<<3) == 8,
 			},
 		}
 	}
@@ -516,33 +504,81 @@ func (s *service) GetTransfers(ctx context.Context, tenant string, transferIDs [
 	return ret, nil
 }
 
-type CommitTransferArgs struct {
-	ID    string `validate:"required,uuid4"`
-	Flags CommitFlags
-	Code  uint32
-}
+func (s *service) CommitTransfers(ctx context.Context, transferIDs []string) ([]TransferResult, error) {
+	tbTransfers := make([]tigerbeetleTypes.Transfer, len(transferIDs))
+	tbTransferIDs := make([]tigerbeetleTypes.Uint128, len(transferIDs))
 
-func (s *service) CommitTransfers(ctx context.Context, tenant string, args []CommitTransferArgs) ([]EventResult, error) {
-	commits := make([]tigerbeetleTypes.Commit, len(args))
-	for i, commit := range args {
-		err := s.validator.Struct(commit)
+	for i, id := range transferIDs {
+		_, err := uuid.Parse(id)
 		if err != nil {
-			return nil, fmt.Errorf("%s %w", err.Error(), ErrInvalidArg)
+			return nil, fmt.Errorf("Transfer ID must be a uuid. %w", ErrInvalidArg)
+		}
+		transferID, err := UuidToU128(id)
+		if err != nil {
+			return nil, err
 		}
 
-		commitID, err := UuidToU128(commit.ID)
+		tbTransferIDs[i] = *transferID
+	}
+
+	for i, tid := range tbTransferIDs {
+
+		newID, err := UuidToU128(uuid.NewString())
 		if err != nil {
-			return nil, fmt.Errorf("%s %w", err.Error(), ErrInternal)
+			return nil, err
 		}
 
-		commits[i] = tigerbeetleTypes.Commit{
-			ID:    *commitID,
-			Code:  commit.Code,
-			Flags: commit.Flags.ToUint32(),
+		tbTransfers[i] = tigerbeetleTypes.Transfer{
+			ID:        *newID,
+			PendingID: tid,
+			Flags: TransferFlags{
+				PostPendingTransfer: true,
+			}.ToUint16(),
 		}
 	}
 
-	eventErrors, err := s.tb.CommitTransfers(commits)
+	eventErrors, err := s.tb.CreateTransfers(tbTransfers)
+	if err != nil {
+		return nil, err
+	}
+
+	return eventErrors, nil
+}
+
+func (s *service) VoidTransfers(ctx context.Context, transferIDs []string) ([]TransferResult, error) {
+	tbTransfers := make([]tigerbeetleTypes.Transfer, len(transferIDs))
+	tbTransferIDs := make([]tigerbeetleTypes.Uint128, len(transferIDs))
+
+	for i, id := range transferIDs {
+		_, err := uuid.Parse(id)
+		if err != nil {
+			return nil, fmt.Errorf("Transfer ID must be a uuid. %w", ErrInvalidArg)
+		}
+		transferID, err := UuidToU128(id)
+		if err != nil {
+			return nil, err
+		}
+
+		tbTransferIDs[i] = *transferID
+	}
+
+	for i, tid := range tbTransferIDs {
+
+		newID, err := UuidToU128(uuid.NewString())
+		if err != nil {
+			return nil, err
+		}
+
+		tbTransfers[i] = tigerbeetleTypes.Transfer{
+			ID:        *newID,
+			PendingID: tid,
+			Flags: TransferFlags{
+				VoidPendingTransfer: true,
+			}.ToUint16(),
+		}
+	}
+
+	eventErrors, err := s.tb.CreateTransfers(tbTransfers)
 	if err != nil {
 		return nil, err
 	}

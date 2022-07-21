@@ -5,21 +5,17 @@ package pacioli.v1;
 option go_package = "./pacioli/v1;pacioli";
 
 service PacioliService {
-  rpc ConfigureTenant(ConfigureTenantRequest) returns (Empty);
   rpc ConfigureLedgers(ConfigureLedgersRequest) returns (ConfigureLedgersResponse);
   rpc GetLedgers(GetLedgersRequest) returns (GetLedgersResponse);
   rpc ConfigureAccounts(ConfigureAccountsRequest) returns (ConfigureAccountsResponse);
   rpc GetAccounts(GetAccountsRequest) returns (GetAccountsResponse);
   rpc CreateTransfers(CreateTransfersRequest) returns (CreateTransfersResponse);
   rpc GetTransfers(GetTransfersRequest) returns (GetTransfersResponse);
-  rpc CommitTransfers(CommitTransfersRequest) returns (CommitTransfersResponse);
+  rpc PostTransfers(PostTransfersRequest) returns (PostTransfersResponse);
+  rpc VoidTransfers(VoidTransfersRequest) returns (VoidTransfersResponse);
 }
 
 message Empty {}
-
-message ConfigureTenantRequest {
-  string name = 1;
-}
 
 message Ledger {
   uint32 id = 1;
@@ -92,12 +88,14 @@ message Transfer {
   uint32 code = 5;
   TransferFlags flags = 6;
   uint64 timeout = 7;
+  uint32 ledger = 8;
 }
 
 message TransferFlags {
   bool linked = 1;
-  bool twoPhaseCommit = 2;
-  bool condition = 3;
+  bool pending = 2;
+  bool postPending = 3;
+  bool voidPending = 4;
 }
 
 message CreateTransfersRequest {
@@ -121,22 +119,18 @@ message GetTransfersResponse {
   repeated Transfer transfers = 1;
 }
 
-message CommitFlags {
-  bool linked = 1;
-  bool reject = 2;
-  bool preimage = 3;
+message PostTransfersRequest {
+  repeated string transferIds = 1;
 }
 
-message Commit {
-  string id = 1;
-  uint32 code = 2;
-  CommitFlags flags = 3;
+message PostTransfersResponse {
+  repeated EventError errors = 1;
 }
 
-message CommitTransfersRequest {
-  repeated Commit commits = 1;
+message VoidTransfersRequest {
+  repeated string transferIds = 1;
 }
 
-message CommitTransfersResponse {
+message VoidTransfersResponse {
   repeated EventError errors = 1;
 }

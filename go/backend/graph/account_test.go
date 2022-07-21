@@ -44,6 +44,21 @@ func TestUserAccount(s *testing.T) {
 			Email: faker.Email(),
 		}
 
+		ledgerID := uint32(1)
+		_, err := container.PacioliClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
+			Args: []*pacioliv1.Ledger{
+				{
+					Id:    ledgerID,
+					Name:  "Test",
+					Asset: "USD",
+					Scale: 2,
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		id, err := NewIdentity(container, &identity.CreateArgs{
 			ID:           user.ID,
 			FirstName:    faker.FirstName(),
@@ -55,6 +70,7 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
@@ -62,6 +78,7 @@ func TestUserAccount(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		transferResponse, err := container.PacioliClient.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
 			Transfers: []*pacioliv1.Transfer{
 				{
@@ -69,23 +86,28 @@ func TestUserAccount(s *testing.T) {
 					DebitAccountId:  acc.LedgerAccountID,
 					CreditAccountId: container.NoopService.GetEquityAccountID(),
 					Amount:          200,
+					Code:            1,
+					Ledger:          ledgerID,
 				},
 				{
 					Id:              uuid.NewString(),
 					DebitAccountId:  container.NoopService.GetEquityAccountID(),
 					CreditAccountId: acc.LedgerAccountID,
 					Amount:          100,
+					Code:            1,
+					Ledger:          ledgerID,
 				},
 				{
 					Id:              uuid.NewString(),
 					DebitAccountId:  container.NoopService.GetEquityAccountID(),
 					CreditAccountId: acc.LedgerAccountID,
 					Amount:          20,
-
+					Code:            1,
 					Flags: &pacioliv1.TransferFlags{
-						TwoPhaseCommit: true,
+						Pending: true,
 					},
 					Timeout: uint64(10 * time.Millisecond),
+					Ledger:  ledgerID,
 				},
 			},
 		})
@@ -151,8 +173,8 @@ func TestUserAccount(s *testing.T) {
 					CreditAccountID: container.NoopService.GetEquityAccountID(),
 					DebitAccountID:  acc.LedgerAccountID,
 					Amount:          10000,
-					// Code: uint16,
-					Flags: account_transactions.LedgerTransferFlags{},
+					Code:            1,
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			},
 		})

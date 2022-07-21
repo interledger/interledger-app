@@ -22,14 +22,14 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PacioliServiceClient interface {
-	ConfigureTenant(ctx context.Context, in *ConfigureTenantRequest, opts ...grpc.CallOption) (*Empty, error)
 	ConfigureLedgers(ctx context.Context, in *ConfigureLedgersRequest, opts ...grpc.CallOption) (*ConfigureLedgersResponse, error)
 	GetLedgers(ctx context.Context, in *GetLedgersRequest, opts ...grpc.CallOption) (*GetLedgersResponse, error)
 	ConfigureAccounts(ctx context.Context, in *ConfigureAccountsRequest, opts ...grpc.CallOption) (*ConfigureAccountsResponse, error)
 	GetAccounts(ctx context.Context, in *GetAccountsRequest, opts ...grpc.CallOption) (*GetAccountsResponse, error)
 	CreateTransfers(ctx context.Context, in *CreateTransfersRequest, opts ...grpc.CallOption) (*CreateTransfersResponse, error)
 	GetTransfers(ctx context.Context, in *GetTransfersRequest, opts ...grpc.CallOption) (*GetTransfersResponse, error)
-	CommitTransfers(ctx context.Context, in *CommitTransfersRequest, opts ...grpc.CallOption) (*CommitTransfersResponse, error)
+	PostTransfers(ctx context.Context, in *PostTransfersRequest, opts ...grpc.CallOption) (*PostTransfersResponse, error)
+	VoidTransfers(ctx context.Context, in *VoidTransfersRequest, opts ...grpc.CallOption) (*VoidTransfersResponse, error)
 }
 
 type pacioliServiceClient struct {
@@ -38,15 +38,6 @@ type pacioliServiceClient struct {
 
 func NewPacioliServiceClient(cc grpc.ClientConnInterface) PacioliServiceClient {
 	return &pacioliServiceClient{cc}
-}
-
-func (c *pacioliServiceClient) ConfigureTenant(ctx context.Context, in *ConfigureTenantRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/ConfigureTenant", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *pacioliServiceClient) ConfigureLedgers(ctx context.Context, in *ConfigureLedgersRequest, opts ...grpc.CallOption) (*ConfigureLedgersResponse, error) {
@@ -103,9 +94,18 @@ func (c *pacioliServiceClient) GetTransfers(ctx context.Context, in *GetTransfer
 	return out, nil
 }
 
-func (c *pacioliServiceClient) CommitTransfers(ctx context.Context, in *CommitTransfersRequest, opts ...grpc.CallOption) (*CommitTransfersResponse, error) {
-	out := new(CommitTransfersResponse)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CommitTransfers", in, out, opts...)
+func (c *pacioliServiceClient) PostTransfers(ctx context.Context, in *PostTransfersRequest, opts ...grpc.CallOption) (*PostTransfersResponse, error) {
+	out := new(PostTransfersResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/PostTransfers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pacioliServiceClient) VoidTransfers(ctx context.Context, in *VoidTransfersRequest, opts ...grpc.CallOption) (*VoidTransfersResponse, error) {
+	out := new(VoidTransfersResponse)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/VoidTransfers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,23 +116,20 @@ func (c *pacioliServiceClient) CommitTransfers(ctx context.Context, in *CommitTr
 // All implementations should embed UnimplementedPacioliServiceServer
 // for forward compatibility
 type PacioliServiceServer interface {
-	ConfigureTenant(context.Context, *ConfigureTenantRequest) (*Empty, error)
 	ConfigureLedgers(context.Context, *ConfigureLedgersRequest) (*ConfigureLedgersResponse, error)
 	GetLedgers(context.Context, *GetLedgersRequest) (*GetLedgersResponse, error)
 	ConfigureAccounts(context.Context, *ConfigureAccountsRequest) (*ConfigureAccountsResponse, error)
 	GetAccounts(context.Context, *GetAccountsRequest) (*GetAccountsResponse, error)
 	CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error)
 	GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error)
-	CommitTransfers(context.Context, *CommitTransfersRequest) (*CommitTransfersResponse, error)
+	PostTransfers(context.Context, *PostTransfersRequest) (*PostTransfersResponse, error)
+	VoidTransfers(context.Context, *VoidTransfersRequest) (*VoidTransfersResponse, error)
 }
 
 // UnimplementedPacioliServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedPacioliServiceServer struct {
 }
 
-func (UnimplementedPacioliServiceServer) ConfigureTenant(context.Context, *ConfigureTenantRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConfigureTenant not implemented")
-}
 func (UnimplementedPacioliServiceServer) ConfigureLedgers(context.Context, *ConfigureLedgersRequest) (*ConfigureLedgersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureLedgers not implemented")
 }
@@ -151,8 +148,11 @@ func (UnimplementedPacioliServiceServer) CreateTransfers(context.Context, *Creat
 func (UnimplementedPacioliServiceServer) GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTransfers not implemented")
 }
-func (UnimplementedPacioliServiceServer) CommitTransfers(context.Context, *CommitTransfersRequest) (*CommitTransfersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CommitTransfers not implemented")
+func (UnimplementedPacioliServiceServer) PostTransfers(context.Context, *PostTransfersRequest) (*PostTransfersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostTransfers not implemented")
+}
+func (UnimplementedPacioliServiceServer) VoidTransfers(context.Context, *VoidTransfersRequest) (*VoidTransfersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VoidTransfers not implemented")
 }
 
 // UnsafePacioliServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -164,24 +164,6 @@ type UnsafePacioliServiceServer interface {
 
 func RegisterPacioliServiceServer(s grpc.ServiceRegistrar, srv PacioliServiceServer) {
 	s.RegisterService(&PacioliService_ServiceDesc, srv)
-}
-
-func _PacioliService_ConfigureTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigureTenantRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PacioliServiceServer).ConfigureTenant(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/ConfigureTenant",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).ConfigureTenant(ctx, req.(*ConfigureTenantRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _PacioliService_ConfigureLedgers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -292,20 +274,38 @@ func _PacioliService_GetTransfers_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PacioliService_CommitTransfers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommitTransfersRequest)
+func _PacioliService_PostTransfers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostTransfersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PacioliServiceServer).CommitTransfers(ctx, in)
+		return srv.(PacioliServiceServer).PostTransfers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CommitTransfers",
+		FullMethod: "/pacioli.v1.PacioliService/PostTransfers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PacioliServiceServer).CommitTransfers(ctx, req.(*CommitTransfersRequest))
+		return srv.(PacioliServiceServer).PostTransfers(ctx, req.(*PostTransfersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PacioliService_VoidTransfers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidTransfersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PacioliServiceServer).VoidTransfers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pacioli.v1.PacioliService/VoidTransfers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PacioliServiceServer).VoidTransfers(ctx, req.(*VoidTransfersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -317,10 +317,6 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pacioli.v1.PacioliService",
 	HandlerType: (*PacioliServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "ConfigureTenant",
-			Handler:    _PacioliService_ConfigureTenant_Handler,
-		},
 		{
 			MethodName: "ConfigureLedgers",
 			Handler:    _PacioliService_ConfigureLedgers_Handler,
@@ -346,8 +342,12 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PacioliService_GetTransfers_Handler,
 		},
 		{
-			MethodName: "CommitTransfers",
-			Handler:    _PacioliService_CommitTransfers_Handler,
+			MethodName: "PostTransfers",
+			Handler:    _PacioliService_PostTransfers_Handler,
+		},
+		{
+			MethodName: "VoidTransfers",
+			Handler:    _PacioliService_VoidTransfers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -68,7 +68,7 @@ type service struct {
 	is              _identity.Service
 	cs              _country.Service
 	validator       *validator.Validate
-	pacioliLedgerID uint16
+	pacioliLedgerID uint32
 	pacioliClient   pacioliv1.PacioliServiceClient
 }
 
@@ -76,7 +76,7 @@ type ServiceArgs struct {
 	Is              _identity.Service `validate:"required"`
 	Cs              _country.Service  `validate:"required"`
 	PacioliTenant   string
-	PacioliLedgerID uint16
+	PacioliLedgerID uint32
 	PacioliClient   pacioliv1.PacioliServiceClient `validate:"required"`
 	Db              *sqlx.DB                       `validate:"required"`
 }
@@ -153,7 +153,8 @@ func (s *service) Create(ctx context.Context, args *CreateAccountArgs) (*Account
 			Args: []*pacioliv1.ConfigureAccountsArgs{
 				{
 					Id:       ledgerAccountID,
-					LedgerId: uint32(s.pacioliLedgerID),
+					LedgerId: s.pacioliLedgerID,
+					Code:     1, // TODO: Get code from somewhere.
 					Flags: &pacioliv1.AccountFlags{
 						Linked:                     args.Linked,
 						DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,

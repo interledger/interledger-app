@@ -64,10 +64,10 @@ func (mr *MockServiceMockRecorder) GetEquityAccountID() *gomock.Call {
 }
 
 // GetLedgerID mocks base method.
-func (m *MockService) GetLedgerID() uint16 {
+func (m *MockService) GetLedgerID() uint32 {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLedgerID")
-	ret0, _ := ret[0].(uint16)
+	ret0, _ := ret[0].(uint32)
 	return ret0
 }
 

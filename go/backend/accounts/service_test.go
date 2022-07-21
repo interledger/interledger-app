@@ -42,7 +42,7 @@ func TestAccountsService(s *testing.T) {
 	}
 	is = _identity.NewLoggingService(is, logger)
 
-	pacioliLedgerID := uint16(1)
+	pacioliLedgerID := uint32(1)
 	conn, err := grpc.Dial(pacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		s.Fatal(err)

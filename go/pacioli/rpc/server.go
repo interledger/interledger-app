@@ -28,23 +28,18 @@ type rpcServer struct {
 }
 
 // TODO: wire up grpc auth
-const DEV_TENANT string = "dev"
-
-func (s *rpcServer) ConfigureTenant(ctx context.Context, req *pacioliv1.ConfigureTenantRequest) (*pacioliv1.Empty, error) {
-	return &pacioliv1.Empty{}, status.Error(codes.Unimplemented, "Dev tenant only exists until auth is fully implemented.")
-}
 
 func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.ConfigureLedgersRequest) (*pacioliv1.ConfigureLedgersResponse, error) {
 	ledgers := make([]_ledger.ConfigureLedgerArgs, len(req.Args))
 	for i, ledger := range req.Args {
 		ledgers[i] = _ledger.ConfigureLedgerArgs{
-			ID:    uint16(ledger.GetId()),
+			ID:    ledger.GetId(),
 			Name:  ledger.GetName(),
 			Asset: ledger.GetAsset(),
 			Scale: uint8(ledger.GetScale()),
 		}
 	}
-	eventErrors, err := s.ledger.ConfigureLedgers(ctx, DEV_TENANT, ledgers)
+	eventErrors, err := s.ledger.ConfigureLedgers(ctx, ledgers)
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -54,10 +49,10 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 	}
 
 	ret := make([]*pacioliv1.EventError, len(eventErrors))
-	for i, error := range eventErrors {
+	for i, err := range eventErrors {
 		ret[i] = &pacioliv1.EventError{
-			Index: error.Index,
-			Code:  error.Code,
+			Index: err.Index,
+			Code:  err.Code,
 		}
 	}
 
@@ -67,7 +62,7 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 }
 
 func (s *rpcServer) GetLedgers(ctx context.Context, req *pacioliv1.GetLedgersRequest) (*pacioliv1.GetLedgersResponse, error) {
-	ledgers, err := s.ledger.GetLedgers(ctx, DEV_TENANT, req.GetIds())
+	ledgers, err := s.ledger.GetLedgers(ctx, req.GetIds())
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -101,12 +96,12 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 		}
 		accounts[i] = _ledger.ConfigureAccountArgs{
 			ID:       account.GetId(),
-			LedgerID: uint16(account.GetLedgerId()),
+			LedgerID: account.GetLedgerId(),
 			Code:     uint16(account.GetCode()),
 			Flags:    flags,
 		}
 	}
-	eventErrors, err := s.ledger.ConfigureAccounts(ctx, DEV_TENANT, accounts)
+	eventErrors, err := s.ledger.ConfigureAccounts(ctx, accounts)
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -116,10 +111,10 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 	}
 
 	ret := make([]*pacioliv1.EventError, len(eventErrors))
-	for i, error := range eventErrors {
+	for i, err := range eventErrors {
 		ret[i] = &pacioliv1.EventError{
-			Index: error.Index,
-			Code:  error.Code,
+			Index: err.Index,
+			Code:  uint32(err.Code),
 		}
 	}
 
@@ -129,7 +124,7 @@ func (s *rpcServer) ConfigureAccounts(ctx context.Context, req *pacioliv1.Config
 }
 
 func (s *rpcServer) GetAccounts(ctx context.Context, req *pacioliv1.GetAccountsRequest) (*pacioliv1.GetAccountsResponse, error) {
-	accounts, err := s.ledger.GetAccounts(ctx, DEV_TENANT, req.GetIds())
+	accounts, err := s.ledger.GetAccounts(ctx, req.GetIds())
 	// This error will be due to connection / io / validation  issues
 	if err != nil {
 		switch err.(type) {
@@ -142,12 +137,12 @@ func (s *rpcServer) GetAccounts(ctx context.Context, req *pacioliv1.GetAccountsR
 	for i, account := range accounts {
 		ret[i] = &pacioliv1.Account{
 			Id:              account.ID,
-			LedgerId:        uint32(account.LedgerID),
+			LedgerId:        account.LedgerID,
 			Code:            uint32(account.Code),
-			DebitsReserved:  account.DebitsReserved,
-			DebitsAccepted:  account.DebitsAccepted,
-			CreditsAccepted: account.CreditsAccepted,
-			CreditsReserved: account.CreditsReserved,
+			DebitsReserved:  account.DebitsPending,
+			DebitsAccepted:  account.DebitsPosted,
+			CreditsAccepted: account.CreditsPosted,
+			CreditsReserved: account.CreditsPending,
 			Flags: &pacioliv1.AccountFlags{
 				Linked:                     account.Flags.Linked,
 				DebitsMustNotExceedCredits: account.Flags.DebitsMustNotExceedCredits,
@@ -167,11 +162,14 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	transfers := req.GetTransfers()
 	transferArgs := make([]_ledger.CreateTransferArgs, len(transfers))
 	for i, transfer := range transfers {
-		flags := _ledger.TransferFlags{}
-		if transfer.GetFlags() != nil {
-			flags.Linked = transfer.GetFlags().Linked
-			flags.Condition = transfer.GetFlags().Condition
-			flags.TwoPhaseCommit = transfer.GetFlags().TwoPhaseCommit
+		var flags _ledger.TransferFlags
+		if transfer.Flags != nil {
+			flags = _ledger.TransferFlags{
+				Linked:              transfer.Flags.Linked,
+				Pending:             transfer.Flags.Pending,
+				PostPendingTransfer: transfer.Flags.PostPending,
+				VoidPendingTransfer: transfer.Flags.VoidPending,
+			}
 		}
 
 		transferArgs[i] = _ledger.CreateTransferArgs{
@@ -180,12 +178,13 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 			DebitAccountID:  transfer.GetDebitAccountId(),
 			CreditAccountID: transfer.GetCreditAccountId(),
 			Flags:           flags,
-			Code:            transfer.GetCode(),
+			Code:            uint16(transfer.GetCode()),
 			Timeout:         transfer.GetTimeout(),
+			Ledger:          transfer.Ledger,
 		}
 	}
 
-	errors, err := s.ledger.CreateTransfers(ctx, DEV_TENANT, transferArgs)
+	errors, err := s.ledger.CreateTransfers(ctx, transferArgs)
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -197,7 +196,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 	for i, err := range errors {
 		errorsToReturn[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 
@@ -207,7 +206,7 @@ func (s *rpcServer) CreateTransfers(ctx context.Context, req *pacioliv1.CreateTr
 }
 
 func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfersRequest) (*pacioliv1.GetTransfersResponse, error) {
-	transfers, err := s.ledger.GetTransfers(ctx, DEV_TENANT, req.GetIds())
+	transfers, err := s.ledger.GetTransfers(ctx, req.GetIds())
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -222,11 +221,12 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 			DebitAccountId:  transfer.DebitAccountID,
 			CreditAccountId: transfer.CreditAccountID,
 			Amount:          transfer.Amount,
-			Code:            transfer.Code,
+			Code:            uint32(transfer.Code),
 			Flags: &pacioliv1.TransferFlags{
-				Linked:         transfer.Flags.Linked,
-				Condition:      transfer.Flags.Condition,
-				TwoPhaseCommit: transfer.Flags.TwoPhaseCommit,
+				Linked:      transfer.Flags.Linked,
+				Pending:     transfer.Flags.Pending,
+				PostPending: transfer.Flags.PostPendingTransfer,
+				VoidPending: transfer.Flags.VoidPendingTransfer,
 			},
 		}
 	}
@@ -236,37 +236,48 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 	}, nil
 }
 
-func (s *rpcServer) CommitTransfers(ctx context.Context, req *pacioliv1.CommitTransfersRequest) (*pacioliv1.CommitTransfersResponse, error) {
-	commits := req.GetCommits()
-	commitArgs := make([]_ledger.CommitTransferArgs, len(commits))
-	for i, commit := range commits {
-		flags := _ledger.CommitFlags{}
-		if commit.GetFlags() != nil {
-			flags.Linked = commit.GetFlags().Linked
-			flags.Reject = commit.GetFlags().Reject
-			flags.Preimage = commit.GetFlags().Preimage
-		}
-		commitArgs[i] = _ledger.CommitTransferArgs{
-			ID:    commit.GetId(),
-			Flags: flags,
-			Code:  commit.GetCode(),
-		}
-	}
+func (s *rpcServer) PostTransfers(ctx context.Context, req *pacioliv1.PostTransfersRequest) (*pacioliv1.PostTransfersResponse, error) {
 
-	errors, err := s.ledger.CommitTransfers(ctx, DEV_TENANT, commitArgs)
+	errors, err := s.ledger.CommitTransfers(ctx, req.TransferIds)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "Failed to commit transfers.")
+		switch err.(type) {
+		default:
+			return nil, status.Error(codes.Internal, "Failed to commit transfer.")
+		}
 	}
 
 	errorsToReturn := make([]*pacioliv1.EventError, len(errors))
 	for i, err := range errors {
 		errorsToReturn[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 
-	return &pacioliv1.CommitTransfersResponse{
+	return &pacioliv1.PostTransfersResponse{
+		Errors: errorsToReturn,
+	}, nil
+}
+
+func (s *rpcServer) VoidTransfers(ctx context.Context, req *pacioliv1.VoidTransfersRequest) (*pacioliv1.VoidTransfersResponse, error) {
+
+	errors, err := s.ledger.VoidTransfers(ctx, req.TransferIds)
+	if err != nil {
+		switch err.(type) {
+		default:
+			return nil, status.Error(codes.Internal, "Failed to void transfer.")
+		}
+	}
+
+	errorsToReturn := make([]*pacioliv1.EventError, len(errors))
+	for i, err := range errors {
+		errorsToReturn[i] = &pacioliv1.EventError{
+			Index: err.Index,
+			Code:  uint32(err.Code),
+		}
+	}
+
+	return &pacioliv1.VoidTransfersResponse{
 		Errors: errorsToReturn,
 	}, nil
 }
