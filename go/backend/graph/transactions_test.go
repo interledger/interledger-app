@@ -19,6 +19,7 @@ import (
 )
 
 func TestTransactions(s *testing.T) {
+	s.Skip("being deprecated")
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, s)
 	if err != nil {
