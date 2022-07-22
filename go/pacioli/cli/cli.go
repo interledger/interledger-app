@@ -17,6 +17,7 @@ type InitArgs struct {
 	DbConnectionString string
 	TbClusterID        uint32
 	TbUrls             []string
+	TbSeedFile         string
 	Fs                 *embed.FS
 }
 
@@ -57,10 +58,16 @@ func ParseInitArgs() (*InitArgs, error) {
 		return nil, err
 	}
 
+	tbSeedFile := os.Getenv("TB_SEED_FILE")
+	if tbSeedFile == "" {
+		return nil, errors.New("tigerbeetle seed file not specified")
+	}
+
 	return &InitArgs{
 		DbConnectionString: connString,
 		TbUrls:             tbUrls,
 		TbClusterID:        uint32(parsedTbClusterID),
+		TbSeedFile:         tbSeedFile,
 	}, nil
 }
 

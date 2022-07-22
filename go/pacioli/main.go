@@ -3,16 +3,18 @@ package main
 import (
 	"embed"
 	"fmt"
-	"github.com/coilhq/tigerbeetle-go"
+	"log"
+	"net"
+	"os"
+
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/rpc"
-	"log"
-	"net"
-	"os"
+	"gitlab.com/fynbos/pacioli/seed"
 )
 
 //go:embed migrations/**.*.sql
@@ -40,12 +42,47 @@ func main() {
 		}
 		args.Fs = &fs
 
-		err = cli.Init(args)
+		runInit(args)
+	default:
+		log.Fatalln("Unknown command: ", command)
+	}
+}
+
+func runInit(args *cli.InitArgs) {
+	err := cli.Init(args)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	db, err := sqlx.Connect("postgres", args.DbConnectionString)
+	defer func(db *sqlx.DB) {
+		err := db.Close()
 		if err != nil {
 			log.Fatalln(err)
 		}
-	default:
-		log.Fatalln("Unknown command: ", command)
+	}(db)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls, 1000)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer tbClient.Close()
+
+	ls, err := ledger.NewService(&ledger.ServiceArgs{
+		Db: db,
+		Tb: tbClient,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = seed.TigerBeetle(ls, args.TbSeedFile)
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
 
