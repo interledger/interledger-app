@@ -20,6 +20,7 @@ import (
 )
 
 func TestUserDeposits(s *testing.T) {
+	s.Skip("being deprecated")
 	ctx := context.Background()
 	container, err := NewTestContainer(ctx, s)
 	if err != nil {
