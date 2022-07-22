@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -12,7 +12,7 @@ import type {
 } from '~/generated/types'
 import { FlowsDepositPaymentMethodDocument } from '~/generated/types'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   // TODO fetch current payment methods
   const cookie = String(request.headers.get('cookie'))
@@ -42,7 +42,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const { paymentMethods, flow } = useLoaderData()
+  const { paymentMethods, flow } = useLoaderData<typeof loader>()
 
   const [selected, setSelected] = useState(paymentMethods[0])
 
@@ -110,7 +110,7 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const paymentMethodId = form.get('id')
   const paymentMethodMask = form.get('mask')

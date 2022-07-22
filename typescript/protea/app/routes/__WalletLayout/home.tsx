@@ -1,4 +1,4 @@
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -25,13 +25,7 @@ type Activities = {
   activities: Activity[]
 }
 
-type LoaderData = {
-  balance?: string
-  recentActivities: Activities[]
-  pendingTransactions: Activity[]
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const cookie = request.headers.get('cookie')
 
@@ -46,8 +40,8 @@ export const loader: LoaderFunction = async ({ request }) => {
     })
     .then((val) => val.data.account)
 
-  let recentActivities: LoaderData['recentActivities'] = []
-  let pendingTransactions: LoaderData['pendingTransactions'] = []
+  let recentActivities: Activities[] = []
+  let pendingTransactions: Activity[] = []
   if (typeof account?.recentTransactions !== 'undefined')
     for (let trx of account?.recentTransactions) {
       const activity = {
@@ -73,16 +67,15 @@ export const loader: LoaderFunction = async ({ request }) => {
         })
     }
 
-  const data: LoaderData = {
+  return json({
     balance: account?.balance,
     recentActivities: recentActivities,
     pendingTransactions: pendingTransactions
-  }
-  return json(data)
+  })
 }
 
 export default function Home() {
-  const account = useLoaderData<LoaderData>()
+  const account = useLoaderData<typeof loader>()
   return (
     <div className='w-full'>
       {/* Header */}

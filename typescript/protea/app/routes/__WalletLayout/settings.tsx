@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -7,7 +7,7 @@ import { Icon, Router, Snackbar } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -34,7 +34,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export default function Page() {
-  const { session, snackbar } = useLoaderData()
+  const { session, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
   return (
     <div className='w-full'>

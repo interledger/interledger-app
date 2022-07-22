@@ -1,11 +1,11 @@
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { Logo, Router } from '~/components'
 import { route } from 'routes-gen'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
   let flow
   const flowRes = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
@@ -20,7 +20,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export default function Page() {
-  const loaderData = useLoaderData()
+  const loaderData = useLoaderData<typeof loader>()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>

@@ -1,4 +1,4 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Logo, Router, TextField } from '~/components'
@@ -25,7 +25,7 @@ type ActionData = {
 
 const badRequest = (data: ActionData) => json(data, { status: 400 })
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const returnTo = url.searchParams.get('return_to')
@@ -81,7 +81,7 @@ export const action: ActionFunction = async ({ request }) => {
   })
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -117,8 +117,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, csrfToken } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, csrfToken } = useLoaderData<typeof loader>()
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
       <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
