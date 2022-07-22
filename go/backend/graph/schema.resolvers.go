@@ -16,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
@@ -354,69 +353,7 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 }
 
 func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.DepositInput) (*generated.DepositMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
-	if err != nil {
-		ForbiddenError(ctx)
-		return nil, nil
-	}
-
-	parsedAmount, err := strconv.ParseUint(input.Amount, 10, 64)
-	if err != nil {
-		InvalidArgument(ctx, err.Error())
-		return nil, nil
-	}
-
-	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		switch {
-		case errors.Is(err, accounts.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		case errors.Is(err, accounts.ErrNotFound):
-			return &generated.DepositMutationResponse{
-				Code:    "404",
-				Success: false,
-				Message: "Deposit failed: Account not found.",
-			}, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
-	deposit, err := r.Ds.InitiateDeposit(ctx, &deposits.InitiateDepositArgs{
-		IdentityID:      user.ID,
-		AccountID:       acc.ID,
-		FundingSourceID: input.FundingSourceID,
-		Amount:          parsedAmount,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, deposits.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		case errors.Is(err, deposits.ErrUnverifiedFundingSource):
-			return &generated.DepositMutationResponse{
-				Code:    "403",
-				Success: false,
-				Message: "Deposit failed: Funding source is not verified.",
-			}, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-	return &generated.DepositMutationResponse{
-		Code:    "200",
-		Success: true,
-		Message: "Deposit initiated.",
-		Deposit: &generated.Deposit{
-			ID:        deposit.ID,
-			State:     deposit.State.String(),
-			Amount:    strconv.FormatInt(int64(deposit.Amount), 10),
-			Timestamp: deposit.CreatedAt,
-		},
-	}, nil
+	panic("not implemented.")
 }
 
 func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generated.WithdrawalInput) (*generated.WithdrawalMutationResponse, error) {
