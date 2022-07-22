@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
@@ -19,7 +19,7 @@ type Country = {
   name: string
 }
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const countries = await apolloClient
     .query<SignupQuery, SignupQueryVariables>({
@@ -28,7 +28,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         headers: request.headers
       }
     })
-    .then((val) => val.data.countries)
+    .then((val) => val.data.countries as Country[])
 
   return json({
     flow,
@@ -37,15 +37,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, countries } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, countries } = useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
     countries.find(
-      (country: Country) =>
-        country.id == actionData?.fields?.country ||
-        country.id == flow?.data.country
-    )
+      (country: Country) => country.id == flow?.data.country
+    ) as Country
   )
 
   const [query, setQuery] = useState<string>('')
@@ -166,21 +164,6 @@ export default function Page() {
   )
 }
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    firstName: string | undefined
-    lastName: string | undefined
-    country: string | undefined
-    email: string | undefined
-  }
-  fields?: {
-    firstName: string
-    lastName: string
-    country: string
-    email: string
-  }
-}
 
 // The field names given by the backend for field violations
 type fieldErrorsMap = 'FirstName' | 'LastName' | 'CountryOfResidence' | 'Email'
@@ -231,7 +214,7 @@ function parseError(response: any, fields: any): Response | null {
   return null
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string

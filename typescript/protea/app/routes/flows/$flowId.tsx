@@ -1,4 +1,4 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
   Form,
@@ -19,7 +19,7 @@ import { requireNoUserSession, requireUserSession } from '~/lib/kratos.server'
  * At every step, should save data and update index.
  */
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const url = new URL(request.url)
   // Only flow that doesn't require auth is signup
   if (!url.pathname.includes('/signup/')) await requireUserSession(request)
@@ -31,7 +31,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData()
+  const { flow } = useLoaderData<typeof loader>()
 
   return (
     <div className='w-full'>
@@ -135,7 +135,7 @@ export function CatchBoundary() {
   return <Error data={caught.data} />
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const routeTo = form.get('route')
 

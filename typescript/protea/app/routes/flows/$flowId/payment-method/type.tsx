@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import type { RadioGroupOption } from '~/components'
@@ -7,7 +7,7 @@ import { Icon } from '~/components'
 import { Button, RadioGroup } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
 
   const paymentTypes: RadioGroupOption[] = [
@@ -33,7 +33,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const { paymentTypes, flow } = useLoaderData()
+  const { paymentTypes, flow } = useLoaderData<typeof loader>()
 
   const [selected, setSelected] = useState(paymentTypes[0])
 
@@ -75,7 +75,7 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const paymentType = form.get('payment-type')
   await stepFlow(request, { paymentType })

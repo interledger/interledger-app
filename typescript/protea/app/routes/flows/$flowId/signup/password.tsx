@@ -1,4 +1,4 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
@@ -13,7 +13,7 @@ import {
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const cookie = String(request.headers.get('cookie'))
 
@@ -57,8 +57,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, kratosFlowId, csrfToken } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, kratosFlowId, csrfToken } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -191,7 +191,7 @@ function parseError(response: any, fields: any): Response | null {
 
 const badRequest = (data: ActionData) => json(data, { status: 400 })
 
-export const action: ActionFunction = async ({ request, params }) => {
+export async function action({ request, params }: ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow') as string
   const form = await request.formData()
