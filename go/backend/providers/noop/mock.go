@@ -77,20 +77,6 @@ func (mr *MockServiceMockRecorder) GetLedgerID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLedgerID", reflect.TypeOf((*MockService)(nil).GetLedgerID))
 }
 
-// Init mocks base method.
-func (m *MockService) Init(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Init", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Init indicates an expected call of Init.
-func (mr *MockServiceMockRecorder) Init(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockService)(nil).Init), ctx)
-}
-
 // InitiateBankDeposit mocks base method.
 func (m *MockService) InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) error {
 	m.ctrl.T.Helper()

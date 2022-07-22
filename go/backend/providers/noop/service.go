@@ -26,7 +26,6 @@ const (
 )
 
 type Service interface {
-	Init(ctx context.Context) error
 	VerifyBankAccount(ctx context.Context, args *VerifyArgs) error
 	InitiateBankDeposit(ctx context.Context, args *BankDepositArgs) error
 	InitiateBankWithdrawal(ctx context.Context, args *BankWithdrawalArgs) error
@@ -67,50 +66,6 @@ func NewService(args ServiceArgs) (Service, error) {
 		equityAccountID: args.EquityAccID,
 		pacioliClient:   args.PacioliClient,
 	}, nil
-}
-
-func (s *service) Init(ctx context.Context) error {
-	// TODO: configure tenant
-	ledgerResponse, err := s.pacioliClient.ConfigureLedgers(
-		ctx,
-		&pacioliv1.ConfigureLedgersRequest{
-			Args: []*pacioliv1.Ledger{
-				{
-					Id:    s.ledgerID,
-					Name:  "Fynbos ledger",
-					Asset: "840",
-					Scale: 2,
-				},
-			},
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("Failed to configure ledger.%s %w", err.Error(), ErrInternal)
-	}
-	if len(ledgerResponse.GetErrors()) > 0 {
-		return fmt.Errorf("%s %+v %w", "Failed to configure ledger.", ledgerResponse.GetErrors(), ErrInternal)
-	}
-
-	accountResponse, err := s.pacioliClient.ConfigureAccounts(
-		ctx,
-		&pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       s.equityAccountID,
-					LedgerId: s.ledgerID,
-					Code:     1,
-				},
-			},
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("Failed to configure equity account.%s %w", err.Error(), ErrInternal)
-	}
-	if len(accountResponse.GetErrors()) > 0 {
-		return fmt.Errorf("%s %+v %w", "Failed to configure equity account.", accountResponse.GetErrors(), ErrInternal)
-	}
-
-	return nil
 }
 
 type NoopBankAccount struct {

@@ -83,10 +83,6 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	if err != nil {
 		return nil, err
 	}
-	err = as.Init(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
 		AccountService: as,
@@ -107,10 +103,39 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	if err != nil {
 		return nil, err
 	}
-	err = noop.Init(ctx)
+
+	cfLedgerEvents, err := pClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{Args: []*pacioliv1.Ledger{{
+		Id:    c.PacioliLedgerID,
+		Name:  "Fynbos ledger",
+		Asset: "840",
+		Scale: 2,
+	}}})
 	if err != nil {
-		return nil, err
+		t.Fatal(err)
 	}
+	if len(cfLedgerEvents.Errors) > 0 {
+		t.Fatal("failed to setup tigerbeetle ledger", cfLedgerEvents.Errors)
+	}
+
+	cfAccountEvents, err := pClient.ConfigureAccounts(
+		ctx,
+		&pacioliv1.ConfigureAccountsRequest{
+			Args: []*pacioliv1.ConfigureAccountsArgs{
+				{
+					Id:       noop.GetEquityAccountID(),
+					LedgerId: c.PacioliLedgerID,
+					Code:     1,
+				},
+			},
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfAccountEvents.GetErrors()) > 0 {
+		t.Fatal("failed to setup tigerbeetle account", cfAccountEvents.Errors)
+	}
+
 	c.Noop = noop
 	c.Tp = &mocks.Client{}
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{

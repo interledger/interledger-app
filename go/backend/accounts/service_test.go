@@ -47,7 +47,22 @@ func TestAccountsService(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
+
+	// Init the ledger for the tests
 	pClient := pacioliv1.NewPacioliServiceClient(conn)
+	cfLedgerEvents, err := pClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{Args: []*pacioliv1.Ledger{{
+		Id:    pacioliLedgerID,
+		Name:  "Fynbos ledger",
+		Asset: "840",
+		Scale: 2,
+	}}})
+	if err != nil {
+		s.Fatal(err)
+	}
+	if len(cfLedgerEvents.Errors) > 0 {
+		s.Fatal("failed to setup tigerbeetle ledger", cfLedgerEvents.Errors)
+	}
+
 	as, err := NewService(&ServiceArgs{
 		Is:              is,
 		Cs:              cs,
@@ -60,10 +75,6 @@ func TestAccountsService(s *testing.T) {
 		s.Fatal(err)
 	}
 	as = NewLoggingService(as, logger)
-	err = as.Init(ctx)
-	if err != nil {
-		s.Fatal(err)
-	}
 
 	s.Run("GetByIdentityID requires identityID", func(t *testing.T) {
 		var acc *Account
