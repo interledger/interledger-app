@@ -150,17 +150,3 @@ func (mr *MockServiceMockRecorder) GetByIdentityIDWithTrx(ctx, tx, id interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdentityIDWithTrx", reflect.TypeOf((*MockService)(nil).GetByIdentityIDWithTrx), ctx, tx, id)
 }
-
-// Init mocks base method.
-func (m *MockService) Init(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Init", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Init indicates an expected call of Init.
-func (mr *MockServiceMockRecorder) Init(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockService)(nil).Init), ctx)
-}

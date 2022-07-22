@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"embed"
 	"fmt"
 	"log"
@@ -62,10 +61,6 @@ func main() {
 			log.Fatalln(err)
 		}
 		err = migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		err = configurePacioli(args)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -348,94 +343,6 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-}
-
-func configurePacioli(args *cli.MigrationArgs) error {
-	ctx := context.Background()
-	db, err := sqlx.Connect("postgres", args.ConnectionString)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
-	if err != nil {
-		return err
-	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build()
-	if err != nil {
-		return err
-	}
-
-	configuration := kratos.NewConfiguration()
-	configuration.Servers = kratos.ServerConfigurations{
-		{
-			URL:         args.KratosUrl,
-			Description: "Dev Kratos",
-		},
-	}
-	kratosClient := kratos.NewAPIClient(configuration)
-
-	users, err := user.NewService(kratosClient)
-	if err != nil {
-		return err
-	}
-	_ = user.NewLoggingService(users, logger)
-
-	cs := country.NewService(db)
-	id, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		return err
-	}
-	id = identity.NewLoggingService(id, logger)
-
-	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return err
-	}
-
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Db:              db,
-		Is:              id,
-		Cs:              cs,
-		PacioliClient:   pClient,
-		PacioliLedgerID: args.UsdLedgerID,
-		PacioliTenant:   "dev",
-	})
-	if err != nil {
-		return err
-	}
-	as = accounts.NewLoggingService(as, logger)
-	err = as.Init(ctx)
-	if err != nil {
-		return err
-	}
-
-	nos, err := _noop.NewService(_noop.ServiceArgs{
-		LedgerID:      args.NoopLedgerID,
-		EquityAccID:   args.NoopEquityAccountID,
-		PacioliTenant: "dev",
-		PacioliClient: pClient,
-	})
-	if err != nil {
-		return err
-	}
-	err = nos.Init(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func startWorker(args *cli.StartArgs) {

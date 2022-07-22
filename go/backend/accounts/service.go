@@ -46,7 +46,6 @@ type Account struct {
 }
 
 type Service interface {
-	Init(ctx context.Context) error
 	Create(ctx context.Context, args *CreateAccountArgs) (*Account, error)
 	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 	GetByIdentityID(ctx context.Context, id string) (*Account, error)
@@ -89,29 +88,6 @@ func NewService(args *ServiceArgs) (Service, error) {
 		pacioliClient:   args.PacioliClient,
 		validator:       validator,
 	}, nil
-}
-
-func (s *service) Init(ctx context.Context) error {
-	// TODO: create tenant when auth is working
-	response, err := s.pacioliClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
-		Args: []*pacioliv1.Ledger{
-			{
-				Id:    uint32(s.pacioliLedgerID),
-				Name:  "Fynbos ledger",
-				Asset: "840", // US dollars
-				Scale: 2,
-			},
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to configure ledgers. %w %s", ErrInternal, err.Error())
-	}
-	eventErrors := response.GetErrors()
-	if len(eventErrors) > 0 {
-		return fmt.Errorf("Failed to configure ledgers: %w %+v", ErrInternal, eventErrors)
-	}
-
-	return nil
 }
 
 type CreateAccountArgs struct {
