@@ -109,10 +109,10 @@ func NewService(args *ServiceArgs) (Service, error) {
 }
 
 type ConfigureLedgerArgs struct {
-	ID    uint32
-	Name  string `validate:"required"`
-	Asset string `validate:"required"`
-	Scale uint8  `validate:"gt=0"`
+	ID    uint32 `yaml:"id"`
+	Name  string `validate:"required" yaml:"name"`
+	Asset string `validate:"required" yaml:"asset"`
+	Scale uint8  `validate:"gt=0" yaml:"scale"`
 }
 
 // This is declaritive and will not fail if the ledger exists. It will fail if one exists with

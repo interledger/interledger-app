@@ -36,26 +36,6 @@ func (m *MockPacioliServiceClient) EXPECT() *MockPacioliServiceClientMockRecorde
 	return m.recorder
 }
 
-// CommitTransfers mocks base method.
-func (m *MockPacioliServiceClient) CommitTransfers(ctx context.Context, in *pacioli.CommitTransfersRequest, opts ...grpc.CallOption) (*pacioli.CommitTransfersResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "CommitTransfers", varargs...)
-	ret0, _ := ret[0].(*pacioli.CommitTransfersResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CommitTransfers indicates an expected call of CommitTransfers.
-func (mr *MockPacioliServiceClientMockRecorder) CommitTransfers(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommitTransfers", reflect.TypeOf((*MockPacioliServiceClient)(nil).CommitTransfers), varargs...)
-}
-
 // ConfigureAccounts mocks base method.
 func (m *MockPacioliServiceClient) ConfigureAccounts(ctx context.Context, in *pacioli.ConfigureAccountsRequest, opts ...grpc.CallOption) (*pacioli.ConfigureAccountsResponse, error) {
 	m.ctrl.T.Helper()
@@ -176,6 +156,46 @@ func (mr *MockPacioliServiceClientMockRecorder) GetTransfers(ctx, in interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfers", reflect.TypeOf((*MockPacioliServiceClient)(nil).GetTransfers), varargs...)
 }
 
+// PostTransfers mocks base method.
+func (m *MockPacioliServiceClient) PostTransfers(ctx context.Context, in *pacioli.PostTransfersRequest, opts ...grpc.CallOption) (*pacioli.PostTransfersResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PostTransfers", varargs...)
+	ret0, _ := ret[0].(*pacioli.PostTransfersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PostTransfers indicates an expected call of PostTransfers.
+func (mr *MockPacioliServiceClientMockRecorder) PostTransfers(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostTransfers", reflect.TypeOf((*MockPacioliServiceClient)(nil).PostTransfers), varargs...)
+}
+
+// VoidTransfers mocks base method.
+func (m *MockPacioliServiceClient) VoidTransfers(ctx context.Context, in *pacioli.VoidTransfersRequest, opts ...grpc.CallOption) (*pacioli.VoidTransfersResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "VoidTransfers", varargs...)
+	ret0, _ := ret[0].(*pacioli.VoidTransfersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VoidTransfers indicates an expected call of VoidTransfers.
+func (mr *MockPacioliServiceClientMockRecorder) VoidTransfers(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VoidTransfers", reflect.TypeOf((*MockPacioliServiceClient)(nil).VoidTransfers), varargs...)
+}
+
 // MockPacioliServiceServer is a mock of PacioliServiceServer interface.
 type MockPacioliServiceServer struct {
 	ctrl     *gomock.Controller
@@ -197,21 +217,6 @@ func NewMockPacioliServiceServer(ctrl *gomock.Controller) *MockPacioliServiceSer
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPacioliServiceServer) EXPECT() *MockPacioliServiceServerMockRecorder {
 	return m.recorder
-}
-
-// CommitTransfers mocks base method.
-func (m *MockPacioliServiceServer) CommitTransfers(arg0 context.Context, arg1 *pacioli.CommitTransfersRequest) (*pacioli.CommitTransfersResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CommitTransfers", arg0, arg1)
-	ret0, _ := ret[0].(*pacioli.CommitTransfersResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CommitTransfers indicates an expected call of CommitTransfers.
-func (mr *MockPacioliServiceServerMockRecorder) CommitTransfers(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommitTransfers", reflect.TypeOf((*MockPacioliServiceServer)(nil).CommitTransfers), arg0, arg1)
 }
 
 // ConfigureAccounts mocks base method.
@@ -302,6 +307,36 @@ func (m *MockPacioliServiceServer) GetTransfers(arg0 context.Context, arg1 *paci
 func (mr *MockPacioliServiceServerMockRecorder) GetTransfers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfers", reflect.TypeOf((*MockPacioliServiceServer)(nil).GetTransfers), arg0, arg1)
+}
+
+// PostTransfers mocks base method.
+func (m *MockPacioliServiceServer) PostTransfers(arg0 context.Context, arg1 *pacioli.PostTransfersRequest) (*pacioli.PostTransfersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PostTransfers", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.PostTransfersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PostTransfers indicates an expected call of PostTransfers.
+func (mr *MockPacioliServiceServerMockRecorder) PostTransfers(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostTransfers", reflect.TypeOf((*MockPacioliServiceServer)(nil).PostTransfers), arg0, arg1)
+}
+
+// VoidTransfers mocks base method.
+func (m *MockPacioliServiceServer) VoidTransfers(arg0 context.Context, arg1 *pacioli.VoidTransfersRequest) (*pacioli.VoidTransfersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VoidTransfers", arg0, arg1)
+	ret0, _ := ret[0].(*pacioli.VoidTransfersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VoidTransfers indicates an expected call of VoidTransfers.
+func (mr *MockPacioliServiceServerMockRecorder) VoidTransfers(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VoidTransfers", reflect.TypeOf((*MockPacioliServiceServer)(nil).VoidTransfers), arg0, arg1)
 }
 
 // MockUnsafePacioliServiceServer is a mock of UnsafePacioliServiceServer interface.
