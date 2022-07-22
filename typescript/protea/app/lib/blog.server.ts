@@ -30,7 +30,7 @@ const authors: any = {
   }
 }
 
-export async function getAllPosts() {
+export async function getAllPosts(): Promise<BlogMeta[]> {
   const posts = modules.sort(
     (mod1, mod2) =>
       DateTime.fromJSDate(mod2.attributes.meta.date).toSeconds() -

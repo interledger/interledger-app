@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, Checkbox, Router, TextField } from '~/components'
@@ -15,7 +15,7 @@ type Country = {
   name: string
 }
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
 
   // TODO fetch the users country
@@ -36,15 +36,15 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, countries } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, countries } = useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
     countries.find(
       (country: Country) =>
         country.id == actionData?.fields?.country ||
         country.id == flow?.data.country
-    )
+    ) as Country
   )
 
   const [query, setQuery] = useState<string>('')
@@ -180,22 +180,7 @@ export default function Page() {
   )
 }
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    birth: string | undefined
-    country: string | undefined
-    ssn: string | undefined
-    serviceAgreement: string | undefined
-  }
-  fields?: {
-    birth: string
-    country: string
-    ssn: string
-    serviceAgreement: boolean
-  }
-}
-export const action: ActionFunction = async ({ request, params }) => {
+export async function action({ request, params }: ActionArgs) {
   const cookie = request.headers.get('Cookie') as string
   const form = await request.formData()
   const ssn = form.get('ssn') as string

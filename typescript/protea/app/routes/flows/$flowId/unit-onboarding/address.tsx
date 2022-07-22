@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
   Form,
@@ -13,7 +13,7 @@ import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const countries = await apolloClient
     .query<SignupQuery, SignupQueryVariables>({
@@ -33,8 +33,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { country, flow } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { country, flow } = useLoaderData<typeof loader>()
 
   const placeAutocompleteFetcher = useFetcher()
   const geocodeFetcher = useFetcher()
@@ -193,26 +193,7 @@ export default function Page() {
   )
 }
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    street: string | undefined
-    apartment: string | undefined
-    city: string | undefined
-    state: string | undefined
-    country: string | undefined
-    zip: string | undefined
-  }
-  fields?: {
-    street: string
-    apartment: string
-    city: string
-    state: string
-    country: string
-    zip: string
-  }
-}
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const street = form.get('street') as string
   const apartment = form.get('apartment') as string

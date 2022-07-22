@@ -1,20 +1,10 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, TextField } from '~/components'
 import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    to: string | undefined
-  }
-  fields?: {
-    to: string
-  }
-}
-
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
 
   return json({
@@ -23,8 +13,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -57,7 +47,7 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const sendToAddress = form.get('to')
   await stepFlow(request, {

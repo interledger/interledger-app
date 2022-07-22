@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, TextField } from '~/components'
@@ -17,7 +17,7 @@ type Country = {
   name: string
 }
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const countries = await apolloClient
     .query<SignupQuery, SignupQueryVariables>({
@@ -35,15 +35,15 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, countries } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, countries } = useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
     countries.find(
       (country: Country) =>
         country.id == actionData?.fields?.country ||
         country.id == flow?.data.country
-    )
+    ) as Country
   )
 
   const [query, setQuery] = useState<string>('')
@@ -184,7 +184,7 @@ function parseError(response: any, fields: any): Response | null {
   return null
 }
 
-export const action: ActionFunction = async ({ request, params }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string
