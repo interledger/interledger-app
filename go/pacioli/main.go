@@ -13,6 +13,7 @@ import (
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	ledger "gitlab.com/fynbos/pacioli/ledger"
+	"gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/pacioli/seed"
 )
@@ -49,7 +50,8 @@ func main() {
 }
 
 func runInit(args *cli.InitArgs) {
-	err := cli.Init(args)
+	// run migrations
+	err := migrations.Migrate(args.Fs)
 	if err != nil {
 		log.Fatalln(err)
 	}
