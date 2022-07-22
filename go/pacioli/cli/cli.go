@@ -71,16 +71,6 @@ func ParseInitArgs() (*InitArgs, error) {
 	}, nil
 }
 
-func Init(args *InitArgs) error {
-	// run migrations
-	err := migrations.Migrate(args.Fs)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type StartArgs struct {
 	Port               string
 	DbConnectionString string
