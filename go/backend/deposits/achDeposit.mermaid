@@ -1,0 +1,97 @@
+sequenceDiagram
+    User->>+GRPC: InitiateAchDeposit
+    GRPC->>+Deposits: InitiateAchDesposit
+    Deposits->>+Database: CreateDeposit
+    Database-->>-Deposits: Deposit
+    Deposits->>+Temporal: InitiateAchDeposit
+    Temporal-->>-Deposits: Success
+    Deposits-->>-GRPC: depositID
+    GRPC-->>-User: depositID
+
+    note right of Temporal: ACH Deposit Workflow
+    rect rgb(191, 223, 255)
+    note right of Temporal: SetState to processing
+    Temporal->>+Deposits: SetState
+    Deposits-->>-Temporal: Success 
+    end
+
+    rect rgb(191, 223, 255)
+    note right of Temporal: Start balance aggregation
+    Temporal->>+Mx: GetMxAccount
+    Mx-->>-Temporal: MxAccount 
+    Temporal->>+Mx: Start balance aggregation
+    Mx-->>-Temporal: Success 
+    end
+    alt Failure
+    note right of Temporal: SetState to failed
+    end
+
+    loop Every second up to 10s
+    note right of Temporal: Wait for balance aggregation
+    rect rgb(191, 223, 255)
+    Temporal->>+Mx: GetMxAccount
+    Mx-->>-Temporal: MxAccount 
+    Temporal->>+Mx: Check balance aggregation status
+    Mx-->>-Temporal: Status
+    end
+    end
+    alt Failure
+    note right of Temporal: SetState to failed
+    end
+
+    rect rgb(191, 223, 255)
+    note right of Temporal: Fundingsource balance check
+    Temporal->>+Mx: GetMxAccount
+    Mx-->>-Temporal: MxAccount 
+    Temporal->>+Mx: Read account
+    Mx-->>-Temporal: Balance 
+    end
+
+    alt Not enough balance
+    note right of Temporal: SetState to failed
+    end
+
+    rect rgb(191, 223, 255)
+    note right of Temporal: Originate ACH
+    Temporal->>+Unit: GetCounterparty
+    Unit-->>-Temporal: Unit Counterparty
+    Temporal-->+Unit: Originate ACH
+    Unit-->>-Temporal: Success
+    end
+
+    rect rgb(191, 223, 255)
+    note right of Temporal: Signal webhook event
+    Unit Webhook->>Temporal: Payment event type
+    end
+
+    alt ACH Rejected/Returned/Canceled
+    note right of Temporal: SetState to failed
+    end
+
+    alt ACH PendingReview/Created
+    note right of Temporal: Wait for more events
+    end
+
+    alt ACH Sent
+    note right of Temporal: Continue
+    end
+
+    rect rgb(191, 223, 255)
+    note right of Temporal: CreateAchDepositTransactions
+    Temporal->>+Deposits: GetDeposit
+    Deposits-->>-Temporal: Deposit
+    Temporal->>+Accounts: GetAccount
+    Accounts-->>-Temporal: Account
+    Temporal->>+Transactions: Create
+    Transactions-->>-Temporal:Success
+    end
+
+    alt AchDepositTransaction fails
+    note right of Temporal: Manual intervention
+    end
+
+    rect rgb(191, 223, 255)
+    note right of Temporal: SetState to complete
+    Temporal->>+Deposits: SetState
+    Deposits-->>-Temporal: Success 
+    end
