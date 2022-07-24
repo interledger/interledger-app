@@ -22,7 +22,7 @@ var (
 
 type (
 	Service interface {
-		Sign(ctx context.Context, args *SignArgs) (*Signature, error)
+		Sign(ctx context.Context, args *SignArgs) ([]Signature, error)
 		GetSignatures(ctx context.Context, identityID string) ([]Signature, error)
 		Get(ctx context.Context, id string) (*Agreement, error)
 	}
@@ -38,22 +38,13 @@ type (
 		agreementsDir string
 	}
 
-	signature struct {
-		ID           string         `db:"id"`
-		AgreementIDs pq.StringArray `db:"agreement_ids"`
-		IdentityID   string         `db:"identity_id"`
-		IPAddress    string         `db:"ip_address"`
-		CreatedAt    string         `db:"created_at"`
-		UpdatedAt    string         `db:"updated_at"`
-	}
-
 	Signature struct {
-		ID           string   `db:"id"`
-		AgreementIDs []string `db:"agreement_ids"`
-		IdentityID   string   `db:"identity_id"`
-		IPAddress    string   `db:"ip_address"`
-		CreatedAt    string   `db:"created_at"`
-		UpdatedAt    string   `db:"updated_at"`
+		ID          string `db:"id"`
+		AgreementID string `db:"agreement_id"`
+		IdentityID  string `db:"identity_id"`
+		IPAddress   string `db:"ip_address"`
+		CreatedAt   string `db:"created_at"`
+		UpdatedAt   string `db:"updated_at"`
 	}
 
 	Agreement struct {
@@ -107,37 +98,34 @@ type SignArgs struct {
 	IPAddress    string   `validate:"required,ip_addr"`
 }
 
-func (s *service) Sign(ctx context.Context, args *SignArgs) (*Signature, error) {
+func (s *service) Sign(ctx context.Context, args *SignArgs) ([]Signature, error) {
 	if err := s.validator.Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	for _, agreementID := range args.AgreementIDs {
-		_, err := s.Get(ctx, agreementID)
+	signatures := make([]Signature, 0, len(args.AgreementIDs))
+
+	for _, id := range args.AgreementIDs {
+		var signRecord Signature
+
+		err := s.db.GetContext(ctx, &signRecord, "INSERT INTO agreement_signatures (agreement_id, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", id, args.IdentityID, args.IPAddress)
 		if err != nil {
-			return nil, fmt.Errorf("%w %s", ErrInternal, err)
+			if pgErr, isPGErr := err.(pq.Error); isPGErr {
+				if pgErr.Code != "23503" {
+					return nil, fmt.Errorf("%w %s", ErrNotFound, err.Error())
+				}
+			}
+			return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
+
+		signatures = append(signatures, signRecord)
 	}
 
-	var signRecord signature
-
-	err := s.db.GetContext(ctx, &signRecord, "INSERT INTO agreement_signatures (agreement_ids, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", pq.StringArray(args.AgreementIDs), args.IdentityID, args.IPAddress)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
-	return &Signature{
-		ID:           signRecord.ID,
-		AgreementIDs: signRecord.AgreementIDs,
-		IdentityID:   signRecord.IdentityID,
-		IPAddress:    signRecord.IPAddress,
-		CreatedAt:    signRecord.CreatedAt,
-		UpdatedAt:    signRecord.UpdatedAt,
-	}, nil
+	return signatures, nil
 }
 
 func (s *service) GetSignatures(ctx context.Context, identityID string) ([]Signature, error) {
-	var agreementSigns []signature
+	var agreementSigns []Signature
 
 	err := s.db.SelectContext(ctx, &agreementSigns, "SELECT * FROM agreement_signatures WHERE identity_id = $1", identityID)
 	if err != nil {
@@ -150,12 +138,12 @@ func (s *service) GetSignatures(ctx context.Context, identityID string) ([]Signa
 	var signatures []Signature
 	for _, sign := range agreementSigns {
 		signatures = append(signatures, Signature{
-			ID:           sign.ID,
-			AgreementIDs: []string(sign.AgreementIDs),
-			IdentityID:   sign.IdentityID,
-			IPAddress:    sign.IPAddress,
-			CreatedAt:    sign.CreatedAt,
-			UpdatedAt:    sign.UpdatedAt,
+			ID:          sign.ID,
+			AgreementID: sign.AgreementID,
+			IdentityID:  sign.IdentityID,
+			IPAddress:   sign.IPAddress,
+			CreatedAt:   sign.CreatedAt,
+			UpdatedAt:   sign.UpdatedAt,
 		})
 	}
 
@@ -172,7 +160,6 @@ func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrNotFound, err.Error())
 	}
-
 
 	regex, err := regexp.Compile(`^[a-zA-Z0-9_]+-[0-9]+\.[0-9]+\.[0-9]+\.md$`)
 	if err != nil {

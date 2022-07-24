@@ -22,7 +22,7 @@ func TestSignAgreements(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signedAgreements, err := as.Sign(ctx, &SignArgs{
+	signatures, err := as.Sign(ctx, &SignArgs{
 		AgreementIDs: []string{"privacy_policy-2.0.0"},
 		IdentityID:   uuid.NewString(),
 		IPAddress:    "123.123.123.123",
@@ -31,7 +31,7 @@ func TestSignAgreements(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, "privacy_policy-2.0.0", signedAgreements.AgreementIDs[0])
+	assert.Equal(t, "privacy_policy-2.0.0", signatures[0].AgreementID)
 }
 
 func TestAgreementSigns(t *testing.T) {
@@ -58,16 +58,16 @@ func TestAgreementSigns(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	agreementSigns, err := as.GetSignatures(ctx, userId)
+	signatures, err := as.GetSignatures(ctx, userId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	agreementSign := agreementSigns[0]
+	signature := signatures[0]
 
-	assert.Equal(t, "privacy_policy-2.0.0", agreementSign.AgreementIDs[0])
-	assert.Equal(t, userId, agreementSign.IdentityID)
-	assert.Equal(t, userIp, agreementSign.IPAddress)
+	assert.Equal(t, "privacy_policy-2.0.0", signature.AgreementID)
+	assert.Equal(t, userId, signature.IdentityID)
+	assert.Equal(t, userIp, signature.IPAddress)
 }
 
 func TestGetAgreement(t *testing.T) {
