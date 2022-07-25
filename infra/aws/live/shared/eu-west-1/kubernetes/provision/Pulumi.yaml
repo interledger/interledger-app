@@ -1,3 +1,0 @@
-name: aws-shared-eu-west-1-kubernetes
-runtime: go
-description: Provision the eu-west-1 kubernetes cluster

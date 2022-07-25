@@ -1,3 +1,0 @@
-name: aws-shared-eu-west-1-kubernetes-configuration
-runtime: go
-description: Kubernetes cluster configuration

@@ -1,3 +1,0 @@
-name: aws-clusters-dev
-runtime: go
-description: Dev kubernetes cluster on AWS
