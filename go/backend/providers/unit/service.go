@@ -6,17 +6,21 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha1"
+	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/nyaruka/phonenumbers"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 )
@@ -37,6 +41,10 @@ const (
 )
 
 type Service interface {
+	// This function is idempotent for 48 hours. An idempotency key is generated based on the
+	// customerID when calling out to unit. The mapping is stored in our database.
+	CreateDepositAccount(ctx context.Context, customerID string) (*DepositAccount, error)
+	GetDepositAccount(ctx context.Context, id string) (*DepositAccount, error)
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 	CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
@@ -55,6 +63,7 @@ type (
 		webhookToken    string
 		db              *sqlx.DB
 		identityService identity.Service
+		accountService  accounts.Service
 		logger          *zap.Logger
 	}
 
@@ -64,6 +73,7 @@ type (
 		WebhookToken    string           `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
+		AccountService  accounts.Service `validate:"required"`
 		Logger          *zap.Logger      `validate:"required"`
 	}
 )
@@ -80,6 +90,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		webhookToken:    args.WebhookToken,
 		db:              args.Db,
 		identityService: args.IdentityService,
+		accountService:  args.AccountService,
 		externalClient:  external.NewClient(args.BaseURL, args.Token),
 		logger:          args.Logger.With(zap.String("service", "unit")),
 	}, nil
@@ -390,6 +401,72 @@ func (s *service) GetCounterPartyByFundingsourceID(ctx context.Context, fundings
 	}
 
 	return ret, nil
+}
+
+// maps the unit deposit account and unit customerID
+type DepositAccount struct {
+	ID         string `db:"id"`
+	CustomerID string `db:"customer_id"`
+	CreatedAt  string `db:"created_at"`
+	UpdatedAt  string `db:"updated_at"`
+}
+
+func (s *service) CreateDepositAccount(
+	ctx context.Context,
+	customerID string,
+) (*DepositAccount, error) {
+	if customerID == "" {
+		return nil, fmt.Errorf("%w CustomerID is required", ErrInvalidArgument)
+	}
+
+	idempotencyKey := sha256.Sum256([]byte(customerID))
+	depositAccount, err := s.externalClient.CreateDepositAccount(ctx, &external.CreateDepositAccountArgs{
+		CustomerID:     customerID,
+		DepositProduct: "checking",
+		IdempotencyKey: string(idempotencyKey[0:]),
+	})
+	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
+		}
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var ret DepositAccount
+	err = s.db.GetContext(
+		ctx,
+		&ret,
+		"INSERT INTO unit_deposit_accounts (id, customer_id) VALUES ($1, $2) RETURNING *;",
+		depositAccount.ID,
+		customerID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &ret, nil
+}
+
+func (s *service) GetDepositAccount(ctx context.Context, id string) (*DepositAccount, error) {
+	var ret DepositAccount
+	err := s.db.GetContext(
+		ctx,
+		&ret,
+		"SELECT * FROM unit_deposit_accounts WHERE id=$1;",
+		id,
+	)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &ret, nil
 }
 
 func IsRetryableError(err error) bool {

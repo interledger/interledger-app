@@ -164,3 +164,39 @@ type (
 		Customer Customer `json:"customer"`
 	}
 )
+
+type (
+	CreateDepositAccountRequest struct {
+		Data DepositAccount `json:"data"`
+	}
+
+	DepositAccount struct {
+		ID            string                       `json:"id"`
+		Type          string                       `json:"type"`
+		Attributes    DepositAccountAttributes     `json:"attributes"`
+		Relationships *DepositAccountRelationships `json:"relationships,omitempty"`
+	}
+
+	DepositAccountAttributes struct {
+		CreatedAt        string `json:"createdAt,omitempty"`
+		UpdatedAt        string `json:"updatedAt,omitempty"`
+		Name             string `json:"name,omitempty"`
+		DepositProduct   string `json:"depositProduct,omitempty"`
+		RoutingNumber    string `json:"routingNumber,omitempty"`
+		AccountNumber    string `json:"accountNumber,omitempty"`
+		Currency         string `json:"currency,omitempty"`
+		BalanceInCents   int64  `json:"balance,omitempty"`
+		HoldInCents      int64  `json:"hold,omitempty"`
+		AvailableInCents int64  `json:"available,omitempty"`
+		Status           string `json:"status,omitempty"`
+		Freezereason     string `json:"freezeReason,omitempty"`
+		Closereason      string `json:"closeReason,omitempty"`
+		FraudReason      string `json:"fraudReason,omitempty"`
+		DacaStatus       string `json:"dacaStatus,omitempty"`
+		IdempotencyKey   string `json:"idempotencyKey,omitempty"`
+	}
+
+	DepositAccountRelationships struct {
+		Customer Customer `json:"customer"`
+	}
+)

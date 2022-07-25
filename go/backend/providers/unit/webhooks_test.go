@@ -5,16 +5,18 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
 	"io"
 	http "net/http"
 	"net/http/httptest"
 	"testing"
 
+	"go.uber.org/zap"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/mocks"
@@ -122,6 +124,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -178,6 +181,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -232,6 +236,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -267,6 +272,7 @@ func TestStoreEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -309,6 +315,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {

@@ -318,3 +318,85 @@ func TestCreateCounterparty(t *testing.T) {
 	assert.Equal(t, unitCustomerID, counterparty.Relationships.Customer.Data.ID)
 	assert.Equal(t, counterpartyID, counterparty.ID)
 }
+
+func TestCreateDepositAccount(t *testing.T) {
+	t.Parallel()
+	depositAccountID := uuid.NewString()
+	args := &CreateDepositAccountArgs{
+		CustomerID:     uuid.NewString(),
+		DepositProduct: "checking",
+		Type:           "depositAccount",
+		IdempotencyKey: "test",
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+			return
+		}
+		if r.URL.Path != "/accounts" {
+			http.Error(w, "Not found.", http.StatusNotFound)
+			return
+		}
+
+		data := DepositAccount{
+			ID:   depositAccountID,
+			Type: "depositAccount",
+			Attributes: DepositAccountAttributes{
+				CreatedAt:        "2000-05-11T10:19:30.409Z",
+				Name:             "Peter parker",
+				Status:           "Open",
+				DepositProduct:   "checking",
+				RoutingNumber:    "812345678",
+				AccountNumber:    "1000000002",
+				Currency:         "USD",
+				BalanceInCents:   10000,
+				HoldInCents:      1000,
+				AvailableInCents: 9000,
+			},
+			Relationships: &DepositAccountRelationships{
+				Customer: Customer{
+					Data: TypeData{
+						ID:   args.CustomerID,
+						Type: "customer",
+					},
+				},
+			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		depositAccountResponse := &Response{
+			Data: rawData,
+		}
+		payload, err := json.Marshal(depositAccountResponse)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(payload))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+
+	client := NewClient(server.URL, "test")
+	depositAccount, err := client.CreateDepositAccount(context.Background(), args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NotNil(t, depositAccount)
+	assert.NotNil(t, depositAccount.Relationships)
+	assert.Equal(t, args.CustomerID, depositAccount.Relationships.Customer.Data.ID)
+	assert.Equal(t, depositAccountID, depositAccount.ID)
+	assert.Equal(t, "USD", depositAccount.Attributes.Currency)
+	assert.Equal(t, int64(10000), depositAccount.Attributes.BalanceInCents)
+	assert.Equal(t, int64(1000), depositAccount.Attributes.HoldInCents)
+	assert.Equal(t, int64(9000), depositAccount.Attributes.AvailableInCents)
+}
