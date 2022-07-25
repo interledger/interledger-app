@@ -50,8 +50,8 @@ type Service interface {
 	CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
 	VerifyWebhook(ctx context.Context, body []byte, signature string) error
 	CreateCustomer(ctx context.Context, args *CreateCustomerArgs) (*Customer, error)
-	GetCustomerByID(ctx context.Context, id string) (*Customer, error)
-	GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error)
+	GetCustomer(ctx context.Context, id string) (*Customer, error)
+	GetCustomerByIdentityID(ctx context.Context, identityID string) (*Customer, error)
 	CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error)
 	GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error)
 }
@@ -277,17 +277,17 @@ func (s *service) VerifyWebhook(ctx context.Context, body []byte, signature stri
 // maps the unit customer to the Fynbos account
 type (
 	Customer struct {
-		ID        string `db:"id"`
-		AccountID string `db:"account_id"`
-		Type      string `db:"type"`
-		CreatedAt string `db:"created_at"`
-		UpdatedAt string `db:"updated_at"`
+		ID         string `db:"id"`
+		IdentityID string `db:"identity_id"`
+		Type       string `db:"type"`
+		CreatedAt  string `db:"created_at"`
+		UpdatedAt  string `db:"updated_at"`
 	}
 
 	CreateCustomerArgs struct {
-		ID        string
-		AccountID string
-		Type      string
+		ID         string
+		IdentityID string
+		Type       string
 	}
 )
 
@@ -295,13 +295,18 @@ func (s *service) CreateCustomer(
 	ctx context.Context,
 	args *CreateCustomerArgs,
 ) (*Customer, error) {
+	id, err := s.identityService.Get(ctx, args.IdentityID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
 	var customer Customer
-	err := s.db.GetContext(
+	err = s.db.GetContext(
 		ctx,
 		&customer,
-		"INSERT INTO unit_customers (id, account_id, type) VALUES ($1, $2, $3) RETURNING *;",
+		"INSERT INTO unit_customers (id, identity_id, type) VALUES ($1, $2, $3) RETURNING *;",
 		args.ID,
-		args.AccountID,
+		id.ID,
 		args.Type,
 	)
 	if err != nil {
@@ -311,22 +316,30 @@ func (s *service) CreateCustomer(
 	return &customer, nil
 }
 
-func (s *service) GetCustomerByID(ctx context.Context, id string) (*Customer, error) {
-	var customer Customer
-	if err := s.db.GetContext(ctx, &customer, "SELECT * FROM unit_customers WHERE id=$1", id); err != nil {
+func (s *service) GetCustomer(ctx context.Context, id string) (*Customer, error) {
+	var ret Customer
+	err := s.db.GetContext(ctx, &ret, "SELECT * FROM unit_customers WHERE id=$1", id)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	}
+	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return &customer, nil
+	return &ret, nil
 }
 
-func (s *service) GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error) {
-	var customer Customer
-	if err := s.db.GetContext(ctx, &customer, "SELECT * FROM unit_customers WHERE account_id=$1", accountID); err != nil {
+func (s *service) GetCustomerByIdentityID(ctx context.Context, identityID string) (*Customer, error) {
+	var ret Customer
+	err := s.db.GetContext(ctx, &ret, "SELECT * FROM unit_customers WHERE identity_id=$1", identityID)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	}
+	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return &customer, nil
+	return &ret, nil
 }
 
 type (

@@ -112,11 +112,11 @@ func TestCreateUnitCounterparty(t *testing.T) {
 	).Times(1)
 
 	unitCustomerID := "8"
-	mocks.Unit.EXPECT().GetCustomerByAccountID(ctx, accountID).Return(
+	mocks.Unit.EXPECT().GetCustomerByIdentityID(ctx, userID).Return(
 		&unit.Customer{
-			ID:        unitCustomerID,
-			AccountID: accountID,
-			Type:      "person",
+			ID:         unitCustomerID,
+			IdentityID: userID,
+			Type:       "person",
 		},
 		nil,
 	)

@@ -83,11 +83,11 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 		},
 	)
 
-	s.env.OnActivity(s.onbordingActivity.UnitMapCustomerToAccount, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *UnitMapCustomerToAccountArgs) error {
+	s.env.OnActivity(s.onbordingActivity.UnitCreateCustomer, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *UnitCreateCustomerArgs) error {
 			s.Equal(args.Type, ApplicationType)
 			s.Equal(args.CustomerID, CustomerID)
-			s.Equal(args.AccountID, AccountID)
+			s.Equal(args.IdentityID, identityID)
 			return nil
 		},
 	)
@@ -168,11 +168,11 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 		},
 	)
 
-	s.env.OnActivity(s.onbordingActivity.UnitMapCustomerToAccount, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *UnitMapCustomerToAccountArgs) error {
+	s.env.OnActivity(s.onbordingActivity.UnitCreateCustomer, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *UnitCreateCustomerArgs) error {
 			s.Equal(args.Type, CustomerType)
 			s.Equal(args.CustomerID, CustomerID)
-			s.Equal(args.AccountID, AccountID)
+			s.Equal(args.IdentityID, identityID)
 			return nil
 		},
 	)

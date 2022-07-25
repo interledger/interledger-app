@@ -51,32 +51,6 @@ export interface Account {
     creditsAccepted: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetUnitCustomerByAccountRequest
- */
-export interface GetUnitCustomerByAccountRequest {
-    /**
-     * @generated from protobuf field: string account_id = 1;
-     */
-    accountId: string;
-}
-/**
- * @generated from protobuf message backend.v1.UnitCustomer
- */
-export interface UnitCustomer {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: string account_id = 2;
-     */
-    accountId: string; // Fynbos account id
-    /**
-     * @generated from protobuf field: string type = 3;
-     */
-    type: string;
-}
-/**
  * @generated from protobuf message backend.v1.GetBankAccountWidgetRequest
  */
 export interface GetBankAccountWidgetRequest {
@@ -491,114 +465,6 @@ class Account$Type extends MessageType<Account> {
  * @generated MessageType for protobuf message backend.v1.Account
  */
 export const Account = new Account$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class GetUnitCustomerByAccountRequest$Type extends MessageType<GetUnitCustomerByAccountRequest> {
-    constructor() {
-        super("backend.v1.GetUnitCustomerByAccountRequest", [
-            { no: 1, name: "account_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<GetUnitCustomerByAccountRequest>): GetUnitCustomerByAccountRequest {
-        const message = { accountId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetUnitCustomerByAccountRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetUnitCustomerByAccountRequest): GetUnitCustomerByAccountRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string account_id */ 1:
-                    message.accountId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetUnitCustomerByAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string account_id = 1; */
-        if (message.accountId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.accountId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.GetUnitCustomerByAccountRequest
- */
-export const GetUnitCustomerByAccountRequest = new GetUnitCustomerByAccountRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class UnitCustomer$Type extends MessageType<UnitCustomer> {
-    constructor() {
-        super("backend.v1.UnitCustomer", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "account_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<UnitCustomer>): UnitCustomer {
-        const message = { id: "", accountId: "", type: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<UnitCustomer>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UnitCustomer): UnitCustomer {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string account_id */ 2:
-                    message.accountId = reader.string();
-                    break;
-                case /* string type */ 3:
-                    message.type = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: UnitCustomer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string account_id = 2; */
-        if (message.accountId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.accountId);
-        /* string type = 3; */
-        if (message.type !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.type);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.UnitCustomer
- */
-export const UnitCustomer = new UnitCustomer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountWidgetRequest$Type extends MessageType<GetBankAccountWidgetRequest> {
     constructor() {
@@ -1565,8 +1431,7 @@ export const Quote = new Quote$Type();
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
 export const BackendAdminService = new ServiceType("backend.v1.BackendAdminService", [
-    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account },
-    { name: "GetUnitCustomerByAccountID", options: {}, I: GetUnitCustomerByAccountRequest, O: UnitCustomer }
+    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService

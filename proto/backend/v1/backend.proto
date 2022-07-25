@@ -10,7 +10,6 @@ option go_package = "./backend/v1;backend";
 
 service BackendAdminService {
   rpc GetUserAccountByEmail(GetUserAccountByEmailRequest) returns (Account);
-  rpc GetUnitCustomerByAccountID(GetUnitCustomerByAccountRequest) returns (UnitCustomer);
 }
 
 message GetUserAccountByEmailRequest {
@@ -24,16 +23,6 @@ message Account {
   uint64 debitsAccepted = 4;
   uint64 creditsReserved = 5;
   uint64 creditsAccepted = 6;
-}
-
-message GetUnitCustomerByAccountRequest {
-  string account_id = 1;
-}
-
-message UnitCustomer {
-  string id = 1;
-  string account_id = 2; // Fynbos account id
-  string type = 3;
 }
 
 service BackendService {

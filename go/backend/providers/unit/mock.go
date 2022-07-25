@@ -139,34 +139,34 @@ func (mr *MockServiceMockRecorder) GetCounterPartyByFundingsourceID(ctx, funding
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCounterPartyByFundingsourceID", reflect.TypeOf((*MockService)(nil).GetCounterPartyByFundingsourceID), ctx, fundingsourceID)
 }
 
-// GetCustomerByAccountID mocks base method.
-func (m *MockService) GetCustomerByAccountID(ctx context.Context, accountID string) (*Customer, error) {
+// GetCustomer mocks base method.
+func (m *MockService) GetCustomer(ctx context.Context, id string) (*Customer, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCustomerByAccountID", ctx, accountID)
+	ret := m.ctrl.Call(m, "GetCustomer", ctx, id)
 	ret0, _ := ret[0].(*Customer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetCustomerByAccountID indicates an expected call of GetCustomerByAccountID.
-func (mr *MockServiceMockRecorder) GetCustomerByAccountID(ctx, accountID interface{}) *gomock.Call {
+// GetCustomer indicates an expected call of GetCustomer.
+func (mr *MockServiceMockRecorder) GetCustomer(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCustomerByAccountID", reflect.TypeOf((*MockService)(nil).GetCustomerByAccountID), ctx, accountID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCustomer", reflect.TypeOf((*MockService)(nil).GetCustomer), ctx, id)
 }
 
-// GetCustomerByID mocks base method.
-func (m *MockService) GetCustomerByID(ctx context.Context, id string) (*Customer, error) {
+// GetCustomerByIdentityID mocks base method.
+func (m *MockService) GetCustomerByIdentityID(ctx context.Context, identityID string) (*Customer, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCustomerByID", ctx, id)
+	ret := m.ctrl.Call(m, "GetCustomerByIdentityID", ctx, identityID)
 	ret0, _ := ret[0].(*Customer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetCustomerByID indicates an expected call of GetCustomerByID.
-func (mr *MockServiceMockRecorder) GetCustomerByID(ctx, id interface{}) *gomock.Call {
+// GetCustomerByIdentityID indicates an expected call of GetCustomerByIdentityID.
+func (mr *MockServiceMockRecorder) GetCustomerByIdentityID(ctx, identityID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCustomerByID", reflect.TypeOf((*MockService)(nil).GetCustomerByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCustomerByIdentityID", reflect.TypeOf((*MockService)(nil).GetCustomerByIdentityID), ctx, identityID)
 }
 
 // GetDepositAccount mocks base method.
