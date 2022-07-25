@@ -3,16 +3,18 @@ package unit
 import (
 	"context"
 	"encoding/json"
-	"go.uber.org/zap"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"go.uber.org/zap"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -28,6 +30,7 @@ func TestVerifyWebhook(s *testing.T) {
 		Token:           "test token",
 		Db:              &sqlx.DB{},
 		IdentityService: identity.NewMockService(ctrl),
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -63,6 +66,7 @@ func TestCreateAndGetCustomer(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: identity.NewMockService(ctrl),
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -151,6 +155,7 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: identity.NewMockService(ctrl),
+		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -181,4 +186,92 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 	}
 	assert.Equal(t, args.FundingsourceID, freshCounterParty.FundingsourceID)
 	assert.NotEqual(t, "", freshCounterParty.ID)
+}
+
+func TestCreateAndGetDepositAccount(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	unitCustomerID := uuid.NewString()
+	unitDepositAccountID := uuid.NewString()
+	mockAccountService := accounts.NewMockService(ctrl)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+			return
+		}
+		if r.URL.Path != "/accounts" {
+			http.Error(w, "Not found.", http.StatusNotFound)
+			return
+		}
+
+		data := external.DepositAccount{
+			ID:   unitDepositAccountID,
+			Type: "depositAccount",
+			Attributes: external.DepositAccountAttributes{
+				CreatedAt:        "2000-05-11T10:19:30.409Z",
+				Name:             "Peter parker",
+				Status:           "Open",
+				DepositProduct:   "checking",
+				RoutingNumber:    "812345678",
+				AccountNumber:    "1000000002",
+				Currency:         "USD",
+				BalanceInCents:   10000,
+				HoldInCents:      1000,
+				AvailableInCents: 9000,
+			},
+			Relationships: &external.DepositAccountRelationships{
+				Customer: external.Customer{
+					Data: external.TypeData{
+						ID:   unitCustomerID,
+						Type: "customer",
+					},
+				},
+			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		depositAccountResponse := &external.Response{
+			Data: rawData,
+		}
+		payload, err := json.Marshal(depositAccountResponse)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(payload))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+	unitService, err := NewService(ServiceArgs{
+		WebhookToken:    "fynbos_local_unit_webhook_token",
+		BaseURL:         server.URL,
+		Token:           "test token",
+		Db:              test_utils.MigrateCockroachDB(t, ctx),
+		IdentityService: identity.NewMockService(ctrl),
+		AccountService:  mockAccountService,
+		Logger:          zap.NewNop(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	createdAcc, err := unitService.CreateDepositAccount(ctx, unitCustomerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, unitCustomerID, createdAcc.CustomerID)
+
+	freshAcc, err := unitService.GetDepositAccount(ctx, unitDepositAccountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, unitCustomerID, freshAcc.CustomerID)
 }

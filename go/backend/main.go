@@ -183,6 +183,8 @@ func start(args *cli.StartArgs) {
 		WebhookToken:    args.UnitWebhookToken,
 		Db:              db,
 		IdentityService: id,
+		AccountService:  as,
+		Logger:          logger,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -518,6 +520,8 @@ func startWorker(args *cli.StartArgs) {
 		WebhookToken:    args.UnitWebhookToken,
 		Db:              db,
 		IdentityService: id,
+		AccountService:  as,
+		Logger:          logger,
 	})
 	if err != nil {
 		log.Fatalln(err)

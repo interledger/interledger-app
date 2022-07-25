@@ -32,6 +32,7 @@ type (
 	}
 
 	Unit interface {
+		CreateDepositAccount(ctx context.Context, args *CreateDepositAccountArgs) (*DepositAccount, error)
 		FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]ApplicationForm, error)
 		CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 		CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
@@ -255,6 +256,58 @@ func (c *client) CreateCounterparty(
 	}
 
 	ret := &Counterparty{}
+	err = parseResponse(resp, ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+type CreateDepositAccountArgs struct {
+	CustomerID     string
+	DepositProduct string
+	Type           string
+	IdempotencyKey string
+}
+
+func (c *client) CreateDepositAccount(
+	ctx context.Context,
+	args *CreateDepositAccountArgs,
+) (*DepositAccount, error) {
+	url := fmt.Sprintf(`%s/accounts`, c.baseUrl)
+	data := CreateDepositAccountRequest{
+		Data: DepositAccount{
+			Type: "depositAccount",
+			Attributes: DepositAccountAttributes{
+				DepositProduct: args.DepositProduct,
+				IdempotencyKey: args.IdempotencyKey,
+			},
+			Relationships: &DepositAccountRelationships{
+				Customer: Customer{
+					Data: TypeData{
+						ID:   args.CustomerID,
+						Type: "customer",
+					},
+				},
+			},
+		},
+	}
+	rawData, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(rawData))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrRequest, err)
+	}
+
+	ret := &DepositAccount{}
 	err = parseResponse(resp, ret)
 	if err != nil {
 		return nil, err

@@ -94,6 +94,21 @@ func (mr *MockServiceMockRecorder) CreateCustomer(ctx, args interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCustomer", reflect.TypeOf((*MockService)(nil).CreateCustomer), ctx, args)
 }
 
+// CreateDepositAccount mocks base method.
+func (m *MockService) CreateDepositAccount(ctx context.Context, customerID string) (*DepositAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDepositAccount", ctx, customerID)
+	ret0, _ := ret[0].(*DepositAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateDepositAccount indicates an expected call of CreateDepositAccount.
+func (mr *MockServiceMockRecorder) CreateDepositAccount(ctx, customerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDepositAccount", reflect.TypeOf((*MockService)(nil).CreateDepositAccount), ctx, customerID)
+}
+
 // GetApplicationForm mocks base method.
 func (m *MockService) GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error) {
 	m.ctrl.T.Helper()
@@ -152,6 +167,21 @@ func (m *MockService) GetCustomerByID(ctx context.Context, id string) (*Customer
 func (mr *MockServiceMockRecorder) GetCustomerByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCustomerByID", reflect.TypeOf((*MockService)(nil).GetCustomerByID), ctx, id)
+}
+
+// GetDepositAccount mocks base method.
+func (m *MockService) GetDepositAccount(ctx context.Context, id string) (*DepositAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDepositAccount", ctx, id)
+	ret0, _ := ret[0].(*DepositAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDepositAccount indicates an expected call of GetDepositAccount.
+func (mr *MockServiceMockRecorder) GetDepositAccount(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDepositAccount", reflect.TypeOf((*MockService)(nil).GetDepositAccount), ctx, id)
 }
 
 // VerifyWebhook mocks base method.
