@@ -1,4 +1,0 @@
-secretsprovider: awskms://c5f081da-bd15-43db-8dff-b75223e682fc?region=eu-west-1
-encryptedkey: AQICAHiP/+JL0FlxeJkz1M6tyqKdL/1AmJF/S8OxlViPKyExpAGIKGVFRKawtpfv0z+72XClAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMz0T1lfOr2tIWzRfyAgEQgDs+dmYoNUF+lN7NUkIz/4uQo3YEpBFSLvPOWxXtnwr8/VoZr56lDQetKe1XhSPVHRt1UBZE9nXeet+/nA==
-config:
-  aws:region: eu-west-1
