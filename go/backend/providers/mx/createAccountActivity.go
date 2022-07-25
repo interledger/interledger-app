@@ -191,7 +191,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		return wrappedError
 	}
 
-	unitCustomer, err := a.unit.GetCustomerByAccountID(ctx, mxAccount.AccountID)
+	unitCustomer, err := a.unit.GetCustomerByIdentityID(ctx, user.ID)
 	// TODO: unit needs to have ErrNotFound
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)

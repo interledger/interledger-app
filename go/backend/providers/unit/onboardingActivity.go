@@ -3,6 +3,7 @@ package unit
 import (
 	context "context"
 	"fmt"
+
 	"go.temporal.io/sdk/temporal"
 
 	"github.com/go-playground/validator/v10"
@@ -80,27 +81,21 @@ func (a *Activity) UnitCreateAccount(ctx context.Context, identityID string) (st
 	return acc.ID, nil
 }
 
-type UnitMapCustomerToAccountArgs struct {
+type UnitCreateCustomerArgs struct {
 	CustomerID string `validate:"required"`
 	Type       string `validate:"required"`
-	AccountID  string `validate:"required"`
+	IdentityID string `validate:"required"`
 }
 
-func (a *Activity) UnitMapCustomerToAccount(ctx context.Context, args *UnitMapCustomerToAccountArgs) error {
+func (a *Activity) UnitCreateCustomer(ctx context.Context, args *UnitCreateCustomerArgs) error {
 	if err := a.validator.Struct(args); err != nil {
 		return fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	// make sure account exists
-	_, err := a.accountsService.Get(ctx, args.AccountID)
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	_, err = a.unitService.CreateCustomer(ctx, &CreateCustomerArgs{
-		ID:        args.CustomerID,
-		AccountID: args.AccountID,
-		Type:      args.Type,
+	_, err := a.unitService.CreateCustomer(ctx, &CreateCustomerArgs{
+		ID:         args.CustomerID,
+		IdentityID: args.IdentityID,
+		Type:       args.Type,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)

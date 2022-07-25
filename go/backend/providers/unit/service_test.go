@@ -60,49 +60,55 @@ func TestCreateAndGetCustomer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockIdentityService := identity.NewMockService(ctrl)
 	unitService, err := NewService(ServiceArgs{
 		WebhookToken:    "fynbos_local_unit_webhook_token",
 		BaseURL:         "localhost",
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: mockIdentityService,
 		AccountService:  accounts.NewMockService(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	identityID := uuid.NewString()
+	mockIdentityService.EXPECT().Get(context.Background(), identityID).
+		Return(
+			&identity.Identity{ID: identityID},
+			nil,
+		)
 
-	accountID := uuid.NewString()
 	customerID := uuid.NewString()
 	customerType := "individual"
 	customer, err := unitService.CreateCustomer(ctx, &CreateCustomerArgs{
-		ID:        customerID,
-		AccountID: accountID,
-		Type:      customerType,
+		ID:         customerID,
+		IdentityID: identityID,
+		Type:       customerType,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, customerID, customer.ID)
-	assert.Equal(t, accountID, customer.AccountID)
+	assert.Equal(t, identityID, customer.IdentityID)
 	assert.Equal(t, customerType, customer.Type)
 
-	customerByID, err := unitService.GetCustomerByID(ctx, customer.ID)
+	customerByID, err := unitService.GetCustomer(ctx, customer.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, customerID, customerByID.ID)
-	assert.Equal(t, accountID, customerByID.AccountID)
+	assert.Equal(t, identityID, customerByID.IdentityID)
 	assert.Equal(t, customerType, customerByID.Type)
 
-	customerByAccountID, err := unitService.GetCustomerByAccountID(ctx, accountID)
+	customerByIdentityID, err := unitService.GetCustomerByIdentityID(ctx, identityID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, customerID, customerByAccountID.ID)
-	assert.Equal(t, customerID, customerByAccountID.ID)
-	assert.Equal(t, customerType, customerByAccountID.Type)
+	assert.Equal(t, customerID, customerByIdentityID.ID)
+	assert.Equal(t, identityID, customerByIdentityID.IdentityID)
+	assert.Equal(t, customerType, customerByIdentityID.Type)
 }
 
 func TestCreateAndGetCounterParty(t *testing.T) {

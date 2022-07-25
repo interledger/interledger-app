@@ -20,8 +20,6 @@ import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendAdminService } from "./backend";
-import type { UnitCustomer } from "./backend";
-import type { GetUnitCustomerByAccountRequest } from "./backend";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { Account } from "./backend";
 import type { GetUserAccountByEmailRequest } from "./backend";
@@ -35,10 +33,6 @@ export interface IBackendAdminServiceClient {
      * @generated from protobuf rpc: GetUserAccountByEmail(backend.v1.GetUserAccountByEmailRequest) returns (backend.v1.Account);
      */
     getUserAccountByEmail(input: GetUserAccountByEmailRequest, options?: RpcOptions): UnaryCall<GetUserAccountByEmailRequest, Account>;
-    /**
-     * @generated from protobuf rpc: GetUnitCustomerByAccountID(backend.v1.GetUnitCustomerByAccountRequest) returns (backend.v1.UnitCustomer);
-     */
-    getUnitCustomerByAccountID(input: GetUnitCustomerByAccountRequest, options?: RpcOptions): UnaryCall<GetUnitCustomerByAccountRequest, UnitCustomer>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendAdminService
@@ -55,13 +49,6 @@ export class BackendAdminServiceClient implements IBackendAdminServiceClient, Se
     getUserAccountByEmail(input: GetUserAccountByEmailRequest, options?: RpcOptions): UnaryCall<GetUserAccountByEmailRequest, Account> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetUserAccountByEmailRequest, Account>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * @generated from protobuf rpc: GetUnitCustomerByAccountID(backend.v1.GetUnitCustomerByAccountRequest) returns (backend.v1.UnitCustomer);
-     */
-    getUnitCustomerByAccountID(input: GetUnitCustomerByAccountRequest, options?: RpcOptions): UnaryCall<GetUnitCustomerByAccountRequest, UnitCustomer> {
-        const method = this.methods[1], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetUnitCustomerByAccountRequest, UnitCustomer>("unary", this._transport, method, opt, input);
     }
 }
 /**

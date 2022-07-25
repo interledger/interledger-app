@@ -61,31 +61,6 @@ func (s *AdminRpcService) GetUserAccountByEmail(
 	}, nil
 }
 
-func (s *AdminRpcService) GetUnitCustomerByAccountID(
-	ctx context.Context,
-	req *backendv1.GetUnitCustomerByAccountRequest,
-) (*backendv1.UnitCustomer, error) {
-	adminUser, err := s.AuthService.ForContext(ctx)
-	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
-	}
-	isAdmin := authorizeAdmin(adminUser.Email)
-	if !isAdmin {
-		return nil, status.Error(codes.PermissionDenied, "Forbidden.")
-	}
-
-	customer, err := s.UnitService.GetCustomerByAccountID(ctx, req.GetAccountId())
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &backendv1.UnitCustomer{
-		Id:        customer.ID,
-		AccountId: customer.AccountID,
-		Type:      customer.Type,
-	}, nil
-}
-
 func authorizeAdmin(email string) bool {
 	emails := [...]string{
 		"don@fynbos.dev",

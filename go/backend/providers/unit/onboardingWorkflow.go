@@ -102,13 +102,13 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UnitMapCustomerToAccount, &UnitMapCustomerToAccountArgs{
+	err = workflow.ExecuteActivity(ctx, a.UnitCreateCustomer, &UnitCreateCustomerArgs{
 		CustomerID: state.CustomerID,
-		AccountID:  state.AccountID,
+		IdentityID: state.IdentityID,
 		Type:       state.Type,
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("Failed to map Unit customer to Fynbos account.", err)
+		logger.Error("Failed to create unit customer.", err)
 		return err
 	}
 
