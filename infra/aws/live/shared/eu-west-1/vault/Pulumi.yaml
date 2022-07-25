@@ -1,3 +1,0 @@
-name: aws-shared-eu-west-1-vault
-runtime: go
-description: Shared Vault instance for Fynbos.

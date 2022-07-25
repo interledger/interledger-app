@@ -1,3 +1,0 @@
-name: aws-shared-eu-west-1-vault-configuration
-runtime: go
-description: Configuration management for Vault
