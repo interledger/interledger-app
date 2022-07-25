@@ -15,28 +15,6 @@ workflow:
     - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
 
-trigger_deploy_dev:
-  environment: !reference [ .dev_environment, environment ]
-  needs:
-    - build_backend
-    - build_protea
-  when: manual
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/eks
-  before_script: !reference [ .assume_role, before_script ]
-  script:
-    - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
-    - aws sts get-caller-identity
-    - aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME
-    - kubectl set image deployment/backend backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA backend-migrations=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA worker=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA
-    - kubectl set image deployment/protea protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA
-    - kubectl set image deployment/pacioli pacioli-init=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA pacioli=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA
-  variables:
-    AWS_REGION: eu-west-1
-    # we use the IAM automation role that is mapped to the k8s automation group.
-    # this will allow read only access from ECR and 
-    AWS_DEPLOY_ROLE_ARN: arn:aws:iam::823058932981:role/eksAutomationRole
-    CLUSTER_NAME: live-eu-west-1-eks-cluster
-
 trigger_deploy_dev_eu1:
   environment: !reference [ .dev_eu1_environment, environment ]
   needs:
