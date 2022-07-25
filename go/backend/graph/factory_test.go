@@ -299,27 +299,6 @@ func NewAccount(
 	return acc, nil
 }
 
-// Funcion will set the `AccountID` and `IdentityID` on the `verifyAccountArgs` for you.
-func NewVerifiedAccount(
-	container *TestContainer,
-	createAccountArgs *onboarding.CreateAccountArgs,
-	verifyAccountArgs *onboarding.VerifyAccountArgs,
-) (*accounts.Account, error) {
-	acc, err := container.Os.CreateAccount(container.Ctx, createAccountArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	verifyAccountArgs.AccountID = acc.ID
-	verifyAccountArgs.IdentityID = acc.IdentityID
-	acc, err = container.Os.VerifyAccount(container.Ctx, verifyAccountArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	return acc, nil
-}
-
 func NewBankAccount(
 	container *TestContainer,
 	user *_user.User,

@@ -178,30 +178,6 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Onboa
 		return nil, nil
 	}
 
-	acc, err = r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
-		IdentityID:  id.ID,
-		AccountID:   acc.ID,
-		DateOfBirth: faker.Date(),
-		Address:     []string{faker.Name()},
-		State:       faker.FirstName(),
-		City:        faker.FirstName(),
-		PostalCode:  faker.Currency(),
-		TaxIDNumber: faker.CCNumber(),
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, identity.ErrNotFound):
-			NotFoundError(ctx)
-			return nil, nil
-		case errors.Is(err, identity.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
 	floatBalance := float64(acc.AvailableBalance) / float64(100)
 	return &generated.OnboardingMutationResponse{
 		Code:    "200",
@@ -277,64 +253,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.Cr
 }
 
 func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.VerifyAccountInput) (*generated.VerifyAccountMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
-	if err != nil {
-		ForbiddenError(ctx)
-		return nil, nil
-	}
-
-	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		switch {
-		case errors.Is(err, accounts.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		case errors.Is(err, accounts.ErrNotFound):
-			return &generated.VerifyAccountMutationResponse{
-				Code:    "404",
-				Success: false,
-				Message: "Verification failed: Account not found.",
-			}, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
-	acc, err = r.Os.VerifyAccount(ctx, &onboarding.VerifyAccountArgs{
-		IdentityID:  user.ID,
-		AccountID:   acc.ID,
-		DateOfBirth: input.DateOfBirth,
-		Address:     input.Address,
-		State:       input.State,
-		City:        input.City,
-		PostalCode:  input.PostalCode,
-		TaxIDNumber: input.TaxIDNumber,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, identity.ErrNotFound):
-			NotFoundError(ctx)
-			return nil, nil
-		case errors.Is(err, identity.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
-	floatBalance := float64(acc.AvailableBalance) / float64(100)
-	return &generated.VerifyAccountMutationResponse{
-		Code:    "200",
-		Success: true,
-		Message: "Verified.",
-		Account: &generated.Account{
-			ID:      acc.ID,
-			Balance: fmt.Sprintf("$ %.2f", floatBalance),
-		},
-	}, nil
+	panic("deprecated")
 }
 
 func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generated.LinkUsdBankAccountInput) (*generated.LinkFundingSourceMutationResponse, error) {

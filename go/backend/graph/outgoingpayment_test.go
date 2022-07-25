@@ -59,19 +59,11 @@ func TestUserOutgoingPayment(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		acc, err := NewVerifiedAccount(
+		acc, err := NewAccount(
 			container,
 			&onboarding.CreateAccountArgs{
 				IdentityID: id.ID,
 				Country:    id.Country,
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
 			},
 		)
 		if err != nil {
@@ -138,26 +130,16 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		acc, err := NewVerifiedAccount(
+		acc, err := NewAccount(
 			container,
 			&onboarding.CreateAccountArgs{
 				IdentityID: id.ID,
 				Country:    id.Country,
 			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
-			},
 		)
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		assert.True(t, acc.IsVerified())
 		assert.Equal(t, int64(0), acc.AvailableBalance)
 
 		response, err := InitiateOutgoingPayment(container, user, &generated.OutgoingPaymentInput{
@@ -211,8 +193,6 @@ func TestUserOutgoingPayment(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		assert.False(t, acc.IsVerified())
 
 		_, err = NewDeposit(container, &account_transactions.CreateTransactionArgs{
 			AccountID:   acc.ID,

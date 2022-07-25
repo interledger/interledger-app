@@ -49,19 +49,11 @@ func TestTransactions(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	acc, err := NewVerifiedAccount(
+	acc, err := NewAccount(
 		c,
 		&onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
-		},
-		&onboarding.VerifyAccountArgs{
-			DateOfBirth: faker.Date(),
-			Address:     []string{faker.Name()},
-			State:       faker.Name(),
-			City:        faker.Name(),
-			PostalCode:  faker.CCNumber(),
-			TaxIDNumber: faker.CCNumber(),
 		},
 	)
 	if err != nil {
@@ -84,19 +76,11 @@ func TestTransactions(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	_, err = NewVerifiedAccount(
+	_, err = NewAccount(
 		c,
 		&onboarding.CreateAccountArgs{
 			IdentityID: otherUser.ID,
 			Country:    otherUserId.Country,
-		},
-		&onboarding.VerifyAccountArgs{
-			DateOfBirth: faker.Date(),
-			Address:     []string{faker.Name()},
-			State:       faker.Name(),
-			City:        faker.Name(),
-			PostalCode:  faker.CCNumber(),
-			TaxIDNumber: faker.CCNumber(),
 		},
 	)
 	if err != nil {

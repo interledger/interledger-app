@@ -93,18 +93,3 @@ func (mr *MockServiceMockRecorder) UpdateOnboarding(ctx, args interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOnboarding", reflect.TypeOf((*MockService)(nil).UpdateOnboarding), ctx, args)
 }
-
-// VerifyAccount mocks base method.
-func (m *MockService) VerifyAccount(ctx context.Context, args *VerifyAccountArgs) (*accounts.Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyAccount", ctx, args)
-	ret0, _ := ret[0].(*accounts.Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// VerifyAccount indicates an expected call of VerifyAccount.
-func (mr *MockServiceMockRecorder) VerifyAccount(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyAccount", reflect.TypeOf((*MockService)(nil).VerifyAccount), ctx, args)
-}
