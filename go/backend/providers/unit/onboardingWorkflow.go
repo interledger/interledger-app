@@ -112,5 +112,11 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		return err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.UnitCreateDepositAccount, state.CustomerID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Failed to create unit deposit account.", err)
+		return err
+	}
+
 	return nil
 }

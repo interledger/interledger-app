@@ -54,7 +54,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 		UserID: identityID,
 	}
 	CustomerID, ApplicationType, AccountID := uuid.NewString(), "individualCustomer", uuid.NewString()
-
+	DepositAccountID := uuid.NewString()
 	workflowState := UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
@@ -91,6 +91,15 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 			return nil
 		},
 	)
+	s.env.OnActivity(s.onbordingActivity.UnitCreateDepositAccount, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, customerID string) (*DepositAccount, error) {
+			s.Equal(customerID, CustomerID)
+			return &DepositAccount{
+				ID:         DepositAccountID,
+				CustomerID: CustomerID,
+			}, nil
+		},
+	)
 	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
@@ -103,7 +112,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 		UserID: identityID,
 	}
 	CustomerID, CustomerType, AccountID := uuid.NewString(), "individualCustomer", uuid.NewString()
-
+	DepositAccountID := uuid.NewString()
 	workflowState := UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
@@ -165,6 +174,15 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 			s.Equal(args.CustomerID, CustomerID)
 			s.Equal(args.AccountID, AccountID)
 			return nil
+		},
+	)
+	s.env.OnActivity(s.onbordingActivity.UnitCreateDepositAccount, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, customerID string) (*DepositAccount, error) {
+			s.Equal(customerID, CustomerID)
+			return &DepositAccount{
+				ID:         DepositAccountID,
+				CustomerID: CustomerID,
+			}, nil
 		},
 	)
 	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
