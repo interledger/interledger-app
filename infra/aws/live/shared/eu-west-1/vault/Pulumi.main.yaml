@@ -1,5 +1,0 @@
-secretsprovider: awskms://c5f081da-bd15-43db-8dff-b75223e682fc?region=eu-west-1
-encryptedkey: AQICAHiP/+JL0FlxeJkz1M6tyqKdL/1AmJF/S8OxlViPKyExpAF6fJ2K/U3a41F7jHseO2CvAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMimyesqBkNxJqKkkrAgEQgDtbeoXgXlEdgaM9e0jMcJnOOlo9JzitFLwGDQ213BeVB5z+Fk7IhTaq+vp7AchE/d7z22zTZoTIw6ZdVA==
-config:
-  aws:region: eu-west-1
-  fynbos:accountId: "823058932981"
