@@ -64,15 +64,21 @@ func (a *Activity) UnitCreateApplication(ctx context.Context, args *CreateApplic
 	return application, nil
 }
 
-func (a *Activity) UnitCreateAccount(ctx context.Context, identityID string) (string, error) {
-	identity, err := a.identityService.Get(ctx, identityID)
+type UnitCreateAccountArgs struct {
+	IdentityID       string
+	DepositAccountID string
+}
+
+func (a *Activity) UnitCreateAccount(ctx context.Context, args *UnitCreateAccountArgs) (string, error) {
+	identity, err := a.identityService.Get(ctx, args.IdentityID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	acc, err := a.accountsService.Create(ctx, &accounts.CreateAccountArgs{
 		IdentityID: identity.ID,
-		Country:    identity.Country,
+		Provider:   "unit",
+		ProviderID: args.DepositAccountID,
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)

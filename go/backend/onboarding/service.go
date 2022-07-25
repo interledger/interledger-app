@@ -10,6 +10,7 @@ import (
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
@@ -197,8 +198,9 @@ func (s *service) CreateAccount(
 	}
 	account, err := s.as.Create(ctx, &accounts.CreateAccountArgs{
 		IdentityID:                 id.ID,
-		Country:                    args.Country,
 		CreditsMustNotExceedDebits: true,
+		Provider:                   "unit",
+		ProviderID:                 uuid.NewString(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)

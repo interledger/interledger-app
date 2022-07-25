@@ -92,16 +92,6 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		return nil
 	}
 
-	err = workflow.ExecuteActivity(
-		ctx,
-		a.UnitCreateAccount,
-		state.IdentityID,
-	).Get(ctx, &state.AccountID)
-	if err != nil {
-		logger.Error("Failed to create Fynbos account.", err)
-		return err
-	}
-
 	err = workflow.ExecuteActivity(ctx, a.UnitCreateCustomer, &UnitCreateCustomerArgs{
 		CustomerID: state.CustomerID,
 		IdentityID: state.IdentityID,
@@ -112,9 +102,23 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UnitCreateDepositAccount, state.CustomerID).Get(ctx, nil)
+	var depositAccount DepositAccount
+	err = workflow.ExecuteActivity(ctx, a.UnitCreateDepositAccount, state.CustomerID).Get(ctx, &depositAccount)
 	if err != nil {
 		logger.Error("Failed to create unit deposit account.", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(
+		ctx,
+		a.UnitCreateAccount,
+		&UnitCreateAccountArgs{
+			IdentityID:       state.IdentityID,
+			DepositAccountID: depositAccount.ID,
+		},
+	).Get(ctx, &state.AccountID)
+	if err != nil {
+		logger.Error("Failed to create Fynbos account.", err)
 		return err
 	}
 
