@@ -164,18 +164,3 @@ func (mr *MockServiceMockRecorder) Init(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init", reflect.TypeOf((*MockService)(nil).Init), ctx)
 }
-
-// VerifyWithTx mocks base method.
-func (m *MockService) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyWithTx", ctx, tx, args)
-	ret0, _ := ret[0].(*Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// VerifyWithTx indicates an expected call of VerifyWithTx.
-func (mr *MockServiceMockRecorder) VerifyWithTx(ctx, tx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyWithTx", reflect.TypeOf((*MockService)(nil).VerifyWithTx), ctx, tx, args)
-}

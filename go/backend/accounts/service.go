@@ -39,15 +39,10 @@ type Account struct {
 	LedgerAccountID            string `db:"ledger_account_id"` // id returned by Pacioli.
 	Provider                   string
 	ProviderID                 string `db:"provider_id"`
-	VerificationState          string `db:"verification_state"`
 	DebitsMustNotExceedCredits bool
 	CreditsMustNotExceedDebits bool
 	CreatedAt                  string `db:"created_at"`
 	UpdatedAt                  string `db:"updated_at"`
-}
-
-func (s Account) IsVerified() bool {
-	return s.VerificationState == Verified
 }
 
 type Service interface {
@@ -56,7 +51,6 @@ type Service interface {
 	GetByIdentityIDWithTrx(ctx context.Context, tx *sqlx.Tx, id string) (*Account, error)
 	GetByIdentityID(ctx context.Context, id string) (*Account, error)
 	Get(ctx context.Context, id string) (*Account, error)
-	VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error)
 	CanMakeOutgoingPayment(acc *Account, identityID string) bool
 	CanMakeDeposit(acc *Account, identityID string) bool
 	CanCreateFundingSource(acc *Account, identityID string) bool
@@ -285,43 +279,6 @@ func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error 
 	account.AvailableBalance = int64(account.DebitsAccepted - account.CreditsAccepted - account.CreditsReserved)
 
 	return nil
-}
-
-type VerifyArgs struct {
-	AccountID  string `validate:"required,uuid"`
-	Provider   string `validate:"oneof=noop"`
-	ProviderID string `validate:"required"`
-}
-
-func (s *service) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (*Account, error) {
-	//TODO: refactor errors
-	err := s.validator.Struct(args)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err.Error())
-	}
-
-	acc, err := s.Get(ctx, args.AccountID)
-	if err != nil {
-		return nil, err
-	}
-
-	stmt, err := tx.PrepareNamed(`
-			UPDATE accounts
-			SET provider=$1, provider_id=$2, verification_state=$3
-			WHERE id=$4
-			RETURNING *;
-		`)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
-	var verifiedAccount Account
-	err = stmt.Stmt.Get(&verifiedAccount, args.Provider, args.ProviderID, Verified, acc.ID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
-	return &verifiedAccount, nil
 }
 
 func (s service) CanMakeOutgoingPayment(acc *Account, identityID string) bool {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 
@@ -102,9 +103,6 @@ func (s *service) InitiateOutgoingPayment(
 	}
 	if !s.as.CanMakeOutgoingPayment(acc, id.ID) {
 		return nil, fmt.Errorf("%w", ErrUnauthorized)
-	}
-	if !acc.IsVerified() {
-		return nil, fmt.Errorf("%w", ErrUnverifiedAccount)
 	}
 	if acc.AvailableBalance < int64(args.Amount) {
 		return nil, fmt.Errorf("%w", ErrInsufficientBalance)

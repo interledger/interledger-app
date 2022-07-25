@@ -99,60 +99,6 @@ func TestAccountsService(s *testing.T) {
 		assert.Nil(t, acc)
 	})
 
-	s.Run("verify account", func(t *testing.T) {
-		var identity *_identity.Identity
-		err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_identity, err := is.Create(ctx, &_identity.CreateArgs{
-				ID:           uuid.NewString(),
-				Email:        faker.Email(),
-				FirstName:    faker.Name(),
-				LastName:     faker.LastName(),
-				MobileNumber: faker.Phonenumber(),
-				Country:      "US",
-			})
-			if err != nil {
-				return err
-			}
-
-			identity = _identity
-			return nil
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		t.Run("updates verification state to verified", func(tt *testing.T) {
-			acc, err := as.Create(ctx, &CreateAccountArgs{
-				IdentityID: identity.ID,
-				Provider:   "unit",
-				ProviderID: uuid.NewString(),
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-			assert.False(tt, acc.IsVerified())
-			var verifiedAcc *Account
-			err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-				verifiedAcc, err = as.VerifyWithTx(ctx, tx, &VerifyArgs{
-					AccountID:  acc.ID,
-					Provider:   "noop",
-					ProviderID: "test-customer1",
-				})
-				if err != nil {
-					return err
-				}
-				return nil
-			})
-			if err != nil {
-				tt.Fatal(err)
-			}
-
-			assert.True(tt, verifiedAcc.IsVerified())
-			assert.Equal(tt, "noop", verifiedAcc.Provider)
-			assert.Equal(tt, "test-customer1", verifiedAcc.ProviderID)
-		})
-	})
-
 	s.Run("create account", func(t *testing.T) {
 		t.Run("writes to db if written to pacioli", func(tt *testing.T) {
 			type scenario struct {

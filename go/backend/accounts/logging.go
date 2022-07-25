@@ -128,28 +128,6 @@ func (self *loggingService) Get(ctx context.Context, accountID string) (account 
 	return self.Service.Get(ctx, accountID)
 }
 
-func (s *loggingService) VerifyWithTx(ctx context.Context, tx *sqlx.Tx, args *VerifyArgs) (account *Account, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			s.logger.Error(
-				"Failed to verify account.",
-				zap.String("accountID", args.AccountID),
-				zap.Int64("took", time.Since(begin).Milliseconds()),
-				zap.String("msg", err.Error()),
-			)
-			return
-		}
-
-		s.logger.Debug(
-			"Account verified.",
-			zap.String("id", account.ID),
-			zap.Int64("took", time.Since(begin).Milliseconds()),
-		)
-	}(time.Now())
-
-	return s.Service.VerifyWithTx(ctx, tx, args)
-}
-
 func (s loggingService) CanMakeOutgoingPayment(acc *Account, identityID string) bool {
 	return s.Service.CanMakeOutgoingPayment(acc, identityID)
 }

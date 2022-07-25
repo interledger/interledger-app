@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/fynbos/backend/accounts"
 	_accounts "gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	_country "gitlab.com/fynbos/backend/country"
@@ -50,19 +51,12 @@ func TestPayments(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		acc, err := NewVerifiedAccount(
-			container,
-			&onboarding.CreateAccountArgs{
+		acc, err := container.AccountService.Create(
+			ctx,
+			&accounts.CreateAccountArgs{
 				IdentityID: id.ID,
-				Country:    id.Country,
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
+				Provider:   "unit",
+				ProviderID: "test",
 			},
 		)
 		if err != nil {
@@ -133,19 +127,12 @@ func TestPayments(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		acc, err := NewVerifiedAccount(
-			container,
-			&onboarding.CreateAccountArgs{
+		acc, err := container.AccountService.Create(
+			ctx,
+			&accounts.CreateAccountArgs{
 				IdentityID: id.ID,
-				Country:    id.Country,
-			},
-			&onboarding.VerifyAccountArgs{
-				DateOfBirth: faker.Date(),
-				Address:     []string{faker.Name()},
-				State:       faker.Name(),
-				City:        faker.Name(),
-				PostalCode:  faker.CCNumber(),
-				TaxIDNumber: faker.CCNumber(),
+				Provider:   "unit",
+				ProviderID: "test",
 			},
 		)
 		if err != nil {
@@ -298,27 +285,6 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.PaymentService = ps
 
 	return c, nil
-}
-
-// Funcion will set the `AccountID` and `IdentityID` on the `verifyAccountArgs` for you.
-func NewVerifiedAccount(
-	container *TestContainer,
-	createAccountArgs *onboarding.CreateAccountArgs,
-	verifyAccountArgs *onboarding.VerifyAccountArgs,
-) (*_accounts.Account, error) {
-	acc, err := container.OnboardService.CreateAccount(container.Ctx, createAccountArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	verifyAccountArgs.AccountID = acc.ID
-	verifyAccountArgs.IdentityID = acc.IdentityID
-	acc, err = container.OnboardService.VerifyAccount(container.Ctx, verifyAccountArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	return acc, nil
 }
 
 func NewDeposit(

@@ -152,7 +152,7 @@ func TestUserOnboarding(s *testing.T) {
 			Email: faker.Email(),
 			ID:    uuid.NewString(),
 		}
-		id, err := NewIdentity(container, &identity.CreateArgs{
+		_, err := NewIdentity(container, &identity.CreateArgs{
 			ID:           user.ID,
 			FirstName:    faker.FirstName(),
 			LastName:     faker.FirstName(),
@@ -163,14 +163,6 @@ func TestUserOnboarding(s *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
-			IdentityID: id.ID,
-			Country:    id.Country,
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.False(t, acc.IsVerified())
 
 		response, err := verifyAccount(container, user, generateVerifyAccountInput())
 		if err != nil {
@@ -180,11 +172,6 @@ func TestUserOnboarding(s *testing.T) {
 		assert.Equal(t, "200", response.Code)
 		assert.Equal(t, true, response.Success)
 		assert.Equal(t, "Verified.", response.Message)
-		freshAcc, err := container.AccountService.GetByIdentityID(ctx, user.ID)
-		if err != nil {
-			t.Fatal(err)
-		}
-		assert.True(t, freshAcc.IsVerified())
 	})
 
 	// Scenario: unauthenticated request to verify account is rejected
