@@ -1,5 +1,7 @@
 package agreements
 
+//go:generate mockgen -destination=./mock.go -package=agreements -source=./service.go
+
 import (
 	"context"
 	"database/sql"
