@@ -1,9 +1,11 @@
-package ledger
+package ledger_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
+
+	"gitlab.com/fynbos/pacioli/ledger"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
@@ -11,11 +13,11 @@ import (
 )
 
 type TestContainer struct {
-	TbClient  tigerbeetle_go.Client
-	Ctx       context.Context
-	Tb        *test_utils.TigerBeetleContainer
-	Db        *sqlx.DB
-	Ls        Service
+	TbClient tigerbeetle_go.Client
+	Ctx      context.Context
+	Tb       *test_utils.TigerBeetleContainer
+	Db       *sqlx.DB
+	Ls       ledger.Service
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -42,7 +44,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 
-	ls, err := NewService(&ServiceArgs{
+	ls, err := ledger.NewService(&ledger.ServiceArgs{
 		Db: c.Db,
 		Tb: tbClient,
 	})

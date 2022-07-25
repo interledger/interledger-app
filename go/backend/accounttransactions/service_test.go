@@ -498,20 +498,6 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 
-	// Init the ledger for the tests
-	cfLedgerEvents, err := pClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{Args: []*pacioliv1.Ledger{{
-		Id:    c.PacioliLedgerID,
-		Name:  "Fynbos ledger",
-		Asset: "840",
-		Scale: 2,
-	}}})
-	if err != nil {
-		s.Fatal(err)
-	}
-	if len(cfLedgerEvents.Errors) > 0 {
-		s.Fatal("failed to setup tigerbeetle ledger", cfLedgerEvents.Errors)
-	}
-
 	c.AccountService = _accounts.NewLoggingService(as, logger)
 
 	ts, err := NewService(&ServiceArgs{

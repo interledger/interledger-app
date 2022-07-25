@@ -226,48 +226,16 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 
-	cfLedgerEvents, err := pClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{Args: []*pacioliv1.Ledger{{
-		Id:    c.PacioliLedgerID,
-		Name:  "Fynbos ledger",
-		Asset: "840",
-		Scale: 2,
-	}}})
-	if err != nil {
-		s.Fatal(err)
-	}
-	if len(cfLedgerEvents.Errors) > 0 {
-		s.Fatal("failed to setup tigerbeetle ledger", cfLedgerEvents.Errors)
-	}
-
 	c.AccountService = _accounts.NewLoggingService(as, logger)
 
 	np, err := noop.NewService(noop.ServiceArgs{
 		LedgerID:      c.PacioliLedgerID,
-		EquityAccID:   uuid.NewString(),
+		EquityAccID:   "46d4b2bd-e29b-4a63-9aa8-7990776c714e",
 		PacioliTenant: "dev",
 		PacioliClient: pClient,
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	cfAccountEvents, err := pClient.ConfigureAccounts(
-		ctx,
-		&pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       np.GetEquityAccountID(),
-					LedgerId: c.PacioliLedgerID,
-					Code:     1,
-				},
-			},
-		},
-	)
-	if err != nil {
-		s.Fatal(err)
-	}
-	if len(cfAccountEvents.GetErrors()) > 0 {
-		s.Fatal("failed to setup tigerbeetle account", cfAccountEvents.Errors)
 	}
 
 	c.NoopService = np
