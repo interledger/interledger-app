@@ -1,3 +1,0 @@
-name: aws-shared-euwest1-boundary
-runtime: go
-description: Hashicorp Boundary in AWS Shared Account (EU-WEST-1)
