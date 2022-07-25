@@ -58,7 +58,6 @@ func (self *loggingService) Create(ctx context.Context, args *CreateAccountArgs)
 	self.logger.Debug(
 		"Creating account.",
 		zap.String("identityID", args.IdentityID),
-		zap.String("country", args.Country),
 	)
 	return self.Service.Create(ctx, args)
 }

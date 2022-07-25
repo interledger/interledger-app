@@ -539,7 +539,8 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 
 	acc, err := container.AccountService.Create(container.Ctx, &_accounts.CreateAccountArgs{
 		IdentityID: user.ID,
-		Country:    "US",
+		Provider:   "unit",
+		ProviderID: uuid.NewString(),
 	})
 	if err != nil {
 		return nil, nil, err

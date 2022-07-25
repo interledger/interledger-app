@@ -75,14 +75,6 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 			}, nil
 		},
 	)
-
-	s.env.OnActivity(s.onbordingActivity.UnitCreateAccount, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, identityID string) (string, error) {
-			s.Equal(workflowState.IdentityID, identityID)
-			return AccountID, nil
-		},
-	)
-
 	s.env.OnActivity(s.onbordingActivity.UnitCreateCustomer, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, args *UnitCreateCustomerArgs) error {
 			s.Equal(args.Type, ApplicationType)
@@ -98,6 +90,12 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 				ID:         DepositAccountID,
 				CustomerID: CustomerID,
 			}, nil
+		},
+	)
+	s.env.OnActivity(s.onbordingActivity.UnitCreateAccount, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *UnitCreateAccountArgs) (string, error) {
+			s.Equal(workflowState.IdentityID, identityID)
+			return AccountID, nil
 		},
 	)
 	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
@@ -161,13 +159,6 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 		s.env.SignalWorkflow("onboard-unit-customer-created", event)
 	}, time.Millisecond*1)
 
-	s.env.OnActivity(s.onbordingActivity.UnitCreateAccount, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, identityID string) (string, error) {
-			s.Equal(workflowState.IdentityID, identityID)
-			return AccountID, nil
-		},
-	)
-
 	s.env.OnActivity(s.onbordingActivity.UnitCreateCustomer, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, args *UnitCreateCustomerArgs) error {
 			s.Equal(args.Type, CustomerType)
@@ -183,6 +174,12 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 				ID:         DepositAccountID,
 				CustomerID: CustomerID,
 			}, nil
+		},
+	)
+	s.env.OnActivity(s.onbordingActivity.UnitCreateAccount, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *UnitCreateAccountArgs) (string, error) {
+			s.Equal(workflowState.IdentityID, identityID)
+			return AccountID, nil
 		},
 	)
 	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)

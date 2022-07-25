@@ -122,7 +122,8 @@ func (s *service) Init(ctx context.Context) error {
 
 type CreateAccountArgs struct {
 	IdentityID string `validate:"required,uuid"`
-	Country    string `validate:"iso3166_1_alpha2"`
+	Provider   string `validate:"oneof=unit"`
+	ProviderID string `validate:"required"`
 
 	// Points to the next account in array. Last one in array cannot have linked flag set.
 	Linked                     bool
@@ -145,46 +146,44 @@ func (s *service) Create(ctx context.Context, args *CreateAccountArgs) (*Account
 		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	var ret Account
-	err = crdbsqlx.ExecuteTx(ctx, s.db, nil, func(tx *sqlx.Tx) error {
-		// pacioli client must be configured with retries and exponential backoff at higher level.
-		ledgerAccountID := uuid.NewString()
-		response, err := s.pacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       ledgerAccountID,
-					LedgerId: s.pacioliLedgerID,
-					Code:     1, // TODO: Get code from somewhere.
-					Flags: &pacioliv1.AccountFlags{
-						Linked:                     args.Linked,
-						DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
-						CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
-					},
+	ledgerAccountID := uuid.NewString()
+	response, err := s.pacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
+		Args: []*pacioliv1.ConfigureAccountsArgs{
+			{
+				Id:       ledgerAccountID,
+				LedgerId: s.pacioliLedgerID,
+				Code:     1, // TODO: Get code from somewhere.
+				Flags: &pacioliv1.AccountFlags{
+					Linked:                     args.Linked,
+					DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
+					CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
 				},
 			},
-		})
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-		eventErrors := response.GetErrors()
-		if len(eventErrors) > 0 {
-			return fmt.Errorf("Failed to create account in pacioli. %w %+v", ErrInternal, eventErrors)
-		}
-
-		stmt, err := tx.PrepareNamed("INSERT INTO accounts (identity_id, ledger_account_id) VALUES (:identityid, :ledgeraccountid) RETURNING *")
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-
-		err = stmt.Stmt.Get(&ret, identity.ID, ledgerAccountID)
-		if err != nil {
-			return fmt.Errorf("%w %s", ErrInternal, err.Error())
-		}
-
-		return nil
+		},
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	eventErrors := response.GetErrors()
+	if len(eventErrors) > 0 {
+		return nil, fmt.Errorf("Failed to create account in pacioli. %w %+v", ErrInternal, eventErrors)
+	}
+
+	var ret Account
+	err = s.db.GetContext(
+		ctx,
+		&ret,
+		`
+		INSERT INTO accounts (identity_id, ledger_account_id, provider, provider_id)
+		VALUES ($1, $2, $3, $4) RETURNING *;
+		`,
+		identity.ID,
+		ledgerAccountID,
+		args.Provider,
+		args.ProviderID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	err = s.fetchFromPacioli(ctx, &ret)

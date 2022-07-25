@@ -124,7 +124,8 @@ func TestAccountsService(s *testing.T) {
 		t.Run("updates verification state to verified", func(tt *testing.T) {
 			acc, err := as.Create(ctx, &CreateAccountArgs{
 				IdentityID: identity.ID,
-				Country:    identity.Country,
+				Provider:   "unit",
+				ProviderID: uuid.NewString(),
 			})
 			if err != nil {
 				tt.Fatal(err)
@@ -195,9 +196,10 @@ func TestAccountsService(s *testing.T) {
 
 				acc, err := as.Create(ctx, &CreateAccountArgs{
 					IdentityID:                 identity.ID,
-					Country:                    identity.Country,
 					DebitMustNotExceedCredits:  scenario.DebitsMustNotExceedCredits,
 					CreditsMustNotExceedDebits: scenario.CreditsMustNotExceedDebits,
+					Provider:                   "unit",
+					ProviderID:                 uuid.NewString(),
 				})
 				if err != nil {
 					tt.Fatal(err)
@@ -275,19 +277,11 @@ func TestAccountsService(s *testing.T) {
 			}
 			scenarios := []scenario{
 				{
-					Name: "Country code must be valid.",
-					Args: &CreateAccountArgs{
-						IdentityID: identity.ID,
-						Country:    "XCV",
-					},
-					ExpectedErrorMessage: "Key: 'CreateAccountArgs.Country' Error:Field validation for 'Country' failed on the 'iso3166_1_alpha2' tag",
-					ExpectedError:        ErrInvalidArgument,
-				},
-				{
 					Name: "Identity must exist",
 					Args: &CreateAccountArgs{
 						IdentityID: uuid.NewString(),
-						Country:    "US",
+						Provider:   "unit",
+						ProviderID: uuid.NewString(),
 					},
 					ExpectedErrorMessage: "not found.",
 					ExpectedError:        ErrInternal,
@@ -331,7 +325,8 @@ func TestAccountsService(s *testing.T) {
 
 			acc, err := as.Create(ctx, &CreateAccountArgs{
 				IdentityID: identity.ID,
-				Country:    identity.Country,
+				Provider:   "unit",
+				ProviderID: uuid.NewString(),
 			})
 
 			assert.Error(tt, err)
