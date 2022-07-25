@@ -1,0 +1,13 @@
+ledgers:
+  - id: 1
+    name: "Fynbos ledger"
+    asset: "840"
+    scale: 2
+
+accounts:
+  - id: "46d4b2bd-e29b-4a63-9aa8-7990776c714e"
+    ledger_id: 1
+    code: 1
+    linked: false
+    debits_must_not_exceed_credits: false
+    credits_must_not_exceed_debits: false

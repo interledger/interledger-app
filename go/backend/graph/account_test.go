@@ -46,19 +46,6 @@ func TestUserAccount(s *testing.T) {
 		}
 
 		ledgerID := uint32(1)
-		_, err := container.PacioliClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{
-			Args: []*pacioliv1.Ledger{
-				{
-					Id:    ledgerID,
-					Name:  "Test",
-					Asset: "USD",
-					Scale: 2,
-				},
-			},
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
 
 		id, err := NewIdentity(container, &identity.CreateArgs{
 			ID:           user.ID,

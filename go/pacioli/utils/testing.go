@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -20,6 +21,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	cli "gitlab.com/fynbos/pacioli/cli"
+	"gitlab.com/fynbos/pacioli/ledger"
+	"gitlab.com/fynbos/pacioli/seed"
 )
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
@@ -142,4 +145,33 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*T
 	}
 
 	return &TigerBeetleContainer{Container: container, URI: connString[0]}, nil
+}
+
+func SeedTigerbeetle(moduleDir, tbURI, dbConn string) error {
+	db, err := sqlx.Connect("postgres", dbConn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	if err != nil {
+		return err
+	}
+
+	tbClient, err := tigerbeetle_go.NewClient(0, []string{tbURI}, 10)
+	if err != nil {
+		return err
+	}
+	defer tbClient.Close()
+
+	ls, err := ledger.NewService(&ledger.ServiceArgs{
+		Db: db,
+		Tb: tbClient,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = seed.TigerBeetle(ls, filepath.Join(filepath.Dir(moduleDir), "../../pacioli/utils/test_seed.yml"))
+	return err
 }

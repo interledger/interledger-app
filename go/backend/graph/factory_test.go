@@ -17,7 +17,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
@@ -114,19 +113,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 
-	cfLedgerEvents, err := pClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{Args: []*pacioliv1.Ledger{{
-		Id:    c.PacioliLedgerID,
-		Name:  "Fynbos ledger",
-		Asset: "840",
-		Scale: 2,
-	}}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfLedgerEvents.Errors) > 0 {
-		t.Fatal("failed to setup tigerbeetle ledger", cfLedgerEvents.Errors)
-	}
-
 	c.AccountService = accounts.NewLoggingService(as, logger)
 
 	users := _user.NewMockService()
@@ -143,7 +129,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	ts = account_transactions.NewLoggingService(ts, logger)
 	c.TransactionService = ts
 
-	equityAccID := uuid.NewString()
+	equityAccID := "46d4b2bd-e29b-4a63-9aa8-7990776c714e"
 	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      c.PacioliLedgerID,
 		EquityAccID:   equityAccID,
@@ -152,25 +138,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	cfAccountEvents, err := pClient.ConfigureAccounts(
-		ctx,
-		&pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       noopProvider.GetEquityAccountID(),
-					LedgerId: c.PacioliLedgerID,
-					Code:     1,
-				},
-			},
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfAccountEvents.GetErrors()) > 0 {
-		t.Fatal("failed to setup tigerbeetle account", cfAccountEvents.Errors)
 	}
 
 	c.NoopService = noopProvider

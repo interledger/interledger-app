@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
@@ -96,44 +95,12 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 
 	noop, err := noop.NewService(noop.ServiceArgs{
 		LedgerID:      c.PacioliLedgerID,
-		EquityAccID:   uuid.NewString(),
+		EquityAccID:   "46d4b2bd-e29b-4a63-9aa8-7990776c714e",
 		PacioliTenant: "dev",
 		PacioliClient: pClient,
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	cfLedgerEvents, err := pClient.ConfigureLedgers(ctx, &pacioliv1.ConfigureLedgersRequest{Args: []*pacioliv1.Ledger{{
-		Id:    c.PacioliLedgerID,
-		Name:  "Fynbos ledger",
-		Asset: "840",
-		Scale: 2,
-	}}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfLedgerEvents.Errors) > 0 {
-		t.Fatal("failed to setup tigerbeetle ledger", cfLedgerEvents.Errors)
-	}
-
-	cfAccountEvents, err := pClient.ConfigureAccounts(
-		ctx,
-		&pacioliv1.ConfigureAccountsRequest{
-			Args: []*pacioliv1.ConfigureAccountsArgs{
-				{
-					Id:       noop.GetEquityAccountID(),
-					LedgerId: c.PacioliLedgerID,
-					Code:     1,
-				},
-			},
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(cfAccountEvents.GetErrors()) > 0 {
-		t.Fatal("failed to setup tigerbeetle account", cfAccountEvents.Errors)
 	}
 
 	c.Noop = noop
