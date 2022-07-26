@@ -184,6 +184,21 @@ func (mr *MockServiceMockRecorder) GetDepositAccount(ctx, id interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDepositAccount", reflect.TypeOf((*MockService)(nil).GetDepositAccount), ctx, id)
 }
 
+// InitiateUserDeposit mocks base method.
+func (m *MockService) InitiateUserDeposit(ctx context.Context, args *InitiateUserDepositArgs) (*UserAchDeposit, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InitiateUserDeposit", ctx, args)
+	ret0, _ := ret[0].(*UserAchDeposit)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InitiateUserDeposit indicates an expected call of InitiateUserDeposit.
+func (mr *MockServiceMockRecorder) InitiateUserDeposit(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateUserDeposit", reflect.TypeOf((*MockService)(nil).InitiateUserDeposit), ctx, args)
+}
+
 // VerifyWebhook mocks base method.
 func (m *MockService) VerifyWebhook(ctx context.Context, body []byte, signature string) error {
 	m.ctrl.T.Helper()

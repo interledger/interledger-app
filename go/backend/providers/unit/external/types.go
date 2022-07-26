@@ -1,6 +1,8 @@
 package external
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type (
 	Response struct {
@@ -22,7 +24,7 @@ type (
 		Type string `json:"type"`
 	}
 
-	Customer struct {
+	Relationship struct {
 		Data TypeData `json:"data"`
 	}
 )
@@ -134,7 +136,7 @@ type (
 	}
 
 	ApplicationRelationships struct {
-		Customer        Customer        `json:"customer,omitempty"`
+		Customer        Relationship    `json:"customer,omitempty"`
 		ApplicationForm ApplicationForm `json:"applicationForm,omitempty"`
 	}
 )
@@ -161,8 +163,49 @@ type (
 	}
 
 	CounterpartyRelationships struct {
-		Customer Customer `json:"customer"`
+		Customer Relationship `json:"customer"`
 	}
+)
+
+type (
+	AchPayment struct {
+		Type          string                  `json:"type,omitempty"`
+		ID            string                  `json:"id,omitempty"`
+		Attributes    AchPaymentAttributes    `json:"attributes,omitempty"`
+		Relationships AchPaymentRelationships `json:"relationships,omitempty"`
+	}
+
+	AchPaymentAttributes struct {
+		CreatedAt      string                 `json:"createdAt,omitempty"`
+		Status         string                 `json:"status,omitempty"`
+		Reason         interface{}            `json:"reason,omitempty"`
+		Counterparty   CounterpartyAttributes `json:"counterparty,omitempty"`
+		Description    string                 `json:"description,omitempty"`
+		Direction      string                 `json:"direction,omitempty"`
+		Amount         uint64                 `json:"amount,omitempty"`
+		Tags           DepositTags            `json:"tags,omitempty"`
+		IdempotencyKey string                 `json:"idempotencyKey,omitempty"`
+	}
+
+	AchPaymentRelationships struct {
+		Account      Relationship `json:"account,omitempty"`
+		Customer     Relationship `json:"customer,omitempty"`
+		Counterparty Relationship `json:"counterparty,omitempty"`
+	}
+
+	AchPaymentRequest struct {
+		Data AchPayment `json:"data"`
+	}
+)
+
+const (
+	AchStatusPending       = "Pending"
+	AchStatusPendingReview = "PendingReview"
+	AchStatusRejected      = "Rejected"
+	AchStatusClearing      = "Clearing"
+	AchStatusSent          = "Sent"
+	AchStatusCanceled      = "Canceled"
+	AchStatusReturned      = "Returned"
 )
 
 type (
@@ -197,6 +240,6 @@ type (
 	}
 
 	DepositAccountRelationships struct {
-		Customer Customer `json:"customer"`
+		Customer Relationship `json:"customer"`
 	}
 )

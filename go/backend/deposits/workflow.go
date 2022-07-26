@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_mx "gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -33,6 +34,7 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 	logger.Info("Begin deposit")
 	var depositActivity *Activity
 	var mxActivity *_mx.Activity
+	var unitActivity *unit.Activity
 
 	var deposit *Deposit
 	err := workflow.ExecuteActivity(ctx, depositActivity.GetDeposit, id).Get(ctx, &deposit)
@@ -94,9 +96,19 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, depositActivity.ProcessNoopDeposit, id).Get(ctx, nil)
+	err = workflow.ExecuteActivity(
+		ctx,
+		unitActivity.UnitInitiateUserDeposit,
+		&unit.InitiateUserDepositArgs{
+			DepositID:       deposit.ID,
+			AccountID:       deposit.AccountID,
+			FundingsourceID: deposit.FundingSourceId,
+			Amount:          deposit.Amount,
+			Description:     "Fynbos", // this will show up on the statement of unit counterparty
+		},
+	).Get(ctx, nil)
 	if err != nil {
-		logger.Error("error processing noop transaction", err)
+		logger.Error("error initiating user deposit on unit", err)
 		return err
 	}
 
