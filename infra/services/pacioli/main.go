@@ -35,7 +35,7 @@ func DeployPacioli(ctx *pulumi.Context, args *DeployPacioliArgs) error {
 		return err
 	}
 
-	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Cert)
+	err = deployDeployment(ctx, args.ImageRepo, args.ImageTag, args.Namespace, args.Cert)
 	if err != nil {
 		return err
 	}
@@ -154,8 +154,13 @@ func deployRbac(ctx *pulumi.Context, namespace string) error {
 	return nil
 }
 
-func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, cert *apiextensions.CustomResource) error {
-	_, err := appsv1.NewDeployment(ctx, name+"-deployment", &appsv1.DeploymentArgs{
+func deployDeployment(ctx *pulumi.Context, imageRepo, imageTag, namespace string, cert *apiextensions.CustomResource) error {
+	tbconf, err := createSeedMap(ctx, namespace)
+	if err != nil {
+		return err
+	}
+
+	_, err = appsv1.NewDeployment(ctx, name+"-deployment", &appsv1.DeploymentArgs{
 		ApiVersion: pulumi.String("apps/v1"),
 		Kind:       pulumi.String("Deployment"),
 		Metadata: &metav1.ObjectMetaArgs{
@@ -189,6 +194,18 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 						RunAsUser: pulumi.Int(65532),
 					},
 					Volumes: corev1.VolumeArray{
+						&corev1.VolumeArgs{
+							Name: pulumi.String("tb-seed"),
+							ConfigMap: corev1.ConfigMapVolumeSourceArgs{
+								Name: tbconf.Metadata.Name(),
+								Items: corev1.KeyToPathArray{
+									&corev1.KeyToPathArgs{
+										Key:  pulumi.String("tb_seed.yml"),
+										Path: pulumi.String("tb_seed.yml"),
+									},
+								},
+							},
+						},
 						&corev1.VolumeArgs{
 							Name: pulumi.String("cockroach-certs"),
 							Secret: &corev1.SecretVolumeSourceArgs{
@@ -229,12 +246,20 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 									Name:  pulumi.String("TB_CLUSTER_ID"),
 									Value: pulumi.String("0"),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("TB_SEED_FILE"),
+									Value: pulumi.String("/etc/pacioli/tb_seed.yml"),
+								},
 							},
 							Args: pulumi.StringArray{pulumi.String("init")},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
 									Name:      pulumi.String("cockroach-certs"),
 									MountPath: pulumi.String("/cockroach-certs"),
+								},
+								&corev1.VolumeMountArgs{
+									Name:      pulumi.String("tb-seed"),
+									MountPath: pulumi.String("/etc/pacioli"),
 								},
 							},
 						},
@@ -307,4 +332,32 @@ func deployDeployment(ctx *pulumi.Context, imageRepo string, imageTag string, ce
 		return err
 	}
 	return nil
+}
+
+func createSeedMap(ctx *pulumi.Context, namespace string) (*corev1.ConfigMap, error) {
+	return corev1.NewConfigMap(ctx, "tigerbeetle-seed-configmap", &corev1.ConfigMapArgs{
+		ApiVersion: pulumi.String("v1"),
+		Kind:       pulumi.String("ConfigMap"),
+		Metadata: &metav1.ObjectMetaArgs{
+			Name:      pulumi.String("tigerbeetle-seed-configmap"),
+			Namespace: pulumi.String(namespace),
+		},
+		Data: pulumi.StringMap{
+			"tb_seed.yml": pulumi.String(`
+ledgers:
+  - id: 1
+    name: "Fynbos ledger"
+    asset: "840"
+    scale: 2
+
+accounts:
+  - id: "46d4b2bd-e29b-4a63-9aa8-7990776c714e"
+    ledger_id: 1
+    code: 1
+    linked: false
+    debits_must_not_exceed_credits: false
+    credits_must_not_exceed_debits: false
+`),
+		},
+	})
 }

@@ -48,6 +48,41 @@ func ledgers(ctx context.Context, l ledger.Service, confRaw []byte) error {
 	for _, el := range el {
 		return fmt.Errorf("error at index:%d code:%d", el.Index, el.Code)
 	}
+
+	ids := make([]uint32, len(conf.Ledgers))
+	for i, lc := range conf.Ledgers {
+		ids[i] = lc.ID
+	}
+
+	ll, err := l.GetLedgers(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	for _, lc := range conf.Ledgers {
+		var found, match bool
+		for _, al := range ll {
+			if lc.ID != al.ID {
+				continue
+			}
+			found = true
+
+			if lc.Name == al.Name &&
+				lc.Asset == al.Asset &&
+				lc.Scale == al.Scale {
+				match = true
+			}
+			break
+		}
+
+		// The ledger is created and the config matches.
+		if found && match {
+			continue
+		}
+
+		return fmt.Errorf("ledger not created or does not match config. ledgerID: %d, found:%t, match:%t", lc.ID, found, match)
+	}
+
 	return nil
 }
 
@@ -72,6 +107,7 @@ func accounts(ctx context.Context, l ledger.Service, confRaw []byte) error {
 	}
 
 	accArgs := make([]ledger.ConfigureAccountArgs, len(conf.Accounts))
+	accIds := make([]string, len(conf.Accounts))
 	for i, accConf := range conf.Accounts {
 		accArgs[i] = ledger.ConfigureAccountArgs{
 			ID:       accConf.ID,
@@ -83,6 +119,7 @@ func accounts(ctx context.Context, l ledger.Service, confRaw []byte) error {
 				CreditsMustNotExceedDebits: accConf.CreditsMustNotExceedDebits,
 			},
 		}
+		accIds[i] = accConf.ID
 	}
 
 	el, err := l.ConfigureAccounts(ctx, accArgs)
@@ -93,5 +130,38 @@ func accounts(ctx context.Context, l ledger.Service, confRaw []byte) error {
 	for _, el := range el {
 		return fmt.Errorf("error at index:%d code:%d", el.Index, el.Code)
 	}
+
+	// Check that accounts created successfully.
+	accs, err := l.GetAccounts(ctx, accIds)
+	if err != nil {
+		return err
+	}
+
+	for _, acc := range accs {
+		var found, match bool
+		for _, accConf := range conf.Accounts {
+			if accConf.ID != acc.ID {
+				continue
+			}
+			found = true
+
+			if acc.LedgerID == accConf.LedgerID &&
+				acc.Code == accConf.Code &&
+				acc.Flags.Linked == accConf.Linked &&
+				acc.Flags.DebitsMustNotExceedCredits == accConf.DebitsMustNotExceedCredits &&
+				acc.Flags.CreditsMustNotExceedDebits == accConf.CreditsMustNotExceedDebits {
+				match = true
+			}
+			break
+		}
+
+		// The account is created and the config matches.
+		if found && match {
+			continue
+		}
+
+		return fmt.Errorf("account not created or does not match config. accID: %s, found:%t, match:%t, actual:%+v", acc.ID, found, match, acc)
+	}
+
 	return nil
 }
