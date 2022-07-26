@@ -241,7 +241,7 @@ func DeployStatefulSet(ctx *pulumi.Context, args StatefulSetArgs, opts ...pulumi
 						},
 						Resources: &corev1.ResourceRequirementsArgs{
 							Requests: pulumi.StringMap{
-								"storage": pulumi.String("1Gi"),
+								"storage": pulumi.String("15Gi"),
 							},
 						},
 						StorageClassName: pulumi.String("ebs-sc"),

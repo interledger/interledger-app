@@ -311,8 +311,9 @@ func newPolicy(ctx *pulumi.Context, ebsKmsKey pulumi.StringOutput, clusterName s
 
 func DeployDefaultCSIStorageClass(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	_, err := storagev1.NewStorageClass(ctx, "ebs-sc-default", &storagev1.StorageClassArgs{
-		Provisioner:       pulumi.String("ebs.csi.aws.com"),
-		VolumeBindingMode: pulumi.String("WaitForFirstConsumer"),
+		Provisioner:          pulumi.String("ebs.csi.aws.com"),
+		VolumeBindingMode:    pulumi.String("WaitForFirstConsumer"),
+		AllowVolumeExpansion: pulumi.BoolPtr(true),
 		Metadata: metav1.ObjectMetaArgs{
 			Name: pulumi.String("ebs-sc"),
 			Annotations: pulumi.StringMap{
