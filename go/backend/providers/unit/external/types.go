@@ -117,7 +117,7 @@ type (
 
 	ApplicationAttributes struct {
 		Ssn                string              `json:"ssn"`
-		Passport           string              `json:"passport"`
+		Passport           string              `json:"passport,omitempty"`
 		Nationality        string              `json:"nationality,omitempty"`
 		FullName           *FullName           `json:"fullName,omitempty"`
 		DateOfBirth        string              `json:"dateOfBirth"`
