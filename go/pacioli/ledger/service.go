@@ -109,7 +109,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 }
 
 type ConfigureLedgerArgs struct {
-	ID    uint32 `yaml:"id"`
+	ID    uint32 `validate:"required" yaml:"id"`
 	Name  string `validate:"required" yaml:"name"`
 	Asset string `validate:"required" yaml:"asset"`
 	Scale uint8  `validate:"gt=0" yaml:"scale"`
