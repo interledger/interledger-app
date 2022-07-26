@@ -57,18 +57,32 @@ func main() {
 	command := os.Args[1]
 	switch command {
 	case "migrate":
+		logger, err := zap.NewProduction()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		logger.Info("parsing args")
 		args, err := cli.ParseMigrationArgs()
 		if err != nil {
+			logger.Error("error parsing args")
 			log.Fatalln(err)
 		}
+
+		logger.Info("migrating from files")
 		err = migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
 		if err != nil {
+			logger.Error("error migrating db")
 			log.Fatalln(err)
 		}
+
+		logger.Info("configuring pacioli")
 		err = configurePacioli(args)
 		if err != nil {
+			logger.Error("error configuring pacioli")
 			log.Fatalln(err)
 		}
+
+		logger.Info("complete setup")
 	case "start":
 		args, err := cli.ParseStartArgs()
 		if err != nil {
