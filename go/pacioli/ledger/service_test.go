@@ -29,7 +29,7 @@ func TestPacioli(s *testing.T) {
 
 	s.Run("creating ledgers is idempotent", func(t *testing.T) {
 
-		ledgerID := uint32(0)
+		ledgerID := uint32(1)
 		name := faker.Name()
 		asset := "840"
 		scale := uint8(2)
@@ -94,7 +94,7 @@ func TestPacioli(s *testing.T) {
 	})
 
 	s.Run("creating accounts is idempotent", func(t *testing.T) {
-		ledgerID := uint32(2)
+		ledgerID := uint32(4)
 		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
@@ -182,7 +182,7 @@ func TestPacioli(s *testing.T) {
 	})
 
 	s.Run("creating transfers is idempotent", func(t *testing.T) {
-		ledgerID := uint32(3)
+		ledgerID := uint32(5)
 		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
@@ -271,7 +271,7 @@ func TestPacioli(s *testing.T) {
 	})
 
 	s.Run("transfer commit is idempotent", func(t *testing.T) {
-		ledgerID := uint32(4)
+		ledgerID := uint32(6)
 		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
@@ -370,7 +370,7 @@ func TestPacioli(s *testing.T) {
 	})
 
 	s.Run("transfer void is idempotent", func(t *testing.T) {
-		ledgerID := uint32(5)
+		ledgerID := uint32(7)
 		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
