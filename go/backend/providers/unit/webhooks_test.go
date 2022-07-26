@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/mocks"
 )
@@ -219,6 +220,80 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 		} else {
 			assert.NoError(t, err, scenario.Name)
 		}
+	}
+}
+
+func TestHandlePaymentEvent(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	identityMock := identity.NewMockService(ctrl)
+	temporalMockClient := &mocks.Client{}
+
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	provider, err := NewService(ServiceArgs{
+		BaseURL:         "localhost:8080",
+		Token:           "token",
+		WebhookToken:    "webhooktoken",
+		Db:              db,
+		IdentityService: identityMock,
+		AccountService:  accounts.NewMockService(ctrl),
+		Logger:          zap.NewNop(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wh, err := NewWebhook(&WebhookArgs{
+		Up: provider,
+		Db: db,
+		Tp: temporalMockClient,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	depositID := uuid.NewString()
+	paymentEvent := external.AchPayment{
+		Type: string(PAYMENT_SENT),
+		ID:   uuid.NewString(),
+		Attributes: external.AchPaymentAttributes{
+			Tags: external.DepositTags{
+				DepositID: depositID,
+			},
+		},
+	}
+
+	cases := []EventType{
+		PAYMENT_CANCELED,
+		PAYMENT_CLEARING,
+		PAYMENT_CREATED,
+		PAYMENT_REJECTED,
+		PAYMENT_RETURNED,
+		PAYMENT_SENT,
+		PAYMENT_PENDING_REVIEW,
+	}
+
+	for _, eventType := range cases {
+		t.Run(string(eventType), func(st *testing.T) {
+			temporalMockClient.On(
+				"SignalWorkflow",
+				mock.Anything,
+				"deposit_"+depositID,
+				mock.AnythingOfType("string"),
+				"unit-user-ach-deposit",
+				string(eventType),
+			).Return(nil).Times(1)
+			paymentEvent.ID = uuid.NewString()
+			paymentEvent.Type = string(eventType)
+			rawEvent := marshalEvent(t, paymentEvent)
+
+			err = wh.HandleEvent(context.Background(), Event{ID: paymentEvent.ID, Type: eventType}, rawEvent)
+
+			assert.NoError(t, err)
+		})
 	}
 }
 

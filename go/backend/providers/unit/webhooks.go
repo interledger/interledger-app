@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/types"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 	"go.temporal.io/sdk/client"
 )
 
@@ -70,6 +71,16 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 		err := wh.tp.SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserId, "", "onboard-unit-application-denied", event)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+	case PAYMENT_CREATED, PAYMENT_CLEARING, PAYMENT_SENT,
+		PAYMENT_REJECTED, PAYMENT_RETURNED, PAYMENT_CANCELED, PAYMENT_PENDING_REVIEW:
+		event := &external.AchPayment{}
+		if err := json.Unmarshal(rawEvent, event); err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+		err := wh.tp.SignalWorkflow(ctx, "deposit_"+event.Attributes.Tags.DepositID, "", "unit-user-ach-deposit", event.Type)
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
