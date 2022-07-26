@@ -68,7 +68,7 @@ func runInit(args *cli.InitArgs) {
 		log.Fatalln(err)
 	}
 
-	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls, 1000)
+	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls, 100)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -82,10 +82,12 @@ func runInit(args *cli.InitArgs) {
 		log.Fatalln(err)
 	}
 
+	log.Println("tigerbeetle seeding starting")
 	err = seed.TigerBeetle(ls, args.TbSeedFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Println("tigerbeetle seeding complete")
 }
 
 func start(args *cli.StartArgs) {
