@@ -31,12 +31,19 @@ type (
 		FynbosUserID string `json:"fynbosUserId,omitempty"`
 	}
 
+	// Context we add so we can match the ach back to our deposit. Be very careful changing
+	// this value.
+	DepositTags struct {
+		DepositID string `json:"depositID,omitempty"`
+	}
+
 	Unit interface {
 		CreateDepositAccount(ctx context.Context, args *CreateDepositAccountArgs) (*DepositAccount, error)
 		FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]ApplicationForm, error)
 		CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 		CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
 		CreateCounterparty(ctx context.Context, args *CreateCounterpartyArgs) (*Counterparty, error)
+		OriginateAch(ctx context.Context, args *OriginateAchArgs) (*AchPayment, error)
 	}
 
 	client struct {
@@ -232,10 +239,10 @@ func (c *client) CreateCounterparty(
 				IdempotencyKey: args.IdempotencyKey,
 			},
 			Relationships: CounterpartyRelationships{
-				Customer: Customer{
+				Customer: Relationship{
 					Data: TypeData{
-						ID:   args.UnitCustomerID,
 						Type: "customer",
+						ID:   args.UnitCustomerID,
 					},
 				},
 			},
@@ -264,6 +271,65 @@ func (c *client) CreateCounterparty(
 	return ret, nil
 }
 
+type OriginateAchArgs struct {
+	IdempotencyKey   string `validate:"required"`
+	Amount           uint64
+	Direction        string `validate:"oneof=credit,debit"`
+	CounterpartyID   string `validate:"required"`
+	DepositAccountID string `validate:"required"`
+	Description      string
+	Tags             map[string]string
+}
+
+func (c *client) OriginateAch(ctx context.Context, args *OriginateAchArgs) (*AchPayment, error) {
+	url := fmt.Sprintf("%s/payments", c.baseUrl)
+	data := AchPayment{
+		Type: "achPayment",
+		Attributes: AchPaymentAttributes{
+			Amount:         args.Amount,
+			Direction:      args.Direction,
+			Description:    args.Description,
+			IdempotencyKey: args.IdempotencyKey,
+		},
+		Relationships: AchPaymentRelationships{
+			Account: Relationship{
+				Data: TypeData{
+					Type: "depositAccount",
+					ID:   args.DepositAccountID,
+				},
+			},
+			Counterparty: Relationship{
+				Data: TypeData{
+					Type: "counterparty",
+					ID:   args.CounterpartyID,
+				},
+			},
+		},
+	}
+	payload, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.http.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrRequest, err)
+	}
+
+	ret := &AchPayment{}
+	err = parseResponse(resp, ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 type CreateDepositAccountArgs struct {
 	CustomerID     string
 	DepositProduct string
@@ -284,7 +350,7 @@ func (c *client) CreateDepositAccount(
 				IdempotencyKey: args.IdempotencyKey,
 			},
 			Relationships: &DepositAccountRelationships{
-				Customer: Customer{
+				Customer: Relationship{
 					Data: TypeData{
 						ID:   args.CustomerID,
 						Type: "customer",

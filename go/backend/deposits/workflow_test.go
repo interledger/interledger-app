@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/deposits"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/unit"
 
 	"github.com/stretchr/testify/suite"
 
@@ -22,17 +23,20 @@ type UnitTestSuite struct {
 	env              *testsuite.TestWorkflowEnvironment
 	depositsActivity *deposits.Activity
 	mxActivity       *_mx.Activity
+	unitActivity     *unit.Activity
 }
 
 func (s *UnitTestSuite) SetupSuite() {
 	s.depositsActivity = &deposits.Activity{}
 	s.mxActivity = &_mx.Activity{}
+	s.unitActivity = &unit.Activity{}
 }
 
 func (s *UnitTestSuite) SetupTest() {
 	s.env = s.NewTestWorkflowEnvironment()
 	s.env.RegisterActivity(s.depositsActivity)
 	s.env.RegisterActivity(s.mxActivity)
+	s.env.RegisterActivity(s.unitActivity)
 }
 
 func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
@@ -97,10 +101,14 @@ func (s *UnitTestSuite) Test_DepositWorkflow_Success() {
 			s.Equal(deposit.ID, id)
 			return trxId.String(), nil
 		})
-	s.env.OnActivity(s.depositsActivity.ProcessNoopDeposit, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, id string) error {
-			s.Equal(deposit.ID, id)
-			return nil
+	s.env.OnActivity(s.unitActivity.UnitInitiateUserDeposit, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *unit.InitiateUserDepositArgs) (*unit.UserAchDeposit, error) {
+			s.Equal(deposit.ID, args.DepositID)
+			s.Equal(deposit.FundingSourceId, args.FundingsourceID)
+			s.Equal(deposit.AccountID, args.AccountID)
+			s.Equal(deposit.Amount, args.Amount)
+			s.Equal("Fynbos", args.Description)
+			return nil, nil
 		})
 	s.env.OnActivity(s.depositsActivity.PostPendingDeposit, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, id string) error {
@@ -117,6 +125,6 @@ func (s *UnitTestSuite) Test_DepositWorkflow_Success() {
 // TODO add more comprehensive testing for branching in workflow and rollbacks
 // see https://docs.temporal.io/docs/go/how-to-test-workflow-definitions-in-go/
 
-func TestUnitTestSuite(t *testing.T) {
+func TestDepositWorkflow(t *testing.T) {
 	suite.Run(t, new(UnitTestSuite))
 }

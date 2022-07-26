@@ -4,6 +4,7 @@ import (
 	context "context"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"go.temporal.io/sdk/temporal"
 
@@ -127,4 +128,25 @@ func (a *Activity) UnitCreateDepositAccount(
 	}
 
 	return ret, nil
+}
+
+func (a *Activity) UnitInitiateUserDeposit(
+	ctx context.Context,
+	args *InitiateUserDepositArgs,
+) (*UserAchDeposit, error) {
+	achDeposit, err := a.unitService.InitiateUserDeposit(ctx, &InitiateUserDepositArgs{
+		DepositID:       args.DepositID,
+		AccountID:       args.AccountID,
+		FundingsourceID: args.FundingsourceID,
+		Amount:          args.Amount,
+		Description:     args.Description,
+	})
+	if err != nil {
+		if !IsRetryableError(err) {
+			return nil, temporal.NewNonRetryableApplicationError(err.Error(), reflect.TypeOf(err).String(), err)
+		}
+		return nil, err
+	}
+
+	return achDeposit, nil
 }

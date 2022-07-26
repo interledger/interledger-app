@@ -54,6 +54,8 @@ type Service interface {
 	GetCustomerByIdentityID(ctx context.Context, identityID string) (*Customer, error)
 	CreateCounterParty(ctx context.Context, args *CreateCounterPartyArgs) (*CounterParty, error)
 	GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error)
+	// This will call out to Unit to originate a debit ACH. The result will come via webhook.
+	InitiateUserDeposit(ctx context.Context, args *InitiateUserDepositArgs) (*UserAchDeposit, error)
 }
 
 type (
@@ -409,6 +411,9 @@ func (s *service) GetCounterPartyByFundingsourceID(ctx context.Context, fundings
 		"SELECT * FROM unit_counterparties WHERE fundingsource_id=$1 LIMIT 1;",
 		fundingsourceID,
 	)
+	if err == sql.ErrNoRows {
+		return nil, ErrNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -501,4 +506,78 @@ func statusToError(statusCode int) error {
 	} else {
 		return ErrInternal
 	}
+}
+
+type (
+	UserAchDeposit struct {
+		ID               string `db:"id"`
+		DepositAccountID string `db:"deposit_account_id"`
+		DepositID        string `db:"deposit_id"`
+		CounterPartyID   string `db:"counterparty_id"`
+		Amount           uint64
+		CreatedAt        string `db:"created_at"`
+		UpdatedAt        string `db:"updated_at"`
+	}
+
+	InitiateUserDepositArgs struct {
+		DepositID       string `validate:"uuid4"`
+		AccountID       string `validate:"uuid4"`
+		FundingsourceID string `validate:"uuid4"`
+		Amount          uint64
+
+		// This will show up on the statement of the counterparty account.
+		Description string
+	}
+)
+
+func (s *service) InitiateUserDeposit(ctx context.Context, args *InitiateUserDepositArgs) (*UserAchDeposit, error) {
+	acc, err := s.accountService.Get(ctx, args.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	counterparty, err := s.GetCounterPartyByFundingsourceID(ctx, args.FundingsourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	idempotencyKey := sha256.Sum256([]byte(args.DepositID))
+	achPayment, err := s.externalClient.OriginateAch(ctx, &external.OriginateAchArgs{
+		IdempotencyKey:   string(idempotencyKey[0:]),
+		Amount:           args.Amount,
+		Direction:        "Debit",
+		CounterpartyID:   counterparty.ID,
+		DepositAccountID: acc.ProviderID,
+		Description:      args.Description,
+	})
+	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
+		}
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	ret := &UserAchDeposit{}
+	err = s.db.GetContext(
+		ctx,
+		ret,
+		`
+		INSERT INTO unit_user_ach_deposits (id, deposit_id, deposit_account_id, counterparty_id, 
+		amount)VALUES ($1, $2, $3, $4, $5) RETURNING *;
+		`,
+		achPayment.ID,
+		args.DepositID,
+		acc.ProviderID,
+		counterparty.ID,
+		args.Amount,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret, nil
 }

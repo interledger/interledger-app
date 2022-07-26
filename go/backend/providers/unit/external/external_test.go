@@ -269,7 +269,7 @@ func TestCreateCounterparty(t *testing.T) {
 			ID:   counterpartyID,
 			Type: "achCounterparty",
 			Relationships: CounterpartyRelationships{
-				Customer: Customer{
+				Customer: Relationship{
 					Data: TypeData{
 						ID:   unitCustomerID,
 						Type: "customer",
@@ -319,6 +319,110 @@ func TestCreateCounterparty(t *testing.T) {
 	assert.Equal(t, counterpartyID, counterparty.ID)
 }
 
+func TestOriginateAch(t *testing.T) {
+	t.Parallel()
+	depositID := uuid.NewString()
+	achPaymentID := uuid.NewString()
+	unitCustomerID := uuid.NewString()
+	unitAccountID := uuid.NewString()
+	counterpartyID := uuid.NewString()
+	counterpartyAttributes := CounterpartyAttributes{
+		Name:          "Jane Doe",
+		RoutingNumber: "812345678",
+		AccountNumber: "12345569",
+		AccountType:   "Checking",
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+			return
+		}
+		if r.URL.Path != "/payments" {
+			http.Error(w, "Not found.", http.StatusNotFound)
+			return
+		}
+
+		data := AchPayment{
+			ID:   achPaymentID,
+			Type: "achPayment",
+			Attributes: AchPaymentAttributes{
+				CreatedAt:    "2020-01-13T16:01:19.346Z",
+				Status:       AchStatusPending,
+				Counterparty: counterpartyAttributes,
+				Description:  "Funding",
+				Direction:    "Debit",
+				Amount:       10000,
+				Tags: DepositTags{
+					DepositID: depositID,
+				},
+			},
+			Relationships: AchPaymentRelationships{
+				Customer: Relationship{
+					Data: TypeData{
+						ID:   unitCustomerID,
+						Type: "customer",
+					},
+				},
+				Counterparty: Relationship{
+					Data: TypeData{
+						ID:   counterpartyID,
+						Type: "counterparty",
+					},
+				},
+				Account: Relationship{
+					Data: TypeData{
+						ID:   unitAccountID,
+						Type: "depositAccount",
+					},
+				},
+			},
+		}
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		response := &Response{
+			Data: rawData,
+		}
+		payload, err := json.Marshal(response)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(payload))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+
+	client := NewClient(server.URL, "test")
+	ach, err := client.OriginateAch(context.Background(), &OriginateAchArgs{
+		IdempotencyKey:   "test-key",
+		Amount:           10000,
+		Direction:        "Debit",
+		CounterpartyID:   counterpartyID,
+		DepositAccountID: unitAccountID,
+		Description:      "Funding",
+		Tags: map[string]string{
+			"DepositID": depositID,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NotNil(t, ach)
+	assert.Equal(t, depositID, ach.Attributes.Tags.DepositID)
+	assert.Equal(t, unitCustomerID, ach.Relationships.Customer.Data.ID)
+	assert.Equal(t, counterpartyID, ach.Relationships.Counterparty.Data.ID)
+	assert.Equal(t, unitAccountID, ach.Relationships.Account.Data.ID)
+}
+
 func TestCreateDepositAccount(t *testing.T) {
 	t.Parallel()
 	depositAccountID := uuid.NewString()
@@ -354,7 +458,7 @@ func TestCreateDepositAccount(t *testing.T) {
 				AvailableInCents: 9000,
 			},
 			Relationships: &DepositAccountRelationships{
-				Customer: Customer{
+				Customer: Relationship{
 					Data: TypeData{
 						ID:   args.CustomerID,
 						Type: "customer",

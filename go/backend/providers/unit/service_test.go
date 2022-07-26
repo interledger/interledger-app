@@ -132,7 +132,7 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 				ID:   counterpartyID,
 				Type: "achCounterparty",
 				Relationships: external.CounterpartyRelationships{
-					Customer: external.Customer{
+					Customer: external.Relationship{
 						Data: external.TypeData{
 							ID:   unitCustomerID,
 							Type: "customer",
@@ -226,7 +226,7 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 				AvailableInCents: 9000,
 			},
 			Relationships: &external.DepositAccountRelationships{
-				Customer: external.Customer{
+				Customer: external.Relationship{
 					Data: external.TypeData{
 						ID:   unitCustomerID,
 						Type: "customer",
@@ -280,4 +280,119 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, unitCustomerID, freshAcc.CustomerID)
+}
+
+func TestInitiateUserDeposit(t *testing.T) {
+	t.Parallel()
+	userID := uuid.NewString()
+	accountID := uuid.NewString()
+	depositID := uuid.NewString()
+	depositAccountID := uuid.NewString()
+	fundingsourceID := uuid.NewString()
+	achPaymentID := uuid.NewString()
+	counterpartyID := uuid.NewString()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+			return
+		}
+		var data any
+		if r.URL.Path == "/payments" {
+			data = external.AchPayment{
+				ID:   achPaymentID,
+				Type: "achPayment",
+			}
+		} else if r.URL.Path == "/counterparties" {
+			data = external.Counterparty{
+				Type: "counterparty",
+				ID:   counterpartyID,
+			}
+		} else {
+			http.NotFound(w, r)
+			return
+		}
+
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		response := &external.Response{
+			Data: rawData,
+		}
+		payload, err := json.Marshal(response)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(payload))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+	ctrl := gomock.NewController(t)
+	mockAccounts := accounts.NewMockService(ctrl)
+	mockIdentity := identity.NewMockService(ctrl)
+	unitService, err := NewService(ServiceArgs{
+		WebhookToken:    "fynbos_local_unit_webhook_token",
+		BaseURL:         server.URL,
+		Token:           "test token",
+		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
+		IdentityService: mockIdentity,
+		Logger:          zap.NewNop(),
+		AccountService:  mockAccounts,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockIdentity.EXPECT().Get(context.Background(), userID).Return(&identity.Identity{ID: userID}, nil)
+	customer, err := unitService.CreateCustomer(context.Background(), &CreateCustomerArgs{
+		ID:         "58",
+		IdentityID: userID,
+		Type:       "person",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockAccounts.EXPECT().Get(context.Background(), accountID).Return(
+		&accounts.Account{ID: accountID, Provider: "unit", ProviderID: depositAccountID},
+		nil,
+	)
+
+	_, err = unitService.CreateCounterParty(context.Background(), &CreateCounterPartyArgs{
+		FundingsourceID: fundingsourceID,
+		Name:            "test",
+		UnitCustomerID:  customer.ID,
+		RoutingNumber:   "123",
+		AccountNumber:   "123",
+		AccountType:     "Checking",
+		Type:            "person",
+		IdempotencyKey:  "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	achDeposit, err := unitService.InitiateUserDeposit(context.Background(), &InitiateUserDepositArgs{
+		DepositID:       depositID,
+		AccountID:       accountID,
+		FundingsourceID: fundingsourceID,
+		Amount:          10000,
+		Description:     "Funding",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, achPaymentID, achDeposit.ID)
+	assert.Equal(t, depositAccountID, achDeposit.DepositAccountID)
+	assert.Equal(t, counterpartyID, achDeposit.CounterPartyID)
+	assert.Equal(t, uint64(10000), achDeposit.Amount)
+	assert.Equal(t, depositID, achDeposit.DepositID)
 }
