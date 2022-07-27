@@ -10,46 +10,6 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 
-export async function action({ request }: ActionArgs) {
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
-
-  const fieldErrors = { email: '' }
-
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email: email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
-
-  const data = await res.json()
-  if (res.status >= 400) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
-  }
-  return json(data)
-}
-
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
@@ -153,4 +113,44 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token')
+  const email = form.get('email')
+
+  const fieldErrors = { email: '' }
+
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'link',
+        email: email,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
+  const data = await res.json()
+  if (res.status >= 400) {
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+  return json(data)
 }

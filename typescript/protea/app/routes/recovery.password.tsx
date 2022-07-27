@@ -11,58 +11,6 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 
-export async function action({ request }: ActionArgs) {
-  const cookie = request.headers.get('Cookie')
-  const userSettings = await getSession(cookie)
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token') as string
-  const password = form.get('new-password') as string
-
-  const fieldErrors = { password: '' }
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        password: password,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        Accept: 'application/json',
-        cookie: String(request.headers.get('Cookie'))
-      }
-    }
-  )
-
-  const data = await res.json()
-  if (res.status > 400) handleFlowError(data, 'recovery/password')
-  if (res.status == 400) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
-  }
-
-  userSettings.flash('snackbar', {
-    message: 'New password successfully saved.',
-    action: 'done'
-  })
-  return redirect(route('/settings'), {
-    headers: {
-      'Set-Cookie': await commitSession(userSettings)
-    }
-  })
-}
-
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const url = new URL(request.url)
@@ -146,4 +94,56 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const cookie = request.headers.get('Cookie')
+  const userSettings = await getSession(cookie)
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const password = form.get('new-password') as string
+
+  const fieldErrors = { password: '' }
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'password',
+        password: password,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        Accept: 'application/json',
+        cookie: String(request.headers.get('Cookie'))
+      }
+    }
+  )
+
+  const data = await res.json()
+  if (res.status > 400) handleFlowError(data, 'recovery/password')
+  if (res.status == 400) {
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
+  userSettings.flash('snackbar', {
+    message: 'New password successfully saved.',
+    action: 'done'
+  })
+  return redirect(route('/settings'), {
+    headers: {
+      'Set-Cookie': await commitSession(userSettings)
+    }
+  })
 }
