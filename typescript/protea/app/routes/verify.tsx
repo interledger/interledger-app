@@ -16,33 +16,14 @@ import { InitiateOnboardingDocument } from '~/generated/types'
 import type { Session } from '@ory/kratos-client'
 import { apolloClient } from '~/lib/apollo.server'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    email?: string
-  }
-  fields?: {
-    email: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
 export async function action({ request }: ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+
   const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
+  const csrfToken = form.get('csrf_token') as string
+  const email = form.get('email') as string
 
-  if (typeof csrfToken !== 'string' || typeof email !== 'string') {
-    return badRequest({
-      formError: `Form not submitted correctly.`
-    })
-  }
-
-  const fields = { csrf_token: csrfToken, email }
   const res = await fetch(
     `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
     {
@@ -59,17 +40,11 @@ export async function action({ request }: ActionArgs) {
     }
   )
 
-  const data = await res.json()
   if (res.status >= 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return badRequest({ fieldErrors: fieldErrors, fields })
+    throw json(
+      { title: "Could't send email verification" },
+      { status: res.status, statusText: res.statusText }
+    )
   }
   return redirect(route('/verify'), {
     headers: res.headers
@@ -172,7 +147,7 @@ export default function Page() {
       </div>
       <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <p className='text-medium'>
-          We’ve sent a verification link to your email:
+          We've sent a verification link to your email:
           <br /> {email}
         </p>
       </div>

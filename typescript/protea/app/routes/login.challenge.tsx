@@ -11,40 +11,21 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    email?: string
-    password?: string
-  }
-  fields?: {
-    email: string
-    password: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
 export async function action({ request }: ActionArgs) {
   const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+
   const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
-  const password = form.get('password')
-  if (
-    typeof csrfToken !== 'string' ||
-    typeof email !== 'string' ||
-    typeof password !== 'string'
-  ) {
-    return badRequest({
-      // TODO: handle formError on client
-      formError: `Form not submitted correctly.`
-    })
+  const csrfToken = form.get('csrf_token') as string
+  const email = form.get('email') as string
+  const password = form.get('password') as string
+
+  const fieldErrors = {
+    email: '',
+    password: ''
   }
-  const fields = { csrf_token: csrfToken, email, password }
+
   const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
     method: 'POST',
     body: JSON.stringify({
@@ -61,7 +42,6 @@ export async function action({ request }: ActionArgs) {
 
   const data = await res.json()
   if (res.status >= 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
     for (let node of data.ui.nodes) {
       if (node.messages.length > 0) {
         Object.assign(fieldErrors, {
@@ -69,7 +49,7 @@ export async function action({ request }: ActionArgs) {
         })
       }
     }
-    return badRequest({ fieldErrors: fieldErrors, fields })
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
   if (userSettings.has('challenge-flow')) {
     const { returnTo } = userSettings.get('challenge-flow')
@@ -167,14 +147,13 @@ export default function Page() {
           id='password'
           label='Password'
           name='password'
-          defaultValue={actionData?.fields?.password}
           type='password'
-          aria-invalid={Boolean(actionData?.fieldErrors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
           aria-describedby={
-            actionData?.fieldErrors?.password ? 'password-error' : undefined
+            actionData?.errors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.fieldErrors?.password}
+          errorMessage={actionData?.errors?.password}
         />
 
         <input defaultValue={email} name='email' type='hidden' />

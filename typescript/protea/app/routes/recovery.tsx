@@ -10,33 +10,16 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    email?: string
-  }
-  fields?: {
-    email: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
 export async function action({ request }: ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
 
-  if (typeof csrfToken !== 'string' || typeof email !== 'string') {
-    return badRequest({
-      formError: `Form not submitted correctly.`
-    })
-  }
+  const fieldErrors = { email: '' }
 
-  const fields = { csrf_token: csrfToken, email }
   const res = await fetch(
     `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
     {
@@ -55,7 +38,6 @@ export async function action({ request }: ActionArgs) {
 
   const data = await res.json()
   if (res.status >= 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
     for (let node of data.ui.nodes) {
       if (node.messages.length > 0) {
         Object.assign(fieldErrors, {
@@ -63,7 +45,7 @@ export async function action({ request }: ActionArgs) {
         })
       }
     }
-    return badRequest({ fieldErrors: fieldErrors, fields })
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
   return json(data)
 }
@@ -123,7 +105,7 @@ export default function Page() {
           </div>
           <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <p className='text-medium'>
-              We’ve sent you an email to change your password. Please click on
+              We've sent you an email to change your password. Please click on
               the link in the email to continue.
             </p>
           </div>
@@ -138,7 +120,7 @@ export default function Page() {
           </div>
           <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <p className='text-medium'>
-              We’ll send you an email to change your password.
+              We'll send you an email to change your password.
             </p>
           </div>
         </>
@@ -152,15 +134,14 @@ export default function Page() {
           id='email'
           label='Email'
           name='email'
-          defaultValue={actionData?.fields?.email}
           type='email'
           disabled={flow.state === 'sent_email'}
-          aria-invalid={Boolean(actionData?.fieldErrors?.email) || undefined}
+          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
           aria-describedby={
-            actionData?.fieldErrors?.email ? 'email-error' : undefined
+            actionData?.errors?.email ? 'email-error' : undefined
           }
           required
-          errorMessage={actionData?.fieldErrors?.email}
+          errorMessage={actionData?.errors?.email}
         />
 
         <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
