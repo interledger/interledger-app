@@ -165,7 +165,11 @@ func TestWaitForAggregation(t *testing.T) {
 		nil,
 	).Times(1)
 
-	err := activity.WaitForAggregation(ctx, mxAccountGuid, 2, 10*time.Millisecond)
+	err := activity.WaitForAggregation(ctx, &WaitForAggregationArgs{
+		MxAccountGuid: mxAccountGuid,
+		MaxRetries:    2,
+		PollInterval:  10 * time.Millisecond,
+	})
 
 	assert.NoError(t, err)
 }

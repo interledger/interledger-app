@@ -3,6 +3,7 @@ package mx
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -67,10 +68,13 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	s.env.OnActivity(
 		s.activity.WaitForAggregation,
 		mock.Anything,
-		mxAccountGuid,
 		mock.Anything,
-		mock.Anything,
-	).Return(nil)
+	).Return(func(ctx context.Context, args *WaitForAggregationArgs) error {
+		s.Equal(mxAccountGuid, args.MxAccountGuid)
+		s.Equal(uint8(5), args.MaxRetries)
+		s.Equal(12*time.Second, args.PollInterval)
+		return nil
+	})
 
 	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, mxAccountGuid).Return(nil)
 
