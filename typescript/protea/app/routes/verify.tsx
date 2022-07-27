@@ -16,41 +16,6 @@ import { InitiateOnboardingDocument } from '~/generated/types'
 import type { Session } from '@ory/kratos-client'
 import { apolloClient } from '~/lib/apollo.server'
 
-export async function action({ request }: ActionArgs) {
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token') as string
-  const email = form.get('email') as string
-
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
-
-  if (res.status >= 400) {
-    throw json(
-      { title: "Could't send email verification" },
-      { status: res.status, statusText: res.statusText }
-    )
-  }
-  return redirect(route('/verify'), {
-    headers: res.headers
-  })
-}
-
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -165,4 +130,39 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const email = form.get('email') as string
+
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'link',
+        email,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
+  if (res.status >= 400) {
+    throw json(
+      { title: "Could't send email verification" },
+      { status: res.status, statusText: res.statusText }
+    )
+  }
+  return redirect(route('/verify'), {
+    headers: res.headers
+  })
 }

@@ -11,57 +11,6 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 
-export async function action({ request }: ActionArgs) {
-  const userSettings = await getSession(request.headers.get('Cookie'))
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token') as string
-  const email = form.get('email') as string
-  const password = form.get('password') as string
-
-  const fieldErrors = {
-    email: '',
-    password: ''
-  }
-
-  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      method: 'password',
-      password_identifier: email,
-      password: password,
-      csrf_token: csrfToken
-    }),
-    headers: {
-      'Content-type': 'application/json',
-      cookie: String(request.headers.get('cookie'))
-    }
-  })
-
-  const data = await res.json()
-  if (res.status >= 400) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
-  }
-  if (userSettings.has('challenge-flow')) {
-    const { returnTo } = userSettings.get('challenge-flow')
-    return redirect(returnTo, {
-      headers: res.headers
-    })
-  }
-  return redirect(route('/home'), {
-    headers: res.headers
-  })
-}
-
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
   const userSettings = await getSession(request.headers.get('Cookie'))
@@ -168,4 +117,55 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const userSettings = await getSession(request.headers.get('Cookie'))
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const email = form.get('email') as string
+  const password = form.get('password') as string
+
+  const fieldErrors = {
+    email: '',
+    password: ''
+  }
+
+  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      method: 'password',
+      password_identifier: email,
+      password: password,
+      csrf_token: csrfToken
+    }),
+    headers: {
+      'Content-type': 'application/json',
+      cookie: String(request.headers.get('cookie'))
+    }
+  })
+
+  const data = await res.json()
+  if (res.status >= 400) {
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+  if (userSettings.has('challenge-flow')) {
+    const { returnTo } = userSettings.get('challenge-flow')
+    return redirect(returnTo, {
+      headers: res.headers
+    })
+  }
+  return redirect(route('/home'), {
+    headers: res.headers
+  })
 }
