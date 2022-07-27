@@ -8,7 +8,6 @@ import {
   useLocation
 } from '@remix-run/react'
 import type { FC } from 'react'
-import React from 'react'
 import { route } from 'routes-gen'
 import { Icon, Error, Logo, Router } from '~/components'
 import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'

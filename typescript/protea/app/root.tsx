@@ -8,7 +8,7 @@ import {
   ScrollRestoration,
   useCatch
 } from '@remix-run/react'
-import React from 'react'
+import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 import { Error } from '~/components'
 
@@ -60,7 +60,7 @@ function Document({
   children,
   title = 'Fynbos'
 }: {
-  children: React.ReactNode
+  children: ReactNode
   title?: string
 }) {
   return (

@@ -2,7 +2,6 @@ import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { Button, Logo, Router } from '~/components'
-import React from 'react'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,

@@ -1,7 +1,8 @@
-import React, { forwardRef } from 'react'
+import type { ReactNode, ButtonHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
 import { Icon } from '.'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: string
   outline?: boolean
 }
@@ -36,8 +37,8 @@ export const Button = forwardRef<any, ButtonProps>(
 
 Button.displayName = 'Button'
 
-interface FABProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  icon?: React.ReactNode
+interface FABProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: ReactNode
   hasNav?: boolean
 }
 

@@ -1,13 +1,14 @@
-import React from 'react'
+import type { InputHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
 
-interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
   className?: string
   // The message from errors produced by form validation.
   errorMessage?: string
 }
 
-export const Checkbox = React.forwardRef<any, CheckboxProps>(
+export const Checkbox = forwardRef<any, CheckboxProps>(
   ({ className, errorMessage, children, ...inputProps }, ref) => {
     return (
       <div className={className || 'min-w-full'}>
