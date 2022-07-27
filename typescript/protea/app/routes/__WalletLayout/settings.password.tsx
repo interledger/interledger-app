@@ -11,34 +11,17 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    password?: string
-  }
-  fields?: {
-    password: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
 export async function action({ request }: ActionArgs) {
   const cookie = request.headers.get('Cookie')
   const userSettings = await getSession(cookie)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const password = form.get('new-password')
-  if (typeof csrfToken !== 'string' || typeof password !== 'string') {
-    return badRequest({
-      formError: `Form not submitted correctly.`
-    })
-  }
 
-  const fields = { csrf_token: csrfToken, password }
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const password = form.get('new-password') as string
+
+  const fieldErrors = { password: '' }
   const res = await fetch(
     `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {
@@ -59,7 +42,6 @@ export async function action({ request }: ActionArgs) {
   const data = await res.json()
   if (res.status > 400) handleFlowError(data, 'settings/password')
   if (res.status == 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
     for (let node of data.ui.nodes) {
       if (node.messages.length > 0) {
         Object.assign(fieldErrors, {
@@ -67,7 +49,7 @@ export async function action({ request }: ActionArgs) {
         })
       }
     }
-    return badRequest({ fieldErrors: fieldErrors, fields })
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
   userSettings.unset('challenge-flow')
@@ -144,14 +126,13 @@ export default function Page() {
           id='new-password'
           label='New password'
           name='new-password'
-          defaultValue={actionData?.fields?.password}
           type='password'
-          aria-invalid={Boolean(actionData?.fieldErrors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
           aria-describedby={
-            actionData?.fieldErrors?.password ? 'password-error' : undefined
+            actionData?.errors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.fieldErrors?.password}
+          errorMessage={actionData?.errors?.password}
         />
 
         <input defaultValue={csrfToken} name='csrf_token' type='hidden' />

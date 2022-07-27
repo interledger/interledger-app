@@ -27,11 +27,9 @@ export async function loader({ request, params }: LoaderArgs) {
   if (!url.pathname.includes('/signup/')) await requireUserSession(request)
   else await requireNoUserSession(request)
   const flow = await requireFlow(request, params)
-  const stepIndex = flow.steps.findIndex((step) => step.route == url.pathname)
 
   return json({
-    flow,
-    stepIndex
+    flow
   })
 }
 
