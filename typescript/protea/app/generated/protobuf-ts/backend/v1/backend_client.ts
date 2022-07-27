@@ -2,6 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { InitiateDepositResponse } from "./backend";
+import type { InitiateDepositRequest } from "./backend";
 import type { Quote } from "./backend";
 import type { GetQuoteRequest } from "./backend";
 import type { CheckPhoneVerificationCodeRequest } from "./backend";
@@ -101,6 +103,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetQuote(backend.v1.GetQuoteRequest) returns (backend.v1.Quote);
      */
     getQuote(input: GetQuoteRequest, options?: RpcOptions): UnaryCall<GetQuoteRequest, Quote>;
+    /**
+     * @generated from protobuf rpc: InitiateDeposit(backend.v1.InitiateDepositRequest) returns (backend.v1.InitiateDepositResponse);
+     */
+    initiateDeposit(input: InitiateDepositRequest, options?: RpcOptions): UnaryCall<InitiateDepositRequest, InitiateDepositResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -183,5 +189,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getQuote(input: GetQuoteRequest, options?: RpcOptions): UnaryCall<GetQuoteRequest, Quote> {
         const method = this.methods[8], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetQuoteRequest, Quote>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: InitiateDeposit(backend.v1.InitiateDepositRequest) returns (backend.v1.InitiateDepositResponse);
+     */
+    initiateDeposit(input: InitiateDepositRequest, options?: RpcOptions): UnaryCall<InitiateDepositRequest, InitiateDepositResponse> {
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        return stackIntercept<InitiateDepositRequest, InitiateDepositResponse>("unary", this._transport, method, opt, input);
     }
 }

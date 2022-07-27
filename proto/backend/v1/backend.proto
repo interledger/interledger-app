@@ -40,6 +40,7 @@ service BackendService {
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
+  rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
 }
 
 message GetBankAccountWidgetRequest {}
@@ -142,4 +143,13 @@ message Quote {
   uint64 sendAmount = 4;
   string sendCurrencyCode = 5;
   string expiresAt = 6;
+}
+
+message InitiateDepositRequest {
+  string fundingsourceId = 1;
+  uint64 amount = 2;
+}
+
+message InitiateDepositResponse {
+  string depositId = 1;
 }

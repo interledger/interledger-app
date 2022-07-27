@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -158,6 +159,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		OnboardingService:    os,
 		MxProvider:           mx.NewMockService(c.Ctrl),
 		RafikiProvider:       c.RafikiProvider,
+		DepositService:       deposits.NewMockService(c.Ctrl),
 	})
 	if err != nil {
 		return nil, err

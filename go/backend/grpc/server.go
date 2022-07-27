@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	_admin "gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -38,6 +39,7 @@ type ServerArgs struct {
 	OnboardingService    onboarding.Service     `validate:"required"`
 	MxProvider           mx.Service             `validate:"required"`
 	RafikiProvider       rafiki.Service         `validate:"required"`
+	DepositService       deposits.Service       `validate:"required"`
 }
 
 type rpcService struct {
@@ -51,6 +53,7 @@ type rpcService struct {
 	fundingSourceService fundingsources.Service
 	mxProvider           mx.Service
 	rafikiProvider       rafiki.Service
+	depositService       deposits.Service
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -73,6 +76,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		fundingSourceService: args.FundingSourceService,
 		mxProvider:           args.MxProvider,
 		rafikiProvider:       args.RafikiProvider,
+		depositService:       args.DepositService,
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,

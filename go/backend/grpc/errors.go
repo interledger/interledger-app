@@ -49,6 +49,10 @@ func ForbiddenError(message string) error {
 	return status.Error(codes.PermissionDenied, "Forbidden: "+message)
 }
 
+func UnauthenticatedError(message string) error {
+	return status.Error(codes.Unauthenticated, "Unauthenticated: "+message)
+}
+
 // Not found error will build an immutable error representing the status of the response.
 func NotFoundError(message string) error {
 	return status.Error(codes.NotFound, "Not found: "+message)

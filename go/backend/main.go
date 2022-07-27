@@ -330,6 +330,7 @@ func start(args *cli.StartArgs) {
 		OnboardingService:    os,
 		MxProvider:           mx,
 		RafikiProvider:       rafikiProvider,
+		DepositService:       ds,
 	})
 	if err != nil {
 		log.Fatalln(err)
