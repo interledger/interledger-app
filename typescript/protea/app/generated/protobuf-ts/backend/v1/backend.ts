@@ -336,6 +336,28 @@ export interface Quote {
      */
     expiresAt: string;
 }
+/**
+ * @generated from protobuf message backend.v1.InitiateDepositRequest
+ */
+export interface InitiateDepositRequest {
+    /**
+     * @generated from protobuf field: string fundingsourceId = 1;
+     */
+    fundingsourceId: string;
+    /**
+     * @generated from protobuf field: uint64 amount = 2;
+     */
+    amount: string;
+}
+/**
+ * @generated from protobuf message backend.v1.InitiateDepositResponse
+ */
+export interface InitiateDepositResponse {
+    /**
+     * @generated from protobuf field: string depositId = 1;
+     */
+    depositId: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -1427,6 +1449,107 @@ class Quote$Type extends MessageType<Quote> {
  * @generated MessageType for protobuf message backend.v1.Quote
  */
 export const Quote = new Quote$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InitiateDepositRequest$Type extends MessageType<InitiateDepositRequest> {
+    constructor() {
+        super("backend.v1.InitiateDepositRequest", [
+            { no: 1, name: "fundingsourceId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<InitiateDepositRequest>): InitiateDepositRequest {
+        const message = { fundingsourceId: "", amount: "0" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<InitiateDepositRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateDepositRequest): InitiateDepositRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fundingsourceId */ 1:
+                    message.fundingsourceId = reader.string();
+                    break;
+                case /* uint64 amount */ 2:
+                    message.amount = reader.uint64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: InitiateDepositRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fundingsourceId = 1; */
+        if (message.fundingsourceId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fundingsourceId);
+        /* uint64 amount = 2; */
+        if (message.amount !== "0")
+            writer.tag(2, WireType.Varint).uint64(message.amount);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.InitiateDepositRequest
+ */
+export const InitiateDepositRequest = new InitiateDepositRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InitiateDepositResponse$Type extends MessageType<InitiateDepositResponse> {
+    constructor() {
+        super("backend.v1.InitiateDepositResponse", [
+            { no: 1, name: "depositId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<InitiateDepositResponse>): InitiateDepositResponse {
+        const message = { depositId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<InitiateDepositResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateDepositResponse): InitiateDepositResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string depositId */ 1:
+                    message.depositId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: InitiateDepositResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string depositId = 1; */
+        if (message.depositId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.depositId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.InitiateDepositResponse
+ */
+export const InitiateDepositResponse = new InitiateDepositResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -1445,5 +1568,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "InitiateUnitOnboarding", options: {}, I: InitiateUnitOnboardingRequest, O: InitiateUnitOnboardingResponse },
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: PhoneVerificationResponse },
     { name: "CheckPhoneVerificationCode", options: {}, I: CheckPhoneVerificationCodeRequest, O: PhoneVerificationResponse },
-    { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote }
+    { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
+    { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse }
 ]);

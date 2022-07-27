@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -38,6 +39,7 @@ type TestContainer struct {
 	UnitProvider         *unit.MockService
 	MxProvider           *mx.MockService
 	RafikiProvider       *rafiki.MockService
+	DepositService       *deposits.MockService
 }
 
 type TestContainerOption func(*TestContainer)
@@ -61,6 +63,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		OnboardingService:    onboarding.NewMockService(ctrl),
 		MxProvider:           mx.NewMockService(ctrl),
 		RafikiProvider:       rafiki.NewMockService(ctrl),
+		DepositService:       deposits.NewMockService(ctrl),
 	}
 
 	for _, opt := range opts {
@@ -249,6 +252,7 @@ func startTestServer(
 		OnboardingService:    c.OnboardingService,
 		MxProvider:           c.MxProvider,
 		RafikiProvider:       c.RafikiProvider,
+		DepositService:       c.DepositService,
 	})
 	if err != nil {
 		t.Fatal(err)

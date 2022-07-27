@@ -1,9 +1,12 @@
 package deposits
 
+//go:generate mockgen -destination=./mock.go -package=deposits -source=./service.go
+
 import (
 	"context"
 	"errors"
 	"fmt"
+
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 
