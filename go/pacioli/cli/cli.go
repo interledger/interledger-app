@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"embed"
 	"errors"
 	"fmt"
 	"log"
@@ -18,7 +17,6 @@ type InitArgs struct {
 	TbClusterID        uint32
 	TbUrls             []string
 	TbSeedFile         string
-	Fs                 *embed.FS
 }
 
 // We choose to specify the ledger's for the consuming services here so that

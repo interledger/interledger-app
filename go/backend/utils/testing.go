@@ -174,7 +174,7 @@ func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 	}
 	c.Tb = tb
 
-	err = pacioli_utils.SeedTigerbeetle(moduleDir, tb.URI, connString)
+	err = pacioli_utils.SeedTigerbeetle(t, moduleDir, tb.URI, connString)
 	if err != nil {
 		t.Fatal(err)
 	}

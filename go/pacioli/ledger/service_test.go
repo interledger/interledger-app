@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/pacioli/ledger"
-
 	"github.com/bxcodec/faker/v3"
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/pacioli"
+	"gitlab.com/fynbos/pacioli/ledger"
 )
 
 func TestPacioli(s *testing.T) {
@@ -35,7 +35,7 @@ func TestPacioli(s *testing.T) {
 		scale := uint8(2)
 		ledger2ID := ledgerID + 1
 
-		args := []ledger.ConfigureLedgerArgs{
+		args := []pacioli.ConfigureLedgerArgs{
 			{
 				ID:    ledgerID,
 				Name:  name,
@@ -68,19 +68,19 @@ func TestPacioli(s *testing.T) {
 			},
 		}
 
-		eventErrors, err := c.Ls.ConfigureLedgers(ctx, args)
+		eventErrors, err := ledger.ConfigureLedgers(ctx, c.b, args)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Len(t, eventErrors, 3)
 		assert.Equal(t, eventErrors[0].Index, uint32(1))
-		assert.Equal(t, eventErrors[0].Code, uint32(ledger.LEDGER_EXISTS_WITH_DIFFERENT_NAME))
+		assert.Equal(t, eventErrors[0].Code, uint32(pacioli.LEDGER_EXISTS_WITH_DIFFERENT_NAME))
 		assert.Equal(t, eventErrors[1].Index, uint32(2))
-		assert.Equal(t, eventErrors[1].Code, uint32(ledger.LEDGER_EXISTS_WITH_DIFFERENT_ASSET))
+		assert.Equal(t, eventErrors[1].Code, uint32(pacioli.LEDGER_EXISTS_WITH_DIFFERENT_ASSET))
 		assert.Equal(t, eventErrors[2].Index, uint32(3))
-		assert.Equal(t, eventErrors[2].Code, uint32(ledger.LEDGER_EXISTS_WITH_DIFFERENT_SCALE))
+		assert.Equal(t, eventErrors[2].Code, uint32(pacioli.LEDGER_EXISTS_WITH_DIFFERENT_SCALE))
 
-		ledgers, err := c.Ls.GetLedgers(ctx, []uint32{uint32(ledgerID), uint32(ledger2ID)})
+		ledgers, err := ledger.GetLedgers(ctx, c.b, []uint32{ledgerID, ledger2ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -95,7 +95,7 @@ func TestPacioli(s *testing.T) {
 
 	s.Run("creating accounts is idempotent", func(t *testing.T) {
 		ledgerID := uint32(4)
-		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
+		confLedgerErrs, err := ledger.ConfigureLedgers(ctx, c.b, []pacioli.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
 			Asset: "840",
@@ -108,7 +108,7 @@ func TestPacioli(s *testing.T) {
 
 		account1ID := uuid.NewString()
 		account2ID := uuid.NewString()
-		args := []ledger.ConfigureAccountArgs{
+		args := []pacioli.ConfigureAccountArgs{
 			{
 				ID:       account1ID,
 				LedgerID: ledgerID,
@@ -131,7 +131,7 @@ func TestPacioli(s *testing.T) {
 				ID:       account2ID,
 				LedgerID: ledgerID,
 				Code:     1,
-				Flags: ledger.AccountFlags{
+				Flags: pacioli.AccountFlags{
 					DebitsMustNotExceedCredits: true,
 				},
 			},
@@ -141,7 +141,7 @@ func TestPacioli(s *testing.T) {
 				Code:     1,
 			},
 		}
-		confAccountErrs, err := c.Ls.ConfigureAccounts(ctx, args)
+		confAccountErrs, err := ledger.ConfigureAccounts(ctx, c.b, args)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -152,13 +152,13 @@ func TestPacioli(s *testing.T) {
 			switch err.Code {
 			case tb_types.AccountExistsWithDifferentCode:
 				assert.Equal(t, uint32(1), err.Index, "The create account error mapping is broken.")
-			case tb_types.CreateAccountResult(ledger.ACCOUNT_LEDGER_DOES_NOT_EXIST):
+			case tb_types.CreateAccountResult(pacioli.ACCOUNT_LEDGER_DOES_NOT_EXIST):
 				assert.Equal(t, uint32(2), err.Index, "The create account error mapping is broken.")
 			default:
 				t.Fatal("The error mapping is broken.")
 			}
 		}
-		accounts, err := c.Ls.GetAccounts(ctx, []string{account1ID, account2ID})
+		accounts, err := ledger.GetAccounts(ctx, c.b, []string{account1ID, account2ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -170,7 +170,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, accounts[0].DebitsPending, uint64(0))
 		assert.Equal(t, accounts[0].CreditsPosted, uint64(0))
 		assert.Equal(t, accounts[0].CreditsPending, uint64(0))
-		assert.Equal(t, accounts[0].Flags, ledger.AccountFlags{})
+		assert.Equal(t, accounts[0].Flags, pacioli.AccountFlags{})
 		assert.Equal(t, accounts[1].ID, account2ID)
 		assert.Equal(t, accounts[1].Code, uint16(1))
 		assert.Equal(t, accounts[1].LedgerID, ledgerID)
@@ -178,12 +178,12 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, accounts[1].DebitsPending, uint64(0))
 		assert.Equal(t, accounts[1].CreditsPosted, uint64(0))
 		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
-		assert.Equal(t, ledger.AccountFlags{DebitsMustNotExceedCredits: true}, accounts[1].Flags)
+		assert.Equal(t, pacioli.AccountFlags{DebitsMustNotExceedCredits: true}, accounts[1].Flags)
 	})
 
 	s.Run("creating transfers is idempotent", func(t *testing.T) {
 		ledgerID := uint32(5)
-		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
+		confLedgerErrs, err := ledger.ConfigureLedgers(ctx, c.b, []pacioli.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
 			Asset: "840",
@@ -194,18 +194,18 @@ func TestPacioli(s *testing.T) {
 		}
 
 		assert.Len(t, confLedgerErrs, 0)
-		accountA := ledger.ConfigureAccountArgs{
+		accountA := pacioli.ConfigureAccountArgs{
 			ID:       uuid.NewString(),
 			LedgerID: ledgerID,
 			Code:     1,
 		}
-		accountB := ledger.ConfigureAccountArgs{
+		accountB := pacioli.ConfigureAccountArgs{
 			ID:       uuid.NewString(),
 			LedgerID: ledgerID,
 			Code:     1,
 		}
 
-		confAccountErrs, err := c.Ls.ConfigureAccounts(ctx, []ledger.ConfigureAccountArgs{
+		confAccountErrs, err := ledger.ConfigureAccounts(ctx, c.b, []pacioli.ConfigureAccountArgs{
 			accountA,
 			accountB,
 		})
@@ -216,7 +216,7 @@ func TestPacioli(s *testing.T) {
 		assert.Len(t, confAccountErrs, 0)
 
 		transfer1ID := uuid.NewString()
-		createTransfers := []ledger.CreateTransferArgs{
+		createTransfers := []pacioli.CreateTransferArgs{
 			{
 				ID:              transfer1ID,
 				Amount:          10,
@@ -238,7 +238,7 @@ func TestPacioli(s *testing.T) {
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
-				Flags: ledger.TransferFlags{
+				Flags: pacioli.TransferFlags{
 					Pending: true,
 				},
 				Timeout: uint64(10 * time.Microsecond),
@@ -247,7 +247,7 @@ func TestPacioli(s *testing.T) {
 			},
 		}
 
-		createTransErrs, err := c.Ls.CreateTransfers(ctx, createTransfers)
+		createTransErrs, err := ledger.CreateTransfers(ctx, c.b, createTransfers)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -256,7 +256,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, createTransErrs[0].Index, uint32(1))
 		assert.Equal(t, createTransErrs[0].Code, tb_types.TransferExistsWithDifferentAmount)
 
-		accounts, err := c.Ls.GetAccounts(ctx, []string{accountA.ID, accountB.ID})
+		accounts, err := ledger.GetAccounts(ctx, c.b, []string{accountA.ID, accountB.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -272,7 +272,7 @@ func TestPacioli(s *testing.T) {
 
 	s.Run("transfer commit is idempotent", func(t *testing.T) {
 		ledgerID := uint32(6)
-		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
+		confLedgerErrs, err := ledger.ConfigureLedgers(ctx, c.b, []pacioli.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
 			Asset: "840",
@@ -283,18 +283,18 @@ func TestPacioli(s *testing.T) {
 		}
 		assert.Len(t, confLedgerErrs, 0)
 
-		accountA := ledger.ConfigureAccountArgs{
+		accountA := pacioli.ConfigureAccountArgs{
 			ID:       uuid.NewString(),
 			LedgerID: ledgerID,
 			Code:     1,
 		}
-		accountB := ledger.ConfigureAccountArgs{
+		accountB := pacioli.ConfigureAccountArgs{
 			ID:       uuid.NewString(),
 			LedgerID: ledgerID,
 			Code:     1,
 		}
 
-		confAccErrs, err := c.Ls.ConfigureAccounts(ctx, []ledger.ConfigureAccountArgs{
+		confAccErrs, err := ledger.ConfigureAccounts(ctx, c.b, []pacioli.ConfigureAccountArgs{
 			accountA,
 			accountB,
 		})
@@ -305,13 +305,13 @@ func TestPacioli(s *testing.T) {
 		assert.Len(t, confAccErrs, 0)
 
 		transfer1ID := uuid.NewString()
-		createTransfers := []ledger.CreateTransferArgs{
+		createTransfers := []pacioli.CreateTransferArgs{
 			{
 				ID:              transfer1ID,
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
-				Flags: ledger.TransferFlags{
+				Flags: pacioli.TransferFlags{
 					Pending: true,
 				},
 				Timeout: uint64(time.Second),
@@ -320,13 +320,13 @@ func TestPacioli(s *testing.T) {
 			},
 		}
 
-		transErrs, err := c.Ls.CreateTransfers(ctx, createTransfers)
+		transErrs, err := ledger.CreateTransfers(ctx, c.b, createTransfers)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Len(t, transErrs, 0)
 
-		accounts, err := c.Ls.GetAccounts(ctx, []string{accountA.ID, accountB.ID})
+		accounts, err := ledger.GetAccounts(ctx, c.b, []string{accountA.ID, accountB.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -339,14 +339,14 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, uint64(0), accounts[1].CreditsPosted)
 		assert.Equal(t, uint64(13), accounts[1].CreditsPending)
 
-		erList, err := c.Ls.CommitTransfers(ctx, []string{transfer1ID})
+		erList, err := ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Len(t, erList, 0)
 
 		// Check that the commit went through.
-		accounts, err = c.Ls.GetAccounts(ctx, []string{accountA.ID, accountB.ID})
+		accounts, err = ledger.GetAccounts(ctx, c.b, []string{accountA.ID, accountB.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -360,7 +360,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
 
 		// Commit again
-		erList, err = c.Ls.CommitTransfers(ctx, []string{transfer1ID})
+		erList, err = ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -371,7 +371,7 @@ func TestPacioli(s *testing.T) {
 
 	s.Run("transfer void is idempotent", func(t *testing.T) {
 		ledgerID := uint32(7)
-		confLedgerErrs, err := c.Ls.ConfigureLedgers(ctx, []ledger.ConfigureLedgerArgs{{
+		confLedgerErrs, err := ledger.ConfigureLedgers(ctx, c.b, []pacioli.ConfigureLedgerArgs{{
 			ID:    ledgerID,
 			Name:  faker.Name(), // this will fail because the name is different
 			Asset: "840",
@@ -382,18 +382,18 @@ func TestPacioli(s *testing.T) {
 		}
 
 		assert.Len(t, confLedgerErrs, 0)
-		accountA := ledger.ConfigureAccountArgs{
+		accountA := pacioli.ConfigureAccountArgs{
 			ID:       uuid.NewString(),
 			LedgerID: ledgerID,
 			Code:     1,
 		}
-		accountB := ledger.ConfigureAccountArgs{
+		accountB := pacioli.ConfigureAccountArgs{
 			ID:       uuid.NewString(),
 			LedgerID: ledgerID,
 			Code:     1,
 		}
 
-		confAccErrs, err := c.Ls.ConfigureAccounts(ctx, []ledger.ConfigureAccountArgs{
+		confAccErrs, err := ledger.ConfigureAccounts(ctx, c.b, []pacioli.ConfigureAccountArgs{
 			accountA,
 			accountB,
 		})
@@ -404,13 +404,13 @@ func TestPacioli(s *testing.T) {
 		assert.Len(t, confAccErrs, 0)
 
 		transfer1ID := uuid.NewString()
-		createTransfers := []ledger.CreateTransferArgs{
+		createTransfers := []pacioli.CreateTransferArgs{
 			{
 				ID:              transfer1ID,
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
-				Flags: ledger.TransferFlags{
+				Flags: pacioli.TransferFlags{
 					Pending: true,
 				},
 				Timeout: uint64(time.Second),
@@ -419,13 +419,13 @@ func TestPacioli(s *testing.T) {
 			},
 		}
 
-		transErrs, err := c.Ls.CreateTransfers(ctx, createTransfers)
+		transErrs, err := ledger.CreateTransfers(ctx, c.b, createTransfers)
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Len(t, transErrs, 0)
 
-		accounts, err := c.Ls.GetAccounts(ctx, []string{accountA.ID, accountB.ID})
+		accounts, err := ledger.GetAccounts(ctx, c.b, []string{accountA.ID, accountB.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -438,14 +438,14 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, uint64(0), accounts[1].CreditsPosted)
 		assert.Equal(t, uint64(13), accounts[1].CreditsPending)
 
-		erList, err := c.Ls.VoidTransfers(ctx, []string{transfer1ID})
+		erList, err := ledger.VoidTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
 		assert.Len(t, erList, 0)
 
 		// Check that the void went through.
-		accounts, err = c.Ls.GetAccounts(ctx, []string{accountA.ID, accountB.ID})
+		accounts, err = ledger.GetAccounts(ctx, c.b, []string{accountA.ID, accountB.ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -459,7 +459,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
 
 		// Void again
-		erList, err = c.Ls.VoidTransfers(ctx, []string{transfer1ID})
+		erList, err = ledger.VoidTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}

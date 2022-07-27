@@ -1,25 +1,21 @@
 package main
 
 import (
-	"embed"
 	"fmt"
 	"log"
 	"net"
 	"os"
+
+	"gitlab.com/fynbos/pacioli/rpcserver"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
-	ledger "gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/migrations"
-	"gitlab.com/fynbos/pacioli/rpc"
 	"gitlab.com/fynbos/pacioli/seed"
 )
-
-//go:embed migrations/**.*.sql
-var fs embed.FS
 
 func main() {
 	args := os.Args
@@ -41,7 +37,6 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		args.Fs = &fs
 
 		runInit(args)
 	default:
@@ -51,7 +46,7 @@ func main() {
 
 func runInit(args *cli.InitArgs) {
 	// run migrations
-	err := migrations.Migrate(args.Fs)
+	err := migrations.Migrate()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -74,16 +69,10 @@ func runInit(args *cli.InitArgs) {
 	}
 	defer tbClient.Close()
 
-	ls, err := ledger.NewService(&ledger.ServiceArgs{
-		Db: db,
-		Tb: tbClient,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	b := NewBackends(db, tbClient)
 
 	log.Println("tigerbeetle seeding starting")
-	err = seed.TigerBeetle(ls, args.TbSeedFile)
+	err = seed.TigerBeetle(b, args.TbSeedFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -109,13 +98,7 @@ func start(args *cli.StartArgs) {
 	}
 	defer tbClient.Close()
 
-	ls, err := ledger.NewService(&ledger.ServiceArgs{
-		Db: db,
-		Tb: tbClient,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	b := NewBackends(db, tbClient)
 
 	hs, err := healthcheck.NewService()
 	if err != nil {
@@ -127,7 +110,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	log.Printf("grpc server: 0.0.0.0:%s", args.Port)
-	server := rpc.NewServer(ls, hs)
+	server := rpcserver.NewServer(b, hs)
 	err = server.Serve(listener)
 	if err != nil {
 		log.Fatalln(err)

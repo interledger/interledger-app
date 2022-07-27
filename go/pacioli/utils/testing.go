@@ -21,7 +21,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	cli "gitlab.com/fynbos/pacioli/cli"
-	"gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/seed"
 )
 
@@ -107,7 +106,8 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*T
 
 	fmt.Println("Starting TigerBeetle test container.")
 	req := testcontainers.ContainerRequest{
-		Image:        "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977", // TODO: host image
+		Image: "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977", // TODO: host image
+		//Image:        "localhost:5005/tigerbeetle:debug", // TODO: host image
 		ExposedPorts: []string{TIGERBEETLE_PORT},
 		WaitingFor:   wait.ForLog("init").WithPollInterval(1 * time.Second),
 		Entrypoint: []string{
@@ -147,7 +147,7 @@ func SetupTigerBeetle(ctx context.Context, clusterID uint32, network string) (*T
 	return &TigerBeetleContainer{Container: container, URI: connString[0]}, nil
 }
 
-func SeedTigerbeetle(moduleDir, tbURI, dbConn string) error {
+func SeedTigerbeetle(t *testing.T, moduleDir, tbURI, dbConn string) error {
 	db, err := sqlx.Connect("postgres", dbConn)
 	if err != nil {
 		return err
@@ -164,14 +164,6 @@ func SeedTigerbeetle(moduleDir, tbURI, dbConn string) error {
 	}
 	defer tbClient.Close()
 
-	ls, err := ledger.NewService(&ledger.ServiceArgs{
-		Db: db,
-		Tb: tbClient,
-	})
-	if err != nil {
-		return err
-	}
-
-	err = seed.TigerBeetle(ls, filepath.Join(filepath.Dir(moduleDir), "../../pacioli/utils/test_seed.yml"))
+	err = seed.TigerBeetle(NewBackends(t, db, tbClient), filepath.Join(filepath.Dir(moduleDir), "../../pacioli/utils/test_seed.yml"))
 	return err
 }
