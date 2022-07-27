@@ -15,16 +15,14 @@ import (
     If fails we fail the whole deposit
  - Check account has enough balance
  	If fails we fail the whole deposit
- -  Prepare the withdrawal from the users account
-	  If fails we fail the whole deposit
  - Call out to unit to originate ACH
 	  If fails we need to call out to void the pending withdrawal and then mark deposit as failed
- - Commit the withdrawal
+ - Make the funds available to the user's account
       If fails we fail the whole deposit. Requires manual intervention.
  - Set deposit as complete
 */
 
-func DepositWorkflow(ctx workflow.Context, id string) error {
+func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
 		ScheduleToCloseTimeout: 15 * time.Second,
@@ -36,8 +34,18 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 	var mxActivity *_mx.Activity
 	var unitActivity *unit.Activity
 
+	// Channels that webhooks will use to communicate with the workflow through.
+	achStatusChannel := workflow.GetSignalChannel(ctx, "unit-user-ach-deposit")
+
+	defer func() {
+		if err != nil {
+			cleanupCtx, _ := workflow.NewDisconnectedContext(ctx)
+			_ = workflow.ExecuteActivity(cleanupCtx, depositActivity.SetDepositState, id, Failed).Get(cleanupCtx, nil)
+		}
+	}()
+
 	var deposit *Deposit
-	err := workflow.ExecuteActivity(ctx, depositActivity.GetDeposit, id).Get(ctx, &deposit)
+	err = workflow.ExecuteActivity(ctx, depositActivity.GetDeposit, id).Get(ctx, &deposit)
 	if err != nil {
 		logger.Error("error getting deposit", err)
 		return err
@@ -79,21 +87,15 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 	// Supporting only USD for now.
-	if balance.AssetCode != "USD" && balance.AssetScale != 2 {
-		logger.Error(fmt.Sprintf("Mx account is not in USD. assetCode=%s, assetScale=%d", balance.AssetCode, balance.AssetScale))
-		return temporal.NewApplicationError("Mx account is not in USD", "ErrInternal")
+	if balance.AssetCode != "USD" || balance.AssetScale != 2 {
+		err = fmt.Errorf("%w Mx account is not in USD. assetCode=%s, assetScale=%d", ErrInternal, balance.AssetCode, balance.AssetScale)
+		logger.Error(err.Error())
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
 	}
 	if balance.Value <= 0 || uint64(balance.Value) < deposit.Amount {
-		logger.Error(fmt.Sprintf("Insuffient balance. accountBalance=%+v, depositAmount=%d", balance, deposit.Amount))
-		return temporal.NewApplicationError("Insuffient balance.", "ErrInternal")
-	}
-
-	// Prepare the withdrawal from the account (if insufficient mark as failed)
-	var trxId string
-	err = workflow.ExecuteActivity(ctx, depositActivity.CreatePendingDeposit, id).Get(ctx, &trxId)
-	if err != nil {
-		logger.Error("error creating pending transaction", err)
-		return err
+		err = fmt.Errorf("%w Insufficient funding source balance. accountBalance=%+v, depositAmount=%d", ErrInternal, balance, deposit.Amount)
+		logger.Error(err.Error())
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
 	}
 
 	err = workflow.ExecuteActivity(
@@ -112,9 +114,28 @@ func DepositWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, depositActivity.PostPendingDeposit, trxId).Get(ctx, nil)
+	// we don't send the entire achPayment as it may contain sensitive info such as
+	// account routing numbers.
+	var achEventType string
+	for {
+		if unit.IsAchComplete(unit.EventType(achEventType)) {
+			// We don't need to wait for webhooks if the ach has been completed un/successfully.
+			break
+		}
+
+		achStatusChannel.Receive(ctx, &achEventType)
+	}
+
+	if !unit.IsAchSuccessful(unit.EventType(achEventType)) {
+		err = fmt.Errorf("%w ACH failed. achStatus=%s", ErrInternal, achEventType)
+		logger.Error(err.Error())
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
+	}
+
+	// TODO: ledger transfers and account transactions should be separated.
+	err = workflow.ExecuteActivity(ctx, depositActivity.CreateAchDepositTransactions, deposit.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("error posting pending transaction", err)
+		logger.Error("error creating account deposit transaction", err)
 		return err
 	}
 	err = workflow.ExecuteActivity(ctx, depositActivity.SetDepositState, id, Complete).Get(ctx, nil)

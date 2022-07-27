@@ -155,6 +155,14 @@ const (
 	CUSTOMER_CREATED               = EventType("customer.created")
 	APPLICATION_AWAITING_DOCUMENTS = EventType("application.awaitingdocuments")
 	APPLICATION_DENIED             = EventType("application.denied")
+
+	PAYMENT_CREATED        = EventType("payment.created")
+	PAYMENT_CLEARING       = EventType("payment.clearing")
+	PAYMENT_SENT           = EventType("payment.sent")
+	PAYMENT_REJECTED       = EventType("payment.rejected")
+	PAYMENT_RETURNED       = EventType("payment.returned")
+	PAYMENT_CANCELED       = EventType("payment.canceled")
+	PAYMENT_PENDING_REVIEW = EventType("payment.pendingReview")
 )
 
 type DbEvent struct {

@@ -84,6 +84,45 @@ func (s *Activity) CreatePendingDeposit(ctx context.Context, depositId string) (
 	return trx.ID, nil
 }
 
+func (s *Activity) CreateAchDepositTransactions(ctx context.Context, depositID string) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("Creating deposit transactions")
+
+	deposit, err := s.ds.Get(ctx, depositID)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
+	}
+
+	acc, err := s.as.Get(ctx, deposit.AccountID)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
+	}
+
+	// TODO: ledger transfers and account transactions should be separated.
+	_, err = s.ts.Create(ctx, &transactions.CreateTransactionArgs{
+		AccountID:   deposit.AccountID,
+		Type:        "deposit",
+		NetAmount:   deposit.Amount,
+		Description: fmt.Sprintf("from %s bank account", "test"),
+		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
+			{
+				LedgerID:        s.noop.GetLedgerID(),
+				DebitAccountID:  acc.LedgerAccountID,
+				CreditAccountID: s.noop.GetEquityAccountID(),
+				Amount:          deposit.Amount,
+				// Code: "1", // TODO: define ledger transfer codes.
+			},
+		},
+	})
+	// TODO: need to separate account transaction and ledger transfers.
+	// Can't determine if it's safe to retry
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
+	}
+
+	return nil
+}
+
 func (s *Activity) ProcessNoopDeposit(ctx context.Context, depositId string) error {
 
 	deposit, err := s.ds.Get(ctx, depositId)
