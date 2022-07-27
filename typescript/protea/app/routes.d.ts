@@ -1,55 +1,58 @@
 declare module "routes-gen" {
   export type RouteParams = {
-    "/onboarding/country-access": {};
-    "/confirmation/:flowId": { flowId: string };
-    "/confirmation/:flowId/payment-method": { flowId: string };
-    "/confirmation/:flowId/withdraw": { flowId: string };
-    "/confirmation/:flowId/deposit": { flowId: string };
-    "/confirmation/:flowId/send": { flowId: string };
-    "/recovery/password": {};
-    "/login/challenge": {};
-    "/onboarding/unit": {};
-    "/": {};
-    "/activity/transaction/:id": { id: string };
-    "/settings/payment-methods": {};
-    "/settings/password": {};
-    "/activity/filter": {};
-    "/activity": {};
-    "/settings": {};
-    "/connect": {};
-    "/receive": {};
-    "/home": {};
-    "/flows/:flowId": { flowId: string };
-    "/flows/:flowId/unit-onboarding/address": { flowId: string };
-    "/flows/:flowId/withdraw/payment-method": { flowId: string };
-    "/flows/:flowId/deposit/payment-method": { flowId: string };
-    "/flows/:flowId/payment-method/details": { flowId: string };
-    "/flows/:flowId/payment-method/review": { flowId: string };
-    "/flows/:flowId/unit-onboarding/about": { flowId: string };
-    "/flows/:flowId/payment-method/type": { flowId: string };
-    "/flows/:flowId/signup/password": { flowId: string };
-    "/flows/:flowId/withdraw/amount": { flowId: string };
-    "/flows/:flowId/withdraw/review": { flowId: string };
-    "/flows/:flowId/deposit/amount": { flowId: string };
-    "/flows/:flowId/deposit/review": { flowId: string };
-    "/flows/:flowId/signup/about": { flowId: string };
-    "/flows/:flowId/signup/phone": { flowId: string };
-    "/flows/:flowId/send/amount": { flowId: string };
-    "/flows/:flowId/send/review": { flowId: string };
-    "/flows/:flowId/signup/sms": { flowId: string };
-    "/flows/:flowId/send/to": { flowId: string };
-    "/disclosures": {};
-    "/recovery": {};
-    "/logout": {};
-    "/signup": {};
-    "/verify": {};
-    "/login": {};
-    "/blog": {};
-    "/blog/connecting-the-internet-economy": {};
+    "/api/maps/placesAutocomplete": Record<string, never>;
+    "/onboarding/country-access": Record<string, never>;
+    "/confirmation/:flowId": { "flowId": string };
+    "/confirmation/:flowId/payment-method": { "flowId": string };
+    "/confirmation/:flowId/withdraw": { "flowId": string };
+    "/confirmation/:flowId/deposit": { "flowId": string };
+    "/confirmation/:flowId/send": { "flowId": string };
+    "/recovery/password": Record<string, never>;
+    "/api/maps/geocode": Record<string, never>;
+    "/login/challenge": Record<string, never>;
+    "/onboarding/unit": Record<string, never>;
+    "/": Record<string, never>;
+    "/activity/transaction/:id": { "id": string };
+    "/settings/payment-methods": Record<string, never>;
+    "/settings/password": Record<string, never>;
+    "/activity/filter": Record<string, never>;
+    "/activity": Record<string, never>;
+    "/settings": Record<string, never>;
+    "/connect": Record<string, never>;
+    "/receive": Record<string, never>;
+    "/home": Record<string, never>;
+    "/flows/:flowId": { "flowId": string };
+    "/flows/:flowId/unit-onboarding/address": { "flowId": string };
+    "/flows/:flowId/withdraw/payment-method": { "flowId": string };
+    "/flows/:flowId/deposit/payment-method": { "flowId": string };
+    "/flows/:flowId/payment-method/details": { "flowId": string };
+    "/flows/:flowId/payment-method/review": { "flowId": string };
+    "/flows/:flowId/unit-onboarding/about": { "flowId": string };
+    "/flows/:flowId/payment-method/type": { "flowId": string };
+    "/flows/:flowId/signup/password": { "flowId": string };
+    "/flows/:flowId/withdraw/amount": { "flowId": string };
+    "/flows/:flowId/withdraw/review": { "flowId": string };
+    "/flows/:flowId/deposit/amount": { "flowId": string };
+    "/flows/:flowId/deposit/review": { "flowId": string };
+    "/flows/:flowId/signup/about": { "flowId": string };
+    "/flows/:flowId/signup/phone": { "flowId": string };
+    "/flows/:flowId/send/amount": { "flowId": string };
+    "/flows/:flowId/send/review": { "flowId": string };
+    "/flows/:flowId/signup/sms": { "flowId": string };
+    "/flows/:flowId/send/to": { "flowId": string };
+    "/disclosures": Record<string, never>;
+    "/recovery": Record<string, never>;
+    "/logout": Record<string, never>;
+    "/signup": Record<string, never>;
+    "/verify": Record<string, never>;
+    "/login": Record<string, never>;
+    "/blog": Record<string, never>;
+    "/blog/connecting-the-internet-economy": Record<string, never>;
   };
 
   export function route<
     T extends
+      | ["/api/maps/placesAutocomplete"]
       | ["/onboarding/country-access"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
@@ -57,6 +60,7 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
       | ["/recovery/password"]
+      | ["/api/maps/geocode"]
       | ["/login/challenge"]
       | ["/onboarding/unit"]
       | ["/"]
