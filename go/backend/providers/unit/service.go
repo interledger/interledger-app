@@ -581,3 +581,12 @@ func (s *service) InitiateUserDeposit(ctx context.Context, args *InitiateUserDep
 
 	return ret, nil
 }
+
+func IsAchComplete(eventType EventType) bool {
+	return eventType == PAYMENT_SENT || eventType == PAYMENT_CANCELED ||
+		eventType == PAYMENT_RETURNED || eventType == PAYMENT_REJECTED
+}
+
+func IsAchSuccessful(eventType EventType) bool {
+	return eventType == PAYMENT_SENT
+}
