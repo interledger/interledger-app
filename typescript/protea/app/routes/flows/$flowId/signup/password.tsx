@@ -79,15 +79,14 @@ export default function Page() {
         label='Password'
         name='password'
         form='signup-password'
-        defaultValue={actionData?.fields?.password}
         type='password'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.password) || undefined}
+        aria-invalid={Boolean(actionData?.errors.password) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.password ? 'password-error' : undefined
+          actionData?.errors.password ? 'password-error' : undefined
         }
         required
-        errorMessage={actionData?.fieldErrors?.password}
+        errorMessage={actionData?.errors.password}
       />
 
       <Checkbox
@@ -95,15 +94,13 @@ export default function Page() {
         name='service-agreement'
         form='signup-password'
         className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={
-          Boolean(actionData?.fieldErrors?.serviceAgreement) || undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.serviceAgreement
+          actionData?.errors.serviceAgreement
             ? 'serviceAgreement-error'
             : undefined
         }
-        errorMessage={actionData?.fieldErrors?.serviceAgreement}
+        errorMessage={actionData?.errors.serviceAgreement}
       >
         I agree to the Fynbos&nbsp;
         <Router className='text-primary' to='/privacy-policy'>
@@ -138,18 +135,6 @@ export default function Page() {
   )
 }
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    serviceAgreement: string | undefined
-    password: string | undefined
-  }
-  fields?: {
-    serviceAgreement: boolean
-    password: string
-  }
-}
-
 // The field names given by the backend for field violations
 type fieldErrorsMap = 'ServiceAgreement'
 
@@ -162,57 +147,38 @@ function mapper(field: fieldErrorsMap): 'serviceAgreement' | null {
   }
 }
 
-/**
- * parseError handles potention errors from grpc client calls.
- * @param response The response from a grpc call
- * @param fields Any data passed to the grpc call
- * @returns ActionData response for field validation errors, throws other errors or null if not an error
- */
-function parseError(response: any, fields: any): Response | null {
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      let fieldErrors: ActionData['fieldErrors'] = {
-        serviceAgreement: '',
-        password: ''
-      }
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({
-        fields,
-        fieldErrors
-      })
-    } else throw response
-  }
-  return null
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
 export async function action({ request, params }: ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow') as string
+
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
-  const password = form.get('password')
+  const password = form.get('password') as string
   const serviceAgreement = form.get('service-agreement') as string
 
+  const fieldErrors = {
+    serviceAgreement: '',
+    password: ''
+  }
+
   if (serviceAgreement == null) {
-    return badRequest({
-      fieldErrors: {
-        serviceAgreement: 'You are required to accept this to proceed.',
-        password: ''
-      }
-    })
+    fieldErrors.serviceAgreement = 'You are required to accept this to proceed.'
+    return json(
+      {
+        errors: {
+          ...fieldErrors
+        }
+      },
+      { status: 400 }
+    )
   }
 
   const flow = await getCurrentFlow(request, params)
   const onboardingId = flow?.data.id
   const email = flow?.data.email
 
-  let call = await grpcClient
+  // TODO replace with service agreement service.
+  let response = await grpcClient
     .updateOnboarding({
       id: onboardingId,
       serviceAgreement: true
@@ -220,11 +186,16 @@ export async function action({ request, params }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
 
-  const actionData = parseError(call, {
-    serviceAgreement
-  })
-
-  if (actionData != null) return actionData
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw response
+  }
 
   const res = await fetch(
     `${KRATOS_URL}/self-service/registration?flow=${flowId}`,
@@ -248,10 +219,6 @@ export async function action({ request, params }: ActionArgs) {
   const data = await res.json()
 
   if (res.status >= 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {
-      serviceAgreement: '',
-      password: ''
-    }
     for (let node of data.ui.nodes) {
       if (node.messages.length > 0) {
         Object.assign(fieldErrors, {
@@ -259,7 +226,7 @@ export async function action({ request, params }: ActionArgs) {
         })
       }
     }
-    return badRequest({ fieldErrors: fieldErrors })
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
   // Pull the kratos cookie from the res set-cookie
@@ -287,6 +254,6 @@ export async function action({ request, params }: ActionArgs) {
 
   res.headers.append('Set-Cookie', flowSettings)
   return redirect(route('/onboarding/unit'), {
-      headers: res.headers
-    })
+    headers: res.headers
+  })
 }

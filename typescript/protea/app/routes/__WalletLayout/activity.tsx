@@ -263,10 +263,11 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const form = await request.formData()
-  const pages = form.get('pages')
-  const activityId = form.get('activity-id')
   const userSettings = await getSession(request.headers.get('Cookie'))
+
+  const form = await request.formData()
+  const pages = form.get('pages') as string
+  const activityId = form.get('activity-id') as string
 
   userSettings.set('activity', { pages })
 

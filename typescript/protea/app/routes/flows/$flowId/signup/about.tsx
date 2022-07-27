@@ -89,15 +89,15 @@ export default function Page() {
         form='signup-about-details'
         label='First name'
         name='firstName'
-        defaultValue={actionData?.fields?.firstName || flow?.data.firstName}
+        defaultValue={flow?.data.firstName}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.firstName) || undefined}
+        aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.firstName ? 'firstName-error' : undefined
+          actionData?.errors.firstName ? 'firstName-error' : undefined
         }
         required
-        errorMessage={actionData?.fieldErrors?.firstName}
+        errorMessage={actionData?.errors.firstName}
       />
 
       <TextField
@@ -105,15 +105,15 @@ export default function Page() {
         form='signup-about-details'
         label='Last name'
         name='lastName'
-        defaultValue={actionData?.fields?.lastName || flow?.data.lastName}
+        defaultValue={flow?.data.lastName}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.lastName) || undefined}
+        aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.lastName ? 'lastName-error' : undefined
+          actionData?.errors.lastName ? 'lastName-error' : undefined
         }
         required
-        errorMessage={actionData?.fieldErrors?.lastName}
+        errorMessage={actionData?.errors.lastName}
       />
       <Autocomplete
         id='country'
@@ -123,11 +123,11 @@ export default function Page() {
         options={filteredCountries}
         label='Country'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.country) || undefined}
+        aria-invalid={Boolean(actionData?.errors.country) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.country ? 'country-error' : undefined
+          actionData?.errors.country ? 'country-error' : undefined
         }
-        errorMessage={actionData?.fieldErrors?.country}
+        errorMessage={actionData?.errors.country}
       />
       <input
         form='signup-about-details'
@@ -141,15 +141,13 @@ export default function Page() {
         form='signup-about-details'
         label='Email'
         name='email'
-        defaultValue={actionData?.fields?.email || flow?.data.email}
+        defaultValue={flow?.data.email}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.email) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.email ? 'email-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.email) || undefined}
+        aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.email}
+        errorMessage={actionData?.errors.email}
       />
 
       <div className='col-span-full flex items-center justify-between pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -163,7 +161,6 @@ export default function Page() {
     </>
   )
 }
-
 
 // The field names given by the backend for field violations
 type fieldErrorsMap = 'FirstName' | 'LastName' | 'CountryOfResidence' | 'Email'
@@ -185,35 +182,6 @@ function mapper(
   }
 }
 
-/**
- * parseError handles potention errors from grpc client calls.
- * @param response The response from a grpc call
- * @param fields Any data passed to the grpc call
- * @returns ActionData response for field validation errors, throws other errors or null if not an error
- */
-function parseError(response: any, fields: any): Response | null {
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      let fieldErrors: ActionData['fieldErrors'] = {
-        firstName: undefined,
-        lastName: undefined,
-        country: undefined,
-        email: undefined
-      }
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({
-        fields,
-        fieldErrors
-      })
-    } else throw response
-  }
-  return null
-}
-
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
@@ -221,7 +189,14 @@ export async function action({ request, params }: ActionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
 
-  let call = await grpcClient
+  const fieldErrors = {
+    firstName: '',
+    lastName: '',
+    country: '',
+    email: ''
+  }
+
+  let response = await grpcClient
     .updateOnboarding({
       firstName,
       lastName,
@@ -231,16 +206,18 @@ export async function action({ request, params }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
 
-  const actionData = parseError(call, {
-    id,
-    firstName,
-    lastName,
-    country,
-    email
-  })
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw response
+  }
 
-  if (actionData != null) return actionData
-  const id = (call as FinishedUnaryCall<Onboarding, Onboarding>).response.id
+  const id = (response as FinishedUnaryCall<Onboarding, Onboarding>).response.id
 
   const headers = await updateFlow(request, {
     id,
@@ -259,5 +236,5 @@ export async function action({ request, params }: ActionArgs) {
       flowId: flow?.id as string
     }),
     { headers }
-    )
+  )
 }

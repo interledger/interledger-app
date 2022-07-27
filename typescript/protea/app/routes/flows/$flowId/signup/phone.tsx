@@ -42,9 +42,7 @@ export default function Page() {
 
   const [country, setCountry] = useState<Country>(
     countries.find(
-      (country: Country) =>
-        country.id == actionData?.fields?.country ||
-        country.id == flow?.data.country
+      (country: Country) => country.id == flow?.data.country
     ) as Country
   )
 
@@ -97,11 +95,11 @@ export default function Page() {
         options={filteredCountries}
         label='Country'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.country) || undefined}
+        aria-invalid={Boolean(actionData?.errors.country) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.country ? 'country-error' : undefined
+          actionData?.errors.country ? 'country-error' : undefined
         }
-        errorMessage={actionData?.fieldErrors?.country}
+        errorMessage={actionData?.errors.country}
       />
       <input
         form='signup-phone-details'
@@ -115,15 +113,13 @@ export default function Page() {
         form='signup-phone-details'
         label='Phone number'
         name='phone'
-        defaultValue={actionData?.fields?.phone || flow?.data.phone}
+        defaultValue={flow?.data.phone}
         type='tel'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.phone) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.phone ? 'phone-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.phone) || undefined}
+        aria-describedby={actionData?.errors.phone ? 'phone-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.phone}
+        errorMessage={actionData?.errors.phone}
       />
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -133,18 +129,6 @@ export default function Page() {
       </div>
     </>
   )
-}
-
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    phone: string | undefined
-    country: string | undefined
-  }
-  fields?: {
-    phone: string
-    country: string
-  }
 }
 
 // The field names given by the backend for field violations
@@ -159,44 +143,22 @@ function mapper(field: fieldErrorsMap): 'phone' | null {
   }
 }
 
-/**
- * parseError handles potention errors from grpc client calls.
- * @param response The response from a grpc call
- * @param fields Any data passed to the grpc call
- * @returns ActionData response for field validation errors, throws other errors or null if not an error
- */
-function parseError(response: any, fields: any): Response | null {
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      let fieldErrors: ActionData['fieldErrors'] = {
-        phone: undefined,
-        country: undefined
-      }
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({
-        fields,
-        fieldErrors
-      })
-    } else throw response
-  }
-  return null
-}
-
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string
+
+  const fieldErrors = {
+    country: '',
+    phone: ''
+  }
 
   const flow = await getCurrentFlow(request, params)
   const onboardingId = flow?.data.id
 
   const phoneNumber = parsePhoneNumber(phone, country as CountryCode)
 
-  let call = await grpcClient
+  let response = await grpcClient
     .sendPhoneVerification({
       to: phoneNumber.number,
       onboardingId
@@ -204,11 +166,16 @@ export async function action({ request, params }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
 
-  const actionData = parseError(call, {
-    phone
-  })
-
-  if (actionData != null) return actionData
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw response
+  }
 
   const headers = await updateFlow(request, {
     phone: phoneNumber.number

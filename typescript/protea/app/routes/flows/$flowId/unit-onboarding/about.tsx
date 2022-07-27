@@ -9,7 +9,7 @@ import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
 import { DateTime } from 'luxon'
-import { grpcClient, StatusError } from '~/lib/proto.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 
 type Country = {
@@ -43,9 +43,7 @@ export default function Page() {
 
   const [country, setCountry] = useState<Country>(
     countries.find(
-      (country: Country) =>
-        country.id == actionData?.fields?.country ||
-        country.id == flow?.data.country
+      (country: Country) => country.id == flow?.data.country
     ) as Country
   )
 
@@ -92,16 +90,14 @@ export default function Page() {
         form='unit-about'
         label='Birth date'
         name='birth'
-        defaultValue={actionData?.fields?.birth || flow?.data.birth}
+        defaultValue={flow?.data.birth}
         type='date'
         max={DateTime.now().toFormat('yyyy-LL-dd')}
         className='col-span-full flex flex-col selection:bg-primary/50 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.birth) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.birth ? 'birth-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.birth) || undefined}
+        aria-describedby={actionData?.errors.birth ? 'birth-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.birth}
+        errorMessage={actionData?.errors.birth}
       />
       <Autocomplete
         id='country'
@@ -111,11 +107,11 @@ export default function Page() {
         options={filteredCountries}
         label='Nationality'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.country) || undefined}
+        aria-invalid={Boolean(actionData?.errors.country) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.country ? 'country-error' : undefined
+          actionData?.errors.country ? 'country-error' : undefined
         }
-        errorMessage={actionData?.fieldErrors?.country}
+        errorMessage={actionData?.errors.country}
       />
       <input
         form='unit-about'
@@ -130,30 +126,26 @@ export default function Page() {
           country?.id == 'US' ? 'Social service number' : 'Passport number'
         }
         name='ssn'
-        defaultValue={actionData?.fields?.ssn || flow?.data.ssn}
+        defaultValue={flow?.data.ssn}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.ssn) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.ssn ? 'ssn-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.ssn) || undefined}
+        aria-describedby={actionData?.errors.ssn ? 'ssn-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.ssn}
+        errorMessage={actionData?.errors.ssn}
       />
       <Checkbox
         id='service-agreement'
         name='service-agreement'
         form='signup-password'
         className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={
-          Boolean(actionData?.fieldErrors?.serviceAgreement) || undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.serviceAgreement
+          actionData?.errors.serviceAgreement
             ? 'serviceAgreement-error'
             : undefined
         }
-        errorMessage={actionData?.fieldErrors?.serviceAgreement}
+        errorMessage={actionData?.errors.serviceAgreement}
       >
         I agree to the Fynbos&nbsp;
         <Router className='text-primary' to='/privacy-policy'>
@@ -184,19 +176,27 @@ export default function Page() {
 
 export async function action({ request, params }: ActionArgs) {
   const cookie = request.headers.get('Cookie') as string
+
   const form = await request.formData()
   const ssn = form.get('ssn') as string
   const dateOfBirth = form.get('birth') as string
   const nationality = form.get('country') as string
   // const serviceAgreement = form.get('service-agreement') as string
 
+  // TODO: validate this somewhere
+  const fieldErrors = {
+    ssn: '',
+    birth: '',
+    country: '',
+    serviceAgreement: ''
+  }
+
   const flow = await getCurrentFlow(request, params)
   const { street, apartment, city, state, zip } = flow?.data
   const deviceFingerprints = ['TODO']
-  console.log(flow)
 
   // This won't return data, but should notify success. Can just forward to a waiting page.
-  let call = await grpcClient
+  let response = await grpcClient
     .initiateUnitOnboarding(
       {
         ssn: ssn,
@@ -219,17 +219,10 @@ export async function action({ request, params }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
 
-  console.log(call)
-  return redirect(route('/home'))
-  // TODO if call.status.code == 'OK' then redirect to waiting page.
-  // if (call.status.code)
+  if (isGrpcError(response)) {
+    throw response
+  }
 
-  // const data = {
-  //   street,
-  //   apartment,
-  //   city,
-  //   state,
-  //   country,
-  //   zip
-  // }
+  if (response.status.code == 'OK') return redirect(route('/home'))
+  return json({ errors: { ...fieldErrors } }, { status: 400 })
 }
