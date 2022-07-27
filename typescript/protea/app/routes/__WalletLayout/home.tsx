@@ -5,7 +5,7 @@ import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import type { FC } from 'react'
-import React from 'react'
+import { Fragment } from 'react'
 import type { HomeQuery, HomeQueryVariables } from '~/generated/types'
 import { HomeDocument, TransactionType } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
@@ -142,14 +142,14 @@ export default function Home() {
         )}
         {/* Activity items */}
         {account.recentActivities.map((activities) => (
-          <React.Fragment key={activities.date}>
+          <Fragment key={activities.date}>
             <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               {activities.date}
             </span>
             {activities.activities.map((activity) => (
               <ActivityCard key={activity.id} activity={activity} />
             ))}
-          </React.Fragment>
+          </Fragment>
         ))}
         {account.pendingTransactions.length > 0 && (
           <div className='col-span-full flex justify-start pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

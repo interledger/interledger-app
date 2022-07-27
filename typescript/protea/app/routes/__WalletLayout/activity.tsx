@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, Fragment } from 'react'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
@@ -255,7 +255,7 @@ export default function Page() {
           </div>
         )}
         {transactions.map((transaction, index) => (
-          <React.Fragment key={transaction.id}>
+          <Fragment key={transaction.id}>
             {(index == 0 ||
               transaction.date != transactions[index - 1].date) && (
               <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -263,7 +263,7 @@ export default function Page() {
               </span>
             )}
             <ActivityCard key={transaction.id} activity={transaction} />
-          </React.Fragment>
+          </Fragment>
         ))}
       </div>
     </div>

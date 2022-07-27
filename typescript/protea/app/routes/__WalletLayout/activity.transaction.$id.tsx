@@ -1,4 +1,3 @@
-import React from 'react'
 import type { LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useNavigate } from '@remix-run/react'
