@@ -79,9 +79,9 @@ func (s *AchDepositTestSuite) TestGoldenPath() {
 			return nil
 		},
 	)
-	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, mxAccountGuid string, maxRetries uint8, pollInterval time.Duration) error {
-			s.Equal(mxAcc.Guid, mxAccountGuid)
+	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+			s.Equal(mxAcc.Guid, args.MxAccountGuid)
 			return nil
 		},
 	)
@@ -157,9 +157,9 @@ func (s *AchDepositTestSuite) TestFailsDespositOnInsufficientBalance() {
 			return nil
 		},
 	)
-	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, mxAccountGuid string, maxRetries uint8, pollInterval time.Duration) error {
-			s.Equal(mxAcc.Guid, mxAccountGuid)
+	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+			s.Equal(mxAcc.Guid, args.MxAccountGuid)
 			return nil
 		},
 	)
@@ -221,9 +221,9 @@ func (s *AchDepositTestSuite) TestFailsDespositIfFundingsourceIsNotInUSD() {
 			return nil
 		},
 	)
-	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, mxAccountGuid string, maxRetries uint8, pollInterval time.Duration) error {
-			s.Equal(mxAcc.Guid, mxAccountGuid)
+	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+			s.Equal(mxAcc.Guid, args.MxAccountGuid)
 			return nil
 		},
 	)
@@ -286,9 +286,9 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsRejected() {
 			return nil
 		},
 	)
-	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, mxAccountGuid string, maxRetries uint8, pollInterval time.Duration) error {
-			s.Equal(mxAcc.Guid, mxAccountGuid)
+	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+			s.Equal(mxAcc.Guid, args.MxAccountGuid)
 			return nil
 		},
 	)
@@ -363,9 +363,9 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsReturned() {
 			return nil
 		},
 	)
-	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, mxAccountGuid string, maxRetries uint8, pollInterval time.Duration) error {
-			s.Equal(mxAcc.Guid, mxAccountGuid)
+	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+			s.Equal(mxAcc.Guid, args.MxAccountGuid)
 			return nil
 		},
 	)
@@ -440,9 +440,9 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsCanceled() {
 			return nil
 		},
 	)
-	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, mxAccountGuid string, maxRetries uint8, pollInterval time.Duration) error {
-			s.Equal(mxAcc.Guid, mxAccountGuid)
+	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+			s.Equal(mxAcc.Guid, args.MxAccountGuid)
 			return nil
 		},
 	)

@@ -97,23 +97,27 @@ func (a *Activity) StartIdentityAggregation(
 	return nil
 }
 
+type WaitForAggregationArgs struct {
+	MxAccountGuid string
+	MaxRetries    uint8
+	PollInterval  time.Duration
+}
+
 // Uses a ticker and go routine to poll for aggregation to be complete. Temporal recommends this
 // over failing the activity task for polling at short intervals.
 // This will always perform at least one api call. Thereafter it will retry up to maxRetries.
 func (a *Activity) WaitForAggregation(
 	ctx context.Context,
-	mxAccountGuid string,
-	maxRetries uint8,
-	pollInterval time.Duration,
+	args *WaitForAggregationArgs,
 ) error {
-	ticker := time.NewTicker(pollInterval)
+	ticker := time.NewTicker(args.PollInterval)
 	retries := uint8(0)
 	for range ticker.C {
-		if retries > maxRetries {
+		if retries > args.MaxRetries {
 			return errors.New("Timed out waiting for aggregation.")
 		}
 
-		member, err := a.mx.GetMemberStatus(ctx, mxAccountGuid)
+		member, err := a.mx.GetMemberStatus(ctx, args.MxAccountGuid)
 		if err != nil {
 			retries += 1
 			continue

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/sdk/temporal"
@@ -25,7 +26,7 @@ import (
 func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
-		ScheduleToCloseTimeout: 15 * time.Second,
+		ScheduleToCloseTimeout: 35 * time.Second, // retry up to 3 times
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
@@ -74,7 +75,21 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, mxActivity.WaitForAggregation, mxAcc.Guid, 5, 5).Get(ctx, nil)
+	err = workflow.ExecuteActivity(
+		workflow.WithActivityOptions(
+			ctx,
+			workflow.ActivityOptions{
+				StartToCloseTimeout:    70 * time.Second, // we retry for up to 60s when waiting for aggregation
+				ScheduleToCloseTimeout: 5 * time.Minute,  // to accomodate failures on waiting for aggregation
+			},
+		),
+		mxActivity.WaitForAggregation,
+		&mx.WaitForAggregationArgs{
+			MxAccountGuid: mxAcc.Guid,
+			MaxRetries:    5,
+			PollInterval:  12 * time.Second,
+		},
+	).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error waiting for balance aggregation to complete", err)
 		return err

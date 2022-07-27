@@ -21,8 +21,8 @@ type CreateMxAccountWorkflowArgs struct {
 func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout:    15 * time.Second, // we retry for up to 10s when waiting for aggregation
-		ScheduleToCloseTimeout: 5 * time.Minute,  // to accomodate failures on waiting for aggregation
+		StartToCloseTimeout:    10 * time.Second,
+		ScheduleToCloseTimeout: 35 * time.Minute, // to accomodate failures on waiting for aggregation
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -60,11 +60,19 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 	}
 
 	err = workflow.ExecuteActivity(
-		ctx,
+		workflow.WithActivityOptions(
+			ctx,
+			workflow.ActivityOptions{
+				StartToCloseTimeout:    70 * time.Second, // we retry for up to 60s when waiting for aggregation
+				ScheduleToCloseTimeout: 5 * time.Minute,  // to accomodate failures on waiting for aggregation
+			},
+		),
 		a.WaitForAggregation,
-		mxAccountGuid,
-		10,
-		time.Second,
+		&WaitForAggregationArgs{
+			MxAccountGuid: mxAccountGuid,
+			MaxRetries:    5,
+			PollInterval:  12 * time.Second,
+		},
 	).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Mx identity aggregation failed.")
