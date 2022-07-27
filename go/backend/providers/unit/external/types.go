@@ -171,9 +171,9 @@ type (
 	}
 
 	DepositAccount struct {
-		ID            string                       `json:"id"`
-		Type          string                       `json:"type"`
-		Attributes    DepositAccountAttributes     `json:"attributes"`
+		ID            string                       `json:"id,omitempty"`
+		Type          string                       `json:"type,omitempty"`
+		Attributes    DepositAccountAttributes     `json:"attributes,omitempty"`
 		Relationships *DepositAccountRelationships `json:"relationships,omitempty"`
 	}
 
