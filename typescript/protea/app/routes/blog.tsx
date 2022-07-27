@@ -4,7 +4,6 @@ import type { LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import React from 'react'
 import type { Author, BlogMeta } from '~/lib/blog.server'
 import { getAllPosts } from '~/lib/blog.server'
 import { route } from 'routes-gen'

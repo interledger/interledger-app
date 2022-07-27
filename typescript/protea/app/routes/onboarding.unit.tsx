@@ -1,6 +1,5 @@
 import type { LoaderFunction } from '@remix-run/node'
 import { route } from 'routes-gen'
-import React from 'react'
 import { Logo, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 

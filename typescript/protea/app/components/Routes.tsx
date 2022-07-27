@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import React from 'react'
+import type { ReactNode } from 'react'
 import { Link, useNavigate } from '@remix-run/react'
 
 /**
@@ -9,7 +9,7 @@ import { Link, useNavigate } from '@remix-run/react'
 type RouterProps = {
   className?: string
   to: string
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 /**

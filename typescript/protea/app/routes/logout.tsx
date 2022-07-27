@@ -2,7 +2,6 @@ import type { LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { Logo, Router } from '~/components'
-import React from 'react'
 import { route } from 'routes-gen'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 
