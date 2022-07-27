@@ -5,23 +5,25 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"gitlab.com/fynbos/pacioli"
+
 	"gitlab.com/fynbos/pacioli/ledger"
 	"gopkg.in/yaml.v2"
 )
 
-func TigerBeetle(l ledger.Service, filePath string) error {
+func TigerBeetle(b ledger.Backends, filePath string) error {
 	ctx := context.Background()
 	confRaw, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
-	err = ledgers(ctx, l, confRaw)
+	err = ledgers(ctx, b, confRaw)
 	if err != nil {
 		return err
 	}
 
-	err = accounts(ctx, l, confRaw)
+	err = accounts(ctx, b, confRaw)
 	if err != nil {
 		return err
 	}
@@ -30,17 +32,17 @@ func TigerBeetle(l ledger.Service, filePath string) error {
 }
 
 type Ledgers struct {
-	Ledgers []ledger.ConfigureLedgerArgs `yaml:"ledgers"`
+	Ledgers []pacioli.ConfigureLedgerArgs `yaml:"ledgers"`
 }
 
-func ledgers(ctx context.Context, l ledger.Service, confRaw []byte) error {
+func ledgers(ctx context.Context, b ledger.Backends, confRaw []byte) error {
 	var conf Ledgers
 	err := yaml.Unmarshal(confRaw, &conf)
 	if err != nil {
 		return err
 	}
 
-	el, err := l.ConfigureLedgers(ctx, conf.Ledgers)
+	el, err := ledger.ConfigureLedgers(ctx, b, conf.Ledgers)
 	if err != nil {
 		return err
 	}
@@ -54,7 +56,7 @@ func ledgers(ctx context.Context, l ledger.Service, confRaw []byte) error {
 		ids[i] = lc.ID
 	}
 
-	ll, err := l.GetLedgers(ctx, ids)
+	ll, err := ledger.GetLedgers(ctx, b, ids)
 	if err != nil {
 		return err
 	}
@@ -99,21 +101,21 @@ type Accounts struct {
 	CreditsMustNotExceedDebits bool   `yaml:"credits_must_not_exceed_debits"`
 }
 
-func accounts(ctx context.Context, l ledger.Service, confRaw []byte) error {
+func accounts(ctx context.Context, b ledger.Backends, confRaw []byte) error {
 	var conf AccountConf
 	err := yaml.Unmarshal(confRaw, &conf)
 	if err != nil {
 		return err
 	}
 
-	accArgs := make([]ledger.ConfigureAccountArgs, len(conf.Accounts))
+	accArgs := make([]pacioli.ConfigureAccountArgs, len(conf.Accounts))
 	accIds := make([]string, len(conf.Accounts))
 	for i, accConf := range conf.Accounts {
-		accArgs[i] = ledger.ConfigureAccountArgs{
+		accArgs[i] = pacioli.ConfigureAccountArgs{
 			ID:       accConf.ID,
 			LedgerID: accConf.LedgerID,
 			Code:     accConf.Code,
-			Flags: ledger.AccountFlags{
+			Flags: pacioli.AccountFlags{
 				Linked:                     accConf.Linked,
 				DebitsMustNotExceedCredits: accConf.DebitsMustNotExceedCredits,
 				CreditsMustNotExceedDebits: accConf.CreditsMustNotExceedDebits,
@@ -122,7 +124,7 @@ func accounts(ctx context.Context, l ledger.Service, confRaw []byte) error {
 		accIds[i] = accConf.ID
 	}
 
-	el, err := l.ConfigureAccounts(ctx, accArgs)
+	el, err := ledger.ConfigureAccounts(ctx, b, accArgs)
 	if err != nil {
 		return err
 	}
@@ -132,7 +134,7 @@ func accounts(ctx context.Context, l ledger.Service, confRaw []byte) error {
 	}
 
 	// Check that accounts created successfully.
-	accs, err := l.GetAccounts(ctx, accIds)
+	accs, err := ledger.GetAccounts(ctx, b, accIds)
 	if err != nil {
 		return err
 	}

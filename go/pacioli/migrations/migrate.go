@@ -13,7 +13,10 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-func Migrate(fs *embed.FS) error {
+//go:embed **.*.sql
+var fs embed.FS
+
+func Migrate() error {
 	serviceName := "pacioli"
 	baseConnString := os.Getenv("DB_URL")
 	if baseConnString == "" {
