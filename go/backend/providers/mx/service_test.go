@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/accounts"
+	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/identity"
 	external "gitlab.com/fynbos/backend/providers/mx/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -28,7 +29,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
+		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
 		Temporal:        &mocks.Client{},
 	})
@@ -82,7 +83,7 @@ func TestGetMemberStatus(t *testing.T) {
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
+		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
 		Temporal:        &mocks.Client{},
 	})
@@ -129,7 +130,7 @@ func TestStartIdentityAggregation(t *testing.T) {
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
+		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
 		Temporal:        &mocks.Client{},
 	})
@@ -176,7 +177,7 @@ func TestGetAccountOwner(t *testing.T) {
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
+		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
 		Temporal:        &mocks.Client{},
 	})
@@ -253,7 +254,7 @@ func TestReadAccount(t *testing.T) {
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
+		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
 		Temporal:        &mocks.Client{},
 	})
@@ -330,7 +331,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
-		AccountsService: accounts.NewMockService(ctrl),
+		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity.NewMockService(ctrl),
 		Temporal:        &mocks.Client{},
 	})
@@ -432,7 +433,7 @@ func TestVerifyOwnership(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	accountService := accounts.NewMockService(ctrl)
+	accountService := accounts_mock.NewMockClient(ctrl)
 	identityService := identity.NewMockService(ctrl)
 	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
@@ -520,7 +521,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	accountService := accounts.NewMockService(ctrl)
+	accountService := accounts_mock.NewMockClient(ctrl)
 	identityService := identity.NewMockService(ctrl)
 	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
@@ -553,7 +554,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 
 func TestInitiateCreateAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	accountsService := accounts.NewMockService(ctrl)
+	accountsService := accounts_mock.NewMockClient(ctrl)
 	identityService := identity.NewMockService(ctrl)
 	temporal := &mocks.Client{}
 	mockExternalClient := external.NewMockMx(ctrl)

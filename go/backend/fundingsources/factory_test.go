@@ -4,9 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
+	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -35,10 +37,31 @@ type TestContainer struct {
 	PacioliLedgerID  uint32
 	Tp               *mocks.Client
 	Unit             *_unit.MockService
+	ValidatorImpl    *validator.Validate
+}
+
+func (t TestContainer) Validator() *validator.Validate {
+	return t.ValidatorImpl
+}
+
+func (t TestContainer) DB() *sqlx.DB {
+	return t.Db
+}
+
+func (t TestContainer) Identity() _identity.Service {
+	return t.Is
+}
+
+func (t TestContainer) Countries() country.Service {
+	return t.Cs
+}
+
+func (t TestContainer) Pacioli() pacioli.Client {
+	return t.PacioliClient
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller) (*TestContainer, error) {
-	c := &TestContainer{}
+	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
@@ -71,21 +94,12 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	}
 	c.PacioliClient = pClient
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: c.PacioliLedgerID,
-		PacioliClient:   pClient,
-		Db:              db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 
 	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+		AccountClient: as,
+		PacioliClient: pClient,
+		Db:            db,
 	})
 	if err != nil {
 		return nil, err

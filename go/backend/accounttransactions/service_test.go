@@ -7,12 +7,14 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
 	_accounts "gitlab.com/fynbos/backend/accounts"
+	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
@@ -436,7 +438,7 @@ func withLedgerTransfers(transfers []CreateLedgerTransferArgs) func(*CreateTrans
 
 type TestContainer struct {
 	IdentityService    _identity.Service
-	AccountService     _accounts.Service
+	AccountService     _accounts.Client
 	CountryService     _country.Service
 	PacioliContainer   *test_utils.PacioliContainer
 	PacioliClient      pacioli.Client
@@ -446,10 +448,33 @@ type TestContainer struct {
 	Db                 *sqlx.DB
 	Logger             *zap.Logger
 	Ctx                context.Context
+	ValidatorImpl      *validator.Validate
+}
+
+func (t TestContainer) Validator() *validator.Validate {
+	return t.ValidatorImpl
+}
+
+func (t TestContainer) DB() *sqlx.DB {
+	return t.Db
+}
+
+func (t TestContainer) Identity() _identity.Service {
+	return t.IdentityService
+}
+
+func (t TestContainer) Countries() _country.Service {
+	return t.CountryService
+}
+
+func (t TestContainer) Pacioli() pacioli.Client {
+	return t.PacioliClient
 }
 
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
-	c := &TestContainer{}
+	c := &TestContainer{
+		ValidatorImpl: validator.New(),
+	}
 	c.Ctx = ctx
 	db := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
@@ -482,23 +507,14 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 
 	c.PacioliClient = pClient
-	as, err := _accounts.NewService(&accounts.ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: c.PacioliLedgerID,
-		PacioliClient:   pClient,
-		Db:              db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	ac := accounts_client.New(c, c.PacioliLedgerID, logger)
 
-	c.AccountService = _accounts.NewLoggingService(as, logger)
+	c.AccountService = ac
 
 	ts, err := NewService(&ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+		AccountClient: ac,
+		PacioliClient: pClient,
+		Db:            db,
 	})
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package withdrawals
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
@@ -15,14 +16,14 @@ type Activity struct {
 	validator *validator.Validate
 	ws        Service
 	ts        transactions.Service
-	as        accounts.Service
+	as        accounts.Client
 	noop      noop.Service
 	fs        fundingsources.Service
 }
 
 type ActivityArgs struct {
 	Ws Service                `validate:"required"`
-	As accounts.Service       `validate:"required"`
+	As accounts.Client        `validate:"required"`
 	Np noop.Service           `validate:"required"`
 	Ts transactions.Service   `validate:"required"`
 	Fs fundingsources.Service `validate:"required"`

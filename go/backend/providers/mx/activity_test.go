@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
+	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"go.temporal.io/sdk/temporal"
@@ -209,7 +210,7 @@ func TestStartBalanceAggregation(t *testing.T) {
 type MockArgs struct {
 	Mx                   *MockService
 	Unit                 *unit.MockService
-	AccountService       *accounts.MockService
+	AccountService       *accounts_mock.MockClient
 	IdentityService      *identity.MockService
 	FundingsourceService *fundingsources.MockService
 }
@@ -219,7 +220,7 @@ func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
 	mocks := &MockArgs{
 		Mx:                   NewMockService(ctrl),
 		Unit:                 unit.NewMockService(ctrl),
-		AccountService:       accounts.NewMockService(ctrl),
+		AccountService:       accounts_mock.NewMockClient(ctrl),
 		IdentityService:      identity.NewMockService(ctrl),
 		FundingsourceService: fundingsources.NewMockService(ctrl),
 	}

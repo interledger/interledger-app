@@ -98,7 +98,7 @@ type (
 	ServiceArgs struct {
 		ExternalClient  external.Mx      `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
-		AccountsService accounts.Service `validate:"required"`
+		AccountsService accounts.Client  `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
 		Temporal        client.Client    `validate:"required"`
 	}
@@ -107,7 +107,7 @@ type (
 		v               *validator.Validate
 		externalClient  external.Mx
 		db              *sqlx.DB
-		accountsService accounts.Service
+		accountsService accounts.Client
 		identityService identity.Service
 		temporal        client.Client
 	}

@@ -33,7 +33,7 @@ var (
 type ServerArgs struct {
 	HealthCheckService   healthcheck.Service    `validate:"required"`
 	IdentityService      identity.Service       `validate:"required"`
-	AccountsService      accounts.Service       `validate:"required"`
+	AccountsService      accounts.Client       `validate:"required"`
 	AgreementsService    agreements.Service     `validate:"required"`
 	AdminAuthService     auth.Service           `validate:"required"`
 	UserService          user.Service           `validate:"required"`
@@ -49,7 +49,7 @@ type ServerArgs struct {
 type rpcService struct {
 	backendv1.UnimplementedBackendServiceServer
 	validator            *validator.Validate
-	accountsService      accounts.Service
+	accountsService      accounts.Client
 	agreementsService    agreements.Service
 	identityService      identity.Service
 	userService          user.Service

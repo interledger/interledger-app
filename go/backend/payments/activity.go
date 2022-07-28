@@ -16,13 +16,13 @@ type Activity struct {
 	validator *validator.Validate
 	ps        Service
 	ts        transactions.Service
-	as        accounts.Service
+	as        accounts.Client
 	noop      noop.Service
 }
 
 type ActivityArgs struct {
 	Ps Service              `validate:"required"`
-	As accounts.Service     `validate:"required"`
+	As accounts.Client      `validate:"required"`
 	Np noop.Service         `validate:"required"`
 	Ts transactions.Service `validate:"required"`
 }

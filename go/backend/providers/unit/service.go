@@ -65,7 +65,7 @@ type (
 		webhookToken    string
 		db              *sqlx.DB
 		identityService identity.Service
-		accountService  accounts.Service
+		accountService  accounts.Client
 		logger          *zap.Logger
 	}
 
@@ -75,7 +75,7 @@ type (
 		WebhookToken    string           `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		IdentityService identity.Service `validate:"required"`
-		AccountService  accounts.Service `validate:"required"`
+		AccountClient   accounts.Client  `validate:"required"`
 		Logger          *zap.Logger      `validate:"required"`
 	}
 )
@@ -92,7 +92,7 @@ func NewService(args ServiceArgs) (Service, error) {
 		webhookToken:    args.WebhookToken,
 		db:              args.Db,
 		identityService: args.IdentityService,
-		accountService:  args.AccountService,
+		accountService:  args.AccountClient,
 		externalClient:  external.NewClient(args.BaseURL, args.Token),
 		logger:          args.Logger.With(zap.String("service", "unit")),
 	}, nil

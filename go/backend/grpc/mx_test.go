@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
+	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/deposits"
@@ -32,7 +33,7 @@ import (
 
 type TestContainer struct {
 	HealthService        healthcheck.Service
-	AccountService       *accounts.MockService
+	AccountService       *accounts.MockClient
 	AgreementsService    *agreements.MockService
 	IdentityService      *identity.MockService
 	AdminAuthService     auth.Service
@@ -58,7 +59,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	}
 	c := &TestContainer{
 		HealthService:        hs,
-		AccountService:       accounts.NewMockService(ctrl),
+		AccountService:       accounts.NewMockClient(ctrl),
 		AgreementsService:    agreements.NewMockService(ctrl),
 		IdentityService:      identity.NewMockService(ctrl),
 		AdminAuthService:     auth.NewMockService(),

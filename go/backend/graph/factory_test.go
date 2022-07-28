@@ -5,17 +5,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.com/fynbos/pacioli"
-
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
 	"github.com/stretchr/testify/mock"
+	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
@@ -23,6 +21,8 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
@@ -43,7 +43,7 @@ type TestContainer struct {
 	Ctrl                 *gomock.Controller
 	Logger               *zap.Logger
 	Db                   *sqlx.DB
-	AccountService       _account.Service
+	AccountService       _account.Client
 	CountryService       _country.Service
 	FundingSourceService fundingsources.Service
 	IdentityService      identity.Service
@@ -63,6 +63,27 @@ type TestContainer struct {
 	Graph                *handler.Server
 	Client               *graphql.Client
 	Server               *httptest.Server
+	ValidatorImpl        *validator.Validate
+}
+
+func (c *TestContainer) Validator() *validator.Validate {
+	return c.ValidatorImpl
+}
+
+func (c *TestContainer) DB() *sqlx.DB {
+	return c.Db
+}
+
+func (c *TestContainer) Identity() identity.Service {
+	return c.IdentityService
+}
+
+func (c *TestContainer) Countries() _country.Service {
+	return c.CountryService
+}
+
+func (c *TestContainer) Pacioli() pacioli.Client {
+	return c.PacioliClient
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -94,33 +115,24 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 
 	c.PacioliLedgerID = 1
-
 	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
 	if err != nil {
 		return nil, err
 	}
+
 	c.PacioliClient = pClient
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: c.PacioliLedgerID,
-		PacioliClient:   pClient,
-		Db:              db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 
-	c.AccountService = accounts.NewLoggingService(as, logger)
+	c.AccountService = as
 
 	users := _user.NewMockService()
 	c.UserService = _user.NewLoggingService(users, logger)
 
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+		AccountClient: as,
+		PacioliClient: pClient,
+		Db:            db,
 	})
 	if err != nil {
 		return nil, err

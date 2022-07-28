@@ -5,12 +5,14 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/accounts"
 	_accounts "gitlab.com/fynbos/backend/accounts"
+	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/identity"
@@ -165,7 +167,7 @@ func TestPayments(s *testing.T) {
 
 type TestContainer struct {
 	IdentityService    _identity.Service
-	AccountService     _accounts.Service
+	AccountService     _accounts.Client
 	CountryService     _country.Service
 	NoopService        noop.Service
 	OnboardService     onboarding.Service
@@ -178,10 +180,31 @@ type TestContainer struct {
 	Db                 *sqlx.DB
 	Logger             *zap.Logger
 	Ctx                context.Context
+	ValidatorImpl      *validator.Validate
+}
+
+func (t TestContainer) Validator() *validator.Validate {
+	return t.ValidatorImpl
+}
+
+func (t TestContainer) DB() *sqlx.DB {
+	return t.Db
+}
+
+func (t TestContainer) Identity() _identity.Service {
+	return t.IdentityService
+}
+
+func (t TestContainer) Countries() _country.Service {
+	return t.CountryService
+}
+
+func (t TestContainer) Pacioli() pacioli.Client {
+	return t.PacioliClient
 }
 
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
-	c := &TestContainer{}
+	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
 	db := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
@@ -214,18 +237,9 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.IdentityService = _identity.NewLoggingService(is, logger)
 
-	as, err := _accounts.NewService(&_accounts.ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: c.PacioliLedgerID,
-		PacioliClient:   pClient,
-		Db:              db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 
-	c.AccountService = _accounts.NewLoggingService(as, logger)
+	c.AccountService = as
 
 	np, err := noop.NewService(noop.ServiceArgs{
 		LedgerID:      c.PacioliLedgerID,
@@ -255,9 +269,9 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.OnboardService = os
 
 	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+		AccountClient: as,
+		PacioliClient: pClient,
+		Db:            db,
 	})
 	if err != nil {
 		return nil, err
