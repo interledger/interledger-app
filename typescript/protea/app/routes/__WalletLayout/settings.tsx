@@ -46,7 +46,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
       />
       {/* Header */}
-      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-white p-4 text-medium sm:min-w-full'>
+      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-app p-4 text-medium sm:min-w-full'>
         <Link className='sm:hidden' to={route('/home')}>
           <div className='-ml-3 p-3 text-medium'>
             <Icon>arrow_back</Icon>

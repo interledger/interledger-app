@@ -93,7 +93,7 @@ const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
   return (
     <div className='w-full'>
       {/* Header */}
-      <header className='sticky top-0 z-10 mx-auto flex h-16 w-full select-none items-center justify-start bg-white p-4 text-medium sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-4xl'>
+      <header className='sticky top-0 z-10 mx-auto flex h-16 w-full select-none items-center justify-start bg-app p-4 text-medium sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-4xl'>
         <Router className='lg:hidden' to={route('/home')}>
           <div className='-ml-3 p-3 text-medium'>
             <Icon>arrow_back</Icon>

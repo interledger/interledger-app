@@ -10,7 +10,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = forwardRef<any, ButtonProps>(
   ({ children, icon, outline, ...buttonProps }, ref) => {
     const activeClassNames = outline
-      ? 'bg-white ring-2 ring-base hover:ring-hover active:ring-active'
+      ? 'bg-app ring-2 ring-base hover:ring-hover active:ring-active'
       : 'bg-container-primary hover:bg-container-primary-hover active:bg-container-primary-active'
     return (
       <button

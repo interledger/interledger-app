@@ -23,6 +23,7 @@ module.exports = {
         error: 'rgba(var(--text-error), <alpha-value>)'
       },
       backgroundColor: {
+        app: 'rgba(var(--bg-app), <alpha-value>)',
         container: 'rgba(var(--bg-container), <alpha-value>)',
         'container-hover': 'rgba(var(--bg-container-hover), <alpha-value>)',
         strong: 'rgba(var(--bg-strong), <alpha-value>)',

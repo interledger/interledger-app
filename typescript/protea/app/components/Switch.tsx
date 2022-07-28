@@ -29,7 +29,7 @@ export const Switch: FC<SwitchProps> = ({
       <span
         aria-hidden='true'
         className={`${checked ? 'translate-x-[22px]' : 'translate-x-0'}
-            pointer-events-none inline-block h-[20px] w-[20px] transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out`}
+            pointer-events-none inline-block h-[20px] w-[20px] transform rounded-full bg-app shadow-lg transition duration-200 ease-in-out`}
       />
     </HeadlessSwitch>
   )

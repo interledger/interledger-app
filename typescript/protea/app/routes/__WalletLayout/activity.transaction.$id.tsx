@@ -86,7 +86,7 @@ export default function Page() {
   return (
     <div className='w-full'>
       {/* Header */}
-      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-white p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
+      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-app p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
         <button
           onClick={() => {
             navigate(-1)
