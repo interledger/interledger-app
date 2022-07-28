@@ -210,7 +210,7 @@ export default function Page() {
   return (
     <div className='w-full'>
       {/* Header */}
-      <header className='sticky top-0 flex h-16 min-w-full select-none items-center justify-between bg-white p-4 text-medium'>
+      <header className='sticky top-0 flex h-16 min-w-full select-none items-center justify-between bg-app p-4 text-medium'>
         <div className='flex items-center justify-start font-display text-2xl font-medium'>
           Activity
         </div>

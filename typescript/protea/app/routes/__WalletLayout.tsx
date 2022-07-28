@@ -365,7 +365,7 @@ function HomeFAB() {
               leaveFrom='opacity-100'
               leaveTo='opacity-0'
             >
-              <Popover.Overlay className='fixed inset-0 -z-10 bg-white/90' />
+              <Popover.Overlay className='fixed inset-0 -z-10 bg-app/90' />
             </Transition.Child>
           </>
         )}

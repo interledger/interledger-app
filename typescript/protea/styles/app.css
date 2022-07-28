@@ -14,6 +14,7 @@
     --text-error: 185, 28, 28;
 
     /* Background */
+    --bg-app: 255, 255, 255;
     --bg-container: 243, 244, 246;
     --bg-container-hover: 229, 231, 235;
     --bg-strong: 156, 163, 175;

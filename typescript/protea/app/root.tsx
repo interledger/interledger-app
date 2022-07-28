@@ -72,7 +72,7 @@ function Document({
         <Meta />
         <Links />
       </head>
-      <body className='font-body bg-white text-black antialiased selection:bg-primary/50'>
+      <body className='font-body bg-app text-strong antialiased selection:bg-primary/50'>
         {children}
         <ScrollRestoration />
         <Scripts />
