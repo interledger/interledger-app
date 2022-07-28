@@ -3,10 +3,10 @@ package grpc
 import (
 	"context"
 	"errors"
-
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/twilio"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -141,22 +141,26 @@ func (s *rpcService) CreateIdentity(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	onboarding, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
+	ob, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
 		Id: req.GetOnboardingId(),
 	})
 	if err != nil {
-		return nil, NotFoundError("Failed to find onboarding.")
+		return nil, NotFoundError("failed to find onboarding")
+	}
+
+	if !ob.PhoneVerified {
+		return nil, ForbiddenError("phone not verified.")
 	}
 
 	id, _ := s.identityService.Get(ctx, user.ID)
 	if id == nil {
 		id, err = s.identityService.Create(ctx, &identity.CreateArgs{
 			ID:           user.ID,
-			FirstName:    onboarding.FirstName,
-			LastName:     onboarding.LastName,
-			MobileNumber: onboarding.Phone,
-			Email:        onboarding.Email,
-			Country:      onboarding.Country,
+			FirstName:    ob.FirstName,
+			LastName:     ob.LastName,
+			MobileNumber: ob.Phone,
+			Email:        ob.Email,
+			Country:      ob.Country,
 		})
 		if err != nil {
 			return nil, InternalError("Failed to create identity.")
@@ -194,9 +198,12 @@ func (s *rpcService) SendPhoneVerification(
 		return nil, ValidationError(err, validateSendPhoneVerificationDescription)
 	}
 
-	// TODO: Send a verification token from twilio
+	_, err := s.twilioService.SendVerificationCode(ctx, req.GetTo())
+	if err != nil {
+		return nil, InternalError(err.Error())
+	}
 
-	_, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:    req.GetOnboardingId(),
 		Phone: req.GetTo(),
 	})
@@ -214,7 +221,7 @@ func (s *rpcService) SendPhoneVerification(
 
 type validateCheckPhoneVerificationCode struct {
 	To           string `validate:"required,e164"`
-	Code         string `validate:"required"`
+	Code         string `validate:"required,numeric,len=6"`
 	OnboardingId string `validate:"required"`
 }
 
@@ -240,10 +247,19 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		return nil, ValidationError(err, validateCheckPhoneVerificationCodeDescription)
 	}
 
-	// TODO Check the verification token with twilio.
+	verification, err := s.twilioService.CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		PhoneNumber: req.GetTo(),
+		Code:        req.GetCode(),
+	})
+	if err != nil {
+		return nil, InternalError(err.Error())
+	}
+	if verification.Status != "approved" {
+		return nil, NewValidationError("Code", "The verification code did not match.")
+	}
 
 	// If successful set phoneVerified in onboarding table
-	_, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:            req.GetOnboardingId(),
 		PhoneVerified: true,
 	})

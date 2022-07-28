@@ -282,4 +282,28 @@ func TestUpdateOnboarding(s *testing.T) {
 		assert.Equal(t, newOnboarding.PhoneVerified, onboarding.PhoneVerified)
 		assert.Equal(t, newOnboarding.ServiceAgreement, onboarding.ServiceAgreement)
 	})
+
+	s.Run("can set phone number to verified", func(t *testing.T) {
+		onboarding, err := onboardingService.UpdateOnboarding(ctx, &UpdateOnboardingArgs{
+			FirstName: faker.FirstName(),
+			LastName:  faker.LastName(),
+			Country:   "US",
+			Email:     faker.Email(),
+			Phone:     faker.E164PhoneNumber(),
+		})
+		if err != nil {
+			s.Fatal(err)
+		}
+		assert.False(t, onboarding.PhoneVerified)
+
+		newOnboarding, err := onboardingService.UpdateOnboarding(ctx, &UpdateOnboardingArgs{
+			Id:            onboarding.ID,
+			PhoneVerified: true,
+		})
+		if err != nil {
+			s.Fatal(err)
+		}
+
+		assert.True(t, newOnboarding.PhoneVerified)
+	})
 }
