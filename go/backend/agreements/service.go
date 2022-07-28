@@ -22,7 +22,7 @@ var (
 
 type (
 	Service interface {
-		Sign(ctx context.Context, args *SignArgs) ([]Signature, error)
+		Sign(ctx context.Context, args *SignArgs) error
 		GetSignatures(ctx context.Context, identityID string) ([]Signature, error)
 		Get(ctx context.Context, id string) (*Agreement, error)
 	}
@@ -98,30 +98,46 @@ type SignArgs struct {
 	IPAddress    string   `validate:"required,ip_addr"`
 }
 
-func (s *service) Sign(ctx context.Context, args *SignArgs) ([]Signature, error) {
+func (s *service) Sign(ctx context.Context, args *SignArgs) error {
 	if err := s.validator.Struct(args); err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
+		return fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	signatures := make([]Signature, 0, len(args.AgreementIDs))
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	txStmt, err := tx.PrepareContext(ctx, "INSERT INTO agreement_signatures (agreement_id, identity_id, ip_address) VALUES ($1, $2, $3)")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	defer txStmt.Close()
 
 	for _, id := range args.AgreementIDs {
-		var signRecord Signature
-
-		err := s.db.GetContext(ctx, &signRecord, "INSERT INTO agreement_signatures (agreement_id, identity_id, ip_address) VALUES ($1, $2, $3) RETURNING *", id, args.IdentityID, args.IPAddress)
+		_, err := txStmt.ExecContext(ctx, id, args.IdentityID, args.IPAddress)
 		if err != nil {
 			if pgErr, isPGErr := err.(pq.Error); isPGErr {
 				if pgErr.Code != "23503" {
-					return nil, fmt.Errorf("%w %s", ErrNotFound, err.Error())
+					return fmt.Errorf("%w %s", ErrNotFound, err.Error())
 				}
 			}
-			return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
-
-		signatures = append(signatures, signRecord)
 	}
 
-	return signatures, nil
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	return nil
 }
 
 func (s *service) GetSignatures(ctx context.Context, identityID string) ([]Signature, error) {
@@ -166,6 +182,12 @@ func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
 		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
+	stmt, err := args.db.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4)`)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	defer stmt.Close()
+
 	for _, agreementFile := range agreementFiles {
 		if !regex.MatchString(agreementFile.Name()) {
 			return fmt.Errorf("%w %s", ErrInternal, "invalid agreement file name format")
@@ -180,7 +202,7 @@ func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
-		_, err = args.db.ExecContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4)`, agreementID, agreementName, agreementVersion, string(agreementContent))
+		_, err = stmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
