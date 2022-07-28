@@ -10,6 +10,26 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func NewValidationError(field string, description string) error {
+	st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
+	br := &errdetails.BadRequest{}
+
+	v := &errdetails.BadRequest_FieldViolation{
+		Field:       field,
+		Description: description,
+	}
+	br.FieldViolations = append(br.FieldViolations, v)
+
+	st, err := st.WithDetails(br)
+	if err != nil {
+		// If this errored, it will always error
+		// here, so better panic so we can figure
+		// out why than have this silently passing.
+		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+	}
+	return st.Err()
+}
+
 // Validation error will build an immutable error representing the status of the response.
 func ValidationError(err error, description func(validator.FieldError) string) error {
 	var validatorError validator.ValidationErrors
