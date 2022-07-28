@@ -1,6 +1,8 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button } from '~/components'
 import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
 
@@ -60,5 +62,6 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  return exitFlow(request)
+  const headers = await exitFlow(request)
+  return redirect(route('/home'), { headers })
 }

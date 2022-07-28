@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Button, Router, Icon, RadioGroup } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type {
   FlowsDepositPaymentMethodQuery,
@@ -114,8 +115,14 @@ export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const paymentMethodId = form.get('id')
   const paymentMethodMask = form.get('mask')
-  await stepFlow(request, {
+  const headers = await updateFlow(request, {
     paymentMethodId,
     paymentMethodMask
   })
+
+  const flow = await getCurrentFlow(request, params)
+  return redirect(
+    route('/flows/:flowId/withdraw/review', { flowId: flow?.id as string }),
+    { headers }
+  )
 }

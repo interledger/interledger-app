@@ -1,8 +1,10 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -50,7 +52,16 @@ export default function Page() {
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const sendToAddress = form.get('to')
-  await stepFlow(request, {
+
+  const headers = await updateFlow(request, {
     to: sendToAddress
   })
+
+  const flow = await getCurrentFlow(request, params)
+  return redirect(
+    route('/flows/:flowId/send/amount', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }
