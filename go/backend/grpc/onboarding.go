@@ -3,8 +3,6 @@ package grpc
 import (
 	"context"
 	"errors"
-	"fmt"
-
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -257,7 +255,7 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		return nil, InternalError(err.Error())
 	}
 	if verification.Status != "approved" {
-		return nil, InternalError(fmt.Sprintf("verification code status is not approved: %s", verification.Status))
+		return nil, NewValidationError("Code", "The verification code did not match.")
 	}
 
 	// If successful set phoneVerified in onboarding table

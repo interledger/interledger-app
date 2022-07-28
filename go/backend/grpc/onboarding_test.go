@@ -354,7 +354,7 @@ func TestCheckPhoneVerificationCode(s *testing.T) {
 			},
 		)
 
-		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error: verification code status is not approved: pending")
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Some fields are incorrect.")
 	})
 
 	s.Run("Successfully validates input", func(t *testing.T) {
