@@ -1,4 +1,5 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
   Form,
@@ -8,9 +9,10 @@ import {
   useLocation
 } from '@remix-run/react'
 import type { FC } from 'react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import { Icon, Error, Logo, Router } from '~/components'
-import { exitFlow, requireFlow, stepFlow } from '~/lib/flows.server'
+import { exitFlow, requireFlow } from '~/lib/flows.server'
 import { requireNoUserSession, requireUserSession } from '~/lib/kratos.server'
 
 /**
@@ -25,13 +27,20 @@ export async function loader({ request, params }: LoaderArgs) {
   if (!url.pathname.includes('/signup/')) await requireUserSession(request)
   else await requireNoUserSession(request)
   const flow = await requireFlow(request, params)
+  const stepIndex = flow.steps.findIndex((step) => step.route == url.pathname)
+
   return json({
-    flow
+    flow,
+    stepIndex
   })
 }
 
 export default function Page() {
   const { flow } = useLoaderData<typeof loader>()
+  const location = useLocation()
+  const stepIndex = flow.steps.findIndex(
+    (step) => step.route == location.pathname
+  )
 
   return (
     <div className='w-full'>
@@ -44,11 +53,11 @@ export default function Page() {
       {/* Header */}
       <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-between bg-white p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
         <div className='flex items-center'>
-          {flow.stepIndex > 0 && (
+          {stepIndex > 0 && (
             <button
               form='flow-control'
               name='route'
-              value={parseInt(flow.stepIndex) - 1}
+              value={flow.steps[stepIndex - 1].route}
             >
               <div className='-ml-3 p-3 text-medium'>
                 <Icon>arrow_back</Icon>
@@ -56,10 +65,15 @@ export default function Page() {
             </button>
           )}
           <div className='flex items-center justify-start font-display text-2xl font-medium'>
-            {flow.name === 'Logo' && <Logo className='h-8' />}
-            {flow.name !== 'Logo' && flow.name}
+            <Logo className='h-8' />
           </div>
         </div>
+        <input
+          type='hidden'
+          form='flow-control'
+          name='default-exit-to'
+          value={flow.defaultExitTo}
+        />
         <button form='flow-control' name='route' value='exit'>
           <div className='-mr-3 p-3 text-medium'>
             <Icon>close</Icon>
@@ -69,7 +83,7 @@ export default function Page() {
       {/* Body */}
 
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        <ProgressBar stepIndex={flow.stepIndex} steps={flow.steps} />
+        <ProgressBar stepIndex={stepIndex} steps={flow.steps} />
         <Outlet />
       </div>
 
@@ -101,21 +115,32 @@ type ProgressBarProps = {
 }
 
 const ProgressBar: FC<ProgressBarProps> = ({ steps, stepIndex }) => {
+  let [maxVisitedIndex, setMaxVisitedIndex] = useState<number>(stepIndex)
+
+  if (stepIndex > maxVisitedIndex) setMaxVisitedIndex(stepIndex)
+
   return (
     <div className='col-span-full mb-4 flex space-x-2 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
       {steps.map((step, index) => (
-        <div key={step.route} className='flex w-full flex-col space-y-2'>
-          <div className='flex w-full justify-center font-display text-sm font-medium'>
-            {step.name}
+        <Router.Button
+          disabled={index > stepIndex && index > maxVisitedIndex}
+          key={step.route}
+          to={step.route}
+          className='w-full'
+        >
+          <div key={step.route} className='flex w-full flex-col space-y-2'>
+            <div className='flex w-full justify-center font-display text-sm font-medium'>
+              {step.name}
+            </div>
+            <div className='h-2 w-full rounded-full bg-container'>
+              <div
+                className={`h-2 rounded-full bg-container-primary transition-all duration-700 ${
+                  stepIndex >= index ? 'w-full' : 'w-0'
+                }`}
+              />
+            </div>
           </div>
-          <div className='h-2 w-full rounded-full bg-container'>
-            <div
-              className={`h-2 rounded-full bg-container-primary transition-all duration-700 ${
-                stepIndex >= index ? 'w-full' : 'w-0'
-              }`}
-            />
-          </div>
-        </div>
+        </Router.Button>
       ))}
     </div>
   )
@@ -124,7 +149,7 @@ const ProgressBar: FC<ProgressBarProps> = ({ steps, stepIndex }) => {
 export function CatchBoundary() {
   const caught = useCatch()
   const location = useLocation()
-  debugger
+
   if (caught.data.action) {
     caught.data.action.route = location.pathname.replace(
       /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
@@ -137,10 +162,12 @@ export function CatchBoundary() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
-  const routeTo = form.get('route')
+  const routeTo = form.get('route') as string
+  const defaultExitTo = form.get('default-exit-to') as string
 
   if (routeTo == 'exit') {
-    return exitFlow(request)
+    const exitHeaders = await exitFlow(request)
+    return redirect(defaultExitTo, { headers: exitHeaders })
   }
-  await stepFlow(request, null, -1)
+  return redirect(routeTo)
 }

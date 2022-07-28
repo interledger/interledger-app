@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 import type { CountryCode } from 'libphonenumber-js'
@@ -11,6 +12,7 @@ import { parsePhoneNumber } from 'libphonenumber-js'
 import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
+import { route } from 'routes-gen'
 
 type Country = {
   id: string
@@ -207,7 +209,14 @@ export async function action({ request, params }: ActionArgs) {
   })
 
   if (actionData != null) return actionData
-  await stepFlow(request, {
+
+  const headers = await updateFlow(request, {
     phone: phoneNumber.number
   })
+  return redirect(
+    route('/flows/:flowId/signup/sms', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

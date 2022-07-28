@@ -1,8 +1,10 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button, Icon, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 
@@ -163,7 +165,13 @@ export async function action({ request, params }: ActionArgs) {
   })
 
   if (actionData != null) return actionData
-  await stepFlow(request, {
+  const headers = await updateFlow(request, {
     code
   })
+  return redirect(
+    route('/flows/:flowId/signup/password', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

@@ -1,10 +1,12 @@
 import type { ChangeEventHandler } from 'react'
 import { useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button, TextField } from '~/components'
-import { getCurrentFlow, stepFlow, updateFlowData } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { route } from 'routes-gen'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -103,11 +105,16 @@ export async function action({ request, params }: ActionArgs) {
     total: total,
     displayTotal: formatMoney(total)
   }
+
+  const headers = await updateFlow(request, data)
+  const flow = await getCurrentFlow(request, params)
   if (routeTo == 'next') {
-    // TODO step to next flow step
-    await stepFlow(request, data)
+    return redirect(
+      route('/flows/:flowId/withdraw/review', { flowId: flow?.id as string }),
+      { headers }
+    )
   } else {
-    return updateFlowData(request, data)
+    return json(data, { headers })
   }
 }
 
