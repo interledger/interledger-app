@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"google.golang.org/grpc/credentials/insecure"
-
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/golang/mock/gomock"
@@ -19,9 +17,9 @@ import (
 	_identity "gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 func TestAccountTransactions(s *testing.T) {
@@ -103,16 +101,14 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, args.Type, trx.Type)
 
 		// check that ledger transfers were created
-		transferResponse, err := container.PacioliClient.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
-			Ids: trx.TransferIDs,
-		})
+		transfers, err := container.PacioliClient.GetTransfers(ctx, trx.TransferIDs)
 		if err != nil {
 			t.Fatal(err)
 		}
-		assert.Len(t, transferResponse.GetTransfers(), 1)
-		transfer := transferResponse.GetTransfers()[0]
-		assert.Equal(t, transfer.CreditAccountId, equityAccID)
-		assert.Equal(t, transfer.DebitAccountId, acc.LedgerAccountID)
+		assert.Len(t, transfers, 1)
+		transfer := transfers[0]
+		assert.Equal(t, transfer.CreditAccountID, equityAccID)
+		assert.Equal(t, transfer.DebitAccountID, acc.LedgerAccountID)
 		assert.Equal(t, transfer.Flags.Pending, false)
 
 		// check that get works
@@ -188,16 +184,14 @@ func TestAccountTransactions(s *testing.T) {
 			assert.Equal(t, args.Type, trx.Type)
 
 			// check that ledger transfers were created
-			transferResponse, err := container.PacioliClient.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
-				Ids: trx.TransferIDs,
-			})
+			transfers, err := container.PacioliClient.GetTransfers(ctx, trx.TransferIDs)
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Len(t, transferResponse.GetTransfers(), 1)
-			transfer := transferResponse.GetTransfers()[0]
-			assert.Equal(t, transfer.CreditAccountId, equityAccID)
-			assert.Equal(t, transfer.DebitAccountId, acc.LedgerAccountID)
+			assert.Len(t, transfers, 1)
+			transfer := transfers[0]
+			assert.Equal(t, transfer.CreditAccountID, equityAccID)
+			assert.Equal(t, transfer.DebitAccountID, acc.LedgerAccountID)
 			assert.Equal(t, transfer.Flags.Pending, true)
 
 			// check that get works
@@ -445,7 +439,7 @@ type TestContainer struct {
 	AccountService     _accounts.Service
 	CountryService     _country.Service
 	PacioliContainer   *test_utils.PacioliContainer
-	PacioliClient      pacioliv1.PacioliServiceClient
+	PacioliClient      pacioli.Client
 	PacioliLedgerID    uint32
 	Ctrl               *gomock.Controller
 	TransactionService Service
@@ -481,11 +475,12 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
 
 	c.PacioliLedgerID = uint32(1)
-	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
 	if err != nil {
 		s.Fatal(err)
 	}
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
+
 	c.PacioliClient = pClient
 	as, err := _accounts.NewService(&accounts.ServiceArgs{
 		Is:              is,
@@ -548,19 +543,17 @@ func onboard(container *TestContainer, user *_user.User) (*_identity.Identity, *
 
 func createEquityAccount(container *TestContainer) (string, error) {
 	equityAccID := uuid.NewString()
-	response, err := container.PacioliClient.ConfigureAccounts(context.Background(), &pacioliv1.ConfigureAccountsRequest{
-		Args: []*pacioliv1.ConfigureAccountsArgs{
-			{
-				Id:       equityAccID,
-				LedgerId: container.PacioliLedgerID,
-				Code:     1,
-			},
-		},
-	})
+	accountErrs, err := container.PacioliClient.ConfigureAccounts(context.Background(), []pacioli.ConfigureAccountArgs{
+		{
+			ID:       equityAccID,
+			LedgerID: container.PacioliLedgerID,
+			Code:     1,
+		}},
+	)
 	if err != nil {
 		return "", err
 	}
-	if len(response.GetErrors()) != 0 {
+	if len(accountErrs) != 0 {
 		return "", fmt.Errorf("equity account failed to be created")
 	}
 	return equityAccID, nil

@@ -16,7 +16,7 @@ type client struct {
 	c pb.PacioliServiceClient
 }
 
-func Make(grpcAddress string) (pacioli.Client, error) {
+func New(grpcAddress string) (pacioli.Client, error) {
 	conn, err := grpc.Dial(grpcAddress, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err

@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/pacioli"
 )
 
 var (
@@ -42,7 +42,7 @@ type service struct {
 	// acts upon.
 	ledgerID        uint32
 	equityAccountID string
-	pacioliClient   pacioliv1.PacioliServiceClient
+	pacioliClient   pacioli.Client
 }
 
 type ServiceArgs struct {
@@ -50,7 +50,7 @@ type ServiceArgs struct {
 	LedgerID      uint32
 	EquityAccID   string `validate:"required"`
 	PacioliTenant string
-	PacioliClient pacioliv1.PacioliServiceClient `validate:"required"`
+	PacioliClient pacioli.Client `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {

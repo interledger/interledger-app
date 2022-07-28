@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 
+	"github.com/go-playground/validator/v10"
+
 	"gitlab.com/fynbos/pacioli/rpcserver"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
@@ -115,4 +117,38 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+type Backends interface {
+	DB() *sqlx.DB
+	TigerBeetle() tigerbeetle_go.Client
+	Validator() *validator.Validate
+}
+
+var _ Backends = backends{}
+
+type backends struct {
+	db  *sqlx.DB
+	tbc tigerbeetle_go.Client
+	val *validator.Validate
+}
+
+func NewBackends(db *sqlx.DB, tbc tigerbeetle_go.Client) Backends {
+	return &backends{
+		db:  db,
+		tbc: tbc,
+		val: validator.New(),
+	}
+}
+
+func (b backends) DB() *sqlx.DB {
+	return b.db
+}
+
+func (b backends) TigerBeetle() tigerbeetle_go.Client {
+	return b.tbc
+}
+
+func (b backends) Validator() *validator.Validate {
+	return b.val
 }

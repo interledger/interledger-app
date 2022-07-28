@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/temporal"
 	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc/credentials/insecure"
-
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/deposits"
@@ -22,31 +21,37 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
-
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
-	kratos "github.com/ory/kratos-client-go"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/accounts"
+	transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph"
 	_grpc "gitlab.com/fynbos/backend/grpc"
+	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/migrations"
+	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/payments"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_mxexternal "gitlab.com/fynbos/backend/providers/mx/external"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/temporal"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/backend/withdrawals"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	"go.temporal.io/sdk/worker"
+	"go.uber.org/zap"
 )
 
 //go:embed migrations/*.sql
@@ -134,12 +139,11 @@ func start(args *cli.StartArgs) {
 	}
 	id = identity.NewLoggingService(id, logger)
 
-	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	as, err := accounts.NewService(&accounts.ServiceArgs{
 		Db:              db,
 		Is:              id,
@@ -420,12 +424,11 @@ func startWorker(args *cli.StartArgs) {
 	}
 	id = identity.NewLoggingService(id, logger)
 
-	conn, err := grpc.Dial(args.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	as, err := accounts.NewService(&accounts.ServiceArgs{
 		Db:              db,
 		Is:              id,

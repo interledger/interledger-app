@@ -6,6 +6,10 @@ import (
 	"net"
 	"testing"
 
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
+
+	"gitlab.com/fynbos/pacioli"
+
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -30,7 +34,6 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/proto/backend/v1"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 	"google.golang.org/grpc"
 )
 
@@ -52,16 +55,11 @@ type TestContainer struct {
 	AdminConn       *grpc.ClientConn
 	AdminClient     backend.BackendAdminServiceClient
 	AdminServer     *grpc.Server
-	PacioliConn     *grpc.ClientConn
-	PacioliClient   pacioliv1.PacioliServiceClient
+	PacioliClient   pacioli.Client
 	PacioliLedgerID uint32
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
-	if err := c.PacioliConn.Close(); err != nil {
-		return err
-	}
-
 	if err := c.AdminConn.Close(); err != nil {
 		return err
 	}
@@ -79,12 +77,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.Pacioli = test_utils.SetupPacioli(t, ctx)
 
-	pacioliConn, err := grpc.Dial(c.Pacioli.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	pClient, err := pacioli_client.New(c.Pacioli.PacioliUrl)
 	if err != nil {
 		return nil, err
 	}
-	c.PacioliConn = pacioliConn
-	c.PacioliClient = pacioliv1.NewPacioliServiceClient(pacioliConn)
+	c.PacioliClient = pClient
 	c.PacioliLedgerID = 1
 
 	cs := country.NewService(db)
