@@ -156,15 +156,17 @@ func (s *service) UpdateOnboarding(
 		if args.Phone == "" {
 			args.Phone = currentOnboarding.Phone
 		}
-		if args.PhoneVerified != currentOnboarding.PhoneVerified {
-			args.PhoneVerified = currentOnboarding.PhoneVerified
+
+		isPhoneVerified := currentOnboarding.PhoneVerified
+		if !currentOnboarding.PhoneVerified && args.PhoneVerified != isPhoneVerified {
+			isPhoneVerified = args.PhoneVerified
 		}
 		if args.ServiceAgreement != currentOnboarding.ServiceAgreement {
 			args.ServiceAgreement = currentOnboarding.ServiceAgreement
 		}
 		err = s.db.GetContext(ctx, &onboarding,
 			`UPDATE onboarding SET (first_name,last_name,country_of_residence,email,phone,phone_verified,service_agreement) = ($2,$3,$4,$5,$6,$7,$8) WHERE id = $1 RETURNING *;`,
-			args.Id, args.FirstName, args.LastName, args.Country, args.Email, args.Phone, args.PhoneVerified, args.ServiceAgreement,
+			args.Id, args.FirstName, args.LastName, args.Country, args.Email, args.Phone, isPhoneVerified, args.ServiceAgreement,
 		)
 		if err != nil {
 			return nil, err
