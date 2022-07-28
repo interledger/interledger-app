@@ -22,16 +22,13 @@ func TestSignAgreements(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	signatures, err := as.Sign(ctx, &SignArgs{
+	err = as.Sign(ctx, &SignArgs{
 		AgreementIDs: []string{"privacy_policy-2.0.0"},
 		IdentityID:   uuid.NewString(),
 		IPAddress:    "123.123.123.123",
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	assert.Equal(t, "privacy_policy-2.0.0", signatures[0].AgreementID)
+	assert.NoError(t, err)
 }
 
 func TestAgreementSigns(t *testing.T) {
@@ -49,7 +46,7 @@ func TestAgreementSigns(t *testing.T) {
 	userId := uuid.NewString()
 	userIp := faker.IPv4()
 
-	_, err = as.Sign(ctx, &SignArgs{
+	err = as.Sign(ctx, &SignArgs{
 		AgreementIDs: []string{"privacy_policy-2.0.0"},
 		IdentityID:   userId,
 		IPAddress:    userIp,
