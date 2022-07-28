@@ -143,22 +143,26 @@ func (s *rpcService) CreateIdentity(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	onboarding, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
+	ob, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
 		Id: req.GetOnboardingId(),
 	})
 	if err != nil {
-		return nil, NotFoundError("Failed to find onboarding.")
+		return nil, NotFoundError("failed to find onboarding")
+	}
+
+	if !ob.PhoneVerified {
+		return nil, ForbiddenError("phone not verified.")
 	}
 
 	id, _ := s.identityService.Get(ctx, user.ID)
 	if id == nil {
 		id, err = s.identityService.Create(ctx, &identity.CreateArgs{
 			ID:           user.ID,
-			FirstName:    onboarding.FirstName,
-			LastName:     onboarding.LastName,
-			MobileNumber: onboarding.Phone,
-			Email:        onboarding.Email,
-			Country:      onboarding.Country,
+			FirstName:    ob.FirstName,
+			LastName:     ob.LastName,
+			MobileNumber: ob.Phone,
+			Email:        ob.Email,
+			Country:      ob.Country,
 		})
 		if err != nil {
 			return nil, InternalError("Failed to create identity.")
