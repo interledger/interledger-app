@@ -1,13 +1,3 @@
-// This function ensures tailwind opacity utilities work with tokens.
-function withOpacity(variableName) {
-  return ({ opacityValue }) => {
-    if (opacityValue !== undefined) {
-      return `rgba(var(${variableName}), ${opacityValue})`
-    }
-    return `rgb(var(${variableName}))`
-  }
-}
-
 module.exports = {
   mode: 'jit',
   content: ['./app/**/*.{ts,tsx}'],
@@ -25,53 +15,53 @@ module.exports = {
       },
       // Token colours
       textColor: {
-        strong: withOpacity('--text-strong'),
-        medium: withOpacity('--text-medium'),
-        weak: withOpacity('--text-weak'),
-        disabled: withOpacity('--text-disabled'),
-        primary: withOpacity('--text-primary'),
-        error: withOpacity('--text-error')
+        strong: 'rgba(var(--text-strong), <alpha-value>)',
+        medium: 'rgba(var(--text-medium), <alpha-value>)',
+        weak: 'rgba(var(--text-weak), <alpha-value>)',
+        disabled: 'rgba(var(--text-disabled), <alpha-value>)',
+        primary: 'rgba(var(--text-primary), <alpha-value>)',
+        error: 'rgba(var(--text-error), <alpha-value>)'
       },
       backgroundColor: {
-        container: withOpacity('--bg-container'),
-        'container-hover': withOpacity('--bg-container-hover'),
-        strong: withOpacity('--bg-strong'),
-        disabled: withOpacity('--bg-disabled'),
-        primary: withOpacity('--bg-primary'),
-        'container-primary': withOpacity('--bg-container-primary'),
-        'container-primary-hover': withOpacity('--bg-container-primary-hover'),
-        'container-primary-active': withOpacity(
-          '--bg-container-primary-active'
-        ),
-        snackbar: withOpacity('--bg-snackbar')
+        container: 'rgba(var(--bg-container), <alpha-value>)',
+        'container-hover': 'rgba(var(--bg-container-hover), <alpha-value>)',
+        strong: 'rgba(var(--bg-strong), <alpha-value>)',
+        disabled: 'rgba(var(--bg-disabled), <alpha-value>)',
+        primary: 'rgba(var(--bg-primary), <alpha-value>)',
+        'container-primary': 'rgba(var(--bg-container-primary), <alpha-value>)',
+        'container-primary-hover':
+          'rgba(var(--bg-container-primary-hover), <alpha-value>)',
+        'container-primary-active':
+          'rgba(var(--bg-container-primary-active), <alpha-value>)',
+        snackbar: 'rgba(var(--bg-snackbar), <alpha-value>)'
       },
       borderColor: {
-        base: withOpacity('--border-base'),
-        focus: withOpacity('--border-focus'),
-        hover: withOpacity('--border-hover'),
-        active: withOpacity('--border-active'),
-        error: withOpacity('--border-error')
+        base: 'rgba(var(--border-base), <alpha-value>)',
+        focus: 'rgba(var(--border-focus), <alpha-value>)',
+        hover: 'rgba(var(--border-hover), <alpha-value>)',
+        active: 'rgba(var(--border-active), <alpha-value>)',
+        error: 'rgba(var(--border-error), <alpha-value>)'
       },
       ringColor: {
-        base: withOpacity('--border-base'),
-        focus: withOpacity('--border-focus'),
-        hover: withOpacity('--border-hover'),
-        active: withOpacity('--border-active'),
-        error: withOpacity('--border-error')
+        base: 'rgba(var(--border-base), <alpha-value>)',
+        focus: 'rgba(var(--border-focus), <alpha-value>)',
+        hover: 'rgba(var(--border-hover), <alpha-value>)',
+        active: 'rgba(var(--border-active), <alpha-value>)',
+        error: 'rgba(var(--border-error), <alpha-value>)'
       },
       outlineColor: {
-        base: withOpacity('--border-base'),
-        focus: withOpacity('--border-focus'),
-        hover: withOpacity('--border-hover'),
-        active: withOpacity('--border-active'),
-        error: withOpacity('--border-error')
+        base: 'rgba(var(--border-base), <alpha-value>)',
+        focus: 'rgba(var(--border-focus), <alpha-value>)',
+        hover: 'rgba(var(--border-hover), <alpha-value>)',
+        active: 'rgba(var(--border-active), <alpha-value>)',
+        error: 'rgba(var(--border-error), <alpha-value>)'
       },
       divideColor: {
-        base: withOpacity('--border-base'),
-        focus: withOpacity('--border-focus'),
-        hover: withOpacity('--border-hover'),
-        active: withOpacity('--border-active'),
-        error: withOpacity('--border-error')
+        base: 'rgba(var(--border-base), <alpha-value>)',
+        focus: 'rgba(var(--border-focus), <alpha-value>)',
+        hover: 'rgba(var(--border-hover), <alpha-value>)',
+        active: 'rgba(var(--border-active), <alpha-value>)',
+        error: 'rgba(var(--border-error), <alpha-value>)'
       },
       // End token colours
       typography: (theme) => ({
