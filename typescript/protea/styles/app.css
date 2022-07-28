@@ -32,6 +32,34 @@
     --border-active: 247, 140, 155;
     --border-error: 185, 28, 28;
   }
+  .theme-blue {
+    /* Text */
+    --text-strong: 0, 0, 0;
+    --text-medium: 55, 65, 81;
+    --text-weak: 75, 85, 99;
+    --text-disabled: 156, 163, 175;
+    --text-primary: 59, 130, 246;
+    --text-error: 185, 28, 28;
+
+    /* Background */
+    --bg-app: 255, 255, 255;
+    --bg-container: 243, 244, 246;
+    --bg-container-hover: 229, 231, 235;
+    --bg-strong: 156, 163, 175;
+    --bg-disabled: 229, 231, 235;
+    --bg-primary: 59, 130, 246;
+    --bg-container-primary: 219, 234, 254;
+    --bg-container-primary-hover: 191, 219, 254;
+    --bg-container-primary-active: 191, 219, 254;
+    --bg-snackbar: 31, 41, 55;
+
+    /* Border */
+    --border-base: 209, 213, 219;
+    --border-focus: 59, 130, 246;
+    --border-hover: 147, 197, 253;
+    --border-active: 147, 197, 253;
+    --border-error: 185, 28, 28;
+  }
 }
 
 /* Prism syntax highlighting */
