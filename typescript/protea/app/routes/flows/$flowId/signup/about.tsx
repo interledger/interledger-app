@@ -4,7 +4,7 @@ import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, Router, TextField } from '~/components'
-import { getCurrentFlow, stepFlow, updateFlowData } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
@@ -232,6 +232,7 @@ export async function action({ request, params }: ActionArgs) {
     .catch(StatusError)
 
   const actionData = parseError(call, {
+    id,
     firstName,
     lastName,
     country,
@@ -241,25 +242,22 @@ export async function action({ request, params }: ActionArgs) {
   if (actionData != null) return actionData
   const id = (call as FinishedUnaryCall<Onboarding, Onboarding>).response.id
 
-  if (country != 'US') {
-    return updateFlowData(
-      request,
-      {
-        id,
-        firstName,
-        lastName,
-        country,
-        email
-      },
-      redirect(route('/onboarding/country-access'))
-    )
-  }
-
-  await stepFlow(request, {
+  const headers = await updateFlow(request, {
     id,
     firstName,
     lastName,
     country,
     email
   })
+  const flow = await getCurrentFlow(request, params)
+
+  if (country != 'US') {
+    return redirect(route('/onboarding/country-access'), { headers })
+  }
+  return redirect(
+    route('/flows/:flowId/signup/phone', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+    )
 }

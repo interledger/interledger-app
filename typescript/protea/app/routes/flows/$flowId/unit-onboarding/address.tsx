@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
   Form,
@@ -8,10 +9,11 @@ import {
   useLoaderData
 } from '@remix-run/react'
 import { Autocomplete, Button, Icon, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
+import { route } from 'routes-gen'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -211,5 +213,12 @@ export async function action({ request, params }: ActionArgs) {
     zip
   }
 
-  await stepFlow(request, data)
+  const flow = await getCurrentFlow(request, params)
+  const headers = await updateFlow(request, data)
+  return redirect(
+    route('/flows/:flowId/unit-onboarding/about', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

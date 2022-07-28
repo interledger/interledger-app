@@ -282,10 +282,11 @@ export async function action({ request, params }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
 
-  return exitFlow(
-    request,
-    redirect(route('/onboarding/unit'), {
+  const headers = await exitFlow(request)
+  const flowSettings = headers.get('Set-Cookie') as string
+
+  res.headers.append('Set-Cookie', flowSettings)
+  return redirect(route('/onboarding/unit'), {
       headers: res.headers
     })
-  )
 }

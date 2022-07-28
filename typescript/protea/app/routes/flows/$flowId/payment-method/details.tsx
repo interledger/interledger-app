@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Select, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { route } from 'routes-gen'
 
 type ActionData = {
   formError?: string
@@ -189,11 +191,19 @@ export async function action({ request, params }: ActionArgs) {
     })
   }
 
-  await stepFlow(request, {
+  const headers = await updateFlow(request, {
     accountNumber: accountNumber,
     institution: institution,
     name: name,
     routingNumber: routingNumber,
     type: type
   })
+
+  const flow = await getCurrentFlow(request, params)
+  return redirect(
+    route('/flows/:flowId/payment-method/review', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

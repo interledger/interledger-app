@@ -1,14 +1,16 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components'
-import { completeFlow, getCurrentFlow } from '~/lib/flows.server'
+import { updateFlow, getCurrentFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type {
   InitiateDepositMutation,
   InitiateDepositMutationVariables
 } from '~/generated/types'
 import { InitiateDepositDocument } from '~/generated/types'
+import { route } from 'routes-gen'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -86,5 +88,11 @@ export async function action({ request, params }: ActionArgs) {
       }
     }
   })
-  if (res.data?.initiateDeposit.success) return completeFlow(request)
+
+  const headers = await updateFlow(request, null, true)
+  if (res.data?.initiateDeposit.success)
+    return redirect(
+      route('/confirmation/:flowId/deposit', { flowId: flow?.id as string }),
+      { headers }
+    )
 }
