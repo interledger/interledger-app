@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/pacioli"
+
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/identity"
 
@@ -18,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 func TestUserAccount(s *testing.T) {
@@ -67,44 +68,42 @@ func TestUserAccount(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		transferResponse, err := container.PacioliClient.CreateTransfers(ctx, &pacioliv1.CreateTransfersRequest{
-			Transfers: []*pacioliv1.Transfer{
-				{
-					Id:              uuid.NewString(),
-					DebitAccountId:  acc.LedgerAccountID,
-					CreditAccountId: container.NoopService.GetEquityAccountID(),
-					Amount:          200,
-					Code:            1,
-					Ledger:          ledgerID,
+		transferErrs, err := container.PacioliClient.CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+			{
+				ID:              uuid.NewString(),
+				DebitAccountID:  acc.LedgerAccountID,
+				CreditAccountID: container.NoopService.GetEquityAccountID(),
+				Amount:          200,
+				Code:            1,
+				Ledger:          ledgerID,
+			},
+			{
+				ID:              uuid.NewString(),
+				DebitAccountID:  container.NoopService.GetEquityAccountID(),
+				CreditAccountID: acc.LedgerAccountID,
+				Amount:          100,
+				Code:            1,
+				Ledger:          ledgerID,
+			},
+			{
+				ID:              uuid.NewString(),
+				DebitAccountID:  container.NoopService.GetEquityAccountID(),
+				CreditAccountID: acc.LedgerAccountID,
+				Amount:          20,
+				Code:            1,
+				Flags: pacioli.TransferFlags{
+					Pending: true,
 				},
-				{
-					Id:              uuid.NewString(),
-					DebitAccountId:  container.NoopService.GetEquityAccountID(),
-					CreditAccountId: acc.LedgerAccountID,
-					Amount:          100,
-					Code:            1,
-					Ledger:          ledgerID,
-				},
-				{
-					Id:              uuid.NewString(),
-					DebitAccountId:  container.NoopService.GetEquityAccountID(),
-					CreditAccountId: acc.LedgerAccountID,
-					Amount:          20,
-					Code:            1,
-					Flags: &pacioliv1.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(10 * time.Millisecond),
-					Ledger:  ledgerID,
-				},
+				Timeout: uint64(10 * time.Millisecond),
+				Ledger:  ledgerID,
 			},
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(transferResponse.GetErrors()) != 0 {
+		if len(transferErrs) != 0 {
 			fmt.Println()
-			fmt.Printf("%+v", transferResponse.GetErrors())
+			fmt.Printf("%+v", transferErrs)
 			fmt.Println()
 			t.Fatal("Failed to create transfers in pacioli.")
 		}

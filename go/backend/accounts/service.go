@@ -14,7 +14,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/pacioli"
 )
 
 const (
@@ -30,7 +30,7 @@ var (
 
 type Account struct {
 	ID                         string
-	DebitsAccepted             uint64
+	DebitsAccepted             uint64 // TODO: Change naming to Pending to conform with tigerbeetle
 	DebitsReserved             uint64
 	CreditsAccepted            uint64
 	CreditsReserved            uint64
@@ -62,7 +62,7 @@ type service struct {
 	cs              _country.Service
 	validator       *validator.Validate
 	pacioliLedgerID uint32
-	pacioliClient   pacioliv1.PacioliServiceClient
+	pacioliClient   pacioli.Client
 }
 
 type ServiceArgs struct {
@@ -70,8 +70,8 @@ type ServiceArgs struct {
 	Cs              _country.Service  `validate:"required"`
 	PacioliTenant   string
 	PacioliLedgerID uint32
-	PacioliClient   pacioliv1.PacioliServiceClient `validate:"required"`
-	Db              *sqlx.DB                       `validate:"required"`
+	PacioliClient   pacioli.Client `validate:"required"`
+	Db              *sqlx.DB       `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -117,24 +117,22 @@ func (s *service) Create(ctx context.Context, args *CreateAccountArgs) (*Account
 	}
 
 	ledgerAccountID := uuid.NewString()
-	response, err := s.pacioliClient.ConfigureAccounts(ctx, &pacioliv1.ConfigureAccountsRequest{
-		Args: []*pacioliv1.ConfigureAccountsArgs{
-			{
-				Id:       ledgerAccountID,
-				LedgerId: s.pacioliLedgerID,
-				Code:     1, // TODO: Get code from somewhere.
-				Flags: &pacioliv1.AccountFlags{
-					Linked:                     args.Linked,
-					DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
-					CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
-				},
+	eventErrors, err := s.pacioliClient.ConfigureAccounts(ctx, []pacioli.ConfigureAccountArgs{
+		{
+			ID:       ledgerAccountID,
+			LedgerID: s.pacioliLedgerID,
+			Code:     1, // TODO: Get code from somewhere.
+			Flags: pacioli.AccountFlags{
+				Linked:                     args.Linked,
+				DebitsMustNotExceedCredits: args.DebitMustNotExceedCredits,
+				CreditsMustNotExceedDebits: args.CreditsMustNotExceedDebits,
 			},
 		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	eventErrors := response.GetErrors()
+
 	if len(eventErrors) > 0 {
 		return nil, fmt.Errorf("Failed to create account in pacioli. %w %+v", ErrInternal, eventErrors)
 	}
@@ -229,25 +227,24 @@ func (s *service) fetchFromPacioli(ctx context.Context, account *Account) error 
 	if account == nil {
 		return fmt.Errorf("%w Account is required.", ErrInvalidArgument)
 	}
-	response, err := s.pacioliClient.GetAccounts(ctx, &pacioliv1.GetAccountsRequest{
-		Ids: []string{account.LedgerAccountID},
-	})
+	accs, err := s.pacioliClient.GetAccounts(ctx, []string{account.LedgerAccountID})
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
-	if len(response.GetAccounts()) != 1 {
+	if len(accs) != 1 {
 		return fmt.Errorf("%w %s", ErrInternal, "Account not found in pacioli.")
 	}
-	ledgerAccount := response.GetAccounts()[0]
-	if ledgerAccount.Id != account.LedgerAccountID {
+
+	ledgerAccount := accs[0]
+	if ledgerAccount.ID != account.LedgerAccountID {
 		// Panic-ing here as something is wrong - possibly encoding of uuids to byte slice.
 		panic("Accounts service: Ledger account ID does not match that returned from Pacioli.")
 	}
 
-	account.CreditsAccepted = ledgerAccount.CreditsAccepted
-	account.CreditsReserved = ledgerAccount.CreditsReserved
-	account.DebitsAccepted = ledgerAccount.DebitsAccepted
-	account.DebitsReserved = ledgerAccount.DebitsReserved
+	account.CreditsAccepted = ledgerAccount.CreditsPosted
+	account.CreditsReserved = ledgerAccount.CreditsPending
+	account.DebitsAccepted = ledgerAccount.DebitsPosted
+	account.DebitsReserved = ledgerAccount.DebitsPending
 	account.CreditsMustNotExceedDebits = ledgerAccount.Flags.CreditsMustNotExceedDebits
 	account.DebitsMustNotExceedCredits = ledgerAccount.Flags.DebitsMustNotExceedCredits
 

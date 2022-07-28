@@ -19,12 +19,11 @@ import (
 	"gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func TestPayments(s *testing.T) {
@@ -174,7 +173,7 @@ type TestContainer struct {
 	PaymentService     Service
 	TemporalMock       *mocks.Client
 	PacioliContainer   *test_utils.PacioliContainer
-	PacioliClient      pacioliv1.PacioliServiceClient
+	PacioliClient      pacioli.Client
 	PacioliLedgerID    uint32
 	Db                 *sqlx.DB
 	Logger             *zap.Logger
@@ -190,11 +189,11 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
 
 	c.PacioliLedgerID = 1
-	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
 	if err != nil {
-		return nil, err
+		s.Fatal(err)
 	}
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	c.PacioliClient = pClient
 
 	logger, err := zap.NewDevelopment()

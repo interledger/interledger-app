@@ -5,26 +5,26 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/mock"
-	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/mocks"
-	"google.golang.org/grpc/credentials/insecure"
+	"gitlab.com/fynbos/pacioli"
 
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/withdrawals"
-	"google.golang.org/grpc"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
+	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/machinebox/graphql"
+	"github.com/stretchr/testify/mock"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/withdrawals"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/accounts"
@@ -36,7 +36,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/unit"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
 )
 
 type TestContainer struct {
@@ -59,7 +58,7 @@ type TestContainer struct {
 	Os                   onboarding.Service
 	Ps                   payments.Service
 	PacioliContainer     *test_utils.PacioliContainer
-	PacioliClient        pacioliv1.PacioliServiceClient
+	PacioliClient        pacioli.Client
 	PacioliLedgerID      uint32
 	Graph                *handler.Server
 	Client               *graphql.Client
@@ -95,11 +94,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 
 	c.PacioliLedgerID = 1
-	conn, err := grpc.Dial(c.PacioliContainer.PacioliUrl, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
 	if err != nil {
 		return nil, err
 	}
-	pClient := pacioliv1.NewPacioliServiceClient(conn)
 	c.PacioliClient = pClient
 
 	as, err := accounts.NewService(&accounts.ServiceArgs{

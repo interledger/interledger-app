@@ -188,7 +188,7 @@ func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
 	pacioli := exec.Command(
 		"go",
 		"run",
-		filepath.Join(filepath.Dir(moduleDir), "../../pacioli/main.go"),
+		filepath.Join(filepath.Dir(moduleDir), "../../pacioli/pacioli/main.go"),
 		"start",
 	)
 	pacioli.Env = append(
