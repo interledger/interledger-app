@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { useEffect, useState } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, Router, TextField } from '~/components'
-import { getCurrentFlow, stepFlow, updateFlowData } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
@@ -19,7 +19,7 @@ type Country = {
   name: string
 }
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const countries = await apolloClient
     .query<SignupQuery, SignupQueryVariables>({
@@ -28,7 +28,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         headers: request.headers
       }
     })
-    .then((val) => val.data.countries)
+    .then((val) => val.data.countries as Country[])
 
   return json({
     flow,
@@ -37,15 +37,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, countries } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, countries } = useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
     countries.find(
-      (country: Country) =>
-        country.id == actionData?.fields?.country ||
-        country.id == flow?.data.country
-    )
+      (country: Country) => country.id == flow?.data.country
+    ) as Country
   )
 
   const [query, setQuery] = useState<string>('')
@@ -91,15 +89,15 @@ export default function Page() {
         form='signup-about-details'
         label='First name'
         name='firstName'
-        defaultValue={actionData?.fields?.firstName || flow?.data.firstName}
+        defaultValue={flow?.data.firstName}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.firstName) || undefined}
+        aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.firstName ? 'firstName-error' : undefined
+          actionData?.errors.firstName ? 'firstName-error' : undefined
         }
         required
-        errorMessage={actionData?.fieldErrors?.firstName}
+        errorMessage={actionData?.errors.firstName}
       />
 
       <TextField
@@ -107,15 +105,15 @@ export default function Page() {
         form='signup-about-details'
         label='Last name'
         name='lastName'
-        defaultValue={actionData?.fields?.lastName || flow?.data.lastName}
+        defaultValue={flow?.data.lastName}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.lastName) || undefined}
+        aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.lastName ? 'lastName-error' : undefined
+          actionData?.errors.lastName ? 'lastName-error' : undefined
         }
         required
-        errorMessage={actionData?.fieldErrors?.lastName}
+        errorMessage={actionData?.errors.lastName}
       />
       <Autocomplete
         id='country'
@@ -125,11 +123,11 @@ export default function Page() {
         options={filteredCountries}
         label='Country'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.country) || undefined}
+        aria-invalid={Boolean(actionData?.errors.country) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.country ? 'country-error' : undefined
+          actionData?.errors.country ? 'country-error' : undefined
         }
-        errorMessage={actionData?.fieldErrors?.country}
+        errorMessage={actionData?.errors.country}
       />
       <input
         form='signup-about-details'
@@ -143,15 +141,13 @@ export default function Page() {
         form='signup-about-details'
         label='Email'
         name='email'
-        defaultValue={actionData?.fields?.email || flow?.data.email}
+        defaultValue={flow?.data.email}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.email) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.email ? 'email-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.email) || undefined}
+        aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.email}
+        errorMessage={actionData?.errors.email}
       />
 
       <div className='col-span-full flex items-center justify-between pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -164,22 +160,6 @@ export default function Page() {
       </div>
     </>
   )
-}
-
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    firstName: string | undefined
-    lastName: string | undefined
-    country: string | undefined
-    email: string | undefined
-  }
-  fields?: {
-    firstName: string
-    lastName: string
-    country: string
-    email: string
-  }
 }
 
 // The field names given by the backend for field violations
@@ -202,43 +182,21 @@ function mapper(
   }
 }
 
-/**
- * parseError handles potention errors from grpc client calls.
- * @param response The response from a grpc call
- * @param fields Any data passed to the grpc call
- * @returns ActionData response for field validation errors, throws other errors or null if not an error
- */
-function parseError(response: any, fields: any): Response | null {
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      let fieldErrors: ActionData['fieldErrors'] = {
-        firstName: undefined,
-        lastName: undefined,
-        country: undefined,
-        email: undefined
-      }
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({
-        fields,
-        fieldErrors
-      })
-    } else throw response
-  }
-  return null
-}
-
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string
   const country = form.get('country') as string
   const email = form.get('email') as string
 
-  let call = await grpcClient
+  const fieldErrors = {
+    firstName: '',
+    lastName: '',
+    country: '',
+    email: ''
+  }
+
+  let response = await grpcClient
     .updateOnboarding({
       firstName,
       lastName,
@@ -248,35 +206,35 @@ export const action: ActionFunction = async ({ request }) => {
     .then((v) => v)
     .catch(StatusError)
 
-  const actionData = parseError(call, {
-    firstName,
-    lastName,
-    country,
-    email
-  })
-
-  if (actionData != null) return actionData
-  const id = (call as FinishedUnaryCall<Onboarding, Onboarding>).response.id
-
-  if (country != 'US') {
-    return updateFlowData(
-      request,
-      {
-        id,
-        firstName,
-        lastName,
-        country,
-        email
-      },
-      redirect(route('/onboarding/country-access'))
-    )
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw response
   }
 
-  await stepFlow(request, {
+  const id = (response as FinishedUnaryCall<Onboarding, Onboarding>).response.id
+
+  const headers = await updateFlow(request, {
     id,
     firstName,
     lastName,
     country,
     email
   })
+  const flow = await getCurrentFlow(request, params)
+
+  if (country != 'US') {
+    return redirect(route('/onboarding/country-access'), { headers })
+  }
+  return redirect(
+    route('/flows/:flowId/signup/phone', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

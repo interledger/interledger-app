@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { useEffect, useState } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
   Form,
@@ -8,12 +9,13 @@ import {
   useLoaderData
 } from '@remix-run/react'
 import { Autocomplete, Button, Icon, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
+import { route } from 'routes-gen'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const countries = await apolloClient
     .query<SignupQuery, SignupQueryVariables>({
@@ -33,8 +35,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { country, flow } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { country, flow } = useLoaderData<typeof loader>()
 
   const placeAutocompleteFetcher = useFetcher()
   const geocodeFetcher = useFetcher()
@@ -87,11 +89,11 @@ export default function Page() {
         label='Street'
         button={false}
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.street) || undefined}
+        aria-invalid={Boolean(actionData?.errors.street) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.street ? 'street-error' : undefined
+          actionData?.errors.street ? 'street-error' : undefined
         }
-        errorMessage={actionData?.fieldErrors?.street}
+        errorMessage={actionData?.errors.street}
       />
       <input
         form='unit-address'
@@ -105,53 +107,41 @@ export default function Page() {
         form='unit-address'
         label='Apartment, unit, suite or floor number'
         name='apartment'
-        defaultValue={actionData?.fields?.apartment || flow?.data.apartment}
+        defaultValue={flow?.data.apartment}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.apartment) || undefined}
+        aria-invalid={Boolean(actionData?.errors.apartment) || undefined}
         aria-describedby={
-          actionData?.fieldErrors?.apartment ? 'apartment-error' : undefined
+          actionData?.errors.apartment ? 'apartment-error' : undefined
         }
         required
-        errorMessage={actionData?.fieldErrors?.apartment}
+        errorMessage={actionData?.errors.apartment}
       />
       <TextField
         id='city'
         form='unit-address'
         label='City'
         name='city'
-        defaultValue={
-          actionData?.fields?.city ||
-          flow?.data.city ||
-          geocodeFetcher.data?.city
-        }
+        defaultValue={flow?.data.city || geocodeFetcher.data?.city}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.city) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.city ? 'city-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.city) || undefined}
+        aria-describedby={actionData?.errors.city ? 'city-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.city}
+        errorMessage={actionData?.errors.city}
       />
       <TextField
         id='state'
         form='unit-address'
         label='State'
         name='state'
-        defaultValue={
-          actionData?.fields?.state ||
-          flow?.data.state ||
-          geocodeFetcher.data?.state
-        }
+        defaultValue={flow?.data.state || geocodeFetcher.data?.state}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.state) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.state ? 'state-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.state) || undefined}
+        aria-describedby={actionData?.errors.state ? 'state-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.state}
+        errorMessage={actionData?.errors.state}
       />
       <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='flex space-x-3'>
@@ -172,17 +162,13 @@ export default function Page() {
         form='unit-address'
         label='Postal code'
         name='zip'
-        defaultValue={
-          actionData?.fields?.zip || flow?.data.zip || geocodeFetcher.data?.zip
-        }
+        defaultValue={flow?.data.zip || geocodeFetcher.data?.zip}
         type='text'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.zip) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.zip ? 'zip-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors.zip) || undefined}
+        aria-describedby={actionData?.errors.zip ? 'zip-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.zip}
+        errorMessage={actionData?.errors.zip}
       />
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <Button form='unit-address' type='submit'>
@@ -193,26 +179,7 @@ export default function Page() {
   )
 }
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    street: string | undefined
-    apartment: string | undefined
-    city: string | undefined
-    state: string | undefined
-    country: string | undefined
-    zip: string | undefined
-  }
-  fields?: {
-    street: string
-    apartment: string
-    city: string
-    state: string
-    country: string
-    zip: string
-  }
-}
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const street = form.get('street') as string
   const apartment = form.get('apartment') as string
@@ -230,5 +197,27 @@ export const action: ActionFunction = async ({ request }) => {
     zip
   }
 
-  await stepFlow(request, data)
+  const fieldErrors = {
+    street: '',
+    apartment: '',
+    city: '',
+    state: '',
+    country: '',
+    zip: ''
+  }
+
+  // TODO: Get actual validation from Unit and validate these fields here properly.
+  if (state.length > 2) {
+    fieldErrors.state = "That's the wrong number."
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
+  const flow = await getCurrentFlow(request, params)
+  const headers = await updateFlow(request, data)
+  return redirect(
+    route('/flows/:flowId/unit-onboarding/about', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

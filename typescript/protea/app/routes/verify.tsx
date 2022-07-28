@@ -1,8 +1,7 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { Button, Logo, Router } from '~/components'
-import React from 'react'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -17,67 +16,7 @@ import { InitiateOnboardingDocument } from '~/generated/types'
 import type { Session } from '@ory/kratos-client'
 import { apolloClient } from '~/lib/apollo.server'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    email?: string
-  }
-  fields?: {
-    email: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
-export const action: ActionFunction = async ({ request }) => {
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
-
-  if (typeof csrfToken !== 'string' || typeof email !== 'string') {
-    return badRequest({
-      formError: `Form not submitted correctly.`
-    })
-  }
-
-  const fields = { csrf_token: csrfToken, email }
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
-
-  const data = await res.json()
-  if (res.status >= 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return badRequest({ fieldErrors: fieldErrors, fields })
-  }
-  return redirect(route('/verify'), {
-    headers: res.headers
-  })
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -157,7 +96,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export default function Page() {
-  const { flow, email, csrfToken } = useLoaderData()
+  const { flow, email, csrfToken } = useLoaderData<typeof loader>()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -173,7 +112,7 @@ export default function Page() {
       </div>
       <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <p className='text-medium'>
-          We’ve sent a verification link to your email:
+          We've sent a verification link to your email:
           <br /> {email}
         </p>
       </div>
@@ -191,4 +130,39 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const email = form.get('email') as string
+
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'link',
+        email,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
+  if (res.status >= 400) {
+    throw json(
+      { title: "Could't send email verification" },
+      { status: res.status, statusText: res.statusText }
+    )
+  }
+  return redirect(route('/verify'), {
+    headers: res.headers
+  })
 }

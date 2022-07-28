@@ -1,5 +1,4 @@
-import React from 'react'
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useNavigate } from '@remix-run/react'
 import { Icon } from '~/components'
@@ -12,21 +11,7 @@ import type {
 import { ActivityTransactionDocument, TransactionType } from '~/generated/types'
 import { DateTime } from 'luxon'
 
-type Activity = {
-  id: string
-  amount: string
-  transactionType: TransactionType
-  title: string
-  description: string
-  status: string
-  date: string
-}
-
-type LoaderData = {
-  transaction: Activity
-}
-
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   await requireUserSession(request)
   const cookie = request.headers.get('cookie')
   const transaction = await apolloClient
@@ -97,7 +82,7 @@ const activityIcon = (type: TransactionType, status: string) => {
 
 export default function Page() {
   const navigate = useNavigate()
-  const { transaction } = useLoaderData<LoaderData>()
+  const { transaction } = useLoaderData<typeof loader>()
   return (
     <div className='w-full'>
       {/* Header */}

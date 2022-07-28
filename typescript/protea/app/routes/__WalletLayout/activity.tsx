@@ -1,6 +1,6 @@
 import type { FC } from 'react'
-import React, { useCallback, useEffect, useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { useCallback, useEffect, useState, Fragment } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -26,13 +26,7 @@ type Activity = {
   date: string
 }
 
-type LoaderData = {
-  pageInfo: PageInfo
-  transactions: Activity[]
-  pages: number
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const searchParams = new URL(request.url).searchParams
 
@@ -60,19 +54,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     })
     .then((val) => val.data.transactions)
   // TODO Handle empty case: val.data == null
-  let transactions: LoaderData['transactions'] = activities?.edges.map(
-    (trx) => ({
-      id: trx.node.id,
-      amount: trx.node.amount,
-      transactionType: trx.node.type,
-      title: activityTitle(trx.node.type),
-      description: trx.node.description,
-      status: trx.node.status,
-      date: DateTime.fromISO(trx.node.timestamp).toFormat('dd LLLL yyyy')
-    })
-  )
+  let transactions = activities?.edges.map((trx) => ({
+    id: trx.node.id,
+    amount: trx.node.amount,
+    transactionType: trx.node.type,
+    title: activityTitle(trx.node.type),
+    description: trx.node.description,
+    status: trx.node.status,
+    date: DateTime.fromISO(trx.node.timestamp).toFormat('dd LLLL yyyy')
+  }))
 
-  const data: LoaderData = {
+  const data = {
     pageInfo: activities.pageInfo,
     transactions,
     pages: pages
@@ -149,12 +141,12 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
 }
 
 export default function Page() {
-  const initialPage = useLoaderData<LoaderData>()
+  const initialPage = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
-  const [transactions, setTransactions] = useState<LoaderData['transactions']>(
-    initialPage.transactions
-  )
+  const [transactions, setTransactions] = useState<
+    typeof initialPage.transactions
+  >(initialPage.transactions)
   const [pageInfo, setPageInfo] = useState<PageInfo>(initialPage.pageInfo)
   const [pages, setPages] = useState<number>(initialPage.pages)
 
@@ -255,7 +247,7 @@ export default function Page() {
           </div>
         )}
         {transactions.map((transaction, index) => (
-          <React.Fragment key={transaction.id}>
+          <Fragment key={transaction.id}>
             {(index == 0 ||
               transaction.date != transactions[index - 1].date) && (
               <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -263,18 +255,19 @@ export default function Page() {
               </span>
             )}
             <ActivityCard key={transaction.id} activity={transaction} />
-          </React.Fragment>
+          </Fragment>
         ))}
       </div>
     </div>
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
-  const form = await request.formData()
-  const pages = form.get('pages')
-  const activityId = form.get('activity-id')
+export async function action({ request }: ActionArgs) {
   const userSettings = await getSession(request.headers.get('Cookie'))
+
+  const form = await request.formData()
+  const pages = form.get('pages') as string
+  const activityId = form.get('activity-id') as string
 
   userSettings.set('activity', { pages })
 

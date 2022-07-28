@@ -1,11 +1,11 @@
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import type { FC } from 'react'
-import React from 'react'
+import { Fragment } from 'react'
 import type { HomeQuery, HomeQueryVariables } from '~/generated/types'
 import { HomeDocument, TransactionType } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
@@ -25,13 +25,7 @@ type Activities = {
   activities: Activity[]
 }
 
-type LoaderData = {
-  balance?: string
-  recentActivities: Activities[]
-  pendingTransactions: Activity[]
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const cookie = request.headers.get('cookie')
 
@@ -46,8 +40,8 @@ export const loader: LoaderFunction = async ({ request }) => {
     })
     .then((val) => val.data.account)
 
-  let recentActivities: LoaderData['recentActivities'] = []
-  let pendingTransactions: LoaderData['pendingTransactions'] = []
+  let recentActivities: Activities[] = []
+  let pendingTransactions: Activity[] = []
   if (typeof account?.recentTransactions !== 'undefined')
     for (let trx of account?.recentTransactions) {
       const activity = {
@@ -73,16 +67,15 @@ export const loader: LoaderFunction = async ({ request }) => {
         })
     }
 
-  const data: LoaderData = {
+  return json({
     balance: account?.balance,
     recentActivities: recentActivities,
     pendingTransactions: pendingTransactions
-  }
-  return json(data)
+  })
 }
 
 export default function Home() {
-  const account = useLoaderData<LoaderData>()
+  const account = useLoaderData<typeof loader>()
   return (
     <div className='w-full'>
       {/* Header */}
@@ -142,14 +135,14 @@ export default function Home() {
         )}
         {/* Activity items */}
         {account.recentActivities.map((activities) => (
-          <React.Fragment key={activities.date}>
+          <Fragment key={activities.date}>
             <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               {activities.date}
             </span>
             {activities.activities.map((activity) => (
               <ActivityCard key={activity.id} activity={activity} />
             ))}
-          </React.Fragment>
+          </Fragment>
         ))}
         {account.pendingTransactions.length > 0 && (
           <div className='col-span-full flex justify-start pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

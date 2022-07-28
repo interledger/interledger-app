@@ -1,5 +1,4 @@
-import React from 'react'
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -11,14 +10,7 @@ import type {
 import { SettingsPaymentMethodsDocument } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
 
-type PaymentMethod = {
-  id: string
-  name: string
-  description: string
-  icon: string
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
 
   const res = await apolloClient.query<
@@ -45,7 +37,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export default function Page() {
-  const { paymentMethods } = useLoaderData()
+  const { paymentMethods } = useLoaderData<typeof loader>()
 
   return (
     <div className='w-full'>
@@ -71,7 +63,7 @@ export default function Page() {
           </div>
         )}
         {paymentMethods.length > 0 &&
-          paymentMethods.map((method: PaymentMethod) => (
+          paymentMethods.map((method) => (
             <div
               key={method.id}
               className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'

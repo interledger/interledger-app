@@ -1,5 +1,4 @@
 import type { FC } from 'react'
-import React from 'react'
 import { Container } from './Container'
 import { LeavesDecor } from './Decor'
 import { Link } from '@remix-run/react'

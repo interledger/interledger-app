@@ -1,17 +1,18 @@
-import React from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components'
-import { completeFlow, getCurrentFlow } from '~/lib/flows.server'
+import { updateFlow, getCurrentFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type {
   InitiateOutgoingPaymentMutation,
   InitiateOutgoingPaymentMutationVariables
 } from '~/generated/types'
 import { InitiateOutgoingPaymentDocument } from '~/generated/types'
+import { route } from 'routes-gen'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   return json({
     flow
@@ -19,7 +20,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData()
+  const { flow } = useLoaderData<typeof loader>()
   const { paymentMethodMask, displayAmount, displayFee, displayTotal } =
     flow?.data
   return (
@@ -65,7 +66,7 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request, params }) => {
+export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
   const { to, total } = flow?.data
   const cookie = request.headers.get('cookie')
@@ -87,5 +88,13 @@ export const action: ActionFunction = async ({ request, params }) => {
       }
     }
   })
-  if (res.data?.initiateOutgoingPayment.success) return completeFlow(request)
+
+  const headers = await updateFlow(request, null, true)
+  if (res.data?.initiateOutgoingPayment.success)
+    return redirect(
+      route('/confirmation/:flowId/send', {
+        flowId: flow?.id as string
+      }),
+      { headers }
+    )
 }

@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { useState } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import type { RadioGroupOption } from '~/components'
 import { Icon } from '~/components'
 import { Button, RadioGroup } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { route } from 'routes-gen'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
 
   const paymentTypes: RadioGroupOption[] = [
@@ -33,7 +35,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const { paymentTypes, flow } = useLoaderData()
+  const { paymentTypes, flow } = useLoaderData<typeof loader>()
 
   const [selected, setSelected] = useState(paymentTypes[0])
 
@@ -75,8 +77,17 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const paymentType = form.get('payment-type')
-  await stepFlow(request, { paymentType })
+
+  const headers = await updateFlow(request, { paymentType })
+
+  const flow = await getCurrentFlow(request, params)
+  return redirect(
+    route('/flows/:flowId/payment-method/details', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

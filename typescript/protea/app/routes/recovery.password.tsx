@@ -1,8 +1,7 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Logo, Router, TextField } from '~/components'
-import React from 'react'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -12,77 +11,7 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    password?: string
-  }
-  fields?: {
-    password: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
-export const action: ActionFunction = async ({ request }) => {
-  const cookie = request.headers.get('Cookie')
-  const userSettings = await getSession(cookie)
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const password = form.get('new-password')
-  if (typeof csrfToken !== 'string' || typeof password !== 'string') {
-    return badRequest({
-      formError: `Form not submitted correctly.`
-    })
-  }
-
-  const fields = { csrf_token: csrfToken, password }
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        password: password,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        Accept: 'application/json',
-        cookie: String(request.headers.get('Cookie'))
-      }
-    }
-  )
-
-  const data = await res.json()
-  if (res.status > 400) handleFlowError(data, 'recovery/password')
-  if (res.status == 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return badRequest({ fieldErrors: fieldErrors, fields })
-  }
-
-  userSettings.flash('snackbar', {
-    message: 'New password successfully saved.',
-    action: 'done'
-  })
-  return redirect(route('/settings'), {
-    headers: {
-      'Set-Cookie': await commitSession(userSettings)
-    }
-  })
-}
-
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -116,8 +45,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, csrfToken } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, csrfToken } = useLoaderData<typeof loader>()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -148,14 +77,13 @@ export default function Page() {
           id='new-password'
           label='New password'
           name='new-password'
-          defaultValue={actionData?.fields?.password}
           type='password'
-          aria-invalid={Boolean(actionData?.fieldErrors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
           aria-describedby={
-            actionData?.fieldErrors?.password ? 'password-error' : undefined
+            actionData?.errors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.fieldErrors?.password}
+          errorMessage={actionData?.errors?.password}
         />
 
         <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
@@ -166,4 +94,56 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const cookie = request.headers.get('Cookie')
+  const userSettings = await getSession(cookie)
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const password = form.get('new-password') as string
+
+  const fieldErrors = { password: '' }
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'password',
+        password: password,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        Accept: 'application/json',
+        cookie: String(request.headers.get('Cookie'))
+      }
+    }
+  )
+
+  const data = await res.json()
+  if (res.status > 400) handleFlowError(data, 'recovery/password')
+  if (res.status == 400) {
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
+  userSettings.flash('snackbar', {
+    message: 'New password successfully saved.',
+    action: 'done'
+  })
+  return redirect(route('/settings'), {
+    headers: {
+      'Set-Cookie': await commitSession(userSettings)
+    }
+  })
 }

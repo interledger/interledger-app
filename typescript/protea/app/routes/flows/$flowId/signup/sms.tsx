@@ -1,13 +1,14 @@
-import React from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button, Icon, TextField } from '~/components'
-import { getCurrentFlow, stepFlow } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
 
   return json({
@@ -16,8 +17,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -47,15 +48,13 @@ export default function Page() {
         form='signup-code-details'
         label='SMS code'
         name='code'
-        defaultValue={actionData?.fields?.code || flow?.data.code}
+        defaultValue={flow?.data.code}
         type='tel'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.fieldErrors?.code) || undefined}
-        aria-describedby={
-          actionData?.fieldErrors?.code ? 'code-error' : undefined
-        }
+        aria-invalid={Boolean(actionData?.errors?.code) || undefined}
+        aria-describedby={actionData?.errors?.code ? 'code-error' : undefined}
         required
-        errorMessage={actionData?.fieldErrors?.code}
+        errorMessage={actionData?.errors?.code}
       />
 
       <div className='col-span-full flex justify-between pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -65,9 +64,9 @@ export default function Page() {
           name='resend'
           value={flow.data.phone}
           form='signup-code-details'
-          disabled={Boolean(actionData?.fields?.resend)}
         >
-          {actionData?.fields?.resend ? 'Code sent.' : 'Resend code'}
+          {/* TODO: Update on feedback from justin */}
+          'Resend code'
         </Button>
         <Button form='signup-code-details' type='submit'>
           Continue
@@ -75,17 +74,6 @@ export default function Page() {
       </div>
     </>
   )
-}
-
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    code: string | undefined
-  }
-  fields?: {
-    code: string
-    resend: string
-  }
 }
 
 // The field names given by the backend for field violations
@@ -100,39 +88,18 @@ function mapper(field: fieldErrorsMap): 'code' | null {
   }
 }
 
-/**
- * parseError handles potention errors from grpc client calls.
- * @param response The response from a grpc call
- * @param fields Any data passed to the grpc call
- * @returns ActionData response for field validation errors, throws other errors or null if not an error
- */
-function parseError(response: any, fields: any): Response | null {
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      let fieldErrors: ActionData['fieldErrors'] = {
-        code: undefined
-      }
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({
-        fields,
-        fieldErrors
-      })
-    } else throw response
-  }
-  return null
-}
-
-export const action: ActionFunction = async ({ request, params }) => {
-  const form = await request.formData()
-  const code = form.get('code') as string
-  const resend = form.get('resend') as string
+export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
   const onboardingId = flow?.data.id
   const phone = flow?.data.phone
+
+  const form = await request.formData()
+  const code = form.get('code') as string
+  const resend = form.get('resend') as string
+
+  const fieldErrors = {
+    code: ''
+  }
 
   if (resend) {
     await grpcClient
@@ -144,13 +111,13 @@ export const action: ActionFunction = async ({ request, params }) => {
       .catch(StatusError)
 
     return json({
-      fields: {
-        resend
+      errors: {
+        ...fieldErrors
       }
     })
   }
 
-  let call = await grpcClient
+  let response = await grpcClient
     .checkPhoneVerificationCode({
       to: phone,
       code,
@@ -159,12 +126,24 @@ export const action: ActionFunction = async ({ request, params }) => {
     .then((v) => v)
     .catch(StatusError)
 
-  const actionData = parseError(call, {
-    code
-  })
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw response
+  }
 
-  if (actionData != null) return actionData
-  await stepFlow(request, {
+  const headers = await updateFlow(request, {
     code
   })
+  return redirect(
+    route('/flows/:flowId/signup/password', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
 }

@@ -1,11 +1,10 @@
-import type { LoaderFunction } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { Outlet } from '@remix-run/react'
 import { route } from 'routes-gen'
-import React from 'react'
 import { Logo, Router } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   return requireUserSession(request)
 }
 

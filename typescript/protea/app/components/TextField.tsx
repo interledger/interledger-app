@@ -1,4 +1,4 @@
-import React from 'react'
+import { forwardRef } from 'react'
 
 interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
@@ -9,7 +9,7 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string
 }
 
-export const TextField = React.forwardRef<any, TextFieldProps>(
+export const TextField = forwardRef<any, TextFieldProps>(
   ({ className, label, errorMessage, ...inputProps }, ref) => {
     return (
       <div className={className || 'min-w-full'}>

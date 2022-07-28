@@ -1,33 +1,29 @@
 import { Container, Footer, Header, Icon, Logo, Router } from '~/components'
 import type { FC } from 'react'
-import type { LoaderFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import React from 'react'
 import type { Author, BlogMeta } from '~/lib/blog.server'
 import { getAllPosts } from '~/lib/blog.server'
 import { route } from 'routes-gen'
 
-type LoaderData = {
-  posts: BlogMeta[]
-}
-
-export const loader: LoaderFunction = async () => {
+export async function loader() {
   return json({
     posts: await getAllPosts()
   })
 }
 
 export default function Page() {
-  const { posts } = useLoaderData<LoaderData>()
+  const { posts } = useLoaderData<typeof loader>()
   const location = useLocation()
   const isPost = location.pathname.search(/\/blog\/[A-z]+/) > -1
 
   if (isPost) {
     return (
       <BlogLayout
-        meta={posts.find((post) => post.slug == location.pathname.substring(6))}
+        meta={posts.find(
+          (post: BlogMeta) => post.slug == location.pathname.substring(6)
+        )}
       >
         <Outlet />
       </BlogLayout>

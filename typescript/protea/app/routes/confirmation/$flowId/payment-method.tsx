@@ -1,11 +1,12 @@
-import React from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button } from '~/components'
 import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
 
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   return json({
     flow
@@ -13,7 +14,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData()
+  const { flow } = useLoaderData<typeof loader>()
   const { accountNumber, institution, name, routingNumber, type } = flow?.data
   return (
     <>
@@ -58,6 +59,7 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
-  return await exitFlow(request)
+export async function action({ request }: ActionArgs) {
+  const headers = await exitFlow(request)
+  return redirect(route('/settings'), { headers })
 }

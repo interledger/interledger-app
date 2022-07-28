@@ -1,22 +1,14 @@
 import type { ChangeEventHandler } from 'react'
-import React, { useState } from 'react'
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import { useState } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button, TextField } from '~/components'
-import { getCurrentFlow, stepFlow, updateFlowData } from '~/lib/flows.server'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { route } from 'routes-gen'
 
-// type ActionData = {
-//   formError?: string
-//   fieldErrors?: {
-//     amount: string | undefined
-//   }
-//   fields?: {
-//     amount: string
-//   }
-// }
-
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   return json({
     flow
@@ -24,8 +16,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  // const actionData = useActionData<ActionData>()
-  const { flow } = useLoaderData()
+  const { flow } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
   const [amount, setAmount] = useState<string>(flow?.data.amount || '')
@@ -89,7 +80,7 @@ export default function Page() {
   )
 }
 
-export const action: ActionFunction = async ({ request }) => {
+export async function action({ request, params }: ActionArgs) {
   // TODO: fetch fee from db
   const feeStructure = {
     fixed: 1.0,
@@ -114,11 +105,16 @@ export const action: ActionFunction = async ({ request }) => {
     total: total,
     displayTotal: formatMoney(total)
   }
+
+  const headers = await updateFlow(request, data)
+  const flow = await getCurrentFlow(request, params)
   if (routeTo == 'next') {
-    // TODO step to next flow step
-    await stepFlow(request, data)
+    return redirect(
+      route('/flows/:flowId/withdraw/review', { flowId: flow?.id as string }),
+      { headers }
+    )
   } else {
-    return updateFlowData(request, data)
+    return json(data, { headers })
   }
 }
 

@@ -1,6 +1,6 @@
 import { Combobox, Transition } from '@headlessui/react'
 import type { FC } from 'react'
-import React, { Fragment } from 'react'
+import { Fragment } from 'react'
 import { Icon } from '.'
 
 type AutocompleteOptions = {

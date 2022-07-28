@@ -22,12 +22,11 @@ type ProgressStep = {
 type Flow = {
   id: string
   type: flowType
-  name: string
   data?: any
-  stepIndex: number
+  currentRoute: string
   steps: ProgressStep[]
   complete: boolean
-  exitTo: string
+  defaultExitTo: string
 }
 
 /**
@@ -67,7 +66,7 @@ export async function requireFlow(
       // del ensures unnecessary/erraneous flows are pruned from the flow stack.
       // We must ensure that flows is set by redirecting.
       userSettings.set('flows', flows)
-      throw redirect(currentFlow.steps[currentFlow.stepIndex].route, {
+      throw redirect(currentFlow.currentRoute, {
         headers: {
           'Set-Cookie': await commitSession(userSettings)
         }
@@ -83,15 +82,18 @@ export async function requireFlow(
     } else {
       currentFlow = flowTemplate(v4(), type)
       if (!currentFlow)
-        throw json({
-          title: 'Your flow is invalid',
-          body: 'Expected specific flow type, but found something else.'
-        })
+        throw json(
+          {
+            title: 'Your flow is invalid',
+            body: 'Expected specific flow type, but found something else.'
+          },
+          { status: 400 }
+        )
       flows.push(currentFlow)
     }
 
     userSettings.set('flows', flows)
-    throw redirect(currentFlow.steps[currentFlow.stepIndex].route, {
+    throw redirect(currentFlow.currentRoute, {
       headers: {
         'Set-Cookie': await commitSession(userSettings)
       }
@@ -110,138 +112,66 @@ export async function getCurrentFlow(
 }
 
 /**
- * Allows adding data to a flows data and incrementing the stepIndex.
- * Can be used to move backwards within a flow.
+ * Allows adding/updating data to a flows data.
  * @param request
  * @param data A data object to me merged into the flow data
- * @param newIndex Optional index to route to
- * @returns Flow
+ * @returns Headers
  */
-export async function stepFlow(
+export async function updateFlow(
   request: Request,
   data?: any,
-  newIndex?: number
-): Promise<Flow | undefined> {
+  complete?: boolean
+): Promise<Headers> {
+  const headers = new Headers()
   const userSettings = await getSession(request.headers.get('Cookie'))
 
   const flows: Flow[] = userSettings.get('flows') || []
   const currentFlow = flows.pop()
   if (currentFlow) {
     if (data) {
-      currentFlow.data = Object.assign(currentFlow.data, data)
-      currentFlow.stepIndex++
-    } else if (newIndex == -1) {
-      currentFlow.stepIndex--
-    } else if (newIndex) {
-      currentFlow.stepIndex = newIndex
+      Object.assign(currentFlow.data, data)
     }
-    flows.push(currentFlow)
-    userSettings.set('flows', flows)
-    throw redirect(currentFlow.steps[currentFlow.stepIndex].route, {
-      headers: {
-        'Set-Cookie': await commitSession(userSettings)
-      }
-    })
-  }
-  return currentFlow
-}
-
-/**
- * Allows adding data to a flows data without incrementing the stepIndex.
- * @param request
- * @param data A data object to me merged into the flow data
- * @returns Flow
- */
-export async function updateFlowData(
-  request: Request,
-  data?: any,
-  response?: Response
-): Promise<Response | undefined> {
-  const userSettings = await getSession(request.headers.get('Cookie'))
-
-  const flows: Flow[] = userSettings.get('flows') || []
-  const currentFlow = flows.pop()
-  if (currentFlow) {
-    if (data) {
-      currentFlow.data = Object.assign(currentFlow.data, data)
-    }
+    if (typeof complete != 'undefined') currentFlow.complete = complete
     flows.push(currentFlow)
     userSettings.set('flows', flows)
 
-    if (response) {
-      response.headers.append('Set-Cookie', await commitSession(userSettings))
-      return response
-    }
+    headers.append('Set-Cookie', await commitSession(userSettings))
 
-    return json(data, {
-      headers: {
-        'Set-Cookie': await commitSession(userSettings)
-      }
-    })
+    return headers
   }
-  return currentFlow
-}
-
-/**
- * Allows setting a flow as complete
- * @param request Request
- * @returns Flow
- */
-export async function completeFlow(
-  request: Request
-): Promise<Flow | undefined> {
-  const userSettings = await getSession(request.headers.get('Cookie'))
-
-  const flows: Flow[] = userSettings.get('flows') || []
-  const latestFlow = flows.pop()
-  if (latestFlow) {
-    latestFlow.complete = true
-    flows.push(latestFlow)
-    userSettings.set('flows', flows)
-    throw redirect(`/confirmation/${latestFlow.id}/${latestFlow.type}`, {
-      headers: {
-        'Set-Cookie': await commitSession(userSettings)
-      }
-    })
-  }
-  return latestFlow
+  throw json(
+    {
+      title: 'Your flow is invalid',
+      body: "Can't update/complete a flow that doesn't exist"
+    },
+    { status: 400 }
+  )
 }
 
 /**
  * Allows removing a flow from the stack and returning to the next flow in the stack,
- * Or returns to the flows exitTo route.
+ * Or returns headers allowing the consumer to redirect out of the flow.
  * @param request Request
- * @param response Response allows settings a response that will be updated and returned.
- * @returns Response
+ * @returns Headers
  */
-export async function exitFlow(
-  request: Request,
-  response?: Response
-): Promise<Response> {
+export async function exitFlow(request: Request): Promise<Headers> {
+  const headers = new Headers()
   const userSettings = await getSession(request.headers.get('Cookie'))
 
   const flows: Flow[] = userSettings.get('flows') || []
-  const lastFlow = flows.pop()
-  const latestFlow = flows.at(-1)
+  const exitedFlow = flows.pop()
+  const currentFlow = flows.at(-1)
   userSettings.set('flows', flows)
 
-  if (response) {
-    response.headers.append('Set-Cookie', await commitSession(userSettings))
-    return response
-  }
+  headers.append('Set-Cookie', await commitSession(userSettings))
 
-  if (latestFlow) {
-    return redirect(latestFlow.steps[latestFlow.stepIndex].route, {
-      headers: {
-        'Set-Cookie': await commitSession(userSettings)
-      }
+  if (currentFlow) {
+    // If there is a flow still in the stack, redirect there.
+    throw redirect(currentFlow.currentRoute, {
+      headers
     })
-  } else if (lastFlow) {
-    return redirect(lastFlow?.exitTo, {
-      headers: {
-        'Set-Cookie': await commitSession(userSettings)
-      }
-    })
+  } else if (exitedFlow) {
+    return headers
   }
   throw json({
     title: 'Your flow has expired',
@@ -256,8 +186,9 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
       return {
         id: id,
         type: flowType.Deposit,
-        name: 'Deposit',
-        stepIndex: 0,
+        currentRoute: route('/flows/:flowId/deposit/payment-method', {
+          flowId: id
+        }),
         data: {},
         steps: [
           {
@@ -276,14 +207,15 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        exitTo: '/home'
+        defaultExitTo: '/home'
       }
     case flowType.Withdraw:
       return {
         id: id,
         type: flowType.Withdraw,
-        name: 'Withdraw',
-        stepIndex: 0,
+        currentRoute: route('/flows/:flowId/withdraw/payment-method', {
+          flowId: id
+        }),
         data: {},
         steps: [
           {
@@ -302,14 +234,15 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        exitTo: '/home'
+        defaultExitTo: '/home'
       }
     case flowType.Send:
       return {
         id: id,
         type: flowType.Send,
-        name: 'Send',
-        stepIndex: 0,
+        currentRoute: route('/flows/:flowId/send/to', {
+          flowId: id
+        }),
         data: {},
         steps: [
           {
@@ -328,14 +261,15 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        exitTo: '/home'
+        defaultExitTo: '/home'
       }
     case flowType.PaymentMethod:
       return {
         id,
         type: flowType.PaymentMethod,
-        name: 'Payment method',
-        stepIndex: 0,
+        currentRoute: route('/flows/:flowId/payment-method/type', {
+          flowId: id
+        }),
         data: {},
         steps: [
           {
@@ -354,14 +288,13 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        exitTo: '/settings/payment-methods'
+        defaultExitTo: route('/settings/payment-methods')
       }
     case flowType.Signup:
       return {
         id,
         type: flowType.Signup,
-        name: 'Logo',
-        stepIndex: 0,
+        currentRoute: route('/flows/:flowId/signup/about', { flowId: id }),
         data: {},
         steps: [
           {
@@ -384,14 +317,15 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        exitTo: '/'
+        defaultExitTo: route('/')
       }
     case flowType.UnitOnboarding:
       return {
         id,
         type: flowType.UnitOnboarding,
-        name: 'Logo',
-        stepIndex: 0,
+        currentRoute: route('/flows/:flowId/unit-onboarding/address', {
+          flowId: id
+        }),
         data: {},
         steps: [
           {
@@ -408,7 +342,7 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        exitTo: '/onboarding/unit'
+        defaultExitTo: route('/onboarding/unit')
       }
   }
 }

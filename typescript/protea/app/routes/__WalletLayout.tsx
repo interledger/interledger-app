@@ -7,7 +7,7 @@ import {
 } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { FC } from 'react'
-import React, { Fragment } from 'react'
+import { Fragment } from 'react'
 import { Icon, Logo, LogoIcon, Router } from '~/components'
 import { Menu, Popover, Transition } from '@headlessui/react'
 

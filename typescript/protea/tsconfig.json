@@ -4,7 +4,7 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "target": "ES2019",
@@ -13,8 +13,9 @@
     "paths": {
       "~/*": ["./app/*"]
     },
-    // Remix takes care of building everything in `remix build`.
-    "noEmit": true
+    "noEmit": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"]
 }

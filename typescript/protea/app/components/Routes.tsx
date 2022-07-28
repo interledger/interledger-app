@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import React from 'react'
+import type { ReactNode } from 'react'
 import { Link, useNavigate } from '@remix-run/react'
 
 /**
@@ -9,7 +9,9 @@ import { Link, useNavigate } from '@remix-run/react'
 type RouterProps = {
   className?: string
   to: string
-  children?: React.ReactNode
+  children?: ReactNode
+  //Can only disable Router.Button
+  disabled?: boolean
 }
 
 /**
@@ -45,13 +47,14 @@ RouterRoot.displayName = 'Link Router'
  * @param rest The props passed through to the anchor tag.
  */
 const Button = forwardRef<any, RouterProps>(
-  ({ className, children, to, ...rest }, ref) => {
+  ({ className, children, to, disabled, ...rest }, ref) => {
     const navigate = useNavigate()
     return (
       <button
         ref={ref}
         onClick={() => navigate(to)}
         className={`focus-visible:outline-2 focus-visible:outline-focus ${className}`}
+        disabled={disabled}
         {...rest}
       >
         {children}

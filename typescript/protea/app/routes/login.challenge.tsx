@@ -1,8 +1,7 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Icon, Logo, Router, TextField } from '~/components'
-import React from 'react'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -12,78 +11,7 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 
-type ActionData = {
-  formError?: string
-  fieldErrors?: {
-    email?: string
-    password?: string
-  }
-  fields?: {
-    email: string
-    password: string
-    csrf_token: string
-  }
-}
-
-const badRequest = (data: ActionData) => json(data, { status: 400 })
-
-export const action: ActionFunction = async ({ request }) => {
-  const userSettings = await getSession(request.headers.get('Cookie'))
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-  const form = await request.formData()
-  const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
-  const password = form.get('password')
-  if (
-    typeof csrfToken !== 'string' ||
-    typeof email !== 'string' ||
-    typeof password !== 'string'
-  ) {
-    return badRequest({
-      // TODO: handle formError on client
-      formError: `Form not submitted correctly.`
-    })
-  }
-  const fields = { csrf_token: csrfToken, email, password }
-  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      method: 'password',
-      password_identifier: email,
-      password: password,
-      csrf_token: csrfToken
-    }),
-    headers: {
-      'Content-type': 'application/json',
-      cookie: String(request.headers.get('cookie'))
-    }
-  })
-
-  const data = await res.json()
-  if (res.status >= 400) {
-    let fieldErrors: ActionData['fieldErrors'] = {}
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return badRequest({ fieldErrors: fieldErrors, fields })
-  }
-  if (userSettings.has('challenge-flow')) {
-    const { returnTo } = userSettings.get('challenge-flow')
-    return redirect(returnTo, {
-      headers: res.headers
-    })
-  }
-  return redirect(route('/home'), {
-    headers: res.headers
-  })
-}
-
-export const loader: LoaderFunction = async ({ request, params }) => {
+export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
   const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
@@ -134,8 +62,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function Page() {
-  const actionData = useActionData<ActionData>()
-  const { flow, csrfToken, email } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { flow, csrfToken, email } = useLoaderData<typeof loader>()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -168,14 +96,13 @@ export default function Page() {
           id='password'
           label='Password'
           name='password'
-          defaultValue={actionData?.fields?.password}
           type='password'
-          aria-invalid={Boolean(actionData?.fieldErrors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
           aria-describedby={
-            actionData?.fieldErrors?.password ? 'password-error' : undefined
+            actionData?.errors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.fieldErrors?.password}
+          errorMessage={actionData?.errors?.password}
         />
 
         <input defaultValue={email} name='email' type='hidden' />
@@ -190,4 +117,55 @@ export default function Page() {
       </Form>
     </main>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const userSettings = await getSession(request.headers.get('Cookie'))
+  const url = new URL(request.url)
+  const flowId = url.searchParams.get('flow')
+
+  const form = await request.formData()
+  const csrfToken = form.get('csrf_token') as string
+  const email = form.get('email') as string
+  const password = form.get('password') as string
+
+  const fieldErrors = {
+    email: '',
+    password: ''
+  }
+
+  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      method: 'password',
+      password_identifier: email,
+      password: password,
+      csrf_token: csrfToken
+    }),
+    headers: {
+      'Content-type': 'application/json',
+      cookie: String(request.headers.get('cookie'))
+    }
+  })
+
+  const data = await res.json()
+  if (res.status >= 400) {
+    for (let node of data.ui.nodes) {
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: node.messages[0].text
+        })
+      }
+    }
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+  if (userSettings.has('challenge-flow')) {
+    const { returnTo } = userSettings.get('challenge-flow')
+    return redirect(returnTo, {
+      headers: res.headers
+    })
+  }
+  return redirect(route('/home'), {
+    headers: res.headers
+  })
 }
