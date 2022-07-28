@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 
@@ -31,7 +32,7 @@ type Service interface {
 
 type ServiceArgs struct {
 	Db *sqlx.DB               `validate:"required"`
-	As accounts.Service       `validate:"required"`
+	As accounts.Client        `validate:"required"`
 	Is identity.Service       `validate:"required"`
 	Fs fundingsources.Service `validate:"required"`
 	Tp client.Client          `validate:"required"`
@@ -40,7 +41,7 @@ type ServiceArgs struct {
 type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
-	as        accounts.Service
+	as        accounts.Client
 	is        identity.Service
 	fs        fundingsources.Service
 	tp        client.Client

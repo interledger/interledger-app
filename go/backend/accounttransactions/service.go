@@ -80,15 +80,15 @@ type Service interface {
 
 type service struct {
 	validator *validator.Validate
-	as        accounts.Service
+	as        accounts.Client
 	pacioli   pacioli.Client
 	db        *sqlx.DB
 }
 
 type ServiceArgs struct {
-	AccountService accounts.Service `validate:"required"`
-	PacioliClient  pacioli.Client   `validate:"required"`
-	Db             *sqlx.DB         `validate:"required"`
+	AccountClient accounts.Client `validate:"required"`
+	PacioliClient pacioli.Client  `validate:"required"`
+	Db            *sqlx.DB        `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -101,7 +101,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 	return &service{
 		validator: v,
 		db:        args.Db,
-		as:        args.AccountService,
+		as:        args.AccountClient,
 		pacioli:   args.PacioliClient,
 	}, nil
 }

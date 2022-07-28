@@ -39,7 +39,7 @@ type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
 	is        _identity.Service
-	as        accounts.Service
+	as        accounts.Client
 	noop      noop.Service
 	tp        client.Client
 	unit      _unit.Service
@@ -47,7 +47,7 @@ type service struct {
 
 type ServiceArgs struct {
 	Is   _identity.Service `validate:"required"`
-	As   accounts.Service  `validate:"required"`
+	As   accounts.Client   `validate:"required"`
 	Db   *sqlx.DB          `validate:"required"`
 	Noop noop.Service      `validate:"required"`
 	Tp   client.Client     `validate:"required"`

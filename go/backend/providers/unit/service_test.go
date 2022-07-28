@@ -7,17 +7,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"go.uber.org/zap"
-
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/accounts"
+	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"go.uber.org/zap"
 )
 
 func TestVerifyWebhook(s *testing.T) {
@@ -30,7 +29,7 @@ func TestVerifyWebhook(s *testing.T) {
 		Token:           "test token",
 		Db:              &sqlx.DB{},
 		IdentityService: identity.NewMockService(ctrl),
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -67,7 +66,7 @@ func TestCreateAndGetCustomer(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: mockIdentityService,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -161,7 +160,7 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: identity.NewMockService(ctrl),
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -199,7 +198,7 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	unitCustomerID := uuid.NewString()
 	unitDepositAccountID := uuid.NewString()
-	mockAccountService := accounts.NewMockService(ctrl)
+	mockAccountService := accounts_mock.NewMockClient(ctrl)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
@@ -262,7 +261,7 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
 		IdentityService: identity.NewMockService(ctrl),
-		AccountService:  mockAccountService,
+		AccountClient:   mockAccountService,
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {

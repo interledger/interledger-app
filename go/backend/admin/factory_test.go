@@ -6,17 +6,12 @@ import (
 	"net"
 	"testing"
 
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
-
-	"gitlab.com/fynbos/pacioli"
-
-	"go.temporal.io/sdk/mocks"
-	"google.golang.org/grpc/credentials/insecure"
-
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/accounts"
+	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
@@ -33,30 +28,57 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/mocks"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type TestContainer struct {
-	Ctx             context.Context
-	Ctrl            *gomock.Controller
-	Pacioli         *test_utils.PacioliContainer
-	Db              *sqlx.DB
-	As              accounts.Service
-	Fs              *fundingsources.MockService
-	Is              identity.Service
-	Hs              healthcheck.Service
-	Os              onboarding.Service
-	Oso             *oso.Oso
-	Noop            noop.Service
-	Up              unit.Service
-	Tp              *mocks.Client
-	RafikiProvider  *rafiki.MockService
-	AdminConn       *grpc.ClientConn
-	AdminClient     backend.BackendAdminServiceClient
-	AdminServer     *grpc.Server
-	PacioliClient   pacioli.Client
-	PacioliLedgerID uint32
+	Ctx              context.Context
+	Ctrl             *gomock.Controller
+	PacioliContainer *test_utils.PacioliContainer
+	Db               *sqlx.DB
+	As               accounts.Client
+	Fs               *fundingsources.MockService
+	Is               identity.Service
+	Hs               healthcheck.Service
+	Os               onboarding.Service
+	Oso              *oso.Oso
+	Noop             noop.Service
+	Up               unit.Service
+	Cs               country.Service
+	Tp               *mocks.Client
+	RafikiProvider   *rafiki.MockService
+	AdminConn        *grpc.ClientConn
+	AdminClient      backend.BackendAdminServiceClient
+	AdminServer      *grpc.Server
+	PacioliClient    pacioli.Client
+	PacioliLedgerID  uint32
+	ValidatorImpl    *validator.Validate
+}
+
+func (c *TestContainer) Validator() *validator.Validate {
+	return c.ValidatorImpl
+}
+
+func (c *TestContainer) DB() *sqlx.DB {
+	return c.Db
+}
+
+func (c *TestContainer) Identity() identity.Service {
+	return c.Is
+}
+
+func (c *TestContainer) Countries() country.Service {
+	return c.Cs
+}
+
+func (c *TestContainer) Pacioli() pacioli.Client {
+	return c.PacioliClient
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
@@ -71,13 +93,15 @@ func (c *TestContainer) Cleanup(ctx context.Context) error {
 
 // TODO: refactor how we spin up deps for tests.
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
-	c := &TestContainer{}
+	c := &TestContainer{
+		ValidatorImpl: validator.New(),
+	}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
 
-	c.Pacioli = test_utils.SetupPacioli(t, ctx)
+	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 
-	pClient, err := pacioli_client.New(c.Pacioli.PacioliUrl)
+	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -94,16 +118,12 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Is = is
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: c.PacioliLedgerID,
-		PacioliClient:   c.PacioliClient,
-		Db:              db,
-	})
+	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, err
 	}
+
+	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 
 	c.As = as
 

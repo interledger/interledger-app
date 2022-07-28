@@ -27,7 +27,7 @@ type GraphqlOpts struct {
 	// TODO: refactor Identity -> Is etc.
 	Identity                         identity.Service             `validate:"required"`
 	User                             user.Service                 `validate:"required"`
-	Account                          accounts.Service             `validate:"required"`
+	Account                          accounts.Client              `validate:"required"`
 	Country                          country.Service              `validate:"required"`
 	AccountTransactions              account_transactions.Service `validate:"required"`
 	Noop                             noop.Service                 `validate:"required"`

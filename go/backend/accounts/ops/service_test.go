@@ -1,4 +1,4 @@
-package accounts
+package ops_test
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/accounts"
+	"gitlab.com/fynbos/backend/accounts/ops"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -46,23 +48,12 @@ func TestAccountsService(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	as, err := NewService(&ServiceArgs{
-		Is:              is,
-		Cs:              cs,
-		PacioliLedgerID: pacioliLedgerID,
-		PacioliClient:   pClient,
-		PacioliTenant:   "dev",
-		Db:              db,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	as = NewLoggingService(as, logger)
+	b := ops.NewTestBackends(s, db, is, cs, pClient)
 
 	s.Run("GetByIdentityID requires identityID", func(t *testing.T) {
-		var acc *Account
+		var acc *accounts.Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, "")
+			_acc, err := ops.GetByIdentityIDWithTrx(ctx, b, tx, "")
 			if err != nil {
 				return err
 			}
@@ -71,15 +62,15 @@ func TestAccountsService(s *testing.T) {
 			return nil
 		})
 
-		assert.ErrorIs(t, err, ErrInvalidArgument)
+		assert.ErrorIs(t, err, accounts.ErrInvalidArgument)
 		assert.Contains(t, err.Error(), "IdentityID is required.")
 		assert.Nil(t, acc)
 	})
 
 	s.Run("Get requires accountID", func(t *testing.T) {
-		var acc *Account
+		var acc *accounts.Account
 		err := crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-			_acc, err := as.Get(ctx, "")
+			_acc, err := ops.Get(ctx, b, "")
 			if err != nil {
 				return err
 			}
@@ -88,7 +79,7 @@ func TestAccountsService(s *testing.T) {
 			return nil
 		})
 
-		assert.ErrorIs(t, err, ErrInvalidArgument)
+		assert.ErrorIs(t, err, accounts.ErrInvalidArgument)
 		assert.Contains(t, err.Error(), "AccountID is required.")
 		assert.Nil(t, acc)
 	})
@@ -134,7 +125,7 @@ func TestAccountsService(s *testing.T) {
 				}
 				assert.NotNil(t, identity)
 
-				acc, err := as.Create(ctx, &CreateAccountArgs{
+				acc, err := ops.Create(ctx, b, pacioliLedgerID, &accounts.CreateAccountArgs{
 					IdentityID:                 identity.ID,
 					DebitMustNotExceedCredits:  scenario.DebitsMustNotExceedCredits,
 					CreditsMustNotExceedDebits: scenario.CreditsMustNotExceedDebits,
@@ -152,9 +143,9 @@ func TestAccountsService(s *testing.T) {
 				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, acc.CreditsMustNotExceedDebits)
 				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, acc.DebitsMustNotExceedCredits)
 
-				var freshAcc *Account
+				var freshAcc *accounts.Account
 				err = crdbsqlx.ExecuteTx(ctx, db, nil, func(tx *sqlx.Tx) error {
-					_acc, err := as.GetByIdentityIDWithTrx(ctx, tx, identity.ID)
+					_acc, err := ops.GetByIdentityIDWithTrx(ctx, b, tx, identity.ID)
 					if err != nil {
 						return err
 					}
@@ -173,7 +164,7 @@ func TestAccountsService(s *testing.T) {
 				assert.Equal(tt, scenario.CreditsMustNotExceedDebits, freshAcc.CreditsMustNotExceedDebits)
 				assert.Equal(tt, scenario.DebitsMustNotExceedCredits, freshAcc.DebitsMustNotExceedCredits)
 
-				freshAccGottenByID, err := as.Get(ctx, acc.ID)
+				freshAccGottenByID, err := ops.Get(ctx, b, acc.ID)
 				if err != nil {
 					tt.Fatal(err)
 				}
@@ -211,25 +202,25 @@ func TestAccountsService(s *testing.T) {
 			assert.NotNil(t, identity)
 			type scenario struct {
 				Name                 string
-				Args                 *CreateAccountArgs
+				Args                 *accounts.CreateAccountArgs
 				ExpectedErrorMessage string
 				ExpectedError        error
 			}
 			scenarios := []scenario{
 				{
 					Name: "Identity must exist",
-					Args: &CreateAccountArgs{
+					Args: &accounts.CreateAccountArgs{
 						IdentityID: uuid.NewString(),
 						Provider:   "unit",
 						ProviderID: uuid.NewString(),
 					},
 					ExpectedErrorMessage: "not found.",
-					ExpectedError:        ErrInternal,
+					ExpectedError:        accounts.ErrInternal,
 				},
 			}
 
 			for _, scenario := range scenarios {
-				acc, err := as.Create(ctx, scenario.Args)
+				acc, err := ops.Create(ctx, b, pacioliLedgerID, scenario.Args)
 
 				assert.ErrorIs(tt, err, scenario.ExpectedError)
 				assert.Contains(tt, err.Error(), scenario.ExpectedErrorMessage)

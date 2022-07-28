@@ -10,17 +10,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"go.uber.org/zap"
-
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/fynbos/backend/accounts"
+	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/mocks"
+	"go.uber.org/zap"
 )
 
 func TestWebhook(t *testing.T) {
@@ -125,7 +124,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -182,7 +181,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -311,7 +310,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -347,7 +346,7 @@ func TestStoreEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {
@@ -390,7 +389,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {

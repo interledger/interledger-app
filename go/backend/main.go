@@ -23,10 +23,11 @@ import (
 	"gitlab.com/fynbos/backend/withdrawals"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	kratos "github.com/ory/kratos-client-go"
-	"gitlab.com/fynbos/backend/accounts"
+	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/cli"
@@ -49,6 +50,7 @@ import (
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
@@ -88,6 +90,9 @@ func main() {
 }
 
 func start(args *cli.StartArgs) {
+	var b = new(backends)
+	b.val = validator.New()
+
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
@@ -97,6 +102,7 @@ func start(args *cli.StartArgs) {
 			log.Fatalln(err)
 		}
 	}()
+	b.db = db
 
 	cfg := zap.NewProductionConfig()
 	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
@@ -138,29 +144,20 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	id = identity.NewLoggingService(id, logger)
+	b.ids = id
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.pacioli = pClient
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Db:              db,
-		Is:              id,
-		Cs:              cs,
-		PacioliClient:   pClient,
-		PacioliLedgerID: args.UsdLedgerID,
-		PacioliTenant:   "dev",
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	as = accounts.NewLoggingService(as, logger)
+	accountsClient := accounts_client.New(b, args.UsdLedgerID, logger)
 
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+		AccountClient: accountsClient,
+		PacioliClient: pClient,
+		Db:            db,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -192,7 +189,7 @@ func start(args *cli.StartArgs) {
 		WebhookToken:    args.UnitWebhookToken,
 		Db:              db,
 		IdentityService: id,
-		AccountService:  as,
+		AccountClient:   accountsClient,
 		Logger:          logger,
 	})
 	if err != nil {
@@ -202,7 +199,7 @@ func start(args *cli.StartArgs) {
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
 		ExternalClient:  _mxexternal.NewClient(args.MxBaseURL, args.MxClientID, args.MxApiKey),
 		Db:              db,
-		AccountsService: as,
+		AccountsService: accountsClient,
 		IdentityService: id,
 		Temporal:        tp,
 	})
@@ -212,7 +209,7 @@ func start(args *cli.StartArgs) {
 
 	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
 		Is:   id,
-		As:   as,
+		As:   accountsClient,
 		Db:   db,
 		Noop: nos,
 		Unit: us,
@@ -225,7 +222,7 @@ func start(args *cli.StartArgs) {
 
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
-		As:   as,
+		As:   accountsClient,
 		Is:   id,
 		Noop: nos,
 		Tp:   tp,
@@ -236,7 +233,7 @@ func start(args *cli.StartArgs) {
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
-		As: as,
+		As: accountsClient,
 		Is: id,
 		Fs: fs,
 		Tp: tp,
@@ -247,7 +244,7 @@ func start(args *cli.StartArgs) {
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,
-		As: as,
+		As: accountsClient,
 		Is: id,
 		Fs: fs,
 		Tp: tp,
@@ -258,7 +255,7 @@ func start(args *cli.StartArgs) {
 
 	ps, err := payments.NewService(&payments.ServiceArgs{
 		Db: db,
-		As: as,
+		As: accountsClient,
 		Is: id,
 		Tp: tp,
 	})
@@ -278,7 +275,7 @@ func start(args *cli.StartArgs) {
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
 		Identity:                         id,
-		Account:                          as,
+		Account:                          accountsClient,
 		Country:                          cs,
 		User:                             users,
 		Noop:                             nos,
@@ -341,7 +338,7 @@ func start(args *cli.StartArgs) {
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   health,
 		IdentityService:      id,
-		AccountsService:      as,
+		AccountsService:      accountsClient,
 		AgreementsService:    ags,
 		AdminAuthService:     adminUsers,
 		UnitProvider:         us,
@@ -394,6 +391,10 @@ func migrate(args *cli.MigrationArgs) {
 
 func startWorker(args *cli.StartArgs) {
 	log.Printf("begin worker start")
+
+	var b = new(backends)
+	b.val = validator.New()
+
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
@@ -403,6 +404,7 @@ func startWorker(args *cli.StartArgs) {
 			log.Fatalln(err)
 		}
 	}()
+	b.db = db
 
 	cfg := zap.NewProductionConfig()
 	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
@@ -414,38 +416,32 @@ func startWorker(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	cs := country.NewService(db)
 	id, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
 		Db:             db,
 	})
+	b.countries = cs
+
 	if err != nil {
 		log.Fatalln(err)
 	}
 	id = identity.NewLoggingService(id, logger)
+	b.ids = id
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
+	b.pacioli = pClient
 
-	as, err := accounts.NewService(&accounts.ServiceArgs{
-		Db:              db,
-		Is:              id,
-		Cs:              cs,
-		PacioliClient:   pClient,
-		PacioliLedgerID: args.UsdLedgerID,
-		PacioliTenant:   "dev",
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	as = accounts.NewLoggingService(as, logger)
+	as := accounts_client.New(b, args.UsdLedgerID, logger)
 
 	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountService: as,
-		PacioliClient:  pClient,
-		Db:             db,
+		AccountClient: as,
+		PacioliClient: pClient,
+		Db:            db,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -473,7 +469,7 @@ func startWorker(args *cli.StartArgs) {
 		WebhookToken:    args.UnitWebhookToken,
 		Db:              db,
 		IdentityService: id,
-		AccountService:  as,
+		AccountClient:   as,
 		Logger:          logger,
 	})
 	if err != nil {
@@ -571,4 +567,42 @@ func startWorker(args *cli.StartArgs) {
 	if err != nil {
 		logger.Fatal("Unable to start worker", zap.Error(err))
 	}
+}
+
+type AllBackends interface {
+	Validator() *validator.Validate
+	DB() *sqlx.DB
+	Identity() identity.Service
+	Countries() country.Service
+	Pacioli() pacioli.Client
+}
+
+var _ AllBackends = backends{}
+
+type backends struct {
+	val       *validator.Validate
+	db        *sqlx.DB
+	ids       identity.Service
+	countries country.Service
+	pacioli   pacioli.Client
+}
+
+func (b backends) Identity() identity.Service {
+	return b.ids
+}
+
+func (b backends) Countries() country.Service {
+	return b.countries
+}
+
+func (b backends) Pacioli() pacioli.Client {
+	return b.pacioli
+}
+
+func (b backends) DB() *sqlx.DB {
+	return b.db
+}
+
+func (b backends) Validator() *validator.Validate {
+	return b.val
 }

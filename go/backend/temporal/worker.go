@@ -20,7 +20,7 @@ type WorkerArgs struct {
 	Client client.Client
 	Ps     payments.Service
 	Ds     deposits.Service
-	As     accounts.Service
+	As     accounts.Client
 	Np     noop.Service
 	Ts     transactions.Service
 	Ws     withdrawals.Service
