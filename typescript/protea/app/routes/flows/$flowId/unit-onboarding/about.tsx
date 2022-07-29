@@ -4,7 +4,7 @@ import { redirect } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, Checkbox, Router, TextField } from '~/components'
-import { getCurrentFlow } from '~/lib/flows.server'
+import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
 import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
@@ -223,6 +223,8 @@ export async function action({ request, params }: ActionArgs) {
     throw response
   }
 
-  if (response.status.code == 'OK') return redirect(route('/'))
+  const headers = await exitFlow(request)
+
+  if (response.status.code == 'OK') return redirect(route('/'), { headers })
   return json({ errors: { ...fieldErrors } }, { status: 400 })
 }
