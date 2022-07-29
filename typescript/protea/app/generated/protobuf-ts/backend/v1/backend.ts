@@ -271,6 +271,24 @@ export interface PhoneVerificationResponse {
     status: string;
 }
 /**
+ * @generated from protobuf message backend.v1.GetAgreementRequest
+ */
+export interface GetAgreementRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.Agreement
+ */
+export interface Agreement {
+    /**
+     * @generated from protobuf field: string content = 1;
+     */
+    content: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetQuoteRequest
  */
 export interface GetQuoteRequest {
@@ -1293,6 +1311,100 @@ class PhoneVerificationResponse$Type extends MessageType<PhoneVerificationRespon
  */
 export const PhoneVerificationResponse = new PhoneVerificationResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class GetAgreementRequest$Type extends MessageType<GetAgreementRequest> {
+    constructor() {
+        super("backend.v1.GetAgreementRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetAgreementRequest>): GetAgreementRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetAgreementRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetAgreementRequest): GetAgreementRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetAgreementRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetAgreementRequest
+ */
+export const GetAgreementRequest = new GetAgreementRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Agreement$Type extends MessageType<Agreement> {
+    constructor() {
+        super("backend.v1.Agreement", [
+            { no: 1, name: "content", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Agreement>): Agreement {
+        const message = { content: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Agreement>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Agreement): Agreement {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string content */ 1:
+                    message.content = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Agreement, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string content = 1; */
+        if (message.content !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.content);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Agreement
+ */
+export const Agreement = new Agreement$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetQuoteRequest$Type extends MessageType<GetQuoteRequest> {
     constructor() {
         super("backend.v1.GetQuoteRequest", [
@@ -1568,6 +1680,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "InitiateUnitOnboarding", options: {}, I: InitiateUnitOnboardingRequest, O: InitiateUnitOnboardingResponse },
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: PhoneVerificationResponse },
     { name: "CheckPhoneVerificationCode", options: {}, I: CheckPhoneVerificationCodeRequest, O: PhoneVerificationResponse },
+    { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse }
 ]);

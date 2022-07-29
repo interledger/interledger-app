@@ -38,6 +38,8 @@ service BackendService {
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
+  // Allows getting and signing agreements.
+  rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
@@ -120,6 +122,14 @@ message CheckPhoneVerificationCodeRequest {
 message PhoneVerificationResponse {
   // The status from twilio. Can be "approved" or "pending"
   string status = 1;
+}
+
+message GetAgreementRequest {
+  string id = 1;
+}
+
+message Agreement {
+  string content = 1;
 }
 
 message GetQuoteRequest {
