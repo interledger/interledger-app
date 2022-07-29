@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
-	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/mocks"
@@ -229,7 +228,7 @@ func TestHandlePaymentEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	identityMock := identity.NewMockService(ctrl)
+	identityMock := identity_mock.NewMockClient(ctrl)
 	temporalMockClient := &mocks.Client{}
 
 	db := test_utils.MigrateCockroachDB(t, ctx)
@@ -240,7 +239,7 @@ func TestHandlePaymentEvent(t *testing.T) {
 		WebhookToken:    "webhooktoken",
 		Db:              db,
 		IdentityService: identityMock,
-		AccountService:  accounts.NewMockService(ctrl),
+		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
 	if err != nil {

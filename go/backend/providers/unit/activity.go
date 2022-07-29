@@ -17,14 +17,14 @@ type (
 	Activity struct {
 		validator       *validator.Validate
 		unitService     Service
-		accountsService accounts.Service
-		identityService identity.Service
+		accountsService accounts.Client
+		identityService identity.Client
 	}
 
 	ActivityArgs struct {
-		UnitService     Service          `validate:"required"`
-		AccountsService accounts.Service `validate:"required"`
-		IdentityService identity.Service `validate:"required"`
+		UnitService     Service         `validate:"required"`
+		AccountsService accounts.Client `validate:"required"`
+		IdentityService identity.Client `validate:"required"`
 	}
 )
 

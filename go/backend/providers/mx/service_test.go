@@ -663,8 +663,8 @@ func TestInitiateCreateAccount(t *testing.T) {
 func TestGetAccountBalance(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
-	accountsService := accounts.NewMockService(ctrl)
-	identityService := identity.NewMockService(ctrl)
+	accountsService := accounts_mock.NewMockClient(ctrl)
+	identityService := identity_mock.NewMockClient(ctrl)
 	temporal := &mocks.Client{}
 	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{

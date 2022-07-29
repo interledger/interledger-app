@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/backend/accounts"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -335,8 +337,8 @@ func TestInitiateUserDeposit(t *testing.T) {
 		server.Close()
 	})
 	ctrl := gomock.NewController(t)
-	mockAccounts := accounts.NewMockService(ctrl)
-	mockIdentity := identity.NewMockService(ctrl)
+	mockAccounts := accounts_mock.NewMockClient(ctrl)
+	mockIdentity := identity_mock.NewMockClient(ctrl)
 	unitService, err := NewService(ServiceArgs{
 		WebhookToken:    "fynbos_local_unit_webhook_token",
 		BaseURL:         server.URL,
@@ -344,7 +346,7 @@ func TestInitiateUserDeposit(t *testing.T) {
 		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
 		IdentityService: mockIdentity,
 		Logger:          zap.NewNop(),
-		AccountService:  mockAccounts,
+		AccountClient:   mockAccounts,
 	})
 	if err != nil {
 		t.Fatal(err)
