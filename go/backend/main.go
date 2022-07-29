@@ -316,6 +316,7 @@ func start(args *cli.StartArgs) {
 		DepositService:       ds,
 		TwilioService:        twilioService,
 		WaitlistClient:       waitlist_client.New(b, logger),
+		Temporal:             tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
