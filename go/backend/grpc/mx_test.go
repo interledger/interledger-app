@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -32,11 +33,12 @@ import (
 type TestContainer struct {
 	HealthService        healthcheck.Service
 	AccountService       *accounts.MockService
+	AgreementsService    *agreements.MockService
 	IdentityService      *identity.MockService
 	AdminAuthService     auth.Service
 	UserService          user.Service
 	FundingsourceService *fundingsources.MockService
-	TwilioService 			 *twilio.MockService
+	TwilioService        *twilio.MockService
 	OnboardingService    *onboarding.MockService
 	UnitProvider         *unit.MockService
 	MxProvider           *mx.MockService
@@ -57,11 +59,12 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	c := &TestContainer{
 		HealthService:        hs,
 		AccountService:       accounts.NewMockService(ctrl),
+		AgreementsService:    agreements.NewMockService(ctrl),
 		IdentityService:      identity.NewMockService(ctrl),
 		AdminAuthService:     auth.NewMockService(),
 		UserService:          user.NewMockService(),
 		FundingsourceService: fundingsources.NewMockService(ctrl),
-		TwilioService: 				twilio.NewMockService(ctrl),
+		TwilioService:        twilio.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
 		OnboardingService:    onboarding.NewMockService(ctrl),
 		MxProvider:           mx.NewMockService(ctrl),
@@ -248,11 +251,12 @@ func startTestServer(
 		HealthCheckService:   c.HealthService,
 		IdentityService:      c.IdentityService,
 		AccountsService:      c.AccountService,
+		AgreementsService:    c.AgreementsService,
 		AdminAuthService:     c.AdminAuthService,
 		UserService:          c.UserService,
 		UnitProvider:         c.UnitProvider,
 		FundingSourceService: c.FundingsourceService,
-		TwilioService: 				c.TwilioService,
+		TwilioService:        c.TwilioService,
 		OnboardingService:    c.OnboardingService,
 		MxProvider:           c.MxProvider,
 		RafikiProvider:       c.RafikiProvider,

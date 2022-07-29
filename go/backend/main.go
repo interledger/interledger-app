@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/temporal"
 	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc/credentials/insecure"
@@ -328,10 +329,19 @@ func start(args *cli.StartArgs) {
 	}
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
 
+	ags, err := agreements.NewService(&agreements.ServiceArgs{
+		Db:            db,
+		AgreementsDir: "./utils/agreements/live",
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   health,
 		IdentityService:      id,
 		AccountsService:      as,
+		AgreementsService:    ags,
 		AdminAuthService:     adminUsers,
 		UnitProvider:         us,
 		UserService:          users,
