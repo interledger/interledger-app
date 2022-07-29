@@ -321,11 +321,6 @@ export type ActivityTransactionQueryVariables = Exact<{
 
 export type ActivityTransactionQuery = { __typename?: 'Query', transaction: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } };
 
-export type SettingsPaymentMethodsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SettingsPaymentMethodsQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
-
 export type FlowsDepositPaymentMethodQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -376,6 +371,11 @@ export type HomeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type HomeQuery = { __typename?: 'Query', account?: { __typename?: 'Account', id: string, balance: string, recentTransactions: Array<{ __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string }> } | null | undefined };
 
+export type SettingsPaymentMethodsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SettingsPaymentMethodsQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
+
 export type SignupQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -423,19 +423,6 @@ export const ActivityTransactionDocument = gql`
 }
     `;
 export type ActivityTransactionQueryResult = Apollo.QueryResult<ActivityTransactionQuery, ActivityTransactionQueryVariables>;
-export const SettingsPaymentMethodsDocument = gql`
-    query SettingsPaymentMethods {
-  fundingSources {
-    id
-    name
-    verificationStatus
-    mask
-    type
-    subType
-  }
-}
-    `;
-export type SettingsPaymentMethodsQueryResult = Apollo.QueryResult<SettingsPaymentMethodsQuery, SettingsPaymentMethodsQueryVariables>;
 export const FlowsDepositPaymentMethodDocument = gql`
     query FlowsDepositPaymentMethod {
   fundingSources {
@@ -574,6 +561,19 @@ export const HomeDocument = gql`
 }
     `;
 export type HomeQueryResult = Apollo.QueryResult<HomeQuery, HomeQueryVariables>;
+export const SettingsPaymentMethodsDocument = gql`
+    query SettingsPaymentMethods {
+  fundingSources {
+    id
+    name
+    verificationStatus
+    mask
+    type
+    subType
+  }
+}
+    `;
+export type SettingsPaymentMethodsQueryResult = Apollo.QueryResult<SettingsPaymentMethodsQuery, SettingsPaymentMethodsQueryVariables>;
 export const SignupDocument = gql`
     query Signup {
   countries {

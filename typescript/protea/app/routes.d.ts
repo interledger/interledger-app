@@ -2,24 +2,19 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/onboarding/country-access": Record<string, never>;
+    "/activity/transaction/:id": { "id": string };
+    "/settings/payment-methods": Record<string, never>;
     "/confirmation/:flowId": { "flowId": string };
     "/confirmation/:flowId/payment-method": { "flowId": string };
     "/confirmation/:flowId/withdraw": { "flowId": string };
     "/confirmation/:flowId/deposit": { "flowId": string };
     "/confirmation/:flowId/send": { "flowId": string };
     "/recovery/password": Record<string, never>;
+    "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
+    "/activity/filter": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/onboarding/unit": Record<string, never>;
-    "/": Record<string, never>;
-    "/activity/transaction/:id": { "id": string };
-    "/settings/payment-methods": Record<string, never>;
-    "/settings/password": Record<string, never>;
-    "/activity/filter": Record<string, never>;
-    "/activity": Record<string, never>;
-    "/settings": Record<string, never>;
-    "/connect": Record<string, never>;
-    "/receive": Record<string, never>;
     "/flows/:flowId": { "flowId": string };
     "/flows/:flowId/unit-onboarding/address": { "flowId": string };
     "/flows/:flowId/withdraw/payment-method": { "flowId": string };
@@ -40,10 +35,15 @@ declare module "routes-gen" {
     "/flows/:flowId/signup/sms": { "flowId": string };
     "/flows/:flowId/send/to": { "flowId": string };
     "/disclosures": Record<string, never>;
+    "/activity": Record<string, never>;
     "/recovery": Record<string, never>;
+    "/settings": Record<string, never>;
+    "/connect": Record<string, never>;
+    "/receive": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
+    "/": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
@@ -53,24 +53,19 @@ declare module "routes-gen" {
     T extends
       | ["/api/maps/placesAutocomplete"]
       | ["/onboarding/country-access"]
+      | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
+      | ["/settings/payment-methods"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
       | ["/recovery/password"]
+      | ["/settings/password"]
       | ["/api/maps/geocode"]
+      | ["/activity/filter"]
       | ["/login/challenge"]
       | ["/onboarding/unit"]
-      | ["/"]
-      | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
-      | ["/settings/payment-methods"]
-      | ["/settings/password"]
-      | ["/activity/filter"]
-      | ["/activity"]
-      | ["/settings"]
-      | ["/connect"]
-      | ["/receive"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
       | ["/flows/:flowId/unit-onboarding/address", RouteParams["/flows/:flowId/unit-onboarding/address"]]
       | ["/flows/:flowId/withdraw/payment-method", RouteParams["/flows/:flowId/withdraw/payment-method"]]
@@ -91,10 +86,15 @@ declare module "routes-gen" {
       | ["/flows/:flowId/signup/sms", RouteParams["/flows/:flowId/signup/sms"]]
       | ["/flows/:flowId/send/to", RouteParams["/flows/:flowId/send/to"]]
       | ["/disclosures"]
+      | ["/activity"]
       | ["/recovery"]
+      | ["/settings"]
+      | ["/connect"]
+      | ["/receive"]
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
+      | ["/"]
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
