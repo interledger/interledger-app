@@ -96,11 +96,11 @@ type (
 	}
 
 	ServiceArgs struct {
-		ExternalClient  external.Mx      `validate:"required"`
-		Db              *sqlx.DB         `validate:"required"`
-		AccountsService accounts.Client  `validate:"required"`
+		ExternalClient  external.Mx     `validate:"required"`
+		Db              *sqlx.DB        `validate:"required"`
+		AccountsService accounts.Client `validate:"required"`
 		IdentityService identity.Client `validate:"required"`
-		Temporal        client.Client    `validate:"required"`
+		Temporal        client.Client   `validate:"required"`
 	}
 
 	service struct {

@@ -10,7 +10,6 @@ import (
 	"os"
 	"time"
 
-	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/agreements"
 	"google.golang.org/grpc/credentials/insecure"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
@@ -33,8 +32,9 @@ import (
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
+	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/migrations"
-	"gitlab.com/fynbos/backend/onboarding"
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/payments"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_mxexternal "gitlab.com/fynbos/backend/providers/mx/external"
@@ -195,16 +195,7 @@ func start(args *cli.StartArgs) {
 
 	fs := funding_client.New(b, logger)
 
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   accountsClient,
-		Is:   id,
-		Noop: nos,
-		Tp:   tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	os := onboarding_client.New(b)
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
@@ -473,16 +464,7 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatal(err)
 	}
 
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   id,
-		Noop: nos,
-		Tp:   tp,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	os := onboarding_client.New(b)
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,

@@ -31,19 +31,19 @@ var (
 )
 
 type ServerArgs struct {
-	HealthCheckService   healthcheck.Service    `validate:"required"`
+	HealthCheckService   healthcheck.Service   `validate:"required"`
 	IdentityService      identity.Client       `validate:"required"`
 	AccountsService      accounts.Client       `validate:"required"`
-	AgreementsService    agreements.Service     `validate:"required"`
-	AdminAuthService     auth.Service           `validate:"required"`
-	UserService          user.Service           `validate:"required"`
-	UnitProvider         unit.Service           `validate:"required"`
+	AgreementsService    agreements.Service    `validate:"required"`
+	AdminAuthService     auth.Service          `validate:"required"`
+	UserService          user.Service          `validate:"required"`
+	UnitProvider         unit.Service          `validate:"required"`
 	FundingSourceService fundingsources.Client `validate:"required"`
-	OnboardingService    onboarding.Service     `validate:"required"`
-	MxProvider           mx.Service             `validate:"required"`
-	RafikiProvider       rafiki.Service         `validate:"required"`
-	DepositService       deposits.Service       `validate:"required"`
-	TwilioService        twilio.Service         `validate:"required"`
+	OnboardingService    onboarding.Client     `validate:"required"`
+	MxProvider           mx.Service            `validate:"required"`
+	RafikiProvider       rafiki.Service        `validate:"required"`
+	DepositService       deposits.Service      `validate:"required"`
+	TwilioService        twilio.Service        `validate:"required"`
 }
 
 type rpcService struct {
@@ -54,7 +54,7 @@ type rpcService struct {
 	identityService      identity.Client
 	userService          user.Service
 	unitProvider         unit.Service
-	onboardingService    onboarding.Service
+	onboardingService    onboarding.Client
 	fundingSourceService fundingsources.Client
 	mxProvider           mx.Service
 	rafikiProvider       rafiki.Service
