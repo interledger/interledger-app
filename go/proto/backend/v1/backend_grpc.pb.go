@@ -118,8 +118,9 @@ type BackendServiceClient interface {
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
-	// Allows getting and signing agreements.
+	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
+	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	InitiateDeposit(ctx context.Context, in *InitiateDepositRequest, opts ...grpc.CallOption) (*InitiateDepositResponse, error)
@@ -214,6 +215,15 @@ func (c *backendServiceClient) GetAgreement(ctx context.Context, in *GetAgreemen
 	return out, nil
 }
 
+func (c *backendServiceClient) SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error) {
+	out := new(SignAgreementsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SignAgreements", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error) {
 	out := new(Quote)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetQuote", in, out, opts...)
@@ -248,8 +258,9 @@ type BackendServiceServer interface {
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
-	// Allows getting and signing agreements.
+	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
+	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
 	InitiateDeposit(context.Context, *InitiateDepositRequest) (*InitiateDepositResponse, error)
@@ -285,6 +296,9 @@ func (UnimplementedBackendServiceServer) CheckPhoneVerificationCode(context.Cont
 }
 func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAgreement not implemented")
+}
+func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignAgreements not implemented")
 }
 func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequest) (*Quote, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetQuote not implemented")
@@ -466,6 +480,24 @@ func _BackendService_GetAgreement_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_SignAgreements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignAgreementsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SignAgreements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SignAgreements",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SignAgreements(ctx, req.(*SignAgreementsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_GetQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetQuoteRequest)
 	if err := dec(in); err != nil {
@@ -544,6 +576,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAgreement",
 			Handler:    _BackendService_GetAgreement_Handler,
+		},
+		{
+			MethodName: "SignAgreements",
+			Handler:    _BackendService_SignAgreements_Handler,
 		},
 		{
 			MethodName: "GetQuote",

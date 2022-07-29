@@ -43,3 +43,52 @@ func (s *rpcService) GetAgreement(
 		Content: agreement.Content,
 	}, nil
 }
+
+type validateSignAgreements struct {
+	AgreementIDs []string `validate:"required,min=1"`
+	IdentityID   string   `validate:"required,uuid"`
+	IPAddress    string   `validate:"required,ip_addr"`
+}
+
+func validateSignAgreementsDescription(err validator.FieldError) string {
+	switch err.Tag() {
+	case "required":
+		return "Missing required fields."
+	case "min":
+		return "You have to provide at least one agreement."
+	case "uuid":
+		return "Identity id must be a valid uuid."
+	case "ip_addr":
+		return "IP address must be a valid ip address."
+	}
+	return ""
+}
+
+func (s *rpcService) SignAgreements(
+	ctx context.Context,
+	req *backendv1.SignAgreementsRequest,
+) (*backendv1.SignAgreementsResponse, error) {
+	if err := s.validator.Struct(&validateSignAgreements{
+		AgreementIDs: req.GetAgreementIds(),
+		IdentityID:   req.GetIdentityId(),
+		IPAddress:    req.GetIpAddress(),
+	}); err != nil {
+		return nil, ValidationError(err, validateSignAgreementsDescription)
+	}
+
+	err := s.agreementsService.Sign(ctx, &agreements.SignArgs{
+		AgreementIDs: req.GetAgreementIds(),
+		IdentityID:   req.GetIdentityId(),
+		IPAddress:    req.GetIpAddress(),
+	})
+	if err != nil {
+		if errors.Is(err, agreements.ErrNotFound) {
+			return nil, NotFoundError("Agreement not found.")
+		}
+		return nil, InternalError("Sign agreements.")
+	}
+
+	return &backendv1.SignAgreementsResponse{
+		Signed: true,
+	}, nil
+}
