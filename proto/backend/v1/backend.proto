@@ -38,8 +38,9 @@ service BackendService {
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
-  // Allows getting and signing agreements.
+  // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
+  rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
@@ -130,6 +131,16 @@ message GetAgreementRequest {
 
 message Agreement {
   string content = 1;
+}
+
+message SignAgreementsRequest {
+  repeated string agreementIds = 1;
+  string identityId = 2;
+  string ipAddress = 3;
+}
+
+message SignAgreementsResponse {
+  bool signed = 1;
 }
 
 message GetQuoteRequest {

@@ -289,6 +289,32 @@ export interface Agreement {
     content: string;
 }
 /**
+ * @generated from protobuf message backend.v1.SignAgreementsRequest
+ */
+export interface SignAgreementsRequest {
+    /**
+     * @generated from protobuf field: repeated string agreementIds = 1;
+     */
+    agreementIds: string[];
+    /**
+     * @generated from protobuf field: string identityId = 2;
+     */
+    identityId: string;
+    /**
+     * @generated from protobuf field: string ipAddress = 3;
+     */
+    ipAddress: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SignAgreementsResponse
+ */
+export interface SignAgreementsResponse {
+    /**
+     * @generated from protobuf field: bool signed = 1;
+     */
+    signed: boolean;
+}
+/**
  * @generated from protobuf message backend.v1.GetQuoteRequest
  */
 export interface GetQuoteRequest {
@@ -1405,6 +1431,114 @@ class Agreement$Type extends MessageType<Agreement> {
  */
 export const Agreement = new Agreement$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
+    constructor() {
+        super("backend.v1.SignAgreementsRequest", [
+            { no: 1, name: "agreementIds", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "identityId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SignAgreementsRequest>): SignAgreementsRequest {
+        const message = { agreementIds: [], identityId: "", ipAddress: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SignAgreementsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SignAgreementsRequest): SignAgreementsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string agreementIds */ 1:
+                    message.agreementIds.push(reader.string());
+                    break;
+                case /* string identityId */ 2:
+                    message.identityId = reader.string();
+                    break;
+                case /* string ipAddress */ 3:
+                    message.ipAddress = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SignAgreementsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string agreementIds = 1; */
+        for (let i = 0; i < message.agreementIds.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.agreementIds[i]);
+        /* string identityId = 2; */
+        if (message.identityId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.identityId);
+        /* string ipAddress = 3; */
+        if (message.ipAddress !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.ipAddress);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SignAgreementsRequest
+ */
+export const SignAgreementsRequest = new SignAgreementsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SignAgreementsResponse$Type extends MessageType<SignAgreementsResponse> {
+    constructor() {
+        super("backend.v1.SignAgreementsResponse", [
+            { no: 1, name: "signed", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SignAgreementsResponse>): SignAgreementsResponse {
+        const message = { signed: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SignAgreementsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SignAgreementsResponse): SignAgreementsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool signed */ 1:
+                    message.signed = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SignAgreementsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool signed = 1; */
+        if (message.signed !== false)
+            writer.tag(1, WireType.Varint).bool(message.signed);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SignAgreementsResponse
+ */
+export const SignAgreementsResponse = new SignAgreementsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetQuoteRequest$Type extends MessageType<GetQuoteRequest> {
     constructor() {
         super("backend.v1.GetQuoteRequest", [
@@ -1681,6 +1815,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: PhoneVerificationResponse },
     { name: "CheckPhoneVerificationCode", options: {}, I: CheckPhoneVerificationCodeRequest, O: PhoneVerificationResponse },
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
+    { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse }
 ]);
