@@ -21,6 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
+	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/accounts"
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -136,7 +137,8 @@ func start(args *cli.StartArgs) {
 	}
 	users = user.NewLoggingService(users, logger)
 
-	cs := country.NewService(db)
+	cs := country_client.New(b)
+	b.countries = cs
 	id, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
 		Db:             db,
@@ -411,12 +413,13 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	cs := country.NewService(db)
+	cs := country_client.New(b)
+	b.countries = cs
+
 	id, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
 		Db:             db,
 	})
-	b.countries = cs
 
 	if err != nil {
 		log.Fatalln(err)
@@ -560,7 +563,7 @@ type AllBackends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Identity() identity.Service
-	Countries() country.Service
+	Countries() country.Client
 	Pacioli() pacioli.Client
 }
 
@@ -570,7 +573,7 @@ type backends struct {
 	val       *validator.Validate
 	db        *sqlx.DB
 	ids       identity.Service
-	countries country.Service
+	countries country.Client
 	pacioli   pacioli.Client
 	accounts  accounts.Client
 }
@@ -583,7 +586,7 @@ func (b backends) Identity() identity.Service {
 	return b.ids
 }
 
-func (b backends) Countries() country.Service {
+func (b backends) Countries() country.Client {
 	return b.countries
 }
 

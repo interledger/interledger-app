@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	country_client "gitlab.com/fynbos/backend/country/client"
+
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 
 	"github.com/go-playground/validator/v10"
@@ -28,7 +30,7 @@ type TestContainer struct {
 	Ctx              context.Context
 	Logger           *zap.Logger
 	Db               *sqlx.DB
-	Cs               country.Service
+	Cs               country.Client
 	Noop             noop.Service
 	Is               _identity.Service
 	Fs               Service
@@ -59,7 +61,7 @@ func (t TestContainer) Identity() _identity.Service {
 	return t.Is
 }
 
-func (t TestContainer) Countries() country.Service {
+func (t TestContainer) Countries() country.Client {
 	return t.Cs
 }
 
@@ -79,7 +81,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	}
 	c.Logger = logger
 
-	cs := country.NewService(db)
+	cs := country_client.New(c)
 	c.Cs = cs
 
 	is, err := _identity.NewService(_identity.ServiceArgs{

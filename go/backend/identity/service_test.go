@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	country_client "gitlab.com/fynbos/backend/country/client"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/golang/mock/gomock"
@@ -11,7 +13,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
-	_country "gitlab.com/fynbos/backend/country"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.uber.org/zap"
 )
@@ -28,7 +29,7 @@ func TestIdentityService(s *testing.T) {
 	ctrl := gomock.NewController(s)
 	defer ctrl.Finish()
 
-	cs := _country.NewService(db)
+	cs := country_client.New(testBackends{db: db})
 	is, err := NewService(ServiceArgs{
 		CountryService: cs,
 		Db:             db,
@@ -211,6 +212,19 @@ func TestIdentityService(s *testing.T) {
 		assert.Equal(t, userID, identity.ID)
 		assert.Equal(t, email, identity.Email)
 	})
+}
+
+type Backends interface {
+	DB() *sqlx.DB
+}
+
+// TODO: Remove testBackends when identity gets migrated
+type testBackends struct {
+	db *sqlx.DB
+}
+
+func (t testBackends) DB() *sqlx.DB {
+	return t.db
 }
 
 // TODO: auto generate helpers.

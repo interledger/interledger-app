@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/accounts/ops"
-	_country "gitlab.com/fynbos/backend/country"
+	country_client "gitlab.com/fynbos/backend/country/client"
 	_identity "gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
@@ -31,7 +31,7 @@ func TestAccountsService(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	cs := _country.NewService(db)
+	cs := country_client.New(ops.NewTestBackends(s, db, nil, nil, nil))
 	is, err := _identity.NewService(_identity.ServiceArgs{
 		CountryService: cs,
 		Db:             db,

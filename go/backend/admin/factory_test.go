@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	country_client "gitlab.com/fynbos/backend/country/client"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -50,7 +52,7 @@ type TestContainer struct {
 	Oso              *oso.Oso
 	Noop             noop.Service
 	Up               unit.Service
-	Cs               country.Service
+	Cs               country.Client
 	Tp               *mocks.Client
 	RafikiProvider   *rafiki.MockService
 	AdminConn        *grpc.ClientConn
@@ -73,7 +75,7 @@ func (c *TestContainer) Identity() identity.Service {
 	return c.Is
 }
 
-func (c *TestContainer) Countries() country.Service {
+func (c *TestContainer) Countries() country.Client {
 	return c.Cs
 }
 
@@ -108,7 +110,9 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.PacioliClient = pClient
 	c.PacioliLedgerID = 1
 
-	cs := country.NewService(db)
+	cs := country_client.New(c)
+	c.Cs = cs
+
 	is, err := identity.NewService(identity.ServiceArgs{
 		CountryService: cs,
 		Db:             db,

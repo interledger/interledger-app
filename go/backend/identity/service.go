@@ -54,14 +54,14 @@ type Service interface {
 }
 
 type service struct {
-	country   _country.Service
+	country   _country.Client
 	validator *validator.Validate
 	db        *sqlx.DB
 }
 
 type ServiceArgs struct {
-	CountryService _country.Service `validate:"required"`
-	Db             *sqlx.DB         `validate:"required"`
+	CountryService _country.Client `validate:"required"`
+	Db             *sqlx.DB        `validate:"required"`
 }
 
 func NewService(args ServiceArgs) (Service, error) {
