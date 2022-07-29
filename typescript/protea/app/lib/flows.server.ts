@@ -207,7 +207,7 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        defaultExitTo: '/home'
+        defaultExitTo: '/'
       }
     case flowType.Withdraw:
       return {
@@ -234,7 +234,7 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        defaultExitTo: '/home'
+        defaultExitTo: '/'
       }
     case flowType.Send:
       return {
@@ -261,7 +261,7 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
           }
         ],
         complete: false,
-        defaultExitTo: '/home'
+        defaultExitTo: '/'
       }
     case flowType.PaymentMethod:
       return {

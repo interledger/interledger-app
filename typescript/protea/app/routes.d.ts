@@ -20,7 +20,6 @@ declare module "routes-gen" {
     "/settings": Record<string, never>;
     "/connect": Record<string, never>;
     "/receive": Record<string, never>;
-    "/home": Record<string, never>;
     "/flows/:flowId": { "flowId": string };
     "/flows/:flowId/unit-onboarding/address": { "flowId": string };
     "/flows/:flowId/withdraw/payment-method": { "flowId": string };
@@ -72,7 +71,6 @@ declare module "routes-gen" {
       | ["/settings"]
       | ["/connect"]
       | ["/receive"]
-      | ["/home"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
       | ["/flows/:flowId/unit-onboarding/address", RouteParams["/flows/:flowId/unit-onboarding/address"]]
       | ["/flows/:flowId/withdraw/payment-method", RouteParams["/flows/:flowId/withdraw/payment-method"]]
