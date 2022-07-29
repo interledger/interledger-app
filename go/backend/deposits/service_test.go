@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
@@ -124,7 +126,7 @@ type TestContainer struct {
 	AccountService        _accounts.Client
 	CountryService        _country.Client
 	NoopService           noop.Service
-	OnboardService        onboarding.Service
+	OnboardService        onboarding.Client
 	FundingSourcesService fundingsources.Client
 	DepositService        Service
 	Mx                    *_mx.MockService
@@ -226,16 +228,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	fs := funding_client.New(c, logger)
 	c.FundingSourcesService = fs
 
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Noop: np,
-		Tp:   c.Tp,
-	})
-	if err != nil {
-		return nil, err
-	}
+	os := onboarding_client.New(c)
 	c.OnboardService = os
 
 	temporal := &mocks.Client{}

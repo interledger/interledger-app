@@ -33,7 +33,7 @@ type GraphqlOpts struct {
 	Noop                             noop.Service                `validate:"required"`
 	UnitService                      unit.Service                `validate:"required"`
 	Ds                               deposits.Service            `validate:"required"`
-	Os                               onboarding.Service          `validate:"required"`
+	Os                               onboarding.Client           `validate:"required"`
 	Ws                               withdrawals.Service         `validate:"required"`
 	Fs                               fundingsources.Client       `validate:"required"`
 	Ps                               payments.Service            `validate:"required"`

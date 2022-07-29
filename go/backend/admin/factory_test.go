@@ -6,6 +6,10 @@ import (
 	"net"
 	"testing"
 
+	"go.temporal.io/sdk/client"
+
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 
 	"github.com/go-playground/validator/v10"
@@ -50,9 +54,9 @@ type TestContainer struct {
 	Fs               fundingsources.Client
 	Is               identity.Client
 	Hs               healthcheck.Service
-	Os               onboarding.Service
+	Os               onboarding.Client
 	Oso              *oso.Oso
-	Noop             noop.Service
+	NoopImpl         noop.Service
 	Up               unit.Service
 	Cs               country.Client
 	Tp               *mocks.Client
@@ -63,6 +67,18 @@ type TestContainer struct {
 	PacioliClient    pacioli.Client
 	PacioliLedgerID  uint32
 	ValidatorImpl    *validator.Validate
+}
+
+func (c *TestContainer) Accounts() accounts.Client {
+	return c.As
+}
+
+func (c *TestContainer) Noop() noop.Service {
+	return c.NoopImpl
+}
+
+func (c *TestContainer) Temporal() client.Client {
+	return c.Tp
 }
 
 func (c *TestContainer) Validator() *validator.Validate {
@@ -138,18 +154,10 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 
-	c.Noop = noopProvider
+	c.NoopImpl = noopProvider
 	c.Tp = &mocks.Client{}
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Noop: noopProvider,
-		Tp:   c.Tp,
-	})
-	if err != nil {
-		return nil, err
-	}
+
+	os := onboarding_client.New(c)
 	c.Os = os
 
 	listener, err := net.Listen("tcp", "0.0.0.0:8443")

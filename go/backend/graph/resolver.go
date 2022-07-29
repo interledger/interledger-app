@@ -33,7 +33,7 @@ type Resolver struct {
 	Db                  *sqlx.DB
 	AccountTransactions account_transactions.Client
 	Ds                  deposits.Service
-	Os                  onboarding.Service
+	Os                  onboarding.Client
 	Ws                  withdrawals.Service
 	Fs                  fundingsources.Client
 	Ps                  payments.Service

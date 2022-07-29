@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -39,7 +41,7 @@ type TestContainer struct {
 	NoopImpl         noop.Service
 	Is               _identity.Client
 	Fs               fundingsources.Client
-	Os               onboarding.Service
+	Os               onboarding.Client
 	Ts               account_transactions.Client
 	as               accounts.Client
 	PacioliContainer *test_utils.PacioliContainer
@@ -132,16 +134,8 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 
 	c.NoopImpl = noop
 	c.Tp = &mocks.Client{}
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Noop: noop,
-		Tp:   c.Tp,
-	})
-	if err != nil {
-		return nil, err
-	}
+
+	os := onboarding_client.New(c)
 	c.Os = os
 
 	c.UnitImpl = _unit.NewMockService(ctrl)

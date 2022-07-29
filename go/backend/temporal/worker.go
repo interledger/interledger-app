@@ -25,7 +25,7 @@ type WorkerArgs struct {
 	Ts     transactions.Client
 	Ws     withdrawals.Service
 	Fs     fundingsources.Client
-	Os     onboarding.Service
+	Os     onboarding.Client
 	Up     unit.Service
 	Mx     mx.Service
 	Is     identity.Client

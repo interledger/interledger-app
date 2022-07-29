@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
@@ -62,7 +64,7 @@ type TestContainer struct {
 	DepositService       deposits.Service
 	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Client
-	Os                   onboarding.Service
+	Os                   onboarding.Client
 	Ps                   payments.Service
 	PacioliContainer     *test_utils.PacioliContainer
 	PacioliClient        pacioli.Client
@@ -211,16 +213,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.DepositService = ds
 
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Noop: noopProvider,
-		Tp:   tp,
-	})
-	if err != nil {
-		return nil, err
-	}
+	os := onboarding_client.New(c)
 	c.Os = os
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -176,7 +178,7 @@ type TestContainer struct {
 	AccountService     _accounts.Client
 	CountryService     _country.Client
 	NoopService        noop.Service
-	OnboardService     onboarding.Service
+	OnboardService     onboarding.Client
 	TransactionService account_transactions.Client
 	PaymentService     Service
 	TemporalMock       *mocks.Client
@@ -187,6 +189,14 @@ type TestContainer struct {
 	Logger             *zap.Logger
 	Ctx                context.Context
 	ValidatorImpl      *validator.Validate
+}
+
+func (t TestContainer) Noop() noop.Service {
+	return t.NoopService
+}
+
+func (t TestContainer) Temporal() client.Client {
+	return t.TemporalMock
 }
 
 func (t TestContainer) Accounts() _accounts.Client {
@@ -260,16 +270,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	temporal := &mocks.Client{}
 	c.TemporalMock = temporal
 
-	os, err := onboarding.NewService(&onboarding.ServiceArgs{
-		Db:   db,
-		As:   as,
-		Is:   is,
-		Noop: np,
-		Tp:   temporal,
-	})
-	if err != nil {
-		return nil, err
-	}
+	os := onboarding_client.New(c)
 	c.OnboardService = os
 
 	ts := transactions_client.New(c, logger)

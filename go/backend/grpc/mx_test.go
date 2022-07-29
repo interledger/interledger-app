@@ -18,8 +18,10 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
+	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/onboarding"
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -41,7 +43,7 @@ type TestContainer struct {
 	UserService          user.Service
 	FundingsourceService fundingsources.Client
 	TwilioService        *twilio.MockService
-	OnboardingService    *onboarding.MockService
+	OnboardingService    *onboarding_mock.MockClient
 	UnitProvider         *unit.MockService
 	MxProvider           *mx.MockService
 	RafikiProvider       *rafiki.MockService
@@ -68,7 +70,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		FundingsourceService: funding_mock.NewMockClient(ctrl),
 		TwilioService:        twilio.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
-		OnboardingService:    onboarding.NewMockService(ctrl),
+		OnboardingService:    onboarding_mock.NewMockClient(ctrl),
 		MxProvider:           mx.NewMockService(ctrl),
 		RafikiProvider:       rafiki.NewMockService(ctrl),
 		DepositService:       deposits.NewMockService(ctrl),
