@@ -30,6 +30,20 @@ export const getCsrfTokenFromFlow = (
 }
 
 /**
+ * hasUserSession allows determining whether there is a user, but not gate them.
+ * requireUserSession should be preferred where gating is required.
+ * @param request Request received in a loader function.
+ * @returns boolean - if the user has a session.
+ */
+export async function hasUserSession(request: Request): Promise<boolean> {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+    headers: request.headers
+  })
+
+  return session.status == 200
+}
+
+/**
  * requireUserSession allows gating loader functions that require a user to be authenticated.
  * @param request Request received in a loader function.
  * @returns the session if the user has a session or else a redirect.
