@@ -1,4 +1,4 @@
-package account_transactions
+package ops_test
 
 import (
 	"context"
@@ -15,6 +15,8 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	_accounts "gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	_country "gitlab.com/fynbos/backend/country"
 	_identity "gitlab.com/fynbos/backend/identity"
 	_user "gitlab.com/fynbos/backend/user"
@@ -34,7 +36,7 @@ func TestAccountTransactions(s *testing.T) {
 	s.Run("validates arguments", func(t *testing.T) {
 		type scenario struct {
 			Name            string
-			Args            *CreateTransactionArgs
+			Args            *account_transactions.CreateTransactionArgs
 			ExpectedMessage string
 			ExpectedError   error
 		}
@@ -43,13 +45,13 @@ func TestAccountTransactions(s *testing.T) {
 				Name:            "Account must exist.",
 				Args:            generateCreateTransactionArgs(withAccountID(uuid.NewString())),
 				ExpectedMessage: "not found.",
-				ExpectedError:   ErrInternal,
+				ExpectedError:   account_transactions.ErrInternal,
 			},
 			{
 				Name:            "Amount must be greater than 0.",
 				Args:            generateCreateTransactionArgs(withAmount(0)),
 				ExpectedMessage: "Key: 'CreateTransactionArgs.NetAmount' Error:Field validation for 'NetAmount' failed on the 'gt' tag",
-				ExpectedError:   ErrInvalidArgument,
+				ExpectedError:   account_transactions.ErrInvalidArgument,
 			},
 		}
 
@@ -79,14 +81,14 @@ func TestAccountTransactions(s *testing.T) {
 		args := generateCreateTransactionArgs(
 			withAccountID(acc.ID),
 			withAmount(17),
-			withLedgerTransfers([]CreateLedgerTransferArgs{
+			withLedgerTransfers([]account_transactions.CreateLedgerTransferArgs{
 				{
 					LedgerID:        container.PacioliLedgerID,
 					DebitAccountID:  acc.LedgerAccountID,
 					CreditAccountID: equityAccID,
 					Amount:          100,
 					Code:            1,
-					Flags:           LedgerTransferFlags{},
+					Flags:           account_transactions.LedgerTransferFlags{},
 				},
 			}),
 		)
@@ -99,7 +101,7 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, args.AccountID, trx.AccountID)
 		assert.Equal(t, int64(args.NetAmount), trx.NetAmount)
 		assert.Equal(t, args.Description, trx.Description)
-		assert.Equal(t, Posted, trx.State)
+		assert.Equal(t, account_transactions.Posted, trx.State)
 		assert.Equal(t, args.Type, trx.Type)
 
 		// check that ledger transfers were created
@@ -114,9 +116,9 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, transfer.Flags.Pending, false)
 
 		// check that get works
-		var trxs []*AccountTransaction
+		var trxs []*account_transactions.AccountTransaction
 		err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-			_trxs, err := container.TransactionService.GetByAccount(container.Ctx, tx, &GetByAccountArgs{
+			_trxs, err := container.TransactionService.GetByAccount(container.Ctx, tx, &account_transactions.GetByAccountArgs{
 				AccountID: acc.ID,
 				Limit:     10,
 				OrderBy:   "ASC",
@@ -137,7 +139,7 @@ func TestAccountTransactions(s *testing.T) {
 		assert.Equal(t, args.AccountID, fetchedTransaction.AccountID)
 		assert.Equal(t, int64(args.NetAmount), fetchedTransaction.NetAmount)
 		assert.Equal(t, args.Description, fetchedTransaction.Description)
-		assert.Equal(t, Posted, fetchedTransaction.State)
+		assert.Equal(t, account_transactions.Posted, fetchedTransaction.State)
 		assert.Equal(t, args.Type, fetchedTransaction.Type)
 		assert.Equal(t, trx.TransferIDs, fetchedTransaction.TransferIDs)
 	})
@@ -157,19 +159,19 @@ func TestAccountTransactions(s *testing.T) {
 				t.Fatal(err)
 			}
 
-			args := &CreatePendingTransactionArgs{
+			args := &account_transactions.CreatePendingTransactionArgs{
 				AccountID:   acc.ID,
 				Description: "Pending trx",
 				Type:        "deposit",
 				NetAmount:   100,
-				LedgerTransfers: []CreateLedgerTransferArgs{
+				LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
 					{
 						LedgerID:        container.PacioliLedgerID,
 						DebitAccountID:  acc.LedgerAccountID,
 						CreditAccountID: equityAccID,
 						Amount:          100,
 						Code:            1,
-						Flags:           LedgerTransferFlags{},
+						Flags:           account_transactions.LedgerTransferFlags{},
 					},
 				},
 			}
@@ -182,7 +184,7 @@ func TestAccountTransactions(s *testing.T) {
 			assert.Equal(t, args.AccountID, trx.AccountID)
 			assert.Equal(t, int64(args.NetAmount), trx.NetAmount)
 			assert.Equal(t, args.Description, trx.Description)
-			assert.Equal(t, Pending, trx.State)
+			assert.Equal(t, account_transactions.Pending, trx.State)
 			assert.Equal(t, args.Type, trx.Type)
 
 			// check that ledger transfers were created
@@ -197,9 +199,9 @@ func TestAccountTransactions(s *testing.T) {
 			assert.Equal(t, transfer.Flags.Pending, true)
 
 			// check that get works
-			var trxs []*AccountTransaction
+			var trxs []*account_transactions.AccountTransaction
 			err = crdbsqlx.ExecuteTx(container.Ctx, container.Db, nil, func(tx *sqlx.Tx) error {
-				_trxs, err := container.TransactionService.GetByAccount(container.Ctx, tx, &GetByAccountArgs{
+				_trxs, err := container.TransactionService.GetByAccount(container.Ctx, tx, &account_transactions.GetByAccountArgs{
 					AccountID: acc.ID,
 					Limit:     10,
 					OrderBy:   "ASC",
@@ -220,7 +222,7 @@ func TestAccountTransactions(s *testing.T) {
 			assert.Equal(t, args.AccountID, fetchedTransaction.AccountID)
 			assert.Equal(t, int64(args.NetAmount), fetchedTransaction.NetAmount)
 			assert.Equal(t, args.Description, fetchedTransaction.Description)
-			assert.Equal(t, Pending, fetchedTransaction.State)
+			assert.Equal(t, account_transactions.Pending, fetchedTransaction.State)
 			assert.Equal(t, args.Type, fetchedTransaction.Type)
 			assert.Equal(t, trx.TransferIDs, fetchedTransaction.TransferIDs)
 		})
@@ -241,19 +243,19 @@ func TestAccountTransactions(s *testing.T) {
 				t.Fatal(err)
 			}
 
-			args := &CreatePendingTransactionArgs{
+			args := &account_transactions.CreatePendingTransactionArgs{
 				AccountID:   acc.ID,
 				Description: "Pending trx",
 				Type:        "deposit",
 				NetAmount:   100,
-				LedgerTransfers: []CreateLedgerTransferArgs{
+				LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
 					{
 						LedgerID:        container.PacioliLedgerID,
 						DebitAccountID:  acc.LedgerAccountID,
 						CreditAccountID: equityAccID,
 						Amount:          100,
 						Code:            1,
-						Flags:           LedgerTransferFlags{},
+						Flags:           account_transactions.LedgerTransferFlags{},
 					},
 				},
 			}
@@ -261,14 +263,14 @@ func TestAccountTransactions(s *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Equal(t, Pending, trx.State)
+			assert.Equal(t, account_transactions.Pending, trx.State)
 
 			trx, err = container.TransactionService.PostPending(container.Ctx, trx.ID)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			assert.Equal(t, Posted, trx.State)
+			assert.Equal(t, account_transactions.Posted, trx.State)
 
 			// TODO check the commit transfer was created
 		})
@@ -290,14 +292,14 @@ func TestAccountTransactions(s *testing.T) {
 			args := generateCreateTransactionArgs(
 				withAccountID(acc.ID),
 				withAmount(17),
-				withLedgerTransfers([]CreateLedgerTransferArgs{
+				withLedgerTransfers([]account_transactions.CreateLedgerTransferArgs{
 					{
 						LedgerID:        container.PacioliLedgerID,
 						DebitAccountID:  acc.LedgerAccountID,
 						CreditAccountID: equityAccID,
 						Amount:          100,
 						Code:            1,
-						Flags:           LedgerTransferFlags{},
+						Flags:           account_transactions.LedgerTransferFlags{},
 					},
 				}),
 			)
@@ -306,7 +308,7 @@ func TestAccountTransactions(s *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.NotEqual(t, Pending, trx.State)
+			assert.NotEqual(t, account_transactions.Pending, trx.State)
 
 			_, err = container.TransactionService.PostPending(container.Ctx, trx.ID)
 			if err == nil {
@@ -330,19 +332,19 @@ func TestAccountTransactions(s *testing.T) {
 				t.Fatal(err)
 			}
 
-			args := &CreatePendingTransactionArgs{
+			args := &account_transactions.CreatePendingTransactionArgs{
 				AccountID:   acc.ID,
 				Description: "Pending trx",
 				Type:        "deposit",
 				NetAmount:   100,
-				LedgerTransfers: []CreateLedgerTransferArgs{
+				LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
 					{
 						LedgerID:        container.PacioliLedgerID,
 						DebitAccountID:  acc.LedgerAccountID,
 						CreditAccountID: equityAccID,
 						Amount:          100,
 						Code:            1,
-						Flags:           LedgerTransferFlags{},
+						Flags:           account_transactions.LedgerTransferFlags{},
 					},
 				},
 			}
@@ -350,14 +352,14 @@ func TestAccountTransactions(s *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.Equal(t, Pending, trx.State)
+			assert.Equal(t, account_transactions.Pending, trx.State)
 
 			trx, err = container.TransactionService.VoidPending(container.Ctx, trx.ID)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			assert.Equal(t, Voided, trx.State)
+			assert.Equal(t, account_transactions.Voided, trx.State)
 		})
 
 		tg.Run("cant void a non pending transaction", func(t *testing.T) {
@@ -377,14 +379,14 @@ func TestAccountTransactions(s *testing.T) {
 			args := generateCreateTransactionArgs(
 				withAccountID(acc.ID),
 				withAmount(17),
-				withLedgerTransfers([]CreateLedgerTransferArgs{
+				withLedgerTransfers([]account_transactions.CreateLedgerTransferArgs{
 					{
 						LedgerID:        container.PacioliLedgerID,
 						DebitAccountID:  acc.LedgerAccountID,
 						CreditAccountID: equityAccID,
 						Amount:          100,
 						Code:            1,
-						Flags:           LedgerTransferFlags{},
+						Flags:           account_transactions.LedgerTransferFlags{},
 					},
 				}),
 			)
@@ -393,7 +395,7 @@ func TestAccountTransactions(s *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assert.NotEqual(t, Pending, trx.State)
+			assert.NotEqual(t, account_transactions.Pending, trx.State)
 
 			_, err = container.TransactionService.VoidPending(container.Ctx, trx.ID)
 			if err == nil {
@@ -403,13 +405,13 @@ func TestAccountTransactions(s *testing.T) {
 	})
 }
 
-func generateCreateTransactionArgs(opts ...func(*CreateTransactionArgs)) *CreateTransactionArgs {
-	args := &CreateTransactionArgs{
+func generateCreateTransactionArgs(opts ...func(*account_transactions.CreateTransactionArgs)) *account_transactions.CreateTransactionArgs {
+	args := &account_transactions.CreateTransactionArgs{
 		AccountID:       uuid.NewString(),
 		Description:     faker.Sentence(),
 		Type:            "deposit",
 		NetAmount:       100,
-		LedgerTransfers: []CreateLedgerTransferArgs{},
+		LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{},
 	}
 	for _, opt := range opts {
 		opt(args)
@@ -418,20 +420,20 @@ func generateCreateTransactionArgs(opts ...func(*CreateTransactionArgs)) *Create
 	return args
 }
 
-func withAccountID(id string) func(*CreateTransactionArgs) {
-	return func(args *CreateTransactionArgs) {
+func withAccountID(id string) func(*account_transactions.CreateTransactionArgs) {
+	return func(args *account_transactions.CreateTransactionArgs) {
 		args.AccountID = id
 	}
 }
 
-func withAmount(amount uint64) func(*CreateTransactionArgs) {
-	return func(args *CreateTransactionArgs) {
+func withAmount(amount uint64) func(*account_transactions.CreateTransactionArgs) {
+	return func(args *account_transactions.CreateTransactionArgs) {
 		args.NetAmount = amount
 	}
 }
 
-func withLedgerTransfers(transfers []CreateLedgerTransferArgs) func(*CreateTransactionArgs) {
-	return func(args *CreateTransactionArgs) {
+func withLedgerTransfers(transfers []account_transactions.CreateLedgerTransferArgs) func(*account_transactions.CreateTransactionArgs) {
+	return func(args *account_transactions.CreateTransactionArgs) {
 		args.LedgerTransfers = transfers
 	}
 }
@@ -444,11 +446,15 @@ type TestContainer struct {
 	PacioliClient      pacioli.Client
 	PacioliLedgerID    uint32
 	Ctrl               *gomock.Controller
-	TransactionService Service
+	TransactionService account_transactions.Client
 	Db                 *sqlx.DB
 	Logger             *zap.Logger
 	Ctx                context.Context
 	ValidatorImpl      *validator.Validate
+}
+
+func (t TestContainer) Accounts() _accounts.Client {
+	return t.AccountService
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -511,15 +517,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 
 	c.AccountService = ac
 
-	ts, err := NewService(&ServiceArgs{
-		AccountClient: ac,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.TransactionService = NewLoggingService(ts, logger)
+	c.TransactionService = transactions_client.New(c, logger)
+
 	return c, nil
 }
 

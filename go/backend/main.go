@@ -21,6 +21,8 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"gitlab.com/fynbos/backend/accounts"
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
@@ -28,7 +30,6 @@ import (
 	_ "github.com/lib/pq"
 	kratos "github.com/ory/kratos-client-go"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
-	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
@@ -153,16 +154,9 @@ func start(args *cli.StartArgs) {
 	b.pacioli = pClient
 
 	accountsClient := accounts_client.New(b, args.UsdLedgerID, logger)
+	b.accounts = accountsClient
 
-	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountClient: accountsClient,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	ts = transactions.NewLoggingService(ts, logger)
+	ts := transactions_client.New(b, logger)
 
 	nos, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      args.NoopLedgerID,
@@ -437,16 +431,9 @@ func startWorker(args *cli.StartArgs) {
 	b.pacioli = pClient
 
 	as := accounts_client.New(b, args.UsdLedgerID, logger)
+	b.accounts = as
 
-	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountClient: as,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	ts = transactions.NewLoggingService(ts, logger)
+	ts := transactions_client.New(b, logger)
 
 	nos, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      args.NoopLedgerID,
@@ -585,6 +572,11 @@ type backends struct {
 	ids       identity.Service
 	countries country.Service
 	pacioli   pacioli.Client
+	accounts  accounts.Client
+}
+
+func (b backends) Accounts() accounts.Client {
+	return b.accounts
 }
 
 func (b backends) Identity() identity.Service {

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -31,13 +33,18 @@ type TestContainer struct {
 	Is               _identity.Service
 	Fs               Service
 	Os               onboarding.Service
-	Ts               account_transactions.Service
+	Ts               account_transactions.Client
+	as               accounts.Client
 	PacioliContainer *test_utils.PacioliContainer
 	PacioliClient    pacioli.Client
 	PacioliLedgerID  uint32
 	Tp               *mocks.Client
 	Unit             *_unit.MockService
 	ValidatorImpl    *validator.Validate
+}
+
+func (t TestContainer) Accounts() accounts.Client {
+	return t.as
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -95,15 +102,9 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	c.PacioliClient = pClient
 
 	as := accounts_client.New(c, c.PacioliLedgerID, logger)
+	c.as = as
 
-	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
-		AccountClient: as,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	ts := transactions_client.New(c, logger)
 	c.Ts = ts
 
 	noop, err := noop.NewService(noop.ServiceArgs{

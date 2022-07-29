@@ -22,7 +22,7 @@ type WorkerArgs struct {
 	Ds     deposits.Service
 	As     accounts.Client
 	Np     noop.Service
-	Ts     transactions.Service
+	Ts     transactions.Client
 	Ws     withdrawals.Service
 	Fs     fundingsources.Service
 	Os     onboarding.Service

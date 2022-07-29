@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -210,7 +212,7 @@ type TestContainer struct {
 	Ctrl                  *gomock.Controller
 	IdentityService       identity.Service
 	AccountService        _accounts.Client
-	TransactionService    transactions.Service
+	TransactionService    transactions.Client
 	CountryService        _country.Service
 	NoopService           noop.Service
 	OnboardService        onboarding.Service
@@ -226,6 +228,10 @@ type TestContainer struct {
 	Logger                *zap.Logger
 	Ctx                   context.Context
 	ValidatorImpl         *validator.Validate
+}
+
+func (t TestContainer) Accounts() _accounts.Client {
+	return t.AccountService
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -339,14 +345,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.WithdrawalService = ws
 
-	at, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountClient: as,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	at := transactions_client.New(c, logger)
 	c.TransactionService = at
 
 	return c, nil

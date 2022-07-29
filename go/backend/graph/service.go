@@ -25,18 +25,18 @@ import (
 type GraphqlOpts struct {
 	Db *sqlx.DB
 	// TODO: refactor Identity -> Is etc.
-	Identity                         identity.Service             `validate:"required"`
-	User                             user.Service                 `validate:"required"`
-	Account                          accounts.Client              `validate:"required"`
-	Country                          country.Service              `validate:"required"`
-	AccountTransactions              account_transactions.Service `validate:"required"`
-	Noop                             noop.Service                 `validate:"required"`
-	UnitService                      unit.Service                 `validate:"required"`
-	Ds                               deposits.Service             `validate:"required"`
-	Os                               onboarding.Service           `validate:"required"`
-	Ws                               withdrawals.Service          `validate:"required"`
-	Fs                               fundingsources.Service       `validate:"required"`
-	Ps                               payments.Service             `validate:"required"`
+	Identity                         identity.Service            `validate:"required"`
+	User                             user.Service                `validate:"required"`
+	Account                          accounts.Client             `validate:"required"`
+	Country                          country.Service             `validate:"required"`
+	AccountTransactions              account_transactions.Client `validate:"required"`
+	Noop                             noop.Service                `validate:"required"`
+	UnitService                      unit.Service                `validate:"required"`
+	Ds                               deposits.Service            `validate:"required"`
+	Os                               onboarding.Service          `validate:"required"`
+	Ws                               withdrawals.Service         `validate:"required"`
+	Fs                               fundingsources.Service      `validate:"required"`
+	Ps                               payments.Service            `validate:"required"`
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
 }
