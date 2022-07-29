@@ -14,7 +14,7 @@ import { Menu, Popover, Transition } from '@headlessui/react'
 // Allow us to show/hide the NavRail and NavDrawer on certain pages.
 function showNav(pathname: string) {
   return (
-    ['/home', '/activity', '/connect', '/settings'].findIndex(
+    ['/', '/activity', '/connect', '/settings'].findIndex(
       (val) => val === pathname
     ) >= 0
   )
@@ -23,7 +23,7 @@ function showNav(pathname: string) {
 // Allow us to show/hide the NavBar on certain pages.
 function showNavBar(pathname: string) {
   return (
-    ['/home', '/activity', '/connect'].findIndex((val) => val === pathname) >= 0
+    ['/', '/activity', '/connect'].findIndex((val) => val === pathname) >= 0
   )
 }
 
@@ -39,7 +39,7 @@ export default function Page() {
               <LogoIcon className='mx-auto mb-4 h-8' />
             </Link>
             <NavFAB />
-            <NavListItem icon='savings' to={route('/home')}>
+            <NavListItem icon='savings' to={route('/')}>
               Home
             </NavListItem>
             <NavListItem icon='history' to={route('/activity')}>
@@ -65,7 +65,7 @@ export default function Page() {
             <div className='pb-6'>
               <NavFAB />
             </div>
-            <NavListItem icon='savings' to={route('/home')}>
+            <NavListItem icon='savings' to={route('/')}>
               Home
             </NavListItem>
             <NavListItem icon='history' to={route('/activity')}>
@@ -87,7 +87,7 @@ export default function Page() {
       {showNavBar(location.pathname) && (
         <NavBar>
           <NavList>
-            <NavListItem icon='savings' to={route('/home')}>
+            <NavListItem icon='savings' to={route('/')}>
               Home
             </NavListItem>
             <NavListItem icon='history' to={route('/activity')}>
@@ -99,7 +99,7 @@ export default function Page() {
           </NavList>
         </NavBar>
       )}
-      {(location.pathname == '/home' || location.pathname == '/activity') && (
+      {(location.pathname == '/' || location.pathname == '/activity') && (
         <HomeFAB />
       )}
     </div>

@@ -223,6 +223,6 @@ export async function action({ request, params }: ActionArgs) {
     throw response
   }
 
-  if (response.status.code == 'OK') return redirect(route('/home'))
+  if (response.status.code == 'OK') return redirect(route('/'))
   return json({ errors: { ...fieldErrors } }, { status: 400 })
 }

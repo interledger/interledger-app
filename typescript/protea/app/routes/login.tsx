@@ -161,7 +161,7 @@ export async function action({ request }: ActionArgs) {
       headers: res.headers
     })
   }
-  return redirect(route('/home'), {
+  return redirect(route('/'), {
     headers: res.headers
   })
 }

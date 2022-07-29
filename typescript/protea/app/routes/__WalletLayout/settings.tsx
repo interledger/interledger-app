@@ -47,7 +47,7 @@ export default function Page() {
       />
       {/* Header */}
       <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-app p-4 text-medium sm:min-w-full'>
-        <Link className='sm:hidden' to={route('/home')}>
+        <Link className='sm:hidden' to={route('/')}>
           <div className='-ml-3 p-3 text-medium'>
             <Icon>arrow_back</Icon>
           </div>

@@ -88,7 +88,7 @@ export async function requireNoUserSession(request: Request): Promise<void> {
   }
 
   const userSession = await session.json()
-  if (typeof userSession.error == 'undefined') throw redirect(route('/home'))
+  if (typeof userSession.error == 'undefined') throw redirect(route('/'))
 }
 
 // This will only run on the server so don't need a router.

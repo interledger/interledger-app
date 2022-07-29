@@ -63,5 +63,5 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const headers = await exitFlow(request)
-  return redirect(route('/home'), { headers })
+  return redirect(route('/'), { headers })
 }

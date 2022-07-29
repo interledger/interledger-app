@@ -56,7 +56,7 @@ export async function loader({ request }: LoaderArgs) {
   if (userSession.identity.verifiable_addresses[0].verified) {
     if (onboarding?.success)
       return redirect(onboarding?.providerOnboarding.formUrl)
-    return redirect(route('/home'))
+    return redirect(route('/'))
   }
 
   // Ensure any redirects are thrown
