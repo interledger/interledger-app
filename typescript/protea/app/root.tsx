@@ -1,16 +1,18 @@
-import type { LinksFunction, MetaFunction } from '@remix-run/node'
+import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import {
   Links,
   LiveReload,
   Meta,
-  Outlet,
   Scripts,
   ScrollRestoration,
-  useCatch
+  useCatch,
+  useLoaderData
 } from '@remix-run/react'
+import { WalletLayout, LandingLayout, Error } from '~/components'
 import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
-import { Error } from '~/components'
+import { hasUserSession } from './lib/kratos.server'
 
 const metaContent = {
   title: 'Fynbos',
@@ -82,10 +84,17 @@ function Document({
   )
 }
 
+export async function loader({ request }: LoaderArgs) {
+  const isUser = await hasUserSession(request)
+  return json({ isUser })
+}
+
 export default function Page() {
+  const { isUser } = useLoaderData<typeof loader>()
   return (
     <Document>
-      <Outlet />
+      {isUser && <WalletLayout />}
+      {!isUser && <LandingLayout />}
     </Document>
   )
 }
