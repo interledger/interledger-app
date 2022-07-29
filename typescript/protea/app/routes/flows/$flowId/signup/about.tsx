@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react'
+import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import { Autocomplete, Button, Router, TextField } from '~/components'
-import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import type { Onboarding } from '~/generated/protobuf-ts/backend/v1/backend'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
-import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
-import type { Onboarding } from '~/generated/protobuf-ts/backend/v1/backend'
-import { route } from 'routes-gen'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import type { GrpcError } from '~/lib/proto.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 type Country = {
   id: string
@@ -29,7 +28,6 @@ export async function loader({ request, params }: LoaderArgs) {
       }
     })
     .then((val) => val.data.countries as Country[])
-
   return json({
     flow,
     countries
