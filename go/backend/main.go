@@ -341,6 +341,7 @@ func start(args *cli.StartArgs) {
 		RafikiProvider:       rafikiProvider,
 		DepositService:       ds,
 		TwilioService:        twilioService,
+		Temporal:             tp,
 	})
 	if err != nil {
 		log.Fatalln(err)

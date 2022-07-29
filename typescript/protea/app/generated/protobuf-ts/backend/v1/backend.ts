@@ -51,6 +51,28 @@ export interface Account {
     creditsAccepted: string;
 }
 /**
+ * @generated from protobuf message backend.v1.SignalUnitCustomerCreatedRequest
+ */
+export interface SignalUnitCustomerCreatedRequest {
+    /**
+     * @generated from protobuf field: string userEmail = 1;
+     */
+    userEmail: string;
+    /**
+     * @generated from protobuf field: string customerId = 2;
+     */
+    customerId: string;
+    /**
+     * @generated from protobuf field: string type = 3;
+     */
+    type: string;
+}
+/**
+ * @generated from protobuf message backend.v1.Empty
+ */
+export interface Empty {
+}
+/**
  * @generated from protobuf message backend.v1.GetBankAccountWidgetRequest
  */
 export interface GetBankAccountWidgetRequest {
@@ -487,6 +509,93 @@ class Account$Type extends MessageType<Account> {
  * @generated MessageType for protobuf message backend.v1.Account
  */
 export const Account = new Account$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SignalUnitCustomerCreatedRequest$Type extends MessageType<SignalUnitCustomerCreatedRequest> {
+    constructor() {
+        super("backend.v1.SignalUnitCustomerCreatedRequest", [
+            { no: 1, name: "userEmail", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "customerId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SignalUnitCustomerCreatedRequest>): SignalUnitCustomerCreatedRequest {
+        const message = { userEmail: "", customerId: "", type: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SignalUnitCustomerCreatedRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SignalUnitCustomerCreatedRequest): SignalUnitCustomerCreatedRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string userEmail */ 1:
+                    message.userEmail = reader.string();
+                    break;
+                case /* string customerId */ 2:
+                    message.customerId = reader.string();
+                    break;
+                case /* string type */ 3:
+                    message.type = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SignalUnitCustomerCreatedRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string userEmail = 1; */
+        if (message.userEmail !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userEmail);
+        /* string customerId = 2; */
+        if (message.customerId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.customerId);
+        /* string type = 3; */
+        if (message.type !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.type);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SignalUnitCustomerCreatedRequest
+ */
+export const SignalUnitCustomerCreatedRequest = new SignalUnitCustomerCreatedRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Empty$Type extends MessageType<Empty> {
+    constructor() {
+        super("backend.v1.Empty", []);
+    }
+    create(value?: PartialMessage<Empty>): Empty {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Empty>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Empty): Empty {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: Empty, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Empty
+ */
+export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountWidgetRequest$Type extends MessageType<GetBankAccountWidgetRequest> {
     constructor() {
@@ -1554,7 +1663,8 @@ export const InitiateDepositResponse = new InitiateDepositResponse$Type();
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
 export const BackendAdminService = new ServiceType("backend.v1.BackendAdminService", [
-    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account }
+    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account },
+    { name: "SignalUnitCustomerCreated", options: {}, I: SignalUnitCustomerCreatedRequest, O: Empty }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
