@@ -21,6 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
@@ -46,6 +47,7 @@ type ServerArgs struct {
 	DepositService       deposits.Service      `validate:"required"`
 	TwilioService        twilio.Service        `validate:"required"`
 	WaitlistClient       waitlist.Client       `validate:"required"`
+	Temporal             client.Client          `validate:"required"`
 }
 
 type rpcService struct {
@@ -95,6 +97,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		IdentityService: args.IdentityService,
 		AuthService:     args.AdminAuthService,
 		UnitService:     args.UnitProvider,
+		Temporal:        args.Temporal,
 	})
 	grpc_health_v1.RegisterHealthServer(server, args.HealthCheckService)
 	reflection.Register(server)

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/unit"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,6 +22,7 @@ type AdminRpcService struct {
 	IdentityService identity.Client
 	AuthService     auth.Service
 	UnitService     unit.Service
+	Temporal        client.Client
 }
 
 func (s *AdminRpcService) GetUserAccountByEmail(

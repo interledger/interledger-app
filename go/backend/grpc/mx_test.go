@@ -29,6 +29,7 @@ import (
 	test_utils "gitlab.com/fynbos/backend/utils"
 	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -48,6 +49,7 @@ type TestContainer struct {
 	RafikiProvider       *rafiki.MockService
 	DepositService       *deposits.MockService
 	WaitlistClient       *waitlist_mock.MockClient
+	Temporal             *mocks.Client
 }
 
 type TestContainerOption func(*TestContainer)
@@ -75,6 +77,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		RafikiProvider:       rafiki.NewMockService(ctrl),
 		DepositService:       deposits.NewMockService(ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
+		Temporal:             &mocks.Client{},
 	}
 
 	for _, opt := range opts {
@@ -267,6 +270,7 @@ func startTestServer(
 		RafikiProvider:       c.RafikiProvider,
 		DepositService:       c.DepositService,
 		WaitlistClient:       c.WaitlistClient,
+		Temporal:             c.Temporal,
 	})
 	if err != nil {
 		t.Fatal(err)
