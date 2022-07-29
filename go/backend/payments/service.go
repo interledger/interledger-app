@@ -40,7 +40,7 @@ type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
 	as        accounts.Client
-	is        identity.Service
+	is        identity.Client
 	tp        client.Client
 }
 
@@ -55,10 +55,10 @@ type OutgoingPayment struct {
 }
 
 type ServiceArgs struct {
-	Db *sqlx.DB         `validate:"required"`
-	As accounts.Client  `validate:"required"`
-	Is identity.Service `validate:"required"`
-	Tp client.Client    `validate:"required"`
+	Db *sqlx.DB        `validate:"required"`
+	As accounts.Client `validate:"required"`
+	Is identity.Client `validate:"required"`
+	Tp client.Client   `validate:"required"`
 }
 
 func NewService(args *ServiceArgs) (Service, error) {

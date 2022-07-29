@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
 	"github.com/google/uuid"
@@ -32,14 +34,7 @@ func TestAccountsService(s *testing.T) {
 	}
 
 	cs := country_client.New(ops.NewTestBackends(s, db, nil, nil, nil))
-	is, err := _identity.NewService(_identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	is = _identity.NewLoggingService(is, logger)
+	is := identity_client.New(ops.NewTestBackends(s, db, nil, cs, nil), logger)
 
 	pacioliLedgerID := uint32(1)
 

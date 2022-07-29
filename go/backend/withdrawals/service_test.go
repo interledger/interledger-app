@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
+
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -214,7 +216,7 @@ func TestWithdrawals(s *testing.T) {
 
 type TestContainer struct {
 	Ctrl                  *gomock.Controller
-	IdentityService       identity.Service
+	IdentityService       identity.Client
 	AccountService        _accounts.Client
 	TransactionService    transactions.Client
 	CountryService        _country.Client
@@ -258,7 +260,7 @@ func (t TestContainer) DB() *sqlx.DB {
 	return t.Db
 }
 
-func (t TestContainer) Identity() identity.Service {
+func (t TestContainer) Identity() identity.Client {
 	return t.IdentityService
 }
 
@@ -296,14 +298,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	cs := country_client.New(c)
 	c.CountryService = cs
 
-	is, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	c.IdentityService = identity.NewLoggingService(is, logger)
+	is := identity_client.New(c, logger)
+	c.IdentityService = is
 
 	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 

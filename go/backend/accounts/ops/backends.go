@@ -13,13 +13,13 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
-	Identity() identity.Service
+	Identity() identity.Client
 	Countries() country.Client
 	Pacioli() pacioli.Client
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB,
-	ids identity.Service,
+	ids identity.Client,
 	countries country.Client,
 	pacioli pacioli.Client) Backends {
 
@@ -37,12 +37,12 @@ var _ Backends = backends{}
 type backends struct {
 	val       *validator.Validate
 	db        *sqlx.DB
-	ids       identity.Service
+	ids       identity.Client
 	countries country.Client
 	pacioli   pacioli.Client
 }
 
-func (b backends) Identity() identity.Service {
+func (b backends) Identity() identity.Client {
 	return b.ids
 }
 

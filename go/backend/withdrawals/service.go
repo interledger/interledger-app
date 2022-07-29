@@ -33,7 +33,7 @@ type Service interface {
 type ServiceArgs struct {
 	Db *sqlx.DB              `validate:"required"`
 	As accounts.Client       `validate:"required"`
-	Is identity.Service      `validate:"required"`
+	Is identity.Client       `validate:"required"`
 	Fs fundingsources.Client `validate:"required"`
 	Tp client.Client         `validate:"required"`
 }
@@ -42,7 +42,7 @@ type service struct {
 	validator *validator.Validate
 	db        *sqlx.DB
 	as        accounts.Client
-	is        identity.Service
+	is        identity.Client
 	fs        fundingsources.Client
 	tp        client.Client
 }

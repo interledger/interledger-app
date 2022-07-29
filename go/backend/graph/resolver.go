@@ -24,7 +24,7 @@ import (
 
 type Resolver struct {
 	// appending service to avoid name clashed with function names.
-	IdentityService     identity.Service
+	IdentityService     identity.Client
 	UserService         user.Service
 	CountryService      country.Client
 	AccountService      accounts.Client

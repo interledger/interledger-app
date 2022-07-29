@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -30,7 +32,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
@@ -84,7 +86,7 @@ func TestGetMemberStatus(t *testing.T) {
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
@@ -131,7 +133,7 @@ func TestStartIdentityAggregation(t *testing.T) {
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
@@ -178,7 +180,7 @@ func TestGetAccountOwner(t *testing.T) {
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
@@ -255,7 +257,7 @@ func TestReadAccount(t *testing.T) {
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
@@ -332,7 +334,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
 	})
 	if err != nil {
@@ -434,7 +436,7 @@ func TestVerifyOwnership(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	accountService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity.NewMockService(ctrl)
+	identityService := identity_mock.NewMockClient(ctrl)
 	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
@@ -522,7 +524,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	accountService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity.NewMockService(ctrl)
+	identityService := identity_mock.NewMockClient(ctrl)
 	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
@@ -555,7 +557,7 @@ func TestGetMxConnectWidget(t *testing.T) {
 func TestInitiateCreateAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	accountsService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity.NewMockService(ctrl)
+	identityService := identity_mock.NewMockClient(ctrl)
 	temporal := &mocks.Client{}
 	mockExternalClient := external.NewMockMx(ctrl)
 	mx, err := NewService(&ServiceArgs{

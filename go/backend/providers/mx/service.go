@@ -99,7 +99,7 @@ type (
 		ExternalClient  external.Mx      `validate:"required"`
 		Db              *sqlx.DB         `validate:"required"`
 		AccountsService accounts.Client  `validate:"required"`
-		IdentityService identity.Service `validate:"required"`
+		IdentityService identity.Client `validate:"required"`
 		Temporal        client.Client    `validate:"required"`
 	}
 
@@ -108,7 +108,7 @@ type (
 		externalClient  external.Mx
 		db              *sqlx.DB
 		accountsService accounts.Client
-		identityService identity.Service
+		identityService identity.Client
 		temporal        client.Client
 	}
 )

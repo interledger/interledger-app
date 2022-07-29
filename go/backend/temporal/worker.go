@@ -28,7 +28,7 @@ type WorkerArgs struct {
 	Os     onboarding.Service
 	Up     unit.Service
 	Mx     mx.Service
-	Is     identity.Service
+	Is     identity.Client
 }
 
 func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {

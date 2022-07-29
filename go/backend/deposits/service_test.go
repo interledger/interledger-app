@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
+
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -118,7 +120,7 @@ func TestDeposits(s *testing.T) {
 
 type TestContainer struct {
 	Ctrl                  *gomock.Controller
-	IdentityService       _identity.Service
+	IdentityService       _identity.Client
 	AccountService        _accounts.Client
 	CountryService        _country.Client
 	NoopService           noop.Service
@@ -162,7 +164,7 @@ func (t TestContainer) DB() *sqlx.DB {
 	return t.Db
 }
 
-func (t TestContainer) Identity() _identity.Service {
+func (t TestContainer) Identity() _identity.Client {
 	return t.IdentityService
 }
 
@@ -199,14 +201,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	cs := country_client.New(c)
 	c.CountryService = cs
 
-	is, err := _identity.NewService(_identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
-	c.IdentityService = _identity.NewLoggingService(is, logger)
+	is := identity_client.New(c, logger)
+	c.IdentityService = is
 
 	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 
