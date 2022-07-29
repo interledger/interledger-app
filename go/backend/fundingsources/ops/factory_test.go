@@ -1,12 +1,12 @@
-package fundingsources
+package ops_test
 
 import (
 	"context"
 	"testing"
 
-	country_client "gitlab.com/fynbos/backend/country/client"
+	"gitlab.com/fynbos/backend/fundingsources"
 
-	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+	country_client "gitlab.com/fynbos/backend/country/client"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -14,7 +14,9 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/country"
+	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/noop"
@@ -22,6 +24,7 @@ import (
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
 )
@@ -31,9 +34,9 @@ type TestContainer struct {
 	Logger           *zap.Logger
 	Db               *sqlx.DB
 	Cs               country.Client
-	Noop             noop.Service
+	NoopImpl         noop.Service
 	Is               _identity.Service
-	Fs               Service
+	Fs               fundingsources.Client
 	Os               onboarding.Service
 	Ts               account_transactions.Client
 	as               accounts.Client
@@ -41,8 +44,20 @@ type TestContainer struct {
 	PacioliClient    pacioli.Client
 	PacioliLedgerID  uint32
 	Tp               *mocks.Client
-	Unit             *_unit.MockService
+	UnitImpl         *_unit.MockService
 	ValidatorImpl    *validator.Validate
+}
+
+func (t TestContainer) Noop() noop.Service {
+	return t.NoopImpl
+}
+
+func (t TestContainer) Temporal() client.Client {
+	return t.Tp
+}
+
+func (t TestContainer) Unit() _unit.Service {
+	return t.UnitImpl
 }
 
 func (t TestContainer) Accounts() accounts.Client {
@@ -119,7 +134,7 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 		return nil, err
 	}
 
-	c.Noop = noop
+	c.NoopImpl = noop
 	c.Tp = &mocks.Client{}
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
@@ -133,19 +148,9 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	}
 	c.Os = os
 
-	c.Unit = _unit.NewMockService(ctrl)
-	fs, err := NewService(&ServiceArgs{
-		Is:   is,
-		As:   as,
-		Db:   db,
-		Noop: noop,
-		Tp:   c.Tp,
-		Unit: c.Unit,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.Fs = NewLoggingService(fs, logger)
+	c.UnitImpl = _unit.NewMockService(ctrl)
+	fs := funding_client.New(c, logger)
+	c.Fs = fs
 
 	return c, nil
 }

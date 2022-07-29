@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
+
 	country_client "gitlab.com/fynbos/backend/country/client"
 
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
@@ -218,9 +220,9 @@ type TestContainer struct {
 	CountryService        _country.Client
 	NoopService           noop.Service
 	OnboardService        onboarding.Service
-	FundingSourcesService fundingsources.Service
+	FundingSourcesService fundingsources.Client
 	WithdrawalService     Service
-	Unit                  *unit.MockService
+	UnitImpl              *unit.MockService
 	Mx                    *mx.MockService
 	TemporalMock          *mocks.Client
 	PacioliContainer      *test_utils.PacioliContainer
@@ -230,6 +232,18 @@ type TestContainer struct {
 	Logger                *zap.Logger
 	Ctx                   context.Context
 	ValidatorImpl         *validator.Validate
+}
+
+func (t TestContainer) Noop() noop.Service {
+	return t.NoopService
+}
+
+func (t TestContainer) Temporal() client.Client {
+	return t.TemporalMock
+}
+
+func (t TestContainer) Unit() unit.Service {
+	return t.UnitImpl
 }
 
 func (t TestContainer) Accounts() _accounts.Client {
@@ -308,19 +322,10 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.NoopService = np
 	temporal := &mocks.Client{}
 	c.TemporalMock = temporal
-	c.Unit = unit.NewMockService(c.Ctrl)
+	c.UnitImpl = unit.NewMockService(c.Ctrl)
 	c.Mx = mx.NewMockService(c.Ctrl)
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Db:   db,
-		Is:   is,
-		As:   as,
-		Noop: c.NoopService,
-		Unit: c.Unit,
-		Tp:   temporal,
-	})
-	if err != nil {
-		return nil, err
-	}
+
+	fs := funding_client.New(c, logger)
 	c.FundingSourcesService = fs
 
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{

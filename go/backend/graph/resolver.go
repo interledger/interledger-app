@@ -35,6 +35,6 @@ type Resolver struct {
 	Ds                  deposits.Service
 	Os                  onboarding.Service
 	Ws                  withdrawals.Service
-	Fs                  fundingsources.Service
+	Fs                  fundingsources.Client
 	Ps                  payments.Service
 }

@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -212,7 +214,7 @@ type MockArgs struct {
 	Unit                 *unit.MockService
 	AccountService       *accounts_mock.MockClient
 	IdentityService      *identity.MockService
-	FundingsourceService *fundingsources.MockService
+	FundingsourceService *funding_mock.MockClient
 }
 
 func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
@@ -222,7 +224,7 @@ func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
 		Unit:                 unit.NewMockService(ctrl),
 		AccountService:       accounts_mock.NewMockClient(ctrl),
 		IdentityService:      identity.NewMockService(ctrl),
-		FundingsourceService: fundingsources.NewMockService(ctrl),
+		FundingsourceService: funding_mock.NewMockClient(ctrl),
 	}
 
 	activity, err := NewActivity(&ActivityArgs{
