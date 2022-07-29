@@ -159,8 +159,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	os := onboarding_client.New(c)
 	c.Os = os
-
-	listener, err := net.Listen("tcp", "0.0.0.0:8443")
+	port, err := test_utils.GetFreePort()
+	if err != nil {
+		t.Fatal(err)
+	}
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
 	if err != nil {
 		return nil, err
 	}
@@ -197,6 +200,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		MxProvider:           mx.NewMockService(c.Ctrl),
 		RafikiProvider:       c.RafikiProvider,
 		DepositService:       deposits.NewMockService(c.Ctrl),
+		Temporal:             c.Tp,
 	})
 	if err != nil {
 		return nil, err
@@ -208,7 +212,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}()
 	c.AdminServer = server
 
-	adminConn, err := grpc.Dial("127.0.0.1:8443", grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	adminConn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
