@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -38,7 +39,7 @@ type TestContainer struct {
 	IdentityService      *identity.MockService
 	AdminAuthService     auth.Service
 	UserService          user.Service
-	FundingsourceService *fundingsources.MockService
+	FundingsourceService fundingsources.Client
 	TwilioService        *twilio.MockService
 	OnboardingService    *onboarding.MockService
 	UnitProvider         *unit.MockService
@@ -59,12 +60,12 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	}
 	c := &TestContainer{
 		HealthService:        hs,
-		AccountService:       accounts.NewMockClient(ctrl),
+		AccountService:       accounts_mock.NewMockClient(ctrl),
 		AgreementsService:    agreements.NewMockService(ctrl),
 		IdentityService:      identity.NewMockService(ctrl),
 		AdminAuthService:     auth.NewMockService(),
 		UserService:          user.NewMockService(),
-		FundingsourceService: fundingsources.NewMockService(ctrl),
+		FundingsourceService: funding_mock.NewMockClient(ctrl),
 		TwilioService:        twilio.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
 		OnboardingService:    onboarding.NewMockService(ctrl),

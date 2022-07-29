@@ -24,7 +24,7 @@ type WorkerArgs struct {
 	Np     noop.Service
 	Ts     transactions.Client
 	Ws     withdrawals.Service
-	Fs     fundingsources.Service
+	Fs     fundingsources.Client
 	Os     onboarding.Service
 	Up     unit.Service
 	Mx     mx.Service

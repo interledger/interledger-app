@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
+
 	country_client "gitlab.com/fynbos/backend/country/client"
 
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
@@ -48,7 +50,7 @@ type TestContainer struct {
 	Db                   *sqlx.DB
 	AccountService       _account.Client
 	CountryService       _country.Client
-	FundingSourceService fundingsources.Service
+	FundingSourceService fundingsources.Client
 	IdentityService      identity.Service
 	UserService          _user.Service
 	Mx                   *mx.MockService
@@ -67,6 +69,19 @@ type TestContainer struct {
 	Client               *graphql.Client
 	Server               *httptest.Server
 	ValidatorImpl        *validator.Validate
+	Tp                   client.Client
+}
+
+func (c *TestContainer) Noop() _noop.Service {
+	return c.NoopService
+}
+
+func (c *TestContainer) Temporal() client.Client {
+	return c.Tp
+}
+
+func (c *TestContainer) Unit() unit.Service {
+	return c.UnitService
 }
 
 func (c *TestContainer) Accounts() _account.Client {
@@ -168,19 +183,12 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.UnitService = us
 
 	tp := &mocks.Client{}
+	c.Tp = tp
+
 	c.Mx = mx.NewMockService(c.Ctrl)
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Is:   is,
-		As:   as,
-		Db:   db,
-		Noop: noopProvider,
-		Unit: us,
-		Tp:   tp,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.FundingSourceService = fundingsources.NewLoggingService(fs, logger)
+
+	fs := funding_client.New(c, logger)
+	c.FundingSourceService = fs
 
 	tp.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.AnythingOfType("string")).Return(
 		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {

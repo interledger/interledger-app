@@ -11,31 +11,23 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/backend/temporal"
-	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc/credentials/insecure"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/deposits"
-	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/withdrawals"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	"gitlab.com/fynbos/backend/accounts"
-	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	kratos "github.com/ory/kratos-client-go"
+	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
-	"gitlab.com/fynbos/backend/admin/auth"
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
-	"gitlab.com/fynbos/backend/fundingsources"
+	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	"gitlab.com/fynbos/backend/graph"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -54,6 +46,7 @@ import (
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 )
@@ -130,6 +123,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.temporal = tp
 
 	users, err := user.NewService(kratosClient)
 	if err != nil {
@@ -169,6 +163,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.noop = nos
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -203,18 +198,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Is:   id,
-		As:   accountsClient,
-		Db:   db,
-		Noop: nos,
-		Unit: us,
-		Tp:   tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fs = fundingsources.NewLoggingService(fs, logger)
+	fs := funding_client.New(b, logger)
 
 	os, err := onboarding.NewService(&onboarding.ServiceArgs{
 		Db:   db,
@@ -447,11 +431,13 @@ func startWorker(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.noop = nos
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.temporal = tp
 
 	unit, err := _unit.NewService(_unit.ServiceArgs{
 		BaseURL:         args.UnitBaseURL,
@@ -477,18 +463,7 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	fs, err := fundingsources.NewService(&fundingsources.ServiceArgs{
-		Is:   id,
-		As:   as,
-		Db:   db,
-		Noop: nos,
-		Unit: unit,
-		Tp:   tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	fs = fundingsources.NewLoggingService(fs, logger)
+	fs := funding_client.New(b, logger)
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
@@ -576,6 +551,21 @@ type backends struct {
 	countries country.Client
 	pacioli   pacioli.Client
 	accounts  accounts.Client
+	noop      _noop.Service
+	temporal  client.Client
+	unit      _unit.Service
+}
+
+func (b backends) Noop() _noop.Service {
+	return b.noop
+}
+
+func (b backends) Temporal() client.Client {
+	return b.temporal
+}
+
+func (b backends) Unit() _unit.Service {
+	return b.unit
 }
 
 func (b backends) Accounts() accounts.Client {

@@ -1,26 +1,32 @@
-package fundingsources
+package client
 
 import (
 	"context"
 	"time"
 
+	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/fundingsources/ops"
 	"go.uber.org/zap"
 )
 
-type loggingService struct {
-	logger  *zap.Logger
-	Service Service
+var _ fundingsources.Client = client{}
+
+type client struct {
+	logger *zap.Logger
+	b      ops.Backends
 }
 
-func NewLoggingService(service Service, logger *zap.Logger) Service {
-	childLogger := logger.With(zap.String("service", "funding-sources"))
-	return &loggingService{childLogger, service}
+func New(b ops.Backends, logger *zap.Logger) fundingsources.Client {
+	return &client{
+		b:      b,
+		logger: logger.With(zap.String("ops", "funding-sources")),
+	}
 }
 
-func (s *loggingService) Create(ctx context.Context, args *CreateArgs) (fs *FundingSource, err error) {
+func (c client) Create(ctx context.Context, args *fundingsources.CreateArgs) (fs *fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to create funding source.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -28,19 +34,19 @@ func (s *loggingService) Create(ctx context.Context, args *CreateArgs) (fs *Fund
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Created funding source.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return s.Service.Create(ctx, args)
+	return ops.Create(ctx, c.b, args)
 }
 
-func (s *loggingService) Get(ctx context.Context, id string) (fs *FundingSource, err error) {
+func (c client) Get(ctx context.Context, id string) (fs *fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get funding source.",
 				zap.String("id", id),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -49,19 +55,20 @@ func (s *loggingService) Get(ctx context.Context, id string) (fs *FundingSource,
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got funding source.",
 			zap.String("id", fs.ID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
-	return s.Service.Get(ctx, id)
+
+	return ops.Get(ctx, c.b, id)
 }
 
-func (s *loggingService) GetByAccountId(ctx context.Context, identityId string) (fs []FundingSource, err error) {
+func (c client) GetByAccountId(ctx context.Context, identityId string) (fsl []fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get funding sources.",
 				zap.String("identityId", identityId),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -70,19 +77,20 @@ func (s *loggingService) GetByAccountId(ctx context.Context, identityId string) 
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got funding source.",
 			// zap.String("id", fs[0]),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
-	return s.Service.GetByAccountId(ctx, identityId)
+
+	return ops.GetByAccountId(ctx, c.b, identityId)
 }
 
-func (s *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *FundingSource, err error) {
+func (c client) Verify(ctx context.Context, args *fundingsources.VerifyArgs) (fs *fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to verify funding source.",
 				zap.String("id", args.FundingSourceID),
 				zap.String("identityID", args.IdentityID),
@@ -92,20 +100,20 @@ func (s *loggingService) Verify(ctx context.Context, args *VerifyArgs) (fs *Fund
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Verified funding source",
 			zap.String("id", args.FundingSourceID),
 			zap.String("identityID", args.IdentityID),
 		)
 	}(time.Now())
 
-	return s.Service.Verify(ctx, args)
+	return ops.Verify(ctx, c.b, args)
 }
 
-func (s *loggingService) CreateBankAccount(ctx context.Context, args *CreateBankAccountArgs) (fs *FundingSource, err error) {
+func (c client) CreateBankAccount(ctx context.Context, args *fundingsources.CreateBankAccountArgs) (fs *fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to link bank account.",
 				zap.String("identityID", args.IdentityID),
 				zap.String("accountID", args.AccountID),
@@ -115,7 +123,7 @@ func (s *loggingService) CreateBankAccount(ctx context.Context, args *CreateBank
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Linked Bank account",
 			zap.String("id", fs.ID),
 			zap.String("accountID", fs.AccountID),
@@ -123,5 +131,5 @@ func (s *loggingService) CreateBankAccount(ctx context.Context, args *CreateBank
 		)
 	}(time.Now())
 
-	return s.Service.CreateBankAccount(ctx, args)
+	return ops.CreateBankAccount(ctx, c.b, args)
 }

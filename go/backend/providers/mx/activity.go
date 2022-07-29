@@ -22,15 +22,15 @@ type (
 		mx                   Service
 		accountService       accounts.Client
 		identityService      identity.Service
-		fundingsourceService fundingsources.Service
+		fundingsourceService fundingsources.Client
 	}
 
 	ActivityArgs struct {
-		Mx                   Service                `validate:"required"`
-		Unit                 _unit.Service          `validate:"required"`
-		AccountService       accounts.Client        `validate:"required"`
-		IdentityService      identity.Service       `validate:"required"`
-		FundingSourceService fundingsources.Service `validate:"required"`
+		Mx                   Service               `validate:"required"`
+		Unit                 _unit.Service         `validate:"required"`
+		AccountService       accounts.Client       `validate:"required"`
+		IdentityService      identity.Service      `validate:"required"`
+		FundingSourceService fundingsources.Client `validate:"required"`
 	}
 )
 

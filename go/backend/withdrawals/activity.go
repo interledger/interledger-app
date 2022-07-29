@@ -18,15 +18,15 @@ type Activity struct {
 	ts        transactions.Client
 	as        accounts.Client
 	noop      noop.Service
-	fs        fundingsources.Service
+	fs        fundingsources.Client
 }
 
 type ActivityArgs struct {
-	Ws Service                `validate:"required"`
-	As accounts.Client        `validate:"required"`
-	Np noop.Service           `validate:"required"`
-	Ts transactions.Client    `validate:"required"`
-	Fs fundingsources.Service `validate:"required"`
+	Ws Service               `validate:"required"`
+	As accounts.Client       `validate:"required"`
+	Np noop.Service          `validate:"required"`
+	Ts transactions.Client   `validate:"required"`
+	Fs fundingsources.Client `validate:"required"`
 }
 
 func NewActivity(args ActivityArgs) (*Activity, error) {

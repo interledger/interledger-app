@@ -6,8 +6,6 @@ import (
 	"net"
 	"testing"
 
-	country_client "gitlab.com/fynbos/backend/country/client"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -17,8 +15,10 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
+	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
+	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -45,7 +45,7 @@ type TestContainer struct {
 	PacioliContainer *test_utils.PacioliContainer
 	Db               *sqlx.DB
 	As               accounts.Client
-	Fs               *fundingsources.MockService
+	Fs               fundingsources.Client
 	Is               identity.Service
 	Hs               healthcheck.Service
 	Os               onboarding.Service
@@ -176,7 +176,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit.NewMockService(c.Ctrl)
-	c.Fs = fundingsources.NewMockService(c.Ctrl)
+	c.Fs = funding_mock.NewMockClient(c.Ctrl)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	tw := twilio.NewMockService(c.Ctrl)
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{

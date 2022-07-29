@@ -1,8 +1,10 @@
-package fundingsources
+package ops_test
 
 import (
 	"context"
 	"testing"
+
+	"gitlab.com/fynbos/backend/fundingsources"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
@@ -47,7 +49,7 @@ func TestFundingSources(s *testing.T) {
 		}
 		type Scenario struct {
 			Name                 string
-			Args                 *CreateBankAccountArgs
+			Args                 *fundingsources.CreateBankAccountArgs
 			ExpectedErrorMessage string
 			ExpectedError        error
 		}
@@ -56,55 +58,55 @@ func TestFundingSources(s *testing.T) {
 				Name:                 "IdentityID is required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withIdentityID("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.IdentityID' Error:Field validation for 'IdentityID' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 			{
 				Name:                 "IdentityID must exist to create bank account",
 				Args:                 generateCreateBankAccountArgs(withIdentityID(uuid.NewString())),
 				ExpectedErrorMessage: "not found.",
-				ExpectedError:        ErrInternal,
+				ExpectedError:        fundingsources.ErrInternal,
 			},
 			{
 				Name:                 "AccountID is required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withAccountID("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.AccountID' Error:Field validation for 'AccountID' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 			{
 				Name:                 "AccountID must exist to create bank account",
 				Args:                 generateCreateBankAccountArgs(withIdentityID(id.ID), withAccountID(uuid.NewString())),
 				ExpectedErrorMessage: "not found.",
-				ExpectedError:        ErrInternal,
+				ExpectedError:        fundingsources.ErrInternal,
 			},
 			{
 				Name:                 "Name is required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withName("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.Name' Error:Field validation for 'Name' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 			{
 				Name:                 "Institution is required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withInstitution("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.Institution' Error:Field validation for 'Institution' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 			{
 				Name:                 "AccountNumber is required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withAccountNumber("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.AccountNumber' Error:Field validation for 'AccountNumber' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 			{
 				Name:                 "RoutingNumber is required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withRoutingNumber("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.RoutingNumber' Error:Field validation for 'RoutingNumber' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 			{
 				Name:                 "Type must be one of noop required to create bank account",
 				Args:                 generateCreateBankAccountArgs(withType("")),
 				ExpectedErrorMessage: "Key: 'CreateBankAccountArgs.Type' Error:Field validation for 'Type' failed on the 'required' tag",
-				ExpectedError:        ErrInvalidArgument,
+				ExpectedError:        fundingsources.ErrInvalidArgument,
 			},
 		}
 
@@ -195,7 +197,7 @@ func TestFundingSources(s *testing.T) {
 		}
 		assert.Equal(t, "required", bankAccount.VerificationState)
 
-		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
+		fs, err := c.Fs.Verify(ctx, &fundingsources.VerifyArgs{
 			IdentityID:      id.ID,
 			FundingSourceID: bankAccount.ID,
 		})
@@ -264,7 +266,7 @@ func TestFundingSources(s *testing.T) {
 		}
 		assert.Equal(t, "required", bankAccount.VerificationState)
 
-		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
+		fs, err := c.Fs.Verify(ctx, &fundingsources.VerifyArgs{
 			IdentityID:      otherUserID.ID,
 			FundingSourceID: bankAccount.ID,
 		})
@@ -272,7 +274,7 @@ func TestFundingSources(s *testing.T) {
 			t.Fatal("User must only be able to verify their own funding sources.")
 		}
 
-		assert.ErrorIs(t, err, ErrUnauthorized)
+		assert.ErrorIs(t, err, fundingsources.ErrUnauthorized)
 		assert.Contains(t, err.Error(), "unauthorized.")
 		assert.Nil(t, fs)
 	})
@@ -302,7 +304,7 @@ func TestFundingSources(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		fs, err := c.Fs.Verify(ctx, &VerifyArgs{
+		fs, err := c.Fs.Verify(ctx, &fundingsources.VerifyArgs{
 			IdentityID:      id.ID,
 			FundingSourceID: uuid.NewString(),
 		})
@@ -311,7 +313,7 @@ func TestFundingSources(s *testing.T) {
 		}
 
 		assert.Nil(t, fs)
-		assert.ErrorIs(t, err, ErrNotFound)
+		assert.ErrorIs(t, err, fundingsources.ErrNotFound)
 		assert.Contains(t, err.Error(), "not found.")
 	})
 
@@ -402,8 +404,8 @@ func TestFundingSources(s *testing.T) {
 	})
 }
 
-func generateCreateBankAccountArgs(opts ...func(*CreateBankAccountArgs)) *CreateBankAccountArgs {
-	args := &CreateBankAccountArgs{
+func generateCreateBankAccountArgs(opts ...func(*fundingsources.CreateBankAccountArgs)) *fundingsources.CreateBankAccountArgs {
+	args := &fundingsources.CreateBankAccountArgs{
 		IdentityID:    uuid.NewString(),
 		AccountID:     uuid.NewString(),
 		Name:          faker.Name(),
@@ -420,44 +422,44 @@ func generateCreateBankAccountArgs(opts ...func(*CreateBankAccountArgs)) *Create
 	return args
 }
 
-func withAccountID(id string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withAccountID(id string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.AccountID = id
 	}
 }
 
-func withIdentityID(id string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withIdentityID(id string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.IdentityID = id
 	}
 }
 
-func withName(name string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withName(name string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.Name = name
 	}
 }
 
-func withType(_type string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withType(_type string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.Type = _type
 	}
 }
 
-func withAccountNumber(num string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withAccountNumber(num string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.AccountNumber = num
 	}
 }
 
-func withRoutingNumber(num string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withRoutingNumber(num string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.RoutingNumber = num
 	}
 }
 
-func withInstitution(name string) func(args *CreateBankAccountArgs) {
-	return func(args *CreateBankAccountArgs) {
+func withInstitution(name string) func(args *fundingsources.CreateBankAccountArgs) {
+	return func(args *fundingsources.CreateBankAccountArgs) {
 		args.Institution = name
 	}
 }

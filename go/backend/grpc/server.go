@@ -38,7 +38,7 @@ type ServerArgs struct {
 	AdminAuthService     auth.Service           `validate:"required"`
 	UserService          user.Service           `validate:"required"`
 	UnitProvider         unit.Service           `validate:"required"`
-	FundingSourceService fundingsources.Service `validate:"required"`
+	FundingSourceService fundingsources.Client `validate:"required"`
 	OnboardingService    onboarding.Service     `validate:"required"`
 	MxProvider           mx.Service             `validate:"required"`
 	RafikiProvider       rafiki.Service         `validate:"required"`
@@ -55,7 +55,7 @@ type rpcService struct {
 	userService          user.Service
 	unitProvider         unit.Service
 	onboardingService    onboarding.Service
-	fundingSourceService fundingsources.Service
+	fundingSourceService fundingsources.Client
 	mxProvider           mx.Service
 	rafikiProvider       rafiki.Service
 	depositService       deposits.Service

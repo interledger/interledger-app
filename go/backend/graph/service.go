@@ -35,7 +35,7 @@ type GraphqlOpts struct {
 	Ds                               deposits.Service            `validate:"required"`
 	Os                               onboarding.Service          `validate:"required"`
 	Ws                               withdrawals.Service         `validate:"required"`
-	Fs                               fundingsources.Service      `validate:"required"`
+	Fs                               fundingsources.Client       `validate:"required"`
 	Ps                               payments.Service            `validate:"required"`
 	QueryCacheSize                   uint
 	AutomaticPersistedQueryCacheSize uint
