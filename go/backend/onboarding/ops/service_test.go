@@ -320,7 +320,7 @@ func TestUpdateOnboarding(s *testing.T) {
 	})
 
 	s.Run("can set phone number to verified", func(t *testing.T) {
-		onboarding, err := onboardingService.UpdateOnboarding(ctx, &UpdateOnboardingArgs{
+		ob, err := ops.UpdateOnboarding(ctx, b, &onboarding.UpdateOnboardingArgs{
 			FirstName: faker.FirstName(),
 			LastName:  faker.LastName(),
 			Country:   "US",
@@ -330,10 +330,10 @@ func TestUpdateOnboarding(s *testing.T) {
 		if err != nil {
 			s.Fatal(err)
 		}
-		assert.False(t, onboarding.PhoneVerified)
+		assert.False(t, ob.PhoneVerified)
 
-		newOnboarding, err := onboardingService.UpdateOnboarding(ctx, &UpdateOnboardingArgs{
-			Id:            onboarding.ID,
+		newOnboarding, err := ops.UpdateOnboarding(ctx, b, &onboarding.UpdateOnboardingArgs{
+			Id:            ob.ID,
 			PhoneVerified: true,
 		})
 		if err != nil {
