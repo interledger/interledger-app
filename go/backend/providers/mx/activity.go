@@ -21,7 +21,7 @@ type (
 		unit                 _unit.Service
 		mx                   Service
 		accountService       accounts.Client
-		identityService      identity.Service
+		identityService      identity.Client
 		fundingsourceService fundingsources.Client
 	}
 
@@ -29,7 +29,7 @@ type (
 		Mx                   Service               `validate:"required"`
 		Unit                 _unit.Service         `validate:"required"`
 		AccountService       accounts.Client       `validate:"required"`
-		IdentityService      identity.Service      `validate:"required"`
+		IdentityService      identity.Client       `validate:"required"`
 		FundingSourceService fundingsources.Client `validate:"required"`
 	}
 )

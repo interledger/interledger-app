@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/identity"
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.uber.org/zap"
@@ -28,7 +29,7 @@ func TestVerifyWebhook(s *testing.T) {
 		BaseURL:         "localhost",
 		Token:           "test token",
 		Db:              &sqlx.DB{},
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
@@ -59,7 +60,7 @@ func TestCreateAndGetCustomer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	mockIdentityService := identity.NewMockService(ctrl)
+	mockIdentityService := identity_mock.NewMockClient(ctrl)
 	unitService, err := NewService(ServiceArgs{
 		WebhookToken:    "fynbos_local_unit_webhook_token",
 		BaseURL:         "localhost",
@@ -159,7 +160,7 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 		BaseURL:         server.URL,
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		AccountClient:   accounts_mock.NewMockClient(ctrl),
 		Logger:          zap.NewNop(),
 	})
@@ -260,7 +261,7 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 		BaseURL:         server.URL,
 		Token:           "test token",
 		Db:              test_utils.MigrateCockroachDB(t, ctx),
-		IdentityService: identity.NewMockService(ctrl),
+		IdentityService: identity_mock.NewMockClient(ctrl),
 		AccountClient:   mockAccountService,
 		Logger:          zap.NewNop(),
 	})

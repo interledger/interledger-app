@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
+
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -51,7 +53,7 @@ type TestContainer struct {
 	AccountService       _account.Client
 	CountryService       _country.Client
 	FundingSourceService fundingsources.Client
-	IdentityService      identity.Service
+	IdentityService      identity.Client
 	UserService          _user.Service
 	Mx                   *mx.MockService
 	NoopService          _noop.Service
@@ -96,7 +98,7 @@ func (c *TestContainer) DB() *sqlx.DB {
 	return c.Db
 }
 
-func (c *TestContainer) Identity() identity.Service {
+func (c *TestContainer) Identity() identity.Client {
 	return c.IdentityService
 }
 
@@ -125,14 +127,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	cs := country_client.New(c)
 	c.CountryService = cs
 
-	is, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.IdentityService = identity.NewLoggingService(is, logger)
+	is := identity_client.New(c, logger)
+	c.IdentityService = is
 
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 

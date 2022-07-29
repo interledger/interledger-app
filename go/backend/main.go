@@ -10,11 +10,10 @@ import (
 	"os"
 	"time"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/agreements"
 	"google.golang.org/grpc/credentials/insecure"
 	transactions "gitlab.com/fynbos/backend/accounttransactions"
-	"gitlab.com/fynbos/backend/admin/auth"
-	country_client "gitlab.com/fynbos/backend/country/client"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
@@ -24,8 +23,10 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
+	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/deposits"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	"gitlab.com/fynbos/backend/graph"
@@ -133,14 +134,8 @@ func start(args *cli.StartArgs) {
 
 	cs := country_client.New(b)
 	b.countries = cs
-	id, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	id = identity.NewLoggingService(id, logger)
+
+	id := identity_client.New(b, logger)
 	b.ids = id
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
@@ -400,15 +395,7 @@ func startWorker(args *cli.StartArgs) {
 	cs := country_client.New(b)
 	b.countries = cs
 
-	id, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-	id = identity.NewLoggingService(id, logger)
+	id := identity_client.New(b, logger)
 	b.ids = id
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
@@ -537,7 +524,7 @@ func startWorker(args *cli.StartArgs) {
 type AllBackends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
-	Identity() identity.Service
+	Identity() identity.Client
 	Countries() country.Client
 	Pacioli() pacioli.Client
 }
@@ -547,7 +534,7 @@ var _ AllBackends = backends{}
 type backends struct {
 	val       *validator.Validate
 	db        *sqlx.DB
-	ids       identity.Service
+	ids       identity.Client
 	countries country.Client
 	pacioli   pacioli.Client
 	accounts  accounts.Client
@@ -572,7 +559,7 @@ func (b backends) Accounts() accounts.Client {
 	return b.accounts
 }
 
-func (b backends) Identity() identity.Service {
+func (b backends) Identity() identity.Client {
 	return b.ids
 }
 

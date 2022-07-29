@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -113,7 +115,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	identityMock := identity.NewMockService(ctrl)
+	identityMock := identity_mock.NewMockClient(ctrl)
 	temporalMockClient := &mocks.Client{}
 
 	db := test_utils.MigrateCockroachDB(t, ctx)
@@ -170,7 +172,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	identityMock := identity.NewMockService(ctrl)
+	identityMock := identity_mock.NewMockClient(ctrl)
 	temporalMockClient := &mocks.Client{}
 
 	db := test_utils.MigrateCockroachDB(t, ctx)
@@ -301,7 +303,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	identityMock := identity.NewMockService(ctrl)
+	identityMock := identity_mock.NewMockClient(ctrl)
 	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := NewService(ServiceArgs{
@@ -337,7 +339,7 @@ func TestStoreEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	identityMock := identity.NewMockService(ctrl)
+	identityMock := identity_mock.NewMockClient(ctrl)
 	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := NewService(ServiceArgs{
@@ -380,7 +382,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	identityMock := identity.NewMockService(ctrl)
+	identityMock := identity_mock.NewMockClient(ctrl)
 	temporalMockClient := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	provider, err := NewService(ServiceArgs{

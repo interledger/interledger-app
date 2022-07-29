@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
+
 	"gitlab.com/fynbos/backend/fundingsources"
 
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -35,7 +37,7 @@ type TestContainer struct {
 	Db               *sqlx.DB
 	Cs               country.Client
 	NoopImpl         noop.Service
-	Is               _identity.Service
+	Is               _identity.Client
 	Fs               fundingsources.Client
 	Os               onboarding.Service
 	Ts               account_transactions.Client
@@ -72,7 +74,7 @@ func (t TestContainer) DB() *sqlx.DB {
 	return t.Db
 }
 
-func (t TestContainer) Identity() _identity.Service {
+func (t TestContainer) Identity() _identity.Client {
 	return t.Is
 }
 
@@ -99,14 +101,8 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	cs := country_client.New(c)
 	c.Cs = cs
 
-	is, err := _identity.NewService(_identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.Is = _identity.NewLoggingService(is, logger)
+	is := identity_client.New(c, logger)
+	c.Is = is
 
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 

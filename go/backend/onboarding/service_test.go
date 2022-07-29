@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
-	"gitlab.com/fynbos/backend/identity"
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -25,7 +25,7 @@ func TestInitiatesOnboarding(t *testing.T) {
 	os, err := NewService(&ServiceArgs{
 		Db:   &sqlx.DB{},
 		As:   accounts_mock.NewMockClient(ctrl),
-		Is:   identity.NewMockService(ctrl),
+		Is:   identity_mock.NewMockClient(ctrl),
 		Noop: noop.NewMockService(ctrl),
 		Tp:   tp,
 	})
@@ -99,7 +99,7 @@ func TestGetOnboarding(s *testing.T) {
 	onboardingService, err := NewService(&ServiceArgs{
 		Db:   db,
 		As:   accounts_mock.NewMockClient(ctrl),
-		Is:   identity.NewMockService(ctrl),
+		Is:   identity_mock.NewMockClient(ctrl),
 		Noop: noop.NewMockService(ctrl),
 		Tp:   tp,
 	})
@@ -185,7 +185,7 @@ func TestUpdateOnboarding(s *testing.T) {
 	onboardingService, err := NewService(&ServiceArgs{
 		Db:   db,
 		As:   accounts_mock.NewMockClient(ctrl),
-		Is:   identity.NewMockService(ctrl),
+		Is:   identity_mock.NewMockClient(ctrl),
 		Noop: noop.NewMockService(ctrl),
 		Tp:   tp,
 	})

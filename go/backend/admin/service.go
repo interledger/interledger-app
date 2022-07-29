@@ -18,7 +18,7 @@ type AdminRpcService struct {
 	backendv1.UnimplementedBackendAdminServiceServer
 	Validator       *validator.Validate
 	AccountsService accounts.Client
-	IdentityService identity.Service
+	IdentityService identity.Client
 	AuthService     auth.Service
 	UnitService     unit.Service
 }

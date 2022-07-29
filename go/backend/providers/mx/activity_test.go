@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 
 	"github.com/bxcodec/faker/v3"
@@ -213,7 +215,7 @@ type MockArgs struct {
 	Mx                   *MockService
 	Unit                 *unit.MockService
 	AccountService       *accounts_mock.MockClient
-	IdentityService      *identity.MockService
+	IdentityService      *identity_mock.MockClient
 	FundingsourceService *funding_mock.MockClient
 }
 
@@ -223,7 +225,7 @@ func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
 		Mx:                   NewMockService(ctrl),
 		Unit:                 unit.NewMockService(ctrl),
 		AccountService:       accounts_mock.NewMockClient(ctrl),
-		IdentityService:      identity.NewMockService(ctrl),
+		IdentityService:      identity_mock.NewMockClient(ctrl),
 		FundingsourceService: funding_mock.NewMockClient(ctrl),
 	}
 

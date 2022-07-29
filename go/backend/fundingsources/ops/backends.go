@@ -16,7 +16,7 @@ type Backends interface {
 	DB() *sqlx.DB
 	Pacioli() pacioli.Client
 	Accounts() accounts.Client
-	Identity() identity.Service
+	Identity() identity.Client
 	Noop() noop.Service
 	Temporal() temporal.Client
 	Unit() unit.Service

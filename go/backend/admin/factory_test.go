@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	identity_client "gitlab.com/fynbos/backend/identity/client"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -46,7 +48,7 @@ type TestContainer struct {
 	Db               *sqlx.DB
 	As               accounts.Client
 	Fs               fundingsources.Client
-	Is               identity.Service
+	Is               identity.Client
 	Hs               healthcheck.Service
 	Os               onboarding.Service
 	Oso              *oso.Oso
@@ -71,7 +73,7 @@ func (c *TestContainer) DB() *sqlx.DB {
 	return c.Db
 }
 
-func (c *TestContainer) Identity() identity.Service {
+func (c *TestContainer) Identity() identity.Client {
 	return c.Is
 }
 
@@ -103,6 +105,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
 
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		return nil, err
+	}
+
 	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
 	if err != nil {
 		return nil, err
@@ -113,19 +120,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	cs := country_client.New(c)
 	c.Cs = cs
 
-	is, err := identity.NewService(identity.ServiceArgs{
-		CountryService: cs,
-		Db:             db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	is := identity_client.New(c, logger)
 	c.Is = is
-
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		return nil, err
-	}
 
 	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 

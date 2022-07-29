@@ -64,19 +64,19 @@ type (
 		externalClient  external.Unit
 		webhookToken    string
 		db              *sqlx.DB
-		identityService identity.Service
+		identityService identity.Client
 		accountService  accounts.Client
 		logger          *zap.Logger
 	}
 
 	ServiceArgs struct {
-		BaseURL         string           `validate:"required"`
-		Token           string           `validate:"required"`
-		WebhookToken    string           `validate:"required"`
-		Db              *sqlx.DB         `validate:"required"`
-		IdentityService identity.Service `validate:"required"`
-		AccountClient   accounts.Client  `validate:"required"`
-		Logger          *zap.Logger      `validate:"required"`
+		BaseURL         string          `validate:"required"`
+		Token           string          `validate:"required"`
+		WebhookToken    string          `validate:"required"`
+		Db              *sqlx.DB        `validate:"required"`
+		IdentityService identity.Client `validate:"required"`
+		AccountClient   accounts.Client `validate:"required"`
+		Logger          *zap.Logger     `validate:"required"`
 	}
 )
 
