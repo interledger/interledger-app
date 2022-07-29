@@ -31,7 +31,7 @@ type Resolver struct {
 	NoopService         noop.Service
 	UnitService         unit.Service
 	Db                  *sqlx.DB
-	AccountTransactions account_transactions.Service
+	AccountTransactions account_transactions.Client
 	Ds                  deposits.Service
 	Os                  onboarding.Service
 	Ws                  withdrawals.Service

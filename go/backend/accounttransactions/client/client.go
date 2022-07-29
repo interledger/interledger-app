@@ -1,27 +1,34 @@
-package account_transactions
+package client
 
 import (
 	"context"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	"gitlab.com/fynbos/backend/accounttransactions/ops"
 	"go.uber.org/zap"
 )
 
-type loggingService struct {
-	logger  *zap.Logger
-	Service Service
+var _ account_transactions.Client = client{}
+
+type client struct {
+	logger *zap.Logger
+	b      ops.Backends
 }
 
-func NewLoggingService(service Service, logger *zap.Logger) Service {
-	childLogger := logger.With(zap.String("service", "account-transactions"))
-	return &loggingService{childLogger, service}
+func New(b ops.Backends, logger *zap.Logger) account_transactions.Client {
+	return &client{
+		b:      b,
+		logger: logger.With(zap.String("ops", "account-transactions")),
+	}
+
 }
 
-func (s *loggingService) Create(ctx context.Context, args *CreateTransactionArgs) (trx *AccountTransaction, err error) {
+func (c client) Create(ctx context.Context, args *account_transactions.CreateTransactionArgs) (acc *account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to create account transaction.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -29,7 +36,7 @@ func (s *loggingService) Create(ctx context.Context, args *CreateTransactionArgs
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Created account transaction.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 			zap.String("type", args.Type),
@@ -37,13 +44,13 @@ func (s *loggingService) Create(ctx context.Context, args *CreateTransactionArgs
 		)
 	}(time.Now())
 
-	return s.Service.Create(ctx, args)
+	return ops.Create(ctx, c.b, args)
 }
 
-func (s *loggingService) CreatePending(ctx context.Context, args *CreatePendingTransactionArgs) (trx *AccountTransaction, err error) {
+func (c client) CreatePending(ctx context.Context, args *account_transactions.CreatePendingTransactionArgs) (at *account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to create account transaction.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -51,7 +58,7 @@ func (s *loggingService) CreatePending(ctx context.Context, args *CreatePendingT
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Created account transaction.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 			zap.String("type", args.Type),
@@ -59,13 +66,13 @@ func (s *loggingService) CreatePending(ctx context.Context, args *CreatePendingT
 		)
 	}(time.Now())
 
-	return s.Service.CreatePending(ctx, args)
+	return ops.CreatePending(ctx, c.b, args)
 }
 
-func (s *loggingService) PostPending(ctx context.Context, id string) (trx *AccountTransaction, err error) {
+func (c client) PostPending(ctx context.Context, id string) (at *account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to post pending account transaction.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -74,20 +81,20 @@ func (s *loggingService) PostPending(ctx context.Context, id string) (trx *Accou
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"posted pending account transaction.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 			zap.String("id", id),
 		)
 	}(time.Now())
 
-	return s.Service.PostPending(ctx, id)
+	return ops.PostPending(ctx, c.b, id)
 }
 
-func (s *loggingService) VoidPending(ctx context.Context, id string) (trx *AccountTransaction, err error) {
+func (c client) VoidPending(ctx context.Context, id string) (at *account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to void pending account transaction.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -96,43 +103,40 @@ func (s *loggingService) VoidPending(ctx context.Context, id string) (trx *Accou
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"voided pending account transaction.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 			zap.String("id", id),
 		)
 	}(time.Now())
 
-	return s.Service.VoidPending(ctx, id)
+	return ops.VoidPending(ctx, c.b, id)
 }
 
-func (s *loggingService) GetByAccount(ctx context.Context, tx *sqlx.Tx, args *GetByAccountArgs) (trxs []*AccountTransaction, err error) {
+func (c client) GetByAccount(ctx context.Context, t *sqlx.Tx, args *account_transactions.GetByAccountArgs) (atl []*account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get transactions for account.",
 				zap.String("accountID", args.AccountID),
 			)
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got account transactions.",
 			zap.String("accountID", args.AccountID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return s.Service.GetByAccount(ctx, tx, args)
+	return ops.GetByAccount(ctx, c.b, t, args)
 }
 
-func (s *loggingService) GetPage(
-	ctx context.Context,
-	args *PaginationArgs,
-) (edges []AccountTransaction, err error) {
+func (c client) GetPage(ctx context.Context, args *account_transactions.PaginationArgs) (atl []account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get account transaction page.",
 				zap.String("accountID", args.AccountID),
 				zap.String("after", args.After),
@@ -143,7 +147,7 @@ func (s *loggingService) GetPage(
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got account transaction page.",
 			zap.String("accountID", args.AccountID),
 			zap.String("after", args.After),
@@ -152,17 +156,13 @@ func (s *loggingService) GetPage(
 		)
 	}(time.Now())
 
-	return s.Service.GetPage(ctx, args)
+	return ops.GetPage(ctx, c.b, args)
 }
 
-func (s *loggingService) GetPageInfo(
-	ctx context.Context,
-	accountID string,
-	edges []AccountTransaction,
-) (hasNextPage bool, startCursor string, endCursor string, err error) {
+func (c client) GetPageInfo(ctx context.Context, accountID string, edges []account_transactions.AccountTransaction) (hasNextPage bool, startCursor string, endCursor string, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get account transaction page info.",
 				zap.String("accountID", accountID),
 				zap.String("msg", err.Error()),
@@ -171,20 +171,20 @@ func (s *loggingService) GetPageInfo(
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got account transaction page info.",
 			zap.String("accountID", accountID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return s.Service.GetPageInfo(ctx, accountID, edges)
+	return ops.GetPageInfo(ctx, c.b, accountID, edges)
 }
 
-func (s *loggingService) Get(ctx context.Context, id string) (trx *AccountTransaction, err error) {
+func (c client) Get(ctx context.Context, id string) (at *account_transactions.AccountTransaction, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get account transaction.",
 				zap.String("id", id),
 				zap.String("msg", err.Error()),
@@ -193,12 +193,12 @@ func (s *loggingService) Get(ctx context.Context, id string) (trx *AccountTransa
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got account transaction.",
 			zap.String("id", id),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return s.Service.Get(ctx, id)
+	return ops.Get(ctx, c.b, id)
 }

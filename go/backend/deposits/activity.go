@@ -16,16 +16,16 @@ import (
 type Activity struct {
 	validator *validator.Validate
 	ds        Service
-	ts        transactions.Service
+	ts        transactions.Client
 	as        accounts.Client
 	noop      noop.Service
 }
 
 type ActivityArgs struct {
-	Ds Service              `validate:"required"`
-	As accounts.Client      `validate:"required"`
-	Np noop.Service         `validate:"required"`
-	Ts transactions.Service `validate:"required"`
+	Ds Service             `validate:"required"`
+	As accounts.Client     `validate:"required"`
+	Np noop.Service        `validate:"required"`
+	Ts transactions.Client `validate:"required"`
 }
 
 func NewActivity(args ActivityArgs) (*Activity, error) {

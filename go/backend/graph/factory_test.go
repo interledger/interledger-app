@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
@@ -15,7 +17,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
-	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -54,7 +55,7 @@ type TestContainer struct {
 	UnitMockServer       *httptest.Server
 	DepositService       deposits.Service
 	WithdrawalService    withdrawals.Service
-	TransactionService   account_transactions.Service
+	TransactionService   account_transactions.Client
 	Os                   onboarding.Service
 	Ps                   payments.Service
 	PacioliContainer     *test_utils.PacioliContainer
@@ -64,6 +65,10 @@ type TestContainer struct {
 	Client               *graphql.Client
 	Server               *httptest.Server
 	ValidatorImpl        *validator.Validate
+}
+
+func (c *TestContainer) Accounts() _account.Client {
+	return c.AccountService
 }
 
 func (c *TestContainer) Validator() *validator.Validate {
@@ -129,15 +134,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	users := _user.NewMockService()
 	c.UserService = _user.NewLoggingService(users, logger)
 
-	ts, err := transactions.NewService(&transactions.ServiceArgs{
-		AccountClient: as,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		return nil, err
-	}
-	ts = account_transactions.NewLoggingService(ts, logger)
+	ts := transactions_client.New(c, logger)
 	c.TransactionService = ts
 
 	equityAccID := "46d4b2bd-e29b-4a63-9aa8-7990776c714e"

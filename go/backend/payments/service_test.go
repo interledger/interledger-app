@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -171,7 +173,7 @@ type TestContainer struct {
 	CountryService     _country.Service
 	NoopService        noop.Service
 	OnboardService     onboarding.Service
-	TransactionService account_transactions.Service
+	TransactionService account_transactions.Client
 	PaymentService     Service
 	TemporalMock       *mocks.Client
 	PacioliContainer   *test_utils.PacioliContainer
@@ -181,6 +183,10 @@ type TestContainer struct {
 	Logger             *zap.Logger
 	Ctx                context.Context
 	ValidatorImpl      *validator.Validate
+}
+
+func (t TestContainer) Accounts() _accounts.Client {
+	return t.AccountService
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -268,14 +274,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.OnboardService = os
 
-	ts, err := account_transactions.NewService(&account_transactions.ServiceArgs{
-		AccountClient: as,
-		PacioliClient: pClient,
-		Db:            db,
-	})
-	if err != nil {
-		return nil, err
-	}
+	ts := transactions_client.New(c, logger)
 
 	c.TransactionService = ts
 
