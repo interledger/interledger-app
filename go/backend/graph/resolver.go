@@ -26,7 +26,7 @@ type Resolver struct {
 	// appending service to avoid name clashed with function names.
 	IdentityService     identity.Service
 	UserService         user.Service
-	CountryService      country.Service
+	CountryService      country.Client
 	AccountService      accounts.Client
 	NoopService         noop.Service
 	UnitService         unit.Service

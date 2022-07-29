@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	country_client "gitlab.com/fynbos/backend/country/client"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/go-playground/validator/v10"
@@ -441,7 +443,7 @@ func withLedgerTransfers(transfers []account_transactions.CreateLedgerTransferAr
 type TestContainer struct {
 	IdentityService    _identity.Service
 	AccountService     _accounts.Client
-	CountryService     _country.Service
+	CountryService     _country.Client
 	PacioliContainer   *test_utils.PacioliContainer
 	PacioliClient      pacioli.Client
 	PacioliLedgerID    uint32
@@ -469,7 +471,7 @@ func (t TestContainer) Identity() _identity.Service {
 	return t.IdentityService
 }
 
-func (t TestContainer) Countries() _country.Service {
+func (t TestContainer) Countries() _country.Client {
 	return t.CountryService
 }
 
@@ -491,7 +493,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.Logger = logger
 
-	cs := _country.NewService(db)
+	cs := country_client.New(c)
 	c.CountryService = cs
 
 	is, err := _identity.NewService(_identity.ServiceArgs{

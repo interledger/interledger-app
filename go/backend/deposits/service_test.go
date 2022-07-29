@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	country_client "gitlab.com/fynbos/backend/country/client"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -116,7 +118,7 @@ type TestContainer struct {
 	Ctrl                  *gomock.Controller
 	IdentityService       _identity.Service
 	AccountService        _accounts.Client
-	CountryService        _country.Service
+	CountryService        _country.Client
 	NoopService           noop.Service
 	OnboardService        onboarding.Service
 	FundingSourcesService fundingsources.Service
@@ -146,7 +148,7 @@ func (t TestContainer) Identity() _identity.Service {
 	return t.IdentityService
 }
 
-func (t TestContainer) Countries() _country.Service {
+func (t TestContainer) Countries() _country.Client {
 	return t.CountryService
 }
 
@@ -176,7 +178,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 	c.Logger = logger
 
-	cs := _country.NewService(db)
+	cs := country_client.New(c)
 	c.CountryService = cs
 
 	is, err := _identity.NewService(_identity.ServiceArgs{

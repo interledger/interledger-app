@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	country_client "gitlab.com/fynbos/backend/country/client"
+
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -45,7 +47,7 @@ type TestContainer struct {
 	Logger               *zap.Logger
 	Db                   *sqlx.DB
 	AccountService       _account.Client
-	CountryService       _country.Service
+	CountryService       _country.Client
 	FundingSourceService fundingsources.Service
 	IdentityService      identity.Service
 	UserService          _user.Service
@@ -83,7 +85,7 @@ func (c *TestContainer) Identity() identity.Service {
 	return c.IdentityService
 }
 
-func (c *TestContainer) Countries() _country.Service {
+func (c *TestContainer) Countries() _country.Client {
 	return c.CountryService
 }
 
@@ -105,7 +107,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Logger = logger
 
-	cs := _country.NewService(db)
+	cs := country_client.New(c)
 	c.CountryService = cs
 
 	is, err := identity.NewService(identity.ServiceArgs{
