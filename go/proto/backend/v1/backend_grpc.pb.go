@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackendAdminServiceClient interface {
 	GetUserAccountByEmail(ctx context.Context, in *GetUserAccountByEmailRequest, opts ...grpc.CallOption) (*Account, error)
+	SignalUnitCustomerCreated(ctx context.Context, in *SignalUnitCustomerCreatedRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendAdminServiceClient struct {
@@ -42,11 +43,21 @@ func (c *backendAdminServiceClient) GetUserAccountByEmail(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendAdminServiceClient) SignalUnitCustomerCreated(ctx context.Context, in *SignalUnitCustomerCreatedRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendAdminService/SignalUnitCustomerCreated", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendAdminServiceServer is the server API for BackendAdminService service.
 // All implementations should embed UnimplementedBackendAdminServiceServer
 // for forward compatibility
 type BackendAdminServiceServer interface {
 	GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error)
+	SignalUnitCustomerCreated(context.Context, *SignalUnitCustomerCreatedRequest) (*Empty, error)
 }
 
 // UnimplementedBackendAdminServiceServer should be embedded to have forward compatible implementations.
@@ -55,6 +66,9 @@ type UnimplementedBackendAdminServiceServer struct {
 
 func (UnimplementedBackendAdminServiceServer) GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserAccountByEmail not implemented")
+}
+func (UnimplementedBackendAdminServiceServer) SignalUnitCustomerCreated(context.Context, *SignalUnitCustomerCreatedRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignalUnitCustomerCreated not implemented")
 }
 
 // UnsafeBackendAdminServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -86,6 +100,24 @@ func _BackendAdminService_GetUserAccountByEmail_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendAdminService_SignalUnitCustomerCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignalUnitCustomerCreatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendAdminServiceServer).SignalUnitCustomerCreated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendAdminService/SignalUnitCustomerCreated",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendAdminServiceServer).SignalUnitCustomerCreated(ctx, req.(*SignalUnitCustomerCreatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendAdminService_ServiceDesc is the grpc.ServiceDesc for BackendAdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,6 +128,10 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserAccountByEmail",
 			Handler:    _BackendAdminService_GetUserAccountByEmail_Handler,
+		},
+		{
+			MethodName: "SignalUnitCustomerCreated",
+			Handler:    _BackendAdminService_SignalUnitCustomerCreated_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

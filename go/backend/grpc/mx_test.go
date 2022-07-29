@@ -25,6 +25,7 @@ import (
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -36,12 +37,13 @@ type TestContainer struct {
 	AdminAuthService     auth.Service
 	UserService          user.Service
 	FundingsourceService *fundingsources.MockService
-	TwilioService 			 *twilio.MockService
+	TwilioService        *twilio.MockService
 	OnboardingService    *onboarding.MockService
 	UnitProvider         *unit.MockService
 	MxProvider           *mx.MockService
 	RafikiProvider       *rafiki.MockService
 	DepositService       *deposits.MockService
+	Temporal             *mocks.Client
 }
 
 type TestContainerOption func(*TestContainer)
@@ -61,12 +63,13 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		AdminAuthService:     auth.NewMockService(),
 		UserService:          user.NewMockService(),
 		FundingsourceService: fundingsources.NewMockService(ctrl),
-		TwilioService: 				twilio.NewMockService(ctrl),
+		TwilioService:        twilio.NewMockService(ctrl),
 		UnitProvider:         unit.NewMockService(ctrl),
 		OnboardingService:    onboarding.NewMockService(ctrl),
 		MxProvider:           mx.NewMockService(ctrl),
 		RafikiProvider:       rafiki.NewMockService(ctrl),
 		DepositService:       deposits.NewMockService(ctrl),
+		Temporal:             &mocks.Client{},
 	}
 
 	for _, opt := range opts {
@@ -252,11 +255,12 @@ func startTestServer(
 		UserService:          c.UserService,
 		UnitProvider:         c.UnitProvider,
 		FundingSourceService: c.FundingsourceService,
-		TwilioService: 				c.TwilioService,
+		TwilioService:        c.TwilioService,
 		OnboardingService:    c.OnboardingService,
 		MxProvider:           c.MxProvider,
 		RafikiProvider:       c.RafikiProvider,
 		DepositService:       c.DepositService,
+		Temporal:             c.Temporal,
 	})
 	if err != nil {
 		t.Fatal(err)
