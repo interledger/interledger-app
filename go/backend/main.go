@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/temporal"
 	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc/credentials/insecure"
@@ -63,6 +65,22 @@ func main() {
 			log.Fatalln(err)
 		}
 		err = migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		db, err := sqlx.Connect("postgres", args.ConnectionString)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer func() {
+			if err := db.Close(); err != nil {
+				log.Fatalln(err)
+			}
+		}()
+		err = agreements.Migrate(context.Background(), &agreements.MigrateArgs{
+			Db:            db,
+			DirectoryPath: "./utils/agreements/live",
+		})
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -328,10 +346,19 @@ func start(args *cli.StartArgs) {
 	}
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
 
+	ags, err := agreements.NewService(&agreements.ServiceArgs{
+		Db:            db,
+		AgreementsDir: "./utils/agreements/live",
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   health,
 		IdentityService:      id,
 		AccountsService:      as,
+		AgreementsService:    ags,
 		AdminAuthService:     adminUsers,
 		UnitProvider:         us,
 		UserService:          users,

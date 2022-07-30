@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	_admin "gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -33,6 +34,7 @@ type ServerArgs struct {
 	HealthCheckService   healthcheck.Service    `validate:"required"`
 	IdentityService      identity.Service       `validate:"required"`
 	AccountsService      accounts.Service       `validate:"required"`
+	AgreementsService    agreements.Service     `validate:"required"`
 	AdminAuthService     auth.Service           `validate:"required"`
 	UserService          user.Service           `validate:"required"`
 	UnitProvider         unit.Service           `validate:"required"`
@@ -48,6 +50,7 @@ type rpcService struct {
 	backendv1.UnimplementedBackendServiceServer
 	validator            *validator.Validate
 	accountsService      accounts.Service
+	agreementsService    agreements.Service
 	identityService      identity.Service
 	userService          user.Service
 	unitProvider         unit.Service
@@ -72,6 +75,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 	backendv1.RegisterBackendServiceServer(server, &rpcService{
 		validator:            v,
 		accountsService:      args.AccountsService,
+		agreementsService:    args.AgreementsService,
 		identityService:      args.IdentityService,
 		userService:          args.UserService,
 		unitProvider:         args.UnitProvider,

@@ -14,6 +14,7 @@ import (
 	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -145,6 +146,14 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	us := auth.NewMockService()
 
+	ags, err := agreements.NewService(&agreements.ServiceArgs{
+		Db:            db,
+		AgreementsDir: "../utils/agreements/test",
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit.NewMockService(c.Ctrl)
 	c.Fs = fundingsources.NewMockService(c.Ctrl)
@@ -155,6 +164,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		IdentityService:      is,
 		AccountsService:      as,
 		AdminAuthService:     us,
+		AgreementsService:    ags,
 		UnitProvider:         c.Up,
 		UserService:          user.NewMockService(),
 		FundingSourceService: c.Fs,
