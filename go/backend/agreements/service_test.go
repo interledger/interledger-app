@@ -14,7 +14,7 @@ func TestSignAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	if err := Migrate(ctx, &MigrateArgs{
+	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
 		DirectoryPath: "../utils/agreements/test",
 	}); err != nil {
@@ -41,7 +41,7 @@ func TestAgreementSigns(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	if err := Migrate(ctx, &MigrateArgs{
+	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
 		DirectoryPath: "../utils/agreements/test",
 	}); err != nil {
@@ -83,7 +83,7 @@ func TestGetAgreement(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	if err := Migrate(ctx, &MigrateArgs{
+	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
 		DirectoryPath: "../utils/agreements/test",
 	}); err != nil {
@@ -111,14 +111,14 @@ func TestLiveAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
-	if err := Migrate(ctx, &MigrateArgs{
+	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
 		DirectoryPath: "../utils/agreements/test",
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	err := Migrate(ctx, &MigrateArgs{
+	err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
 		DirectoryPath: "../utils/agreements/live",
 	})
