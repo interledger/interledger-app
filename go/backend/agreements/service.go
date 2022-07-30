@@ -65,14 +65,6 @@ func NewService(args *ServiceArgs) (Service, error) {
 		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, err)
 	}
 
-	err := StoreAgreements(context.Background(), &StoreAgreementsArgs{
-		db:  args.Db,
-		dir: args.AgreementsDir,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err.Error())
-	}
-
 	return &service{
 		validator:     v,
 		db:            args.Db,
@@ -168,13 +160,13 @@ func (s *service) GetSignatures(ctx context.Context, identityID string) ([]Signa
 	return signatures, nil
 }
 
-type StoreAgreementsArgs struct {
-	dir string
-	db  *sqlx.DB
+type MigrateArgs struct {
+	DirectoryPath string
+	Db            *sqlx.DB
 }
 
-func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
-	agreementFiles, err := ioutil.ReadDir(args.dir)
+func Migrate(ctx context.Context, args *MigrateArgs) error {
+	agreementFiles, err := ioutil.ReadDir(args.DirectoryPath)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrNotFound, err.Error())
 	}
@@ -184,7 +176,7 @@ func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
 		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	stmt, err := args.db.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4)`)
+	stmt, err := args.Db.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4)`)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
@@ -199,7 +191,7 @@ func StoreAgreements(ctx context.Context, args *StoreAgreementsArgs) error {
 		agreementName := agreementID[:strings.Index(agreementID, "-")]
 		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
 
-		agreementContent, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", args.dir, agreementFile.Name()))
+		agreementContent, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", args.DirectoryPath, agreementFile.Name()))
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}

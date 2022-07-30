@@ -14,6 +14,12 @@ func TestSignAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	if err := Migrate(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/test",
+	}); err != nil {
+		t.Fatal(err)
+	}
 	as, err := NewService(&ServiceArgs{
 		Db:            db,
 		AgreementsDir: "../utils/agreements/test",
@@ -35,6 +41,12 @@ func TestAgreementSigns(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	if err := Migrate(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/test",
+	}); err != nil {
+		t.Fatal(err)
+	}
 	as, err := NewService(&ServiceArgs{
 		Db:            db,
 		AgreementsDir: "../utils/agreements/test",
@@ -71,6 +83,12 @@ func TestGetAgreement(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	if err := Migrate(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/test",
+	}); err != nil {
+		t.Fatal(err)
+	}
 	as, err := NewService(&ServiceArgs{
 		Db:            db,
 		AgreementsDir: "../utils/agreements/test",
@@ -93,10 +111,16 @@ func TestLiveAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
+	if err := Migrate(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/test",
+	}); err != nil {
+		t.Fatal(err)
+	}
 
-	err := StoreAgreements(ctx, &StoreAgreementsArgs{
-		db:  db,
-		dir: "../utils/agreements/live",
+	err := Migrate(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/live",
 	})
 
 	assert.NoError(t, err)

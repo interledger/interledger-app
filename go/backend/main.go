@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"log"
@@ -64,6 +65,22 @@ func main() {
 			log.Fatalln(err)
 		}
 		err = migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		db, err := sqlx.Connect("postgres", args.ConnectionString)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer func() {
+			if err := db.Close(); err != nil {
+				log.Fatalln(err)
+			}
+		}()
+		err = agreements.Migrate(context.Background(), &agreements.MigrateArgs{
+			Db:            db,
+			DirectoryPath: "./utils/agreements/live",
+		})
 		if err != nil {
 			log.Fatalln(err)
 		}
