@@ -165,7 +165,7 @@ type MigrateArgs struct {
 	Db            *sqlx.DB
 }
 
-func Migrate(ctx context.Context, args *MigrateArgs) error {
+func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
 	agreementFiles, err := ioutil.ReadDir(args.DirectoryPath)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrNotFound, err.Error())
