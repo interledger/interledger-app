@@ -125,3 +125,21 @@ func TestLiveAgreements(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
+func TestMigrationIdempotency(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/test",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	err := MigrateFromMarkdowns(ctx, &MigrateArgs{
+		Db:            db,
+		DirectoryPath: "../utils/agreements/test",
+	})
+
+	assert.NoError(t, err)
+}

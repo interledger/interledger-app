@@ -171,16 +171,39 @@ func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
 		return fmt.Errorf("%w %s", ErrNotFound, err.Error())
 	}
 
+	tx, err := args.Db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
 	regex, err := regexp.Compile(`^[a-zA-Z0-9_]+-[0-9]+\.[0-9]+\.[0-9]+\.md$`)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
-	stmt, err := args.Db.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4)`)
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
-	defer stmt.Close()
+	defer txStmt.Close()
+
+	var agreements []string
+	err = args.Db.SelectContext(ctx, &agreements, "SELECT id FROM agreements")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	// convert to map for faster lookup
+	agreementsMap := make(map[string]bool)
+	for _, agreement := range agreements {
+		agreementsMap[agreement] = true
+	}
 
 	for _, agreementFile := range agreementFiles {
 		if !regex.MatchString(agreementFile.Name()) {
@@ -188,6 +211,10 @@ func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
 		}
 
 		agreementID := agreementFile.Name()[:len(agreementFile.Name())-3]
+		if _, ok := agreementsMap[agreementID]; ok {
+			continue
+		}
+
 		agreementName := agreementID[:strings.Index(agreementID, "-")]
 		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
 
@@ -196,10 +223,15 @@ func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
 
-		_, err = stmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
+		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
 	}
 
 	return nil
