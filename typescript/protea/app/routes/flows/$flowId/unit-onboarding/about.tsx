@@ -11,6 +11,7 @@ import { SignupDocument } from '~/generated/types'
 import { DateTime } from 'luxon'
 import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 import { route } from 'routes-gen'
+import { useScript } from '~/lib/useScript'
 
 type Country = {
   id: string
@@ -70,6 +71,14 @@ export default function Page() {
     }
   }, [query, countries])
 
+  const [blackbox, setBlackbox] = useState<string>('')
+  const status = useScript('https://ci-mpsnare.iovation.com/snare.js')
+  useEffect(() => {
+    if (status == 'ready') {
+      setBlackbox((window as any).ioGetBlackbox().blackbox)
+    }
+  }, [status])
+
   return (
     <>
       <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -119,6 +128,7 @@ export default function Page() {
         name='country'
         type='hidden'
       />
+      <input form='unit-about' value={blackbox} name='blackbox' type='hidden' />
       <TextField
         id='ssn'
         form='unit-about'
@@ -181,6 +191,7 @@ export async function action({ request, params }: ActionArgs) {
   const ssn = form.get('ssn') as string
   const dateOfBirth = form.get('birth') as string
   const nationality = form.get('country') as string
+  const blackbox = form.get('blackbox') as string
   // const serviceAgreement = form.get('service-agreement') as string
 
   // TODO: validate this somewhere
@@ -193,7 +204,7 @@ export async function action({ request, params }: ActionArgs) {
 
   const flow = await getCurrentFlow(request, params)
   const { street, apartment, city, state, zip } = flow?.data
-  const deviceFingerprints = ['TODO']
+  const deviceFingerprints = [blackbox]
 
   // This won't return data, but should notify success. Can just forward to a waiting page.
   let response = await grpcClient
