@@ -147,8 +147,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	us := auth.NewMockService()
 
 	ags, err := agreements.NewService(&agreements.ServiceArgs{
-		Db:            db,
-		AgreementsDir: "../utils/agreements/test",
+		Db: db,
 	})
 	if err != nil {
 		return nil, err

@@ -328,8 +328,7 @@ func start(args *cli.StartArgs) {
 	adminUsers = auth.NewLoggingService(adminUsers, logger)
 
 	ags, err := agreements.NewService(&agreements.ServiceArgs{
-		Db:            db,
-		AgreementsDir: "./utils/agreements/live",
+		Db: db,
 	})
 	if err != nil {
 		log.Fatalln(err)

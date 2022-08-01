@@ -30,14 +30,12 @@ type (
 	}
 
 	ServiceArgs struct {
-		Db            *sqlx.DB `validate:"required"`
-		AgreementsDir string   `validate:"required"`
+		Db *sqlx.DB `validate:"required"`
 	}
 
 	service struct {
-		validator     *validator.Validate
-		db            *sqlx.DB
-		agreementsDir string
+		validator *validator.Validate
+		db        *sqlx.DB
 	}
 
 	Signature struct {
@@ -66,9 +64,8 @@ func NewService(args *ServiceArgs) (Service, error) {
 	}
 
 	return &service{
-		validator:     v,
-		db:            args.Db,
-		agreementsDir: args.AgreementsDir,
+		validator: v,
+		db:        args.Db,
 	}, nil
 }
 

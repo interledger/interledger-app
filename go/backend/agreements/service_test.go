@@ -21,8 +21,7 @@ func TestSignAgreements(t *testing.T) {
 		t.Fatal(err)
 	}
 	as, err := NewService(&ServiceArgs{
-		Db:            db,
-		AgreementsDir: "../utils/agreements/test",
+		Db: db,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -48,8 +47,7 @@ func TestAgreementSigns(t *testing.T) {
 		t.Fatal(err)
 	}
 	as, err := NewService(&ServiceArgs{
-		Db:            db,
-		AgreementsDir: "../utils/agreements/test",
+		Db: db,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -90,8 +88,7 @@ func TestGetAgreement(t *testing.T) {
 		t.Fatal(err)
 	}
 	as, err := NewService(&ServiceArgs{
-		Db:            db,
-		AgreementsDir: "../utils/agreements/test",
+		Db: db,
 	})
 	if err != nil {
 		t.Fatal(err)
