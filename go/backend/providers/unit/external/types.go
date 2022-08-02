@@ -243,3 +243,22 @@ type (
 		Customer Relationship `json:"customer"`
 	}
 )
+
+type (
+	Statement struct {
+		ID            string                 `json:"id,omitempty"`
+		Type          string                 `json:"type,omitempty"`
+		Attributes    StatementAttributes    `json:"attributes,omitempty"`
+		Relationships StatementRelationships `json:"relationships,omitempty"`
+	}
+
+	StatementAttributes struct {
+		Period string `json:"period,omitempty"`
+	}
+
+	StatementRelationships struct {
+		Account   Relationship `json:"account"`
+		Customer  Relationship `json:"customer"`
+		Customers Relationship `json:"customers"`
+	}
+)
