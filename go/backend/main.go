@@ -52,6 +52,9 @@ import (
 //go:embed migrations/*.sql
 var fs embed.FS
 
+//go:embed utils/agreements/*
+var agreementsFs embed.FS
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatalln("Expected `start` or `migrate`.")
@@ -379,9 +382,10 @@ func migrate(args *cli.MigrationArgs) {
 		}
 	}()
 
-	err = agreements.MigrateFromMarkdowns(context.Background(), &agreements.MigrateArgs{
+	err = agreements.MigrateFromEmbeddedMarkdowns(context.Background(), &agreements.MigrateFromEmbeddedMarkdownArgs{
 		Db:            db,
 		DirectoryPath: "./utils/agreements/live",
+		Fs:            agreementsFs,
 	})
 	if err != nil {
 		log.Fatalln(err)

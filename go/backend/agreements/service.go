@@ -5,6 +5,7 @@ package agreements
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -216,6 +217,84 @@ func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
 		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
 
 		agreementContent, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", args.DirectoryPath, agreementFile.Name()))
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+
+		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err.Error())
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	return nil
+}
+
+type MigrateFromEmbeddedMarkdownArgs struct {
+	DirectoryPath string
+	Db            *sqlx.DB
+	Fs            embed.FS
+}
+
+func MigrateFromEmbeddedMarkdowns(ctx context.Context, args *MigrateFromEmbeddedMarkdownArgs) error {
+	agreementFiles, err := args.Fs.ReadDir(args.DirectoryPath)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrNotFound, err)
+	}
+
+	tx, err := args.Db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	regex, err := regexp.Compile(`^[a-zA-Z0-9_]+-[0-9]+\.[0-9]+\.[0-9]+\.md$`)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+	defer txStmt.Close()
+
+	var agreements []string
+	err = args.Db.SelectContext(ctx, &agreements, "SELECT id FROM agreements")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err.Error())
+	}
+
+	// convert to map for faster lookup
+	agreementsMap := make(map[string]bool)
+	for _, agreement := range agreements {
+		agreementsMap[agreement] = true
+	}
+
+	for _, agreementFile := range agreementFiles {
+		if !regex.MatchString(agreementFile.Name()) {
+			return fmt.Errorf("%w %s", ErrInternal, "invalid agreement file name format")
+		}
+
+		agreementID := agreementFile.Name()[:len(agreementFile.Name())-3]
+		if _, ok := agreementsMap[agreementID]; ok {
+			continue
+		}
+
+		agreementName := agreementID[:strings.Index(agreementID, "-")]
+		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
+
+		agreementContent, err := args.Fs.ReadFile(fmt.Sprintf("%s/%s", args.DirectoryPath, agreementFile.Name()))
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
