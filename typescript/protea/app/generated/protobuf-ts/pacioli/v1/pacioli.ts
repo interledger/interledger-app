@@ -221,6 +221,10 @@ export interface Transfer {
      * @generated from protobuf field: uint32 ledger = 8;
      */
     ledger: number;
+    /**
+     * @generated from protobuf field: string pendingId = 9;
+     */
+    pendingId: string;
 }
 /**
  * @generated from protobuf message pacioli.v1.TransferFlags
@@ -1042,11 +1046,12 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 5, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 6, name: "flags", kind: "message", T: () => TransferFlags },
             { no: 7, name: "timeout", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
-            { no: 8, name: "ledger", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
+            { no: 8, name: "ledger", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 9, name: "pendingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0 };
+        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0, pendingId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -1080,6 +1085,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* uint32 ledger */ 8:
                     message.ledger = reader.uint32();
+                    break;
+                case /* string pendingId */ 9:
+                    message.pendingId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1117,6 +1125,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* uint32 ledger = 8; */
         if (message.ledger !== 0)
             writer.tag(8, WireType.Varint).uint32(message.ledger);
+        /* string pendingId = 9; */
+        if (message.pendingId !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.pendingId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

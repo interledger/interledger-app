@@ -10,9 +10,6 @@ import (
 	"os"
 	"time"
 
-	"gitlab.com/fynbos/backend/agreements"
-	"google.golang.org/grpc/credentials/insecure"
-	transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
@@ -23,6 +20,7 @@ import (
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"

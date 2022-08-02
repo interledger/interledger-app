@@ -38,6 +38,7 @@ type Account struct {
 
 type Transfer struct {
 	ID              string
+	PendingID       string
 	LedgerID        uint16 // this field is coming soon to a TigerBeetle near you.
 	DebitAccountID  string
 	CreditAccountID string
