@@ -1,79 +1,75 @@
 package env_test
 
 import (
+	"os"
 	"testing"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	_env "gitlab.com/fynbos/env"
 )
 
-func TestFynbosEnv(t *testing.T) {
-	t.Run("Deafults to prod", func(st *testing.T) {
-		env, err := _env.NewFynbosEnv("")
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestGetEnv(t *testing.T) {
+	t.Run("Defaults to prod", func(st *testing.T) {
+		os.Unsetenv("FYNBOS_ENV")
 
-		assert.True(t, env.IsProd())
-		assert.False(t, env.IsSandbox())
-		assert.False(t, env.IsDev())
-		assert.False(t, env.IsTesting())
+		assert.Equal(st, "prod", _env.GetEnv())
 	})
 
-	t.Run("IsSandbox", func(st *testing.T) {
-		env, err := _env.NewFynbosEnv("sandbox")
-		if err != nil {
-			t.Fatal(err)
-		}
+	t.Run("panics if not valid env", func(st *testing.T) {
+		defer func() {
+			e := recover()
+			if e == nil {
+				st.Fatal("Should have panicked")
+			} else {
+				assert.Equal(st, "Invalid env=prod2", e)
+			}
+		}()
 
-		assert.True(t, env.IsSandbox())
-		assert.False(t, env.IsProd())
-		assert.False(t, env.IsDev())
-		assert.False(t, env.IsTesting())
+		os.Setenv("FYNBOS_ENV", "prod2")
+		_ = _env.GetEnv()
 	})
+}
 
-	t.Run("IsProd", func(st *testing.T) {
-		env, err := _env.NewFynbosEnv("prod")
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestTesting(t *testing.T) {
+	os.Setenv("FYNBOS_ENV", "testing")
 
-		assert.True(t, env.IsProd())
-		assert.False(t, env.IsSandbox())
-		assert.False(t, env.IsDev())
-		assert.False(t, env.IsTesting())
-	})
+	env := _env.GetEnv()
+	assert.Equal(t, "testing", env)
+	assert.True(t, _env.IsTesting())
+	assert.False(t, _env.IsProd())
+	assert.False(t, _env.IsDev())
+	assert.False(t, _env.IsSandbox())
+}
 
-	t.Run("IsDev", func(st *testing.T) {
-		env, err := _env.NewFynbosEnv("dev")
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestDev(t *testing.T) {
+	os.Setenv("FYNBOS_ENV", "dev")
 
-		assert.True(t, env.IsDev())
-		assert.False(t, env.IsSandbox())
-		assert.False(t, env.IsProd())
-		assert.False(t, env.IsTesting())
-	})
+	env := _env.GetEnv()
+	assert.Equal(t, "dev", env)
+	assert.True(t, _env.IsDev())
+	assert.False(t, _env.IsProd())
+	assert.False(t, _env.IsTesting())
+	assert.False(t, _env.IsSandbox())
+}
 
-	t.Run("IsTesting", func(st *testing.T) {
-		env, err := _env.NewFynbosEnv("testing")
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestSandbox(t *testing.T) {
+	os.Setenv("FYNBOS_ENV", "sandbox")
 
-		assert.True(t, env.IsTesting())
-		assert.False(t, env.IsSandbox())
-		assert.False(t, env.IsProd())
-		assert.False(t, env.IsDev())
-	})
+	env := _env.GetEnv()
+	assert.Equal(t, "sandbox", env)
+	assert.True(t, _env.IsSandbox())
+	assert.False(t, _env.IsProd())
+	assert.False(t, _env.IsDev())
+	assert.False(t, _env.IsTesting())
+}
 
-	t.Run("Returns error for invalid environment", func(st *testing.T) {
-		envName := faker.Name()
-		env, err := _env.NewFynbosEnv(envName)
+func TestProd(t *testing.T) {
+	os.Setenv("FYNBOS_ENV", "prod")
 
-		assert.EqualError(t, err, "Invalid env="+envName)
-		assert.Nil(t, env)
-	})
+	env := _env.GetEnv()
+	assert.Equal(t, "prod", env)
+	assert.True(t, _env.IsProd())
+	assert.False(t, _env.IsSandbox())
+	assert.False(t, _env.IsDev())
+	assert.False(t, _env.IsTesting())
 }
