@@ -10,7 +10,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        primary: '#F35167',
+        primary: '#F43F5E',
         secondary: '#7DD043'
       },
       // Token colours
