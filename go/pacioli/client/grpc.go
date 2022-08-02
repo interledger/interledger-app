@@ -181,6 +181,7 @@ func (c client) GetTransfers(ctx context.Context, transferIDs []string) ([]pacio
 	for i, l := range tresp.Transfers {
 		res[i] = pacioli.Transfer{
 			ID:              l.Id,
+			PendingID:       l.PendingId,
 			LedgerID:        uint16(l.Ledger),
 			DebitAccountID:  l.DebitAccountId,
 			CreditAccountID: l.CreditAccountId,

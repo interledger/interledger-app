@@ -89,6 +89,7 @@ message Transfer {
   TransferFlags flags = 6;
   uint64 timeout = 7;
   uint32 ledger = 8;
+  string pendingId = 9;
 }
 
 message TransferFlags {

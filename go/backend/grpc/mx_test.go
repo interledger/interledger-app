@@ -6,8 +6,6 @@ import (
 	"net"
 	"testing"
 
-	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
-	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"

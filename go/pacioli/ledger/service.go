@@ -158,10 +158,23 @@ func UuidToU128(value string) (*tb_types.Uint128, error) {
 
 // Helper function to extract the uuid we put into the u128.
 func U128ToUuid(value tb_types.Uint128) string {
+	if U128IsEmpty(value) {
+		return ""
+	}
 	s := hex.EncodeToString(value[:])
 	ret := s[:8] + "-" + s[8:12] + "-" + s[12:16] + "-" + s[16:20] + "-" + s[20:]
 
 	return ret
+}
+
+// U128IsEmpty is a helper function that return true if the uint128 type is empty
+func U128IsEmpty(val tb_types.Uint128) bool {
+	for _, v := range val {
+		if v != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // This is declaritive and will not fail if the account exists. It will fail if one exists with
@@ -370,10 +383,12 @@ func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]paci
 	for i, transfer := range results {
 		ret[i] = pacioli.Transfer{
 			ID:              U128ToUuid(transfer.ID),
+			PendingID:       U128ToUuid(transfer.PendingID),
 			DebitAccountID:  U128ToUuid(transfer.DebitAccountID),
 			CreditAccountID: U128ToUuid(transfer.CreditAccountID),
 			Amount:          transfer.Amount,
 			Code:            transfer.Code,
+
 			Flags: pacioli.TransferFlags{
 				Linked:              transfer.Flags&(1<<0) == 1,
 				Pending:             transfer.Flags&(1<<1) == 2,

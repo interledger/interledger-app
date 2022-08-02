@@ -219,6 +219,7 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 	for i, transfer := range transfers {
 		transfersToReturn[i] = &pacioliv1.Transfer{
 			Id:              transfer.ID,
+			PendingId:       transfer.PendingID,
 			DebitAccountId:  transfer.DebitAccountID,
 			CreditAccountId: transfer.CreditAccountID,
 			Amount:          transfer.Amount,
