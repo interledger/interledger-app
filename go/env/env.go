@@ -1,7 +1,7 @@
 package env
 
 import (
-	"fmt"
+	"os"
 )
 
 var allowedEnvs = []string{
@@ -11,12 +11,8 @@ var allowedEnvs = []string{
 	"testing",
 }
 
-type FynbosEnv struct {
-	env string
-}
-
-func NewFynbosEnv(env string) (*FynbosEnv, error) {
-	fynbosEnv := env
+func GetEnv() string {
+	fynbosEnv := os.Getenv("FYNBOS_ENV")
 	if fynbosEnv == "" {
 		fynbosEnv = "prod"
 	}
@@ -30,24 +26,24 @@ func NewFynbosEnv(env string) (*FynbosEnv, error) {
 	}
 
 	if !contains {
-		return nil, fmt.Errorf("Invalid env=%s", fynbosEnv)
+		panic("Invalid env=" + fynbosEnv)
 	}
 
-	return &FynbosEnv{fynbosEnv}, nil
+	return fynbosEnv
 }
 
-func (e *FynbosEnv) IsSandbox() bool {
-	return e.env == "sandbox"
+func IsTesting() bool {
+	return GetEnv() == "testing"
 }
 
-func (e *FynbosEnv) IsDev() bool {
-	return e.env == "dev"
+func IsDev() bool {
+	return GetEnv() == "dev"
 }
 
-func (e *FynbosEnv) IsTesting() bool {
-	return e.env == "testing"
+func IsSandbox() bool {
+	return GetEnv() == "sandbox"
 }
 
-func (e *FynbosEnv) IsProd() bool {
-	return e.env == "prod"
+func IsProd() bool {
+	return GetEnv() == "prod"
 }
