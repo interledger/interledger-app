@@ -40,6 +40,7 @@ type (
 	Unit interface {
 		CreateDepositAccount(ctx context.Context, args *CreateDepositAccountArgs) (*DepositAccount, error)
 		FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]ApplicationForm, error)
+		GetStatements(ctx context.Context, customerID string) ([]Statement, error)
 		CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 		CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
 		CreateCounterparty(ctx context.Context, args *CreateCounterpartyArgs) (*Counterparty, error)
@@ -78,6 +79,22 @@ func NewClient(baseUrl string, apiToken string) *client {
 			Transport: newBasicAuthTransport(apiToken),
 		},
 	}
+}
+
+func (c *client) GetStatements(ctx context.Context, customerID string) ([]Statement, error) {
+	url := fmt.Sprintf(`%s/statements?filter[customerId]=%s`, c.baseUrl, customerID)
+	resp, err := c.http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrRequest, err)
+	}
+
+	ret := []Statement{}
+	err = parseResponse(resp, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
 func (c *client) FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]ApplicationForm, error) {

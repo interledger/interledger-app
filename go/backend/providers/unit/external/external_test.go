@@ -80,6 +80,79 @@ func TestCreateApplicationForm(t *testing.T) {
 	assert.Equal(t, "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6", form.Attributes.Url)
 }
 
+func TestGetStatements(t *testing.T) {
+	t.Parallel()
+	customerID := uuid.NewString()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+			return
+		}
+		if r.URL.Path != "/statements" {
+			http.Error(w, "Not found.", http.StatusNotFound)
+			return
+		}
+		value, present := r.URL.Query()["filter[customerId]"]
+		if !present {
+			t.Fatal("customerId not found in query string")
+		}
+		if value[0] != customerID {
+			t.Fatal("customerId in query string does not match")
+		}
+
+		data := []Statement{
+			{
+				ID:   "21",
+				Type: "statement",
+				Attributes: StatementAttributes{
+					Period: "2022-07",
+				},
+				Relationships: StatementRelationships{
+					Customer: Relationship{
+						Data: TypeData{
+							ID:   customerID,
+							Type: "customer",
+						},
+					},
+				},
+			},
+		}
+
+		rawData, err := json.Marshal(data)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		formResponse := &Response{
+			Data: rawData,
+		}
+		payload, err := json.Marshal(formResponse)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write([]byte(payload))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+
+	client := NewClient(server.URL, "test")
+	statements, err := client.GetStatements(context.Background(), customerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Len(t, statements, 1)
+	assert.Equal(t, customerID, statements[0].Relationships.Customer.Data.ID)
+	assert.Equal(t, "2022-07", statements[0].Attributes.Period)
+	assert.Equal(t, "statement", statements[0].Type)
+}
+
 func TestGetApplicationForm(t *testing.T) {
 	t.Parallel()
 	userID := uuid.NewString()
