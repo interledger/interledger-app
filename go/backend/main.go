@@ -43,6 +43,7 @@ import (
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
@@ -344,9 +345,9 @@ func migrate(args *cli.MigrationArgs) {
 		}
 	}()
 
-	err = agreements.MigrateFromMarkdowns(context.Background(), &agreements.MigrateArgs{
-		Db:            db,
-		DirectoryPath: "./utils/agreements/live",
+	err = agreements.MigrateFromEmbeddedMarkdowns(context.Background(), &agreements.MigrateFromEmbeddedMarkdownArgs{
+		Db:        db,
+		FynbosEnv: env.GetEnv(),
 	})
 	if err != nil {
 		log.Fatalln(err)

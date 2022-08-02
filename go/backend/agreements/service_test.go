@@ -16,7 +16,7 @@ func TestSignAgreements(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/test",
+		DirectoryPath: "assets/testing",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func TestAgreementSigns(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/test",
+		DirectoryPath: "assets/testing",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func TestGetAgreement(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/test",
+		DirectoryPath: "assets/testing",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -104,20 +104,20 @@ func TestGetAgreement(t *testing.T) {
 	assert.Equal(t, "privacy policy content v2", agreement.Content)
 }
 
-func TestLiveAgreements(t *testing.T) {
+func TestProdAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/test",
+		DirectoryPath: "assets/testing",
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/live",
+		DirectoryPath: "assets/prod",
 	})
 
 	assert.NoError(t, err)
@@ -129,13 +129,13 @@ func TestMigrationIdempotency(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	if err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/test",
+		DirectoryPath: "assets/testing",
 	}); err != nil {
 		t.Fatal(err)
 	}
 	err := MigrateFromMarkdowns(ctx, &MigrateArgs{
 		Db:            db,
-		DirectoryPath: "../utils/agreements/test",
+		DirectoryPath: "assets/testing",
 	})
 
 	assert.NoError(t, err)
