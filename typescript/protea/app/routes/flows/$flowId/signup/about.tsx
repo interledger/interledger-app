@@ -189,6 +189,10 @@ export async function action({ request, params }: ActionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
 
+  if (country != 'US') {
+    return redirect(`/waitlist?country=${country}&email=${email}`, {})
+  }
+
   const fieldErrors = {
     firstName: '',
     lastName: '',
@@ -228,9 +232,6 @@ export async function action({ request, params }: ActionArgs) {
   })
   const flow = await getCurrentFlow(request, params)
 
-  if (country != 'US') {
-    return redirect(route('/onboarding/country-access'), { headers })
-  }
   return redirect(
     route('/flows/:flowId/signup/phone', {
       flowId: flow?.id as string

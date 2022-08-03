@@ -42,6 +42,7 @@ import (
 	"gitlab.com/fynbos/backend/temporal"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
+	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
@@ -314,6 +315,7 @@ func start(args *cli.StartArgs) {
 		RafikiProvider:       rafikiProvider,
 		DepositService:       ds,
 		TwilioService:        twilioService,
+		WaitlistClient:       waitlist_client.New(b, logger),
 	})
 	if err != nil {
 		log.Fatalln(err)
