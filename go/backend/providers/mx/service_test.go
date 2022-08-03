@@ -3,6 +3,7 @@ package mx
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
@@ -466,19 +467,13 @@ func TestVerifyOwnership(t *testing.T) {
 		},
 		nil,
 	).AnyTimes()
-	identityService.EXPECT().Get(ctx, userID).Return(
-		&identity.Identity{
-			ID:        userID,
-			FirstName: "James",
-			LastName:  "Bond",
-		},
-		nil,
-	).AnyTimes()
 
 	testcases := []struct {
 		Name          string
 		ExpectedError error
 		AccountOwners []external.AccountOwner
+		User          *identity.Identity
+		FynbosEnv     string
 	}{
 		{
 			Name:          "Verifies if account owner's name is the same as user's name",
@@ -489,6 +484,12 @@ func TestVerifyOwnership(t *testing.T) {
 					OwnerName:   "James bond",
 				},
 			},
+			User: &identity.Identity{
+				ID:        userID,
+				FirstName: "James",
+				LastName:  "Bond",
+			},
+			FynbosEnv: "prod",
 		},
 		{
 			Name:          "Returns ErrOwnershipCheckFailed if account owner's name does not match user's name",
@@ -499,13 +500,54 @@ func TestVerifyOwnership(t *testing.T) {
 					OwnerName:   "James Blunt",
 				},
 			},
+			User: &identity.Identity{
+				ID:        userID,
+				FirstName: "James",
+				LastName:  "Bond",
+			},
+			FynbosEnv: "prod",
+		},
+		{
+			Name:          "Auto verifies MX USER when not in prod",
+			ExpectedError: nil,
+			User: &identity.Identity{
+				ID:        userID,
+				FirstName: "mx",
+				LastName:  "user",
+			},
+			// we still make a call to get the account owner details
+			AccountOwners: []external.AccountOwner{
+				{
+					AccountGuid: mxAccount.Guid,
+					OwnerName:   "James bond",
+				},
+			},
+			FynbosEnv: "testing",
+		},
+		{
+			Name:          "Does not auto verify MX USER when in prod",
+			ExpectedError: ErrOwnershipCheckFailed,
+			AccountOwners: []external.AccountOwner{
+				{
+					AccountGuid: mxAccount.Guid,
+					OwnerName:   "James bond",
+				},
+			},
+			User: &identity.Identity{
+				ID:        userID,
+				FirstName: "mx",
+				LastName:  "user",
+			},
+			FynbosEnv: "prod",
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
+			os.Setenv("FYNBOS_ENV", tc.FynbosEnv)
 			mockExternalClient.EXPECT().GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
 				Return(tc.AccountOwners, nil).Times(1)
+			identityService.EXPECT().Get(ctx, userID).Return(tc.User, nil).Times(1)
 
 			err = mx.VerifyOwnership(ctx, mxAccount.Guid)
 
