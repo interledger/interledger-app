@@ -39,7 +39,7 @@ func Migrate() error {
 		return err
 	}
 
-	d, err := iofs.New(fs, "migrations")
+	d, err := iofs.New(fs, ".")
 	if err != nil {
 		return err
 	}
