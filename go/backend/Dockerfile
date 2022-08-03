@@ -12,6 +12,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.7 && \
 COPY go.mod go.sum ./
 RUN go mod download
 COPY backend ./backend
+COPY env ./env
 COPY proto ./proto
 COPY pacioli ./pacioli
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
