@@ -532,3 +532,7 @@ func CanAggregate(memberConnectionStatus string) bool {
 		return false
 	}
 }
+
+func IsSavings(accountType string) bool {
+	return strings.ToLower(strings.TrimSpace(accountType)) == "savings"
+}

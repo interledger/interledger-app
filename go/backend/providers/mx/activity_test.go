@@ -145,8 +145,8 @@ func TestCreateUnitCounterparty(t *testing.T) {
 		UnitCustomerID:  unitCustomerID,
 		RoutingNumber:   "71717171717",
 		AccountNumber:   "81818181234",
-		AccountType:     "SAVINGS",
-		Type:            "person",
+		AccountType:     "Savings",
+		Type:            "Person",
 		IdempotencyKey:  string(idempotencyKey[0:]),
 	})
 
