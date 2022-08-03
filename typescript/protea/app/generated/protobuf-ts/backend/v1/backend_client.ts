@@ -2,6 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { JoinWaitlistResponse } from "./backend";
+import type { JoinWaitlistRequest } from "./backend";
 import type { InitiateDepositResponse } from "./backend";
 import type { InitiateDepositRequest } from "./backend";
 import type { Quote } from "./backend";
@@ -121,6 +123,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: InitiateDeposit(backend.v1.InitiateDepositRequest) returns (backend.v1.InitiateDepositResponse);
      */
     initiateDeposit(input: InitiateDepositRequest, options?: RpcOptions): UnaryCall<InitiateDepositRequest, InitiateDepositResponse>;
+    /**
+     * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
+     */
+    joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -226,5 +232,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     initiateDeposit(input: InitiateDepositRequest, options?: RpcOptions): UnaryCall<InitiateDepositRequest, InitiateDepositResponse> {
         const method = this.methods[11], opt = this._transport.mergeOptions(options);
         return stackIntercept<InitiateDepositRequest, InitiateDepositResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
+     */
+    joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
 }
