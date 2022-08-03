@@ -208,13 +208,18 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
+	// unit api only accepts Checking or Savings.
+	accountType := "Checking"
+	if IsSavings(accountNumbers.Type) {
+		accountType = "Savings"
+	}
 	idempotencyKey := sha256.Sum256([]byte(mxAccount.FundingsourceID))
 	_, err = a.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
 		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
 		RoutingNumber:   accountNumbers.RoutingNumber,
 		AccountNumber:   accountNumbers.AccountNumber,
-		AccountType:     accountNumbers.Type,
-		Type:            "person",
+		AccountType:     accountType,
+		Type:            "Person",
 		IdempotencyKey:  string(idempotencyKey[0:]),
 		UnitCustomerID:  unitCustomer.ID,
 		FundingsourceID: mxAccount.FundingsourceID,
