@@ -46,6 +46,8 @@ type Service interface {
 	CreateDepositAccount(ctx context.Context, customerID string) (*DepositAccount, error)
 	GetDepositAccount(ctx context.Context, id string) (*DepositAccount, error)
 	GetApplicationForm(ctx context.Context, userID string) (*ApplicationForm, error)
+	GetStatements(ctx context.Context, customerID string) ([]Statement, error)
+	GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) (*StatementPDF, error)
 	CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 	CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
 	VerifyWebhook(ctx context.Context, body []byte, signature string) error
@@ -96,6 +98,74 @@ func NewService(args ServiceArgs) (Service, error) {
 		externalClient:  external.NewClient(args.BaseURL, args.Token),
 		logger:          args.Logger.With(zap.String("service", "unit")),
 	}, nil
+}
+
+type StatementPDF struct {
+	ID  string
+	PDF []byte
+}
+
+type GetStatementPDFArgs struct {
+	StatementID string `validate:"required"`
+	CustomerID  string `validate:"required"`
+}
+
+func (s *service) GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) (*StatementPDF, error) {
+	statement, err := s.externalClient.GetStatementPDF(ctx, &external.GetStatementPDFArgs{
+		ID:         args.StatementID,
+		CustomerID: args.CustomerID,
+	})
+
+	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
+		}
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &StatementPDF{
+		ID:  args.StatementID,
+		PDF: statement,
+	}, nil
+}
+
+type Statement struct {
+	ID        string
+	Period    string
+	AccountID string
+}
+
+func (s *service) GetStatements(ctx context.Context, customerID string) ([]Statement, error) {
+	statements, err := s.externalClient.GetStatements(ctx, customerID)
+	if err != nil {
+		var errHttp *external.ErrHttp
+		if errors.As(err, &errHttp) {
+			return nil, fmt.Errorf("%w %s", statusToError(errHttp.Code), err)
+		}
+		if errors.Is(err, external.ErrRequest) {
+			return nil, fmt.Errorf("%w %s", ErrClient, err)
+		}
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if len(statements) == 0 {
+		return nil, fmt.Errorf("%w no statements found", ErrNotFound)
+	}
+
+	var statementsOut []Statement
+	for _, s := range statements {
+		statementsOut = append(statementsOut, Statement{
+			ID:        s.ID,
+			Period:    s.Attributes.Period,
+			AccountID: s.Relationships.Account.Data.ID,
+		})
+	}
+
+	return statementsOut, nil
 }
 
 type ApplicationForm struct {
@@ -500,6 +570,9 @@ func statusToError(statusCode int) error {
 	}
 	if statusCode == http.StatusTooManyRequests {
 		return ErrRateLimit
+	}
+	if statusCode == http.StatusNotFound {
+		return ErrNotFound
 	}
 	if statusCode > http.StatusInternalServerError {
 		return ErrServer
