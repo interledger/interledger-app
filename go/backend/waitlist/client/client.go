@@ -16,7 +16,7 @@ type client struct {
 	logger *zap.Logger
 }
 
-func New(b ops.Backends, logger zap.Logger) waitlist.Client {
+func New(b ops.Backends, logger *zap.Logger) waitlist.Client {
 	return &client{
 		b:      b,
 		logger: logger.With(zap.String("service", "waitlist")),
