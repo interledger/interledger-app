@@ -80,6 +80,42 @@ func TestCreateApplicationForm(t *testing.T) {
 	assert.Equal(t, "https://application-form.sh/LJ45W6SSGO6VFFNKMLR5WPOSLH6KMSXQZPGXIPG64SLXHD5TCV4GSYXWZVUSNUEIW2KP5SZOI4RMP6IJRKLF5TTDJTU4TCLU3LQX2XFDIQAMG7TKSXHCQY3KGZ3RFEBYEQCB3GGYUGIUWBXT2ZEIOVNBG72GGNNJKMFJ6", form.Attributes.Url)
 }
 
+func TestGetStatementPDF(t *testing.T) {
+	t.Parallel()
+	pdfContent := []byte("Statement Content PDF")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
+			return
+		}
+		if r.URL.Path != fmt.Sprintf(`/statements/%s/pdf`, "411479") {
+			http.Error(w, "Not found.", http.StatusNotFound)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write(pdfContent)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+
+	client := NewClient(server.URL, "test")
+	pdf, err := client.GetStatementPDF(context.Background(), &GetStatementPDFArgs{
+		ID:         "411479",
+		CustomerID: uuid.NewString(),
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, pdfContent, pdf)
+}
+
 func TestGetStatements(t *testing.T) {
 	t.Parallel()
 	customerID := uuid.NewString()
