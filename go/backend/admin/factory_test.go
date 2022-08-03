@@ -3,6 +3,7 @@ package admin_test
 import (
 	"context"
 	"fmt"
+	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	"net"
 	"testing"
 
@@ -197,6 +198,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		MxProvider:           mx.NewMockService(c.Ctrl),
 		RafikiProvider:       c.RafikiProvider,
 		DepositService:       deposits.NewMockService(c.Ctrl),
+		WaitlistClient:       waitlist_mock.NewMockClient(c.Ctrl),
 	})
 	if err != nil {
 		return nil, err

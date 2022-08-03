@@ -402,6 +402,24 @@ export interface InitiateDepositResponse {
      */
     depositId: string;
 }
+/**
+ * @generated from protobuf message backend.v1.JoinWaitlistRequest
+ */
+export interface JoinWaitlistRequest {
+    /**
+     * @generated from protobuf field: string email = 1;
+     */
+    email: string;
+    /**
+     * @generated from protobuf field: string country_code = 2;
+     */
+    countryCode: string;
+}
+/**
+ * @generated from protobuf message backend.v1.JoinWaitlistResponse
+ */
+export interface JoinWaitlistResponse {
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -1796,6 +1814,86 @@ class InitiateDepositResponse$Type extends MessageType<InitiateDepositResponse> 
  * @generated MessageType for protobuf message backend.v1.InitiateDepositResponse
  */
 export const InitiateDepositResponse = new InitiateDepositResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
+    constructor() {
+        super("backend.v1.JoinWaitlistRequest", [
+            { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "country_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<JoinWaitlistRequest>): JoinWaitlistRequest {
+        const message = { email: "", countryCode: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<JoinWaitlistRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: JoinWaitlistRequest): JoinWaitlistRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string email */ 1:
+                    message.email = reader.string();
+                    break;
+                case /* string country_code */ 2:
+                    message.countryCode = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: JoinWaitlistRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string email = 1; */
+        if (message.email !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.email);
+        /* string country_code = 2; */
+        if (message.countryCode !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.countryCode);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.JoinWaitlistRequest
+ */
+export const JoinWaitlistRequest = new JoinWaitlistRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class JoinWaitlistResponse$Type extends MessageType<JoinWaitlistResponse> {
+    constructor() {
+        super("backend.v1.JoinWaitlistResponse", []);
+    }
+    create(value?: PartialMessage<JoinWaitlistResponse>): JoinWaitlistResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<JoinWaitlistResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: JoinWaitlistResponse): JoinWaitlistResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: JoinWaitlistResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.JoinWaitlistResponse
+ */
+export const JoinWaitlistResponse = new JoinWaitlistResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -1817,5 +1915,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
-    { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse }
+    { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse },
+    { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse }
 ]);

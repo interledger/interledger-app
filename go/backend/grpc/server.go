@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/waitlist"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -44,10 +45,10 @@ type ServerArgs struct {
 	RafikiProvider       rafiki.Service        `validate:"required"`
 	DepositService       deposits.Service      `validate:"required"`
 	TwilioService        twilio.Service        `validate:"required"`
+	WaitlistClient       waitlist.Client       `validate:"required"`
 }
 
 type rpcService struct {
-	backendv1.UnimplementedBackendServiceServer
 	validator            *validator.Validate
 	accountsService      accounts.Client
 	agreementsService    agreements.Service
@@ -60,6 +61,7 @@ type rpcService struct {
 	rafikiProvider       rafiki.Service
 	depositService       deposits.Service
 	twilioService        twilio.Service
+	waitlistClient       waitlist.Client
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -85,6 +87,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		rafikiProvider:       args.RafikiProvider,
 		depositService:       args.DepositService,
 		twilioService:        args.TwilioService,
+		waitlistClient:       args.WaitlistClient,
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,
