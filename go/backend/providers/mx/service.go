@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/mx/external"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -367,11 +368,28 @@ func (s *service) VerifyOwnership(ctx context.Context, id string) error {
 	userFullName = strings.ToUpper(userFullName)
 	ownerName := strings.TrimSpace(ownerDetails.OwnerName)
 	ownerName = strings.ToUpper(ownerName)
+
+	// we do the auto verify here so we test getting the account owner details.
+	if autoVerifyOwnership(userFullName) {
+		return nil
+	}
 	if userFullName != ownerName {
 		return ErrOwnershipCheckFailed
 	}
 
 	return nil
+}
+
+func autoVerifyOwnership(name string) bool {
+	allowedNames := []string{"MX USER"}
+	if !env.IsProd() {
+		for _, allowedName := range allowedNames {
+			if strings.ToUpper(strings.TrimSpace(name)) == allowedName {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (s *service) GetConnectWidget(
