@@ -184,6 +184,36 @@ func (mr *MockServiceMockRecorder) GetDepositAccount(ctx, id interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDepositAccount", reflect.TypeOf((*MockService)(nil).GetDepositAccount), ctx, id)
 }
 
+// GetStatementPDF mocks base method.
+func (m *MockService) GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) (*StatementPDF, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatementPDF", ctx, args)
+	ret0, _ := ret[0].(*StatementPDF)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatementPDF indicates an expected call of GetStatementPDF.
+func (mr *MockServiceMockRecorder) GetStatementPDF(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatementPDF", reflect.TypeOf((*MockService)(nil).GetStatementPDF), ctx, args)
+}
+
+// GetStatements mocks base method.
+func (m *MockService) GetStatements(ctx context.Context, customerID string) ([]Statement, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatements", ctx, customerID)
+	ret0, _ := ret[0].([]Statement)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatements indicates an expected call of GetStatements.
+func (mr *MockServiceMockRecorder) GetStatements(ctx, customerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatements", reflect.TypeOf((*MockService)(nil).GetStatements), ctx, customerID)
+}
+
 // InitiateUserDeposit mocks base method.
 func (m *MockService) InitiateUserDeposit(ctx context.Context, args *InitiateUserDepositArgs) (*UserAchDeposit, error) {
 	m.ctrl.T.Helper()
