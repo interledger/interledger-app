@@ -41,6 +41,7 @@ type (
 		CreateDepositAccount(ctx context.Context, args *CreateDepositAccountArgs) (*DepositAccount, error)
 		FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]ApplicationForm, error)
 		GetStatements(ctx context.Context, customerID string) ([]Statement, error)
+		GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) ([]byte, error)
 		CreateApplicationForm(ctx context.Context, args *CreateApplicationFormArgs) (*ApplicationForm, error)
 		CreateApplication(ctx context.Context, args *CreateApplicationArgs) (*Application, error)
 		CreateCounterparty(ctx context.Context, args *CreateCounterpartyArgs) (*Counterparty, error)
@@ -79,6 +80,41 @@ func NewClient(baseUrl string, apiToken string) *client {
 			Transport: newBasicAuthTransport(apiToken),
 		},
 	}
+}
+
+type GetStatementPDFArgs struct {
+	ID         string
+	CustomerID string
+}
+
+func (c *client) GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) ([]byte, error) {
+	url := fmt.Sprintf(`%s/statements/%s/pdf?filter[customerId]=%s`, c.baseUrl, args.ID, args.CustomerID)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrRequest, err)
+	}
+
+	// can't use parseResponse() here because it expects a json object
+	// but we are getting a pdf file. that cause the json parser to
+	// fail.
+	ret, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if !isStatusOkay(resp.StatusCode) {
+		response := &Response{}
+		err := json.Unmarshal(ret, response)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", ErrInternal, err)
+		}
+		return nil, &ErrHttp{
+			Code:   resp.StatusCode,
+			Errors: response.Errors,
+		}
+	}
+
+	return ret, nil
 }
 
 func (c *client) GetStatements(ctx context.Context, customerID string) ([]Statement, error) {
