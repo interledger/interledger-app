@@ -26,7 +26,7 @@ variables:
   LD_LIBRARY_PATH: $LD_LIBRARY_PATH:./../../tigerbeetle_go
   DB_URL: postgres://root@crdb:26257/%s?sslmode=disable
 
-build_pacioli:
+test_pacioli:
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
   extends:
     - .go-cache-pacioli
@@ -43,5 +43,21 @@ build_pacioli:
     - cd $SERVICE_PATH
     - make pull
     - make testci
-    - make build IMAGE_HASH=${IMAGE_HASH}
-    - make push IMAGE_HASH=${IMAGE_HASH}
+
+build_pacioli:
+  tags:
+    - k8s
+  needs:
+    - test_pacioli
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${SERVICE_PATH}/../"
+      --dockerfile "${SERVICE_PATH}/Dockerfile"
+      --destination "823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:${PROTEA_IMAGE_HASH}"
+      --cache=true
+      --cache-repo="${CI_REGISTRY}/fynbos/fynbos/pacioli-cache"

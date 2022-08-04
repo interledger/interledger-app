@@ -26,7 +26,7 @@ variables:
   BACKEND_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
   DB_URL: postgres://root@crdb:26257/%s?sslmode=disable
 
-build_backend:
+test_backend:
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
   extends:
     - .go-cache-backend
@@ -43,5 +43,21 @@ build_backend:
     - cd $BACKEND_PATH
     - make pull
     - make testci
-    - make build IMAGE_HASH=${BACKEND_IMAGE_HASH}
-    - make push IMAGE_HASH=${BACKEND_IMAGE_HASH}
+
+build_backend:
+  tags:
+    - k8s
+  needs:
+    - test_backend
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${BACKEND_PATH}/../"
+      --dockerfile "${BACKEND_PATH}/Dockerfile"
+      --destination "823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:${BACKEND_IMAGE_HASH}"
+      --cache=true
+      --cache-repo="${CI_REGISTRY}/fynbos/fynbos/backend-cache"

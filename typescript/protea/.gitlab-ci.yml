@@ -21,10 +21,17 @@ default:
     - cd $PROJECT_PATH
 
 build_protea:
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
-  interruptible: true
+  tags:
+    - k8s
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    - mkdir -p ~/.docker
-    - echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    - make build IMAGE_HASH=${PROTEA_IMAGE_HASH}
-    - make push IMAGE_HASH=${PROTEA_IMAGE_HASH}
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --context "${PROJECT_PATH}"
+      --dockerfile "${PROJECT_PATH}/Dockerfile"
+      --destination "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
+      --cache=true
+      --cache-repo="${CI_REGISTRY}/fynbos/fynbos/protea-cache"
