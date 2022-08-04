@@ -1,19 +1,12 @@
 import { Button, Icon, Logo, TextField } from '~/components'
-import { ActionArgs, json, LoaderArgs, redirect } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { apolloClient } from '~/lib/apollo.server'
-import {
-  SignupDocument,
-  SignupQuery,
-  SignupQueryVariables
-} from '~/generated/types'
-import {
-  grpcClient,
-  GrpcError,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
+import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
+import { SignupDocument } from '~/generated/types'
+import type { GrpcError } from '~/lib/proto.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useState } from 'react'
 
 type Country = {
   id: string
@@ -44,8 +37,8 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { countryCode, countries, email } = useLoaderData<typeof loader>()
-  const [country, setCountry] = useState<Country>(
-    countries.find((country: Country) => country.id == countryCode) as Country
+  const country = countries.find(
+    (country: Country) => country.id == countryCode
   )
 
   return (
@@ -103,7 +96,7 @@ export default function Page() {
           <div className='flex items-center space-x-3 text-medium'>
             <Icon>flag</Icon>
             <span className='font-sans text-base font-normal'>
-              {country.name}
+              {country?.name}
             </span>
           </div>
         </div>
