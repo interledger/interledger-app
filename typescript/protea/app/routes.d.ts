@@ -39,6 +39,7 @@ declare module "routes-gen" {
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
     "/connect": Record<string, never>;
+    "/contact": Record<string, never>;
     "/receive": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -90,6 +91,7 @@ declare module "routes-gen" {
       | ["/recovery"]
       | ["/settings"]
       | ["/connect"]
+      | ["/contact"]
       | ["/receive"]
       | ["/logout"]
       | ["/signup"]
