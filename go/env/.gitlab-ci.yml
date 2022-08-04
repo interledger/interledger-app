@@ -11,6 +11,8 @@ variables:
   ENV_PATH: $CI_PROJECT_DIR/go/env
 
 build_env:
+  tags:
+    - k8s
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
   interruptible: true
   script:

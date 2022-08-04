@@ -12,6 +12,8 @@
       - .go/pkg/mod/
 
 go-mod:
+  tags:
+    - k8s
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
   extends: .go-cache
   script:
