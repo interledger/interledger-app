@@ -200,6 +200,16 @@ func main() {
 			return err
 		}
 
+		err = createGitlabRunnerNodeGroup(ctx, CreateNodeGroupArgs{
+			Cluster:      cluster,
+			InstanceRole: instanceRole,
+			SubnetIds:    privateSubnetIds,
+			AuthConfig:   authConfig,
+		})
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -226,8 +236,8 @@ max-pods = 20
 		return err
 	}
 
-	_, err = eks.NewNodeGroup(ctx, "managed-ng-1", &eks.NodeGroupArgs{
-		NodeGroupName: pulumi.String("managed-ng-1"),
+	_, err = eks.NewNodeGroup(ctx, "managed-ng-0", &eks.NodeGroupArgs{
+		NodeGroupName: pulumi.String("managed-ng-0"),
 		ClusterName:   args.Cluster.Name,
 		ScalingConfig: eks.NodeGroupScalingConfigArgs{
 			DesiredSize: pulumi.Int(2),
@@ -322,6 +332,67 @@ max-pods = 20
 		},
 		Labels: pulumi.StringMap{
 			"vault_in_k8s": pulumi.String("true"),
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{launchTemplate, args.Cluster, args.InstanceRole, args.AuthConfig}))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createGitlabRunnerNodeGroup(ctx *pulumi.Context, args CreateNodeGroupArgs) error {
+	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-glrunner-template", &ec2.LaunchTemplateArgs{
+		BlockDeviceMappings: ec2.LaunchTemplateBlockDeviceMappingArray{
+			ec2.LaunchTemplateBlockDeviceMappingArgs{
+				DeviceName: pulumi.String("/dev/xvda"),
+				Ebs: &ec2.LaunchTemplateBlockDeviceMappingEbsArgs{
+					VolumeType: pulumi.String("gp3"),
+					VolumeSize: pulumi.Int(100),
+					Throughput: pulumi.Int(125),
+					Iops:       pulumi.Int(3000),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = eks.NewNodeGroup(ctx, "managed-glrunner", &eks.NodeGroupArgs{
+		NodeGroupName: pulumi.String("managed-glrunner"),
+		ClusterName:   args.Cluster.Name,
+		ScalingConfig: eks.NodeGroupScalingConfigArgs{
+			DesiredSize: pulumi.Int(1),
+			MinSize:     pulumi.Int(1),
+			MaxSize:     pulumi.Int(2),
+		},
+		NodeRoleArn: args.InstanceRole.Arn,
+		LaunchTemplate: eks.NodeGroupLaunchTemplateArgs{
+			Id:      launchTemplate.ID(),
+			Version: pulumi.Sprintf("%d", launchTemplate.LatestVersion),
+		},
+		InstanceTypes: pulumi.StringArray{
+			pulumi.String("c6a.2xlarge"),
+			pulumi.String("m6a.2xlarge"),
+		},
+		CapacityType: pulumi.String("SPOT"),
+		SubnetIds:    args.SubnetIds,
+		AmiType:      pulumi.String("AL2_x86_64"),
+		Taints: eks.NodeGroupTaintArray{
+			eks.NodeGroupTaintArgs{
+				Effect: pulumi.String("NO_EXECUTE"),
+				Key:    pulumi.String("node.cilium.io/agent-not-ready"),
+				Value:  pulumi.String("true"),
+			},
+			eks.NodeGroupTaintArgs{
+				Effect: pulumi.String("NO_EXECUTE"),
+				Key:    pulumi.String("taint_for_gl_runner"),
+				Value:  pulumi.String("true"),
+			},
+		},
+		Labels: pulumi.StringMap{
+			"glrunner_in_k8s": pulumi.String("true"),
 		},
 	}, pulumi.DependsOn([]pulumi.Resource{launchTemplate, args.Cluster, args.InstanceRole, args.AuthConfig}))
 	if err != nil {
