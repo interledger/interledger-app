@@ -35,3 +35,5 @@ build_protea:
       --destination "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
       --cache=true
       --cache-repo="${CI_REGISTRY}/fynbos/fynbos/protea-cache"
+      --snapshotMode=redo
+      --use-new-run=true
