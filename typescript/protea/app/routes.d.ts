@@ -1,7 +1,6 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/api/maps/placesAutocomplete": Record<string, never>;
-    "/onboarding/country-access": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/payment-methods": Record<string, never>;
     "/confirmation/:flowId": { "flowId": string };
@@ -12,6 +11,7 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
+    "/waitlist/success": Record<string, never>;
     "/activity/filter": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/onboarding/unit": Record<string, never>;
@@ -38,7 +38,9 @@ declare module "routes-gen" {
     "/activity": Record<string, never>;
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
+    "/waitlist": Record<string, never>;
     "/connect": Record<string, never>;
+    "/contact": Record<string, never>;
     "/receive": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -52,7 +54,6 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/api/maps/placesAutocomplete"]
-      | ["/onboarding/country-access"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/payment-methods"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
@@ -63,6 +64,7 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
+      | ["/waitlist/success"]
       | ["/activity/filter"]
       | ["/login/challenge"]
       | ["/onboarding/unit"]
@@ -89,7 +91,9 @@ declare module "routes-gen" {
       | ["/activity"]
       | ["/recovery"]
       | ["/settings"]
+      | ["/waitlist"]
       | ["/connect"]
+      | ["/contact"]
       | ["/receive"]
       | ["/logout"]
       | ["/signup"]
