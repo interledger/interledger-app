@@ -16,6 +16,8 @@ workflow:
       when: never
 
 trigger_deploy_dev_eu1:
+  tags:
+    - k8s
   environment: !reference [ .dev_eu1_environment, environment ]
   needs:
     - build_backend
@@ -38,5 +40,5 @@ trigger_deploy_dev_eu1:
     - (cd backend/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
     - (cd protea/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
     - (cd pacioli/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA)
-    - git commit -am 'Dev EU image update for ${CI_COMMIT_SHORT_SHA}'
+    - git commit -am "Dev EU image update for ${CI_COMMIT_SHORT_SHA}"
     - git push origin main
