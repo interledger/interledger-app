@@ -1,0 +1,3 @@
+name: aws-clusters-shared-gl-runner
+runtime: go
+description: Deploy gitlab runner to shared cluster
