@@ -157,6 +157,9 @@ type BackendServiceClient interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
+	// Ability to list statements and get a statement PDF.
+	GetStatements(ctx context.Context, in *GetStatementsRequest, opts ...grpc.CallOption) (*GetStatementsResponse, error)
+	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*GetStatementPDFResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	InitiateDeposit(ctx context.Context, in *InitiateDepositRequest, opts ...grpc.CallOption) (*InitiateDepositResponse, error)
@@ -261,6 +264,24 @@ func (c *backendServiceClient) SignAgreements(ctx context.Context, in *SignAgree
 	return out, nil
 }
 
+func (c *backendServiceClient) GetStatements(ctx context.Context, in *GetStatementsRequest, opts ...grpc.CallOption) (*GetStatementsResponse, error) {
+	out := new(GetStatementsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatements", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*GetStatementPDFResponse, error) {
+	out := new(GetStatementPDFResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error) {
 	out := new(Quote)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetQuote", in, out, opts...)
@@ -307,6 +328,9 @@ type BackendServiceServer interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
+	// Ability to list statements and get a statement PDF.
+	GetStatements(context.Context, *GetStatementsRequest) (*GetStatementsResponse, error)
+	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*GetStatementPDFResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
 	InitiateDeposit(context.Context, *InitiateDepositRequest) (*InitiateDepositResponse, error)
@@ -346,6 +370,12 @@ func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgree
 }
 func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignAgreements not implemented")
+}
+func (UnimplementedBackendServiceServer) GetStatements(context.Context, *GetStatementsRequest) (*GetStatementsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatements not implemented")
+}
+func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*GetStatementPDFResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
 }
 func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequest) (*Quote, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetQuote not implemented")
@@ -548,6 +578,42 @@ func _BackendService_SignAgreements_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetStatements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatementsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetStatements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetStatements",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetStatements(ctx, req.(*GetStatementsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatementPDFRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetStatementPDF(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetStatementPDF",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetStatementPDF(ctx, req.(*GetStatementPDFRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_GetQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetQuoteRequest)
 	if err := dec(in); err != nil {
@@ -648,6 +714,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignAgreements",
 			Handler:    _BackendService_SignAgreements_Handler,
+		},
+		{
+			MethodName: "GetStatements",
+			Handler:    _BackendService_GetStatements_Handler,
+		},
+		{
+			MethodName: "GetStatementPDF",
+			Handler:    _BackendService_GetStatementPDF_Handler,
 		},
 		{
 			MethodName: "GetQuote",

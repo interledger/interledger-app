@@ -8,6 +8,10 @@ import type { InitiateDepositResponse } from "./backend";
 import type { InitiateDepositRequest } from "./backend";
 import type { Quote } from "./backend";
 import type { GetQuoteRequest } from "./backend";
+import type { GetStatementPDFResponse } from "./backend";
+import type { GetStatementPDFRequest } from "./backend";
+import type { GetStatementsResponse } from "./backend";
+import type { GetStatementsRequest } from "./backend";
 import type { SignAgreementsResponse } from "./backend";
 import type { SignAgreementsRequest } from "./backend";
 import type { Agreement } from "./backend";
@@ -127,6 +131,16 @@ export interface IBackendServiceClient {
      */
     signAgreements(input: SignAgreementsRequest, options?: RpcOptions): UnaryCall<SignAgreementsRequest, SignAgreementsResponse>;
     /**
+     * Ability to list statements and get a statement PDF.
+     *
+     * @generated from protobuf rpc: GetStatements(backend.v1.GetStatementsRequest) returns (backend.v1.GetStatementsResponse);
+     */
+    getStatements(input: GetStatementsRequest, options?: RpcOptions): UnaryCall<GetStatementsRequest, GetStatementsResponse>;
+    /**
+     * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.GetStatementPDFResponse);
+     */
+    getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, GetStatementPDFResponse>;
+    /**
      * Will get a quote that details transaction fees and how much the receiver will get.
      *
      * @generated from protobuf rpc: GetQuote(backend.v1.GetQuoteRequest) returns (backend.v1.Quote);
@@ -231,26 +245,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<SignAgreementsRequest, SignAgreementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * Ability to list statements and get a statement PDF.
+     *
+     * @generated from protobuf rpc: GetStatements(backend.v1.GetStatementsRequest) returns (backend.v1.GetStatementsResponse);
+     */
+    getStatements(input: GetStatementsRequest, options?: RpcOptions): UnaryCall<GetStatementsRequest, GetStatementsResponse> {
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetStatementsRequest, GetStatementsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.GetStatementPDFResponse);
+     */
+    getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, GetStatementPDFResponse> {
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetStatementPDFRequest, GetStatementPDFResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Will get a quote that details transaction fees and how much the receiver will get.
      *
      * @generated from protobuf rpc: GetQuote(backend.v1.GetQuoteRequest) returns (backend.v1.Quote);
      */
     getQuote(input: GetQuoteRequest, options?: RpcOptions): UnaryCall<GetQuoteRequest, Quote> {
-        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetQuoteRequest, Quote>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: InitiateDeposit(backend.v1.InitiateDepositRequest) returns (backend.v1.InitiateDepositResponse);
      */
     initiateDeposit(input: InitiateDepositRequest, options?: RpcOptions): UnaryCall<InitiateDepositRequest, InitiateDepositResponse> {
-        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
         return stackIntercept<InitiateDepositRequest, InitiateDepositResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
 }

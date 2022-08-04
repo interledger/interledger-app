@@ -50,10 +50,34 @@ service BackendService {
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
+  // Ability to list statements and get a statement PDF.
+  rpc GetStatements(GetStatementsRequest) returns (GetStatementsResponse);
+  rpc GetStatementPDF(GetStatementPDFRequest) returns (GetStatementPDFResponse);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
+}
+
+message GetStatementsRequest {}
+
+message GetStatementsResponse {
+  message Statement {
+    string id = 1;
+    string period = 2;
+    string accountId = 3;
+  }
+
+  repeated Statement statements = 1;
+}
+
+message GetStatementPDFRequest {
+  string statementId = 1;
+}
+
+message GetStatementPDFResponse {
+  string id = 1;
+  bytes statementPdf = 2;
 }
 
 message GetBankAccountWidgetRequest {}
