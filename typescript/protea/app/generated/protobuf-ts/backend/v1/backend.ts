@@ -504,6 +504,36 @@ export interface GetFundingsourcesResponse {
      */
     fundingsources: FundingSource[];
 }
+/**
+ * @generated from protobuf message backend.v1.Deposit
+ */
+export interface Deposit {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string fundingsourceId = 2;
+     */
+    fundingsourceId: string;
+    /**
+     * @generated from protobuf field: uint64 amount = 3;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string state = 4;
+     */
+    state: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetDepositRequest
+ */
+export interface GetDepositRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -2347,6 +2377,121 @@ class GetFundingsourcesResponse$Type extends MessageType<GetFundingsourcesRespon
  * @generated MessageType for protobuf message backend.v1.GetFundingsourcesResponse
  */
 export const GetFundingsourcesResponse = new GetFundingsourcesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Deposit$Type extends MessageType<Deposit> {
+    constructor() {
+        super("backend.v1.Deposit", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "fundingsourceId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 4, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Deposit>): Deposit {
+        const message = { id: "", fundingsourceId: "", amount: "0", state: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Deposit>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Deposit): Deposit {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string fundingsourceId */ 2:
+                    message.fundingsourceId = reader.string();
+                    break;
+                case /* uint64 amount */ 3:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string state */ 4:
+                    message.state = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Deposit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string fundingsourceId = 2; */
+        if (message.fundingsourceId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.fundingsourceId);
+        /* uint64 amount = 3; */
+        if (message.amount !== "0")
+            writer.tag(3, WireType.Varint).uint64(message.amount);
+        /* string state = 4; */
+        if (message.state !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.state);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Deposit
+ */
+export const Deposit = new Deposit$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetDepositRequest$Type extends MessageType<GetDepositRequest> {
+    constructor() {
+        super("backend.v1.GetDepositRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetDepositRequest>): GetDepositRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetDepositRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetDepositRequest): GetDepositRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetDepositRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetDepositRequest
+ */
+export const GetDepositRequest = new GetDepositRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -2373,5 +2518,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
-    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse }
+    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
+    { name: "GetDeposit", options: {}, I: GetDepositRequest, O: Deposit }
 ]);
