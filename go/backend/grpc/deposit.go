@@ -35,3 +35,32 @@ func (s *rpcService) InitiateDeposit(
 		DepositId: deposit.ID,
 	}, nil
 }
+
+func (s *rpcService) GetDeposit(ctx context.Context,
+	req *backendv1.GetDepositRequest,
+) (*backendv1.Deposit, error) {
+	user, err := s.userService.ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no user.")
+	}
+
+	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		return nil, InternalError("Account not found.")
+	}
+
+	deposit, err := s.depositService.Get(ctx, req.GetId())
+	if err != nil {
+		return nil, InternalError("Failed to get deposit.")
+	}
+	if deposit.AccountID != acc.ID {
+		return nil, InternalError("Failed to get deposit.")
+	}
+
+	return &backendv1.Deposit{
+		Id:              deposit.ID,
+		FundingsourceId: deposit.FundingSourceId,
+		Amount:          deposit.Amount,
+		State:           deposit.State.String(),
+	}, nil
+}
