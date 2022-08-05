@@ -1,35 +1,25 @@
-import { useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
-import { Button, Router, Icon, RadioGroup } from '~/components'
+import { Button, Icon, RadioGroup, Router } from '~/components'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
-import { apolloClient } from '~/lib/apollo.server'
-import type {
-  FlowsDepositPaymentMethodQuery,
-  FlowsDepositPaymentMethodQueryVariables
-} from '~/generated/types'
-import { FlowsDepositPaymentMethodDocument } from '~/generated/types'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
-  // TODO fetch current payment methods
-  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient.getFundingsources(
+    {},
+    {
+      meta: { "cookies": String(request.headers.get('cookie')) }
+    },
+  ).then((v) => v).catch(StatusError)
+  if (isGrpcError(response)) {
+    throw response
+  }
 
-  const res = await apolloClient.query<
-    FlowsDepositPaymentMethodQuery,
-    FlowsDepositPaymentMethodQueryVariables
-  >({
-    query: FlowsDepositPaymentMethodDocument,
-    context: {
-      headers: {
-        cookie: cookie
-      }
-    }
-  })
-  const paymentMethods = res.data.fundingSources.map((fs) => ({
+  const paymentMethods = response.response.fundingsources.map((fs) => ({
     id: fs?.id,
     name: fs?.name,
     description: fs?.mask,
