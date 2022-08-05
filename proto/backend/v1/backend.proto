@@ -56,6 +56,7 @@ service BackendService {
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
+  rpc GetDeposit(GetDepositRequest) returns(Deposit);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
 }
@@ -219,4 +220,15 @@ message JoinWaitlistResponse {}
 
 message GetFundingsourcesResponse {
   repeated FundingSource fundingsources = 1;
+}
+
+message Deposit {
+  string id = 1;
+  string fundingsourceId = 2;
+  uint64 amount = 3;
+  string state = 4;
+}
+
+message GetDepositRequest {
+  string id = 1;
 }
