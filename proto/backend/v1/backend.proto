@@ -65,6 +65,7 @@ service BackendService {
   rpc GetDeposit(GetDepositRequest) returns(Deposit);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
+  rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
 }
 
 message GetStatementsRequest {}
@@ -86,6 +87,13 @@ message GetStatementPDFRequest {
 message GetStatementPDFResponse {
   string id = 1;
   bytes statementPdf = 2;
+}
+
+message CreateSupportTicketRequest{
+  string description = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
 }
 
 message GetBankAccountWidgetRequest {}

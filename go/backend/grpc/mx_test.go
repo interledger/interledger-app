@@ -23,6 +23,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
+	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
@@ -50,6 +51,7 @@ type TestContainer struct {
 	DepositService       *deposits.MockService
 	WaitlistClient       *waitlist_mock.MockClient
 	Temporal             *mocks.Client
+	TicketClient         *support_mock.MockClient
 }
 
 type TestContainerOption func(*TestContainer)
@@ -77,6 +79,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		RafikiProvider:       rafiki.NewMockService(ctrl),
 		DepositService:       deposits.NewMockService(ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
+		TicketClient:         support_mock.NewMockClient(ctrl),
 		Temporal:             &mocks.Client{},
 	}
 
@@ -271,6 +274,7 @@ func startTestServer(
 		DepositService:       c.DepositService,
 		WaitlistClient:       c.WaitlistClient,
 		Temporal:             c.Temporal,
+		TicketClient:         c.TicketClient,
 	})
 	if err != nil {
 		t.Fatal(err)

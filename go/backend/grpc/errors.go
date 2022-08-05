@@ -3,12 +3,82 @@ package grpc
 import (
 	"errors"
 	"fmt"
+	"log"
+
+	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/user"
 
 	"github.com/go-playground/validator/v10"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var errorStatus = map[error]error{
+	user.ErrNoUserFound:  status.Error(codes.Unauthenticated, "Unauthenticated"),
+	identity.ErrNotFound: status.Error(codes.NotFound, "User identity not found"),
+}
+
+func validationDesc(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "e164":
+		return "Phone number is invalid."
+	case "required":
+		return "This field is Required."
+	case "uuid":
+		return "Incorrect format, please provide a UUID."
+	case "iso3166_1_alpha2":
+		return "Provide a valid country code."
+	case "email":
+		return "Provide a valid email address."
+	}
+
+	return ""
+}
+
+// grpcError converts a given error to its frontend friendly equivalent.
+func grpcError(err error) error {
+	// Check if it is a validation error
+	var validatorError validator.ValidationErrors
+	if errors.As(err, &validatorError) {
+		st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
+		br := &errdetails.BadRequest{}
+
+		for _, fe := range validatorError {
+			v := &errdetails.BadRequest_FieldViolation{
+				Field:       fe.Field(),
+				Description: validationDesc(fe),
+			}
+			br.FieldViolations = append(br.FieldViolations, v)
+		}
+
+		st, err := st.WithDetails(br)
+		if err != nil {
+			// If this errored, it will always error
+			// here, so better panic so we can figure
+			// out why than have this silently passing.
+			panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+		}
+		return st.Err()
+	}
+
+	// Try for a direct pointer match
+	me, ok := errorStatus[err]
+	if ok {
+		return me
+	}
+
+	// In case the error was wrapped.
+	for k, v := range errorStatus {
+		if errors.Is(err, k) {
+			return v
+		}
+	}
+
+	// Default to a generic error and log
+	log.Println("Unexpected error", err)
+	return status.Error(codes.Internal, "Internal server error")
+}
 
 func NewValidationError(field string, description string) error {
 	st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
