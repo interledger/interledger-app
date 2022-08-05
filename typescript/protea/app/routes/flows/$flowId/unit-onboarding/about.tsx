@@ -145,10 +145,31 @@ export default function Page() {
         errorMessage={actionData?.errors.ssn}
       />
       <Checkbox
+        id='debit-card-agreement'
+        name='debit-card-agreement'
+        form='unit-about'
+        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
+        aria-describedby={
+          actionData?.errors.serviceAgreement
+            ? 'serviceAgreement-error'
+            : undefined
+        }
+        errorMessage={actionData?.errors.serviceAgreement}
+      >
+        I have read and agree to the&nbsp;
+        {/* TODO: Should route to legal */}
+        <Router className='text-primary' to='/privacy-policy'>
+          Debit card agreement
+        </Router>
+        &nbsp;, and I consent to the use of electronic records in connection
+        with this application.
+      </Checkbox>
+      <Checkbox
         id='service-agreement'
         name='service-agreement'
-        form='signup-password'
-        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        form='unit-about'
+        className='col-span-full flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
         aria-describedby={
           actionData?.errors.serviceAgreement
