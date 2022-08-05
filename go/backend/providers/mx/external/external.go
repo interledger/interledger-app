@@ -184,6 +184,11 @@ func (c *client) AggregateBalance(ctx context.Context, userGuid, memberGuid stri
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	// we won't be able to aggregate for up to 2hours for this member. So just return current member
+	// status.
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return c.GetMemberStatus(ctx, userGuid, memberGuid)
+	}
 	if resp.StatusCode > 400 {
 		return nil, fmt.Errorf("%w Cannot aggregate balance.", ErrInternal)
 	}
