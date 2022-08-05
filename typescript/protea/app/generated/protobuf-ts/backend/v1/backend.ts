@@ -495,6 +495,15 @@ export interface JoinWaitlistRequest {
  */
 export interface JoinWaitlistResponse {
 }
+/**
+ * @generated from protobuf message backend.v1.GetFundingsourcesResponse
+ */
+export interface GetFundingsourcesResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.FundingSource fundingsources = 1;
+     */
+    fundingsources: FundingSource[];
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -2291,6 +2300,53 @@ class JoinWaitlistResponse$Type extends MessageType<JoinWaitlistResponse> {
  * @generated MessageType for protobuf message backend.v1.JoinWaitlistResponse
  */
 export const JoinWaitlistResponse = new JoinWaitlistResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetFundingsourcesResponse$Type extends MessageType<GetFundingsourcesResponse> {
+    constructor() {
+        super("backend.v1.GetFundingsourcesResponse", [
+            { no: 1, name: "fundingsources", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => FundingSource }
+        ]);
+    }
+    create(value?: PartialMessage<GetFundingsourcesResponse>): GetFundingsourcesResponse {
+        const message = { fundingsources: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetFundingsourcesResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetFundingsourcesResponse): GetFundingsourcesResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.FundingSource fundingsources */ 1:
+                    message.fundingsources.push(FundingSource.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetFundingsourcesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.FundingSource fundingsources = 1; */
+        for (let i = 0; i < message.fundingsources.length; i++)
+            FundingSource.internalBinaryWrite(message.fundingsources[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetFundingsourcesResponse
+ */
+export const GetFundingsourcesResponse = new GetFundingsourcesResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -2316,5 +2372,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: GetStatementPDFResponse },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse },
-    { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse }
+    { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
+    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse }
 ]);

@@ -57,6 +57,7 @@ service BackendService {
   rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
+  rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
 }
 
 message GetStatementsRequest {}
@@ -215,3 +216,7 @@ message JoinWaitlistRequest {
 }
 
 message JoinWaitlistResponse {}
+
+message GetFundingsourcesResponse {
+  repeated FundingSource fundingsources = 1;
+}
