@@ -336,25 +336,27 @@ type OriginateAchArgs struct {
 
 func (c *client) OriginateAch(ctx context.Context, args *OriginateAchArgs) (*AchPayment, error) {
 	url := fmt.Sprintf("%s/payments", c.baseUrl)
-	data := AchPayment{
-		Type: "achPayment",
-		Attributes: AchPaymentAttributes{
-			Amount:         args.Amount,
-			Direction:      args.Direction,
-			Description:    args.Description,
-			IdempotencyKey: args.IdempotencyKey,
-		},
-		Relationships: AchPaymentRelationships{
-			Account: Relationship{
-				Data: TypeData{
-					Type: "depositAccount",
-					ID:   args.DepositAccountID,
-				},
+	data := AchPaymentRequest{
+		Data: AchPayment{
+			Type: "achPayment",
+			Attributes: AchPaymentAttributes{
+				Amount:         args.Amount,
+				Direction:      args.Direction,
+				Description:    args.Description,
+				IdempotencyKey: args.IdempotencyKey,
 			},
-			Counterparty: Relationship{
-				Data: TypeData{
-					Type: "counterparty",
-					ID:   args.CounterpartyID,
+			Relationships: AchPaymentRelationships{
+				Account: Relationship{
+					Data: TypeData{
+						Type: "depositAccount",
+						ID:   args.DepositAccountID,
+					},
+				},
+				Counterparty: Relationship{
+					Data: TypeData{
+						Type: "counterparty",
+						ID:   args.CounterpartyID,
+					},
 				},
 			},
 		},
