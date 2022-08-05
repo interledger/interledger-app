@@ -68,6 +68,19 @@ export interface SignalUnitCustomerCreatedRequest {
     type: string;
 }
 /**
+ * @generated from protobuf message backend.v1.SignalUnitAchDepositEventRequest
+ */
+export interface SignalUnitAchDepositEventRequest {
+    /**
+     * @generated from protobuf field: string depositId = 1;
+     */
+    depositId: string;
+    /**
+     * @generated from protobuf field: string eventType = 2;
+     */
+    eventType: string;
+}
+/**
  * @generated from protobuf message backend.v1.Empty
  */
 export interface Empty {
@@ -724,6 +737,60 @@ class SignalUnitCustomerCreatedRequest$Type extends MessageType<SignalUnitCustom
  * @generated MessageType for protobuf message backend.v1.SignalUnitCustomerCreatedRequest
  */
 export const SignalUnitCustomerCreatedRequest = new SignalUnitCustomerCreatedRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SignalUnitAchDepositEventRequest$Type extends MessageType<SignalUnitAchDepositEventRequest> {
+    constructor() {
+        super("backend.v1.SignalUnitAchDepositEventRequest", [
+            { no: 1, name: "depositId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "eventType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SignalUnitAchDepositEventRequest>): SignalUnitAchDepositEventRequest {
+        const message = { depositId: "", eventType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SignalUnitAchDepositEventRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SignalUnitAchDepositEventRequest): SignalUnitAchDepositEventRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string depositId */ 1:
+                    message.depositId = reader.string();
+                    break;
+                case /* string eventType */ 2:
+                    message.eventType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SignalUnitAchDepositEventRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string depositId = 1; */
+        if (message.depositId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.depositId);
+        /* string eventType = 2; */
+        if (message.eventType !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.eventType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SignalUnitAchDepositEventRequest
+ */
+export const SignalUnitAchDepositEventRequest = new SignalUnitAchDepositEventRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
     constructor() {
@@ -2497,7 +2564,8 @@ export const GetDepositRequest = new GetDepositRequest$Type();
  */
 export const BackendAdminService = new ServiceType("backend.v1.BackendAdminService", [
     { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account },
-    { name: "SignalUnitCustomerCreated", options: {}, I: SignalUnitCustomerCreatedRequest, O: Empty }
+    { name: "SignalUnitCustomerCreated", options: {}, I: SignalUnitCustomerCreatedRequest, O: Empty },
+    { name: "SignalUnitAchDepositEvent", options: {}, I: SignalUnitAchDepositEventRequest, O: Empty }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
@@ -2517,7 +2585,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: GetStatementPDFResponse },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse },
+    { name: "GetDeposit", options: {}, I: GetDepositRequest, O: Deposit },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
-    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
-    { name: "GetDeposit", options: {}, I: GetDepositRequest, O: Deposit }
+    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse }
 ]);

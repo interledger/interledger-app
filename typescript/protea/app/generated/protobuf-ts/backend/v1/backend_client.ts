@@ -2,11 +2,11 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
-import type { Deposit } from "./backend";
-import type { GetDepositRequest } from "./backend";
 import type { GetFundingsourcesResponse } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
+import type { Deposit } from "./backend";
+import type { GetDepositRequest } from "./backend";
 import type { InitiateDepositResponse } from "./backend";
 import type { InitiateDepositRequest } from "./backend";
 import type { Quote } from "./backend";
@@ -35,6 +35,7 @@ import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendAdminService } from "./backend";
+import type { SignalUnitAchDepositEventRequest } from "./backend";
 import type { Empty } from "./backend";
 import type { SignalUnitCustomerCreatedRequest } from "./backend";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
@@ -54,6 +55,10 @@ export interface IBackendAdminServiceClient {
      * @generated from protobuf rpc: SignalUnitCustomerCreated(backend.v1.SignalUnitCustomerCreatedRequest) returns (backend.v1.Empty);
      */
     signalUnitCustomerCreated(input: SignalUnitCustomerCreatedRequest, options?: RpcOptions): UnaryCall<SignalUnitCustomerCreatedRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: SignalUnitAchDepositEvent(backend.v1.SignalUnitAchDepositEventRequest) returns (backend.v1.Empty);
+     */
+    signalUnitAchDepositEvent(input: SignalUnitAchDepositEventRequest, options?: RpcOptions): UnaryCall<SignalUnitAchDepositEventRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendAdminService
@@ -77,6 +82,13 @@ export class BackendAdminServiceClient implements IBackendAdminServiceClient, Se
     signalUnitCustomerCreated(input: SignalUnitCustomerCreatedRequest, options?: RpcOptions): UnaryCall<SignalUnitCustomerCreatedRequest, Empty> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<SignalUnitCustomerCreatedRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SignalUnitAchDepositEvent(backend.v1.SignalUnitAchDepositEventRequest) returns (backend.v1.Empty);
+     */
+    signalUnitAchDepositEvent(input: SignalUnitAchDepositEventRequest, options?: RpcOptions): UnaryCall<SignalUnitAchDepositEventRequest, Empty> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SignalUnitAchDepositEventRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }
 /**
@@ -154,6 +166,10 @@ export interface IBackendServiceClient {
      */
     initiateDeposit(input: InitiateDepositRequest, options?: RpcOptions): UnaryCall<InitiateDepositRequest, InitiateDepositResponse>;
     /**
+     * @generated from protobuf rpc: GetDeposit(backend.v1.GetDepositRequest) returns (backend.v1.Deposit);
+     */
+    getDeposit(input: GetDepositRequest, options?: RpcOptions): UnaryCall<GetDepositRequest, Deposit>;
+    /**
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse>;
@@ -161,10 +177,6 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetFundingsources(backend.v1.Empty) returns (backend.v1.GetFundingsourcesResponse);
      */
     getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse>;
-    /**
-     * @generated from protobuf rpc: GetDeposit(backend.v1.GetDepositRequest) returns (backend.v1.Deposit);
-     */
-    getDeposit(input: GetDepositRequest, options?: RpcOptions): UnaryCall<GetDepositRequest, Deposit>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -288,24 +300,24 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<InitiateDepositRequest, InitiateDepositResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: GetDeposit(backend.v1.GetDepositRequest) returns (backend.v1.Deposit);
+     */
+    getDeposit(input: GetDepositRequest, options?: RpcOptions): UnaryCall<GetDepositRequest, Deposit> {
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetDepositRequest, Deposit>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        const method = this.methods[15], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetFundingsources(backend.v1.Empty) returns (backend.v1.GetFundingsourcesResponse);
      */
     getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse> {
-        const method = this.methods[15], opt = this._transport.mergeOptions(options);
-        return stackIntercept<Empty, GetFundingsourcesResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * @generated from protobuf rpc: GetDeposit(backend.v1.GetDepositRequest) returns (backend.v1.Deposit);
-     */
-    getDeposit(input: GetDepositRequest, options?: RpcOptions): UnaryCall<GetDepositRequest, Deposit> {
         const method = this.methods[16], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetDepositRequest, Deposit>("unary", this._transport, method, opt, input);
+        return stackIntercept<Empty, GetFundingsourcesResponse>("unary", this._transport, method, opt, input);
     }
 }

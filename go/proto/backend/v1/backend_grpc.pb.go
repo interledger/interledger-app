@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type BackendAdminServiceClient interface {
 	GetUserAccountByEmail(ctx context.Context, in *GetUserAccountByEmailRequest, opts ...grpc.CallOption) (*Account, error)
 	SignalUnitCustomerCreated(ctx context.Context, in *SignalUnitCustomerCreatedRequest, opts ...grpc.CallOption) (*Empty, error)
+	SignalUnitAchDepositEvent(ctx context.Context, in *SignalUnitAchDepositEventRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendAdminServiceClient struct {
@@ -52,12 +53,22 @@ func (c *backendAdminServiceClient) SignalUnitCustomerCreated(ctx context.Contex
 	return out, nil
 }
 
+func (c *backendAdminServiceClient) SignalUnitAchDepositEvent(ctx context.Context, in *SignalUnitAchDepositEventRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendAdminService/SignalUnitAchDepositEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendAdminServiceServer is the server API for BackendAdminService service.
 // All implementations should embed UnimplementedBackendAdminServiceServer
 // for forward compatibility
 type BackendAdminServiceServer interface {
 	GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error)
 	SignalUnitCustomerCreated(context.Context, *SignalUnitCustomerCreatedRequest) (*Empty, error)
+	SignalUnitAchDepositEvent(context.Context, *SignalUnitAchDepositEventRequest) (*Empty, error)
 }
 
 // UnimplementedBackendAdminServiceServer should be embedded to have forward compatible implementations.
@@ -69,6 +80,9 @@ func (UnimplementedBackendAdminServiceServer) GetUserAccountByEmail(context.Cont
 }
 func (UnimplementedBackendAdminServiceServer) SignalUnitCustomerCreated(context.Context, *SignalUnitCustomerCreatedRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignalUnitCustomerCreated not implemented")
+}
+func (UnimplementedBackendAdminServiceServer) SignalUnitAchDepositEvent(context.Context, *SignalUnitAchDepositEventRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignalUnitAchDepositEvent not implemented")
 }
 
 // UnsafeBackendAdminServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -118,6 +132,24 @@ func _BackendAdminService_SignalUnitCustomerCreated_Handler(srv interface{}, ctx
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendAdminService_SignalUnitAchDepositEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignalUnitAchDepositEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendAdminServiceServer).SignalUnitAchDepositEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendAdminService/SignalUnitAchDepositEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendAdminServiceServer).SignalUnitAchDepositEvent(ctx, req.(*SignalUnitAchDepositEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendAdminService_ServiceDesc is the grpc.ServiceDesc for BackendAdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -132,6 +164,10 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignalUnitCustomerCreated",
 			Handler:    _BackendAdminService_SignalUnitCustomerCreated_Handler,
+		},
+		{
+			MethodName: "SignalUnitAchDepositEvent",
+			Handler:    _BackendAdminService_SignalUnitAchDepositEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -163,9 +199,9 @@ type BackendServiceClient interface {
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	InitiateDeposit(ctx context.Context, in *InitiateDepositRequest, opts ...grpc.CallOption) (*InitiateDepositResponse, error)
+	GetDeposit(ctx context.Context, in *GetDepositRequest, opts ...grpc.CallOption) (*Deposit, error)
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
-	GetDeposit(ctx context.Context, in *GetDepositRequest, opts ...grpc.CallOption) (*Deposit, error)
 }
 
 type backendServiceClient struct {
@@ -302,6 +338,15 @@ func (c *backendServiceClient) InitiateDeposit(ctx context.Context, in *Initiate
 	return out, nil
 }
 
+func (c *backendServiceClient) GetDeposit(ctx context.Context, in *GetDepositRequest, opts ...grpc.CallOption) (*Deposit, error) {
+	out := new(Deposit)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetDeposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -314,15 +359,6 @@ func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlis
 func (c *backendServiceClient) GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error) {
 	out := new(GetFundingsourcesResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetFundingsources", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetDeposit(ctx context.Context, in *GetDepositRequest, opts ...grpc.CallOption) (*Deposit, error) {
-	out := new(Deposit)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetDeposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -354,9 +390,9 @@ type BackendServiceServer interface {
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
 	InitiateDeposit(context.Context, *InitiateDepositRequest) (*InitiateDepositResponse, error)
+	GetDeposit(context.Context, *GetDepositRequest) (*Deposit, error)
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error)
-	GetDeposit(context.Context, *GetDepositRequest) (*Deposit, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -405,14 +441,14 @@ func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequ
 func (UnimplementedBackendServiceServer) InitiateDeposit(context.Context, *InitiateDepositRequest) (*InitiateDepositResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitiateDeposit not implemented")
 }
+func (UnimplementedBackendServiceServer) GetDeposit(context.Context, *GetDepositRequest) (*Deposit, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDeposit not implemented")
+}
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
 }
 func (UnimplementedBackendServiceServer) GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFundingsources not implemented")
-}
-func (UnimplementedBackendServiceServer) GetDeposit(context.Context, *GetDepositRequest) (*Deposit, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDeposit not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -678,6 +714,24 @@ func _BackendService_InitiateDeposit_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetDeposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetDeposit(ctx, req.(*GetDepositRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -710,24 +764,6 @@ func _BackendService_GetFundingsources_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).GetFundingsources(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDepositRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetDeposit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetDeposit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetDeposit(ctx, req.(*GetDepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -796,16 +832,16 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_InitiateDeposit_Handler,
 		},
 		{
+			MethodName: "GetDeposit",
+			Handler:    _BackendService_GetDeposit_Handler,
+		},
+		{
 			MethodName: "JoinWaitlist",
 			Handler:    _BackendService_JoinWaitlist_Handler,
 		},
 		{
 			MethodName: "GetFundingsources",
 			Handler:    _BackendService_GetFundingsources_Handler,
-		},
-		{
-			MethodName: "GetDeposit",
-			Handler:    _BackendService_GetDeposit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
