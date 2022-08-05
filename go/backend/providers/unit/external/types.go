@@ -176,21 +176,20 @@ type (
 	}
 
 	AchPaymentAttributes struct {
-		CreatedAt      string                 `json:"createdAt,omitempty"`
-		Status         string                 `json:"status,omitempty"`
-		Reason         interface{}            `json:"reason,omitempty"`
-		Counterparty   CounterpartyAttributes `json:"counterparty,omitempty"`
-		Description    string                 `json:"description,omitempty"`
-		Direction      string                 `json:"direction,omitempty"`
-		Amount         uint64                 `json:"amount,omitempty"`
-		Tags           DepositTags            `json:"tags,omitempty"`
-		IdempotencyKey string                 `json:"idempotencyKey,omitempty"`
+		CreatedAt      string      `json:"createdAt,omitempty"`
+		Status         string      `json:"status,omitempty"`
+		Reason         interface{} `json:"reason,omitempty"`
+		Description    string      `json:"description,omitempty"`
+		Direction      string      `json:"direction,omitempty"`
+		Amount         uint64      `json:"amount,omitempty"`
+		Tags           DepositTags `json:"tags,omitempty"`
+		IdempotencyKey string      `json:"idempotencyKey,omitempty"`
 	}
 
 	AchPaymentRelationships struct {
-		Account      Relationship `json:"account,omitempty"`
-		Customer     Relationship `json:"customer,omitempty"`
-		Counterparty Relationship `json:"counterparty,omitempty"`
+		Account      Relationship  `json:"account,omitempty"`
+		Customer     *Relationship `json:"customer,omitempty"`
+		Counterparty Relationship  `json:"counterparty,omitempty"`
 	}
 
 	AchPaymentRequest struct {

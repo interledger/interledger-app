@@ -435,12 +435,6 @@ func TestOriginateAch(t *testing.T) {
 	unitCustomerID := uuid.NewString()
 	unitAccountID := uuid.NewString()
 	counterpartyID := uuid.NewString()
-	counterpartyAttributes := CounterpartyAttributes{
-		Name:          "Jane Doe",
-		RoutingNumber: "812345678",
-		AccountNumber: "12345569",
-		AccountType:   "Checking",
-	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
@@ -455,18 +449,17 @@ func TestOriginateAch(t *testing.T) {
 			ID:   achPaymentID,
 			Type: "achPayment",
 			Attributes: AchPaymentAttributes{
-				CreatedAt:    "2020-01-13T16:01:19.346Z",
-				Status:       AchStatusPending,
-				Counterparty: counterpartyAttributes,
-				Description:  "Funding",
-				Direction:    "Debit",
-				Amount:       10000,
+				CreatedAt:   "2020-01-13T16:01:19.346Z",
+				Status:      AchStatusPending,
+				Description: "Funding",
+				Direction:   "Debit",
+				Amount:      10000,
 				Tags: DepositTags{
 					DepositID: depositID,
 				},
 			},
 			Relationships: AchPaymentRelationships{
-				Customer: Relationship{
+				Customer: &Relationship{
 					Data: TypeData{
 						ID:   unitCustomerID,
 						Type: "customer",
