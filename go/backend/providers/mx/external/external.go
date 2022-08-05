@@ -176,7 +176,7 @@ func (c *client) CreateUser(ctx context.Context) (string, error) {
 
 func (c *client) AggregateBalance(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
 	url := fmt.Sprintf("%s/users/%s/members/%s/check_balance", c.baseUrl, userGuid, memberGuid)
-	req, err := _http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
+	req, err := _http.NewRequest("POST", url, bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
