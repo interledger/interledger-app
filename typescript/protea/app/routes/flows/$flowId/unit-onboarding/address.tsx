@@ -46,7 +46,6 @@ export default function Page() {
 
   useEffect(() => {
     if (query.length >= 0) {
-      console.log('Calls query', country.id)
       // TODO debounce this: https://developers.google.com/maps/documentation/places/web-service/autocomplete#cost_best_practices
       placeAutocompleteFetcher.load(
         `/api/maps/placesAutocomplete?country=${country.id}&query=${query}`
@@ -60,6 +59,9 @@ export default function Page() {
     if (placeId) geocodeFetcher.load(`/api/maps/geocode?place-id=${placeId}`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeId])
+
+  const formattedAddress =
+    geocodeFetcher.data?.formattedAddress || flow?.data.formattedAddress
 
   return (
     <>
@@ -78,7 +80,6 @@ export default function Page() {
       <Autocomplete
         id='street'
         value={geocodeFetcher.data?.street}
-        // TODO figure out how to set the value
         onChange={(place) => setPlaceId(place.id)}
         onQuery={setQuery}
         options={
@@ -86,7 +87,7 @@ export default function Page() {
             { id: 'skjdhba', name: 'Searching for addresses' }
           ]
         }
-        label='Street'
+        label='Search street'
         button={false}
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.errors.street) || undefined}
@@ -97,10 +98,49 @@ export default function Page() {
       />
       <input
         form='unit-address'
-        value={String(geocodeFetcher.data?.street.name)}
+        value={String(formattedAddress)}
+        name='formatted-address'
+        type='hidden'
+      />
+      <input
+        form='unit-address'
+        value={String(flow?.data.street || geocodeFetcher.data?.street.name)}
         name='street'
         type='hidden'
       />
+      <input
+        form='unit-address'
+        value={String(flow?.data.city || geocodeFetcher.data?.city)}
+        name='city'
+        type='hidden'
+      />
+      <input
+        form='unit-address'
+        value={String(flow?.data.state || geocodeFetcher.data?.state)}
+        name='state'
+        type='hidden'
+      />
+      <input
+        type='hidden'
+        form='unit-address'
+        name='country'
+        value={country.id}
+      />
+      <input
+        form='unit-address'
+        value={String(flow?.data.zip || geocodeFetcher.data?.zip)}
+        name='zip'
+        type='hidden'
+      />
+
+      <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex items-center space-x-3'>
+          <Icon>home</Icon>
+          <span className='font-sans text-base font-normal'>
+            {formattedAddress || 'Please search for your address above.'}
+          </span>
+        </div>
+      </div>
 
       <TextField
         id='apartment'
@@ -109,69 +149,17 @@ export default function Page() {
         name='apartment'
         defaultValue={flow?.data.apartment}
         type='text'
+        disabled={!formattedAddress}
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.errors.apartment) || undefined}
         aria-describedby={
           actionData?.errors.apartment ? 'apartment-error' : undefined
         }
-        required
         errorMessage={actionData?.errors.apartment}
       />
-      <TextField
-        id='city'
-        form='unit-address'
-        label='City'
-        name='city'
-        defaultValue={flow?.data.city || geocodeFetcher.data?.city}
-        type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.errors.city) || undefined}
-        aria-describedby={actionData?.errors.city ? 'city-error' : undefined}
-        required
-        errorMessage={actionData?.errors.city}
-      />
-      <TextField
-        id='state'
-        form='unit-address'
-        label='State'
-        name='state'
-        defaultValue={flow?.data.state || geocodeFetcher.data?.state}
-        type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.errors.state) || undefined}
-        aria-describedby={actionData?.errors.state ? 'state-error' : undefined}
-        required
-        errorMessage={actionData?.errors.state}
-      />
-      <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='flex space-x-3'>
-          <Icon>flag</Icon>
-          <span className='font-sans text-base font-normal'>
-            {country.name}
-          </span>
-        </div>
-      </div>
-      <input
-        type='hidden'
-        form='unit-address'
-        name='country'
-        value={country.id}
-      />
-      <TextField
-        id='zip'
-        form='unit-address'
-        label='Postal code'
-        name='zip'
-        defaultValue={flow?.data.zip || geocodeFetcher.data?.zip}
-        type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.errors.zip) || undefined}
-        aria-describedby={actionData?.errors.zip ? 'zip-error' : undefined}
-        required
-        errorMessage={actionData?.errors.zip}
-      />
+
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='unit-address' type='submit'>
+        <Button disabled={!formattedAddress} form='unit-address' type='submit'>
           Continue
         </Button>
       </div>
@@ -181,6 +169,7 @@ export default function Page() {
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
+  const formattedAddress = form.get('formatted-address') as string
   const street = form.get('street') as string
   const apartment = form.get('apartment') as string
   const city = form.get('city') as string
@@ -189,6 +178,7 @@ export async function action({ request, params }: ActionArgs) {
   const zip = form.get('zip') as string
 
   const data = {
+    formattedAddress,
     street,
     apartment,
     city,

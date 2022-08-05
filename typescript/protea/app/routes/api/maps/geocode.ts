@@ -25,6 +25,7 @@ export async function loader({ request }: LoaderArgs) {
   const addressComponents = place.address_components
 
   return json({
+    formattedAddress: place.formatted_address,
     street: { id: placeId, name: place.formatted_address.split(',')[0] },
     apartment: '',
     city: addressComponents.find((item: any) =>
