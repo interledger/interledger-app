@@ -41,7 +41,7 @@ type TestContainer struct {
 	IdentityService      *identity_mock.MockClient
 	AdminAuthService     auth.Service
 	UserService          user.Service
-	FundingsourceService fundingsources.Client
+	FundingsourceService *funding_mock.MockClient
 	TwilioService        *twilio.MockService
 	OnboardingService    *onboarding_mock.MockClient
 	UnitProvider         *unit.MockService
