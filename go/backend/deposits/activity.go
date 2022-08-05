@@ -110,7 +110,7 @@ func (s *Activity) CreateAchDepositTransactions(ctx context.Context, depositID s
 				DebitAccountID:  acc.LedgerAccountID,
 				CreditAccountID: s.noop.GetEquityAccountID(),
 				Amount:          deposit.Amount,
-				// Code: "1", // TODO: define ledger transfer codes.
+				Code:            1, // TODO: define ledger transfer codes.
 			},
 		},
 	})
