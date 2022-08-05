@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -102,7 +103,7 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 		return err
 	}
 	// Supporting only USD for now.
-	if balance.AssetCode != "USD" || balance.AssetScale != 2 {
+	if env.IsProd() && (balance.AssetCode != "USD" || balance.AssetScale != 2) {
 		err = fmt.Errorf("%w Mx account is not in USD. assetCode=%s, assetScale=%d", ErrInternal, balance.AssetCode, balance.AssetScale)
 		logger.Error(err.Error())
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
