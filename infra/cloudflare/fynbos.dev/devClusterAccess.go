@@ -240,6 +240,62 @@ func CreateEu1DevClusterAccess(ctx *pulumi.Context, zoneId pulumi.IDOutput) erro
 		return err
 	}
 
+	// Have to create a new application for now.
+	// https://community.cloudflare.com/t/access-bypass-rule-by-url/279710
+	webhooks, err := cloudflare.NewAccessApplication(ctx, "eu1-dev-cluster-webhooks", &cloudflare.AccessApplicationArgs{
+		AutoRedirectToIdentity: pulumi.Bool(true),
+		Domain:                 pulumi.String("eu1.fynbos.dev/webhooks/*"),
+		Name:                   pulumi.String("EU1 Dev Cluster webhooks"),
+		SessionDuration:        pulumi.String("24h"),
+		Type:                   pulumi.String("self_hosted"),
+		ZoneId:                 zoneId,
+		// Allowed IDP was manually created, so we don't need to store secrets when deploying it
+		AllowedIdps: pulumi.StringArray{
+			pulumi.String("4271ed52-0611-4386-b1f8-f8e8c1c8391d"),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = cloudflare.NewAccessPolicy(ctx, "eu1-dev-cluster-webhook-bypass-policy", &cloudflare.AccessPolicyArgs{
+		ApplicationId: webhooks.ID(),
+		ZoneId:        zoneId,
+		Name:          pulumi.String("Eu1 Dev cluster webhook bypass policy"),
+		Precedence:    pulumi.Int(1),
+		Decision:      pulumi.String("bypass"),
+		Includes: cloudflare.AccessPolicyIncludeArray{
+			&cloudflare.AccessPolicyIncludeArgs{
+				Ips: pulumi.StringArray{
+					// Unit sandbox
+					pulumi.String("54.81.62.38"),
+					pulumi.String("35.169.213.205"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = cloudflare.NewAccessPolicy(ctx, "eu1-dev-cluster-webhook-allow-policy", &cloudflare.AccessPolicyArgs{
+		ApplicationId: webhooks.ID(),
+		ZoneId:        zoneId,
+		Name:          pulumi.String("Eu1 Dev cluster webhook allow policy"),
+		Precedence:    pulumi.Int(2),
+		Decision:      pulumi.String("allow"),
+		Includes: cloudflare.AccessPolicyIncludeArray{
+			&cloudflare.AccessPolicyIncludeArgs{
+				EmailDomains: pulumi.StringArray{
+					pulumi.String("fynbos.dev"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
