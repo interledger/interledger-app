@@ -105,7 +105,7 @@ type StartArgs struct {
 	TwilioSid            string
 	TwilioSecret         string
 	TwilioServiceSid     string
-	ZendeskSecret        string
+	ZendeskToken         string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -226,8 +226,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWILIO_SERVICE_SID is required.")
 	}
 
-	zendeskSecret := os.Getenv("ZENDESK_TOKEN")
-	if zendeskSecret == "" {
+	zendeskToken := os.Getenv("ZENDESK_TOKEN")
+	if zendeskToken == "" {
 		return nil, errors.New("ZENDESK_TOKEN is required")
 	}
 
@@ -253,6 +253,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioSid:            TwilioSid,
 		TwilioSecret:         TwilioSecret,
 		TwilioServiceSid:     twilioServiceSid,
-		ZendeskSecret:        zendeskSecret,
+		ZendeskToken:         zendeskToken,
 	}, nil
 }
