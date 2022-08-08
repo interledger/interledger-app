@@ -194,12 +194,14 @@ func (c *client) AggregateBalance(ctx context.Context, userGuid, memberGuid stri
 	}
 	defer resp.Body.Close()
 
-	var member Member
-	if err = json.Unmarshal(body, &member); err != nil {
+	response := &struct {
+		Member Member
+	}{}
+	if err = json.Unmarshal(body, response); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return &member, nil
+	return &response.Member, nil
 }
 
 func (c *client) ReadAccount(ctx context.Context, userGuid, accountGuid string) (*Account, error) {
@@ -340,12 +342,14 @@ func (c *client) GetMemberStatus(ctx context.Context, userGuid, memberGuid strin
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	member := &Member{}
-	if err = json.Unmarshal(body, member); err != nil {
+	response := &struct {
+		Member Member
+	}{}
+	if err = json.Unmarshal(body, response); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return member, nil
+	return &response.Member, nil
 }
 
 func (c *client) AggregateIdentity(ctx context.Context, userGuid, memberGuid string) (*Member, error) {
@@ -365,10 +369,12 @@ func (c *client) AggregateIdentity(ctx context.Context, userGuid, memberGuid str
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	member := &Member{}
-	if err = json.Unmarshal(body, member); err != nil {
+	response := &struct {
+		Member Member
+	}{}
+	if err = json.Unmarshal(body, response); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return member, nil
+	return &response.Member, nil
 }
