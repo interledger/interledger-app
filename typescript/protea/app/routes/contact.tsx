@@ -1,7 +1,13 @@
 import type { ActionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { Button, TextArea, TextField } from '~/components'
+import {
+  grpcClient,
+  GrpcError,
+  isGrpcError,
+  StatusError
+} from '../lib/proto.server'
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
@@ -102,6 +108,26 @@ export default function Page() {
   )
 }
 
+// The field names given by the backend for field violations
+type fieldErrorsMap = 'FirstName' | 'Email' | 'LastName' | 'Description'
+
+function mapper(
+  field: fieldErrorsMap
+): 'firstName' | 'email' | 'lastName' | 'description' | null {
+  switch (field) {
+    case 'Email':
+      return 'email'
+    case 'FirstName':
+      return 'firstName'
+    case 'LastName':
+      return 'lastName'
+    case 'Description':
+      return 'description'
+    default:
+      return null
+  }
+}
+
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
@@ -116,7 +142,26 @@ export async function action({ request }: ActionArgs) {
     description: ''
   }
 
-  // TODO Submit this to zendesk
+  let response = await grpcClient
+    .createSupportTicket({
+      description: description,
+      firstName: firstName,
+      lastName: lastName,
+      email: email
+    })
+    .then((v) => v)
+    .catch(StatusError)
 
-  return json({ errors: { ...fieldErrors } }, { status: 400 })
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw response
+  }
+
+  return redirect('/contact/success')
 }
