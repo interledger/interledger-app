@@ -378,7 +378,7 @@ func createGitlabRunnerNodeGroup(ctx *pulumi.Context, args CreateNodeGroupArgs) 
 		},
 		CapacityType: pulumi.String("SPOT"),
 		SubnetIds:    args.SubnetIds,
-		AmiType:      pulumi.String("AL2_x86_64"),
+		AmiType:      pulumi.String("BOTTLEROCKET_x86_64"),
 		Taints: eks.NodeGroupTaintArray{
 			eks.NodeGroupTaintArgs{
 				Effect: pulumi.String("NO_EXECUTE"),
