@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
+	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -138,90 +141,54 @@ func TruncateDb(ctx context.Context, db *sqlx.DB) error {
 	return nil
 }
 
-type PacioliContainer struct {
-	Tb             testcontainers.Container
-	URI            string
-	Pacioli        *exec.Cmd
-	PacioliUrl     string
-	PacioliNetwork testcontainers.Network
+type pacioliBackends struct {
+	db  *sqlx.DB
+	tbc tigerbeetle_go.Client
+	val *validator.Validate
 }
 
-func SetupPacioli(t *testing.T, ctx context.Context) *PacioliContainer {
-	fmt.Println("Starting pacioli test container.")
-	c := &PacioliContainer{}
-	containerNetwork := "pacioli-" + uuid.NewString()
-	network, err := testcontainers.GenericNetwork(ctx, testcontainers.GenericNetworkRequest{
-		NetworkRequest: testcontainers.NetworkRequest{
-			Name:           containerNetwork,
-			CheckDuplicate: true,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	c.PacioliNetwork = network
+func (t pacioliBackends) DB() *sqlx.DB {
+	return t.db
+}
+
+func (t pacioliBackends) TigerBeetle() tigerbeetle_go.Client {
+	return t.tbc
+}
+
+func (t pacioliBackends) Validator() *validator.Validate {
+	return t.val
+}
+
+func SetupPacioli(t *testing.T, ctx context.Context) pacioli.Client {
+	fmt.Println("setup pacioli")
 
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Could not get directory path for utils/testing.")
 	}
 
-	connString, _ := pacioli_utils.MigrateCockroachDB(t, ctx)
-
-	tb, err := pacioli_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
-	if err != nil {
-		t.Fatal(err)
-	}
-	c.Tb = tb
-
-	err = pacioli_utils.SeedTigerbeetle(t, moduleDir, tb.URI, connString)
+	connString, db := pacioli_utils.MigrateCockroachDB(t, ctx)
+	err := pacioli_utils.SeedTigerbeetle(t, moduleDir, "0.0.0.0:3000", connString)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	port, err := GetFreePort()
+	tbClient, err := tigerbeetle_go.NewClient(0, []string{"0.0.0.0:3000"}, 10)
 	if err != nil {
 		t.Fatal(err)
 	}
-	hostIP := "127.0.0.1"
-	c.PacioliUrl = fmt.Sprintf("%s:%d", hostIP, port)
-	pacioli := exec.Command(
-		"go",
-		"run",
-		filepath.Join(filepath.Dir(moduleDir), "../../pacioli/pacioli/main.go"),
-		"start",
-	)
-	pacioli.Env = append(
-		os.Environ(),
-		"ENV=testing",
-		fmt.Sprintf("PORT=%d", port),
-		fmt.Sprintf("DB_URL=%s", connString),
-		fmt.Sprintf("TB_URL=%s", tb.URI),
-		"TB_CLUSTER_ID=0",
-	)
-	if err = pacioli.Start(); err != nil {
-		t.Fatal(err)
+
+	backends := pacioliBackends{
+		db:  db,
+		tbc: tbClient,
+		val: validator.New(),
 	}
-	c.Pacioli = pacioli
 
 	t.Cleanup(func() {
-		err := c.Pacioli.Process.Kill()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = c.Tb.Terminate(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		err = c.PacioliNetwork.Remove(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
+		tbClient.Close()
 	})
 
-	return c
+	return pacioli_client.NewLocal(backends)
 }
 
 func GetFreePort() (int, error) {

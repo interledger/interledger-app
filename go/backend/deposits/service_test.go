@@ -32,7 +32,6 @@ import (
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
@@ -132,7 +131,6 @@ type TestContainer struct {
 	Mx                    *_mx.MockService
 	UnitImpl              *_unit.MockService
 	TemporalMock          *mocks.Client
-	PacioliContainer      *test_utils.PacioliContainer
 	PacioliClient         pacioli.Client
 	PacioliLedgerID       uint32
 	Db                    *sqlx.DB
@@ -185,13 +183,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	db := test_utils.MigrateCockroachDB(s, ctx)
 	c.Db = db
 
-	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
-
 	c.PacioliLedgerID = uint32(1)
-	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
-	if err != nil {
-		return nil, err
-	}
+	pClient := test_utils.SetupPacioli(s, ctx)
 	c.PacioliClient = pClient
 
 	logger, err := zap.NewDevelopment()

@@ -16,14 +16,11 @@ import (
 	country_client "gitlab.com/fynbos/backend/country/client"
 	_identity "gitlab.com/fynbos/backend/identity"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.uber.org/zap"
 )
 
 func TestAccountsService(s *testing.T) {
 	ctx := context.Background()
-
-	pacioliContainer := test_utils.SetupPacioli(s, ctx)
 
 	// the tests are run in serial. We use a global connection for
 	// each of the tests.
@@ -38,10 +35,7 @@ func TestAccountsService(s *testing.T) {
 
 	pacioliLedgerID := uint32(1)
 
-	pClient, err := pacioli_client.New(pacioliContainer.PacioliUrl)
-	if err != nil {
-		s.Fatal(err)
-	}
+	pClient := test_utils.SetupPacioli(s, ctx)
 
 	b := ops.NewTestBackends(s, db, is, cs, pClient)
 

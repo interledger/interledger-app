@@ -12,7 +12,7 @@ pull:
 
 testci: 
 	@echo "Running tests"
-	go test -p 2 ./...
+	go test ./...
 	@echo "Tests complete."
 
 test: testenvup

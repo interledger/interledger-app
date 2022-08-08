@@ -31,7 +31,6 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
@@ -66,7 +65,6 @@ type TestContainer struct {
 	TransactionService   account_transactions.Client
 	Os                   onboarding.Client
 	Ps                   payments.Service
-	PacioliContainer     *test_utils.PacioliContainer
 	PacioliClient        pacioli.Client
 	PacioliLedgerID      uint32
 	Graph                *handler.Server
@@ -132,13 +130,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	is := identity_client.New(c, logger)
 	c.IdentityService = is
 
-	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
-
 	c.PacioliLedgerID = 1
-	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
-	if err != nil {
-		return nil, err
-	}
+	pClient := test_utils.SetupPacioli(t, ctx)
 
 	c.PacioliClient = pClient
 
