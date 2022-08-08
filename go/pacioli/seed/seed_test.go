@@ -129,20 +129,13 @@ type TestContainer struct {
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{}
 	c.Ctx = ctx
-	containerNetwork := "pacioli-test"
 
 	_, db := test_utils.MigrateCockroachDB(t, ctx)
 
-	tb, err := test_utils.SetupTigerBeetle(ctx, 0, containerNetwork)
-	if err != nil {
-		return nil, err
-	}
-	c.Tb = tb
-
-	tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI}, 1000)
+	tbClient, err := tigerbeetle_go.NewClient(0, []string{"0.0.0.0:3000"}, 1000)
 	if err != nil {
 		fmt.Println()
-		fmt.Println(tb.URI)
+		fmt.Println("0.0.0.0:3000")
 		fmt.Println(err)
 		fmt.Println()
 		return nil, err
@@ -154,11 +147,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 func (c *TestContainer) Cleanup() error {
 	c.b.TigerBeetle().Close()
-
-	err := c.Tb.Terminate(c.Ctx)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
