@@ -3404,14 +3404,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@routes-gen/remix@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@routes-gen/remix@npm:0.3.0"
+"@routes-gen/remix@npm:latest":
+  version: 0.3.3
+  resolution: "@routes-gen/remix@npm:0.3.3"
   dependencies:
-    routes-gen: ^0.4.0
+    routes-gen: ^0.5.2
   peerDependencies:
-    remix: ^1.0.0
-  checksum: c9dc63a6a8575c7b6f9b483975572c495389127e603c7282562e7ca2c64be021c67c729920a3cf31cfd619f35a4edfdc609518f0a760cc4faaa649c1e1bd9387
+    "@remix-run/dev": ^1.0.3
+  checksum: 840cdb8c4ac671e86ee5787f6b7e875389b85711736f4a51abf6b35f22b4620b58e0691e6b21f25bfc2ccdc8d5e9bf763055ff5d4666b43cbdbab6aacbb0b412
   languageName: node
   linkType: hard
 
@@ -11381,7 +11381,7 @@ postcss@latest:
     "@remix-run/node": ^1.6.5
     "@remix-run/react": ^1.6.5
     "@remix-run/serve": ^1.6.5
-    "@routes-gen/remix": ^0.3.0
+    "@routes-gen/remix": latest
     "@tailwindcss/forms": ^0.5.2
     "@tailwindcss/typography": ^0.5.4
     "@types/eslint": ^8.4.5
@@ -12206,20 +12206,6 @@ postcss@latest:
   languageName: node
   linkType: hard
 
-"routes-gen@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "routes-gen@npm:0.4.0"
-  dependencies:
-    chalk: ^4.1.2
-    chokidar: ^3.5.3
-    fs-extra: ^10.0.0
-    meow: ^9.0.0
-  bin:
-    routes-gen: dist/cli.js
-  checksum: dfdb04a394904f5084e9cf7f2d35a3eae61dd51c098d50373693672ac47bce2e3efc2410149d301c6303f76b71b9423a9e535c861e013011cda6c47df99f9375
-  languageName: node
-  linkType: hard
-
 "routes-gen@npm:^0.5.1":
   version: 0.5.1
   resolution: "routes-gen@npm:0.5.1"
@@ -12231,6 +12217,20 @@ postcss@latest:
   bin:
     routes-gen: dist/cli.js
   checksum: d48b4e80dc307b3b8bbb50cdb15051e2d44dc772f6b7feb398191417992fa1f4b06cea0ea2cbefb0747a88454c66bd4fe20dbee25d0b135fc8cd3479a31ddeb2
+  languageName: node
+  linkType: hard
+
+"routes-gen@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "routes-gen@npm:0.5.2"
+  dependencies:
+    chalk: ^4.1.2
+    chokidar: ^3.5.3
+    fs-extra: ^10.0.0
+    meow: ^9.0.0
+  bin:
+    routes-gen: dist/cli.js
+  checksum: 8e397323ee2fdce14c76d68261aa97405e924d49c27d0594824a26693ac69fe084f7f85dee0602722d4d57304c0402ab876849ae0615f62ae4b46d7f662372f0
   languageName: node
   linkType: hard
 
