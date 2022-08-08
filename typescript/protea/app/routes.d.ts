@@ -4,6 +4,7 @@ declare module "routes-gen" {
     "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/linked-accounts": Record<string, never>;
+    "/settings/statements/:id": { "id": string };
     "/confirmation/:flowId": { "flowId": string };
     "/confirmation/:flowId/linked-account": { "flowId": string };
     "/confirmation/:flowId/withdraw": { "flowId": string };
@@ -65,6 +66,7 @@ declare module "routes-gen" {
       | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/linked-accounts"]
+      | ["/settings/statements/:id", RouteParams["/settings/statements/:id"]]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/linked-account", RouteParams["/confirmation/:flowId/linked-account"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
