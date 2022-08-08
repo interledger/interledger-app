@@ -21,8 +21,8 @@ type DeployBackendArgs struct {
 	NoopEquityAccountID  string
 	UnitToken            string
 	UnitBaseUrl          string
-	TwilioSID 	 	 			 string	
-	TwilioSecret   			 string
+	TwilioSID            string
+	TwilioSecret         string
 	TwilioServiceSID     string
 	Hostname             string
 	EnablePlayground     bool
@@ -32,6 +32,7 @@ type DeployBackendArgs struct {
 	MxClientID           string
 	MxApiKey             string
 	RafikiGraphqlUrl     string
+	ZendeskToken         string
 }
 
 func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
@@ -66,6 +67,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.MxClientID,
 		args.MxBaseURL,
 		args.RafikiGraphqlUrl,
+		args.ZendeskToken,
 	)
 	if err != nil {
 		return err
@@ -137,23 +139,24 @@ func deployService(ctx *pulumi.Context) error {
 }
 
 func deployDeployment(
-	ctx 								 *pulumi.Context,
-	imageRepo 					 string,
-	imageTag 						 string,
-	cert 								 *apiextensions.CustomResource,
-	usdLedgerCode 			 uint16,
-	noopEquityAccountID  string,
-	unitToken 					 string,
-	unitBaseUrl 				 string,
-	unitWebhookToken 		 string,
-	TwilioSID 		 			 string,
-	TwilioSecret 	 			 string,
-	twilioServiceSID 		 string,
+	ctx *pulumi.Context,
+	imageRepo string,
+	imageTag string,
+	cert *apiextensions.CustomResource,
+	usdLedgerCode uint16,
+	noopEquityAccountID string,
+	unitToken string,
+	unitBaseUrl string,
+	unitWebhookToken string,
+	TwilioSID string,
+	TwilioSecret string,
+	twilioServiceSID string,
 	googleOauth2ClientID string,
 	mxApiKey string,
 	mxClientID string,
 	mxBaseUrl string,
 	rafikiGraphqlUrl string,
+	zendeskToken string,
 ) error {
 	mxCredentials, err := v1.NewSecret(ctx, "mx-credentials", &v1.SecretArgs{
 		ApiVersion: pulumi.String("v1"),
@@ -383,6 +386,10 @@ func deployDeployment(
 									Name:  pulumi.String("TWILIO_SERVICE_SID"),
 									Value: pulumi.String(twilioServiceSID),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("ZENDESK_TOKEN"),
+									Value: pulumi.String(zendeskToken),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -473,6 +480,10 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("TWILIO_SERVICE_SID"),
 									Value: pulumi.String(twilioServiceSID),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("ZENDESK_TOKEN"),
+									Value: pulumi.String(zendeskToken),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{

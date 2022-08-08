@@ -3,6 +3,7 @@ package admin_test
 import (
 	"context"
 	"fmt"
+	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	"net"
 	"testing"
@@ -196,6 +197,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		DepositService:       deposits.NewMockService(c.Ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(c.Ctrl),
 		Temporal:             c.Tp,
+		TicketClient:         support_mock.NewMockClient(c.Ctrl),
 	})
 	if err != nil {
 		return nil, err

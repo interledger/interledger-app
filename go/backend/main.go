@@ -39,6 +39,7 @@ import (
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	_unit "gitlab.com/fynbos/backend/providers/unit"
+	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
@@ -131,6 +132,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	users = user.NewLoggingService(users, logger)
+	b.users = users
 
 	cs := country_client.New(b)
 	b.countries = cs
@@ -301,6 +303,8 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	supportTickets := support_client.NewClient(b, args.ZendeskToken)
+
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   health,
 		IdentityService:      id,
@@ -317,6 +321,7 @@ func start(args *cli.StartArgs) {
 		TwilioService:        twilioService,
 		WaitlistClient:       waitlist_client.New(b, logger),
 		Temporal:             tp,
+		TicketClient:         supportTickets,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -525,6 +530,11 @@ type backends struct {
 	noop      _noop.Service
 	temporal  client.Client
 	unit      _unit.Service
+	users     user.Service
+}
+
+func (b backends) Users() user.Service {
+	return b.users
 }
 
 func (b backends) Noop() _noop.Service {
