@@ -3,11 +3,13 @@ declare module "routes-gen" {
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/payment-methods": Record<string, never>;
+    "/settings/statements/:id": { "id": string };
     "/confirmation/:flowId": { "flowId": string };
     "/confirmation/:flowId/payment-method": { "flowId": string };
     "/confirmation/:flowId/withdraw": { "flowId": string };
     "/confirmation/:flowId/deposit": { "flowId": string };
     "/confirmation/:flowId/send": { "flowId": string };
+    "/settings/statements": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -49,6 +51,7 @@ declare module "routes-gen" {
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
+    "/mx": Record<string, never>;
   };
 
   export function route<
@@ -56,11 +59,13 @@ declare module "routes-gen" {
       | ["/api/maps/placesAutocomplete"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/payment-methods"]
+      | ["/settings/statements/:id", RouteParams["/settings/statements/:id"]]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
       | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
+      | ["/settings/statements"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
@@ -102,5 +107,6 @@ declare module "routes-gen" {
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
+      | ["/mx"]
   >(...args: T): typeof args[0];
 }

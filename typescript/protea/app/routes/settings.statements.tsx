@@ -76,7 +76,13 @@ export default function Page() {
                   </span>
                 </div>
               </div>
-              <Icon>file_download</Icon>
+              <Link
+                reloadDocument
+                target={'_blank'}
+                to={route('/settings/statements/:id', { id: statement.id })}
+              >
+                <Icon>file_download</Icon>
+              </Link>
             </div>
           ))}
       </div>

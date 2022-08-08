@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import { json, LoaderArgs } from '@remix-run/node'
 import { requireUserSession } from '~/lib/kratos.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 
@@ -24,7 +24,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const statement = res.response.statementPdf
 
-  return new Response(statement, {
+  return json(statement, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
