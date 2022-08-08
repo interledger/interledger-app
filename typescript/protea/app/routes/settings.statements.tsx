@@ -24,7 +24,11 @@ export async function loader({ request }: LoaderArgs) {
     throw res
   }
 
-  const statements = res.response.statements
+  const statements = res.response.statements.map((statement) => ({
+    id: statement.id,
+    period: statement.period,
+    accountId: statement.accountId,
+  }))
 
   return json({ statements })
 }
