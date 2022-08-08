@@ -24,7 +24,11 @@ export async function loader({ request }: LoaderArgs) {
     throw res
   }
 
-  const statements = res.response.statements
+  const statements = res.response.statements.map((statement) => ({
+    id: statement.id,
+    period: statement.period,
+    accountId: statement.accountId,
+  }))
 
   return json({ statements })
 }
@@ -72,7 +76,13 @@ export default function Page() {
                   </span>
                 </div>
               </div>
-              <Icon>file_download</Icon>
+              <Link
+                reloadDocument
+                target={'_blank'}
+                to={route('/settings/statements/:id', { id: statement.id })}
+              >
+                <Icon>file_download</Icon>
+              </Link>
             </div>
           ))}
       </div>
