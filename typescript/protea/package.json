@@ -50,7 +50,7 @@
     "@playwright/test": "^1.23.3",
     "@remix-run/dev": "^1.6.5",
     "@remix-run/eslint-config": "^1.6.5",
-    "@routes-gen/remix": "^0.3.0",
+    "@routes-gen/remix": "^0.3.3",
     "@tailwindcss/forms": "^0.5.2",
     "@tailwindcss/typography": "^0.5.4",
     "@types/eslint": "^8.4.5",
