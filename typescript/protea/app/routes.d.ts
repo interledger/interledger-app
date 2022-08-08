@@ -49,6 +49,7 @@ declare module "routes-gen" {
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
+    "/mx": Record<string, never>;
   };
 
   export function route<
@@ -102,5 +103,6 @@ declare module "routes-gen" {
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
+      | ["/mx"]
   >(...args: T): typeof args[0];
 }
