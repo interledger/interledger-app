@@ -105,8 +105,7 @@ func TestGetStatementPDF(t *testing.T) {
 
 	client := NewClient(server.URL, "test")
 	pdf, err := client.GetStatementPDF(context.Background(), &GetStatementPDFArgs{
-		ID:         "411479",
-		CustomerID: uuid.NewString(),
+		ID: "411479",
 	})
 
 	if err != nil {
