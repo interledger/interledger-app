@@ -77,9 +77,6 @@ func TestGetStatementPDF(t *testing.T) {
 	t.Run("Successfully calls GetStatementPDF", func(t *testing.T) {
 		statementID := "24"
 		statementContentPDF := []byte("Statement PDF")
-		c.UnitProvider.EXPECT().GetCustomerByIdentityID(gomock.Any(), gomock.Any()).Return(&unit.Customer{
-			ID: "41",
-		}, nil).Times(1)
 		c.UnitProvider.EXPECT().GetStatementPDF(gomock.Any(), gomock.Any()).Return(&unit.StatementPDF{
 			ID:  statementID,
 			PDF: statementContentPDF,
@@ -99,9 +96,6 @@ func TestGetStatementPDF(t *testing.T) {
 	})
 
 	t.Run("Successfully handles erros from GetStatementPDF", func(t *testing.T) {
-		c.UnitProvider.EXPECT().GetCustomerByIdentityID(gomock.Any(), gomock.Any()).Return(&unit.Customer{
-			ID: uuid.NewString(),
-		}, nil).Times(1)
 		c.UnitProvider.EXPECT().GetStatementPDF(gomock.Any(), gomock.Any()).Return(nil, unit.ErrNotFound).Times(1)
 		res, err := client.GetStatementPDF(_user.ActingAsContext(t, context.Background(), &_user.User{
 			ID: uuid.NewString(),

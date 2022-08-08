@@ -83,12 +83,11 @@ func NewClient(baseUrl string, apiToken string) *client {
 }
 
 type GetStatementPDFArgs struct {
-	ID         string
-	CustomerID string
+	ID string
 }
 
 func (c *client) GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) ([]byte, error) {
-	url := fmt.Sprintf(`%s/statements/%s/pdf?filter[customerId]=%s`, c.baseUrl, args.ID, args.CustomerID)
+	url := fmt.Sprintf(`%s/statements/%s/pdf`, c.baseUrl, args.ID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrRequest, err)
