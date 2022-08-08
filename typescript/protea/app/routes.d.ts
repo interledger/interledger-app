@@ -11,6 +11,7 @@ declare module "routes-gen" {
     "/confirmation/:flowId/send": { "flowId": string };
     "/legal/privacy-policy": Record<string, never>;
     "/legal/terms-of-use": Record<string, never>;
+    "/settings/statements": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -69,6 +70,7 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
+      | ["/settings/statements"]
       | ["/legal/privacy-policy"]
       | ["/legal/terms-of-use"]
       | ["/recovery/password"]
