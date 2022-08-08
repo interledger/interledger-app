@@ -134,7 +134,7 @@ func main() {
 			UnitToken:            "todo token",
 			UnitBaseUrl:          "https://api.s.unit.sh",
 			TwilioSID:            "todo",
-			TwilioSecret: 			 	"todo",
+			TwilioSecret:         "todo",
 			TwilioServiceSID:     "VA6748d0000a0b76f37b41b498ff241940",
 			EnablePlayground:     true,
 			Hostname:             "fynbos.test",
@@ -144,6 +144,7 @@ func main() {
 			MxClientID:           mxClientID,
 			MxApiKey:             mxApiKey,
 			RafikiGraphqlUrl:     "http://rafiki/graphql",
+			ZendeskToken:         "todo",
 		})
 		if err != nil {
 			return err
