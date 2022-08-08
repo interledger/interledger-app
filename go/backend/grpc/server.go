@@ -47,7 +47,7 @@ type ServerArgs struct {
 	DepositService       deposits.Service      `validate:"required"`
 	TwilioService        twilio.Service        `validate:"required"`
 	WaitlistClient       waitlist.Client       `validate:"required"`
-	Temporal             client.Client          `validate:"required"`
+	Temporal             client.Client         `validate:"required"`
 }
 
 type rpcService struct {
