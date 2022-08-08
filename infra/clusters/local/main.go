@@ -144,6 +144,7 @@ func main() {
 			MxClientID:           mxClientID,
 			MxApiKey:             mxApiKey,
 			RafikiGraphqlUrl:     "http://rafiki/graphql",
+			ZendeskUser:          "todo@fynbos.dev",
 			ZendeskToken:         "todo",
 		})
 		if err != nil {

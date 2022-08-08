@@ -11,11 +11,12 @@ import (
 
 const baseURL = "https://fynbos.zendesk.com/api/v2"
 
-func NewClient(apiToken string) Client {
-	return &client{apiToken: apiToken}
+func NewClient(username, apiToken string) Client {
+	return &client{apiToken: apiToken, userName: username}
 }
 
 type client struct {
+	userName   string
 	apiToken   string
 	httpClient http.Client
 }
@@ -43,7 +44,7 @@ func (c client) CreateTicket(ctx context.Context, email, name, description strin
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth("matt@fynbos.dev/token", c.apiToken)
+	req.SetBasicAuth(c.userName+"/token", c.apiToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
