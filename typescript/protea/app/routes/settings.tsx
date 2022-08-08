@@ -88,6 +88,16 @@ export default function Page() {
           </div>
           <Icon>navigate_next</Icon>
         </Router>
+        <Router
+          to='/settings/statements'
+          className={`col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4`}
+        >
+          <div className='flex space-x-3'>
+            <Icon>folder</Icon>
+            <span className='font-sans text-base font-normal'>Statements</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
         <span className='col-span-full font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Security
         </span>
