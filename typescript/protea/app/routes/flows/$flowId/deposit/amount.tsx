@@ -1,12 +1,11 @@
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
 import { useState } from 'react'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button, TextField } from '~/components'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
-import { route } from 'routes-gen'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -110,7 +109,7 @@ export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
   if (routeTo == 'next') {
     return redirect(
-      route('/flows/:flowId/withdraw/review', { flowId: flow?.id as string }),
+      route('/flows/:flowId/deposit/review', { flowId: flow?.id as string }),
       { headers }
     )
   } else {
