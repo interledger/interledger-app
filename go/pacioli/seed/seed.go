@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"fmt"
+	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"io/ioutil"
 
 	"gitlab.com/fynbos/pacioli"
@@ -130,6 +131,13 @@ func accounts(ctx context.Context, b ledger.Backends, confRaw []byte) error {
 	}
 
 	for _, el := range el {
+		switch el.Code {
+		case tb_types.AccountExistsWithDifferentDebitsPending,
+			tb_types.AccountExistsWithDifferentDebitsPosted,
+			tb_types.AccountExistsWithDifferentCreditsPending,
+			tb_types.AccountExistsWithDifferentCreditsPosted:
+			continue
+		}
 		return fmt.Errorf("error at index:%d code:%d", el.Index, el.Code)
 	}
 
