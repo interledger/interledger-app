@@ -1,16 +1,10 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button } from '~/components'
-import { updateFlow, getCurrentFlow } from '~/lib/flows.server'
-import { apolloClient } from '~/lib/apollo.server'
-import type {
-  InitiateDepositMutation,
-  InitiateDepositMutationVariables
-} from '~/generated/types'
-import { InitiateDepositDocument } from '~/generated/types'
 import { route } from 'routes-gen'
+import { Button } from '~/components'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -69,30 +63,25 @@ export default function Page() {
 export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
   const { paymentMethodId, amount } = flow?.data
-  const cookie = request.headers.get('cookie')
-  const initiateDepositMutationVariables = {
-    input: {
-      fundingSourceID: paymentMethodId,
-      amount: amount.toFixed(2).replace('.', '')
-    }
-  }
-  const res = await apolloClient.mutate<
-    InitiateDepositMutation,
-    InitiateDepositMutationVariables
-  >({
-    mutation: InitiateDepositDocument,
-    variables: initiateDepositMutationVariables,
-    context: {
-      headers: {
-        cookie: cookie
+  const response = await grpcClient
+    .initiateDeposit(
+      {
+        amount,
+        fundingsourceId: paymentMethodId
+      },
+      {
+        meta: { cookies: String(request.headers.get('cookie')) }
       }
-    }
-  })
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw response
+  }
 
   const headers = await updateFlow(request, null, true)
-  if (res.data?.initiateDeposit.success)
-    return redirect(
-      route('/confirmation/:flowId/deposit', { flowId: flow?.id as string }),
-      { headers }
-    )
+  return redirect(
+    route('/confirmation/:flowId/deposit', { flowId: flow?.id as string }),
+    { headers }
+  )
 }

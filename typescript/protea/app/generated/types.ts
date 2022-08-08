@@ -321,18 +321,6 @@ export type ActivityTransactionQueryVariables = Exact<{
 
 export type ActivityTransactionQuery = { __typename?: 'Query', transaction: { __typename?: 'Transaction', id: string, type: TransactionType, description: string, amount: string, timestamp: string, status: string } };
 
-export type FlowsDepositPaymentMethodQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type FlowsDepositPaymentMethodQuery = { __typename?: 'Query', fundingSources: Array<{ __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined> };
-
-export type InitiateDepositMutationVariables = Exact<{
-  input: DepositInput;
-}>;
-
-
-export type InitiateDepositMutation = { __typename?: 'Mutation', initiateDeposit: { __typename?: 'DepositMutationResponse', code: string, success: boolean, message: string, deposit?: { __typename?: 'Deposit', id: string, state: string, amount: string, timestamp: string } | null | undefined } };
-
 export type LinkUsdBankAccountMutationVariables = Exact<{
   input: LinkUsdBankAccountInput;
 }>;
@@ -423,37 +411,6 @@ export const ActivityTransactionDocument = gql`
 }
     `;
 export type ActivityTransactionQueryResult = Apollo.QueryResult<ActivityTransactionQuery, ActivityTransactionQueryVariables>;
-export const FlowsDepositPaymentMethodDocument = gql`
-    query FlowsDepositPaymentMethod {
-  fundingSources {
-    id
-    name
-    verificationStatus
-    mask
-    type
-    subType
-  }
-}
-    `;
-export type FlowsDepositPaymentMethodQueryResult = Apollo.QueryResult<FlowsDepositPaymentMethodQuery, FlowsDepositPaymentMethodQueryVariables>;
-export const InitiateDepositDocument = gql`
-    mutation InitiateDeposit($input: DepositInput!) {
-  initiateDeposit(input: $input) {
-    code
-    success
-    message
-    deposit {
-      id
-      state
-      amount
-      timestamp
-    }
-  }
-}
-    `;
-export type InitiateDepositMutationFn = Apollo.MutationFunction<InitiateDepositMutation, InitiateDepositMutationVariables>;
-export type InitiateDepositMutationResult = Apollo.MutationResult<InitiateDepositMutation>;
-export type InitiateDepositMutationOptions = Apollo.BaseMutationOptions<InitiateDepositMutation, InitiateDepositMutationVariables>;
 export const LinkUsdBankAccountDocument = gql`
     mutation LinkUsdBankAccount($input: LinkUsdBankAccountInput!) {
   linkUsdBankAccount(input: $input) {
