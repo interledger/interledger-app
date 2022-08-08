@@ -15,9 +15,9 @@ type client struct {
 	zc zendesk.Client
 }
 
-func NewClient(b ops.Backends, zendeskToken string) supporttickets.Client {
+func NewClient(b ops.Backends, zendeskUser, zendeskToken string) supporttickets.Client {
 	// Inject the zendesk client that the rest of the backends services don't need or use.
-	return client{b: b, zc: zendesk.NewClient(zendeskToken)}
+	return client{b: b, zc: zendesk.NewClient(zendeskUser, zendeskToken)}
 }
 
 func (c client) CreateTicket(ctx context.Context, args supporttickets.CreateTicketArgs) error {

@@ -303,7 +303,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	supportTickets := support_client.NewClient(b, args.ZendeskToken)
+	supportTickets := support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
 	server, err := _grpc.NewServer(&_grpc.ServerArgs{
 		HealthCheckService:   health,

@@ -32,6 +32,7 @@ type DeployBackendArgs struct {
 	MxClientID           string
 	MxApiKey             string
 	RafikiGraphqlUrl     string
+	ZendeskUser          string
 	ZendeskToken         string
 }
 
@@ -67,6 +68,7 @@ func DeployBackend(ctx *pulumi.Context, args DeployBackendArgs) error {
 		args.MxClientID,
 		args.MxBaseURL,
 		args.RafikiGraphqlUrl,
+		args.ZendeskUser,
 		args.ZendeskToken,
 	)
 	if err != nil {
@@ -156,6 +158,7 @@ func deployDeployment(
 	mxClientID string,
 	mxBaseUrl string,
 	rafikiGraphqlUrl string,
+	zendeskUser string,
 	zendeskToken string,
 ) error {
 	mxCredentials, err := v1.NewSecret(ctx, "mx-credentials", &v1.SecretArgs{
@@ -390,6 +393,10 @@ func deployDeployment(
 									Name:  pulumi.String("ZENDESK_TOKEN"),
 									Value: pulumi.String(zendeskToken),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("ZENDESK_USER"),
+									Value: pulumi.String(zendeskUser),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -484,6 +491,10 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("ZENDESK_TOKEN"),
 									Value: pulumi.String(zendeskToken),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("ZENDESK_USER"),
+									Value: pulumi.String(zendeskUser),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
