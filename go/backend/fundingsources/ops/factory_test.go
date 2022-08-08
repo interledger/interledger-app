@@ -27,29 +27,27 @@ import (
 	_unit "gitlab.com/fynbos/backend/providers/unit"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
 )
 
 type TestContainer struct {
-	Ctx              context.Context
-	Logger           *zap.Logger
-	Db               *sqlx.DB
-	Cs               country.Client
-	NoopImpl         noop.Service
-	Is               _identity.Client
-	Fs               fundingsources.Client
-	Os               onboarding.Client
-	Ts               account_transactions.Client
-	as               accounts.Client
-	PacioliContainer *test_utils.PacioliContainer
-	PacioliClient    pacioli.Client
-	PacioliLedgerID  uint32
-	Tp               *mocks.Client
-	UnitImpl         *_unit.MockService
-	ValidatorImpl    *validator.Validate
+	Ctx             context.Context
+	Logger          *zap.Logger
+	Db              *sqlx.DB
+	Cs              country.Client
+	NoopImpl        noop.Service
+	Is              _identity.Client
+	Fs              fundingsources.Client
+	Os              onboarding.Client
+	Ts              account_transactions.Client
+	as              accounts.Client
+	PacioliClient   pacioli.Client
+	PacioliLedgerID uint32
+	Tp              *mocks.Client
+	UnitImpl        *_unit.MockService
+	ValidatorImpl   *validator.Validate
 }
 
 func (t TestContainer) Noop() noop.Service {
@@ -106,14 +104,8 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	is := identity_client.New(c, logger)
 	c.Is = is
 
-	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
-
 	c.PacioliLedgerID = 1
-
-	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
-	if err != nil {
-		return nil, err
-	}
+	pClient := test_utils.SetupPacioli(t, ctx)
 	c.PacioliClient = pClient
 
 	as := accounts_client.New(c, c.PacioliLedgerID, logger)

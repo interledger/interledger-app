@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -17,7 +18,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// TODO: temp bypassing as we need to build a custom image with config.
+var runAuth = flag.Bool("auth", false, "Bool to run auth tests against kratos")
+
 func TestAuthenticationService(s *testing.T) {
+	if !*runAuth {
+		s.Skip()
+	}
 	// Adding this flag so that this test can be
 	// disabled in CI. Our docker image doesn't have
 	// docker-compose and so will fail in CI.

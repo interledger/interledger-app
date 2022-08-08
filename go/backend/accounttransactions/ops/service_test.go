@@ -26,7 +26,6 @@ import (
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.uber.org/zap"
 )
 
@@ -446,7 +445,6 @@ type TestContainer struct {
 	IdentityService    _identity.Client
 	AccountService     _accounts.Client
 	CountryService     _country.Client
-	PacioliContainer   *test_utils.PacioliContainer
 	PacioliClient      pacioli.Client
 	PacioliLedgerID    uint32
 	Ctrl               *gomock.Controller
@@ -501,14 +499,8 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	is := identity_client.New(c, logger)
 	c.IdentityService = is
 
-	c.PacioliContainer = test_utils.SetupPacioli(s, ctx)
-
 	c.PacioliLedgerID = uint32(1)
-
-	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
-	if err != nil {
-		s.Fatal(err)
-	}
+	pClient := test_utils.SetupPacioli(s, ctx)
 
 	c.PacioliClient = pClient
 	ac := accounts_client.New(c, c.PacioliLedgerID, logger)

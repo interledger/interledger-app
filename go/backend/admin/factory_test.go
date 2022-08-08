@@ -38,7 +38,6 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
@@ -47,27 +46,26 @@ import (
 )
 
 type TestContainer struct {
-	Ctx              context.Context
-	Ctrl             *gomock.Controller
-	PacioliContainer *test_utils.PacioliContainer
-	Db               *sqlx.DB
-	As               accounts.Client
-	Fs               fundingsources.Client
-	Is               identity.Client
-	Hs               healthcheck.Service
-	Os               onboarding.Client
-	Oso              *oso.Oso
-	NoopImpl         noop.Service
-	Up               unit.Service
-	Cs               country.Client
-	Tp               *mocks.Client
-	RafikiProvider   *rafiki.MockService
-	AdminConn        *grpc.ClientConn
-	AdminClient      backend.BackendAdminServiceClient
-	AdminServer      *grpc.Server
-	PacioliClient    pacioli.Client
-	PacioliLedgerID  uint32
-	ValidatorImpl    *validator.Validate
+	Ctx             context.Context
+	Ctrl            *gomock.Controller
+	Db              *sqlx.DB
+	As              accounts.Client
+	Fs              fundingsources.Client
+	Is              identity.Client
+	Hs              healthcheck.Service
+	Os              onboarding.Client
+	Oso             *oso.Oso
+	NoopImpl        noop.Service
+	Up              unit.Service
+	Cs              country.Client
+	Tp              *mocks.Client
+	RafikiProvider  *rafiki.MockService
+	AdminConn       *grpc.ClientConn
+	AdminClient     backend.BackendAdminServiceClient
+	AdminServer     *grpc.Server
+	PacioliClient   pacioli.Client
+	PacioliLedgerID uint32
+	ValidatorImpl   *validator.Validate
 }
 
 func (c *TestContainer) Accounts() accounts.Client {
@@ -120,17 +118,12 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
 
-	c.PacioliContainer = test_utils.SetupPacioli(t, ctx)
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, err
 	}
 
-	pClient, err := pacioli_client.New(c.PacioliContainer.PacioliUrl)
-	if err != nil {
-		return nil, err
-	}
+	pClient := test_utils.SetupPacioli(t, ctx)
 	c.PacioliClient = pClient
 	c.PacioliLedgerID = 1
 
