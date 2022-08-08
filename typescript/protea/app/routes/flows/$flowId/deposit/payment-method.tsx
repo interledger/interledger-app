@@ -115,7 +115,7 @@ export async function action({ request, params }: ActionArgs) {
 
   const flow = await getCurrentFlow(request, params)
   return redirect(
-    route('/flows/:flowId/withdraw/review', { flowId: flow?.id as string }),
+    route('/flows/:flowId/deposit/amount', { flowId: flow?.id as string }),
     { headers }
   )
 }
