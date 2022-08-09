@@ -107,13 +107,11 @@ type StatementPDF struct {
 
 type GetStatementPDFArgs struct {
 	StatementID string `validate:"required"`
-	CustomerID  string `validate:"required"`
 }
 
 func (s *service) GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) (*StatementPDF, error) {
 	statement, err := s.externalClient.GetStatementPDF(ctx, &external.GetStatementPDFArgs{
-		ID:         args.StatementID,
-		CustomerID: args.CustomerID,
+		ID: args.StatementID,
 	})
 
 	if err != nil {

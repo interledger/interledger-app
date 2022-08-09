@@ -70,22 +70,13 @@ func (s *rpcService) GetStatementPDF(
 		return nil, ValidationError(err, validateGetStatementPDFDescription)
 	}
 
-	user, err := s.userService.ForContext(ctx)
+	_, err := s.userService.ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	customer, err := s.unitProvider.GetCustomerByIdentityID(ctx, user.ID)
-	if err != nil {
-		if errors.Is(err, unit.ErrNotFound) {
-			return nil, NotFoundError("Failed to find customer.")
-		}
-		return nil, InternalError("Get customer.")
-	}
-
 	statementPdf, err := s.unitProvider.GetStatementPDF(ctx, &unit.GetStatementPDFArgs{
 		StatementID: req.GetStatementId(),
-		CustomerID:  customer.ID,
 	})
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
