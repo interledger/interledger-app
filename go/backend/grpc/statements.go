@@ -75,7 +75,7 @@ func (s *rpcService) GetStatementPDF(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	customer, err := s.unitProvider.GetCustomerByIdentityID(ctx, user.ID)
+	_, err = s.unitProvider.GetCustomerByIdentityID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
 			return nil, NotFoundError("Failed to find customer.")
@@ -85,7 +85,6 @@ func (s *rpcService) GetStatementPDF(
 
 	statementPdf, err := s.unitProvider.GetStatementPDF(ctx, &unit.GetStatementPDFArgs{
 		StatementID: req.GetStatementId(),
-		CustomerID:  customer.ID,
 	})
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
