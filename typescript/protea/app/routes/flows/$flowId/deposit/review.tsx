@@ -15,7 +15,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export default function Page() {
   const { flow } = useLoaderData<typeof loader>()
-  const { paymentMethodMask, displayAmount, displayFee, displayTotal } =
+  const { linkedAccountMask, displayAmount, displayFee, displayTotal } =
     flow?.data
   return (
     <>
@@ -29,7 +29,7 @@ export default function Page() {
       <div className='col-span-full flex justify-between pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='font-sans text-sm font-medium'>Payment method</span>
         <span className='font-sans text-base font-normal'>
-          {paymentMethodMask}
+          {linkedAccountMask}
         </span>
       </div>
       <div className='text medium col-span-full flex justify-between sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -62,12 +62,12 @@ export default function Page() {
 
 export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
-  const { paymentMethodId, amount } = flow?.data
+  const { linkedAccountId, amount } = flow?.data
   const response = await grpcClient
     .initiateDeposit(
       {
         amount,
-        fundingsourceId: paymentMethodId
+        fundingsourceId: linkedAccountId
       },
       {
         meta: { cookies: String(request.headers.get('cookie')) }

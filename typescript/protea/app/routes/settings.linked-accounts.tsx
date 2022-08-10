@@ -3,28 +3,27 @@ import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
-import type {
-  SettingsPaymentMethodsQuery,
-  SettingsPaymentMethodsQueryVariables
-} from '~/generated/types'
-import { SettingsPaymentMethodsDocument } from '~/generated/types'
-import { apolloClient } from '~/lib/apollo.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
 
-  const res = await apolloClient.query<
-    SettingsPaymentMethodsQuery,
-    SettingsPaymentMethodsQueryVariables
-  >({
-    query: SettingsPaymentMethodsDocument,
-    context: {
-      headers: {
-        cookie: cookie
+  const response = await grpcClient
+    .getFundingsources(
+      {},
+      {
+        meta: {
+          cookies: cookie || ''
+        }
       }
-    }
-  })
-  const paymentMethods = res.data.fundingSources.map((fs) => ({
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw response
+  }
+
+  const linkedAccounts = response.response.fundingsources.map((fs) => ({
     id: fs?.id,
     name: fs?.name,
     description: fs?.mask,
@@ -32,12 +31,13 @@ export async function loader({ request }: LoaderArgs) {
   }))
 
   return json({
-    paymentMethods
+    linkedAccounts
   })
 }
 
 export default function Page() {
-  const { paymentMethods } = useLoaderData<typeof loader>()
+  const { linkedAccounts } = useLoaderData<typeof loader>()
+  console.log(linkedAccounts)
 
   return (
     <div className='w-full'>
@@ -49,21 +49,22 @@ export default function Page() {
           </div>
         </Link>
         <div className='flex items-center justify-start font-display text-2xl font-medium'>
-          Payment Methods
+          Linked accounts
         </div>
       </header>
       {/* Body */}
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        {paymentMethods.length == 0 && (
+        {linkedAccounts && linkedAccounts.length == 0 && (
           <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <Icon>tips_and_updates</Icon>
             <span className='font-sans text-sm font-normal'>
-              You need to add a payment method before you can deposit money.
+              You need to add a linked account before you can deposit money.
             </span>
           </div>
         )}
-        {paymentMethods.length > 0 &&
-          paymentMethods.map((method) => (
+        {linkedAccounts &&
+          linkedAccounts.length > 0 &&
+          linkedAccounts.map((method) => (
             <div
               key={method.id}
               className='col-span-full flex items-center justify-between rounded-xl bg-container px-4 py-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
@@ -82,13 +83,13 @@ export default function Page() {
             </div>
           ))}
         <Router
-          to={route('/flows/:flowId/payment-method/type', {
+          to={route('/flows/:flowId/linked-account/type', {
             flowId: 'init'
           })}
           className='col-span-full mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'
         >
           <span className='font-sans text-base font-normal'>
-            New payment method
+            Add linked account
           </span>
           <Icon>navigate_next</Icon>
         </Router>

@@ -30,8 +30,8 @@ export default function Page() {
   return (
     <>
       <Form
-        id='payment-method-review'
-        action={`/flows/${flow.id}/payment-method/review`}
+        id='linked-account-review'
+        action={`/flows/${flow.id}/linked-account/review`}
         method='post'
         className='hidden'
       />
@@ -58,7 +58,7 @@ export default function Page() {
       </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='payment-method-review' type='submit'>
+        <Button form='linked-account-review' type='submit'>
           Confirm
         </Button>
       </div>
@@ -117,7 +117,7 @@ export async function action({ request, params }: ActionArgs) {
     const headers = await updateFlow(request, null, true)
     if (res.data?.verifyUsdBankAccount.success)
       return redirect(
-        route('/confirmation/:flowId/payment-method', {
+        route('/confirmation/:flowId/linked-account', {
           flowId: flow?.id as string
         }),
         { headers }

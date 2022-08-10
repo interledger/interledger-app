@@ -10,7 +10,7 @@ export enum flowType {
   Withdraw = 'withdraw',
   Send = 'send',
   Signup = 'signup',
-  PaymentMethod = 'payment-method',
+  LinkedAccount = 'linked-account',
   UnitOnboarding = 'unit-onboarding'
 }
 
@@ -186,14 +186,14 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
       return {
         id: id,
         type: flowType.Deposit,
-        currentRoute: route('/flows/:flowId/deposit/payment-method', {
+        currentRoute: route('/flows/:flowId/deposit/linked-account', {
           flowId: id
         }),
         data: {},
         steps: [
           {
             name: 'From',
-            route: route('/flows/:flowId/deposit/payment-method', {
+            route: route('/flows/:flowId/deposit/linked-account', {
               flowId: id
             })
           },
@@ -213,14 +213,14 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
       return {
         id: id,
         type: flowType.Withdraw,
-        currentRoute: route('/flows/:flowId/withdraw/payment-method', {
+        currentRoute: route('/flows/:flowId/withdraw/linked-account', {
           flowId: id
         }),
         data: {},
         steps: [
           {
             name: 'To',
-            route: route('/flows/:flowId/withdraw/payment-method', {
+            route: route('/flows/:flowId/withdraw/linked-account', {
               flowId: id
             })
           },
@@ -263,32 +263,32 @@ const flowTemplate = (id: string, type: string): Flow | undefined => {
         complete: false,
         defaultExitTo: '/'
       }
-    case flowType.PaymentMethod:
+    case flowType.LinkedAccount:
       return {
         id,
-        type: flowType.PaymentMethod,
-        currentRoute: route('/flows/:flowId/payment-method/type', {
+        type: flowType.LinkedAccount,
+        currentRoute: route('/flows/:flowId/linked-account/type', {
           flowId: id
         }),
         data: {},
         steps: [
           {
             name: 'Type',
-            route: route('/flows/:flowId/payment-method/type', { flowId: id })
+            route: route('/flows/:flowId/linked-account/type', { flowId: id })
           },
           {
             name: 'Details',
-            route: route('/flows/:flowId/payment-method/details', {
+            route: route('/flows/:flowId/linked-account/details', {
               flowId: id
             })
           },
           {
             name: 'Review',
-            route: route('/flows/:flowId/payment-method/review', { flowId: id })
+            route: route('/flows/:flowId/linked-account/review', { flowId: id })
           }
         ],
         complete: false,
-        defaultExitTo: route('/settings/payment-methods')
+        defaultExitTo: route('/settings/linked-accounts')
       }
     case flowType.Signup:
       return {
