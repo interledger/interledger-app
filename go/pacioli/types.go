@@ -54,9 +54,9 @@ type CreateTransferArgs struct {
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Flags           TransferFlags
-	Code            uint16
+	Code            uint16 `validate:"required"`
 	Timeout         uint64
-	Ledger          uint32
+	Ledger          uint32 `validate:"required"`
 }
 
 type TransferFlags = tigerbeetleTypes.TransferFlags
