@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
+	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/rbac/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	fynbosK8s "gitlab.com/fynbos/infra/aws/modules/kubernetes"
@@ -39,6 +41,29 @@ func main() {
 			return err
 		}
 
+		effect := "Allow"
+		s3Access, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+			Statements: []iam.GetPolicyDocumentStatement{
+				{
+					Effect: &effect,
+					Actions: []string{
+						"s3:PutObject",
+						"s3:GetObject",
+						"s3:ListBucket",
+						"s3:DeleteObject",
+						"s3:GetBucketLocation",
+					},
+					Resources: []string{
+						fmt.Sprintf("arn:aws:s3:::%s/*", "fynbos-gl-cache"),
+						fmt.Sprintf("arn:aws:s3:::%s", "fynbos-gl-cache"),
+					},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+
 		trustPolicy := fynbosK8s.NewIamTrustPolicyDocumentV2(ctx, pulumi.String(accountId), oidcProvider, namespace.Metadata.Name().Elem(), pulumi.String("gl-runner"))
 		role, err := iam.NewRole(ctx, "eks-glrunner-sa-role", &iam.RoleArgs{
 			Name:             pulumi.String("eksGlrunnerSaRole"),
@@ -46,6 +71,12 @@ func main() {
 			AssumeRolePolicy: trustPolicy,
 			ManagedPolicyArns: pulumi.StringArray{
 				iam.ManagedPolicyAmazonEC2ContainerRegistryPowerUser,
+			},
+			InlinePolicies: iam.RoleInlinePolicyArray{
+				iam.RoleInlinePolicyArgs{
+					Name:   pulumi.String("s3AccessPolicy"),
+					Policy: pulumi.String(s3Access.Json),
+				},
 			},
 		})
 		if err != nil {
@@ -72,6 +103,61 @@ func main() {
 			namespace,
 			kubeProvider,
 		}))
+		if err != nil {
+			return err
+		}
+
+		gitlabRole, err := v1.NewRole(ctx, "gl-runner-role", &v1.RoleArgs{
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("gitlab-runner"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			Rules: v1.PolicyRuleArray{
+				v1.PolicyRuleArgs{
+					ApiGroups: pulumi.StringArray{
+						pulumi.String(""),
+					},
+					Resources: pulumi.StringArray{
+						pulumi.String("*"),
+					},
+					Verbs: pulumi.StringArray{
+						pulumi.String("*"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{
+			namespace,
+			kubeProvider,
+		}))
+		if err != nil {
+			return err
+		}
+
+		_, err = v1.NewRoleBinding(ctx, "gl-runner-role-binding", &v1.RoleBindingArgs{
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("gitlab-runner"),
+				Namespace: namespace.Metadata.Name(),
+			},
+			RoleRef: v1.RoleRefArgs{
+				Kind: pulumi.String("Role"),
+				Name: gitlabRole.Metadata.Name().Elem(),
+			},
+			Subjects: v1.SubjectArray{
+				v1.SubjectArgs{
+					Kind:      pulumi.String("ServiceAccount"),
+					Name:      serviceAccount.Metadata.Name().Elem(),
+					Namespace: namespace.Metadata.Name().Elem(),
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{
+			namespace,
+			kubeProvider,
+			gitlabRole,
+			serviceAccount,
+		}))
+		if err != nil {
+			return err
+		}
 
 		_, err = helm.NewRelease(ctx, "gitlab", &helm.ReleaseArgs{
 			Version:         pulumi.String("0.43.1"),
@@ -85,7 +171,8 @@ func main() {
 				"runnerRegistrationToken": pulumi.String(runnerToken),
 				"gitlabUrl":               pulumi.String("https://gitlab.com/"),
 				"rbac": pulumi.Map{
-					"create": pulumi.Bool(true),
+					"create":             pulumi.Bool(false),
+					"serviceAccountName": serviceAccount.Metadata.Name(),
 				},
 				"runners": pulumi.Map{
 					"tags": pulumi.String("k8s"),
@@ -93,11 +180,21 @@ func main() {
 [[runners]]
   name = "k8s-runner"
   executor = "kubernetes"
+  [runners.cache]
+    Type = "s3"
+	Shared = true
+	[runners.cache.s3]
+      ServerAddress = "s3.amazonaws.com"
+	  AuthenticationType = "iam"
+	  BucketName = "fynbos-gl-cache"
+	  BucketLocation = "eu-west-1"
+	  Insecure = false
   [runners.kubernetes]
 	namespace = "gitlab-runner"
     poll_interval = 5
     poll_timeout = 3600
 	service_account = "gl-runner"
+	privileged = true
 	[runners.kubernetes.node_selector]
       glrunner_in_k8s = "true"
 	[runners.kubernetes.node_tolerations]
