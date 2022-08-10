@@ -50,6 +50,7 @@ test_backend:
     - make testci
 
 build_backend:
+  interruptible: true
   tags:
     - k8s
   needs:

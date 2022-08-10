@@ -12,6 +12,7 @@
       - .go/pkg/mod/
 
 go-mod:
+  interruptible: true
   tags:
     - k8s
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
