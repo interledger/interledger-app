@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 
@@ -24,6 +25,9 @@ func main() {
 	if len(args) < 2 {
 		log.Fatalln("Expected 'start' or 'migrate'.")
 	}
+
+	// Set the timezone globally
+	time.Local = time.UTC
 
 	command := args[1]
 	switch command {
