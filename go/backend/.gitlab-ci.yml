@@ -14,12 +14,6 @@ include:
     paths:
       - .go/pkg/mod/
 
-.job_rules:
-  rules:
-    - changes:
-      - go/go.mod
-      - go/backend/*
-
 variables:
   BACKEND_PATH: $CI_PROJECT_DIR/go/backend
   BACKEND_REPO: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
@@ -27,17 +21,23 @@ variables:
   DB_URL: postgres://root@crdb:26257/%s?sslmode=disable
 
 test_backend:
+  rules:
+    - changes:
+        - go/go.mod
+        - go/backend/*
+        - go/proto/*
   tags:
     - k8s
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
   extends:
     - .go-cache-backend
   needs:
-    - go-mod
+    - job: go-mod
+      optional: true
   services:
     - name: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.2
       alias: crdb
-      command: ["start-single-node", "--insecure", "--store=type=mem,size=641MiB"]
+      command: [ "start-single-node", "--insecure", "--store=type=mem,size=641MiB" ]
     - name: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977
       alias: tb
       entrypoint:
@@ -54,10 +54,11 @@ build_backend:
   tags:
     - k8s
   needs:
-    - test_backend
+    - job: test_backend
+      optional: true
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    entrypoint: [ "" ]
   script:
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}" > /kaniko/.docker/config.json
     - >-
