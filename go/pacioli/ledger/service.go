@@ -45,7 +45,7 @@ func ConfigureLedgers(
 				if ledger.ID == existing.ID {
 					exists = true
 					result := canCreateLedger(ledger, existing)
-					if result != pacioli.LEDGER_OK {
+					if result != pacioli.LedgerOK {
 						errorEvents = append(errorEvents, pacioli.EventResult{
 							Index: uint32(i),
 							Code:  uint32(result),
@@ -62,7 +62,7 @@ func ConfigureLedgers(
 				if ledger.ID == created.ID {
 					exists = true
 					result := canCreateLedger(ledger, created)
-					if result != pacioli.LEDGER_OK {
+					if result != pacioli.LedgerOK {
 						errorEvents = append(errorEvents, pacioli.EventResult{
 							Index: uint32(i),
 							Code:  uint32(result),
@@ -108,20 +108,20 @@ func ConfigureLedgers(
 	return errorEvents, nil
 }
 
-func canCreateLedger(args pacioli.ConfigureLedgerArgs, existingLedger pacioli.Ledger) uint8 {
+func canCreateLedger(args pacioli.ConfigureLedgerArgs, existingLedger pacioli.Ledger) pacioli.LedgerResultCode {
 	if args.Name != existingLedger.Name {
-		return pacioli.LEDGER_EXISTS_WITH_DIFFERENT_NAME
+		return pacioli.LedgerExistsWithDifferentName
 	}
 
 	if args.Asset != existingLedger.Asset {
-		return pacioli.LEDGER_EXISTS_WITH_DIFFERENT_ASSET
+		return pacioli.LedgerExistsWithDifferentAsset
 	}
 
 	if args.Scale != existingLedger.Scale {
-		return pacioli.LEDGER_EXISTS_WITH_DIFFERENT_SCALE
+		return pacioli.LedgerExistsWithDifferentScale
 	}
 
-	return pacioli.LEDGER_OK
+	return pacioli.LedgerOK
 }
 
 func GetLedgers(ctx context.Context, b Backends, ids []uint32) ([]pacioli.Ledger, error) {
