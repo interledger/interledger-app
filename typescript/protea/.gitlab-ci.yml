@@ -21,6 +21,7 @@ default:
     - cd $PROJECT_PATH
 
 build_protea:
+  interruptible: true
   tags:
     - k8s
   image:

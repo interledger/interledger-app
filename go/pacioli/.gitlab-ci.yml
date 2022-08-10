@@ -50,6 +50,7 @@ test_pacioli:
     - make testci
 
 build_pacioli:
+  interruptible: true
   tags:
     - k8s
   needs:
