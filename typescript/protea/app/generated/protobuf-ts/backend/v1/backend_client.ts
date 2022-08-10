@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { CreateSupportTicketRequest } from "./backend";
 import type { GetFundingsourcesResponse } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
@@ -177,6 +178,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetFundingsources(backend.v1.Empty) returns (backend.v1.GetFundingsourcesResponse);
      */
     getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse>;
+    /**
+     * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);
+     */
+    createSupportTicket(input: CreateSupportTicketRequest, options?: RpcOptions): UnaryCall<CreateSupportTicketRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -319,5 +324,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse> {
         const method = this.methods[16], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetFundingsourcesResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);
+     */
+    createSupportTicket(input: CreateSupportTicketRequest, options?: RpcOptions): UnaryCall<CreateSupportTicketRequest, Empty> {
+        const method = this.methods[17], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateSupportTicketRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }
