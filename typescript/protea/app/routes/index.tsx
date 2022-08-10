@@ -423,7 +423,7 @@ function AppPage() {
         <div className='col-span-full flex justify-center space-x-3 py-4 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <Router
             className='rounded-full'
-            to={route('/flows/:flowId/deposit/payment-method', {
+            to={route('/flows/:flowId/deposit/linked-account', {
               flowId: 'init'
             })}
           >
@@ -433,7 +433,7 @@ function AppPage() {
           </Router>
           <Router
             className='rounded-full'
-            to={route('/flows/:flowId/withdraw/payment-method', {
+            to={route('/flows/:flowId/withdraw/linked-account', {
               flowId: 'init'
             })}
           >

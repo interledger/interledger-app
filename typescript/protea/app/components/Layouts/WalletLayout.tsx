@@ -225,7 +225,7 @@ function NavFAB() {
                 className={`flex w-full items-center space-x-3 px-4 py-3 text-sm first-of-type:rounded-t-xl last-of-type:rounded-b-xl hover:bg-container-hover ${
                   active ? 'bg-container-hover' : ''
                 }`}
-                to={route('/flows/:flowId/deposit/payment-method', {
+                to={route('/flows/:flowId/deposit/linked-account', {
                   flowId: 'init'
                 })}
               >
@@ -240,7 +240,7 @@ function NavFAB() {
                 className={`flex w-full items-center space-x-3 px-4 py-3 text-sm first-of-type:rounded-t-xl last-of-type:rounded-b-xl hover:bg-container-hover ${
                   active ? 'bg-container-hover' : ''
                 }`}
-                to={route('/flows/:flowId/withdraw/payment-method', {
+                to={route('/flows/:flowId/withdraw/linked-account', {
                   flowId: 'init'
                 })}
               >
@@ -324,7 +324,7 @@ function HomeFAB() {
                   <div className='flex items-center justify-end space-x-6'>
                     <span>Deposit</span>
                     <Router
-                      to={route('/flows/:flowId/deposit/payment-method', {
+                      to={route('/flows/:flowId/deposit/linked-account', {
                         flowId: 'init'
                       })}
                       className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'
@@ -345,7 +345,7 @@ function HomeFAB() {
                   <div className='flex items-center justify-end space-x-6'>
                     <span>Withdraw</span>
                     <Router
-                      to={route('/flows/:flowId/withdraw/payment-method', {
+                      to={route('/flows/:flowId/withdraw/linked-account', {
                         flowId: 'init'
                       })}
                       className='flex items-center justify-center rounded-xl bg-container-primary p-2 shadow-lg'

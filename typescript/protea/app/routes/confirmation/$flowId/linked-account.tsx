@@ -19,8 +19,8 @@ export default function Page() {
   return (
     <>
       <Form
-        id='payment-method-confirmation'
-        action={`/confirmation/${flow.id}/payment-method`}
+        id='linked-account-confirmation'
+        action={`/confirmation/${flow.id}/linked-account`}
         method='post'
         className='hidden'
       />
@@ -51,7 +51,7 @@ export default function Page() {
       </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='payment-method-confirmation' type='submit'>
+        <Button form='linked-account-confirmation' type='submit'>
           Continue
         </Button>
       </div>
