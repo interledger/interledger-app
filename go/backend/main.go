@@ -4,6 +4,8 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"github.com/riandyrn/otelchi"
+	"gitlab.com/fynbos/backend/tracing"
 	"log"
 	"net"
 	"net/http"
@@ -11,7 +13,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -271,7 +273,19 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	shutdown, err := tracing.InitTraceProvider()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		ctx := context.Background()
+		if err := shutdown(ctx); err != nil {
+			log.Fatal("failed to shutdown TracerProvider: %w", err)
+		}
+	}()
+
 	router := chi.NewRouter()
+	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 	router.Handle("/graphql", user.MakeMiddleware(users)(graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
 		WebSocketKeepAlivePingInterval: 10 * time.Second,
