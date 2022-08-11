@@ -108,7 +108,7 @@ function MarketingPage() {
           </span>
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2 lg:mt-7'>
-          <span className='flex text-center font-sans text-base font-normal lg:text-2xl'>
+          <span className='flex text-center lg:text-2xl'>
             With a payment pointer from Fynbos you get a connected account that
             is simple, secure and programmable.
           </span>
@@ -118,7 +118,7 @@ function MarketingPage() {
             to={route('/signup')}
             className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10 sm:max-w-fit'
           >
-            <span className='font-display text-base font-medium text-white'>
+            <span className='font-display font-medium text-white'>
               Get a payment pointer
             </span>
           </Router>
@@ -126,7 +126,7 @@ function MarketingPage() {
             to={route('/signup')}
             className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus px-10 sm:max-w-fit'
           >
-            <span className='font-display text-base font-medium text-primary'>
+            <span className='font-display font-medium text-primary'>
               Learn more
             </span>
           </Router>
@@ -149,7 +149,7 @@ function MarketingPage() {
       <div className='w-full bg-slate-50'>
         <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
           <div className='order-1 col-span-full pt-20 lg:col-span-10 lg:col-start-2'>
-            <span className='font-display text-2xl font-normal lg:text-4xl lg:leading-[2.75rem]'>
+            <span className='font-display text-2xl lg:text-4xl lg:leading-[2.75rem]'>
               Simplicity, security and programmability built on web-native
               technology.
             </span>
@@ -162,7 +162,7 @@ function MarketingPage() {
           </div>
           <div className='order-3 col-span-full mt-8 flex flex-col space-y-4 lg:col-span-6 lg:col-start-6 lg:mt-36 lg:space-y-7'>
             <span className='font-display text-xl font-medium'>Simple</span>
-            <span className='font-sans text-base font-normal'>
+            <span>
               Everything you need and nothing you don't. A clean and simple user
               interface for managing your connected account. Make deposits and
               withdrawals, send and receive payments using payment pointers, and
@@ -171,7 +171,7 @@ function MarketingPage() {
           </div>
           <div className='order-5 col-span-full mt-8 flex flex-col space-y-4 lg:order-4 lg:col-span-6 lg:col-start-2 lg:mt-36 lg:space-y-7'>
             <span className='font-display text-xl font-medium'>Secure</span>
-            <span className='font-sans text-base font-normal'>
+            <span>
               A FDIC-insured direct deposit account backed by Piermont Bank,
               giving you the freedom to build in the knowledge that your money
               is safe.
@@ -192,7 +192,7 @@ function MarketingPage() {
             <span className='font-display text-xl font-medium'>
               Programmable Money
             </span>
-            <span className='font-sans text-base font-normal'>
+            <span>
               Open Payments APIs allow any third-party to build applications
               that tightly integrate your account for both sending and receiving
               payments via the Interledger protocol.
@@ -202,7 +202,7 @@ function MarketingPage() {
             <span className='font-display text-xl font-medium'>
               Complete Control
             </span>
-            <span className='font-sans text-base font-normal'>
+            <span>
               Every connected application has a unique connection to your
               account and you have complete control over how they can use it.
               Single payments, recurring payments, daily, weekly or monthly
@@ -225,7 +225,7 @@ function MarketingPage() {
           <div className='absolute top-0 left-12 h-20 w-20 rounded-br-full bg-slate-50 lg:-left-20' />
         </div>
         <div className='col-span-full mt-14'>
-          <span className='font-display text-2xl font-normal lg:text-4xl'>
+          <span className='font-display text-2xl lg:text-4xl'>
             The future of digital payments
           </span>
         </div>
@@ -247,10 +247,8 @@ function MarketingPage() {
           <div className='absolute left-0 bottom-0 h-12 w-12 rounded-bl-full bg-slate-300' />
         </div>
         <div className='relative order-2 col-span-full mt-8 flex flex-col lg:order-5 lg:col-span-3'>
-          <span className='font-display text-base font-medium'>
-            Payment pointers
-          </span>
-          <span className='mt-6 font-sans text-sm font-normal'>
+          <span className='font-display font-medium'>Payment pointers</span>
+          <span className='mt-6 text-sm'>
             Step into the future with a payment pointer from Fynbos. Better than
             a credit/debit card or a private key, a payment pointer is a URL, a
             native building block of the Web. Use it to send and receive
@@ -259,10 +257,8 @@ function MarketingPage() {
           </span>
         </div>
         <div className='relative order-4 col-span-full mt-8 flex flex-col lg:order-6 lg:col-span-3 lg:col-start-4'>
-          <span className='font-display text-base font-medium'>
-            Connect Securely
-          </span>
-          <span className='mt-6 font-sans text-sm font-normal'>
+          <span className='font-display font-medium'>Connect Securely</span>
+          <span className='mt-6 text-sm'>
             Your payment pointer connects third-party applications to your
             account. We use GNAP, the successor to OAuth 2.0 and OIDC being
             developed at IETF, to manage delegating access to your account to
@@ -271,26 +267,22 @@ function MarketingPage() {
           </span>
         </div>
         <div className='relative order-6 col-span-full mt-8 flex flex-col lg:order-7 lg:col-span-3 lg:col-start-7'>
-          <span className='font-display text-base font-medium'>
-            Withdraw and Spend
-          </span>
-          <span className='mt-6 font-sans text-sm font-normal'>
+          <span className='font-display font-medium'>Withdraw and Spend</span>
+          <span className='mt-6 text-sm'>
             Make deposits into your account using a linked debit card or bank
             account with the funds available immediately to send and spend.
           </span>
         </div>
         <div className='relative order-8 col-span-full mt-8 flex flex-col items-start lg:order-8 lg:col-span-3 lg:col-start-10'>
-          <span className='font-display text-base font-medium'>
+          <span className='font-display font-medium'>
             Access Deposits Instantly
           </span>
-          <span className='mt-6 font-sans text-sm font-normal'>
+          <span className='mt-6 text-sm'>
             Use ACH to withdraw funds from your account or use your virtual
             credit card to spend where payment pointers aren't yet accepted.
           </span>
           <div className='mt-8 flex rounded-lg bg-container px-3 py-1.5'>
-            <span className='font-sans text-sm font-normal text-medium'>
-              Coming soon
-            </span>
+            <span className='text-sm text-medium'>Coming soon</span>
           </div>
         </div>
         <div className='relative order-9 col-span-full h-20'>
@@ -303,7 +295,7 @@ function MarketingPage() {
       <div className='w-full bg-slate-50'>
         <section className='mx-auto grid w-full grid-cols-4 content-start  gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
           <div className='col-span-full mt-20'>
-            <span className='font-display text-2xl font-normal lg:text-4xl'>
+            <span className='font-display text-2xl lg:text-4xl'>
               Frequently asked questions
             </span>
           </div>
@@ -311,7 +303,7 @@ function MarketingPage() {
             <Disclosure>
               {({ open }) => (
                 <>
-                  <Disclosure.Button className='flex w-full items-center justify-between border-b border-slate-200 py-6 font-sans text-sm font-normal last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-primary'>
+                  <Disclosure.Button className='flex w-full items-center justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-primary'>
                     <span className={`${open && 'text-primary'}`}>
                       What is your refund policy?
                     </span>
@@ -334,7 +326,7 @@ function MarketingPage() {
             <Disclosure as='div'>
               {({ open }) => (
                 <>
-                  <Disclosure.Button className='flex w-full justify-between border-b border-slate-200 py-6 font-sans text-sm font-normal last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-primary'>
+                  <Disclosure.Button className='flex w-full justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-primary'>
                     <span className={`${open && 'text-primary'}`}>
                       Do you offer technical support?
                     </span>
@@ -377,9 +369,7 @@ function MarketingPage() {
             to={route('/signup')}
             className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary'
           >
-            <span className='font-display text-base font-medium text-white'>
-              Sign up
-            </span>
+            <span className='font-display font-medium text-white'>Sign up</span>
           </Router>
         </div>
         <div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>
@@ -387,7 +377,7 @@ function MarketingPage() {
             to={route('/contact')}
             className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus'
           >
-            <span className='font-display text-base font-medium text-primary'>
+            <span className='font-display font-medium text-primary'>
               Contact us
             </span>
           </Router>
@@ -417,8 +407,8 @@ function AppPage() {
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         {/* HOME */}
         <div className='col-span-full flex flex-col items-center px-3 pt-4 pb-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-sans text-base font-normal'>Balance</span>
-          <span className='font-display text-4xl font-normal'>{balance}</span>
+          <span>Balance</span>
+          <span className='font-display text-4xl'>{balance}</span>
         </div>
         <div className='col-span-full flex justify-center space-x-3 py-4 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <Router
@@ -458,7 +448,7 @@ function AppPage() {
         {/* Activity items */}
         {recentActivities.map((activities) => (
           <Fragment key={activities.date}>
-            <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <span className='col-span-full ml-4 mt-2 font-display text-xs sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               {activities.date}
             </span>
             {activities.activities.map((activity) => (
@@ -527,15 +517,11 @@ const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
       <div className='flex items-center justify-between space-x-3'>
         <Icon>{activityIcon(activity.transactionType, activity.status)}</Icon>
         <div className='flex flex-col'>
-          <span className='font-display text-base font-medium'>
-            {activity.title}
-          </span>
-          <span className='font-sans text-xs font-normal'>
-            {activity.description}
-          </span>
+          <span className='font-display font-medium'>{activity.title}</span>
+          <span className='text-xs'>{activity.description}</span>
         </div>
       </div>
-      <span className='font-sans text-lg font-normal'>{activity.amount}</span>
+      <span className='text-lg'>{activity.amount}</span>
     </Router>
   )
 }

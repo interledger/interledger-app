@@ -21,10 +21,7 @@ export const Checkbox = forwardRef<any, CheckboxProps>(
           />
         </div>
         <div className='ml-3 text-sm'>
-          <label
-            htmlFor={inputProps.id}
-            className='cursor-pointer text-xs text-strong'
-          >
+          <label htmlFor={inputProps.id} className='cursor-pointer text-xs'>
             {children}
           </label>
           <div className='h-7 pt-2 pl-2'>

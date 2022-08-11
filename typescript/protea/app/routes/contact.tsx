@@ -20,9 +20,7 @@ export default function Page() {
           </span>
         </div>
         <div className='col-span-full flex justify-center pt-1'>
-          <span className='font-sans text-base font-normal'>
-            Get in touch and let us know how we can help.
-          </span>
+          <span>Get in touch and let us know how we can help.</span>
         </div>
         <Form
           id='contact-form'

@@ -59,7 +59,7 @@ export default function Page() {
       {flow.state === 'sent_email' && (
         <>
           <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
+            <h1 className='font-display text-4xl font-medium leading-normal'>
               Email sent!
             </h1>
           </div>
@@ -74,7 +74,7 @@ export default function Page() {
       {flow.state === 'choose_method' && (
         <>
           <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
+            <h1 className='font-display text-4xl font-medium leading-normal'>
               Recover your account
             </h1>
           </div>

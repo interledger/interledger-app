@@ -63,7 +63,7 @@ export default function Page() {
       />
       <div className='col-span-full mt-4 flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <Icon>tips_and_updates</Icon>
-        <span className='font-sans text-sm font-normal'>
+        <span className='text-sm'>
           We currently only support Bank accounts, more coming soon!
         </span>
       </div>

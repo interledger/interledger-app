@@ -51,7 +51,7 @@ export default function Page() {
       {linkedAccounts.length == 0 && (
         <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <Icon>tips_and_updates</Icon>
-          <span className='font-sans text-sm font-normal'>
+          <span className='text-sm'>
             You need to add a payment method before you can deposit money.
           </span>
         </div>
@@ -86,9 +86,7 @@ export default function Page() {
         })}
         className='col-span-full mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'
       >
-        <span className='font-sans text-base font-normal'>
-          New payment method
-        </span>
+        <span>New payment method</span>
         <Icon>navigate_next</Icon>
       </Router>
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

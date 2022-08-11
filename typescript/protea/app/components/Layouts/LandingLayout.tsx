@@ -17,9 +17,7 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
       {({ isActive }) => (
         <>
           <span
-            className={`font-sans text-sm font-medium ${
-              isActive ? 'text-rose-600' : 'text-strong'
-            }`}
+            className={`text-sm font-medium ${isActive && 'text-rose-600'}`}
           >
             {title}
           </span>
@@ -60,10 +58,10 @@ export function LandingLayout() {
             <div className='hidden items-center lg:flex'>
               <div className='flex space-x-10 pt-3 pb-2'>
                 <Router to='/login'>
-                  <span className='font-sans text-sm font-medium'>Log in</span>
+                  <span className='text-sm font-medium'>Log in</span>
                 </Router>
                 <Router to='/signup'>
-                  <span className='font-sans text-sm font-medium'>Sign up</span>
+                  <span className='text-sm font-medium'>Sign up</span>
                 </Router>
               </div>
             </div>
@@ -90,72 +88,50 @@ export function LandingLayout() {
               <Logo className='absolute top-8 h-8 text-white' />
             </div>
             <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-4'>
-              <span className='font-sans text-sm font-medium text-white'>
-                Menu
-              </span>
+              <span className='text-sm font-medium text-white'>Menu</span>
               <Router to='/what-is-a-payment-pointer'>
-                <span className='pt-1.5 font-sans text-sm font-normal text-white'>
+                <span className='pt-1.5 text-sm text-white'>
                   What is a payment pointer?
                 </span>
               </Router>
               <Router to='/about'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  About
-                </span>
+                <span className='text-sm text-white'>About</span>
               </Router>
               <Router to='/legal'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  Legal
-                </span>
+                <span className='text-sm text-white'>Legal</span>
               </Router>
               <Router to='/contact'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  Contact
-                </span>
+                <span className='text-sm text-white'>Contact</span>
               </Router>
             </div>
             <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-7'>
-              <span className='font-sans text-sm font-medium text-white'>
-                Ecosystem
-              </span>
+              <span className='text-sm font-medium text-white'>Ecosystem</span>
               <Router.a to='https://interledger.org/'>
-                <span className='pt-1.5 font-sans text-sm font-normal text-white'>
+                <span className='pt-1.5 text-sm text-white'>
                   Interledger Foundation
                 </span>
               </Router.a>
               <Router.a to='https://webmonetization.org/'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  Web monetization
-                </span>
+                <span className='text-sm text-white'>Web monetization</span>
               </Router.a>
               <Router.a to='https://docs.openpayments.guide/'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  Open Payments
-                </span>
+                <span className='text-sm text-white'>Open Payments</span>
               </Router.a>
             </div>
             <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-10'>
-              <span className='font-sans text-sm font-medium text-white'>
-                Resources
-              </span>
+              <span className='text-sm font-medium text-white'>Resources</span>
               <Router to='/blog'>
-                <span className='pt-1.5 font-sans text-sm font-normal text-white'>
-                  Blog
-                </span>
+                <span className='pt-1.5 text-sm text-white'>Blog</span>
               </Router>
               <Router to='/privacy-policy'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  Privacy policy
-                </span>
+                <span className='text-sm text-white'>Privacy policy</span>
               </Router>
               <Router to='/terms-of-use'>
-                <span className='font-sans text-sm font-normal text-white'>
-                  Terms of use
-                </span>
+                <span className='text-sm text-white'>Terms of use</span>
               </Router>
             </div>
             <div className='col-span-full mt-8 flex flex-col lg:col-span-6 lg:col-start-4'>
-              <span className='font-sans text-sm font-normal text-slate-300'>
+              <span className='text-sm text-slate-300'>
                 &copy; 2022 Fynbos Technologies Ltd.
               </span>
             </div>
@@ -203,7 +179,7 @@ export function LandingLayout() {
               </Router.a>
             </div>
             <div className='col-span-full mt-3 mb-20 flex flex-col lg:col-span-full lg:col-start-4 lg:mb-52'>
-              <span className='font-sans text-sm font-normal text-slate-300'>
+              <span className='text-sm text-slate-300'>
                 Fynbos is a financial technology company and is not a bank.
                 Banking services provided by Piermont Bank; Member FDIC. The
                 Fynbos Visa&reg; Debit Card is issued by Piermont Bank pursuant
