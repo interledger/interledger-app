@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"io"
 	"net/http"
 	"strings"
@@ -118,19 +120,28 @@ func (wh *webhook) GetEvent(ctx context.Context, id string) (*DbEvent, error) {
 
 func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		_, span := otel.GetTracerProvider().Tracer("").Start(r.Context(), "webhook-span")
+		defer span.End()
+
 		payload, err := io.ReadAll(r.Body)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to read body")
 			http.Error(w, "Failed to parse payload", 500)
 			return
 		}
 
 		if err := wh.up.VerifyWebhook(context.Background(), payload, r.Header.Get(SignatureHeader)); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to verify webhook")
 			http.Error(w, "Signature didn't match.", 401)
 			return
 		}
 
 		body := ResponseBody{}
 		if err := json.Unmarshal(payload, &body); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to unmarshal json")
 			http.Error(w, "Failed to parse payload", 500)
 			return
 		}
@@ -146,6 +157,8 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			// TODO: this should not fail. Event must be logged.
 			err = wh.HandleEvent(context.Background(), event, rawEvent)
 			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "failed to handled event")
 				http.Error(w, "Failed to handle event", 500)
 				return
 			}
@@ -154,6 +167,8 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 		// Handling event must not fail. See TODO above.
 		// We therefore know it was an unmarshalling error.
 		if didFail {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to unmarshal event")
 			http.Error(w, "Failed to parse payload", 500)
 			return
 		}
