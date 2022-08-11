@@ -23,9 +23,9 @@ variables:
 test_pacioli:
   rules:
     - changes:
-        - go/go.mod
-        - go/pacioli/*
-        - go/proto/*
+      - go/go.mod
+      - go/pacioli/**/*
+      - go/proto/**/*
   tags:
     - k8s
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
