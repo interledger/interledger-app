@@ -1,8 +1,12 @@
 import { NavLink, Outlet, useLocation } from '@remix-run/react'
 import type { FC } from 'react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
+import { Button } from '../Button'
+import { Icon } from '../icons'
 import { Logo } from '../Logo'
 import { Router } from '../Routes'
+import { NavDrawer } from './NavDrawer'
 
 type HeaderLinkProps = {
   title: string
@@ -31,6 +35,7 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
 }
 
 export function LandingLayout() {
+  const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const location = useLocation()
 
   const isApp =
@@ -39,34 +44,44 @@ export function LandingLayout() {
   return (
     <div className='relative w-full bg-white'>
       {!isApp && (
-        <header className='sticky top-0 z-50 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
-          <div className='mx-auto flex w-full px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl lg:justify-between xl:max-w-4xl'>
-            <div className='flex items-center'>
-              <Router to={route('/')} aria-label='Fynbos logo'>
-                <Logo className='h-7' />
-              </Router>
-              <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
-                <HeaderLink
-                  to='/what-is-a-payment-pointer'
-                  title='What is a payment pointer?'
-                />
-                <HeaderLink to='/about' title='About' />
-                <HeaderLink to='/legal' title='Legal' />
-                <HeaderLink to='/contact' title='Contact' />
+        <>
+          <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
+            <div className='mx-auto flex w-full justify-between px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-4xl'>
+              <div className='flex items-center'>
+                <button
+                  className='-m-3 flex p-3 lg:hidden'
+                  onClick={() => setOpenNavModal(true)}
+                >
+                  <Icon>menu</Icon>
+                </button>
+                <Router to={route('/')} aria-label='Fynbos logo'>
+                  <Logo className='ml-4 h-7 lg:ml-0' />
+                </Router>
+                <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
+                  <HeaderLink
+                    to={route('/what-is-a-payment-pointer')}
+                    title='What is a payment pointer?'
+                  />
+                  <HeaderLink to={route('/about')} title='About' />
+                  <HeaderLink to={route('/legal')} title='Legal' />
+                  <HeaderLink to={route('/contact')} title='Contact' />
+                </div>
+              </div>
+              <div className='hidden items-center lg:flex'>
+                <div className='flex space-x-10 pt-3 pb-2'>
+                  <Router to={route('/login')}>
+                    <span className='text-sm font-medium'>Log in</span>
+                  </Router>
+                  <Router to={route('/signup')}>
+                    <span className='text-sm font-medium'>Sign up</span>
+                  </Router>
+                </div>
               </div>
             </div>
-            <div className='hidden items-center lg:flex'>
-              <div className='flex space-x-10 pt-3 pb-2'>
-                <Router to='/login'>
-                  <span className='text-sm font-medium'>Log in</span>
-                </Router>
-                <Router to='/signup'>
-                  <span className='text-sm font-medium'>Sign up</span>
-                </Router>
-              </div>
-            </div>
-          </div>
-        </header>
+          </header>
+          {/* Spacer for fixed header */}
+          <div className='mb-16 lg:mb-24' />
+        </>
       )}
       <Outlet />
       {!isApp && (
@@ -89,18 +104,18 @@ export function LandingLayout() {
             </div>
             <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-4'>
               <span className='text-sm font-medium text-white'>Menu</span>
-              <Router to='/what-is-a-payment-pointer'>
+              <Router to={route('/what-is-a-payment-pointer')}>
                 <span className='pt-1.5 text-sm text-white'>
                   What is a payment pointer?
                 </span>
               </Router>
-              <Router to='/about'>
+              <Router to={route('/about')}>
                 <span className='text-sm text-white'>About</span>
               </Router>
-              <Router to='/legal'>
+              <Router to={route('/legal')}>
                 <span className='text-sm text-white'>Legal</span>
               </Router>
-              <Router to='/contact'>
+              <Router to={route('/contact')}>
                 <span className='text-sm text-white'>Contact</span>
               </Router>
             </div>
@@ -120,13 +135,13 @@ export function LandingLayout() {
             </div>
             <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-10'>
               <span className='text-sm font-medium text-white'>Resources</span>
-              <Router to='/blog'>
+              <Router to={route('/blog')}>
                 <span className='pt-1.5 text-sm text-white'>Blog</span>
               </Router>
-              <Router to='/privacy-policy'>
+              <Router to={route('/legal/privacy-policy')}>
                 <span className='text-sm text-white'>Privacy policy</span>
               </Router>
-              <Router to='/terms-of-use'>
+              <Router to={route('/legal/terms-of-use')}>
                 <span className='text-sm text-white'>Terms of use</span>
               </Router>
             </div>
@@ -159,7 +174,7 @@ export function LandingLayout() {
                   fill='none'
                   xmlns='http://www.w3.org/2000/svg'
                 >
-                  <g clip-path='url(#clip0_2720_8710)'>
+                  <g clipPath='url(#clip0_2720_8710)'>
                     <path
                       d='M5.08994 17.9986V5.85397H1.00822V17.9986H5.08994ZM3.04961 4.19484C4.47298 4.19484 5.35896 3.26228 5.35896 2.09688C5.33244 0.905213 4.47303 -0.00146484 3.07662 -0.00146484C1.68042 -0.00146484 0.767395 0.905231 0.767395 2.09688C0.767395 3.26233 1.65316 4.19484 3.02296 4.19484H3.04948H3.04961ZM7.34917 17.9986H11.4309V11.2164C11.4309 10.8535 11.4574 10.4909 11.5652 10.2314C11.8603 9.50619 12.5319 8.75508 13.6594 8.75508C15.1364 8.75508 15.7273 9.86878 15.7273 11.5014V17.9985H19.8088V11.0349C19.8088 7.30454 17.7951 5.56885 15.1096 5.56885C12.9076 5.56885 11.9408 6.78605 11.4037 7.61507H11.431V5.85372H7.34926C7.40283 6.9933 7.34926 17.9983 7.34926 17.9983L7.34917 17.9986Z'
                       fill='white'
@@ -190,6 +205,55 @@ export function LandingLayout() {
           </section>
         </footer>
       )}
+      <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
+        <NavDrawer>
+          <NavDrawer.List>
+            <div className='relative mb-8 flex items-center'>
+              <button
+                className='-m-3 flex p-3'
+                onClick={() => setOpenNavModal(!openNavModal)}
+              >
+                <Icon>menu_open</Icon>
+              </button>
+              <Router to={route('/')} aria-label='Fynbos logo'>
+                <Logo className='ml-4 h-8' />
+              </Router>
+            </div>
+            <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
+              What is a payment pointer?
+            </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/legal')}>Legal</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/contact')}>
+              Contact
+            </NavDrawer.ListItem>
+          </NavDrawer.List>
+          <NavDrawer.List>
+            <div className='flex flex-col space-y-2'>
+              <Button
+                className='h-11'
+                outline
+                form='signup-phone-details'
+                type='submit'
+              >
+                Log in
+              </Button>
+              <Button
+                className='h-11'
+                form='signup-phone-details'
+                type='submit'
+              >
+                Sign up
+              </Button>
+            </div>
+            {/* <NavDrawer.ListItem to={route('/login')}>Log in</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/signup')}>
+              Sign up
+            </NavDrawer.ListItem> */}
+          </NavDrawer.List>
+        </NavDrawer>
+      </NavDrawer.Modal>
     </div>
   )
 }
