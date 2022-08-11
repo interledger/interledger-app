@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import type { ReactNode, ButtonHTMLAttributes } from 'react'
 import { forwardRef } from 'react'
 import { Icon } from '.'
@@ -9,20 +10,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<any, ButtonProps>(
   ({ children, icon, outline, ...buttonProps }, ref) => {
-    const activeClassNames = outline
-      ? 'bg-app ring-2 ring-base hover:ring-hover active:ring-active'
-      : 'bg-container-primary hover:bg-container-primary-hover active:bg-container-primary-active'
     return (
       <button
         ref={ref}
         {...buttonProps}
-        className={`flex h-10 items-center rounded-full font-display text-sm font-medium text-medium ${
-          icon ? 'pl-4 pr-6' : 'px-6'
-        } ${
-          buttonProps.disabled
-            ? 'cursor-not-allowed bg-disabled text-disabled'
-            : `cursor-pointer focus-visible:outline-2 focus-visible:outline-focus ${activeClassNames}`
-        }`}
+        className={clsx(
+          'flex h-12 w-full items-center justify-center rounded-full font-display font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled sm:max-w-max',
+          icon ? 'pl-4 pr-6' : 'px-6',
+          outline
+            ? 'border-2 border-blue-500 bg-app text-primary active:ring-active hover:enabled:border-hover'
+            : 'border border-transparent bg-primary text-white active:ring-blue-400 hover:enabled:bg-blue-400',
+          buttonProps.className
+        )}
       >
         {icon && (
           <div className='mr-2'>
@@ -53,7 +52,7 @@ export const FAB = forwardRef<any, FABProps>(
         } ${children ? 'pr-5' : ''} ${
           buttonProps.disabled
             ? 'cursor-not-allowed bg-disabled text-disabled'
-            : `cursor-pointer bg-container-primary shadow-lg hover:bg-container-primary-hover focus-visible:outline-2 focus-visible:outline-focus active:bg-container-primary-active`
+            : `bg-container-primary shadow-lg hover:bg-container-primary-hover focus-visible:outline-2 focus-visible:outline-focus active:bg-container-primary-active`
         }`}
       >
         <Icon>{icon}</Icon>
