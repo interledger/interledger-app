@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
@@ -130,6 +131,13 @@ func main() {
 		}
 
 		err = newBackendApplicationSet(ctx, backendApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
+
+		err = newRetoolApplicationSet(ctx, retoolApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
 		if err != nil {
