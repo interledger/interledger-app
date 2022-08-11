@@ -27,28 +27,20 @@ export default function Page() {
       />
 
       <div className='col-span-full flex justify-between pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Payment method</span>
-        <span className='font-sans text-base font-normal'>
-          {linkedAccountMask}
-        </span>
+        <span className='text-sm font-medium'>Payment method</span>
+        <span>{linkedAccountMask}</span>
       </div>
       <div className='text medium col-span-full flex justify-between sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='font-display text-sm font-medium'>Amount</span>
-        <span className='font-sans text-sm font-normal'>
-          {displayAmount || '$ 0.00'}
-        </span>
+        <span className='text-sm'>{displayAmount || '$ 0.00'}</span>
       </div>
       <div className='text medium col-span-full flex justify-between sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='font-display text-sm font-medium'>Fees</span>
-        <span className='font-sans text-sm font-normal'>
-          {displayFee || '$ 0.00'}
-        </span>
+        <span className='text-sm'>{displayFee || '$ 0.00'}</span>
       </div>
-      <div className='col-span-full flex items-end justify-between py-3 text-strong sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <div className='col-span-full flex items-end justify-between py-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='font-display text-2xl font-medium'>Total</span>
-        <span className='font-sans text-4xl font-medium'>
-          {displayTotal || '$ 0.00'}
-        </span>
+        <span className='text-4xl font-medium'>{displayTotal || '$ 0.00'}</span>
       </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

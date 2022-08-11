@@ -73,7 +73,7 @@ export default function Page() {
         </Router>
       </div>
       <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
+        <h1 className='font-display text-4xl font-medium leading-normal'>
           Confirm it's you
         </h1>
       </div>
@@ -90,7 +90,7 @@ export default function Page() {
           <div className='text-medium'>
             <Icon>mail</Icon>
           </div>
-          <span className='text-small font-normal text-medium'>{email}</span>
+          <span className='text-small text-medium'>{email}</span>
         </div>
         <TextField
           id='password'

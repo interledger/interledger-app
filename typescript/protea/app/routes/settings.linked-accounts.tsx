@@ -57,7 +57,7 @@ export default function Page() {
         {linkedAccounts && linkedAccounts.length == 0 && (
           <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <Icon>tips_and_updates</Icon>
-            <span className='font-sans text-sm font-normal'>
+            <span className='text-sm'>
               You need to add a linked account before you can deposit money.
             </span>
           </div>
@@ -72,10 +72,8 @@ export default function Page() {
               <div className='flex items-center space-x-3 text-medium'>
                 {method.icon && <Icon>{method.icon}</Icon>}
                 <div className='flex flex-col'>
-                  <span className='font-sans text-base font-normal'>
-                    {method.name}
-                  </span>
-                  <span className='font-sans text-xs font-normal text-weak'>
+                  <span>{method.name}</span>
+                  <span className='text-xs text-weak'>
                     {method.description}
                   </span>
                 </div>
@@ -88,9 +86,7 @@ export default function Page() {
           })}
           className='col-span-full mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'
         >
-          <span className='font-sans text-base font-normal'>
-            Add linked account
-          </span>
+          <span>Add linked account</span>
           <Icon>navigate_next</Icon>
         </Router>
       </div>

@@ -108,40 +108,30 @@ export default function Page() {
               {activityIcon(transaction.transactionType, transaction.status)}
             </Icon>
             <div className='flex flex-col'>
-              <span className='text-left font-display text-base font-medium'>
+              <span className='text-left font-display font-medium'>
                 {transaction.title}
               </span>
-              <span className='font-sans text-xs font-normal'>
-                {transaction.description}
-              </span>
+              <span className='text-xs'>{transaction.description}</span>
             </div>
           </div>
         </div>
         <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <span className='mb-1 font-display text-xs font-medium'>Amount</span>
-          <span className='font-sans text-base font-normal'>
-            {transaction.amount}
-          </span>
+          <span>{transaction.amount}</span>
         </div>
         <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <span className='mb-1 font-display text-xs font-medium'>Date</span>
-          <span className='font-sans text-base font-normal'>
-            {transaction.date}
-          </span>
+          <span>{transaction.date}</span>
         </div>
         <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <span className='mb-1 font-display text-xs font-medium'>
             Transaction ID
           </span>
-          <span className='font-sans text-base font-normal'>
-            {transaction.id}
-          </span>
+          <span>{transaction.id}</span>
         </div>
         <div className='col-span-full mt-2 flex h-12 flex-col items-start justify-center  sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <span className='mb-1 font-display text-xs font-medium'>Status</span>
-          <span className='font-sans text-base font-normal capitalize'>
-            {transaction.status}
-          </span>
+          <span className='capitalize'>{transaction.status}</span>
         </div>
       </div>
     </div>

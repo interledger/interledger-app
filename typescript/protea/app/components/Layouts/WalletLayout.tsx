@@ -132,7 +132,7 @@ const NavRail: FC = ({ children }) => {
 
 const NavDrawer: FC = ({ children }) => {
   return (
-    <ul className='sticky top-0 hidden h-screen min-w-max select-none flex-col justify-between bg-container p-4 px-3 pt-4 font-display text-base lg:flex'>
+    <ul className='sticky top-0 hidden h-screen min-w-max select-none flex-col justify-between bg-container p-4 px-3 pt-4 font-display lg:flex'>
       {children}
     </ul>
   )

@@ -40,9 +40,7 @@ export const Snackbar: FC<SnackbarProps> = ({
           leaveTo='opacity-0 scale-95'
         >
           <div className='flex w-full transform items-center justify-between space-x-2 overflow-hidden rounded-xl bg-snackbar py-1 pl-4 pr-2 text-left align-middle shadow-lg transition-all sm:max-w-sm lg:max-w-lg xl:max-w-xl'>
-            <h3 className='font-sans text-sm font-normal text-white'>
-              {message}
-            </h3>
+            <h3 className='text-sm text-white'>{message}</h3>
             <button
               className='h-10 items-center px-2 font-display text-sm font-medium capitalize text-primary focus-visible:outline-none'
               type='button'

@@ -65,16 +65,14 @@ export default function Page() {
         <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex space-x-3'>
             <Icon>mail</Icon>
-            <span className='font-sans text-base font-normal'>
-              {session?.identity.traits.email}
-            </span>
+            <span>{session?.identity.traits.email}</span>
           </div>
         </div>
         <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex space-x-3'>
             <Icon>flag</Icon>
             {/* TODO: show actual country here rather */}
-            <span className='font-sans text-base font-normal'>Country</span>
+            <span>Country</span>
           </div>
         </div>
         <span className='col-span-full font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -86,9 +84,7 @@ export default function Page() {
         >
           <div className='flex space-x-3'>
             <Icon>credit_card</Icon>
-            <span className='font-sans text-base font-normal'>
-              Linked accounts
-            </span>
+            <span>Linked accounts</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
@@ -101,7 +97,7 @@ export default function Page() {
         >
           <div className='flex space-x-3'>
             <Icon>password</Icon>
-            <span className='font-sans text-base font-normal'>Password</span>
+            <span>Password</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
@@ -111,7 +107,7 @@ export default function Page() {
         >
           <div className='flex space-x-3'>
             <Icon>logout</Icon>
-            <span className='font-sans text-base font-normal'>Logout</span>
+            <span>Logout</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>

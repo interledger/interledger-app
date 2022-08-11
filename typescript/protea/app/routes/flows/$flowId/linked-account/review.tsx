@@ -37,24 +37,24 @@ export default function Page() {
       />
 
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Account Type</span>
-        <span className='font-sans text-base font-normal'>{type}</span>
+        <span className='text-sm font-medium'>Account Type</span>
+        <span>{type}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Institution</span>
-        <span className='font-sans text-base font-normal'>{institution}</span>
+        <span className='text-sm font-medium'>Institution</span>
+        <span>{institution}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Account number</span>
-        <span className='font-sans text-base font-normal'>{accountNumber}</span>
+        <span className='text-sm font-medium'>Account number</span>
+        <span>{accountNumber}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Routing number</span>
-        <span className='font-sans text-base font-normal'>{routingNumber}</span>
+        <span className='text-sm font-medium'>Routing number</span>
+        <span>{routingNumber}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Nickname</span>
-        <span className='font-sans text-base font-normal'>{name}</span>
+        <span className='text-sm font-medium'>Nickname</span>
+        <span>{name}</span>
       </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

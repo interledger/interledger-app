@@ -71,15 +71,12 @@ export const RadioGroup: FC<RadioGroupProps> = ({
                     >
                       {option.icon && <Icon>{option.icon}</Icon>}
                       <div className='flex flex-col'>
-                        <HeadlessRadioGroup.Label
-                          as='span'
-                          className='font-sans text-base font-normal'
-                        >
+                        <HeadlessRadioGroup.Label as='span'>
                           {option.name}
                         </HeadlessRadioGroup.Label>
                         <HeadlessRadioGroup.Description
                           as='span'
-                          className={`font-sans text-xs font-normal ${
+                          className={`text-xs ${
                             disabled ? 'text-disabled' : 'text-weak'
                           }`}
                         >

@@ -32,7 +32,7 @@ export const Error: FC<ErrorProps> = ({ status, data }) => {
                   ? 'Not found'
                   : 'An error occurred'}
               </h1>
-              <p className='mt-2 font-sans text-weak'>
+              <p className='mt-2 text-weak'>
                 {/*TODO put in support email here.*/}
                 {data?.body ||
                   'Please try again, or contact support if the problem persists.'}
