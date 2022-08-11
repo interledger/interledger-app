@@ -1,6 +1,7 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/linked-accounts": Record<string, never>;
     "/confirmation/:flowId": { "flowId": string };
@@ -8,6 +9,8 @@ declare module "routes-gen" {
     "/confirmation/:flowId/withdraw": { "flowId": string };
     "/confirmation/:flowId/deposit": { "flowId": string };
     "/confirmation/:flowId/send": { "flowId": string };
+    "/legal/privacy-policy": Record<string, never>;
+    "/legal/terms-of-use": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -46,7 +49,9 @@ declare module "routes-gen" {
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
+    "/about": Record<string, never>;
     "/": Record<string, never>;
+    "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
@@ -56,6 +61,7 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/api/maps/placesAutocomplete"]
+      | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/linked-accounts"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
@@ -63,6 +69,8 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
+      | ["/legal/privacy-policy"]
+      | ["/legal/terms-of-use"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
@@ -101,7 +109,9 @@ declare module "routes-gen" {
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
+      | ["/about"]
       | ["/"]
+      | ["/legal"]
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
