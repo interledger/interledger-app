@@ -5272,6 +5272,13 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"clsx@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "clsx@npm:1.2.1"
+  checksum: 30befca8019b2eb7dbad38cff6266cf543091dae2825c856a62a8ccf2c3ab9c2907c4d12b288b73101196767f66812365400a227581484a05f968b0307cfaf12
+  languageName: node
+  linkType: hard
+
 "code-point-at@npm:^1.0.0":
   version: 1.1.0
   resolution: "code-point-at@npm:1.1.0"
@@ -9077,7 +9084,7 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
-"lilconfig@npm:^2.0.5":
+"lilconfig@npm:^2.0.5, lilconfig@npm:^2.0.6":
   version: 2.0.6
   resolution: "lilconfig@npm:2.0.6"
   checksum: 40a3cd72f103b1be5975f2ac1850810b61d4053e20ab09be8d3aeddfe042187e1ba70b4651a7e70f95efa1642e7dc8b2ae395b317b7d7753b241b43cef7c0f7d
@@ -11408,6 +11415,7 @@ postcss@latest:
     "@types/react-dom": ^17.0.11
     "@types/uuid": ^8.3.4
     autoprefixer: latest
+    clsx: ^1.2.1
     eslint: ^8.20.0
     eslint-config-prettier: ^8.5.0
     graphql: ^16.0.1
@@ -11420,7 +11428,7 @@ postcss@latest:
     react-dom: 17.0.2
     rehype-slug: ^4.0.1
     routes-gen: ^0.5.1
-    tailwindcss: ^3.1.6
+    tailwindcss: ^3.1.8
     typescript: 4.7.4
     uuid: ^8.3.2
   languageName: unknown
@@ -13069,9 +13077,9 @@ postcss@latest:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:^3.1.6":
-  version: 3.1.6
-  resolution: "tailwindcss@npm:3.1.6"
+"tailwindcss@npm:^3.1.8":
+  version: 3.1.8
+  resolution: "tailwindcss@npm:3.1.8"
   dependencies:
     arg: ^5.0.2
     chokidar: ^3.5.3
@@ -13082,7 +13090,7 @@ postcss@latest:
     fast-glob: ^3.2.11
     glob-parent: ^6.0.2
     is-glob: ^4.0.3
-    lilconfig: ^2.0.5
+    lilconfig: ^2.0.6
     normalize-path: ^3.0.0
     object-hash: ^3.0.0
     picocolors: ^1.0.0
@@ -13100,7 +13108,7 @@ postcss@latest:
   bin:
     tailwind: lib/cli.js
     tailwindcss: lib/cli.js
-  checksum: 90719c6fd0dcdda5c8e2882ad421048c9dd90890e0c118d12ff3ec31adba53eb2df8fed1ed203e728e5b32297e1cc207df463a6b196d37344a63fde9f67c52b6
+  checksum: 86480301fc6ae1e392c2aba8264ab425bd919078176b010fda724518a7c265e950da5f4120c69c9041509c318207985fa9d680b6f5021e23f8214135a61a54b6
   languageName: node
   linkType: hard
 
