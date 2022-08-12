@@ -382,6 +382,9 @@ func (s *service) VerifyOwnership(ctx context.Context, id string) error {
 
 func autoVerifyOwnership(name string) bool {
 	allowedNames := []string{"MX USER"}
+	if env.IsDev() {
+		return true
+	}
 	if !env.IsProd() {
 		for _, allowedName := range allowedNames {
 			if strings.ToUpper(strings.TrimSpace(name)) == allowedName {

@@ -366,11 +366,15 @@ func TestStoreEvent(t *testing.T) {
 	rawEvent := marshalEvent(t, customerCreatedEvent)
 	testEvent := Event{ID: customerCreatedEvent.ID, Type: EventType(customerCreatedEvent.Type)}
 
-	storedEvent, err := wh.StoreEvent(ctx, testEvent, rawEvent)
+	_, err = wh.StoreEvent(ctx, testEvent, rawEvent)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	storedEvent, err := wh.GetEvent(ctx, testEvent.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
 	assert.Equal(t, testEvent.ID, storedEvent.ID)
 	assert.Equal(t, testEvent.Type, EventType(storedEvent.Type))
 	assert.JSONEq(t, string(rawEvent), storedEvent.RawEvent.String())
