@@ -412,3 +412,104 @@ func PostTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.
 	})
 	return res, nil
 }
+
+func VoidTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.TransferResult, error) {
+	resMap := make(map[int]pacioli.TransferResult)
+	for i, tid := range ids {
+		ex, err := getTransfer(ctx, b, tid)
+		if errors.Is(err, pacioli.ErrNotFound) {
+			resMap[i] = pacioli.TransferResult{
+				Index: uint32(i),
+				Code:  tb_types.TransferPendingTransferNotFound,
+			}
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if ex.State == transferStateVoided {
+			resMap[i] = pacioli.TransferResult{
+				Index: uint32(i),
+				Code:  tb_types.TransferPendingTransferAlreadyVoided,
+			}
+			continue
+		}
+		if ex.State == transferStateReplaced {
+			resMap[i] = pacioli.TransferResult{
+				Index: uint32(i),
+				Code:  tb_types.TransferPendingTransferAlreadyPosted,
+			}
+			continue
+		}
+		if ex.State == transferStateTimeout || ex.Timeout.Time.Before(time.Now().UTC()) {
+			resMap[i] = pacioli.TransferResult{
+				Index: uint32(i),
+				Code:  tb_types.TransferPendingTransferExpired,
+			}
+			continue
+		}
+		if ex.State != transferStatePending {
+			resMap[i] = pacioli.TransferResult{
+				Index: uint32(i),
+				Code:  tb_types.TransferPendingTransferNotPending,
+			}
+			continue
+		}
+
+		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+			// Update the old transaction's state
+			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3", transferStateVoided, ex.ID, transferStatePending)
+			if err != nil {
+				return err
+			}
+			updatedCnt, err := rows.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if updatedCnt != 1 {
+				return fmt.Errorf("%s %s %w", "failed to update pending tranfer state", ex.ID, pacioli.ErrInternal)
+			}
+
+			// Update Credit account balance
+			rows, err = tx.ExecContext(ctx, "UPDATE ledger_accounts SET credits_pending=credits_pending-$1, updated_at=now() WHERE id=$2", ex.Amount, ex.CreditAccountID)
+			if err != nil {
+				return err
+			}
+			updateCnt, err := rows.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if updateCnt != 1 {
+				return fmt.Errorf("%s %s %w", "unable to update credit account balances", ex.CreditAccountID, pacioli.ErrInternal)
+			}
+
+			// Update Debit account balance
+			rows, err = tx.ExecContext(ctx, "UPDATE ledger_accounts SET debits_pending=debits_pending-$1, updated_at=now() WHERE id=$2", ex.Amount, ex.DebitAccountID)
+			if err != nil {
+				return err
+			}
+			updateCnt, err = rows.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if updateCnt != 1 {
+				return fmt.Errorf("%s %s %w", "unable to update credit account balances", ex.CreditAccountID, pacioli.ErrInternal)
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var res []pacioli.TransferResult
+	for _, v := range resMap {
+		res = append(res, v)
+	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Index < res[j].Index
+	})
+	return res, nil
+}
