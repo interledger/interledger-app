@@ -461,3 +461,153 @@ func TestPostTransactions(t *testing.T) {
 		})
 	}
 }
+
+func TestVoidTransactions(t *testing.T) {
+	ctx := context.Background()
+
+	_, db := test_utils.MigrateCockroachDB(t, ctx)
+	b := test_utils.NewBackends(t, db, nil)
+
+	// Configure Ledger
+	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    1,
+			Name:  "TestLedgerUSD",
+			Asset: "USD",
+			Scale: 2,
+		},
+	})
+	require.NoError(t, err)
+	require.Empty(t, lr)
+	cases := []struct {
+		name  string
+		input []pacioli.CreateTransferArgs
+		err   error
+		res   []pacioli.TransferResult
+	}{
+		{
+			name: "success single",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					Amount:          1000,
+					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
+					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+			},
+		},
+		{
+			name: "already voided",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
+					Amount:          1000,
+					DebitAccountID:  "f35459cd-1ea0-4402-8462-8b1a15fa8841",
+					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+				{
+					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
+					Amount:          1000,
+					DebitAccountID:  "f35459cd-1ea0-4402-8462-8b1a15fa8841",
+					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+			},
+			res: []pacioli.TransferResult{
+				{
+					Index: 1,
+					Code:  tb_types.TransferPendingTransferAlreadyVoided,
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Configure the accounts
+			var tids []string
+			for _, args := range tc.input {
+				ar, err := tigerroach.ConfigureAccounts(ctx, b, []pacioli.ConfigureAccountArgs{
+					{
+						ID:       args.CreditAccountID,
+						LedgerID: 1,
+						Code:     1,
+					},
+					{
+						ID:       args.DebitAccountID,
+						LedgerID: 1,
+						Code:     1,
+					},
+				})
+				require.NoError(t, err)
+				require.Empty(t, ar)
+				tids = append(tids, args.ID)
+			}
+
+			// Create the transfers
+			tr, err := tigerroach.CreateTransfers(ctx, b, tc.input)
+			require.NoError(t, err)
+			require.Empty(t, tr)
+
+			// Void the transfers
+			prl, err := tigerroach.VoidTransactions(ctx, b, tids)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, prl, len(tc.res))
+
+			for i, pr := range prl {
+				etr := tc.res[i]
+				assert.Equal(t, etr.Index, pr.Index)
+				assert.Equal(t, etr.Code, pr.Code)
+			}
+
+			// Lookup the transaction/accounts and check their state and debit and credit values
+			for i, args := range tc.input {
+				var skipValidation bool
+				for _, ee := range tc.res {
+					if ee.Index == uint32(i) {
+						skipValidation = true
+						break
+					}
+				}
+				if skipValidation {
+					continue
+				}
+
+				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
+				assert.NoError(t, err)
+				assert.Equal(t, tr.ID, args.ID)
+				assert.False(t, tr.Flags.Pending)
+
+				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
+				assert.NoError(t, err)
+				assert.Zero(t, da.DebitsPending)
+
+				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
+				assert.NoError(t, err)
+				assert.Zero(t, ca.CreditsPending)
+			}
+		})
+	}
+}
