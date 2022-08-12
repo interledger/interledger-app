@@ -61,6 +61,9 @@ func main() {
 		log.Fatalln("Expected `start` or `migrate`.")
 	}
 
+	// Set the timezone globally
+	time.Local = time.UTC
+
 	command := os.Args[1]
 	switch command {
 	case "migrate":

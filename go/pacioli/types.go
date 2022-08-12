@@ -11,8 +11,8 @@ type ConfigureLedgerArgs struct {
 
 type ConfigureAccountArgs struct {
 	ID       string `validate:"required,uuid4"`
-	LedgerID uint32
-	Code     uint16
+	LedgerID uint32 `validate:"required"`
+	Code     uint16 `validate:"required"`
 	Flags    AccountFlags
 }
 
@@ -26,25 +26,25 @@ type Ledger struct {
 }
 
 type Account struct {
-	ID             string
-	LedgerID       uint32
+	ID             string `db:"id"`
+	LedgerID       uint32 `db:"ledger_id"`
 	Flags          AccountFlags
-	Code           uint16
-	DebitsPending  uint64
-	DebitsPosted   uint64
-	CreditsPending uint64
-	CreditsPosted  uint64
+	Code           uint16 `db:"code"`
+	DebitsPending  uint64 `db:"debits_pending"`
+	DebitsPosted   uint64 `db:"debits_posted"`
+	CreditsPending uint64 `db:"credits_pending"`
+	CreditsPosted  uint64 `db:"credits_posted"`
 }
 
 type Transfer struct {
-	ID              string
-	PendingID       string
-	LedgerID        uint16 // this field is coming soon to a TigerBeetle near you.
-	DebitAccountID  string
-	CreditAccountID string
-	Amount          uint64
+	ID              string `db:"id"`
+	PendingID       string `db:"pending_id"`
+	LedgerID        uint16 `db:"ledger_id"` // this field is coming soon to a TigerBeetle near you.
+	DebitAccountID  string `db:"debit_account_id"`
+	CreditAccountID string `db:"credit_account_id"`
+	Amount          uint64 `db:"amount"`
 	Flags           TransferFlags
-	Code            uint16
+	Code            uint16 `db:"code"`
 	Timeout         uint64
 }
 
@@ -59,19 +59,38 @@ type CreateTransferArgs struct {
 	Ledger          uint32 `validate:"required"`
 }
 
+func ToAccountFlags(in uint16) AccountFlags {
+	return AccountFlags{
+		Linked:                     in&(1<<0) == 1,
+		DebitsMustNotExceedCredits: in&(1<<1) == 2,
+		CreditsMustNotExceedDebits: in&(1<<2) == 4,
+	}
+}
+
 type TransferFlags = tigerbeetleTypes.TransferFlags
 type AccountFlags = tigerbeetleTypes.AccountFlags
 type EventResult = tigerbeetleTypes.EventResult
 type TransferResult = tigerbeetleTypes.TransferEventResult
 type AccountResult = tigerbeetleTypes.AccountEventResult
 type AccountResultCode = tigerbeetleTypes.CreateAccountResult
-type TransferResultCode = tigerbeetleTypes.CreateAccountResult
+type TransferResultCode = tigerbeetleTypes.CreateTransferResult
+
+type LedgerResult struct {
+	Index uint32
+	Code  LedgerResultCode
+}
+
+//go:generate stringer -type=LedgerResultCode -trimprefix=Ledger
+
+type LedgerResultCode uint32
 
 const (
-	LEDGER_OK                          uint8 = 0
-	LEDGER_EXISTS_WITH_DIFFERENT_NAME  uint8 = 1
-	LEDGER_EXISTS_WITH_DIFFERENT_ASSET uint8 = 2
-	LEDGER_EXISTS_WITH_DIFFERENT_SCALE uint8 = 3
+	LedgerOK                       LedgerResultCode = 0
+	LedgerExistsWithDifferentName  LedgerResultCode = 1
+	LedgerExistsWithDifferentAsset LedgerResultCode = 2
+	LedgerExistsWithDifferentScale LedgerResultCode = 3
 
-	ACCOUNT_LEDGER_DOES_NOT_EXIST uint8 = 0 // TB account errors start at 1
+	AccountOK AccountResultCode = 0 // TB account errors start at 1
+
+	ACCOUNT_LEDGER_DOES_NOT_EXIST uint32 = 0 // TB account errors start at 1
 )
