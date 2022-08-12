@@ -52,7 +52,7 @@ type webhook struct {
 func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.RawMessage) error {
 	_, err := wh.StoreEvent(ctx, event, rawEvent)
 	if err != nil {
-		if err != ErrDuplicateEvent {
+		if !errors.Is(err, ErrDuplicateEvent) {
 			return fmt.Errorf("%w %s", ErrInternal, err)
 		}
 	}
