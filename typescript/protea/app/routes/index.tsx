@@ -303,7 +303,7 @@ function MarketingPage() {
             <Disclosure>
               {({ open }) => (
                 <>
-                  <Disclosure.Button className='flex w-full items-center justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-primary'>
+                  <Disclosure.Button className='flex w-full items-center justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-focus'>
                     <span className={`${open && 'text-primary'}`}>
                       What is your refund policy?
                     </span>
@@ -326,7 +326,7 @@ function MarketingPage() {
             <Disclosure as='div'>
               {({ open }) => (
                 <>
-                  <Disclosure.Button className='flex w-full justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-primary'>
+                  <Disclosure.Button className='flex w-full justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-focus'>
                     <span className={`${open && 'text-primary'}`}>
                       Do you offer technical support?
                     </span>
