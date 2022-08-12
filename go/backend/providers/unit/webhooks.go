@@ -96,7 +96,7 @@ func (wh *webhook) HandleEvent(ctx context.Context, event Event, rawEvent json.R
 func (wh *webhook) StoreEvent(ctx context.Context, event Event, rawEvent json.RawMessage) (*DbEvent, error) {
 	var storedEvent DbEvent
 
-	err := wh.db.GetContext(ctx, &storedEvent, "INSERT INTO unit_events (id, type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, EventType(event.Type), string(rawEvent))
+	_, err := wh.db.ExecContext(ctx, "INSERT INTO unit_events (id, type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, event.Type, string(rawEvent))
 	if err != nil {
 		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
 			return nil, fmt.Errorf("%w %s", ErrDuplicateEvent, err)
@@ -155,7 +155,7 @@ func (wh *webhook) MakeHttpHandler() http.HandlerFunc {
 			}
 
 			// TODO: this should not fail. Event must be logged.
-			err = wh.HandleEvent(context.Background(), event, rawEvent)
+			err = wh.HandleEvent(r.Context(), event, rawEvent)
 			if err != nil {
 				span.RecordError(err)
 				span.SetStatus(codes.Error, "failed to handled event")

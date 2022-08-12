@@ -5,7 +5,10 @@ import (
 	"embed"
 	"fmt"
 	"github.com/riandyrn/otelchi"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
 	"gitlab.com/fynbos/backend/tracing"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"log"
 	"net"
 	"net/http"
@@ -92,7 +95,7 @@ func start(args *cli.StartArgs) {
 	var b = new(backends)
 	b.val = validator.New()
 
-	db, err := sqlx.Connect("postgres", args.DbConnectionString)
+	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
