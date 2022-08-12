@@ -63,10 +63,11 @@ export default function Page() {
 export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
   const { linkedAccountId, amount } = flow?.data
+  const centAmount = parseInt(amount)*100
   const response = await grpcClient
     .initiateDeposit(
       {
-        amount,
+        amount: centAmount.toString(),
         fundingsourceId: linkedAccountId
       },
       {

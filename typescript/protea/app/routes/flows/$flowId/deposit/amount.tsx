@@ -82,8 +82,8 @@ export default function Page() {
 export async function action({ request, params }: ActionArgs) {
   // TODO: fetch fee from db
   const feeStructure = {
-    fixed: 1.0,
-    percentage: 0.02
+    fixed: 0.0,
+    percentage: 0.00
   }
   const form = await request.formData()
   const amount = parseFloat(String(form.get('amount')))
