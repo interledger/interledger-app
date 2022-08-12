@@ -3,6 +3,9 @@ package tigerroach_test
 import (
 	"context"
 	"testing"
+	"time"
+
+	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,17 +20,245 @@ func TestCreateTransfers(t *testing.T) {
 	_, db := test_utils.MigrateCockroachDB(t, ctx)
 	b := test_utils.NewBackends(t, db, nil)
 
+	// Configure Ledger
+	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    1,
+			Name:  "TestLedgerUSD",
+			Asset: "USD",
+			Scale: 2,
+		},
+		{
+			ID:    2,
+			Name:  "TestLedgerZAR",
+			Asset: "ZAR",
+			Scale: 2,
+		},
+	})
+	require.NoError(t, err)
+	require.Empty(t, lr)
+
 	cases := []struct {
 		name  string
 		input []pacioli.CreateTransferArgs
 		err   error
 		res   []pacioli.TransferResult
 	}{
-		{},
+		{
+			name: "success posted",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "62eb03aa-2e73-464a-be1e-547429ddc86a",
+					Amount:          1000,
+					DebitAccountID:  "aace20cf-177d-418d-93bd-f6d9cb0d49d1",
+					CreditAccountID: "e139db65-fed1-4e1b-a15b-b1c98d718e39",
+					Code:            1,
+					Ledger:          1,
+				},
+			},
+		},
+		{
+			name: "success pending",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "a0d03fc7-f7a8-486b-8b4a-2a5786e02f76",
+					Amount:          1000,
+					DebitAccountID:  "b9877da9-a44c-413a-b0c2-4dbfac4e1dcd",
+					CreditAccountID: "aad81360-b31a-4d70-ab28-acd8fb0e3d26",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+			},
+		},
+		{
+			name: "success duplicate",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "09c135b0-a648-4298-9bf9-509890168968",
+					Amount:          1000,
+					DebitAccountID:  "dae2b2a6-3a1f-4818-af68-85dd7c34ed49",
+					CreditAccountID: "0c895c5b-a369-41a8-8071-e69394b2f269",
+					Code:            1,
+					Ledger:          1,
+				},
+				{
+					ID:              "09c135b0-a648-4298-9bf9-509890168968",
+					Amount:          1000,
+					DebitAccountID:  "dae2b2a6-3a1f-4818-af68-85dd7c34ed49",
+					CreditAccountID: "0c895c5b-a369-41a8-8071-e69394b2f269",
+					Code:            1,
+					Ledger:          1,
+				},
+			},
+		},
+		{
+			name: "success duplicate pending",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					Amount:          1000,
+					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
+					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+				{
+					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					Amount:          1000,
+					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
+					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+			},
+		},
+		{
+			name: "existing non match errors",
+			input: []pacioli.CreateTransferArgs{
+				{
+					// Success
+					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					Amount:          1000,
+					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
+					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
+					Code:            1,
+					Ledger:          1,
+				},
+				{
+					// Different Amount
+					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					Amount:          4000,
+					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
+					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
+					Code:            1,
+					Ledger:          1,
+				},
+				{
+					// Different Debit account
+					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					Amount:          1000,
+					DebitAccountID:  "7857b38c-1acb-4bf0-804d-1878eb7bfd56",
+					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
+					Code:            1,
+					Ledger:          1,
+				},
+				{
+					// Different Credit Account
+					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					Amount:          1000,
+					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
+					CreditAccountID: "95943c31-2f20-4744-800e-d9b8b5199918",
+					Code:            1,
+					Ledger:          1,
+				},
+				{
+					// Different Code
+					ID:              "db3b784d-fe3a-4604-a127-1086f6f3dbf9",
+					Amount:          1000,
+					DebitAccountID:  "a9f5ddd2-995f-47af-9c2a-6c7ef2084d22",
+					CreditAccountID: "d85b0d50-7058-4ba8-af2e-b57ae6456c5b",
+					Code:            2,
+					Ledger:          1,
+				},
+			},
+			res: []pacioli.TransferResult{
+				{
+					Index: 1,
+					Code:  tb_types.TransferExistsWithDifferentAmount,
+				},
+				{
+					Index: 2,
+					Code:  tb_types.TransferExistsWithDifferentDebitAccountId,
+				},
+				{
+					Index: 3,
+					Code:  tb_types.TransferExistsWithDifferentCreditAccountId,
+				},
+				{
+					Index: 4,
+					Code:  tb_types.TransferExistsWithDifferentCode,
+				},
+			},
+		},
+		{
+			name: "validation errors",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "fc35bd84-9a6d-4536-988e-5add749cf16b",
+					Amount:          1000,
+					DebitAccountID:  "403a4d1d-3780-4199-a5c9-7251fc9b3fda",
+					CreditAccountID: "403a4d1d-3780-4199-a5c9-7251fc9b3fda",
+					Code:            1,
+					Ledger:          1,
+				},
+				{
+					ID:              "e78c6564-7562-47c3-9452-0f42a4be177c",
+					Amount:          1000,
+					DebitAccountID:  "acc817ba-9482-421e-8d32-ac44d7cdce41",
+					CreditAccountID: "b0288fe7-9198-43f0-af9e-1e54ec2ab16a",
+					Code:            1,
+					Ledger:          1,
+					Flags:           pacioli.TransferFlags{Pending: true},
+				},
+				{
+					ID:              "e78c6564-7562-47c3-9452-0f42a4be177c",
+					Amount:          1000,
+					DebitAccountID:  "acc817ba-9482-421e-8d32-ac44d7cdce41",
+					CreditAccountID: "b0288fe7-9198-43f0-af9e-1e54ec2ab16a",
+					Code:            1,
+					Ledger:          2,
+				},
+			},
+			res: []pacioli.TransferResult{
+				{
+					Index: 0,
+					Code:  tb_types.TransferAccountsMustBeDifferent,
+				},
+				{
+					Index: 1,
+					Code:  tb_types.TransferPendingTransferMustTimeout,
+				},
+				{
+					Index: 2,
+					Code:  tb_types.TransferTransferMustHaveTheSameLedgerAsAccounts,
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+
+			// Configure the accounts
+			for _, args := range tc.input {
+				ar, err := tigerroach.ConfigureAccounts(ctx, b, []pacioli.ConfigureAccountArgs{
+					{
+						ID:       args.CreditAccountID,
+						LedgerID: 1,
+						Code:     1,
+					},
+					{
+						ID:       args.DebitAccountID,
+						LedgerID: 1,
+						Code:     1,
+					},
+				})
+				require.NoError(t, err)
+				require.Empty(t, ar)
+			}
+
 			res, err := tigerroach.CreateTransfers(ctx, b, tc.input)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
@@ -35,18 +266,46 @@ func TestCreateTransfers(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			require.Len(t, res, len(res))
+			require.Len(t, res, len(tc.res))
 
 			for i, tr := range res {
 				etr := tc.res[i]
 				assert.Equal(t, etr.Index, tr.Index)
 				assert.Equal(t, etr.Code, tr.Code)
 			}
+
+			for i, args := range tc.input {
+				var skipValidation bool
+				for _, ee := range tc.res {
+					if ee.Index == uint32(i) {
+						skipValidation = true
+						break
+					}
+				}
+				if skipValidation {
+					continue
+				}
+
+				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
+				assert.NoError(t, err)
+				assert.Equal(t, tr.ID, args.ID)
+
+				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
+				assert.NoError(t, err)
+				if args.Flags.Pending {
+					assert.Equal(t, args.Amount, da.DebitsPending)
+				} else {
+					assert.Equal(t, args.Amount, da.DebitsPosted)
+				}
+
+				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
+				assert.NoError(t, err)
+				if args.Flags.Pending {
+					assert.Equal(t, args.Amount, ca.CreditsPending)
+				} else {
+					assert.Equal(t, args.Amount, ca.CreditsPosted)
+				}
+			}
 		})
 	}
 }
-
-/*
-func setupTestAccounts(_ *testing.T, db *sqlx.DB) error {
-	stmt, err := db.Prepare("INSERT INTO ledger_accounts VALUES (id, ledger_id, code)")
-}*/
