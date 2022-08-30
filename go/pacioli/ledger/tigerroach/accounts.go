@@ -9,6 +9,7 @@ import (
 	"time"
 
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
 
@@ -29,16 +30,19 @@ func ConfigureAccounts(
 	for i, aa := range args {
 		err := b.Validator().Struct(aa)
 		if err != nil {
-			return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInvalidArg)
+			return nil, fmt.Errorf("%s %w", err, pacioli.ErrInvalidArg)
 		}
 
 		// Return an error here as Tigerbeetle doesn't have any validation for this case so
 		// can't return an AccountResult with a code that makes sense.
 		_, err = GetLedger(ctx, b, aa.LedgerID)
 		if errors.Is(err, pacioli.ErrNotFound) {
-			return nil, fmt.Errorf("%s %d %s %w", "unknown ledger index: ", i, err.Error(), pacioli.ErrNotFound)
+			resMap[i] = pacioli.AccountResult{
+				Index: uint32(i),
+				Code:  pacioli.AccountLedgerDoesNotExist,
+			}
 		} else if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInternal)
+			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err, pacioli.ErrInternal)
 		}
 
 		if aa.Flags.DebitsMustNotExceedCredits && aa.Flags.CreditsMustNotExceedDebits {
@@ -57,7 +61,7 @@ func ConfigureAccounts(
 
 		code, err := configureAccount(ctx, b, ac)
 		if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInternal)
+			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err, pacioli.ErrInternal)
 		}
 
 		if code == pacioli.AccountOK {
@@ -88,7 +92,7 @@ func configureAccount(
 
 	ex, err := GetAccount(ctx, b, args.ID)
 	if err != nil && !errors.Is(err, pacioli.ErrNotFound) {
-		return 0, err
+		return 0, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 	if ex != nil {
 		if ex.Flags.ToUint16() != args.Flags.ToUint16() {
@@ -103,11 +107,22 @@ func configureAccount(
 		return pacioli.AccountOK, nil
 	}
 
+	_, err = GetLedger(ctx, b, args.LedgerID)
+	if errors.Is(err, pacioli.ErrNotFound) {
+		return pacioli.AccountLedgerDoesNotExist, nil
+	}
+	if err != nil {
+		return pacioli.AccountOK, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+	}
+
 	_, err = b.DB().ExecContext(ctx,
 		"INSERT INTO ledger_accounts (id, ledger_id, code, flags)VALUES ($1, $2, $3, $4)",
 		args.ID, args.LedgerID, args.Code, args.Flags.ToUint16())
+	if err != nil {
+		return pacioli.AccountOK, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+	}
 
-	return pacioli.AccountOK, err
+	return pacioli.AccountOK, nil
 }
 
 func GetAccount(ctx context.Context, b Backends, id string) (*pacioli.Account, error) {
@@ -117,7 +132,7 @@ func GetAccount(ctx context.Context, b Backends, id string) (*pacioli.Account, e
 		return nil, pacioli.ErrNotFound
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 
 	return &pacioli.Account{
@@ -130,4 +145,31 @@ func GetAccount(ctx context.Context, b Backends, id string) (*pacioli.Account, e
 		CreditsPending: acc.CreditsPending,
 		CreditsPosted:  acc.CreditsPosted,
 	}, nil
+}
+
+func ListAccounts(ctx context.Context, b Backends, ids []string) ([]pacioli.Account, error) {
+	var accs []ledgerAccount
+	var resp []pacioli.Account
+	query, args, err := sqlx.In("SELECT * FROM ledger_accounts WHERE id IN (?);", ids)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+	}
+	err = b.DB().SelectContext(ctx, &accs, b.DB().Rebind(query), args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+	}
+
+	for _, acc := range accs {
+		resp = append(resp, pacioli.Account{
+			ID:             acc.ID,
+			LedgerID:       acc.LedgerID,
+			Flags:          pacioli.ToAccountFlags(acc.FlagsRaw),
+			Code:           acc.Code,
+			DebitsPending:  acc.DebitsPending,
+			DebitsPosted:   acc.DebitsPosted,
+			CreditsPending: acc.CreditsPending,
+			CreditsPosted:  acc.CreditsPosted,
+		})
+	}
+	return resp, nil
 }

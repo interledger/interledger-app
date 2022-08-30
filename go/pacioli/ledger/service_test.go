@@ -9,6 +9,7 @@ import (
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 )
@@ -74,11 +75,11 @@ func TestPacioli(s *testing.T) {
 		}
 		assert.Len(t, eventErrors, 3)
 		assert.Equal(t, eventErrors[0].Index, uint32(1))
-		assert.Equal(t, eventErrors[0].Code, uint32(pacioli.LedgerExistsWithDifferentName))
+		assert.Equal(t, eventErrors[0].Code, pacioli.LedgerExistsWithDifferentName)
 		assert.Equal(t, eventErrors[1].Index, uint32(2))
-		assert.Equal(t, eventErrors[1].Code, uint32(pacioli.LedgerExistsWithDifferentAsset))
+		assert.Equal(t, eventErrors[1].Code, pacioli.LedgerExistsWithDifferentAsset)
 		assert.Equal(t, eventErrors[2].Index, uint32(3))
-		assert.Equal(t, eventErrors[2].Code, uint32(pacioli.LedgerExistsWithDifferentScale))
+		assert.Equal(t, eventErrors[2].Code, pacioli.LedgerExistsWithDifferentScale)
 
 		ledgers, err := ledger.GetLedgers(ctx, c.b, []uint32{ledgerID, ledger2ID})
 		if err != nil {
@@ -152,7 +153,7 @@ func TestPacioli(s *testing.T) {
 			switch err.Code {
 			case tb_types.AccountExistsWithDifferentCode:
 				assert.Equal(t, uint32(1), err.Index, "The create account error mapping is broken.")
-			case tb_types.CreateAccountResult(pacioli.ACCOUNT_LEDGER_DOES_NOT_EXIST):
+			case pacioli.AccountLedgerDoesNotExist:
 				assert.Equal(t, uint32(2), err.Index, "The create account error mapping is broken.")
 			default:
 				t.Fatal("The error mapping is broken.")
@@ -163,22 +164,29 @@ func TestPacioli(s *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Len(t, accounts, 2)
-		assert.Equal(t, accounts[0].ID, account1ID)
-		assert.Equal(t, accounts[0].Code, uint16(1))
-		assert.Equal(t, accounts[0].LedgerID, ledgerID)
-		assert.Equal(t, accounts[0].DebitsPosted, uint64(0))
-		assert.Equal(t, accounts[0].DebitsPending, uint64(0))
-		assert.Equal(t, accounts[0].CreditsPosted, uint64(0))
-		assert.Equal(t, accounts[0].CreditsPending, uint64(0))
-		assert.Equal(t, accounts[0].Flags, pacioli.AccountFlags{})
-		assert.Equal(t, accounts[1].ID, account2ID)
-		assert.Equal(t, accounts[1].Code, uint16(1))
-		assert.Equal(t, accounts[1].LedgerID, ledgerID)
-		assert.Equal(t, accounts[1].DebitsPosted, uint64(0))
-		assert.Equal(t, accounts[1].DebitsPending, uint64(0))
-		assert.Equal(t, accounts[1].CreditsPosted, uint64(0))
-		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
-		assert.Equal(t, pacioli.AccountFlags{DebitsMustNotExceedCredits: true}, accounts[1].Flags)
+		for i := range accounts {
+			if accounts[i].ID == account1ID {
+				assert.Equal(t, accounts[i].ID, account1ID)
+				assert.Equal(t, accounts[i].Code, uint16(1))
+				assert.Equal(t, accounts[i].LedgerID, ledgerID)
+				assert.Equal(t, accounts[i].DebitsPosted, uint64(0))
+				assert.Equal(t, accounts[i].DebitsPending, uint64(0))
+				assert.Equal(t, accounts[i].CreditsPosted, uint64(0))
+				assert.Equal(t, accounts[i].CreditsPending, uint64(0))
+				assert.Equal(t, accounts[i].Flags, pacioli.AccountFlags{})
+			} else if accounts[i].ID == account2ID {
+				assert.Equal(t, accounts[i].ID, account2ID)
+				assert.Equal(t, accounts[i].Code, uint16(1))
+				assert.Equal(t, accounts[i].LedgerID, ledgerID)
+				assert.Equal(t, accounts[i].DebitsPosted, uint64(0))
+				assert.Equal(t, accounts[i].DebitsPending, uint64(0))
+				assert.Equal(t, accounts[i].CreditsPosted, uint64(0))
+				assert.Equal(t, accounts[i].CreditsPending, uint64(0))
+				assert.Equal(t, pacioli.AccountFlags{DebitsMustNotExceedCredits: true}, accounts[i].Flags)
+			} else {
+				assert.Fail(t, "unkown account in results")
+			}
+		}
 	})
 
 	s.Run("creating transfers is idempotent", func(t *testing.T) {
@@ -262,12 +270,19 @@ func TestPacioli(s *testing.T) {
 		}
 
 		assert.Len(t, accounts, 2)
-		assert.Equal(t, accounts[0].ID, accountA.ID)
-		assert.Equal(t, accounts[0].DebitsPosted, uint64(10))
-		assert.Equal(t, accounts[0].DebitsPending, uint64(13))
-		assert.Equal(t, accounts[1].ID, accountB.ID)
-		assert.Equal(t, accounts[1].CreditsPosted, uint64(10))
-		assert.Equal(t, accounts[1].CreditsPending, uint64(13))
+		for i := range accounts {
+			if accounts[i].ID == accountA.ID {
+				assert.Equal(t, accounts[i].ID, accountA.ID)
+				assert.Equal(t, accounts[i].DebitsPosted, uint64(10))
+				assert.Equal(t, accounts[i].DebitsPending, uint64(13))
+			} else if accounts[i].ID == accountB.ID {
+				assert.Equal(t, accounts[i].ID, accountB.ID)
+				assert.Equal(t, accounts[i].CreditsPosted, uint64(10))
+				assert.Equal(t, accounts[i].CreditsPending, uint64(13))
+			} else {
+				assert.Fail(t, "unknown account in result set")
+			}
+		}
 	})
 
 	s.Run("transfer commit is idempotent", func(t *testing.T) {
@@ -332,14 +347,19 @@ func TestPacioli(s *testing.T) {
 		}
 
 		assert.Len(t, accounts, 2)
-		assert.Equal(t, accountA.ID, accounts[0].ID)
-		assert.Equal(t, uint64(0), accounts[0].DebitsPosted)
-		assert.Equal(t, uint64(13), accounts[0].DebitsPending)
-		assert.Equal(t, accountB.ID, accounts[1].ID)
-		assert.Equal(t, uint64(0), accounts[1].CreditsPosted)
-		assert.Equal(t, uint64(13), accounts[1].CreditsPending)
+		for i := range accounts {
+			if accounts[i].ID == accountA.ID {
+				assert.Equal(t, uint64(0), accounts[i].DebitsPosted)
+				assert.Equal(t, uint64(13), accounts[i].DebitsPending)
+			} else if accounts[i].ID == accountB.ID {
+				assert.Equal(t, uint64(0), accounts[i].CreditsPosted)
+				assert.Equal(t, uint64(13), accounts[i].CreditsPending)
+			} else {
+				assert.Fail(t, "unknown account in result")
+			}
+		}
 
-		erList, err := ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
+		erList, err := ledger.PostTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -351,16 +371,23 @@ func TestPacioli(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Len(t, accounts, 2)
-		assert.Equal(t, accounts[0].ID, accountA.ID)
-		assert.Equal(t, accounts[0].DebitsPosted, uint64(13))
-		assert.Equal(t, accounts[0].DebitsPending, uint64(0))
-		assert.Equal(t, accounts[1].ID, accountB.ID)
-		assert.Equal(t, accounts[1].CreditsPosted, uint64(13))
-		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
+		require.Len(t, accounts, 2)
+		for i := range accounts {
+			if accounts[i].ID == accountA.ID {
+				assert.Equal(t, accounts[i].ID, accountA.ID)
+				assert.Equal(t, accounts[i].DebitsPosted, uint64(13))
+				assert.Equal(t, accounts[i].DebitsPending, uint64(0))
+			} else if accounts[i].ID == accountB.ID {
+				assert.Equal(t, accounts[i].ID, accountB.ID)
+				assert.Equal(t, accounts[i].CreditsPosted, uint64(13))
+				assert.Equal(t, accounts[i].CreditsPending, uint64(0))
+			} else {
+				assert.Fail(t, "unknown account in result")
+			}
+		}
 
 		// Commit again
-		erList, err = ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
+		erList, err = ledger.PostTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -430,13 +457,20 @@ func TestPacioli(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Len(t, accounts, 2)
-		assert.Equal(t, accountA.ID, accounts[0].ID)
-		assert.Equal(t, uint64(0), accounts[0].DebitsPosted)
-		assert.Equal(t, uint64(13), accounts[0].DebitsPending)
-		assert.Equal(t, accountB.ID, accounts[1].ID)
-		assert.Equal(t, uint64(0), accounts[1].CreditsPosted)
-		assert.Equal(t, uint64(13), accounts[1].CreditsPending)
+		require.Len(t, accounts, 2)
+		for i := range accounts {
+			if accounts[i].ID == accountA.ID {
+				assert.Equal(t, accountA.ID, accounts[i].ID)
+				assert.Equal(t, uint64(0), accounts[i].DebitsPosted)
+				assert.Equal(t, uint64(13), accounts[i].DebitsPending)
+			} else if accounts[i].ID == accountB.ID {
+				assert.Equal(t, accountB.ID, accounts[i].ID)
+				assert.Equal(t, uint64(0), accounts[i].CreditsPosted)
+				assert.Equal(t, uint64(13), accounts[i].CreditsPending)
+			} else {
+				assert.Fail(t, "unknown account in results")
+			}
+		}
 
 		erList, err := ledger.VoidTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
@@ -450,13 +484,20 @@ func TestPacioli(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Len(t, accounts, 2)
-		assert.Equal(t, accounts[0].ID, accountA.ID)
-		assert.Equal(t, accounts[0].DebitsPosted, uint64(0))
-		assert.Equal(t, accounts[0].DebitsPending, uint64(0))
-		assert.Equal(t, accounts[1].ID, accountB.ID)
-		assert.Equal(t, accounts[1].CreditsPosted, uint64(0))
-		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
+		require.Len(t, accounts, 2)
+		for i := range accounts {
+			if accounts[i].ID == accountA.ID {
+				assert.Equal(t, accounts[i].ID, accountA.ID)
+				assert.Equal(t, accounts[i].DebitsPosted, uint64(0))
+				assert.Equal(t, accounts[i].DebitsPending, uint64(0))
+			} else if accounts[i].ID == accountB.ID {
+				assert.Equal(t, accounts[i].ID, accountB.ID)
+				assert.Equal(t, accounts[i].CreditsPosted, uint64(0))
+				assert.Equal(t, accounts[i].CreditsPending, uint64(0))
+			} else {
+				assert.Fail(t, "unknown account in results")
+			}
+		}
 
 		// Void again
 		erList, err = ledger.VoidTransfers(ctx, c.b, []string{transfer1ID})

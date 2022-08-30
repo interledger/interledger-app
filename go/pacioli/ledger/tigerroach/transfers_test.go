@@ -6,7 +6,6 @@ import (
 	"time"
 
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli"
@@ -310,7 +309,7 @@ func TestCreateTransfers(t *testing.T) {
 	}
 }
 
-func TestPostTransactions(t *testing.T) {
+func TestPostTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := test_utils.MigrateCockroachDB(t, ctx)
@@ -415,7 +414,7 @@ func TestPostTransactions(t *testing.T) {
 			require.Empty(t, tr)
 
 			// Post the transfers
-			prl, err := tigerroach.PostTransactions(ctx, b, tids)
+			_, prl, err := tigerroach.PostTransfers(ctx, b, tids)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 				return
@@ -462,7 +461,7 @@ func TestPostTransactions(t *testing.T) {
 	}
 }
 
-func TestVoidTransactions(t *testing.T) {
+func TestVoidTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := test_utils.MigrateCockroachDB(t, ctx)
@@ -567,12 +566,11 @@ func TestVoidTransactions(t *testing.T) {
 			require.Empty(t, tr)
 
 			// Void the transfers
-			prl, err := tigerroach.VoidTransactions(ctx, b, tids)
+			prl, err := tigerroach.VoidTransfers(ctx, b, tids)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 				return
 			}
-
 			require.NoError(t, err)
 			require.Len(t, prl, len(tc.res))
 

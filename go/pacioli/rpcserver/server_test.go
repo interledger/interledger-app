@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/bxcodec/faker/v3"
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
@@ -103,11 +105,18 @@ func TestRpc(s *testing.T) {
 			t.Fatal(err)
 		}
 		accounts := response.GetAccounts()
-		assert.Len(t, accounts, 2)
-		assert.Equal(t, accountAID, accounts[0].Id)
-		assert.Equal(t, ledgerID, accounts[0].LedgerId)
-		assert.Equal(t, accountBID, accounts[1].Id)
-		assert.Equal(t, ledgerID, accounts[1].LedgerId)
+		require.Len(t, accounts, 2)
+		for i := range accounts {
+			if accounts[i].Id == accountAID {
+				assert.Equal(t, accountAID, accounts[i].Id)
+				assert.Equal(t, ledgerID, accounts[i].LedgerId)
+			} else if accounts[i].Id == accountBID {
+				assert.Equal(t, accountBID, accounts[i].Id)
+				assert.Equal(t, ledgerID, accounts[i].LedgerId)
+			} else {
+				assert.Fail(t, "unknown account")
+			}
+		}
 	})
 
 	s.Run("can create transfers", func(t *testing.T) {

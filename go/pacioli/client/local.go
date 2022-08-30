@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 )
@@ -18,7 +19,7 @@ func NewLocal(b ledger.Backends) pacioli.Client {
 	}
 }
 
-func (l localClient) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.EventResult, error) {
+func (l localClient) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.LedgerResult, error) {
 	return ledger.ConfigureLedgers(ctx, l.b, args)
 }
 
@@ -43,7 +44,7 @@ func (l localClient) GetTransfers(ctx context.Context, transferIDs []string) ([]
 }
 
 func (l localClient) PostTransfers(ctx context.Context, transferIDs []string) ([]pacioli.TransferResult, error) {
-	return ledger.CommitTransfers(ctx, l.b, transferIDs)
+	return ledger.PostTransfers(ctx, l.b, transferIDs)
 }
 
 func (l localClient) VoidTransfers(ctx context.Context, transferIDs []string) ([]pacioli.TransferResult, error) {

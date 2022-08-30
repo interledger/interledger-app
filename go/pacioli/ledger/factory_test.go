@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.com/fynbos/pacioli/ledger"
-
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
+	"gitlab.com/fynbos/pacioli/ledger"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 )
 
