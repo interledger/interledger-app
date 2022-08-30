@@ -27,7 +27,7 @@ func New(grpcAddress string) (pacioli.Client, error) {
 	return &client{c: pClient}, nil
 }
 
-func (c client) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.EventResult, error) {
+func (c client) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.LedgerResult, error) {
 	la := make([]*pb.Ledger, len(args))
 	for i, a := range args {
 		la[i] = &pb.Ledger{
@@ -43,11 +43,11 @@ func (c client) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLe
 		return nil, err
 	}
 
-	resp := make([]pacioli.EventResult, len(res.Errors))
+	resp := make([]pacioli.LedgerResult, len(res.Errors))
 	for i, le := range res.Errors {
-		resp[i] = pacioli.EventResult{
+		resp[i] = pacioli.LedgerResult{
 			Index: le.Index,
-			Code:  le.Code,
+			Code:  pacioli.LedgerResultCode(le.Code),
 		}
 	}
 

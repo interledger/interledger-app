@@ -339,7 +339,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, uint64(0), accounts[1].CreditsPosted)
 		assert.Equal(t, uint64(13), accounts[1].CreditsPending)
 
-		erList, err := ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
+		erList, err := ledger.PostTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -360,7 +360,7 @@ func TestPacioli(s *testing.T) {
 		assert.Equal(t, accounts[1].CreditsPending, uint64(0))
 
 		// Commit again
-		erList, err = ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
+		erList, err = ledger.PostTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -415,7 +415,7 @@ func TestPostTransactions(t *testing.T) {
 			require.Empty(t, tr)
 
 			// Post the transfers
-			prl, err := tigerroach.PostTransactions(ctx, b, tids)
+			prl, err := tigerroach.PostTransfers(ctx, b, tids)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 				return

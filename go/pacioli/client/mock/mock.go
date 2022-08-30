@@ -51,10 +51,10 @@ func (mr *MockClientMockRecorder) ConfigureAccounts(ctx, args interface{}) *gomo
 }
 
 // ConfigureLedgers mocks base method.
-func (m *MockClient) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.EventResult, error) {
+func (m *MockClient) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.LedgerResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConfigureLedgers", ctx, args)
-	ret0, _ := ret[0].([]pacioli.EventResult)
+	ret0, _ := ret[0].([]pacioli.LedgerResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

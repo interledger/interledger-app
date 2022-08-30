@@ -5,13 +5,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
+	"reflect"
 	"strings"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
+	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
 )
 
 // This is declaritive and will not fail if the ledger exists. It will fail if one exists with
@@ -20,124 +21,13 @@ func ConfigureLedgers(
 	ctx context.Context,
 	b Backends,
 	args []pacioli.ConfigureLedgerArgs,
-) ([]pacioli.EventResult, error) {
-	ledgerIds := make([]uint32, len(args))
-	for i, ledger := range args {
-		err := b.Validator().Struct(ledger)
-		if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInvalidArg)
-		}
-
-		ledgerIds[i] = uint32(ledger.ID)
-	}
-
-	existingLedgers, err := GetLedgers(ctx, b, ledgerIds)
-	if err != nil {
-		return nil, err
-	}
-
-	var errorEvents []pacioli.EventResult
-	var createdLedgers []pacioli.Ledger
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		for i, ledger := range args {
-			exists := false
-			for _, existing := range existingLedgers {
-				if ledger.ID == existing.ID {
-					exists = true
-					result := canCreateLedger(ledger, existing)
-					if result != pacioli.LedgerOK {
-						errorEvents = append(errorEvents, pacioli.EventResult{
-							Index: uint32(i),
-							Code:  uint32(result),
-						})
-						break
-					}
-
-					break
-				}
-			}
-
-			// check for duplicates from the ones we just created
-			for _, created := range createdLedgers {
-				if ledger.ID == created.ID {
-					exists = true
-					result := canCreateLedger(ledger, created)
-					if result != pacioli.LedgerOK {
-						errorEvents = append(errorEvents, pacioli.EventResult{
-							Index: uint32(i),
-							Code:  uint32(result),
-						})
-						break
-					}
-
-					break
-				}
-			}
-
-			if err != nil {
-				return err
-			}
-			if !exists {
-				_, err = tx.ExecContext(
-					ctx,
-					`INSERT INTO ledgers (id, name, asset, scale) VALUES ($1, $2, $3, $4);`,
-					ledger.ID,
-					ledger.Name,
-					ledger.Asset,
-					ledger.Scale,
-				)
-				if err != nil {
-					return fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInternal)
-				}
-
-				createdLedgers = append(createdLedgers, pacioli.Ledger{
-					ID:    ledger.ID,
-					Name:  ledger.Name,
-					Asset: ledger.Asset,
-					Scale: ledger.Scale,
-				})
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return errorEvents, nil
-}
-
-func canCreateLedger(args pacioli.ConfigureLedgerArgs, existingLedger pacioli.Ledger) pacioli.LedgerResultCode {
-	if args.Name != existingLedger.Name {
-		return pacioli.LedgerExistsWithDifferentName
-	}
-
-	if args.Asset != existingLedger.Asset {
-		return pacioli.LedgerExistsWithDifferentAsset
-	}
-
-	if args.Scale != existingLedger.Scale {
-		return pacioli.LedgerExistsWithDifferentScale
-	}
-
-	return pacioli.LedgerOK
+) ([]pacioli.LedgerResult, error) {
+	return tigerroach.ConfigureLedgers(ctx, b, args)
 }
 
 func GetLedgers(ctx context.Context, b Backends, ids []uint32) ([]pacioli.Ledger, error) {
 	// TODO: ACL
-
-	var ledgers []pacioli.Ledger
-	query, args, err := sqlx.In("SELECT * FROM ledgers WHERE id IN (?);", ids)
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInternal)
-	}
-	err = b.DB().SelectContext(ctx, &ledgers, b.DB().Rebind(query), args...)
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInternal)
-	}
-
-	return ledgers, nil
+	return tigerroach.ListLedgers(ctx, b, ids)
 }
 
 // Helper function to convert uuids into u128 needed for TigerBeetle IDs.
@@ -184,86 +74,51 @@ func ConfigureAccounts(
 	b Backends,
 	args []pacioli.ConfigureAccountArgs,
 ) ([]pacioli.AccountResult, error) {
-	// TODO: ACL
-	ledgerIDs := []uint32{}
-	keys := map[uint32]uint8{}
-	const (
-		LOOKING_UP uint8 = 1
-		EXISTS     uint8 = 2
-	)
-	// dedupe ledgerIDs by marking them as being looked up.
-	for _, account := range args {
-		if _, present := keys[account.LedgerID]; !present {
-			keys[account.LedgerID] = LOOKING_UP
-			ledgerIDs = append(ledgerIDs, account.LedgerID)
-		}
-	}
 
-	ledgers, err := GetLedgers(ctx, b, ledgerIDs)
+	// Insert into tigerroach as main source of truth
+	res, err := tigerroach.ConfigureAccounts(ctx, b, args)
 	if err != nil {
+		// All err
 		return nil, err
 	}
 
-	// mark these ledgers as existing.
-	for _, ledger := range ledgers {
-		keys[ledger.ID] = EXISTS
-	}
-
-	// size to len(args) to avoid appending
-	eventErrors := make([]pacioli.AccountResult, len(args))
-	errs := uint32(0) // number of errors
-	accountsToCreate := make([]tb_types.Account, len(args))
-	index := uint32(0) // number of accounts to create
-
-	// stores the mapping from the tb create account args to the original args
-	mapToEventErrorSlot := map[uint32]uint32{}
-	for i, acc := range args {
-		err := b.Validator().Struct(acc)
-		if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInvalidArg)
-		}
-
-		if keys[acc.LedgerID] != EXISTS {
-			eventErrors[errs] = pacioli.AccountResult{
-				Index: uint32(i),
-				Code:  tb_types.CreateAccountResult(pacioli.ACCOUNT_LEDGER_DOES_NOT_EXIST),
+	// Insert successfully created accounts into tigerbeetle as a best effort,.
+	var toCreate []tb_types.Account
+	for i, arg := range args {
+		var errFound bool
+		for _, resCode := range res {
+			if resCode.Index == uint32(i) {
+				// The  account failed to create in TigerRoach, don;t try to replicate it in Tigerbeetle
+				errFound = true
+				break
 			}
-			errs++
+		}
+		if errFound {
 			continue
 		}
 
-		tbAccID, err := UuidToU128(acc.ID)
+		tbAccID, err := UuidToU128(arg.ID)
 		if err != nil {
-			return nil, err
+			log.Printf("failed to sync accounts to tigerbeetle %v", err)
+			continue
 		}
-		accountsToCreate[index] = tb_types.Account{
+		toCreate = append(toCreate, tb_types.Account{
 			ID:     *tbAccID,
-			Code:   acc.Code,
-			Flags:  acc.Flags.ToUint16(),
-			Ledger: acc.LedgerID,
-		}
-		mapToEventErrorSlot[index] = uint32(i)
-		index++
-	}
-	tbEventErrors, err := b.TigerBeetle().CreateAccounts(accountsToCreate[:index])
-	// this error will be due to connection / io buffer issues
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInternal)
-	}
-	// map the tbEventErrors to our eventErrors
-	for _, tbErr := range tbEventErrors {
-		index, present := mapToEventErrorSlot[tbErr.Index]
-		if !present {
-			// the mapping is broken
-			panic("Unable to map Tb event errs back to our create account errs.")
-		}
-		if tbErr.Code != tb_types.AccountExists {
-			eventErrors[errs] = pacioli.AccountResult{Index: index, Code: tbErr.Code}
-			errs++
-		}
+			Code:   arg.Code,
+			Flags:  arg.Flags.ToUint16(),
+			Ledger: arg.LedgerID,
+		})
 	}
 
-	return eventErrors[:errs], nil
+	tbEventErrors, err := b.TigerBeetle().CreateAccounts(toCreate)
+	// this error will be due to connection / io buffer issues
+	if err != nil {
+		log.Printf("failed to sync accounts to tigerbeetle %v", err)
+	} else if len(tbEventErrors) > 0 {
+		log.Printf("failed to sync accounts to tigerbeetle with error codes %v", tbEventErrors)
+	}
+
+	return res, nil
 }
 
 func GetAccounts(
@@ -285,32 +140,51 @@ func GetAccounts(
 		tbAccIDs = append(tbAccIDs, *accID)
 	}
 
-	results, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
+	trAccs, err := tigerroach.ListAccounts(ctx, b, accountIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]pacioli.Account, len(results))
-	for i, result := range results {
-		ret[i] = pacioli.Account{
-			ID:             U128ToUuid(result.ID),
-			LedgerID:       result.Ledger,
-			Code:           result.Code,
-			DebitsPending:  result.DebitsPending,
-			DebitsPosted:   result.DebitsPosted,
-			CreditsPending: result.CreditsPending,
-			CreditsPosted:  result.CreditsPosted,
-			Flags: pacioli.AccountFlags{
-				Linked:                     result.Flags&(1<<0) == 1, // TODO: Create consts
-				DebitsMustNotExceedCredits: result.Flags&(1<<1) == 2,
-				CreditsMustNotExceedDebits: result.Flags&(1<<2) == 4,
-			},
+	// Do sanity check to ensure all accounts have counterparts in tigerbeetle
+	tbAccsRaw, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
+	if err != nil {
+		log.Printf("failed to load accounts from tigerbeetle %s", err)
+		return trAccs, nil
+	}
+
+	tbAccs := make([]pacioli.Account, len(tbAccsRaw))
+	for i, tbAcc := range tbAccsRaw {
+		tbAccs[i] = pacioli.Account{
+			ID:             U128ToUuid(tbAcc.ID),
+			LedgerID:       tbAcc.Ledger,
+			Code:           tbAcc.Code,
+			DebitsPending:  tbAcc.DebitsPending,
+			DebitsPosted:   tbAcc.DebitsPosted,
+			CreditsPending: tbAcc.CreditsPending,
+			CreditsPosted:  tbAcc.CreditsPosted,
+			Flags:          pacioli.ToAccountFlags(tbAcc.Flags),
+		}
+	}
+
+	for _, trAcc := range trAccs {
+		var found pacioli.Account
+		for _, tbAcc := range tbAccs {
+			if tbAcc.ID == trAcc.ID {
+				found = tbAcc
+				break
+			}
+		}
+
+		if found.ID == "" {
+			log.Printf("account exists in tigerroach but not in tigerbeetle %s", trAcc.ID)
+		} else if !reflect.DeepEqual(found, trAcc) {
+			log.Printf("account mismatch between tigerroach (%v) and tigerbeetle (%v)", trAcc, found)
 		}
 	}
 
 	// TODO: ACL on accounts
 
-	return ret, nil
+	return trAccs, nil
 }
 
 // TODO: Assuming that IDs are uuids and are being generated by another service for now. Might be better to be
@@ -318,25 +192,31 @@ func GetAccounts(
 func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 	// TODO: collect ledgers and perform ACL. TigerBeetle will introduce the ledger field onto
 	// a transfer.
+
+	trRes, err := tigerroach.CreateTransfers(ctx, b, args)
+	if err != nil {
+		return nil, err
+	}
+
+	// Insert into tigerbeetle as a best effort
 	tbTransfers := make([]tb_types.Transfer, len(args))
 	for i, transfer := range args {
-		err := b.Validator().Struct(transfer)
-		if err != nil {
-			return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInvalidArg)
-		}
 		transferID, err := UuidToU128(transfer.ID)
 		if err != nil {
-			return nil, err
+			log.Printf("failed to convert transfer id %s %s", transfer.ID, err)
+			continue
 		}
 
 		debitAccountID, err := UuidToU128(transfer.DebitAccountID)
 		if err != nil {
-			return nil, err
+			log.Printf("failed to convert transfer debit account id %s %s", transfer.DebitAccountID, err)
+			continue
 		}
 
 		creditAccountID, err := UuidToU128(transfer.CreditAccountID)
 		if err != nil {
-			return nil, err
+			log.Printf("failed to convert transfer credit account id %s %s", transfer.CreditAccountID, err)
+			continue
 		}
 
 		tbTransfers[i] = tb_types.Transfer{
@@ -353,18 +233,22 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 
 	eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
 	if err != nil {
-		return nil, err
+		log.Printf("failed to sync transfers into tigetbeetle %s", err)
+	} else if len(eventErrors) > 0 {
+		log.Printf("failed to sync transfers to tigerbeetle with error codes %v", eventErrors)
 	}
 
-	return eventErrors, nil
+	return trRes, nil
 }
 
 func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.Transfer, error) {
+	// TODO: ACL on ledgers involved
+
 	tbTransferIDs := make([]tb_types.Uint128, len(transferIDs))
 	for i, id := range transferIDs {
 		_, err := uuid.Parse(id)
 		if err != nil {
-			return nil, fmt.Errorf("Transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
+			return nil, fmt.Errorf("transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
 		}
 		transferID, err := UuidToU128(id)
 		if err != nil {
@@ -374,21 +258,27 @@ func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]paci
 		tbTransferIDs[i] = *transferID
 	}
 
-	results, err := b.TigerBeetle().LookupTransfers(tbTransferIDs)
+	trTransfers, err := tigerroach.ListTransfers(ctx, b, transferIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]pacioli.Transfer, len(results))
-	for i, transfer := range results {
-		ret[i] = pacioli.Transfer{
+	// Do sanity check to ensure all transfers have counterparts in tigerbeetle
+	tbTransfersRaw, err := b.TigerBeetle().LookupTransfers(tbTransferIDs)
+	if err != nil {
+		log.Printf("failed to load transfers from tigerbeetle %s", err)
+		return trTransfers, nil
+	}
+
+	tbTransfers := make([]pacioli.Transfer, len(tbTransfersRaw))
+	for i, transfer := range tbTransfersRaw {
+		tbTransfers[i] = pacioli.Transfer{
 			ID:              U128ToUuid(transfer.ID),
 			PendingID:       U128ToUuid(transfer.PendingID),
 			DebitAccountID:  U128ToUuid(transfer.DebitAccountID),
 			CreditAccountID: U128ToUuid(transfer.CreditAccountID),
 			Amount:          transfer.Amount,
 			Code:            transfer.Code,
-
 			Flags: pacioli.TransferFlags{
 				Linked:              transfer.Flags&(1<<0) == 1,
 				Pending:             transfer.Flags&(1<<1) == 2,
@@ -398,51 +288,73 @@ func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]paci
 		}
 	}
 
-	// TODO: ACL on ledgers involved
+	for _, trTransfer := range trTransfers {
+		var found pacioli.Transfer
+		for _, tbTransfer := range tbTransfers {
+			if tbTransfer.ID == trTransfer.ID {
+				found = tbTransfer
+				break
+			}
+		}
 
-	return ret, nil
+		if found.ID == "" {
+			log.Printf("transfer exists in tigerroach but not in tigerbeetle %s", trTransfer.ID)
+		} else if !reflect.DeepEqual(found, trTransfer) {
+			log.Printf("transfer mismatch between tigerroach (%v) and tigerbeetle (%v)", trTransfer, found)
+		}
+	}
+
+	return trTransfers, nil
 }
 
-// TODO: Rename to PostTransfers to conform with Tigerbeetle
-func CommitTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.TransferResult, error) {
-	tbTransfers := make([]tb_types.Transfer, len(transferIDs))
-	tbTransferIDs := make([]tb_types.Uint128, len(transferIDs))
+func PostTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.TransferResult, error) {
+	var tbTransfers []tb_types.Transfer
 
-	for i, id := range transferIDs {
+	for _, id := range transferIDs {
 		_, err := uuid.Parse(id)
 		if err != nil {
-			return nil, fmt.Errorf("Transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
+			return nil, fmt.Errorf("transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
 		}
-		transferID, err := UuidToU128(id)
+		_, err = UuidToU128(id)
 		if err != nil {
 			return nil, err
 		}
-
-		tbTransferIDs[i] = *transferID
 	}
 
-	for i, tid := range tbTransferIDs {
-
-		newID, err := UuidToU128(uuid.NewString())
-		if err != nil {
-			return nil, err
-		}
-
-		tbTransfers[i] = tb_types.Transfer{
-			ID:        *newID,
-			PendingID: tid,
-			Flags: pacioli.TransferFlags{
-				PostPendingTransfer: true,
-			}.ToUint16(),
-		}
-	}
-
-	eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	trNewIDs, trResults, err := tigerroach.PostTransfers(ctx, b, transferIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	return eventErrors, nil
+	for trOldID, trNewID := range trNewIDs {
+		newID, err := UuidToU128(trNewID)
+		if err != nil {
+			log.Printf("failed to convert new transfer ID %s", err)
+			continue
+		}
+		oldID, err := UuidToU128(trOldID)
+		if err != nil {
+			log.Printf("failed to convert old transfer ID %s", err)
+			continue
+		}
+
+		tbTransfers = append(tbTransfers, tb_types.Transfer{
+			ID:        *newID,
+			PendingID: oldID,
+			Flags: pacioli.TransferFlags{
+				PostPendingTransfer: true,
+			}.ToUint16(),
+		})
+	}
+
+	tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	if err != nil {
+		log.Printf("failed to sync posted transfers to tigerbeetle %v", err)
+	} else if len(tbEventErrors) > 0 {
+		log.Printf("failed to sync posted transfers to tigerbeetle with error codes %v", tbEventErrors)
+	}
+
+	return trResults, nil
 }
 
 func VoidTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.TransferResult, error) {
@@ -461,6 +373,8 @@ func VoidTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 
 		tbTransferIDs[i] = *transferID
 	}
+
+	tigerroach.VoidTransactions()
 
 	for i, tid := range tbTransferIDs {
 

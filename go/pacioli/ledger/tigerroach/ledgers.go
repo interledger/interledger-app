@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
 
@@ -19,14 +20,14 @@ func ConfigureLedgers(
 	for i, lc := range args {
 		err := b.Validator().Struct(lc)
 		if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInvalidArg)
+			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err, pacioli.ErrInvalidArg)
 		}
 	}
 
 	for i, lc := range args {
 		code, err := configureLedger(ctx, b, lc)
 		if err != nil {
-			return results, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInternal)
+			return results, fmt.Errorf("%s %d %s %w", "index: ", i, err, pacioli.ErrInternal)
 		}
 
 		if code == pacioli.LedgerOK {
@@ -75,7 +76,7 @@ func configureLedger(
 		args.Scale,
 	)
 	if err != nil {
-		return pacioli.LedgerOK, err
+		return pacioli.LedgerOK, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 
 	return pacioli.LedgerOK, nil
@@ -88,8 +89,22 @@ func GetLedger(ctx context.Context, b Backends, id uint32) (*pacioli.Ledger, err
 		return nil, pacioli.ErrNotFound
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 
 	return &ledger, nil
+}
+
+func ListLedgers(ctx context.Context, b Backends, ids []uint32) ([]pacioli.Ledger, error) {
+	var ledgers []pacioli.Ledger
+	query, args, err := sqlx.In("SELECT * FROM ledgers WHERE id IN (?);", ids)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+	}
+	err = b.DB().SelectContext(ctx, &ledgers, b.DB().Rebind(query), args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+	}
+
+	return ledgers, nil
 }
