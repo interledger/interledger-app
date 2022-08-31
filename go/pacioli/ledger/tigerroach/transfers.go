@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/bits"
 	"sort"
 	"time"
 
@@ -76,6 +77,10 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 				Code:  tb_types.TransferPendingTransferMustTimeout,
 			}
 			continue
+		}
+
+		if ta.Flags.Linked {
+			return nil, fmt.Errorf("%s %w", "linked transfers are not supported", pacioli.ErrInvalidArg)
 		}
 	}
 
@@ -150,6 +155,34 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	}
 
 	// Transfer with that ID doesn't exist.
+
+	// Check for overflows
+	if args.Flags.Pending {
+		_, carry := bits.Add64(args.Amount, debitAcc.DebitsPending, 0)
+		if carry > 0 {
+			return tb_types.TransferOverflowsDebitsPending, nil
+		}
+		_, carry = bits.Add64(args.Amount, creditAcc.CreditsPending, 0)
+		if carry > 0 {
+			return tb_types.TransferOverflowsCreditsPending, nil
+		}
+	}
+	_, carry := bits.Add64(args.Amount, debitAcc.DebitsPosted, 0)
+	if carry > 0 {
+		return tb_types.TransferOverflowsDebitsPosted, nil
+	}
+	_, carry = bits.Add64(args.Amount, creditAcc.CreditsPosted, 0)
+	if carry > 0 {
+		return tb_types.TransferOverflowsCreditsPosted, nil
+	}
+	_, carry = bits.Add64(args.Amount+debitAcc.DebitsPosted, debitAcc.DebitsPending, 0)
+	if carry > 0 {
+		return tb_types.TransferOverflowsDebits, nil
+	}
+	_, carry = bits.Add64(args.Amount+creditAcc.CreditsPosted, creditAcc.CreditsPending, 0)
+	if carry > 0 {
+		return tb_types.TransferOverflowsCredits, nil
+	}
 
 	if debitAcc.Flags.DebitsMustNotExceedCredits &&
 		debitAcc.DebitsPosted+debitAcc.DebitsPending+args.Amount > debitAcc.CreditsPosted {
@@ -332,9 +365,9 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	return tb_types.TransferExists, nil
 }
 
-func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]string, []pacioli.TransferResult, error) {
+func PostTransfers(ctx context.Context, b Backends, ids []string) (pendingPostedIDs map[string]string, res []pacioli.TransferResult, err error) {
 	resMap := make(map[int]pacioli.TransferResult)
-	newUUIDs := make(map[string]string)
+	pendingPostedIDs = make(map[string]string)
 	for i, tid := range ids {
 		ex, err := getTransfer(ctx, b, tid)
 		if errors.Is(err, pacioli.ErrNotFound) {
@@ -347,6 +380,7 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 		if err != nil {
 			return nil, nil, err
 		}
+
 		if !validStateTransition(ex.State, transferStateReplaced) {
 			if ex.State == transferStateReplaced {
 				resMap[i] = pacioli.TransferResult{
@@ -388,7 +422,7 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 
 			// Insert the new transaction
 			newID := uuid.NewString()
-			_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, pending_id) "+
+			_, err = tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, pending_id) "+
 				"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", newID, ex.LedgerID, ex.Code, ex.DebitAccountID, ex.CreditAccountID, ex.Amount, transferStatePosted, ex.ID)
 			if err != nil {
 				return err
@@ -430,9 +464,9 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 				return err
 			}
 			if updateCnt != 1 {
-				return fmt.Errorf("%s %s %w", "unable to update credit account balances", ex.CreditAccountID, pacioli.ErrInternal)
+				return fmt.Errorf("%s %s %w", "unable to update debit account balances", ex.CreditAccountID, pacioli.ErrInternal)
 			}
-			newUUIDs[ex.ID] = newID
+			pendingPostedIDs[ex.ID] = newID
 
 			return nil
 		})
@@ -441,14 +475,13 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 		}
 	}
 
-	var res []pacioli.TransferResult
 	for _, v := range resMap {
 		res = append(res, v)
 	}
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Index < res[j].Index
 	})
-	return newUUIDs, res, nil
+	return pendingPostedIDs, res, nil
 }
 
 func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.TransferResult, error) {
@@ -542,7 +575,7 @@ func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 				return err
 			}
 			if updateCnt != 1 {
-				return fmt.Errorf("%s %s %w", "unable to update credit account balances", ex.CreditAccountID, pacioli.ErrInternal)
+				return fmt.Errorf("%s %s %w", "unable to update debit account balances", ex.CreditAccountID, pacioli.ErrInternal)
 			}
 			return nil
 		})
