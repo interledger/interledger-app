@@ -127,15 +127,13 @@ export const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
       <div className='flex items-center justify-between space-x-3'>
         <Icon>{activityIcon(activity.transactionType, activity.status)}</Icon>
         <div className='flex flex-col'>
-          <span className='text-left font-display text-base font-medium'>
+          <span className='text-left font-display font-medium'>
             {activity.title}
           </span>
-          <span className='font-sans text-xs font-normal'>
-            {activity.description}
-          </span>
+          <span className='text-xs'>{activity.description}</span>
         </div>
       </div>
-      <span className='font-sans text-lg font-normal'>{activity.amount}</span>
+      <span className='text-lg'>{activity.amount}</span>
     </button>
   )
 }
@@ -241,16 +239,14 @@ export default function Page() {
         {transactions.length == 0 && (
           <div className='col-span-full flex items-center justify-start space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <Icon>tips_and_updates</Icon>
-            <span className='font-sans text-sm font-normal'>
-              You don't have any activity yet.
-            </span>
+            <span className='text-sm'>You don't have any activity yet.</span>
           </div>
         )}
         {transactions.map((transaction, index) => (
           <Fragment key={transaction.id}>
             {(index == 0 ||
               transaction.date != transactions[index - 1].date) && (
-              <span className='col-span-full ml-4 mt-2 font-display text-xs font-normal sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+              <span className='col-span-full ml-4 mt-2 font-display text-xs sm:col-span-6 sm:col-start-2 lg:col-start-4'>
                 {transaction.date}
               </span>
             )}

@@ -5,14 +5,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
+	"go.uber.org/zap"
 )
 
 // This is declaritive and will not fail if the ledger exists. It will fail if one exists with
@@ -99,7 +100,7 @@ func ConfigureAccounts(
 
 		tbAccID, err := UuidToU128(arg.ID)
 		if err != nil {
-			log.Printf("failed to sync accounts to tigerbeetle %v", err)
+			log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
 			continue
 		}
 		toCreate = append(toCreate, tb_types.Account{
@@ -113,9 +114,9 @@ func ConfigureAccounts(
 	tbEventErrors, err := b.TigerBeetle().CreateAccounts(toCreate)
 	// this error will be due to connection / io buffer issues
 	if err != nil {
-		log.Printf("failed to sync accounts to tigerbeetle %v", err)
+		log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
 	} else if len(tbEventErrors) > 0 {
-		log.Printf("failed to sync accounts to tigerbeetle with error codes %v", tbEventErrors)
+		log.Warn("failed to sync accounts to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
 	}
 
 	return res, nil
@@ -148,7 +149,7 @@ func GetAccounts(
 	// Do sanity check to ensure all accounts have counterparts in tigerbeetle
 	tbAccsRaw, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
 	if err != nil {
-		log.Printf("failed to load accounts from tigerbeetle %s", err)
+		log.Warn("failed to load accounts from tigerbeetle", zap.Error(err))
 		return trAccs, nil
 	}
 
@@ -176,9 +177,9 @@ func GetAccounts(
 		}
 
 		if found.ID == "" {
-			log.Printf("account exists in tigerroach but not in tigerbeetle %s", trAcc.ID)
+			log.Warn("account exists in tigerroach but not in tigerbeetle", zap.String("account_id", trAcc.ID))
 		} else if !reflect.DeepEqual(found, trAcc) {
-			log.Printf("account mismatch between tigerroach (%v) and tigerbeetle (%v)", trAcc, found)
+			log.Warn("account mismatch between tigerroach and tigerbeetle ", zap.Any("tigerroach_acc", trAcc), zap.Any("tigerbeetle_acc", found))
 		}
 	}
 
@@ -203,19 +204,19 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 	for i, transfer := range args {
 		transferID, err := UuidToU128(transfer.ID)
 		if err != nil {
-			log.Printf("failed to convert transfer id %s %s", transfer.ID, err)
+			log.Warn("failed to convert transfer id", zap.String("transerfer_id", transfer.ID), zap.Error(err))
 			continue
 		}
 
 		debitAccountID, err := UuidToU128(transfer.DebitAccountID)
 		if err != nil {
-			log.Printf("failed to convert transfer debit account id %s %s", transfer.DebitAccountID, err)
+			log.Warn("failed to convert transfer debit account id", zap.String("debit_acc_id", transfer.DebitAccountID), zap.Error(err))
 			continue
 		}
 
 		creditAccountID, err := UuidToU128(transfer.CreditAccountID)
 		if err != nil {
-			log.Printf("failed to convert transfer credit account id %s %s", transfer.CreditAccountID, err)
+			log.Warn("failed to convert transfer credit account id", zap.String("credit_acc_id", transfer.CreditAccountID), zap.Error(err))
 			continue
 		}
 
@@ -233,9 +234,9 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 
 	eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
 	if err != nil {
-		log.Printf("failed to sync transfers into tigetbeetle %s", err)
+		log.Warn("failed to sync transfers into tigetbeetle", zap.Error(err))
 	} else if len(eventErrors) > 0 {
-		log.Printf("failed to sync transfers to tigerbeetle with error codes %v", eventErrors)
+		log.Warn("failed to sync transfers to tigerbeetle with error codes", zap.Any("error_codes", eventErrors))
 	}
 
 	return trRes, nil
@@ -266,7 +267,7 @@ func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]paci
 	// Do sanity check to ensure all transfers have counterparts in tigerbeetle
 	tbTransfersRaw, err := b.TigerBeetle().LookupTransfers(tbTransferIDs)
 	if err != nil {
-		log.Printf("failed to load transfers from tigerbeetle %s", err)
+		log.Warn("failed to load transfers from tigerbeetle", zap.Error(err))
 		return trTransfers, nil
 	}
 
@@ -298,9 +299,9 @@ func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]paci
 		}
 
 		if found.ID == "" {
-			log.Printf("transfer exists in tigerroach but not in tigerbeetle %s", trTransfer.ID)
+			log.Warn("transfer exists in tigerroach but not in tigerbeetle", zap.String("transfer_id", trTransfer.ID))
 		} else if !reflect.DeepEqual(found, trTransfer) {
-			log.Printf("transfer mismatch between tigerroach (%v) and tigerbeetle (%v)", trTransfer, found)
+			log.Warn("transfer mismatch between tigerroach and tigerbeetle", zap.Any("tigerroach", trTransfer), zap.Any("tigerbeetle", found))
 		}
 	}
 
@@ -326,21 +327,25 @@ func PostTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 		return nil, err
 	}
 
+	if len(trNewIDs) == 0 {
+		return trResults, nil
+	}
+
 	for trOldID, trNewID := range trNewIDs {
 		newID, err := UuidToU128(trNewID)
 		if err != nil {
-			log.Printf("failed to convert new transfer ID %s", err)
+			log.Warn("failed to convert new transfer ID", zap.Error(err))
 			continue
 		}
 		oldID, err := UuidToU128(trOldID)
 		if err != nil {
-			log.Printf("failed to convert old transfer ID %s", err)
+			log.Warn("failed to convert old transfer ID", zap.Error(err))
 			continue
 		}
 
 		tbTransfers = append(tbTransfers, tb_types.Transfer{
 			ID:        *newID,
-			PendingID: oldID,
+			PendingID: *oldID,
 			Flags: pacioli.TransferFlags{
 				PostPendingTransfer: true,
 			}.ToUint16(),
@@ -349,9 +354,9 @@ func PostTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 
 	tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
 	if err != nil {
-		log.Printf("failed to sync posted transfers to tigerbeetle %v", err)
+		log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
 	} else if len(tbEventErrors) > 0 {
-		log.Printf("failed to sync posted transfers to tigerbeetle with error codes %v", tbEventErrors)
+		log.Warn("failed to sync posted transfers to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
 	}
 
 	return trResults, nil
@@ -374,13 +379,17 @@ func VoidTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 		tbTransferIDs[i] = *transferID
 	}
 
-	tigerroach.VoidTransactions()
+	trResults, err := tigerroach.VoidTransfers(ctx, b, transferIDs)
+	if err != nil {
+		return nil, err
+	}
 
 	for i, tid := range tbTransferIDs {
 
 		newID, err := UuidToU128(uuid.NewString())
 		if err != nil {
-			return nil, err
+			log.Warn("failed to convert new transfer ID", zap.Error(err))
+			continue
 		}
 
 		tbTransfers[i] = tb_types.Transfer{
@@ -392,10 +401,12 @@ func VoidTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 		}
 	}
 
-	eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
 	if err != nil {
-		return nil, err
+		log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
+	} else if len(tbEventErrors) > 0 {
+		log.Warn("failed to sync posted transfers to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
 	}
 
-	return eventErrors, nil
+	return trResults, nil
 }

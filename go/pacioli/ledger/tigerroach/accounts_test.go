@@ -61,7 +61,12 @@ func TestConfigureAccounts(t *testing.T) {
 					Code:     1,
 				},
 			},
-			err: pacioli.ErrNotFound,
+			res: []pacioli.AccountResult{
+				{
+					Index: 0,
+					Code:  pacioli.AccountLedgerDoesNotExist,
+				},
+			},
 		},
 		{
 			name: "mutually exclusive flags",

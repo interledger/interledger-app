@@ -30,35 +30,35 @@ export default function Page() {
   return (
     <>
       <Form
-        id='payment-method-review'
-        action={`/flows/${flow.id}/payment-method/review`}
+        id='linked-account-review'
+        action={`/flows/${flow.id}/linked-account/review`}
         method='post'
         className='hidden'
       />
 
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Account Type</span>
-        <span className='font-sans text-base font-normal'>{type}</span>
+        <span className='text-sm font-medium'>Account Type</span>
+        <span>{type}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Institution</span>
-        <span className='font-sans text-base font-normal'>{institution}</span>
+        <span className='text-sm font-medium'>Institution</span>
+        <span>{institution}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Account number</span>
-        <span className='font-sans text-base font-normal'>{accountNumber}</span>
+        <span className='text-sm font-medium'>Account number</span>
+        <span>{accountNumber}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Routing number</span>
-        <span className='font-sans text-base font-normal'>{routingNumber}</span>
+        <span className='text-sm font-medium'>Routing number</span>
+        <span>{routingNumber}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-sans text-sm font-medium'>Nickname</span>
-        <span className='font-sans text-base font-normal'>{name}</span>
+        <span className='text-sm font-medium'>Nickname</span>
+        <span>{name}</span>
       </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='payment-method-review' type='submit'>
+        <Button form='linked-account-review' type='submit'>
           Confirm
         </Button>
       </div>
@@ -117,7 +117,7 @@ export async function action({ request, params }: ActionArgs) {
     const headers = await updateFlow(request, null, true)
     if (res.data?.verifyUsdBankAccount.success)
       return redirect(
-        route('/confirmation/:flowId/payment-method', {
+        route('/confirmation/:flowId/linked-account', {
           flowId: flow?.id as string
         }),
         { headers }

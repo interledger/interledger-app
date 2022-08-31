@@ -56,7 +56,7 @@ export default function Page() {
         </Router>
       </div>
       <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal text-strong'>
+        <h1 className='font-display text-4xl font-medium leading-normal'>
           Set a new password
         </h1>
       </div>

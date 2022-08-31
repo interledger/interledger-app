@@ -76,27 +76,21 @@ export const Autocomplete: FC<AutocompleteProps> = ({
             leaveTo='opacity-0'
             afterLeave={() => onQuery('')}
           >
-            <Combobox.Options className='absolute mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 text-base shadow-lg focus:outline-none sm:text-sm'>
+            <Combobox.Options className='absolute mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 shadow-lg focus:outline-none sm:text-sm'>
               {options.length > 0 &&
                 options.map((option, index) => (
                   <Combobox.Option
                     key={index}
                     className={({ active }) =>
                       `relative flex h-12 cursor-pointer select-none items-center justify-between pl-4 pr-3 ${
-                        active
-                          ? 'bg-container-hover text-strong'
-                          : 'text-medium'
+                        active ? 'bg-container-hover' : 'text-medium'
                       }`
                     }
                     value={option}
                   >
                     {({ selected }) => (
                       <>
-                        <span
-                          className={`block truncate font-sans text-base font-normal`}
-                        >
-                          {option.name}
-                        </span>
+                        <span className={`block truncate`}>{option.name}</span>
                         {selected && (
                           <span className='flex text-primary'>
                             <Icon>check</Icon>

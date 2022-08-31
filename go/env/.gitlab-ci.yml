@@ -1,16 +1,14 @@
 include:
   - //////.gitlab-refs.yaml
 
-.job_rules:
-  rules:
-    - changes:
-      - go/go.mod
-      - go/env/*
-
 variables:
   ENV_PATH: $CI_PROJECT_DIR/go/env
 
 build_env:
+  rules:
+    - changes:
+        - go/go.mod
+        - go/env/**/*
   tags:
     - k8s
   image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10

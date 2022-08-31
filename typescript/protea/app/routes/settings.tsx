@@ -59,37 +59,36 @@ export default function Page() {
       {/* Body */}
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         {/* Activity item */}
-        <span className='col-span-full ml-4 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <span className='col-span-full font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Personal info
         </span>
         <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex space-x-3'>
             <Icon>mail</Icon>
-            <span className='font-sans text-base font-normal'>
-              {session?.identity.traits.email}
-            </span>
+            <span>{session?.identity.traits.email}</span>
           </div>
         </div>
         <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex space-x-3'>
             <Icon>flag</Icon>
             {/* TODO: show actual country here rather */}
-            <span className='font-sans text-base font-normal'>Country</span>
+            <span>Country</span>
           </div>
         </div>
+        <span className='col-span-full font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          Payments
+        </span>
         <Router
-          to='/settings/payment-methods'
+          to='/settings/linked-accounts'
           className={`col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4`}
         >
           <div className='flex space-x-3'>
             <Icon>credit_card</Icon>
-            <span className='font-sans text-base font-normal'>
-              Payment methods
-            </span>
+            <span>Linked accounts</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
-        <span className='col-span-full ml-4 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <span className='col-span-full font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           Security
         </span>
         <Router
@@ -98,7 +97,17 @@ export default function Page() {
         >
           <div className='flex space-x-3'>
             <Icon>password</Icon>
-            <span className='font-sans text-base font-normal'>Password</span>
+            <span>Password</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
+        <Router
+          to='/logout'
+          className='col-span-full mt-6 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        >
+          <div className='flex space-x-3'>
+            <Icon>logout</Icon>
+            <span>Logout</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>

@@ -8,9 +8,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/jmoiron/sqlx"
-
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
 
@@ -38,7 +37,10 @@ func ConfigureAccounts(
 		// can't return an AccountResult with a code that makes sense.
 		_, err = GetLedger(ctx, b, aa.LedgerID)
 		if errors.Is(err, pacioli.ErrNotFound) {
-			return nil, fmt.Errorf("%s %d %s %w", "unknown ledger index: ", i, err, pacioli.ErrNotFound)
+			resMap[i] = pacioli.AccountResult{
+				Index: uint32(i),
+				Code:  pacioli.AccountLedgerDoesNotExist,
+			}
 		} else if err != nil {
 			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err, pacioli.ErrInternal)
 		}
@@ -103,6 +105,14 @@ func configureAccount(
 
 		// Account exists with all the same params, do nothing.
 		return pacioli.AccountOK, nil
+	}
+
+	_, err = GetLedger(ctx, b, args.LedgerID)
+	if errors.Is(err, pacioli.ErrNotFound) {
+		return pacioli.AccountLedgerDoesNotExist, nil
+	}
+	if err != nil {
+		return pacioli.AccountOK, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 
 	_, err = b.DB().ExecContext(ctx,

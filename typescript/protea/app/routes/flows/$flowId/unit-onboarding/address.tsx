@@ -136,7 +136,7 @@ export default function Page() {
       <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='flex items-center space-x-3'>
           <Icon>home</Icon>
-          <span className='font-sans text-base font-normal'>
+          <span>
             {formattedAddress || 'Please search for your address above.'}
           </span>
         </div>

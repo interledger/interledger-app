@@ -1,3 +1,5 @@
+const colors = require('tailwindcss/colors')
+
 module.exports = {
   mode: 'jit',
   content: ['./app/**/*.{ts,tsx}'],
@@ -10,8 +12,7 @@ module.exports = {
     },
     extend: {
       colors: {
-        primary: '#F43F5E',
-        secondary: '#7DD043'
+        brand: colors.rose[500]
       },
       // Token colours
       textColor: {
@@ -20,10 +21,12 @@ module.exports = {
         weak: 'rgba(var(--text-weak), <alpha-value>)',
         disabled: 'rgba(var(--text-disabled), <alpha-value>)',
         primary: 'rgba(var(--text-primary), <alpha-value>)',
-        error: 'rgba(var(--text-error), <alpha-value>)'
+        error: 'rgba(var(--text-error), <alpha-value>)',
+        success: 'rgba(var(--text-success), <alpha-value>)'
       },
       backgroundColor: {
         app: 'rgba(var(--bg-app), <alpha-value>)',
+        page: 'rgba(var(--bg-page), <alpha-value>)',
         container: 'rgba(var(--bg-container), <alpha-value>)',
         'container-hover': 'rgba(var(--bg-container-hover), <alpha-value>)',
         strong: 'rgba(var(--bg-strong), <alpha-value>)',
@@ -34,7 +37,9 @@ module.exports = {
           'rgba(var(--bg-container-primary-hover), <alpha-value>)',
         'container-primary-active':
           'rgba(var(--bg-container-primary-active), <alpha-value>)',
-        snackbar: 'rgba(var(--bg-snackbar), <alpha-value>)'
+        scrim: 'rgba(var(--bg-scrim), <alpha-value>)',
+        snackbar: 'rgba(var(--bg-snackbar), <alpha-value>)',
+        footer: 'rgba(var(--bg-footer), <alpha-value>)'
       },
       borderColor: {
         base: 'rgba(var(--border-base), <alpha-value>)',

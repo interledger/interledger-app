@@ -8,12 +8,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
-
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
@@ -337,7 +334,6 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]string, []pacioli.TransferResult, error) {
 	resMap := make(map[int]pacioli.TransferResult)
-	existing := make(map[string]ledgerTransfer)
 	newUUIDs := make(map[string]string)
 	for i, tid := range ids {
 		ex, err := getTransfer(ctx, b, tid)
@@ -351,7 +347,7 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 		if err != nil {
 			return nil, nil, err
 		}
-		if validStateTransition(ex.State, transferStateReplaced) {
+		if !validStateTransition(ex.State, transferStateReplaced) {
 			if ex.State == transferStateReplaced {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
@@ -387,12 +383,9 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 			}
 			continue
 		}
-		existing[tid] = *ex
-	}
 
-	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		// Loop over actual existing transactions
-		for _, ex := range existing {
+		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+
 			// Insert the new transaction
 			newID := uuid.NewString()
 			_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, pending_id) "+
@@ -440,12 +433,12 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 				return fmt.Errorf("%s %s %w", "unable to update credit account balances", ex.CreditAccountID, pacioli.ErrInternal)
 			}
 			newUUIDs[ex.ID] = newID
-		}
-		return nil
-	})
 
-	if err != nil {
-		return nil, nil, err
+			return nil
+		})
+		if err != nil {
+			return nil, nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
+		}
 	}
 
 	var res []pacioli.TransferResult
@@ -458,8 +451,9 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (map[string]st
 	return newUUIDs, res, nil
 }
 
-func VoidTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.TransferResult, error) {
+func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.TransferResult, error) {
 	resMap := make(map[int]pacioli.TransferResult)
+
 	for i, tid := range ids {
 		ex, err := getTransfer(ctx, b, tid)
 		if errors.Is(err, pacioli.ErrNotFound) {
@@ -472,7 +466,7 @@ func VoidTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.
 		if err != nil {
 			return nil, err
 		}
-		if validStateTransition(ex.State, transferStateVoided) {
+		if !validStateTransition(ex.State, transferStateVoided) {
 			if ex.State == transferStateVoided {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
@@ -507,9 +501,11 @@ func VoidTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.
 				Index: uint32(i),
 				Code:  tb_types.TransferPendingTransferNotPending,
 			}
+			continue
 		}
 
 		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+
 			// Update the old transaction's state
 			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3", transferStateVoided, ex.ID, transferStatePending)
 			if err != nil {
@@ -548,12 +544,10 @@ func VoidTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.
 			if updateCnt != 1 {
 				return fmt.Errorf("%s %s %w", "unable to update credit account balances", ex.CreditAccountID, pacioli.ErrInternal)
 			}
-
 			return nil
 		})
-
 		if err != nil {
-			return newUUIDs, nil, err
+			return nil, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 		}
 	}
 
@@ -564,5 +558,5 @@ func VoidTransactions(ctx context.Context, b Backends, ids []string) ([]pacioli.
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].Index < res[j].Index
 	})
-	return newUUIDs, res, nil
+	return res, nil
 }

@@ -38,8 +38,8 @@ export default function Page() {
   return (
     <>
       <Form
-        id='payment-method-details'
-        action={`/flows/${flow.id}/payment-method/details`}
+        id='linked-account-details'
+        action={`/flows/${flow.id}/linked-account/details`}
         method='post'
         className='hidden'
       />
@@ -52,7 +52,7 @@ export default function Page() {
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
       />
       <input
-        form='payment-method-details'
+        form='linked-account-details'
         value={String(selected.name)}
         name='type'
         type='hidden'
@@ -60,7 +60,7 @@ export default function Page() {
 
       <TextField
         id='institution'
-        form='payment-method-details'
+        form='linked-account-details'
         label='Institution'
         name='institution'
         defaultValue={flow?.data.institution}
@@ -71,7 +71,7 @@ export default function Page() {
 
       <TextField
         id='accountNumber'
-        form='payment-method-details'
+        form='linked-account-details'
         label='Account number'
         name='accountNumber'
         defaultValue={flow?.data.accountNumber}
@@ -82,7 +82,7 @@ export default function Page() {
 
       <TextField
         id='routingNumber'
-        form='payment-method-details'
+        form='linked-account-details'
         label='Routing number'
         name='routingNumber'
         defaultValue={flow?.data.routingNumber}
@@ -93,7 +93,7 @@ export default function Page() {
 
       <TextField
         id='name'
-        form='payment-method-details'
+        form='linked-account-details'
         label='Nickname'
         name='name'
         defaultValue={flow?.data.name}
@@ -103,7 +103,7 @@ export default function Page() {
       />
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='payment-method-details' type='submit'>
+        <Button form='linked-account-details' type='submit'>
           Continue
         </Button>
       </div>
@@ -129,7 +129,7 @@ export async function action({ request, params }: ActionArgs) {
 
   const flow = await getCurrentFlow(request, params)
   return redirect(
-    route('/flows/:flowId/payment-method/review', {
+    route('/flows/:flowId/linked-account/review', {
       flowId: flow?.id as string
     }),
     { headers }

@@ -1,6 +1,8 @@
 package pacioli
 
-import tigerbeetleTypes "github.com/coilhq/tigerbeetle-go/pkg/types"
+import (
+	tigerbeetleTypes "github.com/coilhq/tigerbeetle-go/pkg/types"
+)
 
 type ConfigureLedgerArgs struct {
 	ID    uint32
@@ -90,7 +92,7 @@ const (
 	LedgerExistsWithDifferentAsset LedgerResultCode = 2
 	LedgerExistsWithDifferentScale LedgerResultCode = 3
 
-	AccountOK AccountResultCode = 0 // TB account errors start at 1
+	AccountOK                 AccountResultCode = 0   // TB account errors start at 1
+	AccountLedgerDoesNotExist AccountResultCode = 404 // High Error number that tigerbeetle does not have defined.
 
-	ACCOUNT_LEDGER_DOES_NOT_EXIST uint32 = 0 // TB account errors start at 1
 )

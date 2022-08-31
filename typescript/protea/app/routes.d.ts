@@ -1,28 +1,32 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
-    "/settings/payment-methods": Record<string, never>;
+    "/settings/linked-accounts": Record<string, never>;
     "/confirmation/:flowId": { "flowId": string };
-    "/confirmation/:flowId/payment-method": { "flowId": string };
+    "/confirmation/:flowId/linked-account": { "flowId": string };
     "/confirmation/:flowId/withdraw": { "flowId": string };
     "/confirmation/:flowId/deposit": { "flowId": string };
     "/confirmation/:flowId/send": { "flowId": string };
+    "/legal/privacy-policy": Record<string, never>;
+    "/legal/terms-of-use": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/activity/filter": Record<string, never>;
+    "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/onboarding/unit": Record<string, never>;
     "/flows/:flowId": { "flowId": string };
     "/flows/:flowId/unit-onboarding/address": { "flowId": string };
-    "/flows/:flowId/withdraw/payment-method": { "flowId": string };
-    "/flows/:flowId/deposit/payment-method": { "flowId": string };
-    "/flows/:flowId/payment-method/details": { "flowId": string };
-    "/flows/:flowId/payment-method/review": { "flowId": string };
+    "/flows/:flowId/withdraw/linked-account": { "flowId": string };
+    "/flows/:flowId/deposit/linked-account": { "flowId": string };
+    "/flows/:flowId/linked-account/details": { "flowId": string };
+    "/flows/:flowId/linked-account/review": { "flowId": string };
     "/flows/:flowId/unit-onboarding/about": { "flowId": string };
-    "/flows/:flowId/payment-method/type": { "flowId": string };
+    "/flows/:flowId/linked-account/type": { "flowId": string };
     "/flows/:flowId/signup/password": { "flowId": string };
     "/flows/:flowId/withdraw/amount": { "flowId": string };
     "/flows/:flowId/withdraw/review": { "flowId": string };
@@ -45,7 +49,9 @@ declare module "routes-gen" {
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
+    "/about": Record<string, never>;
     "/": Record<string, never>;
+    "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
@@ -55,28 +61,32 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/api/maps/placesAutocomplete"]
+      | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
-      | ["/settings/payment-methods"]
+      | ["/settings/linked-accounts"]
       | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
-      | ["/confirmation/:flowId/payment-method", RouteParams["/confirmation/:flowId/payment-method"]]
+      | ["/confirmation/:flowId/linked-account", RouteParams["/confirmation/:flowId/linked-account"]]
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
+      | ["/legal/privacy-policy"]
+      | ["/legal/terms-of-use"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
       | ["/waitlist/success"]
       | ["/activity/filter"]
+      | ["/contact/success"]
       | ["/login/challenge"]
       | ["/onboarding/unit"]
       | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
       | ["/flows/:flowId/unit-onboarding/address", RouteParams["/flows/:flowId/unit-onboarding/address"]]
-      | ["/flows/:flowId/withdraw/payment-method", RouteParams["/flows/:flowId/withdraw/payment-method"]]
-      | ["/flows/:flowId/deposit/payment-method", RouteParams["/flows/:flowId/deposit/payment-method"]]
-      | ["/flows/:flowId/payment-method/details", RouteParams["/flows/:flowId/payment-method/details"]]
-      | ["/flows/:flowId/payment-method/review", RouteParams["/flows/:flowId/payment-method/review"]]
+      | ["/flows/:flowId/withdraw/linked-account", RouteParams["/flows/:flowId/withdraw/linked-account"]]
+      | ["/flows/:flowId/deposit/linked-account", RouteParams["/flows/:flowId/deposit/linked-account"]]
+      | ["/flows/:flowId/linked-account/details", RouteParams["/flows/:flowId/linked-account/details"]]
+      | ["/flows/:flowId/linked-account/review", RouteParams["/flows/:flowId/linked-account/review"]]
       | ["/flows/:flowId/unit-onboarding/about", RouteParams["/flows/:flowId/unit-onboarding/about"]]
-      | ["/flows/:flowId/payment-method/type", RouteParams["/flows/:flowId/payment-method/type"]]
+      | ["/flows/:flowId/linked-account/type", RouteParams["/flows/:flowId/linked-account/type"]]
       | ["/flows/:flowId/signup/password", RouteParams["/flows/:flowId/signup/password"]]
       | ["/flows/:flowId/withdraw/amount", RouteParams["/flows/:flowId/withdraw/amount"]]
       | ["/flows/:flowId/withdraw/review", RouteParams["/flows/:flowId/withdraw/review"]]
@@ -99,7 +109,9 @@ declare module "routes-gen" {
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
+      | ["/about"]
       | ["/"]
+      | ["/legal"]
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]

@@ -17,7 +17,7 @@ type client struct {
 }
 
 func New(grpcAddress string) (pacioli.Client, error) {
-	conn, err := grpc.Dial(grpcAddress, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
