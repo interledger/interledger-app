@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 )
@@ -18,7 +19,7 @@ func NewLocal(b ledger.Backends) pacioli.Client {
 	}
 }
 
-func (l localClient) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.EventResult, error) {
+func (l localClient) ConfigureLedgers(ctx context.Context, args []pacioli.ConfigureLedgerArgs) ([]pacioli.LedgerResult, error) {
 	return ledger.ConfigureLedgers(ctx, l.b, args)
 }
 

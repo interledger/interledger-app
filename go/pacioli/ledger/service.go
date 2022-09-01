@@ -7,137 +7,26 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
+
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
 
-// This is declaritive and will not fail if the ledger exists. It will fail if one exists with
+// ConfigureLedgers is declaritive and will not fail if the ledger exists. It will fail if one exists with
 // different fields.
 func ConfigureLedgers(
 	ctx context.Context,
 	b Backends,
 	args []pacioli.ConfigureLedgerArgs,
-) ([]pacioli.EventResult, error) {
-	ledgerIds := make([]uint32, len(args))
-	for i, ledger := range args {
-		err := b.Validator().Struct(ledger)
-		if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInvalidArg)
-		}
-
-		ledgerIds[i] = uint32(ledger.ID)
-	}
-
-	existingLedgers, err := GetLedgers(ctx, b, ledgerIds)
-	if err != nil {
-		return nil, err
-	}
-
-	var errorEvents []pacioli.EventResult
-	var createdLedgers []pacioli.Ledger
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		for i, ledger := range args {
-			exists := false
-			for _, existing := range existingLedgers {
-				if ledger.ID == existing.ID {
-					exists = true
-					result := canCreateLedger(ledger, existing)
-					if result != pacioli.LEDGER_OK {
-						errorEvents = append(errorEvents, pacioli.EventResult{
-							Index: uint32(i),
-							Code:  uint32(result),
-						})
-						break
-					}
-
-					break
-				}
-			}
-
-			// check for duplicates from the ones we just created
-			for _, created := range createdLedgers {
-				if ledger.ID == created.ID {
-					exists = true
-					result := canCreateLedger(ledger, created)
-					if result != pacioli.LEDGER_OK {
-						errorEvents = append(errorEvents, pacioli.EventResult{
-							Index: uint32(i),
-							Code:  uint32(result),
-						})
-						break
-					}
-
-					break
-				}
-			}
-
-			if err != nil {
-				return err
-			}
-			if !exists {
-				_, err = tx.ExecContext(
-					ctx,
-					`INSERT INTO ledgers (id, name, asset, scale) VALUES ($1, $2, $3, $4);`,
-					ledger.ID,
-					ledger.Name,
-					ledger.Asset,
-					ledger.Scale,
-				)
-				if err != nil {
-					return fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInternal)
-				}
-
-				createdLedgers = append(createdLedgers, pacioli.Ledger{
-					ID:    ledger.ID,
-					Name:  ledger.Name,
-					Asset: ledger.Asset,
-					Scale: ledger.Scale,
-				})
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return errorEvents, nil
-}
-
-func canCreateLedger(args pacioli.ConfigureLedgerArgs, existingLedger pacioli.Ledger) uint8 {
-	if args.Name != existingLedger.Name {
-		return pacioli.LEDGER_EXISTS_WITH_DIFFERENT_NAME
-	}
-
-	if args.Asset != existingLedger.Asset {
-		return pacioli.LEDGER_EXISTS_WITH_DIFFERENT_ASSET
-	}
-
-	if args.Scale != existingLedger.Scale {
-		return pacioli.LEDGER_EXISTS_WITH_DIFFERENT_SCALE
-	}
-
-	return pacioli.LEDGER_OK
+) ([]pacioli.LedgerResult, error) {
+	return tigerroach.ConfigureLedgers(ctx, b, args)
 }
 
 func GetLedgers(ctx context.Context, b Backends, ids []uint32) ([]pacioli.Ledger, error) {
 	// TODO: ACL
-
-	var ledgers []pacioli.Ledger
-	query, args, err := sqlx.In("SELECT * FROM ledgers WHERE id IN (?);", ids)
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInternal)
-	}
-	err = b.DB().SelectContext(ctx, &ledgers, b.DB().Rebind(query), args...)
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInternal)
-	}
-
-	return ledgers, nil
+	return tigerroach.ListLedgers(ctx, b, ids)
 }
 
 // Helper function to convert uuids into u128 needed for TigerBeetle IDs.

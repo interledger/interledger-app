@@ -6,7 +6,7 @@ type Client interface {
 
 	// This is declaritive and will not fail if the ledger exists. It will fail if one exists with
 	// different fields.
-	ConfigureLedgers(ctx context.Context, args []ConfigureLedgerArgs) ([]EventResult, error)
+	ConfigureLedgers(ctx context.Context, args []ConfigureLedgerArgs) ([]LedgerResult, error)
 	GetLedgers(ctx context.Context, ledgerIDs []uint32) ([]Ledger, error)
 
 	// This is declaritive and will not fail if the account exists. It will fail if one exists with
