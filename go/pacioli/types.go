@@ -1,6 +1,8 @@
 package pacioli
 
-import tigerbeetleTypes "github.com/coilhq/tigerbeetle-go/pkg/types"
+import (
+	tigerbeetleTypes "github.com/coilhq/tigerbeetle-go/pkg/types"
+)
 
 type ConfigureLedgerArgs struct {
 	ID    uint32
@@ -37,14 +39,14 @@ type Account struct {
 }
 
 type Transfer struct {
-	ID              string
-	PendingID       string
-	LedgerID        uint16 // this field is coming soon to a TigerBeetle near you.
-	DebitAccountID  string
-	CreditAccountID string
-	Amount          uint64
+	ID              string `db:"id"`
+	PendingID       string `db:"pending_id"`
+	LedgerID        uint16 `db:"ledger_id"` // this field is coming soon to a TigerBeetle near you.
+	DebitAccountID  string `db:"debit_account_id"`
+	CreditAccountID string `db:"credit_account_id"`
+	Amount          uint64 `db:"amount"`
 	Flags           TransferFlags
-	Code            uint16
+	Code            uint16 `db:"code"`
 	Timeout         uint64
 }
 
@@ -54,9 +56,9 @@ type CreateTransferArgs struct {
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Flags           TransferFlags
-	Code            uint16
+	Code            uint16 `validate:"required"`
 	Timeout         uint64
-	Ledger          uint32
+	Ledger          uint32 `validate:"required"`
 }
 
 func ToAccountFlags(in uint16) AccountFlags {
@@ -73,7 +75,7 @@ type EventResult = tigerbeetleTypes.EventResult
 type TransferResult = tigerbeetleTypes.TransferEventResult
 type AccountResult = tigerbeetleTypes.AccountEventResult
 type AccountResultCode = tigerbeetleTypes.CreateAccountResult
-type TransferResultCode = tigerbeetleTypes.CreateAccountResult
+type TransferResultCode = tigerbeetleTypes.CreateTransferResult
 
 type LedgerResult struct {
 	Index uint32

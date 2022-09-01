@@ -5,12 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/bxcodec/faker/v3"
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 )
@@ -360,7 +359,7 @@ func TestPacioli(s *testing.T) {
 			}
 		}
 
-		erList, err := ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
+		erList, err := ledger.PostTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -388,7 +387,7 @@ func TestPacioli(s *testing.T) {
 		}
 
 		// Commit again
-		erList, err = ledger.CommitTransfers(ctx, c.b, []string{transfer1ID})
+		erList, err = ledger.PostTransfers(ctx, c.b, []string{transfer1ID})
 		if err != nil {
 			t.Fatal(err)
 		}
