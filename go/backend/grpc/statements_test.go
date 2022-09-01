@@ -40,7 +40,7 @@ func TestGetStatements(t *testing.T) {
 
 		res, err := client.GetStatements(_user.ActingAsContext(t, context.Background(), &_user.User{
 			ID: userID,
-		}), &backendv1.GetStatementsRequest{})
+		}), &backendv1.Empty{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -60,7 +60,7 @@ func TestGetStatements(t *testing.T) {
 
 		res, err := client.GetStatements(_user.ActingAsContext(t, context.Background(), &_user.User{
 			ID: uuid.NewString(),
-		}), &backendv1.GetStatementsRequest{})
+		}), &backendv1.Empty{})
 
 		assert.Nil(t, res)
 		assert.Error(t, err)

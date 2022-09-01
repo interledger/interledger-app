@@ -11,7 +11,7 @@ import (
 
 func (s *rpcService) GetStatements(
 	ctx context.Context,
-	req *backendv1.GetStatementsRequest,
+	req *backendv1.Empty,
 ) (*backendv1.GetStatementsResponse, error) {
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {

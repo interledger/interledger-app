@@ -57,7 +57,7 @@ service BackendService {
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   // Ability to list statements and get a statement PDF.
-  rpc GetStatements(GetStatementsRequest) returns (GetStatementsResponse);
+  rpc GetStatements(Empty) returns (GetStatementsResponse);
   rpc GetStatementPDF(GetStatementPDFRequest) returns (GetStatementPDFResponse);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
@@ -67,8 +67,6 @@ service BackendService {
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
 }
-
-message GetStatementsRequest {}
 
 message GetStatementsResponse {
   message Statement {
