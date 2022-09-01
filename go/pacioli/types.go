@@ -11,8 +11,8 @@ type ConfigureLedgerArgs struct {
 
 type ConfigureAccountArgs struct {
 	ID       string `validate:"required,uuid4"`
-	LedgerID uint32
-	Code     uint16
+	LedgerID uint32 `validate:"required"`
+	Code     uint16 `validate:"required"`
 	Flags    AccountFlags
 }
 
@@ -26,14 +26,14 @@ type Ledger struct {
 }
 
 type Account struct {
-	ID             string
-	LedgerID       uint32
+	ID             string `db:"id"`
+	LedgerID       uint32 `db:"ledger_id"`
 	Flags          AccountFlags
-	Code           uint16
-	DebitsPending  uint64
-	DebitsPosted   uint64
-	CreditsPending uint64
-	CreditsPosted  uint64
+	Code           uint16 `db:"code"`
+	DebitsPending  uint64 `db:"debits_pending"`
+	DebitsPosted   uint64 `db:"debits_posted"`
+	CreditsPending uint64 `db:"credits_pending"`
+	CreditsPosted  uint64 `db:"credits_posted"`
 }
 
 type Transfer struct {
@@ -59,6 +59,14 @@ type CreateTransferArgs struct {
 	Ledger          uint32
 }
 
+func ToAccountFlags(in uint16) AccountFlags {
+	return AccountFlags{
+		Linked:                     in&(1<<0) == 1,
+		DebitsMustNotExceedCredits: in&(1<<1) == 2,
+		CreditsMustNotExceedDebits: in&(1<<2) == 4,
+	}
+}
+
 type TransferFlags = tigerbeetleTypes.TransferFlags
 type AccountFlags = tigerbeetleTypes.AccountFlags
 type EventResult = tigerbeetleTypes.EventResult
@@ -82,5 +90,6 @@ const (
 	LedgerExistsWithDifferentAsset LedgerResultCode = 2
 	LedgerExistsWithDifferentScale LedgerResultCode = 3
 
-	ACCOUNT_LEDGER_DOES_NOT_EXIST uint8 = 0 // TB account errors start at 1
+	AccountOK                 AccountResultCode = 0   // TB account errors start at 1
+	AccountLedgerDoesNotExist AccountResultCode = 404 // High Error number that tigerbeetle does not have defined.
 )

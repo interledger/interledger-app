@@ -5,7 +5,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
+
+	"gitlab.com/fynbos/log"
+
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
 
@@ -73,86 +78,51 @@ func ConfigureAccounts(
 	b Backends,
 	args []pacioli.ConfigureAccountArgs,
 ) ([]pacioli.AccountResult, error) {
-	// TODO: ACL
-	ledgerIDs := []uint32{}
-	keys := map[uint32]uint8{}
-	const (
-		LOOKING_UP uint8 = 1
-		EXISTS     uint8 = 2
-	)
-	// dedupe ledgerIDs by marking them as being looked up.
-	for _, account := range args {
-		if _, present := keys[account.LedgerID]; !present {
-			keys[account.LedgerID] = LOOKING_UP
-			ledgerIDs = append(ledgerIDs, account.LedgerID)
-		}
-	}
 
-	ledgers, err := GetLedgers(ctx, b, ledgerIDs)
+	// Insert into tigerroach as main source of truth
+	res, err := tigerroach.ConfigureAccounts(ctx, b, args)
 	if err != nil {
+		// All err
 		return nil, err
 	}
 
-	// mark these ledgers as existing.
-	for _, ledger := range ledgers {
-		keys[ledger.ID] = EXISTS
-	}
-
-	// size to len(args) to avoid appending
-	eventErrors := make([]pacioli.AccountResult, len(args))
-	errs := uint32(0) // number of errors
-	accountsToCreate := make([]tb_types.Account, len(args))
-	index := uint32(0) // number of accounts to create
-
-	// stores the mapping from the tb create account args to the original args
-	mapToEventErrorSlot := map[uint32]uint32{}
-	for i, acc := range args {
-		err := b.Validator().Struct(acc)
-		if err != nil {
-			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err.Error(), pacioli.ErrInvalidArg)
-		}
-
-		if keys[acc.LedgerID] != EXISTS {
-			eventErrors[errs] = pacioli.AccountResult{
-				Index: uint32(i),
-				Code:  tb_types.CreateAccountResult(pacioli.ACCOUNT_LEDGER_DOES_NOT_EXIST),
+	// Insert successfully created accounts into tigerbeetle as a best effort,.
+	var toCreate []tb_types.Account
+	for i, arg := range args {
+		var errFound bool
+		for _, resCode := range res {
+			if resCode.Index == uint32(i) {
+				// The  account failed to create in TigerRoach, don;t try to replicate it in Tigerbeetle
+				errFound = true
+				break
 			}
-			errs++
+		}
+		if errFound {
 			continue
 		}
 
-		tbAccID, err := UuidToU128(acc.ID)
+		tbAccID, err := UuidToU128(arg.ID)
 		if err != nil {
-			return nil, err
+			log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
+			continue
 		}
-		accountsToCreate[index] = tb_types.Account{
+		toCreate = append(toCreate, tb_types.Account{
 			ID:     *tbAccID,
-			Code:   acc.Code,
-			Flags:  acc.Flags.ToUint16(),
-			Ledger: acc.LedgerID,
-		}
-		mapToEventErrorSlot[index] = uint32(i)
-		index++
-	}
-	tbEventErrors, err := b.TigerBeetle().CreateAccounts(accountsToCreate[:index])
-	// this error will be due to connection / io buffer issues
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", err.Error(), pacioli.ErrInternal)
-	}
-	// map the tbEventErrors to our eventErrors
-	for _, tbErr := range tbEventErrors {
-		index, present := mapToEventErrorSlot[tbErr.Index]
-		if !present {
-			// the mapping is broken
-			panic("Unable to map Tb event errs back to our create account errs.")
-		}
-		if tbErr.Code != tb_types.AccountExists {
-			eventErrors[errs] = pacioli.AccountResult{Index: index, Code: tbErr.Code}
-			errs++
-		}
+			Code:   arg.Code,
+			Flags:  arg.Flags.ToUint16(),
+			Ledger: arg.LedgerID,
+		})
 	}
 
-	return eventErrors[:errs], nil
+	tbEventErrors, err := b.TigerBeetle().CreateAccounts(toCreate)
+	// this error will be due to connection / io buffer issues
+	if err != nil {
+		log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
+	} else if len(tbEventErrors) > 0 {
+		log.Warn("failed to sync accounts to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
+	}
+
+	return res, nil
 }
 
 func GetAccounts(
@@ -174,32 +144,51 @@ func GetAccounts(
 		tbAccIDs = append(tbAccIDs, *accID)
 	}
 
-	results, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
+	trAccs, err := tigerroach.ListAccounts(ctx, b, accountIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]pacioli.Account, len(results))
-	for i, result := range results {
-		ret[i] = pacioli.Account{
-			ID:             U128ToUuid(result.ID),
-			LedgerID:       result.Ledger,
-			Code:           result.Code,
-			DebitsPending:  result.DebitsPending,
-			DebitsPosted:   result.DebitsPosted,
-			CreditsPending: result.CreditsPending,
-			CreditsPosted:  result.CreditsPosted,
-			Flags: pacioli.AccountFlags{
-				Linked:                     result.Flags&(1<<0) == 1, // TODO: Create consts
-				DebitsMustNotExceedCredits: result.Flags&(1<<1) == 2,
-				CreditsMustNotExceedDebits: result.Flags&(1<<2) == 4,
-			},
+	// Do sanity check to ensure all accounts have counterparts in tigerbeetle
+	tbAccsRaw, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
+	if err != nil {
+		log.Warn("failed to load accounts from tigerbeetle", zap.Error(err))
+		return trAccs, nil
+	}
+
+	tbAccs := make([]pacioli.Account, len(tbAccsRaw))
+	for i, tbAcc := range tbAccsRaw {
+		tbAccs[i] = pacioli.Account{
+			ID:             U128ToUuid(tbAcc.ID),
+			LedgerID:       tbAcc.Ledger,
+			Code:           tbAcc.Code,
+			DebitsPending:  tbAcc.DebitsPending,
+			DebitsPosted:   tbAcc.DebitsPosted,
+			CreditsPending: tbAcc.CreditsPending,
+			CreditsPosted:  tbAcc.CreditsPosted,
+			Flags:          pacioli.ToAccountFlags(tbAcc.Flags),
+		}
+	}
+
+	for _, trAcc := range trAccs {
+		var found pacioli.Account
+		for _, tbAcc := range tbAccs {
+			if tbAcc.ID == trAcc.ID {
+				found = tbAcc
+				break
+			}
+		}
+
+		if found.ID == "" {
+			log.Warn("account exists in tigerroach but not in tigerbeetle", zap.String("account_id", trAcc.ID))
+		} else if !reflect.DeepEqual(found, trAcc) {
+			log.Warn("account mismatch between tigerroach and tigerbeetle ", zap.Any("tigerroach_acc", trAcc), zap.Any("tigerbeetle_acc", found))
 		}
 	}
 
 	// TODO: ACL on accounts
 
-	return ret, nil
+	return trAccs, nil
 }
 
 // TODO: Assuming that IDs are uuids and are being generated by another service for now. Might be better to be
