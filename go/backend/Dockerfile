@@ -15,6 +15,7 @@ COPY backend ./backend
 COPY env ./env
 COPY proto ./proto
 COPY pacioli ./pacioli
+COPY log ./log
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base as builder
