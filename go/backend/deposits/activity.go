@@ -84,7 +84,7 @@ func (s *Activity) CreatePendingDeposit(ctx context.Context, depositId string) (
 	return trx.ID, nil
 }
 
-func (s *Activity) CreateAchDepositTransactions(ctx context.Context, depositID string) error {
+func (s *Activity) CreateAchDepositTransactions(ctx context.Context, depositID, depositTransferID string) error {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating deposit transactions")
 
@@ -106,6 +106,7 @@ func (s *Activity) CreateAchDepositTransactions(ctx context.Context, depositID s
 		Description: fmt.Sprintf("from %s bank account", "test"),
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
+				ID:              depositTransferID,
 				LedgerID:        s.noop.GetLedgerID(),
 				DebitAccountID:  acc.LedgerAccountID,
 				CreditAccountID: s.noop.GetEquityAccountID(),

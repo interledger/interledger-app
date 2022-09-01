@@ -44,6 +44,10 @@ func Create(
 		transferIDs := make([]string, len(args.LedgerTransfers))
 		for i, transfer := range args.LedgerTransfers {
 			id := uuid.NewString()
+			if transfer.ID != "" {
+				id = transfer.ID
+			}
+
 			transferIDs[i] = id
 			ledgerTransfers[i] = pacioli.CreateTransferArgs{
 				ID:              id,
@@ -325,6 +329,8 @@ func VoidPending(ctx context.Context, b Backends, id string) (*account_transacti
 		if len(voidErrors) > 0 {
 			for _, err := range voidErrors {
 				switch err.Code {
+				case tb_types.TransferPendingTransferAlreadyVoided:
+					continue
 				default:
 					return fmt.Errorf("%w %+v", account_transactions.ErrInvalidLedgerTransfer, err)
 				}

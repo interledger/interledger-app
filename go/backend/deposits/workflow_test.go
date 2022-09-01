@@ -109,8 +109,8 @@ func (s *AchDepositTestSuite) TestGoldenPath() {
 		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit.PAYMENT_SENT))
 	}, time.Millisecond*1)
 
-	s.env.OnActivity(s.depositsActivity.CreateAchDepositTransactions, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, id string) error {
+	s.env.OnActivity(s.depositsActivity.CreateAchDepositTransactions, mock.Anything, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, id, transferID string) error {
 			s.Equal(deposit.ID, id)
 			return nil
 		})

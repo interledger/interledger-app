@@ -42,7 +42,7 @@ func NewActivity(args ActivityArgs) (*Activity, error) {
 	}, nil
 }
 
-func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPaymentId string) (string, error) {
+func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPaymentId, outgoingPaymentTransferID string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating pending transaction")
 
@@ -64,6 +64,7 @@ func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPay
 		Description: "Sent to " + outgoingPayment.Destination,
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
+				ID:              outgoingPaymentTransferID,
 				LedgerID:        s.noop.GetLedgerID(),
 				DebitAccountID:  s.noop.GetEquityAccountID(),
 				CreditAccountID: acc.LedgerAccountID,

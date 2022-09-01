@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -148,8 +149,18 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
 	}
 
+	// Generate the deposit transferID
+	var transferID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&transferID)
+	if err != nil {
+		logger.Error("error getting deposit transfer ID side effect", err)
+		return err
+	}
+
 	// TODO: ledger transfers and account transactions should be separated.
-	err = workflow.ExecuteActivity(ctx, depositActivity.CreateAchDepositTransactions, deposit.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, depositActivity.CreateAchDepositTransactions, deposit.ID, transferID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error creating account deposit transaction", err)
 		return err
