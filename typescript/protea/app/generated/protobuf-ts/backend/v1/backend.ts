@@ -623,6 +623,36 @@ export interface OutgoingPayment {
      */
     state: string;
 }
+/**
+ * @generated from protobuf message backend.v1.GetBankAccountDetailsRequest
+ */
+export interface GetBankAccountDetailsRequest {
+    /**
+     * @generated from protobuf field: string fundingsourceId = 1;
+     */
+    fundingsourceId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.BankAccountDetails
+ */
+export interface BankAccountDetails {
+    /**
+     * @generated from protobuf field: string fundingsourceId = 1;
+     */
+    fundingsourceId: string;
+    /**
+     * @generated from protobuf field: string Type = 2 [json_name = "Type"];
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: string institution = 3;
+     */
+    institution: string;
+    /**
+     * @generated from protobuf field: string mask = 4;
+     */
+    mask: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -2907,6 +2937,121 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
  * @generated MessageType for protobuf message backend.v1.OutgoingPayment
  */
 export const OutgoingPayment = new OutgoingPayment$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetBankAccountDetailsRequest$Type extends MessageType<GetBankAccountDetailsRequest> {
+    constructor() {
+        super("backend.v1.GetBankAccountDetailsRequest", [
+            { no: 1, name: "fundingsourceId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetBankAccountDetailsRequest>): GetBankAccountDetailsRequest {
+        const message = { fundingsourceId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetBankAccountDetailsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetBankAccountDetailsRequest): GetBankAccountDetailsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fundingsourceId */ 1:
+                    message.fundingsourceId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetBankAccountDetailsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fundingsourceId = 1; */
+        if (message.fundingsourceId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fundingsourceId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetBankAccountDetailsRequest
+ */
+export const GetBankAccountDetailsRequest = new GetBankAccountDetailsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class BankAccountDetails$Type extends MessageType<BankAccountDetails> {
+    constructor() {
+        super("backend.v1.BankAccountDetails", [
+            { no: 1, name: "fundingsourceId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "Type", kind: "scalar", jsonName: "Type", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "institution", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<BankAccountDetails>): BankAccountDetails {
+        const message = { fundingsourceId: "", type: "", institution: "", mask: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<BankAccountDetails>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: BankAccountDetails): BankAccountDetails {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fundingsourceId */ 1:
+                    message.fundingsourceId = reader.string();
+                    break;
+                case /* string Type = 2 [json_name = "Type"];*/ 2:
+                    message.type = reader.string();
+                    break;
+                case /* string institution */ 3:
+                    message.institution = reader.string();
+                    break;
+                case /* string mask */ 4:
+                    message.mask = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: BankAccountDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fundingsourceId = 1; */
+        if (message.fundingsourceId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fundingsourceId);
+        /* string Type = 2 [json_name = "Type"]; */
+        if (message.type !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
+        /* string institution = 3; */
+        if (message.institution !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.institution);
+        /* string mask = 4; */
+        if (message.mask !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.mask);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.BankAccountDetails
+ */
+export const BankAccountDetails = new BankAccountDetails$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -2921,6 +3066,7 @@ export const BackendAdminService = new ServiceType("backend.v1.BackendAdminServi
 export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetBankAccountWidget", options: {}, I: GetBankAccountWidgetRequest, O: GetBankAccountWidgetResponse },
     { name: "AddBankAccount", options: {}, I: AddBankAccountRequest, O: AddBankAccountResponse },
+    { name: "GetBankAccountDetails", options: {}, I: GetBankAccountDetailsRequest, O: BankAccountDetails },
     { name: "GetOnboarding", options: {}, I: GetOnboardingRequest, O: Onboarding },
     { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding },
     { name: "CreateIdentity", options: {}, I: CreateIdentityRequest, O: CreateIdentityResponse },

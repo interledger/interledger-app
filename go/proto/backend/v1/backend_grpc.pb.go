@@ -180,6 +180,7 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 type BackendServiceClient interface {
 	GetBankAccountWidget(ctx context.Context, in *GetBankAccountWidgetRequest, opts ...grpc.CallOption) (*GetBankAccountWidgetResponse, error)
 	AddBankAccount(ctx context.Context, in *AddBankAccountRequest, opts ...grpc.CallOption) (*AddBankAccountResponse, error)
+	GetBankAccountDetails(ctx context.Context, in *GetBankAccountDetailsRequest, opts ...grpc.CallOption) (*BankAccountDetails, error)
 	// Returns the current onboarding flow.
 	GetOnboarding(ctx context.Context, in *GetOnboardingRequest, opts ...grpc.CallOption) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
@@ -227,6 +228,15 @@ func (c *backendServiceClient) GetBankAccountWidget(ctx context.Context, in *Get
 func (c *backendServiceClient) AddBankAccount(ctx context.Context, in *AddBankAccountRequest, opts ...grpc.CallOption) (*AddBankAccountResponse, error) {
 	out := new(AddBankAccountResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AddBankAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetBankAccountDetails(ctx context.Context, in *GetBankAccountDetailsRequest, opts ...grpc.CallOption) (*BankAccountDetails, error) {
+	out := new(BankAccountDetails)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetBankAccountDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -401,6 +411,7 @@ func (c *backendServiceClient) GetOutgoingPayment(ctx context.Context, in *GetOu
 type BackendServiceServer interface {
 	GetBankAccountWidget(context.Context, *GetBankAccountWidgetRequest) (*GetBankAccountWidgetResponse, error)
 	AddBankAccount(context.Context, *AddBankAccountRequest) (*AddBankAccountResponse, error)
+	GetBankAccountDetails(context.Context, *GetBankAccountDetailsRequest) (*BankAccountDetails, error)
 	// Returns the current onboarding flow.
 	GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
@@ -437,6 +448,9 @@ func (UnimplementedBackendServiceServer) GetBankAccountWidget(context.Context, *
 }
 func (UnimplementedBackendServiceServer) AddBankAccount(context.Context, *AddBankAccountRequest) (*AddBankAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddBankAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) GetBankAccountDetails(context.Context, *GetBankAccountDetailsRequest) (*BankAccountDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBankAccountDetails not implemented")
 }
 func (UnimplementedBackendServiceServer) GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOnboarding not implemented")
@@ -536,6 +550,24 @@ func _BackendService_AddBankAccount_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).AddBankAccount(ctx, req.(*AddBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetBankAccountDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBankAccountDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetBankAccountDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetBankAccountDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetBankAccountDetails(ctx, req.(*GetBankAccountDetailsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -878,6 +910,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddBankAccount",
 			Handler:    _BackendService_AddBankAccount_Handler,
+		},
+		{
+			MethodName: "GetBankAccountDetails",
+			Handler:    _BackendService_GetBankAccountDetails_Handler,
 		},
 		{
 			MethodName: "GetOnboarding",
