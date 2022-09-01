@@ -60,3 +60,42 @@ func (s *rpcService) AddBankAccount(
 		FundingsourceId: workflowUuid,
 	}, nil
 }
+
+func (s *rpcService) GetBankAccountDetails(
+	ctx context.Context,
+	req *backendv1.GetBankAccountDetailsRequest,
+) (*backendv1.BankAccountDetails, error) {
+	user, err := s.userService.ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		return nil, InternalError("Unable to get account.")
+	}
+
+	bankAccount, err := s.mxProvider.GetAccountByFundingsource(ctx, req.GetFundingsourceId())
+	if err != nil {
+		return nil, InternalError("Unable to get bank account details.")
+	}
+	if bankAccount.AccountID != acc.ID {
+		return nil, ForbiddenError("Unauthorized.")
+	}
+
+	details, err := s.mxProvider.ReadAccount(ctx, bankAccount.Guid)
+	if err != nil {
+		return nil, InternalError("Unable to get bank account details.")
+	}
+
+	maskStart := len(details.AccountNumber) - 4
+	if maskStart < 0 {
+		maskStart = 0
+	}
+	return &backendv1.BankAccountDetails{
+		FundingsourceId: req.GetFundingsourceId(),
+		Type:            details.Type,
+		Institution:     details.InstitutionNumber,
+		Mask:            details.AccountNumber[maskStart:],
+	}, nil
+}

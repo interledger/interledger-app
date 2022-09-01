@@ -43,6 +43,7 @@ message Empty{}
 service BackendService {
   rpc GetBankAccountWidget(GetBankAccountWidgetRequest) returns (GetBankAccountWidgetResponse);
   rpc AddBankAccount (AddBankAccountRequest) returns (AddBankAccountResponse);
+  rpc GetBankAccountDetails(GetBankAccountDetailsRequest) returns (BankAccountDetails);
   // Returns the current onboarding flow.
   rpc GetOnboarding(GetOnboardingRequest) returns (Onboarding);
   // Creates the onboarding flow if it does not already exist.
@@ -267,4 +268,15 @@ message OutgoingPayment {
   string destination = 3;
   uint64 amount = 4;
   string state = 5;
+}
+
+message GetBankAccountDetailsRequest {
+  string fundingsourceId = 1;
+}
+
+message BankAccountDetails {
+  string fundingsourceId = 1;
+  string Type = 2;
+  string institution = 3;
+  string mask = 4;
 }

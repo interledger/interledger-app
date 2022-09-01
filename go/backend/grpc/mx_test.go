@@ -257,6 +257,93 @@ func TestAddBankAccount(t *testing.T) {
 	}
 }
 
+func TestGetBankDetails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	t.Run("can get bank details", func(st *testing.T) {
+		accountID := uuid.NewString()
+		userID := uuid.NewString()
+		fundingsourceID := uuid.NewString()
+		mxAccountGuid := "acc_" + uuid.NewString()
+
+		c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+			&accounts.Account{
+				ID:         accountID,
+				IdentityID: userID,
+			},
+			nil,
+		)
+		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
+			&mx.Account{
+				Guid:            mxAccountGuid,
+				AccountID:       accountID,
+				FundingsourceID: fundingsourceID,
+			},
+			nil,
+		)
+		c.MxProvider.EXPECT().ReadAccount(gomock.Any(), mxAccountGuid).Return(
+			&mx.AccountDetails{
+				Guid:              mxAccountGuid,
+				AccountNumber:     "123456789",
+				InstitutionNumber: "321",
+				Type:              "Checking",
+			},
+			nil,
+		)
+
+		resp, err := client.GetBankAccountDetails(
+			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			&backendv1.GetBankAccountDetailsRequest{
+				FundingsourceId: fundingsourceID,
+			})
+		if err != nil {
+			st.Fatal(err)
+		}
+
+		assert.Equal(st, "6789", resp.GetMask())
+		assert.Equal(st, "Checking", resp.GetType())
+		assert.Equal(st, fundingsourceID, resp.GetFundingsourceId())
+		assert.Equal(st, "321", resp.GetInstitution())
+	})
+
+	t.Run("user can only get their own account info", func(st *testing.T) {
+		accountID := uuid.NewString()
+		userID := uuid.NewString()
+		fundingsourceID := uuid.NewString()
+		mxAccountGuid := "acc_" + uuid.NewString()
+
+		c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+			&accounts.Account{
+				ID:         accountID,
+				IdentityID: userID,
+			},
+			nil,
+		)
+		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
+			&mx.Account{
+				Guid:            mxAccountGuid,
+				AccountID:       uuid.NewString(),
+				FundingsourceID: fundingsourceID,
+			},
+			nil,
+		)
+
+		resp, err := client.GetBankAccountDetails(
+			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			&backendv1.GetBankAccountDetailsRequest{
+				FundingsourceId: fundingsourceID,
+			})
+		if err == nil {
+			st.Fatal("User must only be able to get own account details")
+		}
+
+		assert.Nil(st, resp)
+		assert.Equal(st, "rpc error: code = PermissionDenied desc = Forbidden: Unauthorized.", err.Error())
+	})
+}
+
 func startTestServer(
 	t *testing.T,
 	c *TestContainer,
