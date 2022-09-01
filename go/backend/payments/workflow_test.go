@@ -2,10 +2,11 @@ package payments_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/payments"
-	"testing"
 
 	"github.com/stretchr/testify/suite"
 
@@ -43,8 +44,8 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			s.Equal(paymentId.String(), id)
 			return nil
 		})
-	s.env.OnActivity(s.pa.CreatePendingOutgoingPayment, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, id string) (string, error) {
+	s.env.OnActivity(s.pa.CreatePendingOutgoingPayment, mock.Anything, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, id, transferID string) (string, error) {
 			s.Equal(paymentId.String(), id)
 			return trxId.String(), nil
 		})

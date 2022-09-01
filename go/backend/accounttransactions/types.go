@@ -25,6 +25,7 @@ type LedgerTransferFlags struct { // duplicate of Pacioli.TransferFlags
 
 // Arguments to create a transfer in TigerBeetle
 type CreateLedgerTransferArgs struct {
+	ID              string
 	LedgerID        uint32 `validate:"required"`
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
