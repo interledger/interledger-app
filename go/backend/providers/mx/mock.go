@@ -215,18 +215,18 @@ func (mr *MockServiceMockRecorder) StartBalanceAggregation(ctx, mxAccountGuid in
 }
 
 // StartIdentityAggregation mocks base method.
-func (m *MockService) StartIdentityAggregation(ctx context.Context, mxAccountGuid string) (*Member, error) {
+func (m *MockService) StartIdentityAggregation(ctx context.Context, mxUserGuid, mxMemberGuid string) (*Member, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartIdentityAggregation", ctx, mxAccountGuid)
+	ret := m.ctrl.Call(m, "StartIdentityAggregation", ctx, mxUserGuid, mxMemberGuid)
 	ret0, _ := ret[0].(*Member)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StartIdentityAggregation indicates an expected call of StartIdentityAggregation.
-func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, mxAccountGuid interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, mxUserGuid, mxMemberGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartIdentityAggregation", reflect.TypeOf((*MockService)(nil).StartIdentityAggregation), ctx, mxAccountGuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartIdentityAggregation", reflect.TypeOf((*MockService)(nil).StartIdentityAggregation), ctx, mxUserGuid, mxMemberGuid)
 }
 
 // VerifyOwnership mocks base method.
