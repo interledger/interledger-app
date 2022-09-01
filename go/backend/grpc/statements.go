@@ -21,7 +21,7 @@ func (s *rpcService) GetStatements(
 	unitCustomer, err := s.unitProvider.GetCustomerByIdentityID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
-			return nil, NotFoundError("Failed to find customer.")
+			return nil, InternalError("Failed to find customer.")
 		}
 		return nil, InternalError("Get customer.")
 	}
