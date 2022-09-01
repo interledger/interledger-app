@@ -8,7 +8,7 @@ require (
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1
-	github.com/coilhq/tigerbeetle-go v0.0.0-20220831105540-108272f1fc6e
+	github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/go-chi/chi v1.5.4
 	github.com/go-playground/validator/v10 v10.10.0

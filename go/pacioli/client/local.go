@@ -44,7 +44,7 @@ func (l localClient) GetTransfers(ctx context.Context, transferIDs []string) ([]
 }
 
 func (l localClient) PostTransfers(ctx context.Context, transferIDs []string) ([]pacioli.TransferResult, error) {
-	return ledger.CommitTransfers(ctx, l.b, transferIDs)
+	return ledger.PostTransfers(ctx, l.b, transferIDs)
 }
 
 func (l localClient) VoidTransfers(ctx context.Context, transferIDs []string) ([]pacioli.TransferResult, error) {

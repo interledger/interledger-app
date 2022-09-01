@@ -240,7 +240,7 @@ func (s *rpcServer) GetTransfers(ctx context.Context, req *pacioliv1.GetTransfer
 
 func (s *rpcServer) PostTransfers(ctx context.Context, req *pacioliv1.PostTransfersRequest) (*pacioliv1.PostTransfersResponse, error) {
 
-	errors, err := ledger.CommitTransfers(ctx, s.b, req.TransferIds)
+	errors, err := ledger.PostTransfers(ctx, s.b, req.TransferIds)
 	if err != nil {
 		switch err.(type) {
 		default:
