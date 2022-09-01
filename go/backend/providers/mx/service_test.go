@@ -141,33 +141,25 @@ func TestStartIdentityAggregation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-		Guid:            uuid.NewString(),
-		UserGuid:        uuid.NewString(),
-		MemberGuid:      uuid.NewString(),
-		AccountID:       uuid.NewString(),
-		FundingsourceID: uuid.NewString(),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	mockExternalClient.EXPECT().AggregateIdentity(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+	userGuid := uuid.NewString()
+	memberGuid := uuid.NewString()
+	mockExternalClient.EXPECT().AggregateIdentity(ctx, userGuid, memberGuid).
 		Return(
 			&external.Member{
-				Guid:              mxAccount.MemberGuid,
-				UserGuid:          mxAccount.UserGuid,
+				Guid:              memberGuid,
+				UserGuid:          userGuid,
 				IsBeingAggregated: true,
 			},
 			nil,
 		).Times(1)
 
-	member, err := mx.StartIdentityAggregation(ctx, mxAccount.Guid)
+	member, err := mx.StartIdentityAggregation(ctx, userGuid, memberGuid)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, mxAccount.UserGuid, member.UserGuid)
-	assert.Equal(t, mxAccount.MemberGuid, member.Guid)
+	assert.Equal(t, userGuid, member.UserGuid)
+	assert.Equal(t, memberGuid, member.Guid)
 	assert.Equal(t, true, member.IsBeingAggregated)
 }
 

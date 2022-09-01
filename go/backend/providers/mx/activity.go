@@ -87,9 +87,10 @@ func (a *Activity) CreateMxAccount(
 
 func (a *Activity) StartIdentityAggregation(
 	ctx context.Context,
-	mxAccountGuid string,
+	mxUserGuid,
+	mxMemberGuid string,
 ) error {
-	_, err := a.mx.StartIdentityAggregation(ctx, mxAccountGuid)
+	_, err := a.mx.StartIdentityAggregation(ctx, mxUserGuid, mxMemberGuid)
 	if err != nil {
 		return err
 	}
