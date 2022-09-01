@@ -89,7 +89,7 @@ type GetStatementPDFArgs struct {
 
 func (c *client) GetStatementPDF(ctx context.Context, args *GetStatementPDFArgs) ([]byte, error) {
 	url := fmt.Sprintf(`%s/statements/%s/pdf?filter[customerId]=%s`, c.baseUrl, args.ID, args.CustomerID)
-	resp, err := http.Get(url)
+	resp, err := c.http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrRequest, err)
 	}
