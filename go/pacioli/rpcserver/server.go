@@ -53,7 +53,7 @@ func (s *rpcServer) ConfigureLedgers(ctx context.Context, req *pacioliv1.Configu
 	for i, err := range eventErrors {
 		ret[i] = &pacioliv1.EventError{
 			Index: err.Index,
-			Code:  err.Code,
+			Code:  uint32(err.Code),
 		}
 	}
 

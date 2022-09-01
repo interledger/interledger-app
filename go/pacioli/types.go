@@ -67,11 +67,20 @@ type AccountResult = tigerbeetleTypes.AccountEventResult
 type AccountResultCode = tigerbeetleTypes.CreateAccountResult
 type TransferResultCode = tigerbeetleTypes.CreateAccountResult
 
+type LedgerResult struct {
+	Index uint32
+	Code  LedgerResultCode
+}
+
+//go:generate stringer -type=LedgerResultCode -trimprefix=Ledger
+
+type LedgerResultCode uint32
+
 const (
-	LEDGER_OK                          uint8 = 0
-	LEDGER_EXISTS_WITH_DIFFERENT_NAME  uint8 = 1
-	LEDGER_EXISTS_WITH_DIFFERENT_ASSET uint8 = 2
-	LEDGER_EXISTS_WITH_DIFFERENT_SCALE uint8 = 3
+	LedgerOK                       LedgerResultCode = 0
+	LedgerExistsWithDifferentName  LedgerResultCode = 1
+	LedgerExistsWithDifferentAsset LedgerResultCode = 2
+	LedgerExistsWithDifferentScale LedgerResultCode = 3
 
 	ACCOUNT_LEDGER_DOES_NOT_EXIST uint8 = 0 // TB account errors start at 1
 )

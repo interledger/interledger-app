@@ -74,11 +74,11 @@ func TestPacioli(s *testing.T) {
 		}
 		assert.Len(t, eventErrors, 3)
 		assert.Equal(t, eventErrors[0].Index, uint32(1))
-		assert.Equal(t, eventErrors[0].Code, uint32(pacioli.LEDGER_EXISTS_WITH_DIFFERENT_NAME))
+		assert.Equal(t, eventErrors[0].Code, pacioli.LedgerExistsWithDifferentName)
 		assert.Equal(t, eventErrors[1].Index, uint32(2))
-		assert.Equal(t, eventErrors[1].Code, uint32(pacioli.LEDGER_EXISTS_WITH_DIFFERENT_ASSET))
+		assert.Equal(t, eventErrors[1].Code, pacioli.LedgerExistsWithDifferentAsset)
 		assert.Equal(t, eventErrors[2].Index, uint32(3))
-		assert.Equal(t, eventErrors[2].Code, uint32(pacioli.LEDGER_EXISTS_WITH_DIFFERENT_SCALE))
+		assert.Equal(t, eventErrors[2].Code, pacioli.LedgerExistsWithDifferentScale)
 
 		ledgers, err := ledger.GetLedgers(ctx, c.b, []uint32{ledgerID, ledger2ID})
 		if err != nil {
