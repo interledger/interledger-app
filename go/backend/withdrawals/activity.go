@@ -45,7 +45,7 @@ func NewActivity(args ActivityArgs) (*Activity, error) {
 	}, nil
 }
 
-func (s *Activity) CreatePendingWithdrawalTransaction(ctx context.Context, withdrawalId string) (string, error) {
+func (s *Activity) CreatePendingWithdrawalTransaction(ctx context.Context, withdrawalId, transferID string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating pending transaction")
 
@@ -72,6 +72,7 @@ func (s *Activity) CreatePendingWithdrawalTransaction(ctx context.Context, withd
 		Description: fmt.Sprintf("to %s bank account", fs.Name), // TODO Format to come from FS
 		LedgerTransfers: []transactions.CreateLedgerTransferArgs{
 			{
+				ID:              transferID,
 				LedgerID:        s.noop.GetLedgerID(),
 				CreditAccountID: acc.LedgerAccountID,
 				DebitAccountID:  s.noop.GetEquityAccountID(),
