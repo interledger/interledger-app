@@ -1,8 +1,11 @@
 package withdrawals
 
 import (
-	"go.temporal.io/sdk/workflow"
+	"errors"
 	"time"
+
+	"github.com/google/uuid"
+	"go.temporal.io/sdk/workflow"
 )
 
 /*
@@ -30,13 +33,37 @@ func WithdrawalWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
+	var transferID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&transferID)
+	if err != nil {
+		logger.Error("error getting payments transfer ID side effect", err)
+		return err
+	}
+
 	// Prepare the withdrawal from the account (if insufficient mark as failed)
 	var trxId string
-	err = workflow.ExecuteActivity(ctx, a.CreatePendingWithdrawalTransaction, id).Get(ctx, &trxId)
+	err = workflow.ExecuteActivity(ctx, a.CreatePendingWithdrawalTransaction, id, transferID).Get(ctx, &trxId)
 	if err != nil {
 		logger.Error("error creating pending transaction", err)
 		return err
 	}
+
+	defer func() {
+
+		// Handle non-retryable errors by voiding the withdrawal and releasing the liquidity.
+		if !errors.Is(ctx.Err(), workflow.ErrCanceled) {
+			return
+		}
+
+		// When the Workflow is canceled, it has to get a new disconnected context to execute any Activities
+		newCtx, _ := workflow.NewDisconnectedContext(ctx)
+		wfErr := workflow.ExecuteActivity(newCtx, a.VoidPendingWithdrawalTransaction, trxId).Get(ctx, nil)
+		if wfErr != nil {
+			logger.Error("VoidPendingWithdrawalTransaction cleanup failed", "Error", wfErr)
+		}
+	}()
 
 	err = workflow.ExecuteActivity(ctx, a.ProcessNoopWithdrawal, id).Get(ctx, nil)
 	if err != nil {

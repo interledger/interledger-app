@@ -2,13 +2,12 @@ package withdrawals_test
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/mock"
-	"gitlab.com/fynbos/backend/withdrawals"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-
+	"gitlab.com/fynbos/backend/withdrawals"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -43,8 +42,8 @@ func (s *UnitTestSuite) Test_WithdrawalWorkflow_Success() {
 			s.Equal(withdrawalId.String(), id)
 			return nil
 		})
-	s.env.OnActivity(s.activity.CreatePendingWithdrawalTransaction, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, id string) (string, error) {
+	s.env.OnActivity(s.activity.CreatePendingWithdrawalTransaction, mock.Anything, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, id, transferID string) (string, error) {
 			s.Equal(withdrawalId.String(), id)
 			return trxId.String(), nil
 		})
