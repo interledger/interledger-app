@@ -95,18 +95,18 @@ func (mr *MockServiceMockRecorder) GetAccountByFundingsource(ctx, fundingsourceI
 }
 
 // GetAccountOwner mocks base method.
-func (m *MockService) GetAccountOwner(ctx context.Context, mxAccountGuid string) (*AccountOwner, error) {
+func (m *MockService) GetAccountOwner(ctx context.Context, args *GetAccountOwnerArgs) (*AccountOwner, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountOwner", ctx, mxAccountGuid)
+	ret := m.ctrl.Call(m, "GetAccountOwner", ctx, args)
 	ret0, _ := ret[0].(*AccountOwner)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAccountOwner indicates an expected call of GetAccountOwner.
-func (mr *MockServiceMockRecorder) GetAccountOwner(ctx, mxAccountGuid interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetAccountOwner(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountOwner", reflect.TypeOf((*MockService)(nil).GetAccountOwner), ctx, mxAccountGuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountOwner", reflect.TypeOf((*MockService)(nil).GetAccountOwner), ctx, args)
 }
 
 // GetConnectWidget mocks base method.
@@ -230,15 +230,15 @@ func (mr *MockServiceMockRecorder) StartIdentityAggregation(ctx, mxUserGuid, mxM
 }
 
 // VerifyOwnership mocks base method.
-func (m *MockService) VerifyOwnership(ctx context.Context, mxAccountGuid string) error {
+func (m *MockService) VerifyOwnership(ctx context.Context, args *VerifyOwnershipArgs) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyOwnership", ctx, mxAccountGuid)
+	ret := m.ctrl.Call(m, "VerifyOwnership", ctx, args)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyOwnership indicates an expected call of VerifyOwnership.
-func (mr *MockServiceMockRecorder) VerifyOwnership(ctx, mxAccountGuid interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) VerifyOwnership(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyOwnership", reflect.TypeOf((*MockService)(nil).VerifyOwnership), ctx, mxAccountGuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyOwnership", reflect.TypeOf((*MockService)(nil).VerifyOwnership), ctx, args)
 }

@@ -216,7 +216,11 @@ func TestGetAccountOwner(t *testing.T) {
 				GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
 				Return(scenario.AccountOwners, nil).Times(1)
 
-			accountOwner, err := mx.GetAccountOwner(ctx, mxAccount.Guid)
+			accountOwner, err := mx.GetAccountOwner(ctx, &GetAccountOwnerArgs{
+				MxUserGuid:    mxAccount.UserGuid,
+				MxMemberGuid:  mxAccount.MemberGuid,
+				MxAccountGuid: mxAccount.Guid,
+			})
 
 			if scenario.ExpectedError == nil {
 				assert.NoError(st, err, scenario.Name)
@@ -533,7 +537,12 @@ func TestVerifyOwnership(t *testing.T) {
 				Return(tc.AccountOwners, nil).Times(1)
 			identityService.EXPECT().Get(ctx, userID).Return(tc.User, nil).Times(1)
 
-			err = mx.VerifyOwnership(ctx, mxAccount.Guid)
+			err = mx.VerifyOwnership(ctx, &VerifyOwnershipArgs{
+				AccountID:     mxAccount.AccountID,
+				MxUserGuid:    mxAccount.UserGuid,
+				MxMemberGuid:  mxAccount.MemberGuid,
+				MxAccountGuid: mxAccount.Guid,
+			})
 
 			if tc.ExpectedError == nil {
 				assert.NoError(t, err, tc.Name)
