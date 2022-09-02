@@ -104,10 +104,17 @@ func TestRpc(s *testing.T) {
 		}
 		accounts := response.GetAccounts()
 		assert.Len(t, accounts, 2)
-		assert.Equal(t, accountAID, accounts[0].Id)
-		assert.Equal(t, ledgerID, accounts[0].LedgerId)
-		assert.Equal(t, accountBID, accounts[1].Id)
-		assert.Equal(t, ledgerID, accounts[1].LedgerId)
+		for i := range accounts {
+			if accounts[i].Id == accountAID {
+				assert.Equal(t, accountAID, accounts[i].Id)
+				assert.Equal(t, ledgerID, accounts[i].LedgerId)
+			} else if accounts[i].Id == accountBID {
+				assert.Equal(t, accountBID, accounts[i].Id)
+				assert.Equal(t, ledgerID, accounts[i].LedgerId)
+			} else {
+				assert.Fail(t, "unknown account in results")
+			}
+		}
 	})
 
 	s.Run("can create transfers", func(t *testing.T) {
