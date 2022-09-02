@@ -10,7 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
-	accounttransactions "gitlab.com/fynbos/backend/accounttransactions"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 )
 
 // MockClient is a mock of Client interface.
@@ -37,10 +37,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockClient) Create(ctx context.Context, args *accounttransactions.CreateTransactionArgs) (*accounttransactions.AccountTransaction, error) {
+func (m *MockClient) Create(ctx context.Context, args *account_transactions.CreateTransactionArgs) (*account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, args)
-	ret0, _ := ret[0].(*accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].(*account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,10 +52,10 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 }
 
 // CreatePending mocks base method.
-func (m *MockClient) CreatePending(ctx context.Context, args *accounttransactions.CreatePendingTransactionArgs) (*accounttransactions.AccountTransaction, error) {
+func (m *MockClient) CreatePending(ctx context.Context, args *account_transactions.CreatePendingTransactionArgs) (*account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePending", ctx, args)
-	ret0, _ := ret[0].(*accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].(*account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -67,10 +67,10 @@ func (mr *MockClientMockRecorder) CreatePending(ctx, args interface{}) *gomock.C
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(ctx context.Context, id string) (*accounttransactions.AccountTransaction, error) {
+func (m *MockClient) Get(ctx context.Context, id string) (*account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(*accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].(*account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -82,10 +82,10 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 }
 
 // GetByAccount mocks base method.
-func (m *MockClient) GetByAccount(ctx context.Context, t *sqlx.Tx, args *accounttransactions.GetByAccountArgs) ([]*accounttransactions.AccountTransaction, error) {
+func (m *MockClient) GetByAccount(ctx context.Context, t *sqlx.Tx, args *account_transactions.GetByAccountArgs) ([]*account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByAccount", ctx, t, args)
-	ret0, _ := ret[0].([]*accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].([]*account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -97,10 +97,10 @@ func (mr *MockClientMockRecorder) GetByAccount(ctx, t, args interface{}) *gomock
 }
 
 // GetPage mocks base method.
-func (m *MockClient) GetPage(ctx context.Context, args *accounttransactions.PaginationArgs) ([]accounttransactions.AccountTransaction, error) {
+func (m *MockClient) GetPage(ctx context.Context, args *account_transactions.PaginationArgs) ([]account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPage", ctx, args)
-	ret0, _ := ret[0].([]accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].([]account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -112,7 +112,7 @@ func (mr *MockClientMockRecorder) GetPage(ctx, args interface{}) *gomock.Call {
 }
 
 // GetPageInfo mocks base method.
-func (m *MockClient) GetPageInfo(ctx context.Context, accountID string, edges []accounttransactions.AccountTransaction) (bool, string, string, error) {
+func (m *MockClient) GetPageInfo(ctx context.Context, accountID string, edges []account_transactions.AccountTransaction) (bool, string, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPageInfo", ctx, accountID, edges)
 	ret0, _ := ret[0].(bool)
@@ -129,10 +129,10 @@ func (mr *MockClientMockRecorder) GetPageInfo(ctx, accountID, edges interface{})
 }
 
 // PostPending mocks base method.
-func (m *MockClient) PostPending(ctx context.Context, id string) (*accounttransactions.AccountTransaction, error) {
+func (m *MockClient) PostPending(ctx context.Context, id string) (*account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PostPending", ctx, id)
-	ret0, _ := ret[0].(*accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].(*account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -144,10 +144,10 @@ func (mr *MockClientMockRecorder) PostPending(ctx, id interface{}) *gomock.Call 
 }
 
 // VoidPending mocks base method.
-func (m *MockClient) VoidPending(ctx context.Context, id string) (*accounttransactions.AccountTransaction, error) {
+func (m *MockClient) VoidPending(ctx context.Context, id string) (*account_transactions.AccountTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VoidPending", ctx, id)
-	ret0, _ := ret[0].(*accounttransactions.AccountTransaction)
+	ret0, _ := ret[0].(*account_transactions.AccountTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

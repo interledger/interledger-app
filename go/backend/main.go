@@ -248,7 +248,6 @@ func start(args *cli.StartArgs) {
 		Noop:                             nos,
 		UnitService:                      us,
 		Fs:                               fs,
-		Ps:                               ps,
 		Os:                               os,
 		Ws:                               ws,
 		AccountTransactions:              ts,
