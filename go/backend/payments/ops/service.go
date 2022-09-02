@@ -6,9 +6,15 @@ import (
 
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/workflows"
+	"gitlab.com/fynbos/backend/twilio"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
+
+// requiresOTP is currently a stub for when OTP may not be required for flows initiated from Rafiki or for low value payments
+func requiresOTP(_ context.Context, _ payments.InitiateOutgoingPaymentArgs) bool {
+	return true
+}
 
 func InitiateOutgoingPayment(
 	ctx context.Context,
@@ -33,6 +39,21 @@ func InitiateOutgoingPayment(
 	}
 	if acc.AvailableBalance < int64(args.Amount) {
 		return nil, fmt.Errorf("%w", payments.ErrInsufficientBalance)
+	}
+
+	// Check the OTP
+	if requiresOTP(ctx, args) {
+		verify, err := b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: id.MobileNumber,
+			Code:        args.OTP,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if verify.Status != "approved" {
+			return nil, fmt.Errorf("invalid OTP provided %w", payments.ErrInvalidArgument)
+		}
 	}
 
 	var outgoingPayment payments.OutgoingPayment
