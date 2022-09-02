@@ -20,14 +20,23 @@ export async function loader({ request }: LoaderArgs) {
     )
     .then((v) => v)
     .catch(StatusError)
+
   if (isGrpcError(res)) {
+    if (
+      res.message == 'Failed to find customer.' ||
+      res.message == 'No statements found.'
+    ) {
+      return json({
+        statements: []
+      })
+    }
     throw res
   }
 
   const statements = res.response.statements.map((statement) => ({
     id: statement.id,
     period: statement.period,
-    accountId: statement.accountId,
+    accountId: statement.accountId
   }))
 
   return json({ statements })
@@ -52,7 +61,7 @@ export default function Page() {
       {/* Body */}
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         {statements.length == 0 && (
-          <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <div className='col-span-full flex items-center space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <Icon>tips_and_updates</Icon>
             <span className='font-sans text-sm font-normal'>
               You don't have any statements.
