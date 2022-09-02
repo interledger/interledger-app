@@ -1,29 +1,32 @@
-package payments
+package client
 
 import (
 	"context"
 	"time"
 
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/payments/ops"
 	"go.uber.org/zap"
 )
 
-type loggingService struct {
-	logger  *zap.Logger
-	Service Service
+var _ payments.Client = client{}
+
+type client struct {
+	logger *zap.Logger
+	b      ops.Backends
 }
 
-func NewLoggingService(svc Service, logger *zap.Logger) Service {
-	childLogger := logger.With(zap.String("service", "account"))
-	return &loggingService{childLogger, svc}
+func New(b ops.Backends, logger *zap.Logger) payments.Client {
+	return &client{
+		b:      b,
+		logger: logger.With(zap.String("ops", "payments")),
+	}
 }
 
-func (s *loggingService) InitiateOutgoingPayment(
-	ctx context.Context,
-	args *InitiateOutgoingPaymentArgs,
-) (outgoingPayment *OutgoingPayment, err error) {
+func (c client) InitiateOutgoingPayment(ctx context.Context, args payments.InitiateOutgoingPaymentArgs) (outgoingPayment *payments.OutgoingPayment, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to initiate outgoing payment.",
 				zap.String("identityID", args.IdentityID),
 				zap.String("accountID", args.AccountID),
@@ -34,7 +37,7 @@ func (s *loggingService) InitiateOutgoingPayment(
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Initiated outgoing payment.",
 			zap.String("identityID", args.IdentityID),
 			zap.String("accountID", args.AccountID),
@@ -44,16 +47,13 @@ func (s *loggingService) InitiateOutgoingPayment(
 		)
 	}(time.Now())
 
-	return s.Service.InitiateOutgoingPayment(ctx, args)
+	return ops.InitiateOutgoingPayment(ctx, c.b, args)
 }
 
-func (s *loggingService) Get(
-	ctx context.Context,
-	id string,
-) (outgoingPayment *OutgoingPayment, err error) {
+func (c client) Get(ctx context.Context, id string) (outgoingPayment *payments.OutgoingPayment, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			s.logger.Error(
+			c.logger.Error(
 				"Failed to get outgoing payment.",
 				zap.String("id", id),
 				zap.String("msg", err.Error()),
@@ -61,23 +61,19 @@ func (s *loggingService) Get(
 			return
 		}
 
-		s.logger.Debug(
+		c.logger.Debug(
 			"Got outgoing payment.",
 			zap.String("id", id),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
 
-	return s.Service.Get(ctx, id)
+	return ops.Get(ctx, c.b, id)
 }
 
-func (s *loggingService) SetState(
-	ctx context.Context,
-	id string,
-	state State,
-) error {
+func (c client) SetState(ctx context.Context, id string, state payments.State) error {
 	defer func(begin time.Time) {
-		s.logger.Debug(
+		c.logger.Debug(
 			"Set outgoing payment state.",
 			zap.String("id", id),
 			zap.String("state", state.String()),
@@ -85,5 +81,5 @@ func (s *loggingService) SetState(
 		)
 	}(time.Now())
 
-	return s.Service.SetState(ctx, id, state)
+	return ops.SetState(ctx, c.b, id, state)
 }

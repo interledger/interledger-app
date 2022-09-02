@@ -18,6 +18,7 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
+	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
@@ -34,6 +35,7 @@ import (
 	"gitlab.com/fynbos/backend/migrations"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/payments"
+	payments_client "gitlab.com/fynbos/backend/payments/client"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	_mxexternal "gitlab.com/fynbos/backend/providers/mx/external"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
@@ -153,6 +155,7 @@ func start(args *cli.StartArgs) {
 	b.accounts = accountsClient
 
 	ts := transactions_client.New(b, logger)
+	b.transactions = ts
 
 	nos, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      args.NoopLedgerID,
@@ -224,16 +227,8 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	ps, err := payments.NewService(&payments.ServiceArgs{
-		Db: db,
-		As: accountsClient,
-		Is: id,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	ps = payments.NewLoggingService(ps, logger)
+	ps := payments_client.New(b, logger)
+	b.payments = ps
 
 	rafikiProvider, err := rafiki.NewService(&rafiki.ServiceArgs{
 		Db:  db,
@@ -409,6 +404,7 @@ func startWorker(args *cli.StartArgs) {
 	b.accounts = as
 
 	ts := transactions_client.New(b, logger)
+	b.transactions = ts
 
 	nos, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      args.NoopLedgerID,
@@ -464,15 +460,8 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	ps, err := payments.NewService(&payments.ServiceArgs{
-		Db: db,
-		As: as,
-		Is: id,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	ps := payments_client.New(b, logger)
+	b.payments = ps
 
 	os := onboarding_client.New(b)
 
@@ -501,7 +490,7 @@ func startWorker(args *cli.StartArgs) {
 		Ws:     ws,
 		Fs:     fs,
 		Mx:     mx,
-	})
+	}, b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -513,27 +502,23 @@ func startWorker(args *cli.StartArgs) {
 	}
 }
 
-type AllBackends interface {
-	Validator() *validator.Validate
-	DB() *sqlx.DB
-	Identity() identity.Client
-	Countries() country.Client
-	Pacioli() pacioli.Client
+type backends struct {
+	val          *validator.Validate
+	db           *sqlx.DB
+	ids          identity.Client
+	countries    country.Client
+	pacioli      pacioli.Client
+	accounts     accounts.Client
+	noop         _noop.Service
+	temporal     client.Client
+	unit         _unit.Service
+	users        user.Service
+	payments     payments.Client
+	transactions account_transactions.Client
 }
 
-var _ AllBackends = backends{}
-
-type backends struct {
-	val       *validator.Validate
-	db        *sqlx.DB
-	ids       identity.Client
-	countries country.Client
-	pacioli   pacioli.Client
-	accounts  accounts.Client
-	noop      _noop.Service
-	temporal  client.Client
-	unit      _unit.Service
-	users     user.Service
+func (b backends) Transactions() account_transactions.Client {
+	return b.transactions
 }
 
 func (b backends) Users() user.Service {
@@ -574,4 +559,8 @@ func (b backends) DB() *sqlx.DB {
 
 func (b backends) Validator() *validator.Validate {
 	return b.val
+}
+
+func (b backends) Payments() payments.Client {
+	return b.payments
 }

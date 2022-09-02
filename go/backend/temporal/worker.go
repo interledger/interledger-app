@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/payments"
+	payments_workflow "gitlab.com/fynbos/backend/payments/workflows"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -16,9 +17,10 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
+// TODO replace worker args with Backends.
 type WorkerArgs struct {
 	Client client.Client
-	Ps     payments.Service
+	Ps     payments.Client
 	Ds     deposits.Service
 	As     accounts.Client
 	Np     noop.Service
@@ -31,7 +33,7 @@ type WorkerArgs struct {
 	Is     identity.Client
 }
 
-func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
+func NewTemporalWorker(args WorkerArgs, b Backends) (worker.Worker, error) {
 	w := worker.New(args.Client, "backend", worker.Options{})
 
 	// Register Deposits Workflow
@@ -48,16 +50,8 @@ func NewTemporalWorker(args WorkerArgs) (worker.Worker, error) {
 	w.RegisterActivity(depositActivities)
 
 	// Register Outgoing Payments Workflow
-	w.RegisterWorkflow(payments.OutgoingPaymentWorkflow)
-	paymentsActivities, err := payments.NewActivity(payments.ActivityArgs{
-		Ps: args.Ps,
-		As: args.As,
-		Np: args.Np,
-		Ts: args.Ts,
-	})
-	if err != nil {
-		return nil, err
-	}
+	w.RegisterWorkflow(payments_workflow.OutgoingPaymentWorkflow)
+	paymentsActivities := payments_workflow.NewActivity(b)
 	w.RegisterActivity(paymentsActivities)
 
 	// Register Withdrawals Workflow

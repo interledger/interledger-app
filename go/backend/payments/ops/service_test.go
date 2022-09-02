@@ -1,16 +1,8 @@
-package payments
+package ops_test
 
 import (
 	"context"
 	"testing"
-
-	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-
-	identity_client "gitlab.com/fynbos/backend/identity/client"
-
-	country_client "gitlab.com/fynbos/backend/country/client"
-
-	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/go-playground/validator/v10"
@@ -22,10 +14,16 @@ import (
 	_accounts "gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	_country "gitlab.com/fynbos/backend/country"
+	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/identity"
 	_identity "gitlab.com/fynbos/backend/identity"
+	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+	"gitlab.com/fynbos/backend/payments"
+	payments_client "gitlab.com/fynbos/backend/payments/client"
 	"gitlab.com/fynbos/backend/providers/noop"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -104,7 +102,7 @@ func TestPayments(s *testing.T) {
 			}, nil,
 		).Times(1)
 
-		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
+		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), payments.InitiateOutgoingPaymentArgs{
 			IdentityID: acc.IdentityID,
 			AccountID:  acc.ID,
 			Amount:     amount,
@@ -114,7 +112,7 @@ func TestPayments(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, Created, p.State)
+		assert.Equal(t, payments.Created, p.State)
 		assert.Equal(t, acc.ID, p.AccountID)
 		assert.Equal(t, amount, p.Amount)
 	})
@@ -160,7 +158,7 @@ func TestPayments(s *testing.T) {
 			}, nil,
 		).Times(1)
 
-		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), &InitiateOutgoingPaymentArgs{
+		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), payments.InitiateOutgoingPaymentArgs{
 			IdentityID: acc.IdentityID,
 			AccountID:  acc.ID,
 			Amount:     100,
@@ -168,7 +166,7 @@ func TestPayments(s *testing.T) {
 		})
 
 		assert.Nil(t, p)
-		assert.ErrorIs(t, err, ErrInsufficientBalance)
+		assert.ErrorIs(t, err, payments.ErrInsufficientBalance)
 	})
 }
 
@@ -179,7 +177,7 @@ type TestContainer struct {
 	NoopService        noop.Service
 	OnboardService     onboarding.Client
 	TransactionService account_transactions.Client
-	PaymentService     Service
+	PaymentService     payments.Client
 	TemporalMock       *mocks.Client
 	PacioliClient      pacioli.Client
 	PacioliLedgerID    uint32
@@ -187,6 +185,14 @@ type TestContainer struct {
 	Logger             *zap.Logger
 	Ctx                context.Context
 	ValidatorImpl      *validator.Validate
+}
+
+func (t TestContainer) Payments() payments.Client {
+	return t.PaymentService
+}
+
+func (t TestContainer) Transactions() account_transactions.Client {
+	return t.TransactionService
 }
 
 func (t TestContainer) Noop() noop.Service {
@@ -266,19 +272,9 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.OnboardService = os
 
 	ts := transactions_client.New(c, logger)
-
 	c.TransactionService = ts
 
-	ps, err := NewService(&ServiceArgs{
-		Db: db,
-		Is: is,
-		As: as,
-		Tp: temporal,
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	ps := payments_client.New(c, logger)
 	c.PaymentService = ps
 
 	return c, nil
