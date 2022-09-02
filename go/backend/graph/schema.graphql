@@ -20,9 +20,6 @@ type Mutation {
   ): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
   initiateWithdrawal(input: WithdrawalInput!): WithdrawalMutationResponse!
-  initiateOutgoingPayment(
-    input: OutgoingPaymentInput!
-  ): OutgoingPaymentMutationResponse!
 }
 
 interface MutationResponse {
@@ -164,18 +161,6 @@ type WithdrawalMutationResponse implements MutationResponse {
   withdrawal: Withdrawal
 }
 
-input OutgoingPaymentInput {
-  amount: String!
-  to: String!
-}
-
-type OutgoingPaymentMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  outgoingPayment: OutgoingPayment
-}
-
 type Account {
   id: ID!
   balance: String!
@@ -217,14 +202,6 @@ type Deposit {
 
 type Withdrawal {
   id: ID!
-  state: String!
-  amount: String!
-  timestamp: String!
-}
-
-type OutgoingPayment {
-  id: ID!
-  destination: String!
   state: String!
   amount: String!
   timestamp: String!

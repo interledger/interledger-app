@@ -20,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/withdrawals"
 )
@@ -425,73 +424,6 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 			State:     withdrawal.State.String(),
 			Amount:    strconv.FormatInt(int64(withdrawal.Amount), 10),
 			Timestamp: withdrawal.CreatedAt,
-		},
-	}, nil
-}
-
-func (r *mutationResolver) InitiateOutgoingPayment(ctx context.Context, input generated.OutgoingPaymentInput) (*generated.OutgoingPaymentMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
-	if err != nil {
-		ForbiddenError(ctx)
-		return nil, nil
-	}
-
-	parsedAmount, err := strconv.ParseUint(input.Amount, 10, 64)
-	if err != nil {
-		InvalidArgument(ctx, err.Error())
-		return nil, nil
-	}
-
-	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		switch {
-		case errors.Is(err, accounts.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-	outgoingPayment, err := r.Ps.InitiateOutgoingPayment(ctx, &payments.InitiateOutgoingPaymentArgs{
-		IdentityID: user.ID,
-		AccountID:  acc.ID,
-		Amount:     parsedAmount,
-		To:         input.To,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, payments.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		case errors.Is(err, payments.ErrInsufficientBalance):
-			return &generated.OutgoingPaymentMutationResponse{
-				Code:    "422",
-				Success: false,
-				Message: "Outgoing payment failed: Insufficient balance.",
-			}, nil
-		case errors.Is(err, payments.ErrUnverifiedAccount):
-			return &generated.OutgoingPaymentMutationResponse{
-				Code:    "403",
-				Success: false,
-				Message: "Outgoing payment failed: Account unverified.",
-			}, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
-	return &generated.OutgoingPaymentMutationResponse{
-		Code:    "200",
-		Success: true,
-		Message: "Outgoing payment initiated.",
-		OutgoingPayment: &generated.OutgoingPayment{
-			ID:          outgoingPayment.ID,
-			Destination: outgoingPayment.Destination,
-			Timestamp:   outgoingPayment.CreatedAt, // TODO: decide format
-			Amount:      strconv.FormatInt(int64(outgoingPayment.Amount), 10),
-			State:       outgoingPayment.State.String(),
 		},
 	}, nil
 }

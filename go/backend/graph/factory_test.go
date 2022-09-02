@@ -28,7 +28,6 @@ import (
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/client"
@@ -64,7 +63,6 @@ type TestContainer struct {
 	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Client
 	Os                   onboarding.Client
-	Ps                   payments.Service
 	PacioliClient        pacioli.Client
 	PacioliLedgerID      uint32
 	Graph                *handler.Server
@@ -221,17 +219,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.WithdrawalService = ws
 
-	ps, err := payments.NewService(&payments.ServiceArgs{
-		Db: db,
-		As: as,
-		Is: is,
-		Tp: tp,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.Ps = payments.NewLoggingService(ps, logger)
-
 	graph, err := NewService(GraphqlOpts{
 		Db:                  db,
 		Identity:            is,
@@ -245,7 +232,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		Os:                  os,
 		Ws:                  ws,
 		Fs:                  fs,
-		Ps:                  ps,
 	})
 	graph = NewLoggingService(graph, logger)
 	c.Graph = graph
