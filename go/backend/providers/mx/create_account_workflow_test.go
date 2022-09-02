@@ -68,7 +68,12 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 		return nil
 	})
 
-	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, mxAccountGuid).Return(nil)
+	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, &VerifyOwnershipArgs{
+		AccountID:     accountID,
+		MxUserGuid:    mxUserGuid,
+		MxMemberGuid:  mxMemberGuid,
+		MxAccountGuid: mxAccountGuid,
+	}).Return(nil)
 
 	s.env.OnActivity(
 		s.activity.CreateMxAccount,

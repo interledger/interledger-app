@@ -137,9 +137,9 @@ func (a *Activity) WaitForAggregation(
 
 func (a *Activity) VerifyOwnership(
 	ctx context.Context,
-	mxAccountID string,
+	args *VerifyOwnershipArgs,
 ) error {
-	err := a.mx.VerifyOwnership(ctx, mxAccountID)
+	err := a.mx.VerifyOwnership(ctx, args)
 	if err != nil {
 		return err
 	}

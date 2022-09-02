@@ -38,7 +38,7 @@ type (
 		GetMemberStatus(ctx context.Context, mxUserGuid, mxMemberGuid string) (*Member, error)
 		// This will fetch the account owner information for the specified mx account. The identity
 		// aggregation has to have been completed first.
-		GetAccountOwner(ctx context.Context, mxAccountGuid string) (*AccountOwner, error)
+		GetAccountOwner(ctx context.Context, args *GetAccountOwnerArgs) (*AccountOwner, error)
 		ReadAccount(ctx context.Context, mxAccountGuid string) (*AccountDetails, error)
 		// The mx connect widget will allow the user to log into their bank and select an account.
 		// They do not pass this to us on the front end and so we need to call out to find out the
@@ -47,7 +47,7 @@ type (
 		// by the user.
 		GetSelectedAccountGuid(ctx context.Context, mxUserGuid string, mxMemberGuid string) (string, error)
 		GetMxUserByAccountID(ctx context.Context, accountID string) (string, error)
-		VerifyOwnership(ctx context.Context, mxAccountGuid string) error
+		VerifyOwnership(ctx context.Context, args *VerifyOwnershipArgs) error
 		GetConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 		InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error)
 		StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error)
@@ -234,23 +234,24 @@ func (s *service) GetMemberStatus(ctx context.Context, mxUserGuid, mxMemberGuid 
 	}, nil
 }
 
+type GetAccountOwnerArgs struct {
+	MxUserGuid    string
+	MxMemberGuid  string
+	MxAccountGuid string
+}
+
 func (s service) GetAccountOwner(
 	ctx context.Context,
-	mxAccountGuid string,
+	args *GetAccountOwnerArgs,
 ) (*AccountOwner, error) {
-	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
-	if err != nil {
-		return nil, err
-	}
-
-	owners, err := s.externalClient.GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid)
+	owners, err := s.externalClient.GetAccountOwners(ctx, args.MxUserGuid, args.MxMemberGuid)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	var ret *AccountOwner = nil
 	for _, owner := range owners {
-		if owner.AccountGuid == mxAccount.Guid {
+		if owner.AccountGuid == args.MxAccountGuid {
 			ret = &AccountOwner{
 				OwnerName:   owner.OwnerName,
 				AccountGuid: owner.AccountGuid,
@@ -262,7 +263,7 @@ func (s service) GetAccountOwner(
 		return nil, fmt.Errorf(
 			"%w No account owner details found for mx account guid=%s",
 			ErrNotFound,
-			mxAccount.Guid,
+			args.MxAccountGuid,
 		)
 	}
 
@@ -334,12 +335,15 @@ func (s service) GetMxUserByAccountID(ctx context.Context, accountID string) (st
 	return mxUserGuids[0], nil
 }
 
-func (s *service) VerifyOwnership(ctx context.Context, id string) error {
-	mxAccount, err := s.GetAccount(ctx, id)
-	if err != nil {
-		return err
-	}
-	acc, err := s.accountsService.Get(ctx, mxAccount.AccountID)
+type VerifyOwnershipArgs struct {
+	AccountID     string
+	MxUserGuid    string
+	MxMemberGuid  string
+	MxAccountGuid string
+}
+
+func (s *service) VerifyOwnership(ctx context.Context, args *VerifyOwnershipArgs) error {
+	acc, err := s.accountsService.Get(ctx, args.AccountID)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -349,7 +353,11 @@ func (s *service) VerifyOwnership(ctx context.Context, id string) error {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	ownerDetails, err := s.GetAccountOwner(ctx, mxAccount.Guid)
+	ownerDetails, err := s.GetAccountOwner(ctx, &GetAccountOwnerArgs{
+		MxUserGuid:    args.MxUserGuid,
+		MxMemberGuid:  args.MxMemberGuid,
+		MxAccountGuid: args.MxAccountGuid,
+	})
 	if err != nil {
 		return err
 	}
