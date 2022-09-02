@@ -47,6 +47,7 @@ export { grpcClient, StatusError, isGrpcError }
 
 export interface GrpcError {
   code: number
+  message: string
   details: any[]
 }
 
@@ -68,23 +69,30 @@ function StatusError(err: RpcError): GrpcError {
     throw new Error('No meta on error')
   }
 
-  const buffer = base64decode(err.meta['grpc-status-details-bin'] as string)
+  const message = err.message.split(': ')[2]
 
-  if (!buffer || typeof buffer === 'string') {
-    // return null
+  // get error details if any
+  let details: any[] = []
+  if (err.meta['grpc-status-details-bin']) {
+    const buffer = base64decode(err.meta['grpc-status-details-bin'] as string)
+
+    if (!buffer || typeof buffer === 'string') {
+      // return null
+    }
+
+    let status: Status | undefined
+
+    status = Status.fromBinary(buffer)
+    details = status.details
+      .map((detail) => {
+        return Any.unpack(detail, typeRegistry[detail.typeUrl]) || null
+      })
+      .filter(Boolean)
   }
 
-  let status: Status | undefined
-
-  status = Status.fromBinary(buffer)
-  const details: any[] = status.details
-    .map((detail) => {
-      return Any.unpack(detail, typeRegistry[detail.typeUrl]) || null
-    })
-    .filter(Boolean)
-
   return {
-    code: status.code,
+    code: +err.code,
+    message: message,
     details
   }
 }
