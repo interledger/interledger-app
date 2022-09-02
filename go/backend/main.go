@@ -176,6 +176,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.twilio = twilioService
 
 	us, err := _unit.NewService(_unit.ServiceArgs{
 		BaseURL:         args.UnitBaseURL,
@@ -515,6 +516,7 @@ type backends struct {
 	users        user.Service
 	payments     payments.Client
 	transactions account_transactions.Client
+	twilio       _twilio.Service
 }
 
 func (b backends) Transactions() account_transactions.Client {
@@ -563,4 +565,8 @@ func (b backends) Validator() *validator.Validate {
 
 func (b backends) Payments() payments.Client {
 	return b.payments
+}
+
+func (b backends) Twilio() _twilio.Service {
+	return b.twilio
 }

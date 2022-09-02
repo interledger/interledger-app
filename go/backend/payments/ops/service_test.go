@@ -4,6 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
+	"gitlab.com/fynbos/backend/twilio"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -102,11 +106,21 @@ func TestPayments(s *testing.T) {
 			}, nil,
 		).Times(1)
 
+		container.TwilioImpl.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: id.MobileNumber,
+			Code:        "103",
+		}).Return(&twilio.Verification{
+			Status:      "approved",
+			PhoneNumber: id.MobileNumber,
+			Sid:         "",
+		}, nil).Times(1)
+
 		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), payments.InitiateOutgoingPaymentArgs{
 			IdentityID: acc.IdentityID,
 			AccountID:  acc.ID,
 			Amount:     amount,
 			To:         "$test.fynbos.test/alice",
+			OTP:        "103",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -171,6 +185,7 @@ func TestPayments(s *testing.T) {
 }
 
 type TestContainer struct {
+	Ctrl               *gomock.Controller
 	IdentityService    _identity.Client
 	AccountService     _accounts.Client
 	CountryService     _country.Client
@@ -185,6 +200,7 @@ type TestContainer struct {
 	Logger             *zap.Logger
 	Ctx                context.Context
 	ValidatorImpl      *validator.Validate
+	TwilioImpl         *twilio.MockService
 }
 
 func (t TestContainer) Payments() payments.Client {
@@ -227,6 +243,10 @@ func (t TestContainer) Pacioli() pacioli.Client {
 	return t.PacioliClient
 }
 
+func (t TestContainer) Twilio() twilio.Service {
+	return t.TwilioImpl
+}
+
 func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error) {
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
@@ -242,6 +262,9 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 		return nil, err
 	}
 	c.Logger = logger
+
+	c.Ctrl = gomock.NewController(s)
+	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
 
 	cs := country_client.New(c)
 	c.CountryService = cs

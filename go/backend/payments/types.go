@@ -26,7 +26,6 @@ type InitiateOutgoingPaymentArgs struct {
 	Amount     uint64 `validate:"gt=0"`
 	To         string `validate:"required"`
 	OTP        string
-	Source     string
 }
 
 type State string
