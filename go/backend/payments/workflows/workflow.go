@@ -1,10 +1,11 @@
-package payments
+package workflows
 
 import (
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/payments"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -21,7 +22,7 @@ func OutgoingPaymentWorkflow(ctx workflow.Context, id string) error {
 
 	var a *Activity
 
-	err := workflow.ExecuteActivity(ctx, a.SetOutgoingPaymentState, id, Processing).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.SetOutgoingPaymentState, id, payments.Processing).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error setting state", err)
 		return err
@@ -71,7 +72,7 @@ func OutgoingPaymentWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SetOutgoingPaymentState, id, Complete).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetOutgoingPaymentState, id, payments.Complete).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error setting state", err)
 		return err

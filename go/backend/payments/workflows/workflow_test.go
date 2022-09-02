@@ -1,8 +1,10 @@
-package payments_test
+package workflows_test
 
 import (
 	"context"
 	"testing"
+
+	"gitlab.com/fynbos/backend/payments/workflows"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -18,11 +20,11 @@ type UnitTestSuite struct {
 	testsuite.WorkflowTestSuite
 
 	env *testsuite.TestWorkflowEnvironment
-	pa  *payments.Activity
+	pa  *workflows.Activity
 }
 
 func (s *UnitTestSuite) SetupSuite() {
-	pa := payments.Activity{}
+	pa := workflows.Activity{}
 
 	s.pa = &pa
 }
@@ -60,7 +62,7 @@ func (s *UnitTestSuite) Test_Outgoing_Payment_Workflow_Success() {
 			return nil
 		})
 
-	s.env.ExecuteWorkflow(payments.OutgoingPaymentWorkflow, paymentId.String())
+	s.env.ExecuteWorkflow(workflows.OutgoingPaymentWorkflow, paymentId.String())
 
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
