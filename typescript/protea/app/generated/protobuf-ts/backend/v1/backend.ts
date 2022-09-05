@@ -180,10 +180,6 @@ export interface AddBankAccountRequest {
      * @generated from protobuf field: string memberGuid = 2;
      */
     memberGuid: string;
-    /**
-     * @generated from protobuf field: string name = 3;
-     */
-    name: string;
 }
 /**
  * @generated from protobuf message backend.v1.AddBankAccountResponse
@@ -1308,12 +1304,11 @@ class AddBankAccountRequest$Type extends MessageType<AddBankAccountRequest> {
     constructor() {
         super("backend.v1.AddBankAccountRequest", [
             { no: 1, name: "userGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "memberGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "memberGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<AddBankAccountRequest>): AddBankAccountRequest {
-        const message = { userGuid: "", memberGuid: "", name: "" };
+        const message = { userGuid: "", memberGuid: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AddBankAccountRequest>(this, message, value);
@@ -1329,9 +1324,6 @@ class AddBankAccountRequest$Type extends MessageType<AddBankAccountRequest> {
                     break;
                 case /* string memberGuid */ 2:
                     message.memberGuid = reader.string();
-                    break;
-                case /* string name */ 3:
-                    message.name = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1351,9 +1343,6 @@ class AddBankAccountRequest$Type extends MessageType<AddBankAccountRequest> {
         /* string memberGuid = 2; */
         if (message.memberGuid !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.memberGuid);
-        /* string name = 3; */
-        if (message.name !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.name);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

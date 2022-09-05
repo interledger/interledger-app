@@ -32,7 +32,6 @@ export async function action({ request }: ActionArgs) {
       {
         memberGuid: data.get('memberGuid')?.toString() || '',
         userGuid: data.get('userGuid')?.toString() || '',
-        name: 'test'
       },
       {
         meta: {

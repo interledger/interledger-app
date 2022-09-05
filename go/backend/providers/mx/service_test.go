@@ -617,7 +617,6 @@ func TestInitiateCreateAccount(t *testing.T) {
 	accountID := uuid.NewString()
 	userGuid := uuid.NewString()
 	memberGuid := uuid.NewString()
-	fundingSourceName := "test"
 	scenarios := []struct {
 		Name          string
 		ExpectedError error
@@ -681,11 +680,10 @@ func TestInitiateCreateAccount(t *testing.T) {
 			worflowUuid, err := mx.InitiateCreateAccount(
 				context.Background(),
 				&InitiateCreateAccountArgs{
-					IdentityID:        userID,
-					AccountID:         accountID,
-					UserGuid:          userGuid,
-					MemberGuid:        memberGuid,
-					FundingsourceName: fundingSourceName,
+					IdentityID: userID,
+					AccountID:  accountID,
+					UserGuid:   userGuid,
+					MemberGuid: memberGuid,
 				},
 			)
 

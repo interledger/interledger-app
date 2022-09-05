@@ -422,11 +422,10 @@ func (s *service) GetConnectWidget(
 }
 
 type InitiateCreateAccountArgs struct {
-	UserGuid          string `validate:"required"` // from mx
-	MemberGuid        string `validate:"required"` // from mx
-	AccountID         string `validate:"uuid4"`
-	IdentityID        string `validate:"uuid4"`
-	FundingsourceName string `validate:"required"`
+	UserGuid   string `validate:"required"` // from mx
+	MemberGuid string `validate:"required"` // from mx
+	AccountID  string `validate:"uuid4"`
+	IdentityID string `validate:"uuid4"`
 }
 
 func (s *service) InitiateCreateAccount(
@@ -456,12 +455,11 @@ func (s *service) InitiateCreateAccount(
 		},
 		CreateMxAccountWorkflow,
 		&CreateMxAccountWorkflowArgs{
-			ID:                workflowUuid,
-			IdentityID:        args.IdentityID,
-			AccountID:         args.AccountID,
-			UserGuid:          args.UserGuid,
-			MemberGuid:        args.MemberGuid,
-			FundingsourceName: args.FundingsourceName,
+			ID:         workflowUuid,
+			IdentityID: args.IdentityID,
+			AccountID:  args.AccountID,
+			UserGuid:   args.UserGuid,
+			MemberGuid: args.MemberGuid,
 		},
 	)
 	if err != nil {
