@@ -107,7 +107,6 @@ message GetBankAccountWidgetResponse {
 message AddBankAccountRequest {
   string userGuid = 1;
   string memberGuid = 2;
-  string name = 3;
 }
 
 message AddBankAccountResponse {

@@ -36,7 +36,7 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	userID := uuid.NewString()
 	accountID := uuid.NewString()
 	fundingsourceID := uuid.NewString()
-	fundingsourceName := "workflow-test"
+	fundingsourceName := "todo"
 	mxAccountGuid := "acct_" + uuid.NewString()
 	mxMemberGuid := "mbr_" + uuid.NewString()
 	mxUserGuid := "usr_" + uuid.NewString()
@@ -88,12 +88,11 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	).Return(nil)
 
 	s.env.ExecuteWorkflow(CreateMxAccountWorkflow, &CreateMxAccountWorkflowArgs{
-		ID:                fundingsourceID,
-		UserGuid:          mxUserGuid,
-		MemberGuid:        mxMemberGuid,
-		AccountID:         accountID,
-		IdentityID:        userID,
-		FundingsourceName: fundingsourceName,
+		ID:         fundingsourceID,
+		UserGuid:   mxUserGuid,
+		MemberGuid: mxMemberGuid,
+		AccountID:  accountID,
+		IdentityID: userID,
 	})
 
 	s.True(s.env.IsWorkflowCompleted())

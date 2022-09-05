@@ -46,11 +46,10 @@ func (s *rpcService) AddBankAccount(
 	}
 
 	workflowUuid, err := s.mxProvider.InitiateCreateAccount(ctx, &mx.InitiateCreateAccountArgs{
-		AccountID:         acc.ID,
-		IdentityID:        user.ID,
-		UserGuid:          req.GetUserGuid(),
-		MemberGuid:        req.GetMemberGuid(),
-		FundingsourceName: req.GetName(),
+		AccountID:  acc.ID,
+		IdentityID: user.ID,
+		UserGuid:   req.GetUserGuid(),
+		MemberGuid: req.GetMemberGuid(),
 	})
 	if err != nil {
 		return nil, InternalError("Unable to create bank account.")

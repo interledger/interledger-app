@@ -169,7 +169,6 @@ func TestAddBankAccount(t *testing.T) {
 	mxUserGuid := ""
 	mxMemberGuid := ""
 	workflowUuid := ""
-	fundingSourceName := "test"
 	scenarios := []struct {
 		Name          string
 		ExpectedError string
@@ -192,11 +191,10 @@ func TestAddBankAccount(t *testing.T) {
 				).Times(1)
 				workflowUuid = uuid.NewString()
 				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), &mx.InitiateCreateAccountArgs{
-					IdentityID:        userID,
-					AccountID:         accountID,
-					UserGuid:          mxUserGuid,
-					MemberGuid:        mxMemberGuid,
-					FundingsourceName: fundingSourceName,
+					IdentityID: userID,
+					AccountID:  accountID,
+					UserGuid:   mxUserGuid,
+					MemberGuid: mxMemberGuid,
 				}).Return(workflowUuid, nil).Times(1)
 			},
 		},
@@ -243,7 +241,6 @@ func TestAddBankAccount(t *testing.T) {
 				&backendv1.AddBankAccountRequest{
 					UserGuid:   mxUserGuid,
 					MemberGuid: mxMemberGuid,
-					Name:       fundingSourceName,
 				},
 			)
 
