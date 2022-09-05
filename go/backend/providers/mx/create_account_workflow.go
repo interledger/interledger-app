@@ -54,9 +54,10 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		),
 		a.WaitForAggregation,
 		&WaitForAggregationArgs{
-			MxAccountGuid: mxAccountGuid,
-			MaxRetries:    5,
-			PollInterval:  12 * time.Second,
+			MaxRetries:   5,
+			PollInterval: 12 * time.Second,
+			MxMemberGuid: args.MemberGuid,
+			MxUserGuid:   args.UserGuid,
 		},
 	).Get(ctx, nil)
 	if err != nil {

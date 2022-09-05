@@ -87,9 +87,10 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 		),
 		mxActivity.WaitForAggregation,
 		&mx.WaitForAggregationArgs{
-			MxAccountGuid: mxAcc.Guid,
-			MaxRetries:    5,
-			PollInterval:  12 * time.Second,
+			MxUserGuid:   mxAcc.UserGuid,
+			MxMemberGuid: mxAcc.MemberGuid,
+			MaxRetries:   5,
+			PollInterval: 12 * time.Second,
 		},
 	).Get(ctx, nil)
 	if err != nil {

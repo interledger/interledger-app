@@ -94,33 +94,25 @@ func TestGetMemberStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
-		Guid:            uuid.NewString(),
-		UserGuid:        uuid.NewString(),
-		MemberGuid:      uuid.NewString(),
-		AccountID:       uuid.NewString(),
-		FundingsourceID: uuid.NewString(),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	mockExternalClient.EXPECT().GetMemberStatus(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+	userGuid := uuid.NewString()
+	memberGuid := uuid.NewString()
+	mockExternalClient.EXPECT().GetMemberStatus(ctx, userGuid, memberGuid).
 		Return(
 			&external.Member{
-				Guid:              mxAccount.MemberGuid,
-				UserGuid:          mxAccount.UserGuid,
+				Guid:              memberGuid,
+				UserGuid:          userGuid,
 				IsBeingAggregated: false,
 			},
 			nil,
 		).Times(1)
 
-	member, err := mx.GetMemberStatus(ctx, mxAccount.Guid)
+	member, err := mx.GetMemberStatus(ctx, userGuid, memberGuid)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, mxAccount.UserGuid, member.UserGuid)
-	assert.Equal(t, mxAccount.MemberGuid, member.Guid)
+	assert.Equal(t, userGuid, member.UserGuid)
+	assert.Equal(t, memberGuid, member.Guid)
 	assert.Equal(t, false, member.IsBeingAggregated)
 }
 

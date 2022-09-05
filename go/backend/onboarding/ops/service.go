@@ -1,7 +1,5 @@
 package ops
 
-//go:generate mockgen -destination=./mock.go -package=onboarding -source=./service.go
-
 import (
 	"context"
 	"database/sql"

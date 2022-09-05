@@ -35,7 +35,7 @@ type (
 		GetAccount(ctx context.Context, mxAccountGuid string) (*Account, error)
 		GetAccountByFundingsource(ctx context.Context, fundingsourceID string) (*Account, error)
 		StartIdentityAggregation(ctx context.Context, mxUserGuid, mxMemberGuid string) (*Member, error)
-		GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error)
+		GetMemberStatus(ctx context.Context, mxUserGuid, mxMemberGuid string) (*Member, error)
 		// This will fetch the account owner information for the specified mx account. The identity
 		// aggregation has to have been completed first.
 		GetAccountOwner(ctx context.Context, mxAccountGuid string) (*AccountOwner, error)
@@ -218,13 +218,8 @@ func (s *service) StartIdentityAggregation(ctx context.Context, mxUserGuid, mxMe
 	}, nil
 }
 
-func (s *service) GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error) {
-	mxAccount, err := s.GetAccount(ctx, mxAccountGuid)
-	if err != nil {
-		return nil, err
-	}
-
-	member, err := s.externalClient.GetMemberStatus(ctx, mxAccount.UserGuid, mxAccount.MemberGuid)
+func (s *service) GetMemberStatus(ctx context.Context, mxUserGuid, mxMemberGuid string) (*Member, error) {
+	member, err := s.externalClient.GetMemberStatus(ctx, mxUserGuid, mxMemberGuid)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
