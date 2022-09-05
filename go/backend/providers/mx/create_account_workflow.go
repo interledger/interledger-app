@@ -38,20 +38,6 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(
-		ctx,
-		a.CreateMxAccount,
-		fundingsourceID,
-		args.AccountID,
-		args.UserGuid,
-		args.MemberGuid,
-		mxAccountGuid,
-	).Get(ctx, nil)
-	if err != nil {
-		logger.Error("Failed to create mx account.", err)
-		return err
-	}
-
 	err = workflow.ExecuteActivity(ctx, a.StartIdentityAggregation, mxAccountGuid).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to start mx identity aggregation.", err)
@@ -81,6 +67,20 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, mxAccountGuid).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Bank account is not owned by user.")
+		return err
+	}
+
+	err = workflow.ExecuteActivity(
+		ctx,
+		a.CreateMxAccount,
+		fundingsourceID,
+		args.AccountID,
+		args.UserGuid,
+		args.MemberGuid,
+		mxAccountGuid,
+	).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Failed to create mx account.", err)
 		return err
 	}
 

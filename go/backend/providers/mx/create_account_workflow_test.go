@@ -50,16 +50,6 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	)
 
 	s.env.OnActivity(
-		s.activity.CreateMxAccount,
-		mock.Anything,
-		fundingsourceID,
-		accountID,
-		mxUserGuid,
-		mxMemberGuid,
-		mxAccountGuid,
-	).Return(nil)
-
-	s.env.OnActivity(
 		s.activity.StartIdentityAggregation,
 		mock.Anything,
 		mxAccountGuid,
@@ -77,6 +67,16 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	})
 
 	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, mxAccountGuid).Return(nil)
+
+	s.env.OnActivity(
+		s.activity.CreateMxAccount,
+		mock.Anything,
+		fundingsourceID,
+		accountID,
+		mxUserGuid,
+		mxMemberGuid,
+		mxAccountGuid,
+	).Return(nil)
 
 	s.env.OnActivity(s.activity.CreateUnitCounterParty, mock.Anything, mxAccountGuid).Return(nil)
 
