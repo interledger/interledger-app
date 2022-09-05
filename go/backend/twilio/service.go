@@ -44,6 +44,10 @@ type (
 	}
 )
 
+func (v Verification) IsValid() bool {
+	return v.Status == "approved"
+}
+
 func NewService(args *ServiceArgs) (Service, error) {
 	validator := validator.New()
 	err := validator.Struct(args)

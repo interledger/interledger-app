@@ -27,12 +27,12 @@ func (s *rpcService) InitiateOutgoingPayment(ctx context.Context, req *pb.Initia
 }
 
 func (s *rpcService) GetOutgoingPayment(ctx context.Context, req *pb.GetOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
-	_, err := s.userService.ForContext(ctx)
+	user, err := s.userService.ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	p, err := s.paymentsClient.Get(ctx, req.Id)
+	p, err := s.paymentsClient.Get(ctx, req.Id, user.ID)
 	if err != nil {
 		return nil, grpcError(err)
 	}

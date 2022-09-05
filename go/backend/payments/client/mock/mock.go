@@ -36,18 +36,33 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(ctx context.Context, id string) (*payments.OutgoingPayment, error) {
+func (m *MockClient) Get(ctx context.Context, id, userID string) (*payments.OutgoingPayment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id)
+	ret := m.ctrl.Call(m, "Get", ctx, id, userID)
 	ret0, _ := ret[0].(*payments.OutgoingPayment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Get(ctx, id, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id, userID)
+}
+
+// GetUnauthenticated mocks base method.
+func (m *MockClient) GetUnauthenticated(ctx context.Context, id string) (*payments.OutgoingPayment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUnauthenticated", ctx, id)
+	ret0, _ := ret[0].(*payments.OutgoingPayment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUnauthenticated indicates an expected call of GetUnauthenticated.
+func (mr *MockClientMockRecorder) GetUnauthenticated(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnauthenticated", reflect.TypeOf((*MockClient)(nil).GetUnauthenticated), ctx, id)
 }
 
 // InitiateOutgoingPayment mocks base method.

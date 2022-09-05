@@ -25,7 +25,7 @@ func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPay
 	logger := activity.GetLogger(ctx)
 	logger.Info("Creating pending transaction")
 
-	outgoingPayment, err := s.b.Payments().Get(ctx, outgoingPaymentId)
+	outgoingPayment, err := s.b.Payments().GetUnauthenticated(ctx, outgoingPaymentId)
 	if err != nil {
 		return "", err
 	}
@@ -75,7 +75,7 @@ func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPay
 
 func (s *Activity) ProcessNoopOutgoingPayment(ctx context.Context, outgoingPaymentId string) error {
 
-	outgoingPayment, err := s.b.Payments().Get(ctx, outgoingPaymentId)
+	outgoingPayment, err := s.b.Payments().GetUnauthenticated(ctx, outgoingPaymentId)
 	if err != nil {
 		return err
 	}
