@@ -184,6 +184,20 @@ func (mr *MockServiceMockRecorder) InitiateCreateAccount(ctx, args interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateCreateAccount", reflect.TypeOf((*MockService)(nil).InitiateCreateAccount), ctx, args)
 }
 
+// InitiateCreateFundingsource mocks base method.
+func (m *MockService) InitiateCreateFundingsource(ctx context.Context, args *InitiateCreateFundingsourceArgs) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InitiateCreateFundingsource", ctx, args)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InitiateCreateFundingsource indicates an expected call of InitiateCreateFundingsource.
+func (mr *MockServiceMockRecorder) InitiateCreateFundingsource(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateCreateFundingsource", reflect.TypeOf((*MockService)(nil).InitiateCreateFundingsource), ctx, args)
+}
+
 // ReadAccount mocks base method.
 func (m *MockService) ReadAccount(ctx context.Context, mxAccountGuid string) (*AccountDetails, error) {
 	m.ctrl.T.Helper()

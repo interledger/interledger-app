@@ -344,20 +344,20 @@ func TestContinueAddingBankAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
+	accountID := uuid.NewString()
+	userID := uuid.NewString()
+	fundingsourceID := uuid.NewString()
+	mxAccountGuid := "acc_" + uuid.NewString()
+
+	c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+		&accounts.Account{
+			ID:         accountID,
+			IdentityID: userID,
+		},
+		nil,
+	).AnyTimes()
 
 	t.Run("user can only get their own account info", func(st *testing.T) {
-		accountID := uuid.NewString()
-		userID := uuid.NewString()
-		fundingsourceID := uuid.NewString()
-		mxAccountGuid := "acc_" + uuid.NewString()
-
-		c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-			&accounts.Account{
-				ID:         accountID,
-				IdentityID: userID,
-			},
-			nil,
-		)
 		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
 			&mx.Account{
 				Guid:            mxAccountGuid,
@@ -365,7 +365,7 @@ func TestContinueAddingBankAccount(t *testing.T) {
 				FundingsourceID: fundingsourceID,
 			},
 			nil,
-		)
+		).Times(1)
 
 		resp, err := client.ContinueAddingBankAccount(
 			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
@@ -378,6 +378,36 @@ func TestContinueAddingBankAccount(t *testing.T) {
 		require.Error(st, err)
 		assert.Nil(st, resp)
 		assert.Equal(st, "rpc error: code = PermissionDenied desc = Forbidden: Unauthorized.", err.Error())
+	})
+
+	t.Run("initiates creating of funding source", func(st *testing.T) {
+		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
+			&mx.Account{
+				Guid:            mxAccountGuid,
+				AccountID:       accountID,
+				FundingsourceID: fundingsourceID,
+			},
+			nil,
+		).Times(1)
+		c.MxProvider.EXPECT().InitiateCreateFundingsource(gomock.Any(), &mx.InitiateCreateFundingsourceArgs{
+			AccountID:     accountID,
+			Otp:           "1234",
+			Name:          "test-account",
+			MxAccountGuid: mxAccountGuid,
+		}).Times(1)
+
+		resp, err := client.ContinueAddingBankAccount(
+			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			&backendv1.ContinueAddingBankAccountRequest{
+				FundingsourceId: fundingsourceID,
+				Otp:             "1234",
+				NickName:        "test-account",
+			})
+		if err != nil {
+			st.Fatal(err)
+		}
+
+		assert.True(st, resp.GetSuccess())
 	})
 }
 

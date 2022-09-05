@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/mx/external"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -52,6 +53,7 @@ type (
 		InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error)
 		// Blocks till the workflow is complete and returns the result.
 		WaitForCreateAccount(ctx context.Context, fundingsourceID string) error
+		InitiateCreateFundingsource(ctx context.Context, args *InitiateCreateFundingsourceArgs) error
 		StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error)
 		GetAccountBalance(ctx context.Context, mxAccountGuid string) (*AccountBalance, error)
 	}
@@ -104,6 +106,7 @@ type (
 		AccountsService accounts.Client `validate:"required"`
 		IdentityService identity.Client `validate:"required"`
 		Temporal        client.Client   `validate:"required"`
+		Twilio          twilio.Service  `validate:"required"`
 	}
 
 	service struct {
@@ -113,6 +116,7 @@ type (
 		accountsService accounts.Client
 		identityService identity.Client
 		temporal        client.Client
+		twilio          twilio.Service
 	}
 )
 
@@ -129,6 +133,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 		accountsService: args.AccountsService,
 		identityService: args.IdentityService,
 		temporal:        args.Temporal,
+		twilio:          args.Twilio,
 	}, nil
 }
 
@@ -471,6 +476,68 @@ func (s *service) InitiateCreateAccount(
 
 func (s *service) WaitForCreateAccount(ctx context.Context, fundingsourceID string) error {
 	err := s.temporal.GetWorkflow(ctx, "create_mx_bank_account_"+fundingsourceID, "").Get(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
+}
+
+type InitiateCreateFundingsourceArgs struct {
+	AccountID     string `validate:"required"`
+	Otp           string `validate:"required"`
+	Name          string `validate:"required"`
+	MxAccountGuid string `validate:"uuid4"`
+}
+
+func (s *service) InitiateCreateFundingsource(ctx context.Context, args *InitiateCreateFundingsourceArgs) error {
+	if err := s.v.Struct(args); err != nil {
+		return fmt.Errorf("%w %s", ErrInvalidArgument, err)
+	}
+
+	mxAccount, err := s.GetAccount(ctx, args.MxAccountGuid)
+	if err != nil {
+		return err
+	}
+
+	acc, err := s.accountsService.Get(ctx, args.AccountID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	if mxAccount.AccountID != acc.ID {
+		return ErrUnauthorized
+	}
+
+	user, err := s.identityService.Get(ctx, acc.IdentityID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	v, err := s.twilio.CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		Code:        args.Otp,
+		PhoneNumber: user.MobileNumber,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	if !v.IsValid() {
+		return fmt.Errorf("%w %s", ErrUnauthorized, "2FA failed.")
+	}
+
+	_, err = s.temporal.ExecuteWorkflow(
+		ctx,
+		client.StartWorkflowOptions{
+			ID:                    "mx_create_fundingsource_" + uuid.NewString(),
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		},
+		MxCreateFundingsourceWorkflow,
+		&MxCreateFundingsourceWorkflowArgs{
+			MxAccountGuid: mxAccount.Guid,
+			AccountID:     acc.ID,
+			Name:          args.Name,
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
