@@ -42,7 +42,7 @@ message Empty{}
 
 service BackendService {
   rpc GetBankAccountWidget(GetBankAccountWidgetRequest) returns (GetBankAccountWidgetResponse);
-  rpc InitiateCreateBankAccount (InitiateCreateBankAccountRequest) returns (InitiateCreateBankAccountResponse);
+  rpc AddBankAccount (AddBankAccountRequest) returns (AddBankAccountResponse);
   // Returns the current onboarding flow.
   rpc GetOnboarding(GetOnboardingRequest) returns (Onboarding);
   // Creates the onboarding flow if it does not already exist.
@@ -102,14 +102,14 @@ message GetBankAccountWidgetResponse {
   string url = 1;
 }
 
-message InitiateCreateBankAccountRequest {
+message AddBankAccountRequest {
   string userGuid = 1;
   string memberGuid = 2;
   string name = 3;
 }
 
-message InitiateCreateBankAccountResponse {
-  string reference = 1;
+message AddBankAccountResponse {
+  string fundingsourceId = 1;
 }
 
 message FundingSource {

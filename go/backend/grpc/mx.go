@@ -31,10 +31,10 @@ func (s *rpcService) GetBankAccountWidget(
 	}, nil
 }
 
-func (s *rpcService) InitiateCreateBankAccount(
+func (s *rpcService) AddBankAccount(
 	ctx context.Context,
-	req *backendv1.InitiateCreateBankAccountRequest,
-) (*backendv1.InitiateCreateBankAccountResponse, error) {
+	req *backendv1.AddBankAccountRequest,
+) (*backendv1.AddBankAccountResponse, error) {
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -56,7 +56,7 @@ func (s *rpcService) InitiateCreateBankAccount(
 		return nil, InternalError("Unable to create bank account.")
 	}
 
-	return &backendv1.InitiateCreateBankAccountResponse{
-		Reference: workflowUuid,
+	return &backendv1.AddBankAccountResponse{
+		FundingsourceId: workflowUuid,
 	}, nil
 }

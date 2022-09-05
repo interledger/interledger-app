@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderArgs) {
 export async function action({ request }: ActionArgs) {
   let data = await request.formData()
   let response = await grpcClient
-    .initiateCreateBankAccount(
+    .addBankAccount(
       {
         memberGuid: data.get('memberGuid')?.toString() || '',
         userGuid: data.get('userGuid')?.toString() || '',
@@ -46,7 +46,7 @@ export async function action({ request }: ActionArgs) {
     throw response
   }
 
-  return json({ reference: response.response.reference })
+  return json({ fundingsourceId: response.response.fundingsourceId })
 }
 
 export default function Page() {
@@ -72,7 +72,7 @@ export default function Page() {
   return (
     <>
       <div id='widget' className='mx-auto h-screen w-full'></div>
-      <div>reference={actionData?.reference}</div>
+      <div>reference={actionData?.fundingsourceId}</div>
     </>
   )
 }

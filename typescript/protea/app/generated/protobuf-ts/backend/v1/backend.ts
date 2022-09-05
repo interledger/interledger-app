@@ -169,9 +169,9 @@ export interface GetBankAccountWidgetResponse {
     url: string;
 }
 /**
- * @generated from protobuf message backend.v1.InitiateCreateBankAccountRequest
+ * @generated from protobuf message backend.v1.AddBankAccountRequest
  */
-export interface InitiateCreateBankAccountRequest {
+export interface AddBankAccountRequest {
     /**
      * @generated from protobuf field: string userGuid = 1;
      */
@@ -186,13 +186,13 @@ export interface InitiateCreateBankAccountRequest {
     name: string;
 }
 /**
- * @generated from protobuf message backend.v1.InitiateCreateBankAccountResponse
+ * @generated from protobuf message backend.v1.AddBankAccountResponse
  */
-export interface InitiateCreateBankAccountResponse {
+export interface AddBankAccountResponse {
     /**
-     * @generated from protobuf field: string reference = 1;
+     * @generated from protobuf field: string fundingsourceId = 1;
      */
-    reference: string;
+    fundingsourceId: string;
 }
 /**
  * @generated from protobuf message backend.v1.FundingSource
@@ -1244,22 +1244,22 @@ class GetBankAccountWidgetResponse$Type extends MessageType<GetBankAccountWidget
  */
 export const GetBankAccountWidgetResponse = new GetBankAccountWidgetResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class InitiateCreateBankAccountRequest$Type extends MessageType<InitiateCreateBankAccountRequest> {
+class AddBankAccountRequest$Type extends MessageType<AddBankAccountRequest> {
     constructor() {
-        super("backend.v1.InitiateCreateBankAccountRequest", [
+        super("backend.v1.AddBankAccountRequest", [
             { no: 1, name: "userGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "memberGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<InitiateCreateBankAccountRequest>): InitiateCreateBankAccountRequest {
+    create(value?: PartialMessage<AddBankAccountRequest>): AddBankAccountRequest {
         const message = { userGuid: "", memberGuid: "", name: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<InitiateCreateBankAccountRequest>(this, message, value);
+            reflectionMergePartial<AddBankAccountRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateCreateBankAccountRequest): InitiateCreateBankAccountRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddBankAccountRequest): AddBankAccountRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1284,7 +1284,7 @@ class InitiateCreateBankAccountRequest$Type extends MessageType<InitiateCreateBa
         }
         return message;
     }
-    internalBinaryWrite(message: InitiateCreateBankAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: AddBankAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string userGuid = 1; */
         if (message.userGuid !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.userGuid);
@@ -1301,30 +1301,30 @@ class InitiateCreateBankAccountRequest$Type extends MessageType<InitiateCreateBa
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.InitiateCreateBankAccountRequest
+ * @generated MessageType for protobuf message backend.v1.AddBankAccountRequest
  */
-export const InitiateCreateBankAccountRequest = new InitiateCreateBankAccountRequest$Type();
+export const AddBankAccountRequest = new AddBankAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class InitiateCreateBankAccountResponse$Type extends MessageType<InitiateCreateBankAccountResponse> {
+class AddBankAccountResponse$Type extends MessageType<AddBankAccountResponse> {
     constructor() {
-        super("backend.v1.InitiateCreateBankAccountResponse", [
-            { no: 1, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("backend.v1.AddBankAccountResponse", [
+            { no: 1, name: "fundingsourceId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<InitiateCreateBankAccountResponse>): InitiateCreateBankAccountResponse {
-        const message = { reference: "" };
+    create(value?: PartialMessage<AddBankAccountResponse>): AddBankAccountResponse {
+        const message = { fundingsourceId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<InitiateCreateBankAccountResponse>(this, message, value);
+            reflectionMergePartial<AddBankAccountResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateCreateBankAccountResponse): InitiateCreateBankAccountResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddBankAccountResponse): AddBankAccountResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string reference */ 1:
-                    message.reference = reader.string();
+                case /* string fundingsourceId */ 1:
+                    message.fundingsourceId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1337,10 +1337,10 @@ class InitiateCreateBankAccountResponse$Type extends MessageType<InitiateCreateB
         }
         return message;
     }
-    internalBinaryWrite(message: InitiateCreateBankAccountResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string reference = 1; */
-        if (message.reference !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.reference);
+    internalBinaryWrite(message: AddBankAccountResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fundingsourceId = 1; */
+        if (message.fundingsourceId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fundingsourceId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1348,9 +1348,9 @@ class InitiateCreateBankAccountResponse$Type extends MessageType<InitiateCreateB
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.InitiateCreateBankAccountResponse
+ * @generated MessageType for protobuf message backend.v1.AddBankAccountResponse
  */
-export const InitiateCreateBankAccountResponse = new InitiateCreateBankAccountResponse$Type();
+export const AddBankAccountResponse = new AddBankAccountResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class FundingSource$Type extends MessageType<FundingSource> {
     constructor() {
@@ -2920,7 +2920,7 @@ export const BackendAdminService = new ServiceType("backend.v1.BackendAdminServi
  */
 export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetBankAccountWidget", options: {}, I: GetBankAccountWidgetRequest, O: GetBankAccountWidgetResponse },
-    { name: "InitiateCreateBankAccount", options: {}, I: InitiateCreateBankAccountRequest, O: InitiateCreateBankAccountResponse },
+    { name: "AddBankAccount", options: {}, I: AddBankAccountRequest, O: AddBankAccountResponse },
     { name: "GetOnboarding", options: {}, I: GetOnboardingRequest, O: Onboarding },
     { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding },
     { name: "CreateIdentity", options: {}, I: CreateIdentityRequest, O: CreateIdentityResponse },

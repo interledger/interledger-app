@@ -158,7 +158,7 @@ func TestGetBankAccountWidget(t *testing.T) {
 	}
 }
 
-func TestInitiateCreateBankAccount(t *testing.T) {
+func TestAddBankAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
@@ -237,9 +237,9 @@ func TestInitiateCreateBankAccount(t *testing.T) {
 		t.Run(scenario.Name, func(st *testing.T) {
 			scenario.RunBefore()
 
-			response, err := client.InitiateCreateBankAccount(
+			response, err := client.AddBankAccount(
 				_user.ActingAsContext(t, context.Background(), &user.User{ID: userID}),
-				&backendv1.InitiateCreateBankAccountRequest{
+				&backendv1.AddBankAccountRequest{
 					UserGuid:   mxUserGuid,
 					MemberGuid: mxMemberGuid,
 					Name:       fundingSourceName,
@@ -248,7 +248,7 @@ func TestInitiateCreateBankAccount(t *testing.T) {
 
 			if scenario.ExpectedError == "" {
 				assert.NoError(t, err, scenario.Name)
-				assert.Equal(t, workflowUuid, response.Reference, scenario.Name)
+				assert.Equal(t, workflowUuid, response.FundingsourceId, scenario.Name)
 			} else {
 				assert.Equal(t, scenario.ExpectedError, err.Error(), scenario.Name)
 				assert.Nil(t, response, scenario.Name)
