@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"gitlab.com/fynbos/backend/supporttickets"
 
 	"github.com/go-playground/validator/v10"
@@ -51,6 +53,7 @@ type ServerArgs struct {
 	WaitlistClient       waitlist.Client       `validate:"required"`
 	Temporal             client.Client         `validate:"required"`
 	TicketClient         supporttickets.Client `validate:"required"`
+	PaymentsClient       payments.Client       `validate:"required"`
 }
 
 type rpcService struct {
@@ -68,6 +71,7 @@ type rpcService struct {
 	twilioService        twilio.Service
 	waitlistClient       waitlist.Client
 	ticketsClient        supporttickets.Client
+	paymentsClient       payments.Client
 }
 
 func NewServer(args *ServerArgs) (*grpc.Server, error) {
@@ -95,6 +99,7 @@ func NewServer(args *ServerArgs) (*grpc.Server, error) {
 		twilioService:        args.TwilioService,
 		waitlistClient:       args.WaitlistClient,
 		ticketsClient:        args.TicketClient,
+		paymentsClient:       args.PaymentsClient,
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       v,

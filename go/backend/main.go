@@ -320,6 +320,7 @@ func start(args *cli.StartArgs) {
 		WaitlistClient:       waitlist_client.New(b, logger),
 		Temporal:             tp,
 		TicketClient:         supportTickets,
+		PaymentsClient:       ps,
 	})
 	if err != nil {
 		log.Fatalln(err)

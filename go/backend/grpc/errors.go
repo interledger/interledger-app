@@ -3,20 +3,24 @@ package grpc
 import (
 	"errors"
 	"fmt"
-	"log"
 
-	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/user"
+	"go.uber.org/zap"
 
 	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/log"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:  status.Error(codes.Unauthenticated, "Unauthenticated"),
-	identity.ErrNotFound: status.Error(codes.NotFound, "User identity not found"),
+	user.ErrNoUserFound:             status.Error(codes.Unauthenticated, "Unauthenticated"),
+	identity.ErrNotFound:            status.Error(codes.NotFound, "User identity not found"),
+	payments.ErrInsufficientBalance: status.Error(codes.InvalidArgument, "Insufficient funds"),
+	payments.ErrNotFound:            status.Error(codes.NotFound, "Unknown payment"),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -76,7 +80,7 @@ func grpcError(err error) error {
 	}
 
 	// Default to a generic error and log
-	log.Println("Unexpected error", err)
+	log.Error("Unexpected error", zap.Error(err))
 	return status.Error(codes.Internal, "Internal server error")
 }
 

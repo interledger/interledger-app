@@ -28,8 +28,7 @@ func (c client) InitiateOutgoingPayment(ctx context.Context, args payments.Initi
 		if err != nil {
 			c.logger.Error(
 				"Failed to initiate outgoing payment.",
-				zap.String("identityID", args.IdentityID),
-				zap.String("accountID", args.AccountID),
+				zap.String("userID", args.UserID),
 				zap.String("to", args.To),
 				zap.Uint64("amount", args.Amount),
 				zap.String("msg", err.Error()),
@@ -39,8 +38,7 @@ func (c client) InitiateOutgoingPayment(ctx context.Context, args payments.Initi
 
 		c.logger.Debug(
 			"Initiated outgoing payment.",
-			zap.String("identityID", args.IdentityID),
-			zap.String("accountID", args.AccountID),
+			zap.String("userID", args.UserID),
 			zap.String("to", args.To),
 			zap.Uint64("amount", args.Amount),
 			zap.Int64("took", time.Since(begin).Milliseconds()),

@@ -3,10 +3,12 @@ package admin_test
 import (
 	"context"
 	"fmt"
-	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
-	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	"net"
 	"testing"
+
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
+	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 
 	"go.temporal.io/sdk/client"
 
@@ -198,6 +200,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		WaitlistClient:       waitlist_mock.NewMockClient(c.Ctrl),
 		Temporal:             c.Tp,
 		TicketClient:         support_mock.NewMockClient(c.Ctrl),
+		PaymentsClient:       payments_mock.NewMockClient(c.Ctrl),
 	})
 	if err != nil {
 		return nil, err

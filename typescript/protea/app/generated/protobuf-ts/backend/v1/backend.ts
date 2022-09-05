@@ -563,6 +563,66 @@ export interface GetDepositRequest {
      */
     id: string;
 }
+/**
+ * @generated from protobuf message backend.v1.InitiateOutgoingPaymentRequest
+ */
+export interface InitiateOutgoingPaymentRequest {
+    /**
+     * @generated from protobuf field: uint64 amount = 1;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string to = 2;
+     */
+    to: string;
+    /**
+     * @generated from protobuf field: string otp = 3;
+     */
+    otp: string;
+}
+/**
+ * @generated from protobuf message backend.v1.InitiateOutgoingPaymentResponse
+ */
+export interface InitiateOutgoingPaymentResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetOutgoingPaymentRequest
+ */
+export interface GetOutgoingPaymentRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.OutgoingPayment
+ */
+export interface OutgoingPayment {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string accountId = 2;
+     */
+    accountId: string;
+    /**
+     * @generated from protobuf field: string destination = 3;
+     */
+    destination: string;
+    /**
+     * @generated from protobuf field: uint64 amount = 4;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string state = 5;
+     */
+    state: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -2617,6 +2677,236 @@ class GetDepositRequest$Type extends MessageType<GetDepositRequest> {
  * @generated MessageType for protobuf message backend.v1.GetDepositRequest
  */
 export const GetDepositRequest = new GetDepositRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InitiateOutgoingPaymentRequest$Type extends MessageType<InitiateOutgoingPaymentRequest> {
+    constructor() {
+        super("backend.v1.InitiateOutgoingPaymentRequest", [
+            { no: 1, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 2, name: "to", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<InitiateOutgoingPaymentRequest>): InitiateOutgoingPaymentRequest {
+        const message = { amount: "0", to: "", otp: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<InitiateOutgoingPaymentRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateOutgoingPaymentRequest): InitiateOutgoingPaymentRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* uint64 amount */ 1:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string to */ 2:
+                    message.to = reader.string();
+                    break;
+                case /* string otp */ 3:
+                    message.otp = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: InitiateOutgoingPaymentRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* uint64 amount = 1; */
+        if (message.amount !== "0")
+            writer.tag(1, WireType.Varint).uint64(message.amount);
+        /* string to = 2; */
+        if (message.to !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.to);
+        /* string otp = 3; */
+        if (message.otp !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.otp);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.InitiateOutgoingPaymentRequest
+ */
+export const InitiateOutgoingPaymentRequest = new InitiateOutgoingPaymentRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InitiateOutgoingPaymentResponse$Type extends MessageType<InitiateOutgoingPaymentResponse> {
+    constructor() {
+        super("backend.v1.InitiateOutgoingPaymentResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<InitiateOutgoingPaymentResponse>): InitiateOutgoingPaymentResponse {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<InitiateOutgoingPaymentResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateOutgoingPaymentResponse): InitiateOutgoingPaymentResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: InitiateOutgoingPaymentResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.InitiateOutgoingPaymentResponse
+ */
+export const InitiateOutgoingPaymentResponse = new InitiateOutgoingPaymentResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetOutgoingPaymentRequest$Type extends MessageType<GetOutgoingPaymentRequest> {
+    constructor() {
+        super("backend.v1.GetOutgoingPaymentRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetOutgoingPaymentRequest>): GetOutgoingPaymentRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetOutgoingPaymentRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetOutgoingPaymentRequest): GetOutgoingPaymentRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetOutgoingPaymentRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetOutgoingPaymentRequest
+ */
+export const GetOutgoingPaymentRequest = new GetOutgoingPaymentRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
+    constructor() {
+        super("backend.v1.OutgoingPayment", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "accountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 5, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<OutgoingPayment>): OutgoingPayment {
+        const message = { id: "", accountId: "", destination: "", amount: "0", state: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<OutgoingPayment>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: OutgoingPayment): OutgoingPayment {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string accountId */ 2:
+                    message.accountId = reader.string();
+                    break;
+                case /* string destination */ 3:
+                    message.destination = reader.string();
+                    break;
+                case /* uint64 amount */ 4:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string state */ 5:
+                    message.state = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: OutgoingPayment, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string accountId = 2; */
+        if (message.accountId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.accountId);
+        /* string destination = 3; */
+        if (message.destination !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.destination);
+        /* uint64 amount = 4; */
+        if (message.amount !== "0")
+            writer.tag(4, WireType.Varint).uint64(message.amount);
+        /* string state = 5; */
+        if (message.state !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.state);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.OutgoingPayment
+ */
+export const OutgoingPayment = new OutgoingPayment$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -2646,5 +2936,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetDeposit", options: {}, I: GetDepositRequest, O: Deposit },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
-    { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty }
+    { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
+    { name: "InitiateOutgoingPayment", options: {}, I: InitiateOutgoingPaymentRequest, O: InitiateOutgoingPaymentResponse },
+    { name: "GetOutgoingPayment", options: {}, I: GetOutgoingPaymentRequest, O: OutgoingPayment }
 ]);
