@@ -8,7 +8,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
@@ -167,7 +167,7 @@ type MigrateArgs struct {
 }
 
 func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
-	agreementFiles, err := ioutil.ReadDir(args.DirectoryPath)
+	agreementFiles, err := os.ReadDir(args.DirectoryPath)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrNotFound, err.Error())
 	}
@@ -219,7 +219,7 @@ func MigrateFromMarkdowns(ctx context.Context, args *MigrateArgs) error {
 		agreementName := agreementID[:strings.Index(agreementID, "-")]
 		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
 
-		agreementContent, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", args.DirectoryPath, agreementFile.Name()))
+		agreementContent, err := os.ReadFile(fmt.Sprintf("%s/%s", args.DirectoryPath, agreementFile.Name()))
 		if err != nil {
 			return fmt.Errorf("%w %s", ErrInternal, err.Error())
 		}
