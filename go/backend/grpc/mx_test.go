@@ -20,6 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -52,6 +53,7 @@ type TestContainer struct {
 	WaitlistClient       *waitlist_mock.MockClient
 	Temporal             *mocks.Client
 	TicketClient         *support_mock.MockClient
+	PaymentsClient       *payments_mock.MockClient
 }
 
 type TestContainerOption func(*TestContainer)
@@ -81,6 +83,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
 		TicketClient:         support_mock.NewMockClient(ctrl),
 		Temporal:             &mocks.Client{},
+		PaymentsClient:       payments_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {
@@ -275,6 +278,7 @@ func startTestServer(
 		WaitlistClient:       c.WaitlistClient,
 		Temporal:             c.Temporal,
 		TicketClient:         c.TicketClient,
+		PaymentsClient:       c.PaymentsClient,
 	})
 	if err != nil {
 		t.Fatal(err)

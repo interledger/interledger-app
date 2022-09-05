@@ -21,11 +21,10 @@ const (
 )
 
 type InitiateOutgoingPaymentArgs struct {
-	IdentityID string `validate:"required"`
-	AccountID  string `validate:"required"`
-	Amount     uint64 `validate:"gt=0"`
-	To         string `validate:"required"`
-	OTP        string
+	UserID string `validate:"required"`
+	Amount uint64 `validate:"gt=0"`
+	To     string `validate:"required"`
+	OTP    string
 }
 
 type State string

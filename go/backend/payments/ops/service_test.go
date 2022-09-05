@@ -116,11 +116,10 @@ func TestPayments(s *testing.T) {
 		}, nil).Times(1)
 
 		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), payments.InitiateOutgoingPaymentArgs{
-			IdentityID: acc.IdentityID,
-			AccountID:  acc.ID,
-			Amount:     amount,
-			To:         "$test.fynbos.test/alice",
-			OTP:        "103",
+			UserID: acc.IdentityID,
+			Amount: amount,
+			To:     "$test.fynbos.test/alice",
+			OTP:    "103",
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -173,10 +172,9 @@ func TestPayments(s *testing.T) {
 		).Times(1)
 
 		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), payments.InitiateOutgoingPaymentArgs{
-			IdentityID: acc.IdentityID,
-			AccountID:  acc.ID,
-			Amount:     100,
-			To:         "$test.fynbos.test/alice",
+			UserID: acc.IdentityID,
+			Amount: 100,
+			To:     "$test.fynbos.test/alice",
 		})
 
 		assert.Nil(t, p)

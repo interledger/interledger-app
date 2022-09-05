@@ -8,4 +8,5 @@ var (
 	ErrUnverifiedAccount   = errors.New("payments service: unverified account.")
 	ErrInsufficientBalance = errors.New("payments service: insufficient balance.")
 	ErrUnauthorized        = errors.New("payments service: unauthorized.")
+	ErrNotFound            = errors.New("payments service: payment not found")
 )

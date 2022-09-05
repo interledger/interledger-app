@@ -66,6 +66,8 @@ service BackendService {
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
+  rpc InitiateOutgoingPayment(InitiateOutgoingPaymentRequest) returns (InitiateOutgoingPaymentResponse);
+  rpc GetOutgoingPayment(GetOutgoingPaymentRequest) returns (OutgoingPayment);
 }
 
 message GetStatementsResponse {
@@ -243,4 +245,26 @@ message Deposit {
 
 message GetDepositRequest {
   string id = 1;
+}
+
+message InitiateOutgoingPaymentRequest {
+  uint64 amount = 1;
+  string to = 2;
+  string otp = 3;
+}
+
+message InitiateOutgoingPaymentResponse {
+  string id = 1;
+}
+
+message GetOutgoingPaymentRequest {
+  string id = 1;
+}
+
+message OutgoingPayment {
+  string id = 1;
+  string accountId = 2;
+  string destination = 3;
+  uint64 amount = 4;
+  string state = 5;
 }
