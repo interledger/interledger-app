@@ -38,3 +38,28 @@ func TestInitiateOutgoingPayment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "some_uuid", resp.Id)
 }
+
+func TestGetOutgoingPayment(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	// Get without being logged in should fail
+	resp, err := client.GetOutgoingPayment(context.Background(), &pb.GetOutgoingPaymentRequest{
+		Id: "something_darkside",
+	})
+	require.Error(t, err)
+
+	// Get with auth should call the service
+	c.PaymentsClient.EXPECT().Get(gomock.Any(), "id", "userID").Return(&payments.OutgoingPayment{
+		ID: "some_uuid",
+	}, nil).Times(1)
+
+	resp, err = client.GetOutgoingPayment(user.ActingAsContext(t, context.Background(), &user.User{
+		ID: "userID",
+	}), &pb.GetOutgoingPaymentRequest{Id: "id"})
+	require.NoError(t, err)
+	assert.Equal(t, "some_uuid", resp.Id)
+}

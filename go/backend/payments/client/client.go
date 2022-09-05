@@ -48,7 +48,7 @@ func (c client) InitiateOutgoingPayment(ctx context.Context, args payments.Initi
 	return ops.InitiateOutgoingPayment(ctx, c.b, args)
 }
 
-func (c client) Get(ctx context.Context, id string) (outgoingPayment *payments.OutgoingPayment, err error) {
+func (c client) Get(ctx context.Context, id, userID string) (outgoingPayment *payments.OutgoingPayment, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
@@ -66,7 +66,7 @@ func (c client) Get(ctx context.Context, id string) (outgoingPayment *payments.O
 		)
 	}(time.Now())
 
-	return ops.Get(ctx, c.b, id)
+	return ops.Get(ctx, c.b, id, userID)
 }
 
 func (c client) SetState(ctx context.Context, id string, state payments.State) error {
@@ -80,4 +80,25 @@ func (c client) SetState(ctx context.Context, id string, state payments.State) e
 	}(time.Now())
 
 	return ops.SetState(ctx, c.b, id, state)
+}
+
+func (c client) GetUnauthenticated(ctx context.Context, id string) (outgoingPayment *payments.OutgoingPayment, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			c.logger.Error(
+				"Failed to get outgoing payment.",
+				zap.String("id", id),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		c.logger.Debug(
+			"Got outgoing payment.",
+			zap.String("id", id),
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return ops.GetUnauthenticated(ctx, c.b, id)
 }

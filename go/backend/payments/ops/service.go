@@ -83,7 +83,26 @@ func InitiateOutgoingPayment(
 	return &outgoingPayment, nil
 }
 
-func Get(ctx context.Context, b Backends, id string) (*payments.OutgoingPayment, error) {
+func Get(ctx context.Context, b Backends, id, userID string) (*payments.OutgoingPayment, error) {
+	var outgoingPayment payments.OutgoingPayment
+
+	acc, err := b.Accounts().GetByIdentityID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err, payments.ErrInternal)
+	}
+
+	err = b.DB().GetContext(ctx, &outgoingPayment, `select * from outgoing_payments where id = $1 and account_id = $2 LIMIT 1`, id, acc.ID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", err, payments.ErrInternal)
+	}
+
+	return &outgoingPayment, nil
+}
+
+func GetUnauthenticated(ctx context.Context, b Backends, id string) (*payments.OutgoingPayment, error) {
 	var outgoingPayment payments.OutgoingPayment
 	err := b.DB().GetContext(ctx, &outgoingPayment, `select * from outgoing_payments where id = $1 LIMIT 1`, id)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -97,8 +116,7 @@ func Get(ctx context.Context, b Backends, id string) (*payments.OutgoingPayment,
 }
 
 func SetState(ctx context.Context, b Backends, id string, state payments.State) error {
-	outgoingPayment, err := Get(ctx, b, id)
-
+	outgoingPayment, err := GetUnauthenticated(ctx, b, id)
 	if err != nil {
 		return err
 	}
