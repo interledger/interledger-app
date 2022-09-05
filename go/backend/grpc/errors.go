@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -21,6 +22,7 @@ var errorStatus = map[error]error{
 	identity.ErrNotFound:            status.Error(codes.NotFound, "User identity not found"),
 	payments.ErrInsufficientBalance: status.Error(codes.InvalidArgument, "Insufficient funds"),
 	payments.ErrNotFound:            status.Error(codes.NotFound, "Unknown payment"),
+	mx.ErrNotFound:                  status.Error(codes.NotFound, "Bank account not found"),
 }
 
 func validationDesc(fe validator.FieldError) string {

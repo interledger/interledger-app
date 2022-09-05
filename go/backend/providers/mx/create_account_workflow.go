@@ -90,23 +90,5 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateUnitCounterParty, mxAccountGuid).Get(ctx, nil)
-	if err != nil {
-		logger.Error("Failed to create unit counter party.")
-		return err
-	}
-
-	name := "todo"
-	err = workflow.ExecuteActivity(
-		ctx,
-		a.CreateFundingSource,
-		mxAccountGuid,
-		name,
-	).Get(ctx, nil)
-	if err != nil {
-		logger.Error("Failed to create funding source.")
-		return err
-	}
-
 	return nil
 }
