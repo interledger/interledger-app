@@ -47,7 +47,7 @@ func TestGetOutgoingPayment(t *testing.T) {
 	_, _, client := startTestServer(t, c)
 
 	// Get without being logged in should fail
-	resp, err := client.GetOutgoingPayment(context.Background(), &pb.GetOutgoingPaymentRequest{
+	_, err := client.GetOutgoingPayment(context.Background(), &pb.GetOutgoingPaymentRequest{
 		Id: "something_darkside",
 	})
 	require.Error(t, err)
@@ -57,7 +57,7 @@ func TestGetOutgoingPayment(t *testing.T) {
 		ID: "some_uuid",
 	}, nil).Times(1)
 
-	resp, err = client.GetOutgoingPayment(user.ActingAsContext(t, context.Background(), &user.User{
+	resp, err := client.GetOutgoingPayment(user.ActingAsContext(t, context.Background(), &user.User{
 		ID: "userID",
 	}), &pb.GetOutgoingPaymentRequest{Id: "id"})
 	require.NoError(t, err)
