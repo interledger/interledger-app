@@ -242,3 +242,17 @@ func (mr *MockServiceMockRecorder) VerifyOwnership(ctx, args interface{}) *gomoc
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyOwnership", reflect.TypeOf((*MockService)(nil).VerifyOwnership), ctx, args)
 }
+
+// WaitForCreateAccount mocks base method.
+func (m *MockService) WaitForCreateAccount(ctx context.Context, fundingsourceID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WaitForCreateAccount", ctx, fundingsourceID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WaitForCreateAccount indicates an expected call of WaitForCreateAccount.
+func (mr *MockServiceMockRecorder) WaitForCreateAccount(ctx, fundingsourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitForCreateAccount", reflect.TypeOf((*MockService)(nil).WaitForCreateAccount), ctx, fundingsourceID)
+}

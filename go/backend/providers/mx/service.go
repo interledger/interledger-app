@@ -50,6 +50,8 @@ type (
 		VerifyOwnership(ctx context.Context, args *VerifyOwnershipArgs) error
 		GetConnectWidget(ctx context.Context, accountID string, identityID string) (string, error)
 		InitiateCreateAccount(ctx context.Context, args *InitiateCreateAccountArgs) (string, error)
+		// Blocks till the workflow is complete and returns the result.
+		WaitForCreateAccount(ctx context.Context, fundingsourceID string) error
 		StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error)
 		GetAccountBalance(ctx context.Context, mxAccountGuid string) (*AccountBalance, error)
 	}
@@ -465,6 +467,15 @@ func (s *service) InitiateCreateAccount(
 	}
 
 	return workflowUuid, nil
+}
+
+func (s *service) WaitForCreateAccount(ctx context.Context, fundingsourceID string) error {
+	err := s.temporal.GetWorkflow(ctx, "create_mx_bank_account_"+fundingsourceID, "").Get(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
 }
 
 func (s *service) StartBalanceAggregation(ctx context.Context, mxAccountGuid string) (*Member, error) {

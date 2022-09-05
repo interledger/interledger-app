@@ -273,14 +273,11 @@ func TestGetBankDetails(t *testing.T) {
 			},
 			nil,
 		)
-		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
-			&mx.Account{
-				Guid:            mxAccountGuid,
-				AccountID:       accountID,
-				FundingsourceID: fundingsourceID,
-			},
-			nil,
-		)
+		c.MxProvider.EXPECT().WaitForCreateAccount(gomock.Any(), fundingsourceID).Return(nil)
+		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(&mx.Account{
+			Guid:      mxAccountGuid,
+			AccountID: accountID,
+		}, nil)
 		c.MxProvider.EXPECT().ReadAccount(gomock.Any(), mxAccountGuid).Return(
 			&mx.AccountDetails{
 				Guid:              mxAccountGuid,
@@ -319,6 +316,7 @@ func TestGetBankDetails(t *testing.T) {
 			},
 			nil,
 		)
+		c.MxProvider.EXPECT().WaitForCreateAccount(gomock.Any(), fundingsourceID).Return(nil)
 		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
 			&mx.Account{
 				Guid:            mxAccountGuid,

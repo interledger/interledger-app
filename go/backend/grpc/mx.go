@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 
 	"gitlab.com/fynbos/backend/providers/mx"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -66,17 +67,23 @@ func (s *rpcService) GetBankAccountDetails(
 ) (*backendv1.BankAccountDetails, error) {
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, grpcError(err)
 	}
 
 	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
 	if err != nil {
-		return nil, InternalError("Unable to get account.")
+		return nil, grpcError(err)
+	}
+
+	// wait till workflow has completed
+	err = s.mxProvider.WaitForCreateAccount(ctx, req.GetFundingsourceId())
+	if err != nil {
+		return nil, grpcError(err)
 	}
 
 	bankAccount, err := s.mxProvider.GetAccountByFundingsource(ctx, req.GetFundingsourceId())
-	if err != nil {
-		return nil, InternalError("Unable to get bank account details.")
+	if errors.Is(err, mx.ErrNotFound) {
+		return nil, grpcError(err)
 	}
 	if bankAccount.AccountID != acc.ID {
 		return nil, ForbiddenError("Unauthorized.")
@@ -84,7 +91,7 @@ func (s *rpcService) GetBankAccountDetails(
 
 	details, err := s.mxProvider.ReadAccount(ctx, bankAccount.Guid)
 	if err != nil {
-		return nil, InternalError("Unable to get bank account details.")
+		return nil, grpcError(err)
 	}
 
 	maskStart := len(details.AccountNumber) - 4

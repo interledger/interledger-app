@@ -36,7 +36,6 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 	userID := uuid.NewString()
 	accountID := uuid.NewString()
 	fundingsourceID := uuid.NewString()
-	fundingsourceName := "todo"
 	mxAccountGuid := "acct_" + uuid.NewString()
 	mxMemberGuid := "mbr_" + uuid.NewString()
 	mxUserGuid := "usr_" + uuid.NewString()
@@ -85,15 +84,6 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 		mxAccountGuid,
 	).Return(nil)
 
-	s.env.OnActivity(s.activity.CreateUnitCounterParty, mock.Anything, mxAccountGuid).Return(nil)
-
-	s.env.OnActivity(
-		s.activity.CreateFundingSource,
-		mock.Anything,
-		mxAccountGuid,
-		fundingsourceName,
-	).Return(nil)
-
 	s.env.ExecuteWorkflow(CreateMxAccountWorkflow, &CreateMxAccountWorkflowArgs{
 		ID:         fundingsourceID,
 		UserGuid:   mxUserGuid,
@@ -101,7 +91,6 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 		AccountID:  accountID,
 		IdentityID: userID,
 	})
-
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
