@@ -32,8 +32,8 @@ import type { CreateIdentityResponse } from "./backend";
 import type { CreateIdentityRequest } from "./backend";
 import type { Onboarding } from "./backend";
 import type { GetOnboardingRequest } from "./backend";
-import type { InitiateCreateBankAccountResponse } from "./backend";
-import type { InitiateCreateBankAccountRequest } from "./backend";
+import type { AddBankAccountResponse } from "./backend";
+import type { AddBankAccountRequest } from "./backend";
 import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
@@ -104,9 +104,9 @@ export interface IBackendServiceClient {
      */
     getBankAccountWidget(input: GetBankAccountWidgetRequest, options?: RpcOptions): UnaryCall<GetBankAccountWidgetRequest, GetBankAccountWidgetResponse>;
     /**
-     * @generated from protobuf rpc: InitiateCreateBankAccount(backend.v1.InitiateCreateBankAccountRequest) returns (backend.v1.InitiateCreateBankAccountResponse);
+     * @generated from protobuf rpc: AddBankAccount(backend.v1.AddBankAccountRequest) returns (backend.v1.AddBankAccountResponse);
      */
-    initiateCreateBankAccount(input: InitiateCreateBankAccountRequest, options?: RpcOptions): UnaryCall<InitiateCreateBankAccountRequest, InitiateCreateBankAccountResponse>;
+    addBankAccount(input: AddBankAccountRequest, options?: RpcOptions): UnaryCall<AddBankAccountRequest, AddBankAccountResponse>;
     /**
      * Returns the current onboarding flow.
      *
@@ -211,11 +211,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetBankAccountWidgetRequest, GetBankAccountWidgetResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: InitiateCreateBankAccount(backend.v1.InitiateCreateBankAccountRequest) returns (backend.v1.InitiateCreateBankAccountResponse);
+     * @generated from protobuf rpc: AddBankAccount(backend.v1.AddBankAccountRequest) returns (backend.v1.AddBankAccountResponse);
      */
-    initiateCreateBankAccount(input: InitiateCreateBankAccountRequest, options?: RpcOptions): UnaryCall<InitiateCreateBankAccountRequest, InitiateCreateBankAccountResponse> {
+    addBankAccount(input: AddBankAccountRequest, options?: RpcOptions): UnaryCall<AddBankAccountRequest, AddBankAccountResponse> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
-        return stackIntercept<InitiateCreateBankAccountRequest, InitiateCreateBankAccountResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<AddBankAccountRequest, AddBankAccountResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * Returns the current onboarding flow.
