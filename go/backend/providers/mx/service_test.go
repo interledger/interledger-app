@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+	"gitlab.com/fynbos/backend/twilio"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
@@ -29,12 +30,14 @@ func TestCreateAndGetAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -83,12 +86,14 @@ func TestGetMemberStatus(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -122,12 +127,14 @@ func TestStartIdentityAggregation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -161,12 +168,14 @@ func TestGetAccountOwner(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -242,12 +251,14 @@ func TestReadAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -319,12 +330,14 @@ func TestGetMxUserByAccountID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accounts_mock.NewMockClient(ctrl),
 		IdentityService: identity_mock.NewMockClient(ctrl),
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -427,12 +440,14 @@ func TestVerifyOwnership(t *testing.T) {
 	accountService := accounts_mock.NewMockClient(ctrl)
 	identityService := identity_mock.NewMockClient(ctrl)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accountService,
 		IdentityService: identityService,
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -561,12 +576,14 @@ func TestGetMxConnectWidget(t *testing.T) {
 	accountService := accounts_mock.NewMockClient(ctrl)
 	identityService := identity_mock.NewMockClient(ctrl)
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              db,
 		AccountsService: accountService,
 		IdentityService: identityService,
 		Temporal:        &mocks.Client{},
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -595,12 +612,14 @@ func TestInitiateCreateAccount(t *testing.T) {
 	identityService := identity_mock.NewMockClient(ctrl)
 	temporal := &mocks.Client{}
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              &sqlx.DB{},
 		AccountsService: accountsService,
 		IdentityService: identityService,
 		Temporal:        temporal,
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -700,12 +719,14 @@ func TestGetAccountBalance(t *testing.T) {
 	identityService := identity_mock.NewMockClient(ctrl)
 	temporal := &mocks.Client{}
 	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
 	mx, err := NewService(&ServiceArgs{
 		ExternalClient:  mockExternalClient,
 		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
 		AccountsService: accountsService,
 		IdentityService: identityService,
 		Temporal:        temporal,
+		Twilio:          twilioClient,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -767,4 +788,142 @@ func TestGetAccountBalance(t *testing.T) {
 			assert.Equal(st, uint8(2), balance.AssetScale, tc.Name)
 		})
 	}
+}
+
+func TestInitiateCreateFundingsource(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	accountsService := accounts_mock.NewMockClient(ctrl)
+	identityService := identity_mock.NewMockClient(ctrl)
+	temporal := &mocks.Client{}
+	mockExternalClient := external.NewMockMx(ctrl)
+	twilioClient := twilio.NewMockService(ctrl)
+	mx, err := NewService(&ServiceArgs{
+		ExternalClient:  mockExternalClient,
+		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
+		AccountsService: accountsService,
+		IdentityService: identityService,
+		Temporal:        temporal,
+		Twilio:          twilioClient,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	userID := uuid.NewString()
+	accountID := uuid.NewString()
+	fundingsourceID := uuid.NewString()
+	accountsService.EXPECT().Get(gomock.Any(), accountID).Return(
+		&accounts.Account{
+			ID:         accountID,
+			IdentityID: userID,
+		},
+		nil,
+	).AnyTimes()
+	identityService.EXPECT().Get(gomock.Any(), userID).Return(
+		&identity.Identity{ID: userID, MobileNumber: "+275555555"},
+		nil,
+	).AnyTimes()
+
+	t.Run("fails if mxAccount does not belong to account", func(st *testing.T) {
+		mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+			Guid:            uuid.NewString(),
+			UserGuid:        uuid.NewString(),
+			MemberGuid:      uuid.NewString(),
+			AccountID:       uuid.NewString(),
+			FundingsourceID: fundingsourceID,
+		})
+		if err != nil {
+			st.Fatal(err)
+		}
+
+		err = mx.InitiateCreateFundingsource(context.Background(), &InitiateCreateFundingsourceArgs{
+			AccountID:     accountID,
+			Otp:           "1234",
+			Name:          "test",
+			MxAccountGuid: mxAccount.Guid,
+		})
+		assert.ErrorIs(st, err, ErrUnauthorized)
+	})
+
+	t.Run("fails if otp is invalid", func(st *testing.T) {
+		mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+			Guid:            uuid.NewString(),
+			UserGuid:        uuid.NewString(),
+			MemberGuid:      uuid.NewString(),
+			AccountID:       accountID,
+			FundingsourceID: fundingsourceID,
+		})
+		if err != nil {
+			st.Fatal(err)
+		}
+		twilioClient.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: "+275555555",
+			Code:        "1234",
+		}).Return(
+			&twilio.Verification{
+				Status: "denied",
+			},
+			nil,
+		).Times(1)
+
+		err = mx.InitiateCreateFundingsource(context.Background(), &InitiateCreateFundingsourceArgs{
+			AccountID:     accountID,
+			Otp:           "1234",
+			Name:          "test",
+			MxAccountGuid: mxAccount.Guid,
+		})
+		assert.Error(st, err)
+	})
+
+	t.Run("executes workflow", func(st *testing.T) {
+		mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+			Guid:            uuid.NewString(),
+			UserGuid:        uuid.NewString(),
+			MemberGuid:      uuid.NewString(),
+			AccountID:       accountID,
+			FundingsourceID: fundingsourceID,
+		})
+		if err != nil {
+			st.Fatal(err)
+		}
+		twilioClient.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: "+275555555",
+			Code:        "1234",
+		}).Return(
+			&twilio.Verification{
+				Status: "approved",
+			},
+			nil,
+		).Times(1)
+		temporal.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
+				workflowArgs, ok := args[0].(*MxCreateFundingsourceWorkflowArgs)
+				if !ok {
+					st.Fatal("incorrect args to workflow.")
+				}
+				assert.Equal(st, accountID, workflowArgs.AccountID)
+				assert.Equal(st, mxAccount.Guid, workflowArgs.MxAccountGuid)
+				assert.Equal(st, "test", workflowArgs.Name)
+
+				testWorkflowID := opts.ID
+				testRunID := "test-runid"
+
+				mockWorkflowRun := &mocks.WorkflowRun{}
+				mockWorkflowRun.On("GetID").Return(testWorkflowID)
+				mockWorkflowRun.On("GetRunID").Return(testRunID)
+				mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
+				return mockWorkflowRun
+			}, nil,
+		).Times(1)
+
+		err = mx.InitiateCreateFundingsource(context.Background(), &InitiateCreateFundingsourceArgs{
+			AccountID:     accountID,
+			Otp:           "1234",
+			Name:          "test",
+			MxAccountGuid: mxAccount.Guid,
+		})
+		if err != nil {
+			st.Fatal(err)
+		}
+	})
 }

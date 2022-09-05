@@ -128,6 +128,16 @@ func (s *rpcService) ContinueAddingBankAccount(
 		return nil, ForbiddenError("Unauthorized.")
 	}
 
+	err = s.mxProvider.InitiateCreateFundingsource(ctx, &mx.InitiateCreateFundingsourceArgs{
+		AccountID:     acc.ID,
+		Otp:           req.GetOtp(),
+		Name:          req.GetNickName(),
+		MxAccountGuid: bankAccount.Guid,
+	})
+	if err != nil {
+		return nil, InternalError("Unable to create fundingsource.")
+	}
+
 	return &backendv1.ContinueAddingBankAccountResponse{
 		Success: true,
 	}, nil
