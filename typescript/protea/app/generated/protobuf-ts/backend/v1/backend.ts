@@ -653,6 +653,36 @@ export interface BankAccountDetails {
      */
     mask: string;
 }
+/**
+ * @generated from protobuf message backend.v1.ContinueAddingBankAccountRequest
+ */
+export interface ContinueAddingBankAccountRequest {
+    /**
+     * @generated from protobuf field: string fundingsourceId = 1;
+     */
+    fundingsourceId: string;
+    /**
+     * @generated from protobuf field: string otp = 2;
+     */
+    otp: string;
+    /**
+     * @generated from protobuf field: string nickName = 3;
+     */
+    nickName: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ContinueAddingBankAccountResponse
+ */
+export interface ContinueAddingBankAccountResponse {
+    /**
+     * @generated from protobuf field: bool success = 1;
+     */
+    success: boolean;
+    /**
+     * @generated from protobuf field: string error = 2;
+     */
+    error: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -3052,6 +3082,121 @@ class BankAccountDetails$Type extends MessageType<BankAccountDetails> {
  * @generated MessageType for protobuf message backend.v1.BankAccountDetails
  */
 export const BankAccountDetails = new BankAccountDetails$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ContinueAddingBankAccountRequest$Type extends MessageType<ContinueAddingBankAccountRequest> {
+    constructor() {
+        super("backend.v1.ContinueAddingBankAccountRequest", [
+            { no: 1, name: "fundingsourceId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "nickName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ContinueAddingBankAccountRequest>): ContinueAddingBankAccountRequest {
+        const message = { fundingsourceId: "", otp: "", nickName: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ContinueAddingBankAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ContinueAddingBankAccountRequest): ContinueAddingBankAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fundingsourceId */ 1:
+                    message.fundingsourceId = reader.string();
+                    break;
+                case /* string otp */ 2:
+                    message.otp = reader.string();
+                    break;
+                case /* string nickName */ 3:
+                    message.nickName = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ContinueAddingBankAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fundingsourceId = 1; */
+        if (message.fundingsourceId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fundingsourceId);
+        /* string otp = 2; */
+        if (message.otp !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.otp);
+        /* string nickName = 3; */
+        if (message.nickName !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.nickName);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ContinueAddingBankAccountRequest
+ */
+export const ContinueAddingBankAccountRequest = new ContinueAddingBankAccountRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ContinueAddingBankAccountResponse$Type extends MessageType<ContinueAddingBankAccountResponse> {
+    constructor() {
+        super("backend.v1.ContinueAddingBankAccountResponse", [
+            { no: 1, name: "success", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ContinueAddingBankAccountResponse>): ContinueAddingBankAccountResponse {
+        const message = { success: false, error: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ContinueAddingBankAccountResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ContinueAddingBankAccountResponse): ContinueAddingBankAccountResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool success */ 1:
+                    message.success = reader.bool();
+                    break;
+                case /* string error */ 2:
+                    message.error = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ContinueAddingBankAccountResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool success = 1; */
+        if (message.success !== false)
+            writer.tag(1, WireType.Varint).bool(message.success);
+        /* string error = 2; */
+        if (message.error !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.error);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ContinueAddingBankAccountResponse
+ */
+export const ContinueAddingBankAccountResponse = new ContinueAddingBankAccountResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -3067,6 +3212,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetBankAccountWidget", options: {}, I: GetBankAccountWidgetRequest, O: GetBankAccountWidgetResponse },
     { name: "AddBankAccount", options: {}, I: AddBankAccountRequest, O: AddBankAccountResponse },
     { name: "GetBankAccountDetails", options: {}, I: GetBankAccountDetailsRequest, O: BankAccountDetails },
+    { name: "ContinueAddingBankAccount", options: {}, I: ContinueAddingBankAccountRequest, O: ContinueAddingBankAccountResponse },
     { name: "GetOnboarding", options: {}, I: GetOnboardingRequest, O: Onboarding },
     { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding },
     { name: "CreateIdentity", options: {}, I: CreateIdentityRequest, O: CreateIdentityResponse },
