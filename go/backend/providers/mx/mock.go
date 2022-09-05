@@ -125,18 +125,18 @@ func (mr *MockServiceMockRecorder) GetConnectWidget(ctx, accountID, identityID i
 }
 
 // GetMemberStatus mocks base method.
-func (m *MockService) GetMemberStatus(ctx context.Context, mxAccountGuid string) (*Member, error) {
+func (m *MockService) GetMemberStatus(ctx context.Context, mxUserGuid, mxMemberGuid string) (*Member, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMemberStatus", ctx, mxAccountGuid)
+	ret := m.ctrl.Call(m, "GetMemberStatus", ctx, mxUserGuid, mxMemberGuid)
 	ret0, _ := ret[0].(*Member)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMemberStatus indicates an expected call of GetMemberStatus.
-func (mr *MockServiceMockRecorder) GetMemberStatus(ctx, mxAccountGuid interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) GetMemberStatus(ctx, mxUserGuid, mxMemberGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberStatus", reflect.TypeOf((*MockService)(nil).GetMemberStatus), ctx, mxAccountGuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMemberStatus", reflect.TypeOf((*MockService)(nil).GetMemberStatus), ctx, mxUserGuid, mxMemberGuid)
 }
 
 // GetMxUserByAccountID mocks base method.

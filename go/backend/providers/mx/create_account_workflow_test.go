@@ -61,9 +61,10 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 		mock.Anything,
 		mock.Anything,
 	).Return(func(ctx context.Context, args *WaitForAggregationArgs) error {
-		s.Equal(mxAccountGuid, args.MxAccountGuid)
 		s.Equal(uint8(5), args.MaxRetries)
 		s.Equal(12*time.Second, args.PollInterval)
+		s.Equal(mxUserGuid, args.MxUserGuid)
+		s.Equal(mxMemberGuid, args.MxMemberGuid)
 		return nil
 	})
 

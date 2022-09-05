@@ -158,10 +158,11 @@ func TestCreateUnitCounterparty(t *testing.T) {
 func TestWaitForAggregation(t *testing.T) {
 	ctx := context.Background()
 	activity, mocks := NewTestActivity(t)
-	mxAccountGuid := "acct_" + uuid.NewString()
+	mxUserGuid := "usr_" + uuid.NewString()
+	mxMemberGuid := "mbr_" + uuid.NewString()
 
-	mocks.Mx.EXPECT().GetMemberStatus(ctx, mxAccountGuid).Return(nil, ErrInternal).Times(2)
-	mocks.Mx.EXPECT().GetMemberStatus(ctx, mxAccountGuid).Return(
+	mocks.Mx.EXPECT().GetMemberStatus(ctx, mxUserGuid, mxMemberGuid).Return(nil, ErrInternal).Times(2)
+	mocks.Mx.EXPECT().GetMemberStatus(ctx, mxUserGuid, mxMemberGuid).Return(
 		&Member{
 			Guid:              "mbr_" + uuid.NewString(),
 			UserGuid:          "usr_" + uuid.NewString(),
@@ -171,9 +172,10 @@ func TestWaitForAggregation(t *testing.T) {
 	).Times(1)
 
 	err := activity.WaitForAggregation(ctx, &WaitForAggregationArgs{
-		MxAccountGuid: mxAccountGuid,
-		MaxRetries:    2,
-		PollInterval:  10 * time.Millisecond,
+		MxMemberGuid: mxMemberGuid,
+		MxUserGuid:   mxUserGuid,
+		MaxRetries:   2,
+		PollInterval: 10 * time.Millisecond,
 	})
 
 	assert.NoError(t, err)

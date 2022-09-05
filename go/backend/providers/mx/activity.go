@@ -99,9 +99,10 @@ func (a *Activity) StartIdentityAggregation(
 }
 
 type WaitForAggregationArgs struct {
-	MxAccountGuid string
-	MaxRetries    uint8
-	PollInterval  time.Duration
+	MaxRetries   uint8
+	PollInterval time.Duration
+	MxMemberGuid string
+	MxUserGuid   string
 }
 
 // Uses a ticker and go routine to poll for aggregation to be complete. Temporal recommends this
@@ -118,7 +119,7 @@ func (a *Activity) WaitForAggregation(
 			return errors.New("Timed out waiting for aggregation.")
 		}
 
-		member, err := a.mx.GetMemberStatus(ctx, args.MxAccountGuid)
+		member, err := a.mx.GetMemberStatus(ctx, args.MxUserGuid, args.MxMemberGuid)
 		if err != nil {
 			retries += 1
 			continue
