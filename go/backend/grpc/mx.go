@@ -99,3 +99,30 @@ func (s *rpcService) GetBankAccountDetails(
 		Mask:            details.AccountNumber[maskStart:],
 	}, nil
 }
+
+func (s *rpcService) ContinueAddingBankAccount(
+	ctx context.Context,
+	req *backendv1.ContinueAddingBankAccountRequest,
+) (*backendv1.ContinueAddingBankAccountResponse, error) {
+	user, err := s.userService.ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	if err != nil {
+		return nil, InternalError("Unable to get account.")
+	}
+
+	bankAccount, err := s.mxProvider.GetAccountByFundingsource(ctx, req.GetFundingsourceId())
+	if err != nil {
+		return nil, InternalError("Unable to get bank account details.")
+	}
+	if bankAccount.AccountID != acc.ID {
+		return nil, ForbiddenError("Unauthorized.")
+	}
+
+	return &backendv1.ContinueAddingBankAccountResponse{
+		Success: true,
+	}, nil
+}

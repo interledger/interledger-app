@@ -10,6 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/admin/auth"
@@ -339,6 +340,47 @@ func TestGetBankDetails(t *testing.T) {
 			st.Fatal("User must only be able to get own account details")
 		}
 
+		assert.Nil(st, resp)
+		assert.Equal(st, "rpc error: code = PermissionDenied desc = Forbidden: Unauthorized.", err.Error())
+	})
+}
+
+func TestContinueAddingBankAccount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	t.Run("user can only get their own account info", func(st *testing.T) {
+		accountID := uuid.NewString()
+		userID := uuid.NewString()
+		fundingsourceID := uuid.NewString()
+		mxAccountGuid := "acc_" + uuid.NewString()
+
+		c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+			&accounts.Account{
+				ID:         accountID,
+				IdentityID: userID,
+			},
+			nil,
+		)
+		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
+			&mx.Account{
+				Guid:            mxAccountGuid,
+				AccountID:       uuid.NewString(),
+				FundingsourceID: fundingsourceID,
+			},
+			nil,
+		)
+
+		resp, err := client.ContinueAddingBankAccount(
+			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			&backendv1.ContinueAddingBankAccountRequest{
+				FundingsourceId: fundingsourceID,
+				Otp:             "1234",
+				NickName:        "test-account",
+			})
+
+		require.Error(st, err)
 		assert.Nil(st, resp)
 		assert.Equal(st, "rpc error: code = PermissionDenied desc = Forbidden: Unauthorized.", err.Error())
 	})

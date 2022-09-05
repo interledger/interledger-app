@@ -44,6 +44,7 @@ service BackendService {
   rpc GetBankAccountWidget(GetBankAccountWidgetRequest) returns (GetBankAccountWidgetResponse);
   rpc AddBankAccount (AddBankAccountRequest) returns (AddBankAccountResponse);
   rpc GetBankAccountDetails(GetBankAccountDetailsRequest) returns (BankAccountDetails);
+  rpc ContinueAddingBankAccount(ContinueAddingBankAccountRequest) returns (ContinueAddingBankAccountResponse);
   // Returns the current onboarding flow.
   rpc GetOnboarding(GetOnboardingRequest) returns (Onboarding);
   // Creates the onboarding flow if it does not already exist.
@@ -279,4 +280,15 @@ message BankAccountDetails {
   string Type = 2;
   string institution = 3;
   string mask = 4;
+}
+
+message ContinueAddingBankAccountRequest {
+  string fundingsourceId = 1;
+  string otp = 2;
+  string nickName = 3;
+}
+
+message ContinueAddingBankAccountResponse {
+  bool success = 1;
+  string error = 2;
 }
