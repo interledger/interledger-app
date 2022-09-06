@@ -1,7 +1,11 @@
-package mx
+package workflows
 
 import (
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/mx"
+
+	"gitlab.com/fynbos/backend/providers/mx/activities"
 
 	"go.temporal.io/sdk/workflow"
 )
@@ -18,7 +22,7 @@ type CreateMxAccountWorkflowArgs struct {
 // Mx is used to pull the account owner information and verify ownership. The account routing
 // numbers are then pulled to create a unit counterparty which is also mapped to the fundingsource.
 func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflowArgs) error {
-	var a *Activity
+	var a *activities.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
 		ScheduleToCloseTimeout: 35 * time.Minute, // to accomodate failures on waiting for aggregation
@@ -53,7 +57,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 			},
 		),
 		a.WaitForAggregation,
-		&WaitForAggregationArgs{
+		&activities.WaitForAggregationArgs{
 			MaxRetries:   5,
 			PollInterval: 12 * time.Second,
 			MxMemberGuid: args.MemberGuid,
@@ -65,7 +69,7 @@ func CreateMxAccountWorkflow(ctx workflow.Context, args *CreateMxAccountWorkflow
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, &VerifyOwnershipArgs{
+	err = workflow.ExecuteActivity(ctx, a.VerifyOwnership, mx.VerifyOwnershipArgs{
 		AccountID:     args.AccountID,
 		MxUserGuid:    args.UserGuid,
 		MxMemberGuid:  args.MemberGuid,

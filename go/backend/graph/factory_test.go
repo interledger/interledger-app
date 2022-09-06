@@ -5,16 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-
-	identity_client "gitlab.com/fynbos/backend/identity/client"
-
-	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
-
-	country_client "gitlab.com/fynbos/backend/country/client"
-
-	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
-
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
@@ -25,9 +15,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
+	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/deposits"
+	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	"gitlab.com/fynbos/backend/identity"
+	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/client"
@@ -55,7 +51,7 @@ type TestContainer struct {
 	FundingSourceService fundingsources.Client
 	IdentityService      identity.Client
 	UserService          _user.Service
-	Mx                   *mx.MockService
+	Mx                   mx.Client
 	NoopService          _noop.Service
 	UnitService          unit.Client
 	UnitMockServer       *httptest.Server
@@ -161,7 +157,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	tp := &mocks.Client{}
 	c.Tp = tp
 
-	c.Mx = mx.NewMockService(c.Ctrl)
+	c.Mx = mx_mock.NewMockClient(c.Ctrl)
 
 	fs := funding_client.New(c, logger)
 	c.FundingSourceService = fs

@@ -1,4 +1,4 @@
-package mx
+package workflows
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/mx/activities"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -16,11 +18,11 @@ type MxAccountTestSuite struct {
 	testsuite.WorkflowTestSuite
 
 	env      *testsuite.TestWorkflowEnvironment
-	activity *Activity
+	activity *activities.Activity
 }
 
 func (s *MxAccountTestSuite) SetupSuite() {
-	s.activity = &Activity{}
+	s.activity = &activities.Activity{}
 }
 
 func (s *MxAccountTestSuite) SetupTest() {
@@ -59,7 +61,7 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 		s.activity.WaitForAggregation,
 		mock.Anything,
 		mock.Anything,
-	).Return(func(ctx context.Context, args *WaitForAggregationArgs) error {
+	).Return(func(ctx context.Context, args *activities.WaitForAggregationArgs) error {
 		s.Equal(uint8(5), args.MaxRetries)
 		s.Equal(12*time.Second, args.PollInterval)
 		s.Equal(mxUserGuid, args.MxUserGuid)
@@ -67,7 +69,7 @@ func (s *MxAccountTestSuite) TestCreateMxAccountSuccess() {
 		return nil
 	})
 
-	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, &VerifyOwnershipArgs{
+	s.env.OnActivity(s.activity.VerifyOwnership, mock.Anything, mx.VerifyOwnershipArgs{
 		AccountID:     accountID,
 		MxUserGuid:    mxUserGuid,
 		MxMemberGuid:  mxMemberGuid,

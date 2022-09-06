@@ -10,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	payments_workflow "gitlab.com/fynbos/backend/payments/workflows"
 	"gitlab.com/fynbos/backend/providers/mx"
+	mx_activities "gitlab.com/fynbos/backend/providers/mx/activities"
+	mx_workflow "gitlab.com/fynbos/backend/providers/mx/workflows"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_activities "gitlab.com/fynbos/backend/providers/unit/activities"
@@ -31,7 +33,7 @@ type WorkerArgs struct {
 	Fs     fundingsources.Client
 	Os     onboarding.Client
 	Up     unit.Client
-	Mx     mx.Service
+	Mx     mx.Client
 	Is     identity.Client
 }
 
@@ -75,14 +77,8 @@ func NewTemporalWorker(args WorkerArgs, b Backends) (worker.Worker, error) {
 	unitOnboardingActivity := unit_activities.NewActivity(b)
 	w.RegisterActivity(unitOnboardingActivity)
 
-	w.RegisterWorkflow(mx.CreateMxAccountWorkflow)
-	createMxBankAccountActivity, err := mx.NewActivity(&mx.ActivityArgs{
-		Mx:                   args.Mx,
-		Unit:                 args.Up,
-		AccountService:       args.As,
-		IdentityService:      args.Is,
-		FundingSourceService: args.Fs,
-	})
+	w.RegisterWorkflow(mx_workflow.CreateMxAccountWorkflow)
+	createMxBankAccountActivity := mx_activities.NewActivity(b)
 	if err != nil {
 		return nil, err
 	}

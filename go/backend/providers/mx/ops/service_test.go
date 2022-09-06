@@ -1,4 +1,4 @@
-package mx
+package ops_test
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
-	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
-	"gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/providers/mx/workflows"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -18,31 +18,73 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/identity"
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+	"gitlab.com/fynbos/backend/providers/mx"
 	external "gitlab.com/fynbos/backend/providers/mx/external"
+	"gitlab.com/fynbos/backend/providers/mx/ops"
+	"gitlab.com/fynbos/backend/twilio"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 )
 
+type testBackends struct {
+	val       *validator.Validate
+	extClient *external.MockMx
+	db        *sqlx.DB
+	acc       *accounts_mock.MockClient
+	ident     *identity_mock.MockClient
+	temporal  *mocks.Client
+	twil      *twilio.MockService
+}
+
+func (t testBackends) Validator() *validator.Validate {
+	return t.val
+}
+
+func (t testBackends) DB() *sqlx.DB {
+	return t.db
+}
+
+func (t testBackends) Accounts() accounts.Client {
+	return t.acc
+}
+
+func (t testBackends) Identity() identity.Client {
+	return t.ident
+}
+
+func (t testBackends) Temporal() client.Client {
+	return t.temporal
+}
+
+func (t testBackends) Twilio() twilio.Service {
+	return t.twil
+}
+
+func (t testBackends) MXExternal() external.Mx {
+	return t.extClient
+}
+
+func getTestBackends(t *testing.T) testBackends {
+	ctrl := gomock.NewController(t)
+
+	return testBackends{
+		val:       validator.New(),
+		extClient: external.NewMockMx(ctrl),
+		db:        test_utils.MigrateCockroachDB(t, context.Background()),
+		acc:       accounts_mock.NewMockClient(ctrl),
+		ident:     identity_mock.NewMockClient(ctrl),
+		temporal:  &mocks.Client{},
+		twil:      twilio.NewMockService(ctrl),
+	}
+}
+
 func TestCreateAndGetAccount(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity_mock.NewMockClient(ctrl),
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	args := &CreateAccountArgs{
+	b := getTestBackends(t)
+	args := mx.CreateAccountArgs{
 		Guid:            uuid.NewString(),
 		UserGuid:        uuid.NewString(),
 		MemberGuid:      uuid.NewString(),
@@ -50,7 +92,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 		FundingsourceID: uuid.NewString(),
 	}
 
-	mxAccount, err := mx.CreateAccount(ctx, args)
+	mxAccount, err := ops.CreateAccount(ctx, b, args)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +102,7 @@ func TestCreateAndGetAccount(t *testing.T) {
 	assert.Equal(t, args.MemberGuid, mxAccount.MemberGuid)
 	assert.Equal(t, args.FundingsourceID, mxAccount.FundingsourceID)
 
-	freshMxFs, err := mx.GetAccount(ctx, args.Guid)
+	freshMxFs, err := ops.GetAccount(ctx, b, args.Guid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,38 +112,24 @@ func TestCreateAndGetAccount(t *testing.T) {
 	assert.Equal(t, args.MemberGuid, freshMxFs.MemberGuid)
 	assert.Equal(t, args.FundingsourceID, freshMxFs.FundingsourceID)
 
-	noAcc, err := mx.GetAccount(ctx, uuid.NewString())
-	assert.ErrorIs(t, err, ErrNotFound)
+	noAcc, err := ops.GetAccount(ctx, b, uuid.NewString())
+	assert.ErrorIs(t, err, mx.ErrNotFound)
 	assert.Nil(t, noAcc)
 
 	// idempotency
-	idempotent, err := mx.CreateAccount(ctx, args)
-	assert.ErrorIs(t, err, ErrDuplicate)
+	idempotent, err := ops.CreateAccount(ctx, b, args)
+	assert.ErrorIs(t, err, mx.ErrDuplicate)
 	assert.Nil(t, idempotent)
 }
 
 func TestGetMemberStatus(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity_mock.NewMockClient(ctrl),
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 
 	userGuid := uuid.NewString()
 	memberGuid := uuid.NewString()
-	mockExternalClient.EXPECT().GetMemberStatus(ctx, userGuid, memberGuid).
+	b.extClient.EXPECT().GetMemberStatus(ctx, userGuid, memberGuid).
 		Return(
 			&external.Member{
 				Guid:              memberGuid,
@@ -111,7 +139,7 @@ func TestGetMemberStatus(t *testing.T) {
 			nil,
 		).Times(1)
 
-	member, err := mx.GetMemberStatus(ctx, userGuid, memberGuid)
+	member, err := ops.GetMemberStatus(ctx, b, userGuid, memberGuid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -124,25 +152,11 @@ func TestGetMemberStatus(t *testing.T) {
 func TestStartIdentityAggregation(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity_mock.NewMockClient(ctrl),
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 
 	userGuid := uuid.NewString()
 	memberGuid := uuid.NewString()
-	mockExternalClient.EXPECT().AggregateIdentity(ctx, userGuid, memberGuid).
+	b.extClient.EXPECT().AggregateIdentity(ctx, userGuid, memberGuid).
 		Return(
 			&external.Member{
 				Guid:              memberGuid,
@@ -152,7 +166,7 @@ func TestStartIdentityAggregation(t *testing.T) {
 			nil,
 		).Times(1)
 
-	member, err := mx.StartIdentityAggregation(ctx, userGuid, memberGuid)
+	member, err := ops.StartIdentityAggregation(ctx, b, userGuid, memberGuid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,23 +179,9 @@ func TestStartIdentityAggregation(t *testing.T) {
 func TestGetAccountOwner(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity_mock.NewMockClient(ctrl),
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 
-	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
+	mxAccount, err := ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 		Guid:            uuid.NewString(),
 		UserGuid:        uuid.NewString(),
 		MemberGuid:      uuid.NewString(),
@@ -209,7 +209,7 @@ func TestGetAccountOwner(t *testing.T) {
 		},
 		{
 			Name:          "Returns ErrNotFound if mx account guid is not found.",
-			ExpectedError: ErrNotFound,
+			ExpectedError: mx.ErrNotFound,
 			AccountOwners: []external.AccountOwner{
 				{
 					AccountGuid: uuid.NewString(),
@@ -221,11 +221,11 @@ func TestGetAccountOwner(t *testing.T) {
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(st *testing.T) {
-			mockExternalClient.EXPECT().
+			b.extClient.EXPECT().
 				GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
 				Return(scenario.AccountOwners, nil).Times(1)
 
-			accountOwner, err := mx.GetAccountOwner(ctx, &GetAccountOwnerArgs{
+			accountOwner, err := ops.GetAccountOwner(ctx, b, mx.GetAccountOwnerArgs{
 				MxUserGuid:    mxAccount.UserGuid,
 				MxMemberGuid:  mxAccount.MemberGuid,
 				MxAccountGuid: mxAccount.Guid,
@@ -248,23 +248,9 @@ func TestGetAccountOwner(t *testing.T) {
 func TestReadAccount(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity_mock.NewMockClient(ctrl),
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 
-	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
+	mxAccount, err := ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 		Guid:            uuid.NewString(),
 		UserGuid:        uuid.NewString(),
 		MemberGuid:      uuid.NewString(),
@@ -297,17 +283,17 @@ func TestReadAccount(t *testing.T) {
 		},
 		{
 			Name:                "Returns ErrInternal if mx account guid is not found on mx.",
-			ExpectedError:       ErrInternal,
+			ExpectedError:       mx.ErrInternal,
 			ExternalClientError: errors.New("not found"),
 		},
 	}
 
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(st *testing.T) {
-			mockExternalClient.EXPECT().ReadAccount(ctx, mxAccount.UserGuid, mxAccount.Guid).
+			b.extClient.EXPECT().ReadAccount(ctx, mxAccount.UserGuid, mxAccount.Guid).
 				Return(scenario.Account, scenario.ExternalClientError).Times(1)
 
-			mxAccount, err := mx.ReadAccount(ctx, mxAccount.Guid)
+			mxAccount, err := ops.ReadAccount(ctx, b, mxAccount.Guid)
 
 			if scenario.ExpectedError == nil {
 				assert.NoError(st, err, scenario.Name)
@@ -327,21 +313,7 @@ func TestReadAccount(t *testing.T) {
 func TestGetMxUserByAccountID(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accounts_mock.NewMockClient(ctrl),
-		IdentityService: identity_mock.NewMockClient(ctrl),
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 
 	accountID := ""
 	expectedMxUserGuid := ""
@@ -356,7 +328,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 			RunBefore: func(rbt *testing.T) {
 				accountID = uuid.NewString()
 				expectedMxUserGuid = uuid.NewString()
-				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
+				_, err := ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 					Guid:            uuid.NewString(),
 					UserGuid:        expectedMxUserGuid,
 					MemberGuid:      uuid.NewString(),
@@ -366,7 +338,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 				if err != nil {
 					rbt.Fatal(err)
 				}
-				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
+				_, err = ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 					Guid:            uuid.NewString(),
 					UserGuid:        expectedMxUserGuid,
 					MemberGuid:      uuid.NewString(),
@@ -380,11 +352,11 @@ func TestGetMxUserByAccountID(t *testing.T) {
 		},
 		{
 			Name:          "Returns ErrInternal if there is more than one mx user for the account",
-			ExpectedError: ErrInternal,
+			ExpectedError: mx.ErrInternal,
 			RunBefore: func(rbt *testing.T) {
 				accountID = uuid.NewString()
 				expectedMxUserGuid = uuid.NewString()
-				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
+				_, err := ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 					Guid:            uuid.NewString(),
 					UserGuid:        expectedMxUserGuid,
 					MemberGuid:      uuid.NewString(),
@@ -394,7 +366,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 				if err != nil {
 					rbt.Fatal(err)
 				}
-				_, err = mx.CreateAccount(ctx, &CreateAccountArgs{
+				_, err = ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 					Guid:            uuid.NewString(),
 					UserGuid:        uuid.NewString(),
 					MemberGuid:      uuid.NewString(),
@@ -408,7 +380,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 		},
 		{
 			Name:          "Returns ErrNotFound if there is no mx user for the account.",
-			ExpectedError: ErrNotFound,
+			ExpectedError: mx.ErrNotFound,
 			RunBefore: func(rbt *testing.T) {
 				accountID = uuid.NewString()
 			},
@@ -419,7 +391,7 @@ func TestGetMxUserByAccountID(t *testing.T) {
 		t.Run(scenario.Name, func(st *testing.T) {
 			scenario.RunBefore(st)
 
-			mxUserGuid, err := mx.GetMxUserByAccountID(ctx, accountID)
+			mxUserGuid, err := ops.GetMxUserByAccountID(ctx, b, accountID)
 
 			if scenario.ExpectedError == nil {
 				assert.NoError(st, err, scenario.Name)
@@ -435,25 +407,10 @@ func TestGetMxUserByAccountID(t *testing.T) {
 func TestVerifyOwnership(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	accountService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity_mock.NewMockClient(ctrl)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accountService,
-		IdentityService: identityService,
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
+
 	userID := uuid.NewString()
-	mxAccount, err := mx.CreateAccount(ctx, &CreateAccountArgs{
+	mxAccount, err := ops.CreateAccount(ctx, b, mx.CreateAccountArgs{
 		Guid:            uuid.NewString(),
 		UserGuid:        uuid.NewString(),
 		MemberGuid:      uuid.NewString(),
@@ -463,7 +420,7 @@ func TestVerifyOwnership(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	accountService.EXPECT().Get(gomock.Any(), mxAccount.AccountID).Return(
+	b.acc.EXPECT().Get(gomock.Any(), mxAccount.AccountID).Return(
 		&accounts.Account{
 			ID:         mxAccount.Guid,
 			IdentityID: userID,
@@ -496,7 +453,7 @@ func TestVerifyOwnership(t *testing.T) {
 		},
 		{
 			Name:          "Returns ErrOwnershipCheckFailed if account owner's name does not match user's name",
-			ExpectedError: ErrOwnershipCheckFailed,
+			ExpectedError: mx.ErrOwnershipCheckFailed,
 			AccountOwners: []external.AccountOwner{
 				{
 					AccountGuid: mxAccount.Guid,
@@ -529,7 +486,7 @@ func TestVerifyOwnership(t *testing.T) {
 		},
 		{
 			Name:          "Does not auto verify MX USER when in prod",
-			ExpectedError: ErrOwnershipCheckFailed,
+			ExpectedError: mx.ErrOwnershipCheckFailed,
 			AccountOwners: []external.AccountOwner{
 				{
 					AccountGuid: mxAccount.Guid,
@@ -548,11 +505,11 @@ func TestVerifyOwnership(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.Name, func(t *testing.T) {
 			os.Setenv("FYNBOS_ENV", tc.FynbosEnv)
-			mockExternalClient.EXPECT().GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
+			b.extClient.EXPECT().GetAccountOwners(ctx, mxAccount.UserGuid, mxAccount.MemberGuid).
 				Return(tc.AccountOwners, nil).Times(1)
-			identityService.EXPECT().Get(ctx, userID).Return(tc.User, nil).Times(1)
+			b.ident.EXPECT().Get(ctx, userID).Return(tc.User, nil).Times(1)
 
-			err = mx.VerifyOwnership(ctx, &VerifyOwnershipArgs{
+			err = ops.VerifyOwnership(ctx, b, mx.VerifyOwnershipArgs{
 				AccountID:     mxAccount.AccountID,
 				MxUserGuid:    mxAccount.UserGuid,
 				MxMemberGuid:  mxAccount.MemberGuid,
@@ -571,35 +528,19 @@ func TestVerifyOwnership(t *testing.T) {
 func TestGetMxConnectWidget(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	db := test_utils.MigrateCockroachDB(t, ctx)
-	accountService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity_mock.NewMockClient(ctrl)
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              db,
-		AccountsService: accountService,
-		IdentityService: identityService,
-		Temporal:        &mocks.Client{},
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 
 	accountID := uuid.NewString()
 	userID := uuid.NewString()
-	accountService.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
+	b.acc.EXPECT().Get(gomock.Any(), accountID).Return(&accounts.Account{
 		ID:         accountID,
 		IdentityID: userID,
 	}, nil).AnyTimes()
 	mxUserGuid := uuid.NewString()
-	mockExternalClient.EXPECT().CreateUser(ctx).Return(mxUserGuid, nil).Times(1)
-	mockExternalClient.EXPECT().GetWidgetUrl(ctx, mxUserGuid).Return("localhost", nil)
+	b.extClient.EXPECT().CreateUser(ctx).Return(mxUserGuid, nil).Times(1)
+	b.extClient.EXPECT().GetWidgetUrl(ctx, mxUserGuid).Return("localhost", nil)
 
-	url, err := mx.GetConnectWidget(context.Background(), accountID, userID)
+	url, err := ops.GetConnectWidget(context.Background(), b, accountID, userID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -607,23 +548,8 @@ func TestGetMxConnectWidget(t *testing.T) {
 }
 
 func TestInitiateCreateAccount(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	accountsService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity_mock.NewMockClient(ctrl)
-	temporal := &mocks.Client{}
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              &sqlx.DB{},
-		AccountsService: accountsService,
-		IdentityService: identityService,
-		Temporal:        temporal,
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	b := getTestBackends(t)
 
 	userID := uuid.NewString()
 	accountID := uuid.NewString()
@@ -636,9 +562,9 @@ func TestInitiateCreateAccount(t *testing.T) {
 	}{
 		{
 			Name:          "Returns ErrUnauthorized if identity does not own account",
-			ExpectedError: ErrUnauthorized,
+			ExpectedError: mx.ErrUnauthorized,
 			RunBefore: func() {
-				accountsService.EXPECT().Get(gomock.Any(), accountID).Return(
+				b.acc.EXPECT().Get(gomock.Any(), accountID).Return(
 					&accounts.Account{
 						ID:         accountID,
 						IdentityID: uuid.NewString(),
@@ -651,19 +577,19 @@ func TestInitiateCreateAccount(t *testing.T) {
 			Name:          "Creates funding source and initiates workflow.",
 			ExpectedError: nil,
 			RunBefore: func() {
-				accountsService.EXPECT().Get(gomock.Any(), accountID).Return(
+				b.acc.EXPECT().Get(gomock.Any(), accountID).Return(
 					&accounts.Account{
 						ID:         accountID,
 						IdentityID: userID,
 					},
 					nil,
 				).Times(1)
-				temporal.On(
+				b.temporal.On(
 					"ExecuteWorkflow",
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
-					mock.MatchedBy(func(args *CreateMxAccountWorkflowArgs) bool {
+					mock.MatchedBy(func(args *workflows.CreateMxAccountWorkflowArgs) bool {
 						_, err := uuid.Parse(args.ID)
 						if err != nil {
 							return false
@@ -689,9 +615,10 @@ func TestInitiateCreateAccount(t *testing.T) {
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(tc *testing.T) {
 			scenario.RunBefore()
-			worflowUuid, err := mx.InitiateCreateAccount(
+			worflowUuid, err := ops.InitiateCreateAccount(
 				context.Background(),
-				&InitiateCreateAccountArgs{
+				b,
+				mx.InitiateCreateAccountArgs{
 					IdentityID: userID,
 					AccountID:  accountID,
 					UserGuid:   userGuid,
@@ -714,24 +641,8 @@ func TestInitiateCreateAccount(t *testing.T) {
 
 func TestGetAccountBalance(t *testing.T) {
 	t.Parallel()
-	ctrl := gomock.NewController(t)
-	accountsService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity_mock.NewMockClient(ctrl)
-	temporal := &mocks.Client{}
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
-		AccountsService: accountsService,
-		IdentityService: identityService,
-		Temporal:        temporal,
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+	b := getTestBackends(t)
+	mxAccount, err := ops.CreateAccount(context.Background(), b, mx.CreateAccountArgs{
 		Guid:            uuid.NewString(),
 		UserGuid:        uuid.NewString(),
 		MemberGuid:      uuid.NewString(),
@@ -766,7 +677,7 @@ func TestGetAccountBalance(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(st *testing.T) {
-			mockExternalClient.EXPECT().ReadAccount(gomock.Any(), mxAccount.UserGuid, mxAccount.Guid).
+			b.extClient.EXPECT().ReadAccount(gomock.Any(), mxAccount.UserGuid, mxAccount.Guid).
 				Return(
 					&external.Account{
 						Guid:             mxAccount.Guid,
@@ -778,7 +689,7 @@ func TestGetAccountBalance(t *testing.T) {
 					nil,
 				).Times(1)
 
-			balance, err := mx.GetAccountBalance(context.Background(), mxAccount.Guid)
+			balance, err := ops.GetAccountBalance(context.Background(), b, mxAccount.Guid)
 			if err != nil {
 				st.Fatal(err)
 			}
@@ -792,40 +703,24 @@ func TestGetAccountBalance(t *testing.T) {
 
 func TestInitiateCreateFundingsource(t *testing.T) {
 	t.Parallel()
-	ctrl := gomock.NewController(t)
-	accountsService := accounts_mock.NewMockClient(ctrl)
-	identityService := identity_mock.NewMockClient(ctrl)
-	temporal := &mocks.Client{}
-	mockExternalClient := external.NewMockMx(ctrl)
-	twilioClient := twilio.NewMockService(ctrl)
-	mx, err := NewService(&ServiceArgs{
-		ExternalClient:  mockExternalClient,
-		Db:              test_utils.MigrateCockroachDB(t, context.Background()),
-		AccountsService: accountsService,
-		IdentityService: identityService,
-		Temporal:        temporal,
-		Twilio:          twilioClient,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	b := getTestBackends(t)
 	userID := uuid.NewString()
 	accountID := uuid.NewString()
 	fundingsourceID := uuid.NewString()
-	accountsService.EXPECT().Get(gomock.Any(), accountID).Return(
+	b.acc.EXPECT().Get(gomock.Any(), accountID).Return(
 		&accounts.Account{
 			ID:         accountID,
 			IdentityID: userID,
 		},
 		nil,
 	).AnyTimes()
-	identityService.EXPECT().Get(gomock.Any(), userID).Return(
+	b.ident.EXPECT().Get(gomock.Any(), userID).Return(
 		&identity.Identity{ID: userID, MobileNumber: "+275555555"},
 		nil,
 	).AnyTimes()
 
 	t.Run("fails if mxAccount does not belong to account", func(st *testing.T) {
-		mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+		mxAccount, err := ops.CreateAccount(context.Background(), b, mx.CreateAccountArgs{
 			Guid:            uuid.NewString(),
 			UserGuid:        uuid.NewString(),
 			MemberGuid:      uuid.NewString(),
@@ -836,17 +731,17 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 			st.Fatal(err)
 		}
 
-		err = mx.InitiateCreateFundingsource(context.Background(), &InitiateCreateFundingsourceArgs{
+		err = ops.InitiateCreateFundingsource(context.Background(), b, mx.InitiateCreateFundingsourceArgs{
 			AccountID:     accountID,
 			Otp:           "1234",
 			Name:          "test",
 			MxAccountGuid: mxAccount.Guid,
 		})
-		assert.ErrorIs(st, err, ErrUnauthorized)
+		assert.ErrorIs(st, err, mx.ErrUnauthorized)
 	})
 
 	t.Run("fails if otp is invalid", func(st *testing.T) {
-		mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+		mxAccount, err := ops.CreateAccount(context.Background(), b, mx.CreateAccountArgs{
 			Guid:            uuid.NewString(),
 			UserGuid:        uuid.NewString(),
 			MemberGuid:      uuid.NewString(),
@@ -856,7 +751,7 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 		if err != nil {
 			st.Fatal(err)
 		}
-		twilioClient.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+		b.twil.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
 			PhoneNumber: "+275555555",
 			Code:        "1234",
 		}).Return(
@@ -866,7 +761,7 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 			nil,
 		).Times(1)
 
-		err = mx.InitiateCreateFundingsource(context.Background(), &InitiateCreateFundingsourceArgs{
+		err = ops.InitiateCreateFundingsource(context.Background(), b, mx.InitiateCreateFundingsourceArgs{
 			AccountID:     accountID,
 			Otp:           "1234",
 			Name:          "test",
@@ -876,7 +771,7 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 	})
 
 	t.Run("executes workflow", func(st *testing.T) {
-		mxAccount, err := mx.CreateAccount(context.Background(), &CreateAccountArgs{
+		mxAccount, err := ops.CreateAccount(context.Background(), b, mx.CreateAccountArgs{
 			Guid:            uuid.NewString(),
 			UserGuid:        uuid.NewString(),
 			MemberGuid:      uuid.NewString(),
@@ -886,7 +781,7 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 		if err != nil {
 			st.Fatal(err)
 		}
-		twilioClient.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
+		b.twil.EXPECT().CheckVerificationCode(gomock.Any(), &twilio.CheckVerificationCodeArgs{
 			PhoneNumber: "+275555555",
 			Code:        "1234",
 		}).Return(
@@ -895,9 +790,9 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 			},
 			nil,
 		).Times(1)
-		temporal.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+		b.temporal.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
 			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
-				workflowArgs, ok := args[0].(*MxCreateFundingsourceWorkflowArgs)
+				workflowArgs, ok := args[0].(*workflows.MxCreateFundingsourceWorkflowArgs)
 				if !ok {
 					st.Fatal("incorrect args to workflow.")
 				}
@@ -916,7 +811,7 @@ func TestInitiateCreateFundingsource(t *testing.T) {
 			}, nil,
 		).Times(1)
 
-		err = mx.InitiateCreateFundingsource(context.Background(), &InitiateCreateFundingsourceArgs{
+		err = ops.InitiateCreateFundingsource(context.Background(), b, mx.InitiateCreateFundingsourceArgs{
 			AccountID:     accountID,
 			Otp:           "1234",
 			Name:          "test",

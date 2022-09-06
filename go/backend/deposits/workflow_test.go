@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	mx_activities "gitlab.com/fynbos/backend/providers/mx/activities"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/fynbos/backend/deposits"
@@ -24,13 +26,13 @@ type AchDepositTestSuite struct {
 
 	env              *testsuite.TestWorkflowEnvironment
 	depositsActivity *deposits.Activity
-	mxActivity       *_mx.Activity
+	mxActivity       *mx_activities.Activity
 	unitActivity     *unit_activity.Activity
 }
 
 func (s *AchDepositTestSuite) SetupSuite() {
 	s.depositsActivity = &deposits.Activity{}
-	s.mxActivity = &_mx.Activity{}
+	s.mxActivity = &mx_activities.Activity{}
 	s.unitActivity = &unit_activity.Activity{}
 }
 
@@ -82,7 +84,7 @@ func (s *AchDepositTestSuite) TestGoldenPath() {
 		},
 	)
 	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+		func(ctx context.Context, args *mx_activities.WaitForAggregationArgs) error {
 			s.Equal(mxAcc.UserGuid, args.MxUserGuid)
 			s.Equal(mxAcc.MemberGuid, args.MxMemberGuid)
 			return nil
@@ -161,7 +163,7 @@ func (s *AchDepositTestSuite) TestFailsDespositOnInsufficientBalance() {
 		},
 	)
 	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+		func(ctx context.Context, args *mx_activities.WaitForAggregationArgs) error {
 			s.Equal(mxAcc.UserGuid, args.MxUserGuid)
 			s.Equal(mxAcc.MemberGuid, args.MxMemberGuid)
 			return nil
@@ -226,7 +228,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfFundingsourceIsNotInUSD() {
 		},
 	)
 	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+		func(ctx context.Context, args *mx_activities.WaitForAggregationArgs) error {
 			s.Equal(mxAcc.UserGuid, args.MxUserGuid)
 			s.Equal(mxAcc.MemberGuid, args.MxMemberGuid)
 			return nil
@@ -292,7 +294,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsRejected() {
 		},
 	)
 	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+		func(ctx context.Context, args *mx_activities.WaitForAggregationArgs) error {
 			s.Equal(mxAcc.UserGuid, args.MxUserGuid)
 			s.Equal(mxAcc.MemberGuid, args.MxMemberGuid)
 			return nil
@@ -370,7 +372,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsReturned() {
 		},
 	)
 	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+		func(ctx context.Context, args *mx_activities.WaitForAggregationArgs) error {
 			s.Equal(mxAcc.UserGuid, args.MxUserGuid)
 			s.Equal(mxAcc.MemberGuid, args.MxMemberGuid)
 			return nil
@@ -448,7 +450,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsCanceled() {
 		},
 	)
 	s.env.OnActivity(s.mxActivity.WaitForAggregation, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *_mx.WaitForAggregationArgs) error {
+		func(ctx context.Context, args *mx_activities.WaitForAggregationArgs) error {
 			s.Equal(mxAcc.UserGuid, args.MxUserGuid)
 			s.Equal(mxAcc.MemberGuid, args.MxMemberGuid)
 			return nil

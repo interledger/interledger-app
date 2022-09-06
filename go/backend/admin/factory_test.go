@@ -6,16 +6,6 @@ import (
 	"net"
 	"testing"
 
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
-	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
-	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
-
-	"go.temporal.io/sdk/client"
-
-	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-
-	identity_client "gitlab.com/fynbos/backend/identity/client"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -32,17 +22,23 @@ import (
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
+	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/mx"
+	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
+	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -195,7 +191,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		FundingSourceService: c.Fs,
 		TwilioService:        tw,
 		OnboardingService:    os,
-		MxProvider:           mx.NewMockService(c.Ctrl),
+		MxProvider:           mx_mock.NewMockClient(c.Ctrl),
 		RafikiProvider:       c.RafikiProvider,
 		DepositService:       deposits.NewMockService(c.Ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(c.Ctrl),
