@@ -52,9 +52,11 @@ service BackendService {
   // Creates a user identity, with the data in onboarding.
   rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
   rpc InitiateUnitOnboarding(InitiateUnitOnboardingRequest) returns (InitiateUnitOnboardingResponse);
+  rpc GetIdentity(Empty) returns (UserIdentity);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
+  rpc SendOTP(Empty) returns (Empty);
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
@@ -268,6 +270,16 @@ message OutgoingPayment {
   string destination = 3;
   uint64 amount = 4;
   string state = 5;
+}
+
+message UserIdentity {
+  string id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string mobileNumber = 4;
+  string email = 5;
+  string dateOfBirth = 6;
+  string countryCode = 7;
 }
 
 message GetBankAccountDetailsRequest {
