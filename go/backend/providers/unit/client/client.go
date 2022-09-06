@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/providers/unit/external"
@@ -323,4 +324,70 @@ func (c client) InitiateUserDeposit(
 	}()
 
 	return ops.InitiateUserDeposit(ctx, c.b, c.external, args)
+}
+
+func (c client) StoreEvent(
+	ctx context.Context, event external.Event, rawEvent json.RawMessage,
+) (ret *unit.DbEvent, err error) {
+	defer func() {
+		if err != nil {
+			log.Error(
+				"Failed to store event",
+				zap.String("eventID", event.ID),
+				zap.String("eventType", string(event.Type)),
+			)
+			return
+		}
+
+		log.Debug(
+			"Store event",
+			zap.String("eventID", event.ID),
+			zap.String("eventType", string(event.Type)),
+		)
+	}()
+
+	return ops.StoreEvent(ctx, c.b, event, rawEvent)
+}
+
+func (c client) GetEvent(
+	ctx context.Context, id string,
+) (ret *unit.DbEvent, err error) {
+	defer func() {
+		if err != nil {
+			log.Error(
+				"Failed to get event",
+				zap.String("id", id),
+			)
+			return
+		}
+
+		log.Debug(
+			"Got event",
+			zap.String("id", id),
+		)
+	}()
+
+	return ops.GetEvent(ctx, c.b, id)
+}
+
+func (c client) HandleEvent(
+	ctx context.Context, event external.Event, rawEvent json.RawMessage,
+) (err error) {
+	defer func() {
+		if err != nil {
+			log.Error(
+				"Failed to handle event",
+				zap.String("err", err.Error()),
+			)
+			return
+		}
+
+		log.Debug(
+			"Handled event",
+			zap.String("id", event.ID),
+			zap.String("type", string(event.Type)),
+		)
+	}()
+
+	return ops.HandleEvent(ctx, c.b, event, rawEvent)
 }
