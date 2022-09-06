@@ -197,6 +197,7 @@ func start(args *cli.StartArgs) {
 		AccountsService: accountsClient,
 		IdentityService: id,
 		Temporal:        tp,
+		Twilio:          twilioService,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -437,12 +438,23 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+		AccountSid:   args.TwilioSid,
+		AccountToken: args.TwilioSecret,
+		ServiceSid:   args.TwilioServiceSid,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.twilio = twilioService
+
 	mx, err := _mx.NewService(&_mx.ServiceArgs{
 		ExternalClient:  _mxexternal.NewClient(args.MxBaseURL, args.MxClientID, args.MxApiKey),
 		Db:              db,
 		AccountsService: as,
 		IdentityService: id,
 		Temporal:        tp,
+		Twilio:          twilioService,
 	})
 	if err != nil {
 		log.Fatalln(err)

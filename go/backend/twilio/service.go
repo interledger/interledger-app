@@ -11,12 +11,16 @@ import (
 	"github.com/twilio/twilio-go"
 	"github.com/twilio/twilio-go/client"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
+	"gitlab.com/fynbos/env"
 )
 
 var (
 	ErrInvalidArgument = errors.New("twilio error: invalid argument")
 	ErrInternal        = errors.New("twilio service: internal error.")
+	ErrInvalidOTP      = errors.New("twilio: invalid OTP")
 )
+
+const statusApproved = "approved"
 
 type (
 	Service interface {
@@ -45,7 +49,7 @@ type (
 )
 
 func (v Verification) IsValid() bool {
-	return v.Status == "approved"
+	return v.Status == statusApproved
 }
 
 func NewService(args *ServiceArgs) (Service, error) {
@@ -81,6 +85,14 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
+	if !env.IsProd() && !env.IsSandbox() {
+		return &Verification{
+			Sid:         "1234",
+			PhoneNumber: phoneNumber,
+			Status:      "pending",
+		}, nil
+	}
+
 	params := &verify.CreateVerificationParams{}
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
@@ -107,6 +119,15 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
+	// Short circuit here for environments where there is not twilio integrations
+	if !env.IsProd() && !env.IsSandbox() {
+		return &Verification{
+			Sid:         "1234",
+			PhoneNumber: args.PhoneNumber,
+			Status:      statusApproved,
+		}, nil
+	}
+
 	err := s.validator.Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)

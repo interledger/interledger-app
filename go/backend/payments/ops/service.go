@@ -56,8 +56,8 @@ func InitiateOutgoingPayment(
 			return nil, err
 		}
 
-		if verify.Status != "approved" {
-			return nil, fmt.Errorf("invalid OTP provided %w", payments.ErrInvalidArgument)
+		if !verify.IsValid() {
+			return nil, fmt.Errorf("invalid OTP provided %w", twilio.ErrInvalidOTP)
 		}
 	}
 

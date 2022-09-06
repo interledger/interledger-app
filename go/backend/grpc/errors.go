@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 
-	"go.uber.org/zap"
-
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,6 +23,7 @@ var errorStatus = map[error]error{
 	payments.ErrInsufficientBalance: status.Error(codes.InvalidArgument, "Insufficient funds"),
 	payments.ErrNotFound:            status.Error(codes.NotFound, "Unknown payment"),
 	mx.ErrNotFound:                  status.Error(codes.NotFound, "Bank account not found"),
+	twilio.ErrInvalidOTP:            NewValidationError("OTP", "Could not validate OTP"),
 }
 
 func validationDesc(fe validator.FieldError) string {

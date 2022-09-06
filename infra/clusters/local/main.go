@@ -13,7 +13,7 @@ import (
 	"gitlab.com/fynbos/infra/services/kratos"
 	"gitlab.com/fynbos/infra/services/mailhog"
 	mockstaticresponseservers "gitlab.com/fynbos/infra/services/mock-static-response-servers"
-	pacioli "gitlab.com/fynbos/infra/services/pacioli"
+	"gitlab.com/fynbos/infra/services/pacioli"
 	"gitlab.com/fynbos/infra/services/postgres"
 	"gitlab.com/fynbos/infra/services/protea"
 	"gitlab.com/fynbos/infra/services/rafiki"
@@ -102,7 +102,7 @@ func main() {
 		err = protea.DeployProtea(ctx, protea.DeployProteaArgs{
 			ImageRepo:        "localhost:5005",
 			ImageTag:         "latest",
-			GoogleMapsApiKey: "TODO",
+			GoogleMapsApiKey: "AIzaSyAPvt9g9WQknJwsVi2UWq2G4lDONHbYJNU",
 		})
 		if err != nil {
 			return err
