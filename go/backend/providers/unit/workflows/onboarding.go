@@ -1,8 +1,11 @@
-package unit
+package workflows
 
 import (
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/providers/unit/activities"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -14,11 +17,11 @@ type UnitOnboardCustomerState struct {
 	Type            string
 	IdentityID      string
 	AccountID       string
-	ApplicationArgs CreateApplicationArgs // TODO Change to key from vault
+	ApplicationArgs unit.CreateApplicationArgs // TODO Change to key from vault
 }
 
 func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomerState) error {
-	var a *Activity
+	var a *activities.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
 		ScheduleToCloseTimeout: 15 * time.Second,
@@ -35,7 +38,7 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 
 	approved, denied := false, false
 
-	var application Application
+	var application unit.Application
 	err := workflow.ExecuteActivity(
 		ctx,
 		a.UnitCreateApplication,
@@ -66,7 +69,7 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		selector := workflow.NewSelector(ctx)
 
 		selector.AddReceive(customerCreatedChannel, func(c workflow.ReceiveChannel, _ bool) {
-			var signal CustomerCreatedEvent
+			var signal external.CustomerCreatedEvent
 			c.Receive(ctx, &signal)
 
 			// Handle signals for customer created (application success)
@@ -92,7 +95,7 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		return nil
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UnitCreateCustomer, &UnitCreateCustomerArgs{
+	err = workflow.ExecuteActivity(ctx, a.UnitCreateCustomer, &activities.UnitCreateCustomerArgs{
 		CustomerID: state.CustomerID,
 		IdentityID: state.IdentityID,
 		Type:       state.Type,
@@ -102,7 +105,7 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 		return err
 	}
 
-	var depositAccount DepositAccount
+	var depositAccount unit.DepositAccount
 	err = workflow.ExecuteActivity(ctx, a.UnitCreateDepositAccount, state.CustomerID).Get(ctx, &depositAccount)
 	if err != nil {
 		logger.Error("Failed to create unit deposit account.", err)
@@ -112,7 +115,7 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 	err = workflow.ExecuteActivity(
 		ctx,
 		a.UnitCreateAccount,
-		&UnitCreateAccountArgs{
+		&activities.UnitCreateAccountArgs{
 			IdentityID:       state.IdentityID,
 			DepositAccountID: depositAccount.ID,
 		},
