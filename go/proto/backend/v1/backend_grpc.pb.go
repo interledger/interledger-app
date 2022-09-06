@@ -189,9 +189,11 @@ type BackendServiceClient interface {
 	// Creates a user identity, with the data in onboarding.
 	CreateIdentity(ctx context.Context, in *CreateIdentityRequest, opts ...grpc.CallOption) (*CreateIdentityResponse, error)
 	InitiateUnitOnboarding(ctx context.Context, in *InitiateUnitOnboardingRequest, opts ...grpc.CallOption) (*InitiateUnitOnboardingResponse, error)
+	GetIdentity(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserIdentity, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
+	SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
@@ -289,6 +291,15 @@ func (c *backendServiceClient) InitiateUnitOnboarding(ctx context.Context, in *I
 	return out, nil
 }
 
+func (c *backendServiceClient) GetIdentity(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserIdentity, error) {
+	out := new(UserIdentity)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentity", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error) {
 	out := new(PhoneVerificationResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SendPhoneVerification", in, out, opts...)
@@ -301,6 +312,15 @@ func (c *backendServiceClient) SendPhoneVerification(ctx context.Context, in *Se
 func (c *backendServiceClient) CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error) {
 	out := new(PhoneVerificationResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckPhoneVerificationCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SendOTP", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -430,9 +450,11 @@ type BackendServiceServer interface {
 	// Creates a user identity, with the data in onboarding.
 	CreateIdentity(context.Context, *CreateIdentityRequest) (*CreateIdentityResponse, error)
 	InitiateUnitOnboarding(context.Context, *InitiateUnitOnboardingRequest) (*InitiateUnitOnboardingResponse, error)
+	GetIdentity(context.Context, *Empty) (*UserIdentity, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
+	SendOTP(context.Context, *Empty) (*Empty, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
@@ -478,11 +500,17 @@ func (UnimplementedBackendServiceServer) CreateIdentity(context.Context, *Create
 func (UnimplementedBackendServiceServer) InitiateUnitOnboarding(context.Context, *InitiateUnitOnboardingRequest) (*InitiateUnitOnboardingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitiateUnitOnboarding not implemented")
 }
+func (UnimplementedBackendServiceServer) GetIdentity(context.Context, *Empty) (*UserIdentity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdentity not implemented")
+}
 func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
 }
 func (UnimplementedBackendServiceServer) CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPhoneVerificationCode not implemented")
+}
+func (UnimplementedBackendServiceServer) SendOTP(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendOTP not implemented")
 }
 func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAgreement not implemented")
@@ -676,6 +704,24 @@ func _BackendService_InitiateUnitOnboarding_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetIdentity",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetIdentity(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_SendPhoneVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SendPhoneVerificationRequest)
 	if err := dec(in); err != nil {
@@ -708,6 +754,24 @@ func _BackendService_CheckPhoneVerificationCode_Handler(srv interface{}, ctx con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CheckPhoneVerificationCode(ctx, req.(*CheckPhoneVerificationCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_SendOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SendOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SendOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SendOTP(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -968,12 +1032,20 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_InitiateUnitOnboarding_Handler,
 		},
 		{
+			MethodName: "GetIdentity",
+			Handler:    _BackendService_GetIdentity_Handler,
+		},
+		{
 			MethodName: "SendPhoneVerification",
 			Handler:    _BackendService_SendPhoneVerification_Handler,
 		},
 		{
 			MethodName: "CheckPhoneVerificationCode",
 			Handler:    _BackendService_CheckPhoneVerificationCode_Handler,
+		},
+		{
+			MethodName: "SendOTP",
+			Handler:    _BackendService_SendOTP_Handler,
 		},
 		{
 			MethodName: "GetAgreement",

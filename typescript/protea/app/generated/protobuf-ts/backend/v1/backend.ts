@@ -620,6 +620,39 @@ export interface OutgoingPayment {
     state: string;
 }
 /**
+ * @generated from protobuf message backend.v1.UserIdentity
+ */
+export interface UserIdentity {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string firstName = 2;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 3;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string mobileNumber = 4;
+     */
+    mobileNumber: string;
+    /**
+     * @generated from protobuf field: string email = 5;
+     */
+    email: string;
+    /**
+     * @generated from protobuf field: string dateOfBirth = 6;
+     */
+    dateOfBirth: string;
+    /**
+     * @generated from protobuf field: string countryCode = 7;
+     */
+    countryCode: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetBankAccountDetailsRequest
  */
 export interface GetBankAccountDetailsRequest {
@@ -2957,6 +2990,95 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
  */
 export const OutgoingPayment = new OutgoingPayment$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class UserIdentity$Type extends MessageType<UserIdentity> {
+    constructor() {
+        super("backend.v1.UserIdentity", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "mobileNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "dateOfBirth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UserIdentity>): UserIdentity {
+        const message = { id: "", firstName: "", lastName: "", mobileNumber: "", email: "", dateOfBirth: "", countryCode: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UserIdentity>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UserIdentity): UserIdentity {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string firstName */ 2:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 3:
+                    message.lastName = reader.string();
+                    break;
+                case /* string mobileNumber */ 4:
+                    message.mobileNumber = reader.string();
+                    break;
+                case /* string email */ 5:
+                    message.email = reader.string();
+                    break;
+                case /* string dateOfBirth */ 6:
+                    message.dateOfBirth = reader.string();
+                    break;
+                case /* string countryCode */ 7:
+                    message.countryCode = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UserIdentity, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string firstName = 2; */
+        if (message.firstName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 3; */
+        if (message.lastName !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.lastName);
+        /* string mobileNumber = 4; */
+        if (message.mobileNumber !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.mobileNumber);
+        /* string email = 5; */
+        if (message.email !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.email);
+        /* string dateOfBirth = 6; */
+        if (message.dateOfBirth !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.dateOfBirth);
+        /* string countryCode = 7; */
+        if (message.countryCode !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.countryCode);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UserIdentity
+ */
+export const UserIdentity = new UserIdentity$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountDetailsRequest$Type extends MessageType<GetBankAccountDetailsRequest> {
     constructor() {
         super("backend.v1.GetBankAccountDetailsRequest", [
@@ -3206,8 +3328,10 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding },
     { name: "CreateIdentity", options: {}, I: CreateIdentityRequest, O: CreateIdentityResponse },
     { name: "InitiateUnitOnboarding", options: {}, I: InitiateUnitOnboardingRequest, O: InitiateUnitOnboardingResponse },
+    { name: "GetIdentity", options: {}, I: Empty, O: UserIdentity },
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: PhoneVerificationResponse },
     { name: "CheckPhoneVerificationCode", options: {}, I: CheckPhoneVerificationCodeRequest, O: PhoneVerificationResponse },
+    { name: "SendOTP", options: {}, I: Empty, O: Empty },
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "GetStatements", options: {}, I: Empty, O: GetStatementsResponse },
