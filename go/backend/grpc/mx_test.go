@@ -23,6 +23,7 @@ import (
 	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
@@ -48,7 +49,7 @@ type TestContainer struct {
 	TwilioService        *twilio.MockService
 	OnboardingService    *onboarding_mock.MockClient
 	UnitProvider         *unit_mock.MockClient
-	MxProvider           *mx.MockService
+	MxProvider           *mx_mock.MockClient
 	RafikiProvider       *rafiki.MockService
 	DepositService       *deposits.MockService
 	WaitlistClient       *waitlist_mock.MockClient
@@ -78,7 +79,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		TwilioService:        twilio.NewMockService(ctrl),
 		UnitProvider:         unit_mock.NewMockClient(ctrl),
 		OnboardingService:    onboarding_mock.NewMockClient(ctrl),
-		MxProvider:           mx.NewMockService(ctrl),
+		MxProvider:           mx_mock.NewMockClient(ctrl),
 		RafikiProvider:       rafiki.NewMockService(ctrl),
 		DepositService:       deposits.NewMockService(ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
@@ -190,7 +191,7 @@ func TestAddBankAccount(t *testing.T) {
 					nil,
 				).Times(1)
 				workflowUuid = uuid.NewString()
-				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), &mx.InitiateCreateAccountArgs{
+				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), mx.InitiateCreateAccountArgs{
 					IdentityID: userID,
 					AccountID:  accountID,
 					UserGuid:   mxUserGuid,
@@ -389,7 +390,7 @@ func TestContinueAddingBankAccount(t *testing.T) {
 			},
 			nil,
 		).Times(1)
-		c.MxProvider.EXPECT().InitiateCreateFundingsource(gomock.Any(), &mx.InitiateCreateFundingsourceArgs{
+		c.MxProvider.EXPECT().InitiateCreateFundingsource(gomock.Any(), mx.InitiateCreateFundingsourceArgs{
 			AccountID:     accountID,
 			Otp:           "1234",
 			Name:          "test-account",

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	mx_activities "gitlab.com/fynbos/backend/providers/mx/activities"
+
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_activity "gitlab.com/fynbos/backend/providers/unit/activities"
@@ -36,8 +37,8 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Begin deposit")
 	var depositActivity *Activity
-	var mxActivity *_mx.Activity
 	var unitActivity *unit_activity.Activity
+	var mxActivity *mx_activities.Activity
 
 	// Channels that webhooks will use to communicate with the workflow through.
 	achStatusChannel := workflow.GetSignalChannel(ctx, "unit-user-ach-deposit")
@@ -88,7 +89,7 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 			},
 		),
 		mxActivity.WaitForAggregation,
-		&mx.WaitForAggregationArgs{
+		&mx_activities.WaitForAggregationArgs{
 			MxUserGuid:   mxAcc.UserGuid,
 			MxMemberGuid: mxAcc.MemberGuid,
 			MaxRetries:   5,

@@ -46,7 +46,7 @@ func (s *rpcService) AddBankAccount(
 		return nil, InternalError("Unable to get account.")
 	}
 
-	workflowUuid, err := s.mxProvider.InitiateCreateAccount(ctx, &mx.InitiateCreateAccountArgs{
+	workflowUuid, err := s.mxProvider.InitiateCreateAccount(ctx, mx.InitiateCreateAccountArgs{
 		AccountID:  acc.ID,
 		IdentityID: user.ID,
 		UserGuid:   req.GetUserGuid(),
@@ -128,7 +128,7 @@ func (s *rpcService) ContinueAddingBankAccount(
 		return nil, ForbiddenError("Unauthorized.")
 	}
 
-	err = s.mxProvider.InitiateCreateFundingsource(ctx, &mx.InitiateCreateFundingsourceArgs{
+	err = s.mxProvider.InitiateCreateFundingsource(ctx, mx.InitiateCreateFundingsourceArgs{
 		AccountID:     acc.ID,
 		Otp:           req.GetOtp(),
 		Name:          req.GetNickName(),

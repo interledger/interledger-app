@@ -1,7 +1,9 @@
-package mx
+package workflows
 
 import (
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/mx/activities"
 
 	"go.temporal.io/sdk/workflow"
 )
@@ -13,7 +15,7 @@ type MxCreateFundingsourceWorkflowArgs struct {
 }
 
 func MxCreateFundingsourceWorkflow(ctx workflow.Context, args *MxCreateFundingsourceWorkflowArgs) error {
-	var a *Activity
+	var a *activities.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout:    10 * time.Second,
 		ScheduleToCloseTimeout: 35 * time.Second, // retry up to 3 times

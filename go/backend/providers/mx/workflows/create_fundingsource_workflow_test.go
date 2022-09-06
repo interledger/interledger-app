@@ -1,7 +1,11 @@
-package mx_test
+package workflows_test
 
 import (
 	"testing"
+
+	"gitlab.com/fynbos/backend/providers/mx/workflows"
+
+	"gitlab.com/fynbos/backend/providers/mx/activities"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -15,11 +19,11 @@ type MxFundingsourceTestSuite struct {
 	testsuite.WorkflowTestSuite
 
 	env      *testsuite.TestWorkflowEnvironment
-	activity *mx.Activity
+	activity *activities.Activity
 }
 
 func (s *MxFundingsourceTestSuite) SetupSuite() {
-	s.activity = &mx.Activity{}
+	s.activity = &activities.Activity{}
 }
 
 func (s *MxFundingsourceTestSuite) SetupTest() {
@@ -52,7 +56,7 @@ func (s *MxFundingsourceTestSuite) TestSuccess() {
 		name,
 	).Return(nil)
 
-	s.env.ExecuteWorkflow(mx.CreateMxAccountWorkflow, &mx.MxCreateFundingsourceWorkflowArgs{
+	s.env.ExecuteWorkflow(workflows.CreateMxAccountWorkflow, &workflows.MxCreateFundingsourceWorkflowArgs{
 		MxAccountGuid: mxAccount.Guid,
 		AccountID:     accountID,
 		Name:          name,
@@ -64,5 +68,5 @@ func (s *MxFundingsourceTestSuite) TestSuccess() {
 // TODO add more comprehensive testing for branching in workflow and rollbacks
 // see https://docs.temporal.io/docs/go/how-to-test-workflow-definitions-in-go/
 func TestCreateMxFundingsourceWorkflow(t *testing.T) {
-	suite.Run(t, new(mx.MxAccountTestSuite))
+	suite.Run(t, new(workflows.MxAccountTestSuite))
 }

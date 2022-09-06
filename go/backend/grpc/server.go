@@ -46,7 +46,7 @@ type ServerArgs struct {
 	UnitProvider         unit.Client           `validate:"required"`
 	FundingSourceService fundingsources.Client `validate:"required"`
 	OnboardingService    onboarding.Client     `validate:"required"`
-	MxProvider           mx.Service            `validate:"required"`
+	MxProvider           mx.Client             `validate:"required"`
 	RafikiProvider       rafiki.Service        `validate:"required"`
 	DepositService       deposits.Service      `validate:"required"`
 	TwilioService        twilio.Service        `validate:"required"`
@@ -65,7 +65,7 @@ type rpcService struct {
 	unitProvider         unit.Client
 	onboardingService    onboarding.Client
 	fundingSourceService fundingsources.Client
-	mxProvider           mx.Service
+	mxProvider           mx.Client
 	rafikiProvider       rafiki.Service
 	depositService       deposits.Service
 	twilioService        twilio.Service

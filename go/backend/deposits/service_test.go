@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
+
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 
 	identity_client "gitlab.com/fynbos/backend/identity/client"
@@ -129,7 +131,7 @@ type TestContainer struct {
 	OnboardService        onboarding.Client
 	FundingSourcesService fundingsources.Client
 	DepositService        Service
-	Mx                    *_mx.MockService
+	Mx                    _mx.Client
 	UnitImpl              *unit_mock.MockClient
 	TemporalMock          *mocks.Client
 	PacioliClient         pacioli.Client
@@ -215,7 +217,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	}
 
 	c.NoopService = np
-	c.Mx = _mx.NewMockService(c.Ctrl)
+	c.Mx = mx_mock.NewMockClient(c.Ctrl)
 	c.UnitImpl = unit_mock.NewMockClient(c.Ctrl)
 	c.Tp = &mocks.Client{}
 

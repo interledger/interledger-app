@@ -1,53 +1,30 @@
-package mx
+package activities
 
 import (
 	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
-	unit "gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/mx/external"
+	"gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/sdk/temporal"
 )
 
 type (
 	Activity struct {
-		validator            *validator.Validate
-		unit                 unit.Client
-		mx                   Service
-		accountService       accounts.Client
-		identityService      identity.Client
-		fundingsourceService fundingsources.Client
-	}
-
-	ActivityArgs struct {
-		Mx                   Service               `validate:"required"`
-		Unit                 unit.Client           `validate:"required"`
-		AccountService       accounts.Client       `validate:"required"`
-		IdentityService      identity.Client       `validate:"required"`
-		FundingSourceService fundingsources.Client `validate:"required"`
+		b Backends
 	}
 )
 
-func NewActivity(args *ActivityArgs) (*Activity, error) {
-	v := validator.New()
-	if err := v.Struct(args); err != nil {
-		return nil, err
-	}
-
-	return &Activity{
-		validator:            v,
-		unit:                 args.Unit,
-		mx:                   args.Mx,
-		accountService:       args.AccountService,
-		identityService:      args.IdentityService,
-		fundingsourceService: args.FundingSourceService,
-	}, nil
+func NewActivity(b Backends) *Activity {
+	return &Activity{b: b}
 }
 
 func (a *Activity) GetSelectedMxAccountGuid(
@@ -55,7 +32,7 @@ func (a *Activity) GetSelectedMxAccountGuid(
 	mxUserGuid string,
 	mxMemberGuid string,
 ) (string, error) {
-	mxAccountGuid, err := a.mx.GetSelectedAccountGuid(ctx, mxUserGuid, mxMemberGuid)
+	mxAccountGuid, err := a.b.MX().GetSelectedAccountGuid(ctx, mxUserGuid, mxMemberGuid)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +48,7 @@ func (a *Activity) CreateMxAccount(
 	memberGuid string, // from mx
 	accountGuid string, // from mx
 ) error {
-	_, err := a.mx.CreateAccount(ctx, &CreateAccountArgs{
+	_, err := a.b.MX().CreateAccount(ctx, mx.CreateAccountArgs{
 		Guid:            accountGuid,
 		UserGuid:        userGuid,
 		MemberGuid:      memberGuid,
@@ -90,7 +67,7 @@ func (a *Activity) StartIdentityAggregation(
 	mxUserGuid,
 	mxMemberGuid string,
 ) error {
-	_, err := a.mx.StartIdentityAggregation(ctx, mxUserGuid, mxMemberGuid)
+	_, err := a.b.MX().StartIdentityAggregation(ctx, mxUserGuid, mxMemberGuid)
 	if err != nil {
 		return err
 	}
@@ -119,7 +96,7 @@ func (a *Activity) WaitForAggregation(
 			return errors.New("Timed out waiting for aggregation.")
 		}
 
-		member, err := a.mx.GetMemberStatus(ctx, args.MxUserGuid, args.MxMemberGuid)
+		member, err := a.b.MX().GetMemberStatus(ctx, args.MxUserGuid, args.MxMemberGuid)
 		if err != nil {
 			retries += 1
 			continue
@@ -137,9 +114,9 @@ func (a *Activity) WaitForAggregation(
 
 func (a *Activity) VerifyOwnership(
 	ctx context.Context,
-	args *VerifyOwnershipArgs,
+	args mx.VerifyOwnershipArgs,
 ) error {
-	err := a.mx.VerifyOwnership(ctx, args)
+	err := a.b.MX().VerifyOwnership(ctx, args)
 	if err != nil {
 		return err
 	}
@@ -153,23 +130,23 @@ func (a *Activity) VerifyOwnership(
 // Note: the sha256 of the fundingsourceID is used as the idempotency key when calling out to
 // Unit.
 func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid string) error {
-	mxAccount, err := a.mx.GetAccount(ctx, mxAccountGuid)
+	mxAccount, err := a.b.MX().GetAccount(ctx, mxAccountGuid)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, mx.ErrNotFound) {
 			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
 		}
 
-		if errors.Is(err, ErrInvalidArgument) {
+		if errors.Is(err, mx.ErrInvalidArgument) {
 			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInvalidArgument", err)
 		}
 
 		// retry here as this may be network related etc.
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
-	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
+	acc, err := a.b.Accounts().Get(ctx, mxAccount.AccountID)
 	if err != nil {
-		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", mx.ErrInternal, err)
 		if errors.Is(err, accounts.ErrNotFound) || errors.Is(err, accounts.ErrInvalidArgument) {
 			return temporal.NewNonRetryableApplicationError(
 				wrappedError.Error(),
@@ -182,9 +159,9 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		return wrappedError
 	}
 
-	user, err := a.identityService.Get(ctx, acc.IdentityID)
+	user, err := a.b.Identity().Get(ctx, acc.IdentityID)
 	if err != nil {
-		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", mx.ErrInternal, err)
 		if errors.Is(err, identity.ErrNotFound) || errors.Is(err, identity.ErrInvalidArgument) {
 			return temporal.NewNonRetryableApplicationError(
 				wrappedError.Error(),
@@ -197,17 +174,17 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		return wrappedError
 	}
 
-	unitCustomer, err := a.unit.GetCustomerByIdentityID(ctx, user.ID)
+	unitCustomer, err := a.b.Unit().GetCustomerByIdentityID(ctx, user.ID)
 	// TODO: unit needs to have ErrNotFound
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
 	// perform this just before creating the counter party as we get charged for Mx api calls.
-	accountNumbers, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
+	accountNumbers, err := a.b.MX().ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
 		// at this stage we know the mx account must exist so keep retrying.
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
 	// unit api only accepts Checking or Savings.
@@ -216,7 +193,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		accountType = "Savings"
 	}
 	idempotencyKey := sha256.Sum256([]byte(mxAccount.FundingsourceID))
-	_, err = a.unit.CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
+	_, err = a.b.Unit().CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
 		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
 		RoutingNumber:   accountNumbers.RoutingNumber,
 		AccountNumber:   accountNumbers.AccountNumber,
@@ -227,7 +204,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		FundingsourceID: mxAccount.FundingsourceID,
 	})
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
 	return nil
@@ -242,23 +219,23 @@ func (a *Activity) CreateFundingSource(
 	mxAccountGuid string,
 	fundingsourceName string,
 ) error {
-	mxAccount, err := a.mx.GetAccount(ctx, mxAccountGuid)
+	mxAccount, err := a.b.MX().GetAccount(ctx, mxAccountGuid)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, mx.ErrNotFound) {
 			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)
 		}
 
-		if errors.Is(err, ErrInvalidArgument) {
+		if errors.Is(err, mx.ErrInvalidArgument) {
 			return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInvalidArgument", err)
 		}
 
 		// retry here as this may be network related etc.
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
-	acc, err := a.accountService.Get(ctx, mxAccount.AccountID)
+	acc, err := a.b.Accounts().Get(ctx, mxAccount.AccountID)
 	if err != nil {
-		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", mx.ErrInternal, err)
 		if errors.Is(err, accounts.ErrNotFound) || errors.Is(err, accounts.ErrInvalidArgument) {
 			return temporal.NewNonRetryableApplicationError(
 				wrappedError.Error(),
@@ -271,9 +248,9 @@ func (a *Activity) CreateFundingSource(
 		return wrappedError
 	}
 
-	user, err := a.identityService.Get(ctx, acc.IdentityID)
+	user, err := a.b.Identity().Get(ctx, acc.IdentityID)
 	if err != nil {
-		wrappedError := fmt.Errorf("%w %s", ErrInternal, err)
+		wrappedError := fmt.Errorf("%w %s", mx.ErrInternal, err)
 		if errors.Is(err, identity.ErrNotFound) || errors.Is(err, identity.ErrInvalidArgument) {
 			return temporal.NewNonRetryableApplicationError(
 				wrappedError.Error(),
@@ -287,10 +264,10 @@ func (a *Activity) CreateFundingSource(
 	}
 
 	// calling this in the activity so it's not accidently stored in temporal state.
-	accountRoutingInfo, err := a.mx.ReadAccount(ctx, mxAccount.Guid)
+	accountRoutingInfo, err := a.b.MX().ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
 		// at this stage we know the mx account must exist so keep retrying.
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
 	start := len(accountRoutingInfo.AccountNumber) - 4
@@ -300,7 +277,7 @@ func (a *Activity) CreateFundingSource(
 	// we use the last 4 digits. If it less than 4 digits then we use the whole thing.
 	mask := accountRoutingInfo.AccountNumber[start:]
 
-	_, err = a.fundingsourceService.Create(ctx, &fundingsources.CreateArgs{
+	_, err = a.b.FundingSources().Create(ctx, &fundingsources.CreateArgs{
 		IdentityID:        user.ID,
 		AccountID:         mxAccount.AccountID,
 		Name:              fundingsourceName,
@@ -311,7 +288,7 @@ func (a *Activity) CreateFundingSource(
 		ID:                mxAccount.FundingsourceID,
 	})
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
 	return nil
@@ -320,8 +297,8 @@ func (a *Activity) CreateFundingSource(
 // This will start the balance aggregation. You will have to get the member's status to see when the
 // process has been completed.
 func (a *Activity) StartBalanceAggregation(ctx context.Context, mxAccountGuid string) error {
-	member, err := a.mx.StartBalanceAggregation(ctx, mxAccountGuid)
-	if errors.Is(err, ErrNotFound) {
+	member, err := a.b.MX().StartBalanceAggregation(ctx, mxAccountGuid)
+	if errors.Is(err, mx.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}
 	if err != nil {
@@ -342,9 +319,9 @@ func (a *Activity) StartBalanceAggregation(ctx context.Context, mxAccountGuid st
 func (a *Activity) GetMxAccountByFundingsource(
 	ctx context.Context,
 	fundingsourceID string,
-) (*Account, error) {
-	mxAcc, err := a.mx.GetAccountByFundingsource(ctx, fundingsourceID)
-	if errors.Is(err, ErrNotFound) {
+) (*mx.Account, error) {
+	mxAcc, err := a.b.MX().GetAccountByFundingsource(ctx, fundingsourceID)
+	if errors.Is(err, mx.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}
 	if err != nil {
@@ -357,9 +334,9 @@ func (a *Activity) GetMxAccountByFundingsource(
 func (a *Activity) GetMxAccountBalance(
 	ctx context.Context,
 	mxAccountGuid string,
-) (*AccountBalance, error) {
-	balance, err := a.mx.GetAccountBalance(ctx, mxAccountGuid)
-	if errors.Is(err, ErrNotFound) {
+) (*mx.AccountBalance, error) {
+	balance, err := a.b.MX().GetAccountBalance(ctx, mxAccountGuid)
+	if errors.Is(err, mx.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}
 	if err != nil {
@@ -367,4 +344,28 @@ func (a *Activity) GetMxAccountBalance(
 	}
 
 	return balance, nil
+}
+
+func CanAggregate(memberConnectionStatus string) bool {
+	switch memberConnectionStatus {
+	case external.CONNECTION_STATUS_CONNECTED,
+		external.CONNECTION_STATUS_CREATED,
+		external.CONNECTION_STATUS_DEGRADED,
+		external.CONNECTION_STATUS_DISCONNECTED,
+		external.CONNECTION_STATUS_EXPIRED,
+		external.CONNECTION_STATUS_FAILED,
+		external.CONNECTION_STATUS_IMPEDED,
+		external.CONNECTION_STATUS_RECONNECTED,
+		external.CONNECTION_STATUS_UPDATED,
+		external.CONNECTION_STATUS_DELAYED,
+		external.CONNECTION_STATUS_REJECTED,
+		external.CONNECTION_STATUS_RESUMED:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsSavings(accountType string) bool {
+	return strings.ToLower(strings.TrimSpace(accountType)) == "savings"
 }

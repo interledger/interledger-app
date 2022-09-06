@@ -26,6 +26,7 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/deposits"
+	"gitlab.com/fynbos/backend/fundingsources"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	"gitlab.com/fynbos/backend/graph"
 	_grpc "gitlab.com/fynbos/backend/grpc"
@@ -37,7 +38,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
-	_mxexternal "gitlab.com/fynbos/backend/providers/mx/external"
+	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -181,19 +182,11 @@ func start(args *cli.StartArgs) {
 	b.twilio = twilioService
 
 	us := unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
-	mx, err := _mx.NewService(&_mx.ServiceArgs{
-		ExternalClient:  _mxexternal.NewClient(args.MxBaseURL, args.MxClientID, args.MxApiKey),
-		Db:              db,
-		AccountsService: accountsClient,
-		IdentityService: id,
-		Temporal:        tp,
-		Twilio:          twilioService,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	mx := mx_client.New(b)
+	b.mxProvider = mx
 
 	fs := funding_client.New(b, logger)
+	b.fundingSources = fs
 
 	os := onboarding_client.New(b)
 
@@ -420,19 +413,14 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	mx, err := _mx.NewService(&_mx.ServiceArgs{
-		ExternalClient:  _mxexternal.NewClient(args.MxBaseURL, args.MxClientID, args.MxApiKey),
-		Db:              db,
-		AccountsService: as,
-		IdentityService: id,
-		Temporal:        tp,
-		Twilio:          twilioService,
-	})
+	mxImpl := mx_client.New(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.mxProvider = mxImpl
 
 	fs := funding_client.New(b, logger)
+	b.fundingSources = fs
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
@@ -474,7 +462,7 @@ func startWorker(args *cli.StartArgs) {
 		Up:     unitClient,
 		Ws:     ws,
 		Fs:     fs,
-		Mx:     mx,
+		Mx:     mxImpl,
 	}, b)
 	if err != nil {
 		log.Fatalln(err)
@@ -496,11 +484,13 @@ type backends struct {
 	accounts     accounts.Client
 	noop         _noop.Service
 	temporal     client.Client
-	unit         unit.Client
+	unit         _unit.Client
 	users        user.Service
 	payments     payments.Client
 	transactions account_transactions.Client
 	twilio       _twilio.Service
+	mxProvider     _mx.Client
+	fundingSources fundingsources.Client
 }
 
 func (b backends) Transactions() account_transactions.Client {
@@ -553,4 +543,12 @@ func (b backends) Payments() payments.Client {
 
 func (b backends) Twilio() _twilio.Service {
 	return b.twilio
+}
+
+func (b backends) MX() _mx.Client {
+	return b.mxProvider
+}
+
+func (b backends) FundingSources() fundingsources.Client {
+	return b.fundingSources
 }

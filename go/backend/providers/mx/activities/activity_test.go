@@ -1,4 +1,4 @@
-package mx
+package activities
 
 import (
 	"context"
@@ -7,10 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/twilio"
+
+	"gitlab.com/fynbos/backend/providers/mx"
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
-
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
-
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -19,8 +23,8 @@ import (
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
-
 	"gitlab.com/fynbos/backend/providers/mx/external"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
@@ -28,35 +32,35 @@ import (
 
 func TestCreateFundingsource(t *testing.T) {
 	ctx := context.Background()
-	activity, mocks := NewTestActivity(t)
+	activity, b := NewTestActivity(t)
 	mxAccountGuid := "acct_" + uuid.NewString()
 	userID := uuid.NewString()
 	accountID := uuid.NewString()
 	fundingsourceID := uuid.NewString()
 
-	mocks.Mx.EXPECT().GetAccount(ctx, mxAccountGuid).Return(
-		&Account{
+	b.mx.EXPECT().GetAccount(ctx, mxAccountGuid).Return(
+		&mx.Account{
 			Guid:            mxAccountGuid,
 			AccountID:       accountID,
 			FundingsourceID: fundingsourceID,
 		},
 		nil,
 	).Times(1)
-	mocks.AccountService.EXPECT().Get(ctx, accountID).Return(
+	b.acc.EXPECT().Get(ctx, accountID).Return(
 		&accounts.Account{
 			ID:         accountID,
 			IdentityID: userID,
 		},
 		nil,
 	).Times(1)
-	mocks.IdentityService.EXPECT().Get(ctx, userID).Return(
+	b.ident.EXPECT().Get(ctx, userID).Return(
 		&identity.Identity{
 			ID: userID,
 		},
 		nil,
 	).Times(1)
-	mocks.Mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
-		&AccountDetails{
+	b.mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
+		&mx.AccountDetails{
 			Guid:          mxAccountGuid,
 			AccountNumber: "81818181234", // will be used to set the mask on the funding source
 		},
@@ -64,7 +68,7 @@ func TestCreateFundingsource(t *testing.T) {
 	).Times(1)
 
 	fundingsourceName := "test-mx"
-	mocks.FundingsourceService.EXPECT().Create(ctx, &fundingsources.CreateArgs{
+	b.fs.EXPECT().Create(ctx, &fundingsources.CreateArgs{
 		ID:                fundingsourceID,
 		IdentityID:        userID,
 		AccountID:         accountID,
@@ -87,7 +91,7 @@ func TestCreateFundingsource(t *testing.T) {
 
 func TestCreateUnitCounterparty(t *testing.T) {
 	ctx := context.Background()
-	activity, mocks := NewTestActivity(t)
+	activity, b := NewTestActivity(t)
 	mxAccountGuid := "acct_" + uuid.NewString()
 	userID := uuid.NewString()
 	firstName := faker.FirstName()
@@ -95,22 +99,22 @@ func TestCreateUnitCounterparty(t *testing.T) {
 	accountID := uuid.NewString()
 	fundingsourceID := uuid.NewString()
 
-	mocks.Mx.EXPECT().GetAccount(ctx, mxAccountGuid).Return(
-		&Account{
+	b.mx.EXPECT().GetAccount(ctx, mxAccountGuid).Return(
+		&mx.Account{
 			Guid:            mxAccountGuid,
 			AccountID:       accountID,
 			FundingsourceID: fundingsourceID,
 		},
 		nil,
 	).Times(1)
-	mocks.AccountService.EXPECT().Get(ctx, accountID).Return(
+	b.acc.EXPECT().Get(ctx, accountID).Return(
 		&accounts.Account{
 			ID:         accountID,
 			IdentityID: userID,
 		},
 		nil,
 	).Times(1)
-	mocks.IdentityService.EXPECT().Get(ctx, userID).Return(
+	b.ident.EXPECT().Get(ctx, userID).Return(
 		&identity.Identity{
 			ID:        userID,
 			FirstName: firstName,
@@ -120,7 +124,7 @@ func TestCreateUnitCounterparty(t *testing.T) {
 	).Times(1)
 
 	unitCustomerID := "8"
-	mocks.Unit.EXPECT().GetCustomerByIdentityID(ctx, userID).Return(
+	b.unit.EXPECT().GetCustomerByIdentityID(ctx, userID).Return(
 		&unit.Customer{
 			ID:         unitCustomerID,
 			IdentityID: userID,
@@ -129,8 +133,8 @@ func TestCreateUnitCounterparty(t *testing.T) {
 		nil,
 	)
 
-	mocks.Mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
-		&AccountDetails{
+	b.mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
+		&mx.AccountDetails{
 			Guid:              mxAccountGuid,
 			AccountNumber:     "81818181234", // will be used to set the mask on the funding source
 			RoutingNumber:     "71717171717",
@@ -140,7 +144,7 @@ func TestCreateUnitCounterparty(t *testing.T) {
 		nil,
 	).Times(1)
 	idempotencyKey := sha256.Sum256([]byte(fundingsourceID))
-	mocks.Unit.EXPECT().CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
+	b.unit.EXPECT().CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
 		FundingsourceID: fundingsourceID,
 		Name:            fmt.Sprintf("%s %s", firstName, lastName),
 		UnitCustomerID:  unitCustomerID,
@@ -158,13 +162,13 @@ func TestCreateUnitCounterparty(t *testing.T) {
 
 func TestWaitForAggregation(t *testing.T) {
 	ctx := context.Background()
-	activity, mocks := NewTestActivity(t)
+	activity, b := NewTestActivity(t)
 	mxUserGuid := "usr_" + uuid.NewString()
 	mxMemberGuid := "mbr_" + uuid.NewString()
 
-	mocks.Mx.EXPECT().GetMemberStatus(ctx, mxUserGuid, mxMemberGuid).Return(nil, ErrInternal).Times(2)
-	mocks.Mx.EXPECT().GetMemberStatus(ctx, mxUserGuid, mxMemberGuid).Return(
-		&Member{
+	b.mx.EXPECT().GetMemberStatus(ctx, mxUserGuid, mxMemberGuid).Return(nil, mx.ErrInternal).Times(2)
+	b.mx.EXPECT().GetMemberStatus(ctx, mxUserGuid, mxMemberGuid).Return(
+		&mx.Member{
 			Guid:              "mbr_" + uuid.NewString(),
 			UserGuid:          "usr_" + uuid.NewString(),
 			IsBeingAggregated: false,
@@ -184,11 +188,11 @@ func TestWaitForAggregation(t *testing.T) {
 
 func TestStartBalanceAggregation(t *testing.T) {
 	ctx := context.Background()
-	activity, mocks := NewTestActivity(t)
+	activity, b := NewTestActivity(t)
 	mxAccountGuid := "acct_" + uuid.NewString()
 
 	t.Run("returns non retryable error if mx account not found", func(st *testing.T) {
-		mocks.Mx.EXPECT().StartBalanceAggregation(ctx, mxAccountGuid).Return(nil, ErrNotFound).Times(1)
+		b.mx.EXPECT().StartBalanceAggregation(ctx, mxAccountGuid).Return(nil, mx.ErrNotFound).Times(1)
 
 		err := activity.StartBalanceAggregation(ctx, mxAccountGuid)
 
@@ -198,8 +202,8 @@ func TestStartBalanceAggregation(t *testing.T) {
 	})
 
 	t.Run("returns non retryable error if member status indicates it cannot be aggregated", func(st *testing.T) {
-		mocks.Mx.EXPECT().StartBalanceAggregation(ctx, mxAccountGuid).Return(
-			&Member{
+		b.mx.EXPECT().StartBalanceAggregation(ctx, mxAccountGuid).Return(
+			&mx.Member{
 				IsBeingAggregated: false,
 				ConnectionStatus:  external.CONNECTION_STATUS_CHALLENGED,
 			},
@@ -214,15 +218,7 @@ func TestStartBalanceAggregation(t *testing.T) {
 	})
 }
 
-type MockArgs struct {
-	Mx                   *MockService
-	Unit                 *unit_mock.MockClient
-	AccountService       *accounts_mock.MockClient
-	IdentityService      *identity_mock.MockClient
-	FundingsourceService *funding_mock.MockClient
-}
-
-func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
+func NewTestActivity(t *testing.T) (*Activity, *testBackends) {
 	ctrl := gomock.NewController(t)
 	mocks := &MockArgs{
 		Mx:                   NewMockService(ctrl),
@@ -232,16 +228,52 @@ func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
 		FundingsourceService: funding_mock.NewMockClient(ctrl),
 	}
 
-	activity, err := NewActivity(&ActivityArgs{
-		Mx:                   mocks.Mx,
-		Unit:                 mocks.Unit,
-		AccountService:       mocks.AccountService,
-		IdentityService:      mocks.IdentityService,
-		FundingSourceService: mocks.FundingsourceService,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	activity := NewActivity(b)
 
-	return activity, mocks
+	return activity, b
+}
+
+type testBackends struct {
+	val   *validator.Validate
+	mx    *mx_mock.MockClient
+	unit  *unit_mock.MockClient
+	acc   *accounts_mock.MockClient
+	ident *identity_mock.MockClient
+	fs    *funding_mock.MockClient
+}
+
+func (t testBackends) Validator() *validator.Validate {
+	return t.val
+}
+
+func (t testBackends) DB() *sqlx.DB {
+	return nil
+}
+
+func (t testBackends) Accounts() accounts.Client {
+	return t.acc
+}
+
+func (t testBackends) Identity() identity.Client {
+	return t.ident
+}
+
+func (t testBackends) Temporal() client.Client {
+	return nil
+}
+
+func (t testBackends) Twilio() twilio.Service {
+	return nil
+}
+
+func (t testBackends) MX() mx.Client {
+	return t.mx
+}
+
+func (t testBackends) Unit() unit.Service {
+	return t.unit
+}
+
+func (t testBackends) FundingSources() fundingsources.Client {
+	return t.fs
 }
