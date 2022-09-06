@@ -16,9 +16,8 @@ type Activity struct {
 	b Backends
 }
 
-func NewActivity(b Backends) Activity {
-
-	return Activity{b: b}
+func NewActivity(b Backends) *Activity {
+	return &Activity{b: b}
 }
 
 func (s *Activity) CreatePendingOutgoingPayment(ctx context.Context, outgoingPaymentId, outgoingPaymentTransferID string) (string, error) {

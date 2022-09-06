@@ -111,7 +111,6 @@ export type Mutation = {
   createAccount: CreateAccountMutationResponse;
   initiateDeposit: DepositMutationResponse;
   initiateOnboarding: InitiateOnboardingMutationResponse;
-  initiateOutgoingPayment: OutgoingPaymentMutationResponse;
   initiateWithdrawal: WithdrawalMutationResponse;
   linkUsdBankAccount: LinkFundingSourceMutationResponse;
   onboardAccount: OnboardingMutationResponse;
@@ -127,11 +126,6 @@ export type MutationCreateAccountArgs = {
 
 export type MutationInitiateDepositArgs = {
   input: DepositInput;
-};
-
-
-export type MutationInitiateOutgoingPaymentArgs = {
-  input: OutgoingPaymentInput;
 };
 
 
@@ -165,28 +159,6 @@ export type OnboardingMutationResponse = MutationResponse & {
   account: Account;
   code: Scalars['String'];
   message: Scalars['String'];
-  success: Scalars['Boolean'];
-};
-
-export type OutgoingPayment = {
-  __typename?: 'OutgoingPayment';
-  amount: Scalars['String'];
-  destination: Scalars['String'];
-  id: Scalars['ID'];
-  state: Scalars['String'];
-  timestamp: Scalars['String'];
-};
-
-export type OutgoingPaymentInput = {
-  amount: Scalars['String'];
-  to: Scalars['String'];
-};
-
-export type OutgoingPaymentMutationResponse = MutationResponse & {
-  __typename?: 'OutgoingPaymentMutationResponse';
-  code: Scalars['String'];
-  message: Scalars['String'];
-  outgoingPayment?: Maybe<OutgoingPayment>;
   success: Scalars['Boolean'];
 };
 
@@ -335,13 +307,6 @@ export type VerifyUsdBankAccountMutationVariables = Exact<{
 
 export type VerifyUsdBankAccountMutation = { __typename?: 'Mutation', verifyUsdBankAccount: { __typename?: 'VerifyUsdBankAccountMutationResponse', code: string, success: boolean, message: string, fundingSource?: { __typename?: 'FundingSource', id: string, name: string, verificationStatus: string, mask: string, type: string, subType: string } | null | undefined } };
 
-export type InitiateOutgoingPaymentMutationVariables = Exact<{
-  input: OutgoingPaymentInput;
-}>;
-
-
-export type InitiateOutgoingPaymentMutation = { __typename?: 'Mutation', initiateOutgoingPayment: { __typename?: 'OutgoingPaymentMutationResponse', code: string, success: boolean, message: string, outgoingPayment?: { __typename?: 'OutgoingPayment', id: string, destination: string, state: string, amount: string, timestamp: string } | null | undefined } };
-
 export type InitiateWithdrawalMutationVariables = Exact<{
   input: WithdrawalInput;
 }>;
@@ -441,25 +406,6 @@ export const VerifyUsdBankAccountDocument = gql`
 export type VerifyUsdBankAccountMutationFn = Apollo.MutationFunction<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
 export type VerifyUsdBankAccountMutationResult = Apollo.MutationResult<VerifyUsdBankAccountMutation>;
 export type VerifyUsdBankAccountMutationOptions = Apollo.BaseMutationOptions<VerifyUsdBankAccountMutation, VerifyUsdBankAccountMutationVariables>;
-export const InitiateOutgoingPaymentDocument = gql`
-    mutation InitiateOutgoingPayment($input: OutgoingPaymentInput!) {
-  initiateOutgoingPayment(input: $input) {
-    code
-    success
-    message
-    outgoingPayment {
-      id
-      destination
-      state
-      amount
-      timestamp
-    }
-  }
-}
-    `;
-export type InitiateOutgoingPaymentMutationFn = Apollo.MutationFunction<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
-export type InitiateOutgoingPaymentMutationResult = Apollo.MutationResult<InitiateOutgoingPaymentMutation>;
-export type InitiateOutgoingPaymentMutationOptions = Apollo.BaseMutationOptions<InitiateOutgoingPaymentMutation, InitiateOutgoingPaymentMutationVariables>;
 export const InitiateWithdrawalDocument = gql`
     mutation InitiateWithdrawal($input: WithdrawalInput!) {
   initiateWithdrawal(input: $input) {

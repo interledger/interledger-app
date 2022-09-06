@@ -171,10 +171,14 @@ func TestPayments(s *testing.T) {
 			}, nil,
 		).Times(1)
 
+		container.TwilioImpl.EXPECT().CheckVerificationCode(gomock.Any(), gomock.Any()).Return(
+			&twilio.Verification{Status: "approved"}, nil).AnyTimes()
+
 		p, err := container.PaymentService.InitiateOutgoingPayment(context.Background(), payments.InitiateOutgoingPaymentArgs{
 			UserID: acc.IdentityID,
 			Amount: 100,
 			To:     "$test.fynbos.test/alice",
+			OTP:    "123456",
 		})
 
 		assert.Nil(t, p)

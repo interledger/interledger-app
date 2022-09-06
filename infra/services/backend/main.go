@@ -397,6 +397,10 @@ func deployDeployment(
 									Name:  pulumi.String("ZENDESK_USER"),
 									Value: pulumi.String(zendeskUser),
 								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("FYNBOS_ENV"),
+									Value: pulumi.String("dev"),
+								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
 								&corev1.VolumeMountArgs{
@@ -495,6 +499,10 @@ func deployDeployment(
 								&corev1.EnvVarArgs{
 									Name:  pulumi.String("ZENDESK_USER"),
 									Value: pulumi.String(zendeskUser),
+								},
+								&corev1.EnvVarArgs{
+									Name:  pulumi.String("FYNBOS_ENV"),
+									Value: pulumi.String("dev"),
 								},
 							},
 							VolumeMounts: corev1.VolumeMountArray{
