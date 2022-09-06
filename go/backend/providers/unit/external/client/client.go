@@ -12,6 +12,8 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
+var _ external.Client = client{}
+
 const (
 	sandboxUrl = "https://api.s.unit.sh"
 	liveUrl    = "https://api.unit.sh"
@@ -55,7 +57,7 @@ func NewClient(apiToken string) external.Client {
 	}
 }
 
-func (c *client) GetStatementPDF(ctx context.Context, args *external.GetStatementPDFArgs) ([]byte, error) {
+func (c client) GetStatementPDF(ctx context.Context, args *external.GetStatementPDFArgs) ([]byte, error) {
 	url := fmt.Sprintf(`%s/statements/%s/pdf?filter[customerId]=%s`, c.baseUrl, args.ID, args.CustomerID)
 	resp, err := c.http.Get(url)
 	if err != nil {
@@ -85,7 +87,7 @@ func (c *client) GetStatementPDF(ctx context.Context, args *external.GetStatemen
 	return ret, nil
 }
 
-func (c *client) GetStatements(ctx context.Context, customerID string) ([]external.Statement, error) {
+func (c client) GetStatements(ctx context.Context, customerID string) ([]external.Statement, error) {
 	url := fmt.Sprintf(`%s/statements?filter[customerId]=%s`, c.baseUrl, customerID)
 	resp, err := c.http.Get(url)
 	if err != nil {
@@ -101,7 +103,7 @@ func (c *client) GetStatements(ctx context.Context, customerID string) ([]extern
 	return ret, nil
 }
 
-func (c *client) FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]external.ApplicationForm, error) {
+func (c client) FilterApplicationFormsByUserID(ctx context.Context, userID string) ([]external.ApplicationForm, error) {
 	url := fmt.Sprintf(`%s/application-forms?page[limit]=1&filter[tags]={"userId":"%s"}`, c.baseUrl, userID)
 	resp, err := c.http.Get(url)
 	if err != nil {
@@ -117,7 +119,7 @@ func (c *client) FilterApplicationFormsByUserID(ctx context.Context, userID stri
 	return ret, nil
 }
 
-func (c *client) CreateApplicationForm(
+func (c client) CreateApplicationForm(
 	ctx context.Context,
 	args *external.CreateApplicationFormArgs,
 ) (*external.ApplicationForm, error) {
@@ -161,7 +163,7 @@ func (c *client) CreateApplicationForm(
 	return ret, nil
 }
 
-func (c *client) CreateApplication(
+func (c client) CreateApplication(
 	ctx context.Context,
 	args *external.CreateApplicationArgs,
 ) (*external.Application, error) {
@@ -212,7 +214,7 @@ func (c *client) CreateApplication(
 	return ret, nil
 }
 
-func (c *client) CreateCounterparty(
+func (c client) CreateCounterparty(
 	ctx context.Context,
 	args *external.CreateCounterpartyArgs,
 ) (*external.Counterparty, error) {
@@ -261,7 +263,7 @@ func (c *client) CreateCounterparty(
 	return ret, nil
 }
 
-func (c *client) OriginateAch(ctx context.Context, args *external.OriginateAchArgs) (*external.AchPayment, error) {
+func (c client) OriginateAch(ctx context.Context, args *external.OriginateAchArgs) (*external.AchPayment, error) {
 	url := fmt.Sprintf("%s/payments", c.baseUrl)
 	data := external.AchPaymentRequest{
 		Data: external.AchPayment{
@@ -312,7 +314,7 @@ func (c *client) OriginateAch(ctx context.Context, args *external.OriginateAchAr
 	return ret, nil
 }
 
-func (c *client) CreateDepositAccount(
+func (c client) CreateDepositAccount(
 	ctx context.Context,
 	args *external.CreateDepositAccountArgs,
 ) (*external.DepositAccount, error) {

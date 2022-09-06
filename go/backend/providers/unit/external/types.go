@@ -328,3 +328,72 @@ type (
 		IdempotencyKey string
 	}
 )
+
+// webhook events
+type (
+	EventType string
+	Event     struct {
+		ID   string    `json:"id"`
+		Type EventType `json:"type"`
+	}
+
+	CustomerCreatedEvent struct {
+		ID            string             `json:"id"`
+		Type          string             `json:"type"`
+		Attributes    EventAttributes    `json:"attributes"`
+		Relationships EventRelationships `json:"relationships"`
+	}
+
+	ApplicationDeniedEvent struct {
+		ID            string             `json:"id"`
+		Type          string             `json:"type"`
+		Attributes    EventAttributes    `json:"attributes"`
+		Relationships EventRelationships `json:"relationships"`
+	}
+
+	EventAttributes struct {
+		CreatedAt string          `json:"createdAt"`
+		Tags      ApplicationTags `json:"tags"`
+	}
+
+	EventRelationships struct {
+		Customer    JsonCustomer    `json:"customer,omitempty"`
+		Application JsonApplication `json:"application"`
+	}
+
+	JsonCustomer struct {
+		Data Data `json:"data"`
+	}
+
+	JsonApplication struct {
+		Data Data `json:"data"`
+	}
+
+	Data struct {
+		ID   string `json:"id"`
+		Type string `json:"type"`
+	}
+)
+
+func IsAchComplete(eventType EventType) bool {
+	return eventType == PAYMENT_SENT || eventType == PAYMENT_CANCELED ||
+		eventType == PAYMENT_RETURNED || eventType == PAYMENT_REJECTED
+}
+
+func IsAchSuccessful(eventType EventType) bool {
+	return eventType == PAYMENT_SENT
+}
+
+const (
+	CUSTOMER_CREATED               = EventType("customer.created")
+	APPLICATION_AWAITING_DOCUMENTS = EventType("application.awaitingdocuments")
+	APPLICATION_DENIED             = EventType("application.denied")
+
+	PAYMENT_CREATED        = EventType("payment.created")
+	PAYMENT_CLEARING       = EventType("payment.clearing")
+	PAYMENT_SENT           = EventType("payment.sent")
+	PAYMENT_REJECTED       = EventType("payment.rejected")
+	PAYMENT_RETURNED       = EventType("payment.returned")
+	PAYMENT_CANCELED       = EventType("payment.canceled")
+	PAYMENT_PENDING_REVIEW = EventType("payment.pendingReview")
+)
