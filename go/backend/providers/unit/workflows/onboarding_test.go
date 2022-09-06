@@ -1,4 +1,4 @@
-package unit
+package workflows_test
 
 import (
 	context "context"
@@ -9,6 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/providers/unit/activities"
+	"gitlab.com/fynbos/backend/providers/unit/external"
+	"gitlab.com/fynbos/backend/providers/unit/workflows"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -17,11 +21,11 @@ type UnitTestSuite struct {
 	testsuite.WorkflowTestSuite
 
 	env               *testsuite.TestWorkflowEnvironment
-	onbordingActivity *Activity
+	onbordingActivity *activities.Activity
 }
 
 func (s *UnitTestSuite) SetupSuite() {
-	s.onbordingActivity = &Activity{}
+	s.onbordingActivity = &activities.Activity{}
 }
 
 func (s *UnitTestSuite) SetupTest() {
@@ -49,13 +53,13 @@ type TestApplication struct {
 
 func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 	identityID := uuid.NewString()
-	applicationArgs := &CreateApplicationArgs{
+	applicationArgs := &unit.CreateApplicationArgs{
 		Ssn:    faker.Phonenumber(),
 		UserID: identityID,
 	}
 	CustomerID, ApplicationType, AccountID := uuid.NewString(), "individualCustomer", uuid.NewString()
 	DepositAccountID := uuid.NewString()
-	workflowState := UnitOnboardCustomerState{
+	workflowState := workflows.UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -63,9 +67,9 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 		ApplicationArgs: *applicationArgs,
 	}
 	s.env.OnActivity(s.onbordingActivity.UnitCreateApplication, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+		func(ctx context.Context, args *unit.CreateApplicationArgs) (*Application, error) {
 			s.Equal(workflowState.IdentityID, args.UserID)
-			return &Application{
+			return &unit.Application{
 				Type:         ApplicationType,
 				ID:           "1234",
 				Status:       "Approved",
@@ -76,7 +80,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 		},
 	)
 	s.env.OnActivity(s.onbordingActivity.UnitCreateCustomer, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *UnitCreateCustomerArgs) error {
+		func(ctx context.Context, args *activities.UnitCreateCustomerArgs) error {
 			s.Equal(args.Type, ApplicationType)
 			s.Equal(args.CustomerID, CustomerID)
 			s.Equal(args.IdentityID, identityID)
@@ -84,34 +88,34 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 		},
 	)
 	s.env.OnActivity(s.onbordingActivity.UnitCreateDepositAccount, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, customerID string) (*DepositAccount, error) {
+		func(ctx context.Context, customerID string) (*unit.DepositAccount, error) {
 			s.Equal(customerID, CustomerID)
-			return &DepositAccount{
+			return &unit.DepositAccount{
 				ID:         DepositAccountID,
 				CustomerID: CustomerID,
 			}, nil
 		},
 	)
 	s.env.OnActivity(s.onbordingActivity.UnitCreateAccount, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *UnitCreateAccountArgs) (string, error) {
+		func(ctx context.Context, args *activities.UnitCreateAccountArgs) (string, error) {
 			s.Equal(workflowState.IdentityID, identityID)
 			return AccountID, nil
 		},
 	)
-	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
+	s.env.ExecuteWorkflow(workflows.UnitOnboardCustomerWorkflow, workflowState)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
 
 func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSignal() {
 	identityID := uuid.NewString()
-	applicationArgs := &CreateApplicationArgs{
+	applicationArgs := &unit.CreateApplicationArgs{
 		Ssn:    faker.Phonenumber(),
 		UserID: identityID,
 	}
 	CustomerID, CustomerType, AccountID := uuid.NewString(), "individualCustomer", uuid.NewString()
 	DepositAccountID := uuid.NewString()
-	workflowState := UnitOnboardCustomerState{
+	workflowState := workflows.UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -119,9 +123,9 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 		ApplicationArgs: *applicationArgs,
 	}
 	s.env.OnActivity(s.onbordingActivity.UnitCreateApplication, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+		func(ctx context.Context, args *unit.CreateApplicationArgs) (*unit.Application, error) {
 			s.Equal(workflowState.IdentityID, args.UserID)
-			return &Application{
+			return &unit.Application{
 				Type:         CustomerType,
 				ID:           "1234",
 				Status:       "Pending",
@@ -132,24 +136,24 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 	)
 
 	s.env.RegisterDelayedCallback(func() {
-		event := CustomerCreatedEvent{
+		event := external.CustomerCreatedEvent{
 			ID:   uuid.NewString(),
 			Type: "customer.created",
-			Attributes: EventAttributes{
+			Attributes: external.EventAttributes{
 				CreatedAt: "2020-07-29T12:53:05.882Z",
-				Tags: Tags{
-					FynbosUserId: identityID,
+				Tags: external.ApplicationTags{
+					FynbosUserID: identityID,
 				},
 			},
-			Relationships: EventRelationships{
-				Customer: JsonCustomer{
-					Data: Data{
+			Relationships: external.EventRelationships{
+				Customer: external.JsonCustomer{
+					Data: external.Data{
 						ID:   CustomerID,
 						Type: CustomerType,
 					},
 				},
-				Application: JsonApplication{
-					Data: Data{
+				Application: external.JsonApplication{
+					Data: external.Data{
 						ID:   "52",
 						Type: "individualApplication",
 					},
@@ -160,7 +164,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 	}, time.Millisecond*1)
 
 	s.env.OnActivity(s.onbordingActivity.UnitCreateCustomer, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *UnitCreateCustomerArgs) error {
+		func(ctx context.Context, args *activities.UnitCreateCustomerArgs) error {
 			s.Equal(args.Type, CustomerType)
 			s.Equal(args.CustomerID, CustomerID)
 			s.Equal(args.IdentityID, identityID)
@@ -168,34 +172,34 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithApprovedSign
 		},
 	)
 	s.env.OnActivity(s.onbordingActivity.UnitCreateDepositAccount, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, customerID string) (*DepositAccount, error) {
+		func(ctx context.Context, customerID string) (*unit.DepositAccount, error) {
 			s.Equal(customerID, CustomerID)
-			return &DepositAccount{
+			return &unit.DepositAccount{
 				ID:         DepositAccountID,
 				CustomerID: CustomerID,
 			}, nil
 		},
 	)
 	s.env.OnActivity(s.onbordingActivity.UnitCreateAccount, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *UnitCreateAccountArgs) (string, error) {
+		func(ctx context.Context, args *activities.UnitCreateAccountArgs) (string, error) {
 			s.Equal(workflowState.IdentityID, identityID)
 			return AccountID, nil
 		},
 	)
-	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
+	s.env.ExecuteWorkflow(workflows.UnitOnboardCustomerWorkflow, workflowState)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
 
 func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyDenied() {
 	identityID := uuid.NewString()
-	applicationArgs := &CreateApplicationArgs{
+	applicationArgs := &unit.CreateApplicationArgs{
 		Ssn:    faker.Phonenumber(),
 		UserID: identityID,
 	}
 	ApplicationType := "IndividualApplication"
 
-	workflowState := UnitOnboardCustomerState{
+	workflowState := workflows.UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -203,9 +207,9 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyDenied() {
 		ApplicationArgs: *applicationArgs,
 	}
 	s.env.OnActivity(s.onbordingActivity.UnitCreateApplication, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+		func(ctx context.Context, args *unit.CreateApplicationArgs) (*unit.Application, error) {
 			s.Equal(workflowState.IdentityID, args.UserID)
-			return &Application{
+			return &unit.Application{
 				Type:         ApplicationType,
 				ID:           "1234",
 				Status:       "Denied",
@@ -215,20 +219,20 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyDenied() {
 		},
 	)
 
-	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
+	s.env.ExecuteWorkflow(workflows.UnitOnboardCustomerWorkflow, workflowState)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
 
 func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithDeniedSignal() {
 	identityID := uuid.NewString()
-	applicationArgs := &CreateApplicationArgs{
+	applicationArgs := &unit.CreateApplicationArgs{
 		Ssn:    faker.Phonenumber(),
 		UserID: identityID,
 	}
 	CustomerType := "individualCustomer"
 
-	workflowState := UnitOnboardCustomerState{
+	workflowState := workflows.UnitOnboardCustomerState{
 		CustomerID:      "",
 		Type:            "",
 		IdentityID:      identityID,
@@ -236,9 +240,9 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithDeniedSignal
 		ApplicationArgs: *applicationArgs,
 	}
 	s.env.OnActivity(s.onbordingActivity.UnitCreateApplication, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *CreateApplicationArgs) (*Application, error) {
+		func(ctx context.Context, args *unit.CreateApplicationArgs) (*unit.Application, error) {
 			s.Equal(workflowState.IdentityID, args.UserID)
-			return &Application{
+			return &unit.Application{
 				Type:         CustomerType,
 				ID:           "1234",
 				Status:       "Pending",
@@ -249,18 +253,18 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithDeniedSignal
 	)
 
 	s.env.RegisterDelayedCallback(func() {
-		event := ApplicationDeniedEvent{
+		event := external.ApplicationDeniedEvent{
 			ID:   uuid.NewString(),
 			Type: "application.denied",
-			Attributes: EventAttributes{
+			Attributes: external.EventAttributes{
 				CreatedAt: "2020-07-29T12:53:05.882Z",
-				Tags: Tags{
-					FynbosUserId: identityID,
+				Tags: external.ApplicationTags{
+					FynbosUserID: identityID,
 				},
 			},
-			Relationships: EventRelationships{
-				Application: JsonApplication{
-					Data: Data{
+			Relationships: external.EventRelationships{
+				Application: external.JsonApplication{
+					Data: external.Data{
 						ID:   "52",
 						Type: "individualApplication",
 					},
@@ -270,7 +274,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_PendingWithDeniedSignal
 		s.env.SignalWorkflow("onboard-unit-application-denied", event)
 	}, time.Millisecond*1)
 
-	s.env.ExecuteWorkflow(UnitOnboardCustomerWorkflow, workflowState)
+	s.env.ExecuteWorkflow(workflows.UnitOnboardCustomerWorkflow, workflowState)
 	s.True(s.env.IsWorkflowCompleted())
 	s.NoError(s.env.GetWorkflowError())
 }
