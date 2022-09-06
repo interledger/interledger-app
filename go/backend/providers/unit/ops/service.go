@@ -351,6 +351,7 @@ func CreateDepositAccount(
 		CustomerID:     customerID,
 		DepositProduct: "checking",
 		IdempotencyKey: string(idempotencyKey[0:]),
+		Type:           "depositAccount",
 	})
 	if err != nil {
 		var errHttp *external.ErrHttp
