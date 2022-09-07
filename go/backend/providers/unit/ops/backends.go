@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 	"go.temporal.io/sdk/client"
 )
 
@@ -16,6 +17,7 @@ type Backends interface {
 	Identity() identity.Client
 	Accounts() accounts.Client
 	Temporal() client.Client
+	UnitExternal() external.Client
 }
 
 func NewTestBackends(
@@ -24,25 +26,28 @@ func NewTestBackends(
 	ids identity.Client,
 	accounts accounts.Client,
 	temporal client.Client,
+	unitExternal external.Client,
 ) Backends {
 
 	return &backends{
-		val:      validator.New(),
-		db:       db,
-		ids:      ids,
-		accounts: accounts,
-		temporal: temporal,
+		val:          validator.New(),
+		db:           db,
+		ids:          ids,
+		accounts:     accounts,
+		temporal:     temporal,
+		unitExternal: unitExternal,
 	}
 }
 
-var _ backends = backends{}
+var _ Backends = backends{}
 
 type backends struct {
-	val      *validator.Validate
-	db       *sqlx.DB
-	ids      identity.Client
-	accounts accounts.Client
-	temporal client.Client
+	val          *validator.Validate
+	db           *sqlx.DB
+	ids          identity.Client
+	accounts     accounts.Client
+	temporal     client.Client
+	unitExternal external.Client
 }
 
 func (b backends) Validator() *validator.Validate {
@@ -63,4 +68,8 @@ func (b backends) Accounts() accounts.Client {
 
 func (b backends) Temporal() client.Client {
 	return b.temporal
+}
+
+func (b backends) UnitExternal() external.Client {
+	return b.unitExternal
 }

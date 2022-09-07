@@ -23,9 +23,9 @@ import (
 )
 
 func GetStatementPDF(
-	ctx context.Context, b Backends, externalClient external.Client, args *unit.GetStatementPDFArgs,
+	ctx context.Context, b Backends, args *unit.GetStatementPDFArgs,
 ) (*unit.StatementPDF, error) {
-	statement, err := externalClient.GetStatementPDF(ctx, &external.GetStatementPDFArgs{
+	statement, err := b.UnitExternal().GetStatementPDF(ctx, &external.GetStatementPDFArgs{
 		ID:         args.StatementID,
 		CustomerID: args.CustomerID,
 	})
@@ -48,9 +48,9 @@ func GetStatementPDF(
 }
 
 func GetStatements(
-	ctx context.Context, b Backends, externalClient external.Client, customerID string,
+	ctx context.Context, b Backends, customerID string,
 ) ([]unit.Statement, error) {
-	statements, err := externalClient.GetStatements(ctx, customerID)
+	statements, err := b.UnitExternal().GetStatements(ctx, customerID)
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
@@ -79,9 +79,9 @@ func GetStatements(
 }
 
 func GetApplicationForm(
-	ctx context.Context, b Backends, externalClient external.Client, userID string,
+	ctx context.Context, b Backends, userID string,
 ) (*unit.ApplicationForm, error) {
-	forms, err := externalClient.FilterApplicationFormsByUserID(ctx, userID)
+	forms, err := b.UnitExternal().FilterApplicationFormsByUserID(ctx, userID)
 	if err != nil {
 		var errHttp *external.ErrHttp
 		if errors.As(err, &errHttp) {
@@ -104,9 +104,9 @@ func GetApplicationForm(
 }
 
 func CreateApplicationForm(
-	ctx context.Context, b Backends, externalClient external.Client, args *unit.CreateApplicationFormArgs,
+	ctx context.Context, b Backends, args *unit.CreateApplicationFormArgs,
 ) (*unit.ApplicationForm, error) {
-	form, err := externalClient.CreateApplicationForm(ctx, &external.CreateApplicationFormArgs{
+	form, err := b.UnitExternal().CreateApplicationForm(ctx, &external.CreateApplicationFormArgs{
 		ID:      args.ID,
 		Email:   args.Email,
 		Country: args.Country,
@@ -129,7 +129,7 @@ func CreateApplicationForm(
 }
 
 func CreateApplication(
-	ctx context.Context, b Backends, externalClient external.Client, args *unit.CreateApplicationArgs,
+	ctx context.Context, b Backends, args *unit.CreateApplicationArgs,
 ) (application *unit.Application, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -169,7 +169,7 @@ func CreateApplication(
 	// 	})
 	// }
 
-	app, err := externalClient.CreateApplication(ctx, &external.CreateApplicationArgs{
+	app, err := b.UnitExternal().CreateApplication(ctx, &external.CreateApplicationArgs{
 		UserID:             args.UserID,
 		Email:              id.Email,
 		IpAddress:          args.IpAddress,
@@ -227,7 +227,7 @@ func VerifyWebhook(ctx context.Context, body []byte, signature, webhookToken str
 }
 
 func CreateCustomer(
-	ctx context.Context, b Backends, externalClient external.Client, args *unit.CreateCustomerArgs,
+	ctx context.Context, b Backends, args *unit.CreateCustomerArgs,
 ) (*unit.Customer, error) {
 	id, err := b.Identity().Get(ctx, args.IdentityID)
 	if err != nil {
@@ -282,9 +282,9 @@ func GetCustomerByIdentityID(
 
 // // This will create the counter party on Unit and store a record of it in our database.
 func CreateCounterParty(
-	ctx context.Context, b Backends, externalClient external.Client, args *unit.CreateCounterPartyArgs,
+	ctx context.Context, b Backends, args *unit.CreateCounterPartyArgs,
 ) (*unit.CounterParty, error) {
-	counterparty, err := externalClient.CreateCounterparty(ctx, &external.CreateCounterpartyArgs{
+	counterparty, err := b.UnitExternal().CreateCounterparty(ctx, &external.CreateCounterpartyArgs{
 		Name:           args.Name,
 		UnitCustomerID: args.UnitCustomerID,
 		RoutingNumber:  args.RoutingNumber,
@@ -340,14 +340,14 @@ func GetCounterPartyByFundingsourceID(
 }
 
 func CreateDepositAccount(
-	ctx context.Context, b Backends, externalClient external.Client, customerID string,
+	ctx context.Context, b Backends, customerID string,
 ) (*unit.DepositAccount, error) {
 	if customerID == "" {
 		return nil, fmt.Errorf("%w CustomerID is required", unit.ErrInvalidArgument)
 	}
 
 	idempotencyKey := sha256.Sum256([]byte(customerID))
-	depositAccount, err := externalClient.CreateDepositAccount(ctx, &external.CreateDepositAccountArgs{
+	depositAccount, err := b.UnitExternal().CreateDepositAccount(ctx, &external.CreateDepositAccountArgs{
 		CustomerID:     customerID,
 		DepositProduct: "checking",
 		IdempotencyKey: string(idempotencyKey[0:]),
@@ -422,7 +422,7 @@ func statusToError(statusCode int) error {
 }
 
 func InitiateUserDeposit(
-	ctx context.Context, b Backends, externalClient external.Client, args *unit.InitiateUserDepositArgs,
+	ctx context.Context, b Backends, args *unit.InitiateUserDepositArgs,
 ) (*unit.UserAchDeposit, error) {
 	acc, err := b.Accounts().Get(ctx, args.AccountID)
 	if err != nil {
@@ -435,7 +435,7 @@ func InitiateUserDeposit(
 	}
 
 	idempotencyKey := sha256.Sum256([]byte(args.DepositID))
-	achPayment, err := externalClient.OriginateAch(ctx, &external.OriginateAchArgs{
+	achPayment, err := b.UnitExternal().OriginateAch(ctx, &external.OriginateAchArgs{
 		IdempotencyKey:   string(idempotencyKey[0:]),
 		Amount:           args.Amount,
 		Direction:        "Debit",
