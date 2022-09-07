@@ -12,10 +12,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/nyaruka/phonenumbers"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	"gitlab.com/fynbos/log"
@@ -480,7 +480,7 @@ func StoreEvent(ctx context.Context, b Backends, event external.Event, rawEvent 
 
 	err := b.DB().GetContext(ctx, &storedEvent, "INSERT INTO unit_events (id, type, raw_event) VALUES ($1, $2, $3) RETURNING *", event.ID, external.EventType(event.Type), string(rawEvent))
 	if err != nil {
-		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
+		if db.IsErrorCode(err, db.UniqueViolationError) {
 			return nil, fmt.Errorf("%w %s", unit.ErrDuplicateEvent, err)
 		}
 		return nil, fmt.Errorf("%w %s", unit.ErrInternal, err)
