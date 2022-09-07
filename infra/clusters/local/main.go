@@ -129,7 +129,7 @@ func main() {
 			ImageRepo:            "localhost:5005",
 			Cert:                 beCert,
 			ImageTag:             "latest",
-			UsdLedgerCode:        0,
+			UsdLedgerCode:        1,
 			NoopEquityAccountID:  "036c9b47-d0e4-4960-863e-a80224aa6ff3",
 			UnitToken:            "todo token",
 			UnitBaseUrl:          "https://api.s.unit.sh",
