@@ -409,6 +409,7 @@ func startWorker(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.unit = unitClient
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
 		AccountToken: args.TwilioSecret,
