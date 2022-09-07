@@ -11,14 +11,14 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
-	_unit "gitlab.com/fynbos/backend/providers/unit"
+	unit "gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/sdk/temporal"
 )
 
 type (
 	Activity struct {
 		validator            *validator.Validate
-		unit                 _unit.Service
+		unit                 unit.Client
 		mx                   Service
 		accountService       accounts.Client
 		identityService      identity.Client
@@ -27,7 +27,7 @@ type (
 
 	ActivityArgs struct {
 		Mx                   Service               `validate:"required"`
-		Unit                 _unit.Service         `validate:"required"`
+		Unit                 unit.Client           `validate:"required"`
 		AccountService       accounts.Client       `validate:"required"`
 		IdentityService      identity.Client       `validate:"required"`
 		FundingSourceService fundingsources.Client `validate:"required"`
@@ -216,7 +216,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		accountType = "Savings"
 	}
 	idempotencyKey := sha256.Sum256([]byte(mxAccount.FundingsourceID))
-	_, err = a.unit.CreateCounterParty(ctx, &_unit.CreateCounterPartyArgs{
+	_, err = a.unit.CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
 		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
 		RoutingNumber:   accountNumbers.RoutingNumber,
 		AccountNumber:   accountNumbers.AccountNumber,

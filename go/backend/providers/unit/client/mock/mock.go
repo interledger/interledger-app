@@ -12,6 +12,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	unit "gitlab.com/fynbos/backend/providers/unit"
+	external "gitlab.com/fynbos/backend/providers/unit/external"
 )
 
 // MockClient is a mock of Client interface.
@@ -233,7 +234,7 @@ func (mr *MockClientMockRecorder) GetStatements(ctx, customerID interface{}) *go
 }
 
 // HandleEvent mocks base method.
-func (m *MockClient) HandleEvent(ctx context.Context, event unit.Event, rawEvent json.RawMessage) error {
+func (m *MockClient) HandleEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HandleEvent", ctx, event, rawEvent)
 	ret0, _ := ret[0].(error)
@@ -276,7 +277,7 @@ func (mr *MockClientMockRecorder) MakeHttpHandler() *gomock.Call {
 }
 
 // StoreEvent mocks base method.
-func (m *MockClient) StoreEvent(ctx context.Context, event unit.Event, rawEvent json.RawMessage) (*unit.DbEvent, error) {
+func (m *MockClient) StoreEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) (*unit.DbEvent, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StoreEvent", ctx, event, rawEvent)
 	ret0, _ := ret[0].(*unit.DbEvent)

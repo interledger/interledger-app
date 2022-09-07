@@ -12,6 +12,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_activities "gitlab.com/fynbos/backend/providers/unit/activities"
+	unit_workflows "gitlab.com/fynbos/backend/providers/unit/workflows"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -28,7 +30,7 @@ type WorkerArgs struct {
 	Ws     withdrawals.Service
 	Fs     fundingsources.Client
 	Os     onboarding.Client
-	Up     unit.Service
+	Up     unit.Client
 	Mx     mx.Service
 	Is     identity.Client
 }
@@ -69,15 +71,8 @@ func NewTemporalWorker(args WorkerArgs, b Backends) (worker.Worker, error) {
 	w.RegisterActivity(withdrawalActivities)
 
 	// Register onboard unit customer workflow
-	w.RegisterWorkflow(unit.UnitOnboardCustomerWorkflow)
-	unitOnboardingActivity, err := unit.NewActivity(&unit.ActivityArgs{
-		UnitService:     args.Up,
-		AccountsService: args.As,
-		IdentityService: args.Is,
-	})
-	if err != nil {
-		return nil, err
-	}
+	w.RegisterWorkflow(unit_workflows.UnitOnboardCustomerWorkflow)
+	unitOnboardingActivity := unit_activities.NewActivity(b)
 	w.RegisterActivity(unitOnboardingActivity)
 
 	w.RegisterWorkflow(mx.CreateMxAccountWorkflow)

@@ -57,7 +57,7 @@ type TestContainer struct {
 	UserService          _user.Service
 	Mx                   *mx.MockService
 	NoopService          _noop.Service
-	UnitService          unit.Service
+	UnitService          unit.Client
 	UnitMockServer       *httptest.Server
 	DepositService       deposits.Service
 	WithdrawalService    withdrawals.Service
@@ -80,7 +80,7 @@ func (c *TestContainer) Temporal() client.Client {
 	return c.Tp
 }
 
-func (c *TestContainer) Unit() unit.Service {
+func (c *TestContainer) Unit() unit.Client {
 	return c.UnitService
 }
 
@@ -158,19 +158,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
 
-	us, err := unit.NewService(unit.ServiceArgs{
-		BaseURL:         c.UnitMockServer.URL,
-		WebhookToken:    "test-webhook-token",
-		Token:           "test token",
-		Db:              db,
-		IdentityService: is,
-		Logger:          logger,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.UnitService = us
-
 	tp := &mocks.Client{}
 	c.Tp = tp
 
@@ -226,7 +213,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		Account:             as,
 		Country:             cs,
 		Noop:                noopProvider,
-		UnitService:         us,
 		AccountTransactions: ts,
 		Ds:                  ds,
 		Os:                  os,

@@ -28,7 +28,7 @@ type Resolver struct {
 	CountryService      country.Client
 	AccountService      accounts.Client
 	NoopService         noop.Service
-	UnitService         unit.Service
+	UnitService         unit.Client
 	Db                  *sqlx.DB
 	AccountTransactions account_transactions.Client
 	Ds                  deposits.Service

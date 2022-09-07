@@ -67,7 +67,7 @@ func (s *UnitTestSuite) Test_UnitOnboardCustomerWorkflow_ImmediatelyApproved() {
 		ApplicationArgs: *applicationArgs,
 	}
 	s.env.OnActivity(s.onbordingActivity.UnitCreateApplication, mock.Anything, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, args *unit.CreateApplicationArgs) (*Application, error) {
+		func(ctx context.Context, args *unit.CreateApplicationArgs) (*unit.Application, error) {
 			s.Equal(workflowState.IdentityID, args.UserID)
 			return &unit.Application{
 				Type:         ApplicationType,

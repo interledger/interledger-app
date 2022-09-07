@@ -22,7 +22,7 @@ func NewActivity(b Backends) *Activity {
 }
 
 func (a *Activity) UnitCreateApplication(ctx context.Context, args *unit.CreateApplicationArgs) (*unit.Application, error) {
-	if err := a.b.Val().Struct(args); err != nil {
+	if err := a.b.Validator().Struct(args); err != nil {
 		return nil, fmt.Errorf("%w %s", unit.ErrInvalidArgument, err)
 	}
 
@@ -75,7 +75,7 @@ type UnitCreateCustomerArgs struct {
 }
 
 func (a *Activity) UnitCreateCustomer(ctx context.Context, args *UnitCreateCustomerArgs) error {
-	if err := a.b.Val().Struct(args); err != nil {
+	if err := a.b.Validator().Struct(args); err != nil {
 		return fmt.Errorf("%w %s", unit.ErrInvalidArgument, err)
 	}
 

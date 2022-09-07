@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_workflows "gitlab.com/fynbos/backend/providers/unit/workflows"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -143,7 +144,7 @@ func InitiateUnitCustomerOnboarding(ctx context.Context, b Backends, args *onboa
 			TaskQueue:             "backend",
 			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 		},
-		unit.UnitOnboardCustomerWorkflow, unit.UnitOnboardCustomerState{
+		unit_workflows.UnitOnboardCustomerWorkflow, unit_workflows.UnitOnboardCustomerState{
 			CustomerID: "",
 			Type:       "",
 			IdentityID: args.IdentityID,

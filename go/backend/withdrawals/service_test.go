@@ -33,6 +33,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
@@ -225,7 +226,7 @@ type TestContainer struct {
 	OnboardService        onboarding.Client
 	FundingSourcesService fundingsources.Client
 	WithdrawalService     Service
-	UnitImpl              *unit.MockService
+	UnitImpl              *unit_mock.MockClient
 	Mx                    *mx.MockService
 	TemporalMock          *mocks.Client
 	PacioliClient         pacioli.Client
@@ -244,7 +245,7 @@ func (t TestContainer) Temporal() client.Client {
 	return t.TemporalMock
 }
 
-func (t TestContainer) Unit() unit.Service {
+func (t TestContainer) Unit() unit.Client {
 	return t.UnitImpl
 }
 
@@ -313,7 +314,7 @@ func NewTestContainer(ctx context.Context, s *testing.T) (*TestContainer, error)
 	c.NoopService = np
 	temporal := &mocks.Client{}
 	c.TemporalMock = temporal
-	c.UnitImpl = unit.NewMockService(c.Ctrl)
+	c.UnitImpl = unit_mock.NewMockClient(c.Ctrl)
 	c.Mx = mx.NewMockService(c.Ctrl)
 
 	fs := funding_client.New(c, logger)

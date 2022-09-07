@@ -8,6 +8,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_activity "gitlab.com/fynbos/backend/providers/unit/activities"
+	unit_external "gitlab.com/fynbos/backend/providers/unit/external"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -35,7 +37,7 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 	logger.Info("Begin deposit")
 	var depositActivity *Activity
 	var mxActivity *_mx.Activity
-	var unitActivity *unit.Activity
+	var unitActivity *unit_activity.Activity
 
 	// Channels that webhooks will use to communicate with the workflow through.
 	achStatusChannel := workflow.GetSignalChannel(ctx, "unit-user-ach-deposit")
@@ -136,7 +138,7 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 	// account routing numbers.
 	var achEventType string
 	for {
-		if unit.IsAchComplete(unit.EventType(achEventType)) {
+		if unit_external.IsAchComplete(unit_external.EventType(achEventType)) {
 			// We don't need to wait for webhooks if the ach has been completed un/successfully.
 			break
 		}
@@ -144,7 +146,7 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 		achStatusChannel.Receive(ctx, &achEventType)
 	}
 
-	if !unit.IsAchSuccessful(unit.EventType(achEventType)) {
+	if !unit_external.IsAchSuccessful(unit_external.EventType(achEventType)) {
 		err = fmt.Errorf("%w ACH failed. achStatus=%s", ErrInternal, achEventType)
 		logger.Error(err.Error())
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrInternal", err)

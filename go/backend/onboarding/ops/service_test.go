@@ -22,6 +22,7 @@ import (
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_workflows "gitlab.com/fynbos/backend/providers/unit/workflows"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/client"
 	temporal "go.temporal.io/sdk/client"
@@ -95,7 +96,7 @@ func TestInitiatesOnboarding(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 		mock.Anything,
-		unit.UnitOnboardCustomerState{
+		unit_workflows.UnitOnboardCustomerState{
 			CustomerID: "",
 			Type:       "",
 			IdentityID: args.IdentityID,
