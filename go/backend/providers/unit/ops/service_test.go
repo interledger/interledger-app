@@ -58,6 +58,7 @@ func TestCreateAndGetCustomer(t *testing.T) {
 		mockIdentityService,
 		accounts_mock.NewMockClient(ctrl),
 		&mocks.Client{},
+		mockExternalClient,
 	)
 	identityID := uuid.NewString()
 	mockIdentityService.EXPECT().Get(context.Background(), identityID).
@@ -68,7 +69,7 @@ func TestCreateAndGetCustomer(t *testing.T) {
 
 	customerID := uuid.NewString()
 	customerType := "individual"
-	customer, err := ops.CreateCustomer(ctx, b, mockExternalClient, &unit.CreateCustomerArgs{
+	customer, err := ops.CreateCustomer(ctx, b, &unit.CreateCustomerArgs{
 		ID:         customerID,
 		IdentityID: identityID,
 		Type:       customerType,
@@ -143,9 +144,10 @@ func TestCreateAndGetCounterParty(t *testing.T) {
 		mockIdentityService,
 		accounts_mock.NewMockClient(ctrl),
 		&mocks.Client{},
+		mockExternalClient,
 	)
 
-	unitCounterparty, err := ops.CreateCounterParty(ctx, b, mockExternalClient, args)
+	unitCounterparty, err := ops.CreateCounterParty(ctx, b, args)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,6 +177,7 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 		mockIdentityService,
 		mockAccountService,
 		&mocks.Client{},
+		mockExternalClient,
 	)
 	idempotencyKey := sha256.Sum256([]byte(unitCustomerID))
 	mockExternalClient.EXPECT().CreateDepositAccount(context.Background(), &external.CreateDepositAccountArgs{
@@ -210,7 +213,7 @@ func TestCreateAndGetDepositAccount(t *testing.T) {
 		nil,
 	).Times(1)
 
-	createdAcc, err := ops.CreateDepositAccount(ctx, b, mockExternalClient, unitCustomerID)
+	createdAcc, err := ops.CreateDepositAccount(ctx, b, unitCustomerID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -243,10 +246,11 @@ func TestInitiateUserDeposit(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		&mocks.Client{},
+		mockExternalClient,
 	)
 
 	mockIdentity.EXPECT().Get(context.Background(), userID).Return(&identity.Identity{ID: userID}, nil)
-	customer, err := ops.CreateCustomer(ctx, b, mockExternalClient, &unit.CreateCustomerArgs{
+	customer, err := ops.CreateCustomer(ctx, b, &unit.CreateCustomerArgs{
 		ID:         "58",
 		IdentityID: userID,
 		Type:       "person",
@@ -266,7 +270,7 @@ func TestInitiateUserDeposit(t *testing.T) {
 		},
 		nil,
 	).Times(1)
-	_, err = ops.CreateCounterParty(context.Background(), b, mockExternalClient, &unit.CreateCounterPartyArgs{
+	_, err = ops.CreateCounterParty(context.Background(), b, &unit.CreateCounterPartyArgs{
 		FundingsourceID: fundingsourceID,
 		Name:            "test",
 		UnitCustomerID:  customer.ID,
@@ -295,7 +299,7 @@ func TestInitiateUserDeposit(t *testing.T) {
 		},
 		nil,
 	).Times(1)
-	achDeposit, err := ops.InitiateUserDeposit(context.Background(), b, mockExternalClient, &unit.InitiateUserDepositArgs{
+	achDeposit, err := ops.InitiateUserDeposit(context.Background(), b, &unit.InitiateUserDepositArgs{
 		DepositID:       depositID,
 		AccountID:       accountID,
 		FundingsourceID: fundingsourceID,
@@ -327,6 +331,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		temporalMockClient,
+		external_mock.NewMockClient(ctrl),
 	)
 
 	scenarios := []struct {
@@ -368,6 +373,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		temporalMockClient,
+		external_mock.NewMockClient(ctrl),
 	)
 
 	scenarios := []struct {
@@ -409,6 +415,7 @@ func TestHandlePaymentEvent(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		temporalMockClient,
+		external_mock.NewMockClient(ctrl),
 	)
 
 	depositID := uuid.NewString()
@@ -467,6 +474,7 @@ func TestDontFailForUnknownEvent(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		temporalMockClient,
+		external_mock.NewMockClient(ctrl),
 	)
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
@@ -490,6 +498,7 @@ func TestStoreEvent(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		temporalMockClient,
+		external_mock.NewMockClient(ctrl),
 	)
 
 	customerCreatedEvent := NewCustomerCreatedEvent()
@@ -520,6 +529,7 @@ func TestStoreDuplicateEvent(t *testing.T) {
 		mockIdentity,
 		mockAccounts,
 		temporalMockClient,
+		external_mock.NewMockClient(ctrl),
 	)
 
 	customerCreatedEvent := NewCustomerCreatedEvent()

@@ -15,15 +15,18 @@ import (
 var _ unit.Client = client{}
 
 type client struct {
-	b            ops.Backends
-	external     external.Client
+	b            opsBackends
 	webhookToken string
 }
 
-func NewClient(b ops.Backends, apiToken, webhookToken string) unit.Client {
+func NewClient(b Backends, apiToken, webhookToken string) unit.Client {
+	ob := opsBackends{
+		Backends:     b,
+		unitExternal: external_client.NewClient(apiToken),
+	}
+
 	return &client{
-		b:            b,
-		external:     external_client.NewClient(apiToken),
+		b:            ob,
 		webhookToken: webhookToken,
 	}
 }
@@ -46,7 +49,7 @@ func (c client) CreateDepositAccount(
 		)
 	}()
 
-	return ops.CreateDepositAccount(ctx, c.b, c.external, customerID)
+	return ops.CreateDepositAccount(ctx, c.b, customerID)
 }
 
 func (c client) GetDepositAccount(
@@ -88,7 +91,7 @@ func (c client) GetApplicationForm(
 		)
 	}()
 
-	return ops.GetApplicationForm(ctx, c.b, c.external, userID)
+	return ops.GetApplicationForm(ctx, c.b, userID)
 }
 
 func (c client) GetStatements(
@@ -109,7 +112,7 @@ func (c client) GetStatements(
 		)
 	}()
 
-	return ops.GetStatements(ctx, c.b, c.external, customerID)
+	return ops.GetStatements(ctx, c.b, customerID)
 }
 
 func (c client) GetStatementPDF(
@@ -132,7 +135,7 @@ func (c client) GetStatementPDF(
 		)
 	}()
 
-	return ops.GetStatementPDF(ctx, c.b, c.external, args)
+	return ops.GetStatementPDF(ctx, c.b, args)
 }
 
 func (c client) CreateApplicationForm(
@@ -155,7 +158,7 @@ func (c client) CreateApplicationForm(
 		)
 	}()
 
-	return ops.CreateApplicationForm(ctx, c.b, c.external, args)
+	return ops.CreateApplicationForm(ctx, c.b, args)
 }
 
 func (c client) CreateApplication(
@@ -177,7 +180,7 @@ func (c client) CreateApplication(
 		log.Debug("Created application")
 	}()
 
-	return ops.CreateApplication(ctx, c.b, c.external, args)
+	return ops.CreateApplication(ctx, c.b, args)
 }
 
 func (c client) VerifyWebhook(
@@ -217,7 +220,7 @@ func (c client) CreateCustomer(
 		)
 	}()
 
-	return ops.CreateCustomer(ctx, c.b, c.external, args)
+	return ops.CreateCustomer(ctx, c.b, args)
 }
 
 func (c client) GetCustomer(
@@ -278,7 +281,7 @@ func (c client) CreateCounterParty(
 		)
 	}()
 
-	return ops.CreateCounterParty(ctx, c.b, c.external, args)
+	return ops.CreateCounterParty(ctx, c.b, args)
 }
 
 func (c client) GetCounterPartyByFundingsourceID(
@@ -323,7 +326,7 @@ func (c client) InitiateUserDeposit(
 		)
 	}()
 
-	return ops.InitiateUserDeposit(ctx, c.b, c.external, args)
+	return ops.InitiateUserDeposit(ctx, c.b, args)
 }
 
 func (c client) StoreEvent(
