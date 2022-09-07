@@ -84,5 +84,7 @@ func NewTemporalWorker(args WorkerArgs, b Backends) (worker.Worker, error) {
 	}
 	w.RegisterActivity(createMxBankAccountActivity)
 
+	w.RegisterWorkflow(mx_workflow.MxCreateFundingsourceWorkflow)
+
 	return w, nil
 }
