@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"gitlab.com/fynbos/backend/providers/mx/workflows"
 
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -48,7 +50,7 @@ func CreateAccount(
 		args.FundingsourceID,
 	)
 	if err != nil {
-		if strings.Contains(err.Error(), "pq: duplicate key value violates unique constraint \"primary\"") {
+		if db.IsErrorCode(err, db.UniqueViolationError) {
 			return nil, mx.ErrDuplicate
 		}
 		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)

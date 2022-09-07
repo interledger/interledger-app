@@ -182,7 +182,7 @@ func start(args *cli.StartArgs) {
 	b.twilio = twilioService
 
 	us := unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
-	mx := mx_client.New(b)
+	mx := mx_client.New(b, args.MxClientID, args.MxApiKey)
 	b.mxProvider = mx
 
 	fs := funding_client.New(b, logger)
@@ -413,7 +413,7 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	mxImpl := mx_client.New(b)
+	mxImpl := mx_client.New(b, args.MxClientID, args.MxApiKey)
 	if err != nil {
 		log.Fatalln(err)
 	}

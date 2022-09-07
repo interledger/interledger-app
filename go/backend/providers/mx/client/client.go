@@ -14,11 +14,11 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends) mx.Client {
+func New(b Backends, mxClientID, mxApiKey string) mx.Client {
 
 	ob := &opsBackends{
 		Backends:   b,
-		mxExternal: external.NewClient("base", "clientID", "apiKey"),
+		mxExternal: external.NewClient(mxClientID, mxApiKey),
 	}
 
 	return &client{
