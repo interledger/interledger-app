@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/unit"
+	unit_external "gitlab.com/fynbos/backend/providers/unit/external"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,10 +39,10 @@ func (s *AdminRpcService) SignalUnitCustomerCreated(
 		"unit_onboarding_"+user.ID,
 		"",
 		"onboard-unit-customer-created",
-		&unit.CustomerCreatedEvent{
-			Relationships: unit.EventRelationships{
-				Customer: unit.JsonCustomer{
-					Data: unit.Data{
+		&unit_external.CustomerCreatedEvent{
+			Relationships: unit_external.EventRelationships{
+				Customer: unit_external.JsonCustomer{
+					Data: unit_external.Data{
 						ID:   req.GetCustomerId(),
 						Type: req.GetType(),
 					},

@@ -10,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/deposits"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_activity "gitlab.com/fynbos/backend/providers/unit/activities"
+	unit_external "gitlab.com/fynbos/backend/providers/unit/external"
 
 	"github.com/stretchr/testify/suite"
 
@@ -23,13 +25,13 @@ type AchDepositTestSuite struct {
 	env              *testsuite.TestWorkflowEnvironment
 	depositsActivity *deposits.Activity
 	mxActivity       *_mx.Activity
-	unitActivity     *unit.Activity
+	unitActivity     *unit_activity.Activity
 }
 
 func (s *AchDepositTestSuite) SetupSuite() {
 	s.depositsActivity = &deposits.Activity{}
 	s.mxActivity = &_mx.Activity{}
-	s.unitActivity = &unit.Activity{}
+	s.unitActivity = &unit_activity.Activity{}
 }
 
 func (s *AchDepositTestSuite) SetupTest() {
@@ -107,7 +109,7 @@ func (s *AchDepositTestSuite) TestGoldenPath() {
 		})
 
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit.PAYMENT_SENT))
+		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_SENT))
 	}, time.Millisecond*1)
 
 	s.env.OnActivity(s.depositsActivity.CreateAchDepositTransactions, mock.Anything, mock.Anything, mock.Anything).Return(
@@ -316,7 +318,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsRejected() {
 			return nil, nil
 		})
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit.PAYMENT_REJECTED))
+		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_REJECTED))
 	}, time.Millisecond*1)
 	s.env.OnActivity(s.depositsActivity.SetDepositState, mock.Anything, mock.Anything, deposits.Failed).Return(
 		func(ctx context.Context, id string, state deposits.State) error {
@@ -327,7 +329,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsRejected() {
 	s.env.ExecuteWorkflow(deposits.DepositWorkflow, deposit.ID)
 
 	s.True(s.env.IsWorkflowCompleted())
-	s.ErrorContains(s.env.GetWorkflowError(), "ACH failed. achStatus="+string(unit.PAYMENT_REJECTED))
+	s.ErrorContains(s.env.GetWorkflowError(), "ACH failed. achStatus="+string(unit_external.PAYMENT_REJECTED))
 }
 
 func (s *AchDepositTestSuite) TestFailsDespositIfAchIsReturned() {
@@ -394,7 +396,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsReturned() {
 			return nil, nil
 		})
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit.PAYMENT_RETURNED))
+		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_RETURNED))
 	}, time.Millisecond*1)
 	s.env.OnActivity(s.depositsActivity.SetDepositState, mock.Anything, mock.Anything, deposits.Failed).Return(
 		func(ctx context.Context, id string, state deposits.State) error {
@@ -405,7 +407,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsReturned() {
 	s.env.ExecuteWorkflow(deposits.DepositWorkflow, deposit.ID)
 
 	s.True(s.env.IsWorkflowCompleted())
-	s.ErrorContains(s.env.GetWorkflowError(), "ACH failed. achStatus="+string(unit.PAYMENT_RETURNED))
+	s.ErrorContains(s.env.GetWorkflowError(), "ACH failed. achStatus="+string(unit_external.PAYMENT_RETURNED))
 }
 
 func (s *AchDepositTestSuite) TestFailsDespositIfAchIsCanceled() {
@@ -472,7 +474,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsCanceled() {
 			return nil, nil
 		})
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit.PAYMENT_CANCELED))
+		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_CANCELED))
 	}, time.Millisecond*1)
 	s.env.OnActivity(s.depositsActivity.SetDepositState, mock.Anything, mock.Anything, deposits.Failed).Return(
 		func(ctx context.Context, id string, state deposits.State) error {
@@ -483,7 +485,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsCanceled() {
 	s.env.ExecuteWorkflow(deposits.DepositWorkflow, deposit.ID)
 
 	s.True(s.env.IsWorkflowCompleted())
-	s.ErrorContains(s.env.GetWorkflowError(), "ACH failed. achStatus="+string(unit.PAYMENT_CANCELED))
+	s.ErrorContains(s.env.GetWorkflowError(), "ACH failed. achStatus="+string(unit_external.PAYMENT_CANCELED))
 }
 
 func TestDepositWorkflow(t *testing.T) {

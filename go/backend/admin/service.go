@@ -21,7 +21,7 @@ type AdminRpcService struct {
 	AccountsService accounts.Client
 	IdentityService identity.Client
 	AuthService     auth.Service
-	UnitService     unit.Service
+	UnitService     unit.Client
 	Temporal        client.Client
 }
 

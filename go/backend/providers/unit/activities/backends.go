@@ -8,7 +8,7 @@ import (
 )
 
 type Backends interface {
-	Val() *validator.Validate
+	Validator() *validator.Validate
 	Unit() unit.Client
 	Accounts() accounts.Client
 	Identity() identity.Client

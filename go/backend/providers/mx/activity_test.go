@@ -23,6 +23,7 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/mx/external"
 	"gitlab.com/fynbos/backend/providers/unit"
+	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 )
 
 func TestCreateFundingsource(t *testing.T) {
@@ -215,7 +216,7 @@ func TestStartBalanceAggregation(t *testing.T) {
 
 type MockArgs struct {
 	Mx                   *MockService
-	Unit                 *unit.MockService
+	Unit                 *unit_mock.MockClient
 	AccountService       *accounts_mock.MockClient
 	IdentityService      *identity_mock.MockClient
 	FundingsourceService *funding_mock.MockClient
@@ -225,7 +226,7 @@ func NewTestActivity(t *testing.T) (*Activity, *MockArgs) {
 	ctrl := gomock.NewController(t)
 	mocks := &MockArgs{
 		Mx:                   NewMockService(ctrl),
-		Unit:                 unit.NewMockService(ctrl),
+		Unit:                 unit_mock.NewMockClient(ctrl),
 		AccountService:       accounts_mock.NewMockClient(ctrl),
 		IdentityService:      identity_mock.NewMockClient(ctrl),
 		FundingsourceService: funding_mock.NewMockClient(ctrl),

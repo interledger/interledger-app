@@ -19,5 +19,5 @@ type Backends interface {
 	Identity() identity.Client
 	Noop() noop.Service
 	Temporal() temporal.Client
-	Unit() unit.Service
+	Unit() unit.Client
 }

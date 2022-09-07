@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 )
 
 const SignatureHeader = "x-unit-signature"
@@ -34,7 +35,7 @@ func MakeHttpHandler(client unit.Client) http.HandlerFunc {
 
 		didFail := false
 		for _, rawEvent := range body.Data {
-			var event unit.Event
+			var event external.Event
 			if err := json.Unmarshal(rawEvent, &event); err != nil {
 				didFail = true
 				continue

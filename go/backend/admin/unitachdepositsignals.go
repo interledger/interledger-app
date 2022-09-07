@@ -3,7 +3,7 @@ package admin
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/providers/unit"
+	unit_external "gitlab.com/fynbos/backend/providers/unit/external"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,13 +22,13 @@ func (s *AdminRpcService) SignalUnitAchDepositEvent(
 	// if !isAdmin {
 	// 	return nil, status.Error(codes.PermissionDenied, "Forbidden.")
 	// }
-	if req.GetEventType() != string(unit.PAYMENT_SENT) &&
-		req.GetEventType() != string(unit.PAYMENT_REJECTED) &&
-		req.GetEventType() != string(unit.PAYMENT_RETURNED) &&
-		req.GetEventType() != string(unit.PAYMENT_CREATED) &&
-		req.GetEventType() != string(unit.PAYMENT_CLEARING) &&
-		req.GetEventType() != string(unit.PAYMENT_CANCELED) &&
-		req.GetEventType() != string(unit.PAYMENT_PENDING_REVIEW) {
+	if req.GetEventType() != string(unit_external.PAYMENT_SENT) &&
+		req.GetEventType() != string(unit_external.PAYMENT_REJECTED) &&
+		req.GetEventType() != string(unit_external.PAYMENT_RETURNED) &&
+		req.GetEventType() != string(unit_external.PAYMENT_CREATED) &&
+		req.GetEventType() != string(unit_external.PAYMENT_CLEARING) &&
+		req.GetEventType() != string(unit_external.PAYMENT_CANCELED) &&
+		req.GetEventType() != string(unit_external.PAYMENT_PENDING_REVIEW) {
 		return nil, status.Error(codes.InvalidArgument, "Invalid unit ach payment event type.")
 	}
 

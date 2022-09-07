@@ -3,7 +3,6 @@ package unit
 import (
 	"context"
 	"encoding/json"
-	"net/http"
 
 	"gitlab.com/fynbos/backend/providers/unit/external"
 )
@@ -28,5 +27,4 @@ type Client interface {
 	VerifyWebhook(ctx context.Context, body []byte, signature string) error
 	StoreEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) (*DbEvent, error)
 	GetEvent(ctx context.Context, id string) (*DbEvent, error)
-	MakeHttpHandler() http.HandlerFunc
 }

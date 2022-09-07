@@ -30,7 +30,7 @@ type GraphqlOpts struct {
 	Country                          country.Client              `validate:"required"`
 	AccountTransactions              account_transactions.Client `validate:"required"`
 	Noop                             noop.Service                `validate:"required"`
-	UnitService                      unit.Service                `validate:"required"`
+	UnitService                      unit.Client                 `validate:"required"`
 	Ds                               deposits.Service            `validate:"required"`
 	Os                               onboarding.Client           `validate:"required"`
 	Ws                               withdrawals.Service         `validate:"required"`
