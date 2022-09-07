@@ -12,7 +12,7 @@ var _ external.Client = client{}
 
 type client struct{}
 
-func NewClient(apiToken string) external.Client {
+func NewClient() external.Client {
 	return &client{}
 }
 
@@ -100,6 +100,14 @@ func (c client) CreateApplication(
 			IP:     "127.0.0.1",
 			Tags: &external.ApplicationTags{
 				FynbosUserID: args.UserID,
+			},
+		},
+		Relationships: &external.ApplicationRelationships{
+			Customer: external.Relationship{
+				Data: external.TypeData{
+					ID:   fmt.Sprintf("%d", rand.Int31n(10000)),
+					Type: "customer",
+				},
 			},
 		},
 	}, nil
