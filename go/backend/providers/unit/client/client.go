@@ -7,7 +7,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	external_client "gitlab.com/fynbos/backend/providers/unit/external/client"
+	dev_client "gitlab.com/fynbos/backend/providers/unit/external/client/dev"
 	"gitlab.com/fynbos/backend/providers/unit/ops"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -23,6 +25,10 @@ func NewClient(b Backends, apiToken, webhookToken string) unit.Client {
 	ob := opsBackends{
 		Backends:     b,
 		unitExternal: external_client.NewClient(apiToken),
+	}
+
+	if env.IsDev() {
+		ob.unitExternal = dev_client.NewClient()
 	}
 
 	return &client{
