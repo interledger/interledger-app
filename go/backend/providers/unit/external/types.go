@@ -261,3 +261,70 @@ type (
 		Customers Relationship `json:"customers"`
 	}
 )
+
+type (
+	// Context we add so we can match the application back to our user. Be very careful changing
+	// this value.
+	ApplicationTags struct {
+		FynbosUserID string `json:"fynbosUserId,omitempty"`
+	}
+
+	// Context we add so we can match the ach back to our deposit. Be very careful changing
+	// this value.
+	DepositTags struct {
+		DepositID string `json:"depositID,omitempty"`
+	}
+
+	GetStatementPDFArgs struct {
+		ID         string
+		CustomerID string
+	}
+
+	CreateApplicationFormArgs struct {
+		ID      string `validate:"required"`
+		Email   string `validate:"required"`
+		Country string `validate:"required"`
+	}
+
+	CreateApplicationArgs struct {
+		UserID             string
+		Email              string
+		IpAddress          string
+		DateOfBirth        string
+		FirstName          string
+		LastName           string
+		Ssn                string
+		Address            Address
+		Phone              Phone
+		DeviceFingerprints []DeviceFingerprint
+	}
+
+	CreateCounterpartyArgs struct {
+		Name           string
+		UnitCustomerID string
+		RoutingNumber  string
+		AccountNumber  string
+		AccountType    string
+		Type           string
+
+		// This idempotency key is valid for 48 hours on Unit's api.
+		IdempotencyKey string
+	}
+
+	OriginateAchArgs struct {
+		IdempotencyKey   string `validate:"required"`
+		Amount           uint64
+		Direction        string `validate:"oneof=credit,debit"`
+		CounterpartyID   string `validate:"required"`
+		DepositAccountID string `validate:"required"`
+		Description      string
+		Tags             map[string]string
+	}
+
+	CreateDepositAccountArgs struct {
+		CustomerID     string
+		DepositProduct string
+		Type           string
+		IdempotencyKey string
+	}
+)
