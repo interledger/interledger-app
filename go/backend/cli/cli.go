@@ -97,7 +97,6 @@ type StartArgs struct {
 	UnitBaseURL          string
 	UnitWebhookToken     string
 	GoogleOauth2ClientID string
-	MxBaseURL            string
 	MxClientID           string
 	MxApiKey             string
 	RafikiGraphqlUrl     string
@@ -187,11 +186,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
 	}
 
-	mxBaseURL := os.Getenv("MX_BASE_URL")
-	if googleOauth2ClientID == "" {
-		return nil, errors.New("MX_BASE_URL is required.")
-	}
-
 	mxClientID := os.Getenv("MX_CLIENT_ID")
 	if mxClientID == "" {
 		return nil, errors.New("MX_CLIENT_ID is required.")
@@ -251,7 +245,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		UnitBaseURL:          unitBaseURL,
 		UnitWebhookToken:     unitWebhookToken,
 		GoogleOauth2ClientID: googleOauth2ClientID,
-		MxBaseURL:            mxBaseURL,
 		MxClientID:           mxClientID,
 		MxApiKey:             mxApiKey,
 		RafikiGraphqlUrl:     rafikiGraphqlUrl,

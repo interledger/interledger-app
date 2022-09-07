@@ -12,10 +12,17 @@ import (
 	"io"
 	"net/http"
 	_http "net/http"
+
+	"gitlab.com/fynbos/env"
 )
 
 var (
 	ErrInternal = errors.New("mx client: internal")
+)
+
+const (
+	devURL  = "https://int-api.mx.com"
+	prodURL = "https://api.mx.com"
 )
 
 const (
@@ -138,9 +145,13 @@ func newBasicAuthTransport(userName string, password string) *basicAuthTransport
 	}
 }
 
-func NewClient(baseUrl, clientID, apiKey string) Mx {
+func NewClient(clientID, apiKey string) Mx {
+	baseURL := devURL
+	if env.IsProd() {
+		baseURL = prodURL
+	}
 	return &client{
-		baseUrl: baseUrl,
+		baseUrl: baseURL,
 		http: &_http.Client{
 			Transport: newBasicAuthTransport(clientID, apiKey),
 		},
