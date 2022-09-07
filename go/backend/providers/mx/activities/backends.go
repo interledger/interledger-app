@@ -20,6 +20,6 @@ type Backends interface {
 	Temporal() client.Client
 	Twilio() twilio.Service
 	MX() mx.Client
-	Unit() unit.Service
+	Unit() unit.Client
 	FundingSources() fundingsources.Client
 }

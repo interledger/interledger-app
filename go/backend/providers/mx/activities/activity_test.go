@@ -11,10 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/twilio"
 
-	"gitlab.com/fynbos/backend/providers/mx"
-	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
-	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
-	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -22,12 +18,16 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/fundingsources"
+	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"gitlab.com/fynbos/backend/identity"
-	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/temporal"
+	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+	"gitlab.com/fynbos/backend/providers/mx"
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx/external"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 func TestCreateFundingsource(t *testing.T) {
@@ -220,12 +220,13 @@ func TestStartBalanceAggregation(t *testing.T) {
 
 func NewTestActivity(t *testing.T) (*Activity, *testBackends) {
 	ctrl := gomock.NewController(t)
-	mocks := &MockArgs{
-		Mx:                   NewMockService(ctrl),
-		Unit:                 unit_mock.NewMockClient(ctrl),
-		AccountService:       accounts_mock.NewMockClient(ctrl),
-		IdentityService:      identity_mock.NewMockClient(ctrl),
-		FundingsourceService: funding_mock.NewMockClient(ctrl),
+	b := &testBackends{
+		val:   validator.New(),
+		mx:    mx_mock.NewMockClient(ctrl),
+		unit:  unit_mock.NewMockClient(ctrl),
+		acc:   accounts_mock.NewMockClient(ctrl),
+		ident: identity_mock.NewMockClient(ctrl),
+		fs:    funding_mock.NewMockClient(ctrl),
 	}
 
 	activity := NewActivity(b)
@@ -270,7 +271,7 @@ func (t testBackends) MX() mx.Client {
 	return t.mx
 }
 
-func (t testBackends) Unit() unit.Service {
+func (t testBackends) Unit() unit.Client {
 	return t.unit
 }
 
