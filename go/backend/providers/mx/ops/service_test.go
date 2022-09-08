@@ -271,14 +271,14 @@ func TestReadAccount(t *testing.T) {
 			ExpectedError:       nil,
 			ExternalClientError: nil,
 			Account: &external.Account{
-				AccountNumber:     "123",
-				InstitutionNumber: "321",
-				RoutingNumber:     "68899990000000",
-				TransitNumber:     "123",
-				CurrencyCode:      "780",
-				Type:              "SAVINGS",
-				AvailableBalance:  500.00,
-				Balance:           500.00,
+				AccountNumber:    "123",
+				InstitutionCode:  "321",
+				RoutingNumber:    "68899990000000",
+				TransitNumber:    "123",
+				CurrencyCode:     "780",
+				Type:             "SAVINGS",
+				AvailableBalance: 500.00,
+				Balance:          500.00,
 			},
 		},
 		{
@@ -298,7 +298,7 @@ func TestReadAccount(t *testing.T) {
 			if scenario.ExpectedError == nil {
 				assert.NoError(st, err, scenario.Name)
 				assert.Equal(st, mxAccount.Guid, mxAccount.Guid, scenario.Name)
-				assert.Equal(st, scenario.Account.InstitutionNumber, mxAccount.InstitutionNumber, scenario.Name)
+				assert.Equal(st, scenario.Account.InstitutionCode, mxAccount.InstitutionCode, scenario.Name)
 				assert.Equal(st, scenario.Account.RoutingNumber, mxAccount.RoutingNumber, scenario.Name)
 				assert.Equal(st, scenario.Account.TransitNumber, mxAccount.TransitNumber, scenario.Name)
 			} else {

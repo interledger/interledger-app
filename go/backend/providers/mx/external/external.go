@@ -62,17 +62,17 @@ type (
 	}
 
 	Account struct {
-		Guid              string
-		UserGuid          string `json:"user_guid"`
-		MemberGuid        string `json:"member_guid"`
-		AccountNumber     string `json:"account_number"`
-		InstitutionNumber string `json:"institution_number"`
-		RoutingNumber     string `json:"routing_number"`
-		TransitNumber     string `json:"transit_number"`
-		CurrencyCode      string `json:"currency_code"`
-		Type              string
-		AvailableBalance  float64 `json:"available_balance"`
-		Balance           float64
+		Guid             string
+		UserGuid         string `json:"user_guid"`
+		MemberGuid       string `json:"member_guid"`
+		AccountNumber    string `json:"account_number"`
+		InstitutionCode  string `json:"institution_code"`
+		RoutingNumber    string `json:"routing_number"`
+		TransitNumber    string `json:"transit_number"`
+		CurrencyCode     string `json:"currency_code"`
+		Type             string
+		AvailableBalance float64 `json:"available_balance"`
+		Balance          float64
 	}
 
 	AccountNumbers struct {
