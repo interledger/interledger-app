@@ -160,15 +160,15 @@ func ReadAccount(ctx context.Context, b Backends, mxAccountGuid string) (*mx.Acc
 	}
 
 	return &mx.AccountDetails{
-		Guid:              acc.Guid,
-		UserGuid:          acc.UserGuid,
-		MemberGuid:        acc.MemberGuid,
-		AccountNumber:     acc.AccountNumber,
-		InstitutionNumber: acc.InstitutionNumber,
-		RoutingNumber:     acc.RoutingNumber,
-		TransitNumber:     acc.TransitNumber,
-		CurrencyCode:      acc.CurrencyCode,
-		Type:              acc.Type,
+		Guid:            acc.Guid,
+		UserGuid:        acc.UserGuid,
+		MemberGuid:      acc.MemberGuid,
+		AccountNumber:   acc.AccountNumber,
+		InstitutionCode: acc.InstitutionCode,
+		RoutingNumber:   acc.RoutingNumber,
+		TransitNumber:   acc.TransitNumber,
+		CurrencyCode:    acc.CurrencyCode,
+		Type:            acc.Type,
 	}, nil
 }
 

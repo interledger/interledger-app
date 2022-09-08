@@ -101,7 +101,7 @@ func (s *rpcService) GetBankAccountDetails(
 	return &backendv1.BankAccountDetails{
 		FundingsourceId: req.GetFundingsourceId(),
 		Type:            details.Type,
-		Institution:     details.InstitutionNumber,
+		Institution:     details.InstitutionCode,
 		Mask:            details.AccountNumber[maskStart:],
 	}, nil
 }
