@@ -72,9 +72,9 @@ type (
 	}
 
 	InitiateCreateFundingsourceArgs struct {
-		AccountID     string `validate:"required"`
+		AccountID     string `validate:"uuid4"`
 		Otp           string `validate:"required"`
 		Name          string `validate:"required"`
-		MxAccountGuid string `validate:"uuid4"`
+		MxAccountGuid string `validate:"required"`
 	}
 )
