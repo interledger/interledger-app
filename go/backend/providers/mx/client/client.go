@@ -6,6 +6,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/mx/external"
 	"gitlab.com/fynbos/backend/providers/mx/ops"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 var _ mx.Client = client{}
@@ -78,7 +80,20 @@ func (c client) WaitForCreateAccount(ctx context.Context, fundingsourceID string
 	return ops.WaitForCreateAccount(ctx, c.b, fundingsourceID)
 }
 
-func (c client) InitiateCreateFundingsource(ctx context.Context, args mx.InitiateCreateFundingsourceArgs) error {
+func (c client) InitiateCreateFundingsource(ctx context.Context, args mx.InitiateCreateFundingsourceArgs) (err error) {
+	defer func() {
+		if err != nil {
+			log.Error("Failed to initiate creating mx funding source", zap.String("err", err.Error()))
+			return
+		}
+
+		log.Debug(
+			"Initiating creating mx funding source",
+			zap.String("accountID", args.AccountID),
+			zap.String("mxAccountID", args.MxAccountGuid),
+			zap.String("name", args.Name),
+		)
+	}()
 	return ops.InitiateCreateFundingsource(ctx, c.b, args)
 }
 
