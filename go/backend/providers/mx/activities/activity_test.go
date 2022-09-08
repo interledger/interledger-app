@@ -135,11 +135,11 @@ func TestCreateUnitCounterparty(t *testing.T) {
 
 	b.mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
 		&mx.AccountDetails{
-			Guid:              mxAccountGuid,
-			AccountNumber:     "81818181234", // will be used to set the mask on the funding source
-			RoutingNumber:     "71717171717",
-			InstitutionNumber: "616161616",
-			Type:              "SAVINGS",
+			Guid:            mxAccountGuid,
+			AccountNumber:   "81818181234", // will be used to set the mask on the funding source
+			RoutingNumber:   "71717171717",
+			InstitutionCode: "616161616",
+			Type:            "SAVINGS",
 		},
 		nil,
 	).Times(1)

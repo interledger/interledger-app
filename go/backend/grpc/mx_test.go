@@ -281,10 +281,10 @@ func TestGetBankDetails(t *testing.T) {
 		}, nil)
 		c.MxProvider.EXPECT().ReadAccount(gomock.Any(), mxAccountGuid).Return(
 			&mx.AccountDetails{
-				Guid:              mxAccountGuid,
-				AccountNumber:     "123456789",
-				InstitutionNumber: "321",
-				Type:              "Checking",
+				Guid:            mxAccountGuid,
+				AccountNumber:   "123456789",
+				InstitutionCode: "321",
+				Type:            "Checking",
 			},
 			nil,
 		)
