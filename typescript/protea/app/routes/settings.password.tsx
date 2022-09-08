@@ -10,6 +10,13 @@ import {
   requireUserSession
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
+import {
+  grpcClient,
+  GrpcError,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -41,12 +48,45 @@ export async function loader({ request }: LoaderArgs) {
     if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
     return redirect(`/settings/password?flow=${flow.id}`)
   }
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+
+  const idResp = await grpcClient
+    .getIdentity(
+      {},
+      {
+        meta: {
+          cookies: cookie
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(idResp)) {
+    throw idResp
+  }
+
+  const identity = idResp.response
+
+  const otpResp = await grpcClient
+    .sendOTP(
+      {},
+      {
+        meta: {
+          cookies: cookie
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(otpResp)) {
+    throw otpResp
+  }
+
+  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow), identity })
 }
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, csrfToken, identity } = useLoaderData<typeof loader>()
 
   return (
     <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
@@ -82,6 +122,23 @@ export default function Page() {
           errorMessage={actionData?.errors?.password}
         />
 
+        <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <p className='text-medium'>
+            Enter the six digit verification code sent to your mobile device. (
+            {identity.mobileNumber})
+          </p>
+        </div>
+        <TextField
+          id='otp'
+          label='Verification Code'
+          name='otp'
+          type='text'
+          aria-invalid={Boolean(actionData?.errors.otp) || undefined}
+          aria-describedby={actionData?.errors.otp ? 'otp-error' : undefined}
+          required
+          errorMessage={actionData?.errors.otp}
+        />
+
         <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
         <div className='pt-4'>
           <Button type='submit'>Save password</Button>
@@ -101,7 +158,40 @@ export async function action({ request }: ActionArgs) {
   const csrfToken = form.get('csrf_token') as string
   const password = form.get('new-password') as string
 
-  const fieldErrors = { password: '' }
+  const fieldErrors = { password: '', otp: '' }
+
+  // Validate the OTP
+  let validateResp = await grpcClient
+    .validateOTP(
+      {
+        otp: form.get('otp') as string
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(validateResp)) {
+    if (validateResp.code == 3) {
+      for (let violation of (validateResp as GrpcError).details[0]
+        .fieldViolations) {
+        if (violation.field === 'Code') {
+          fieldErrors['otp'] = violation.description
+          return json({ errors: { ...fieldErrors } }, { status: 400 })
+        }
+      }
+    }
+    throw validateResp
+  }
+  if (!validateResp.response.valid) {
+    fieldErrors['otp'] = 'Invalid OTP'
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
   const res = await fetch(
     `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {

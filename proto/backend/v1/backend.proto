@@ -57,6 +57,7 @@ service BackendService {
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
   rpc SendOTP(Empty) returns (Empty);
+  rpc ValidateOTP(ValidateOTPRequest) returns (ValidateOTPResponse);
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
@@ -176,6 +177,14 @@ message CheckPhoneVerificationCodeRequest {
 message PhoneVerificationResponse {
   // The status from twilio. Can be "approved" or "pending"
   string status = 1;
+}
+
+message ValidateOTPRequest {
+  string otp = 1;
+}
+
+message ValidateOTPResponse {
+  bool valid = 1;
 }
 
 message GetAgreementRequest {

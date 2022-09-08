@@ -194,6 +194,7 @@ type BackendServiceClient interface {
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 	SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	ValidateOTP(ctx context.Context, in *ValidateOTPRequest, opts ...grpc.CallOption) (*ValidateOTPResponse, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
@@ -321,6 +322,15 @@ func (c *backendServiceClient) CheckPhoneVerificationCode(ctx context.Context, i
 func (c *backendServiceClient) SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SendOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) ValidateOTP(ctx context.Context, in *ValidateOTPRequest, opts ...grpc.CallOption) (*ValidateOTPResponse, error) {
+	out := new(ValidateOTPResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ValidateOTP", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -455,6 +465,7 @@ type BackendServiceServer interface {
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
 	SendOTP(context.Context, *Empty) (*Empty, error)
+	ValidateOTP(context.Context, *ValidateOTPRequest) (*ValidateOTPResponse, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
@@ -511,6 +522,9 @@ func (UnimplementedBackendServiceServer) CheckPhoneVerificationCode(context.Cont
 }
 func (UnimplementedBackendServiceServer) SendOTP(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendOTP not implemented")
+}
+func (UnimplementedBackendServiceServer) ValidateOTP(context.Context, *ValidateOTPRequest) (*ValidateOTPResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateOTP not implemented")
 }
 func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAgreement not implemented")
@@ -772,6 +786,24 @@ func _BackendService_SendOTP_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).SendOTP(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_ValidateOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ValidateOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ValidateOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ValidateOTP(ctx, req.(*ValidateOTPRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1046,6 +1078,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendOTP",
 			Handler:    _BackendService_SendOTP_Handler,
+		},
+		{
+			MethodName: "ValidateOTP",
+			Handler:    _BackendService_ValidateOTP_Handler,
 		},
 		{
 			MethodName: "GetAgreement",

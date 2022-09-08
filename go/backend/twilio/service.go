@@ -82,7 +82,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	err := s.validator.Var(phoneNumber, "required,e164")
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
+		return nil, err
 	}
 
 	if !env.IsProd() && !env.IsSandbox() {
@@ -119,6 +119,11 @@ type CheckVerificationCodeArgs struct {
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
+	err := s.validator.Struct(args)
+	if err != nil {
+		return nil, err
+	}
+
 	// Short circuit here for environments where there is not twilio integrations
 	if !env.IsProd() && !env.IsSandbox() {
 		return &Verification{
@@ -126,11 +131,6 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 			PhoneNumber: args.PhoneNumber,
 			Status:      statusApproved,
 		}, nil
-	}
-
-	err := s.validator.Struct(args)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, err)
 	}
 
 	params := &verify.CreateVerificationCheckParams{}

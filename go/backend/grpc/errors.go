@@ -38,9 +38,15 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid country code."
 	case "email":
 		return "Provide a valid email address."
+	case "numeric":
+		return "Provide a numeric value only"
+	case "len":
+		return "Incorrect length of field"
 	}
 
-	return ""
+	log.Warn("Unknown field validation tag", zap.String("tag", fe.Tag()))
+
+	return "invalid field"
 }
 
 // grpcError converts a given error to its frontend friendly equivalent.
@@ -48,25 +54,7 @@ func grpcError(err error) error {
 	// Check if it is a validation error
 	var validatorError validator.ValidationErrors
 	if errors.As(err, &validatorError) {
-		st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
-		br := &errdetails.BadRequest{}
-
-		for _, fe := range validatorError {
-			v := &errdetails.BadRequest_FieldViolation{
-				Field:       fe.Field(),
-				Description: validationDesc(fe),
-			}
-			br.FieldViolations = append(br.FieldViolations, v)
-		}
-
-		st, err := st.WithDetails(br)
-		if err != nil {
-			// If this errored, it will always error
-			// here, so better panic so we can figure
-			// out why than have this silently passing.
-			panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
-		}
-		return st.Err()
+		return ValidationError(err, validationDesc)
 	}
 
 	// Try for a direct pointer match

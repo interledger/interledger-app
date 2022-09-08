@@ -5,9 +5,16 @@ import type { RpcError } from '@protobuf-ts/runtime-rpc'
 import { BackendServiceClient } from '~/generated/protobuf-ts/backend/v1/backend_client'
 import { Any } from '~/generated/protobuf-ts/google/protobuf/any'
 import {
-  BadRequest, DebugInfo, ErrorInfo, Help,
-  LocalizedMessage, PreconditionFailure, QuotaFailure, RequestInfo,
-  ResourceInfo, RetryInfo
+  BadRequest,
+  DebugInfo,
+  ErrorInfo,
+  Help,
+  LocalizedMessage,
+  PreconditionFailure,
+  QuotaFailure,
+  RequestInfo,
+  ResourceInfo,
+  RetryInfo
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
 
@@ -62,18 +69,18 @@ function StatusError(err: RpcError): GrpcError {
     throw new Error('No meta on error')
   }
 
-  const message = err.message.split(': ')[2]
+  const messageArr = err.message.split(': ')
+  const message = messageArr[messageArr.length - 1]
 
   // get error details if any
   let details: any[] = []
+  let status: Status | undefined
   if (err.meta['grpc-status-details-bin']) {
     const buffer = base64decode(err.meta['grpc-status-details-bin'] as string)
 
     if (!buffer || typeof buffer === 'string') {
       // return null
     }
-
-    let status: Status | undefined
 
     status = Status.fromBinary(buffer)
     details = status.details
@@ -83,8 +90,13 @@ function StatusError(err: RpcError): GrpcError {
       .filter(Boolean)
   }
 
+  let code = +err.code
+  if (status) {
+    code = status.code
+  }
+
   return {
-    code: +err.code,
+    code: code,
     message: message,
     details
   }
