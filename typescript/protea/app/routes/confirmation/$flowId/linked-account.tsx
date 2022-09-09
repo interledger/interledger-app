@@ -1,21 +1,40 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Button } from '~/components'
 import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
+  const cookie = request.headers.get('cookie') || ''
+  let rpc = await grpcClient.getBankAccountDetails(
+    {
+      fundingsourceId: flow?.data.fundingsourceId,
+    }, 
+    {
+      meta: {
+        cookies: cookie
+      }
+    }
+  ).then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw rpc
+  }
+
   return json({
-    flow
+    flow,
+    accountNumber: rpc.response.mask,
+    institution: rpc.response.institution,
+    type: rpc.response.type,
   })
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
-  const { accountNumber, institution, name, routingNumber, type } = flow?.data
+  const { flow, accountNumber, institution, type } = useLoaderData<typeof loader>()
+  const { nickname } = flow?.data
   return (
     <>
       <Form
@@ -42,12 +61,8 @@ export default function Page() {
         <span>{accountNumber}</span>
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='text-sm font-medium'>Routing number</span>
-        <span>{routingNumber}</span>
-      </div>
-      <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='text-sm font-medium'>Nickname</span>
-        <span>{name}</span>
+        <span>{nickname}</span>
       </div>
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

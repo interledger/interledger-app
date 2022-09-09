@@ -1,32 +1,51 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
-import { Button } from '~/components'
-import { updateFlow, getCurrentFlow } from '~/lib/flows.server'
-import { apolloClient } from '~/lib/apollo.server'
-import type {
-  LinkUsdBankAccountMutation,
-  LinkUsdBankAccountMutationVariables,
-  VerifyUsdBankAccountMutation,
-  VerifyUsdBankAccountMutationVariables
-} from '~/generated/types'
-import {
-  LinkUsdBankAccountDocument,
-  VerifyUsdBankAccountDocument
-} from '~/generated/types'
+import { json, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import { Button, TextField } from '~/components'
+import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { grpcClient, GrpcError, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
+  const cookie = request.headers.get('cookie') || ''
+  let accountDetailsRpc = await grpcClient.getBankAccountDetails(
+    {
+      fundingsourceId: flow?.data.fundingsourceId,
+    }, 
+    {
+      meta: {
+        cookies: cookie
+      }
+    }
+  ).then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(accountDetailsRpc)) {
+    throw accountDetailsRpc
+  }
+
+  let otpRpc = await grpcClient.sendOTP(
+    {},
+    {
+      meta: { cookies: cookie } 
+    }
+  ).then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(otpRpc)) {
+    throw otpRpc
+  }
+
   return json({
-    flow
+    flow,
+    accountNumber: accountDetailsRpc.response.mask,
+    institution: accountDetailsRpc.response.institution,
+    type: accountDetailsRpc.response.type,
   })
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
-  const { accountNumber, institution, name, routingNumber, type } = flow?.data
+  const { flow, accountNumber, institution, type } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
   return (
     <>
       <Form
@@ -46,16 +65,36 @@ export default function Page() {
       </div>
       <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <span className='text-sm font-medium'>Account number</span>
-        <span>{accountNumber}</span>
+        <span>*******{accountNumber}</span>
       </div>
-      <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='text-sm font-medium'>Routing number</span>
-        <span>{routingNumber}</span>
-      </div>
-      <div className='col-span-full flex flex-col pb-4 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='text-sm font-medium'>Nickname</span>
-        <span>{name}</span>
-      </div>
+
+      <TextField
+        id='nickname'
+        form='linked-account-review'
+        label='Nickname'
+        name='nickname'
+        defaultValue={undefined}
+        type='text'
+        className='col-span-full flex flex-col selection:bg-primary/50 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={Boolean(actionData?.errors.nickname) || undefined}
+        aria-describedby={actionData?.errors.nickname ? 'nickname-error' : undefined}
+        required
+        errorMessage={actionData?.errors.nickname || undefined}
+      />
+
+      <TextField
+        id='otp'
+        form='linked-account-review'
+        label='OTP'
+        name='otp'
+        defaultValue={undefined}
+        type='text'
+        className='col-span-full flex flex-col selection:bg-primary/50 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        aria-invalid={Boolean(actionData?.errors.otp) || undefined}
+        aria-describedby={actionData?.errors.otp ? 'otp-error' : undefined}
+        required
+        errorMessage={actionData?.errors.otp || undefined}
+      />
 
       <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <Button form='linked-account-review' type='submit'>
@@ -68,59 +107,61 @@ export default function Page() {
 
 export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
-  const { accountNumber, institution, name, routingNumber, type } = flow?.data
-  const cookie = request.headers.get('cookie')
-  const linkUsdBankAccountMutationVariables = {
-    input: {
-      accountNumber: accountNumber,
-      institution: institution,
-      name: name,
-      routingNumber: routingNumber,
-      type: type
+  const form = await request.formData()
+  const nickname = form.get("nickname") as string
+  const otp = form.get("otp") as string
+  const cookie = request.headers.get('cookie') || ''
+
+  let rpc = await grpcClient.continueAddingBankAccount(
+    {
+      fundingsourceId: flow?.data.fundingsourceId,
+      nickName: nickname,
+      otp: otp,
+    },
+    {
+      meta: {
+        cookies: cookie
+      }
     }
+  ).then(v => v)
+    .catch(StatusError)
+
+  const fieldErrors = {
+    otp: '',
+    nickname: '',
   }
 
-  const linkRes = await apolloClient.mutate<
-    LinkUsdBankAccountMutation,
-    LinkUsdBankAccountMutationVariables
-  >({
-    mutation: LinkUsdBankAccountDocument,
-    variables: linkUsdBankAccountMutationVariables,
-    context: {
-      headers: {
-        cookie: cookie
+  if (isGrpcError(rpc)) {
+    if (rpc.code == 3) {
+      for (let violation of (rpc as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
       }
-    }
-  })
-  if (
-    linkRes.data?.linkUsdBankAccount.success &&
-    linkRes.data?.linkUsdBankAccount.fundingSource != null
-  ) {
-    const verifyUsdBankAccountMutationVariables = {
-      input: {
-        FundingSourceId: linkRes.data?.linkUsdBankAccount?.fundingSource.id
-      }
-    }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw rpc
+  }
+  
+  const headers = await updateFlow(request, { nickname }, true)
+  return redirect(
+    route('/confirmation/:flowId/linked-account', {
+      flowId: flow?.id as string
+    }),
+    { headers }
+  )
+}
 
-    const res = await apolloClient.mutate<
-      VerifyUsdBankAccountMutation,
-      VerifyUsdBankAccountMutationVariables
-    >({
-      mutation: VerifyUsdBankAccountDocument,
-      variables: verifyUsdBankAccountMutationVariables,
-      context: {
-        headers: {
-          cookie: cookie
-        }
-      }
-    })
-    const headers = await updateFlow(request, null, true)
-    if (res.data?.verifyUsdBankAccount.success)
-      return redirect(
-        route('/confirmation/:flowId/linked-account', {
-          flowId: flow?.id as string
-        }),
-        { headers }
-      )
+// The field names given by the backend for field violations
+type fieldErrorsMap = 'Otp' | 'Nickname'
+function mapper(
+  field: fieldErrorsMap
+): 'otp' | 'nickname' | null {
+  switch (field) {
+    case 'Otp':
+      return 'otp'
+    case 'Nickname':
+      return 'nickname'
+    default:
+      return null
   }
 }
