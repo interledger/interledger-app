@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/providers/mx"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -106,10 +107,29 @@ func (s *rpcService) GetBankAccountDetails(
 	}, nil
 }
 
+type validateContinueAddingBankAccount struct {
+	Otp      string `validate:"required"`
+	Nickname string `validate:"required"`
+}
+
+func validateContinueAddingBankAccountDescription(err validator.FieldError) string {
+	switch err.Tag() {
+	case "required":
+		return "required."
+	}
+	return ""
+}
+
 func (s *rpcService) ContinueAddingBankAccount(
 	ctx context.Context,
 	req *backendv1.ContinueAddingBankAccountRequest,
 ) (*backendv1.ContinueAddingBankAccountResponse, error) {
+	if err := s.validator.Struct(&validateContinueAddingBankAccount{
+		Otp:      req.GetOtp(),
+		Nickname: req.GetNickName(),
+	}); err != nil {
+		return nil, ValidationError(err, validateContinueAddingBankAccountDescription)
+	}
 	user, err := s.userService.ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
