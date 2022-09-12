@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/pacioli/ledger"
+
 	"github.com/go-playground/validator/v10"
 
 	"gitlab.com/fynbos/pacioli/rpcserver"
@@ -105,6 +107,9 @@ func start(args *cli.StartArgs) {
 	defer tbClient.Close()
 
 	b := NewBackends(db, tbClient)
+
+	// Start time-ing out transactions
+	go ledger.TimoutTransfersForever(b)
 
 	hs, err := healthcheck.NewService()
 	if err != nil {
