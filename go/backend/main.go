@@ -251,7 +251,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Post("/webhooks/unit", unit_webhooks.MakeHttpHandler(us))
+	router.Post("/webhooks/unit", unit_webhooks.MakeHttpHandler(b))
 
 	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)
 	go func() {
