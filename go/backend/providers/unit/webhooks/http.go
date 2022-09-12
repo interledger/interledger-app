@@ -1,18 +1,20 @@
 package webhooks
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/providers/unit"
-	"gitlab.com/fynbos/backend/providers/unit/external"
+	"go.temporal.io/sdk/client"
+	"go.uber.org/zap"
+
+	"gitlab.com/fynbos/backend/providers/unit/workflows"
+	"gitlab.com/fynbos/log"
 )
 
 const SignatureHeader = "x-unit-signature"
 
-func MakeHttpHandler(client unit.Client) http.HandlerFunc {
+func MakeHttpHandler(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -20,7 +22,7 @@ func MakeHttpHandler(client unit.Client) http.HandlerFunc {
 			return
 		}
 
-		if err := client.VerifyWebhook(r.Context(), payload, r.Header.Get(SignatureHeader)); err != nil {
+		if err := b.Unit().VerifyWebhook(r.Context(), payload, r.Header.Get(SignatureHeader)); err != nil {
 			http.Error(w, "Signature didn't match.", 401)
 			return
 		}
@@ -33,26 +35,15 @@ func MakeHttpHandler(client unit.Client) http.HandlerFunc {
 			return
 		}
 
-		didFail := false
-		for _, rawEvent := range body.Data {
-			var event external.Event
-			if err := json.Unmarshal(rawEvent, &event); err != nil {
-				didFail = true
-				continue
-			}
-
-			// TODO: this should not fail. Event must be logged.
-			err = client.HandleEvent(context.Background(), event, rawEvent)
-			if err != nil {
-				http.Error(w, "Failed to handle event", 500)
-				return
-			}
-		}
-
-		// Handling event must not fail. See TODO above.
-		// We therefore know it was an unmarshalling error.
-		if didFail {
-			http.Error(w, "Failed to parse payload", 500)
+		_, err = b.Temporal().ExecuteWorkflow(
+			r.Context(),
+			client.StartWorkflowOptions{},
+			workflows.UnitHandleEventsWorkflow,
+			body.Data,
+		)
+		if err != nil {
+			log.Error("Unit webhooks failed to execute workflow.", zap.Error(err))
+			http.Error(w, "Internal server error", 500)
 			return
 		}
 

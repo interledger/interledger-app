@@ -378,25 +378,3 @@ func (c client) GetEvent(
 
 	return ops.GetEvent(ctx, c.b, id)
 }
-
-func (c client) HandleEvent(
-	ctx context.Context, event external.Event, rawEvent json.RawMessage,
-) (err error) {
-	defer func() {
-		if err != nil {
-			log.Error(
-				"Failed to handle event",
-				zap.String("err", err.Error()),
-			)
-			return
-		}
-
-		log.Debug(
-			"Handled event",
-			zap.String("id", event.ID),
-			zap.String("type", string(event.Type)),
-		)
-	}()
-
-	return ops.HandleEvent(ctx, c.b, event, rawEvent)
-}
