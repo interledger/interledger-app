@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"gitlab.com/fynbos/pacioli"
 	pb "gitlab.com/fynbos/proto/pacioli/v1"
@@ -17,7 +19,10 @@ type client struct {
 }
 
 func New(grpcAddress string) (pacioli.Client, error) {
-	conn, err := grpc.Dial(grpcAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(grpcAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()))
 	if err != nil {
 		return nil, err
 	}

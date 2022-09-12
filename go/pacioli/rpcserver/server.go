@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/fynbos/pacioli"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	"gitlab.com/fynbos/pacioli/ledger"
@@ -16,7 +17,7 @@ import (
 )
 
 func NewServer(b ledger.Backends, hs healthcheck.Service) *grpc.Server {
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()))
 	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{b: b})
 	grpc_health_v1.RegisterHealthServer(server, hs)
 	reflection.Register(server)

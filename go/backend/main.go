@@ -10,11 +10,14 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	kratos "github.com/ory/kratos-client-go"
+	"github.com/riandyrn/otelchi"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
@@ -56,6 +59,8 @@ import (
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	"gitlab.com/fynbos/tracing"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
@@ -101,7 +106,18 @@ func start(args *cli.StartArgs) {
 	var b = new(backends)
 	b.val = validator.New()
 
-	db, err := sqlx.Connect("postgres", args.DbConnectionString)
+	traceShutdown, err := tracing.InitTraceProvider("backend")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		ctx := context.Background()
+		if err := traceShutdown(ctx); err != nil {
+			log.Fatal("failed to shutdown TracerProvider", zap.Error(err))
+		}
+	}()
+
+	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -241,7 +257,10 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	graphql = graph.NewLoggingService(graphql, logger)
+
 	router := chi.NewRouter()
+	router.Routes()
+	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 	router.Handle("/graphql", user.MakeMiddleware(users)(graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
 		WebSocketKeepAlivePingInterval: 10 * time.Second,
