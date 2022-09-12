@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -54,6 +53,7 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 	"gitlab.com/fynbos/backend/withdrawals"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
@@ -66,7 +66,7 @@ var fs embed.FS
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatalln("Expected `start` or `migrate`.")
+		log.Fatal("Expected `start` or `migrate`.")
 	}
 
 	// Set the timezone globally
@@ -93,7 +93,7 @@ func main() {
 		}
 		startWorker(args)
 	default:
-		log.Fatalln("Unknown command:", command)
+		log.Fatal("Unknown command:", zap.String("command", command))
 	}
 }
 
@@ -122,6 +122,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Setup(logger)
 
 	configuration := kratos.NewConfiguration()
 	configuration.Servers = kratos.ServerConfigurations{
@@ -216,7 +217,7 @@ func start(args *cli.StartArgs) {
 		Url: args.RafikiGraphqlUrl,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 	b.rafiki = rafikiProvider
 
@@ -250,9 +251,9 @@ func start(args *cli.StartArgs) {
 	}))
 	router.Post("/webhooks/unit", unit_webhooks.MakeHttpHandler(b))
 
-	log.Printf("connect to http://localhost:%s/playground for GraphQL playground", args.Port)
+	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
 	go func() {
-		log.Fatal(http.ListenAndServe(":"+args.Port, router))
+		log.Fatalln(http.ListenAndServe(":"+args.Port, router))
 	}()
 
 	health, err := healthcheck.NewService()
@@ -263,7 +264,7 @@ func start(args *cli.StartArgs) {
 
 	adminUsers, err := auth.NewService(args.GoogleOauth2ClientID)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 	b.adminAuth = auth.NewLoggingService(adminUsers, logger)
 
@@ -279,7 +280,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("grpc server: 0.0.0.0:%s", "8443")
+	log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", "8443"))
 	err = server.Serve(listener)
 	if err != nil {
 		log.Fatalln(err)
@@ -309,7 +310,7 @@ func migrate(args *cli.MigrationArgs) {
 }
 
 func startWorker(args *cli.StartArgs) {
-	log.Printf("begin worker start")
+	log.Info("begin worker start")
 
 	var b = new(backends)
 	b.val = validator.New()
@@ -342,7 +343,7 @@ func startWorker(args *cli.StartArgs) {
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 	b.pacioli = pClient
 
@@ -419,14 +420,14 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.withdrawals = ws
 
-	log.Printf("Worker creating")
+	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	err = w.Run(worker.InterruptCh())
-	log.Printf("Worker started")
+	log.Info("Worker started")
 	if err != nil {
 		logger.Fatal("Unable to start worker", zap.Error(err))
 	}

@@ -3,11 +3,11 @@ package seed
 import (
 	"context"
 	"fmt"
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"io/ioutil"
 
-	"gitlab.com/fynbos/pacioli"
+	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 
+	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 	"gopkg.in/yaml.v2"
 )
