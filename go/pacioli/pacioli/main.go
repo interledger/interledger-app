@@ -1,12 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
 	"time"
 
 	"go.uber.org/zap"
+
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	"gitlab.com/fynbos/tracing"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/go-playground/validator/v10"
@@ -100,7 +106,18 @@ func start(args *cli.StartArgs) {
 	}
 	log.Setup(logger)
 
-	db, err := sqlx.Connect("postgres", args.DbConnectionString)
+	traceShutdown, err := tracing.InitTraceProvider("pacioli")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		ctx := context.Background()
+		if err := traceShutdown(ctx); err != nil {
+			log.Fatal("failed to shutdown TracerProvider", zap.Error(err))
+		}
+	}()
+
+	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	defer func(db *sqlx.DB) {
 		err := db.Close()
 		if err != nil {
