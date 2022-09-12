@@ -15,6 +15,8 @@ RUN go mod download
 COPY proto ./proto
 COPY pacioli ./pacioli
 COPY log ./log
+COPY tracing ./tracing
+COPY env ./env
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base as builder

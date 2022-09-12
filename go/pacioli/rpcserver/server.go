@@ -17,7 +17,9 @@ import (
 )
 
 func NewServer(b ledger.Backends, hs healthcheck.Service) *grpc.Server {
-	server := grpc.NewServer(grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()))
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()))
 	pacioliv1.RegisterPacioliServiceServer(server, &rpcServer{b: b})
 	grpc_health_v1.RegisterHealthServer(server, hs)
 	reflection.Register(server)

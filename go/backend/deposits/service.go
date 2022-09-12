@@ -116,7 +116,7 @@ func (s *service) InitiateDeposit(ctx context.Context, args *InitiateDepositArgs
 
 	// TODO should this be an idempotent key?
 	var deposit Deposit
-	err = s.db.Get(&deposit, `INSERT INTO deposits
+	err = s.db.GetContext(ctx, &deposit, `INSERT INTO deposits
 		(account_id, funding_source_id, amount, state) VALUES ($1, $2, $3, $4)
 		RETURNING *;
 		`, acc.ID, fundingSource.ID, args.Amount, Created)
