@@ -74,6 +74,8 @@ type StartArgs struct {
 	DbConnectionString string
 	TbUrls             []string
 	TbClusterID        uint32
+	LogLevel           string
+	LogOutputPath      string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -88,6 +90,15 @@ func ParseStartArgs() (*StartArgs, error) {
 	tbUrl := os.Getenv("TB_URL")
 	if tbUrl == "" {
 		tbUrl = "tigerbeetle-0.tigerbeetle.default.svc.cluster.local"
+	}
+
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
+	}
+	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
+	if logOutputPath == "" {
+		logOutputPath = "stderr"
 	}
 
 	// checking if tbUrl is a host name and converting it to an ip address.
@@ -124,6 +135,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		DbConnectionString: connString,
 		TbUrls:             tbUrls,
 		TbClusterID:        uint32(parsedTbClusterID),
+		LogLevel:           logLevel,
+		LogOutputPath:      logOutputPath,
 	}, nil
 }
 

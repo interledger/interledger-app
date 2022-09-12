@@ -2,30 +2,29 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"time"
 
-	"gitlab.com/fynbos/pacioli/ledger"
-
-	"github.com/go-playground/validator/v10"
-
-	"gitlab.com/fynbos/pacioli/rpcserver"
+	"go.uber.org/zap"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
+	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/healthcheck"
+	"gitlab.com/fynbos/pacioli/ledger"
 	"gitlab.com/fynbos/pacioli/migrations"
+	"gitlab.com/fynbos/pacioli/rpcserver"
 	"gitlab.com/fynbos/pacioli/seed"
 )
 
 func main() {
 	args := os.Args
 	if len(args) < 2 {
-		log.Fatalln("Expected 'start' or 'migrate'.")
+		log.Fatal("Expected 'start' or 'migrate'.")
 	}
 
 	// Set the timezone globally
@@ -48,7 +47,7 @@ func main() {
 
 		runInit(args)
 	default:
-		log.Fatalln("Unknown command: ", command)
+		log.Fatal("Unknown command", zap.String("command", command))
 	}
 }
 
@@ -79,15 +78,28 @@ func runInit(args *cli.InitArgs) {
 
 	b := NewBackends(db, tbClient)
 
-	log.Println("tigerbeetle seeding starting")
+	log.Info("tigerbeetle seeding starting")
 	err = seed.TigerBeetle(b, args.TbSeedFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println("tigerbeetle seeding complete")
+	log.Info("tigerbeetle seeding complete")
 }
 
 func start(args *cli.StartArgs) {
+	// Setup the logger
+	cfg := zap.NewProductionConfig()
+	err := cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	cfg.OutputPaths = []string{args.LogOutputPath}
+	logger, err := cfg.Build()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Setup(logger)
+
 	db, err := sqlx.Connect("postgres", args.DbConnectionString)
 	defer func(db *sqlx.DB) {
 		err := db.Close()
@@ -120,7 +132,7 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Printf("grpc server: 0.0.0.0:%s", args.Port)
+	log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", args.Port))
 	server := rpcserver.NewServer(b, hs)
 	err = server.Serve(listener)
 	if err != nil {
