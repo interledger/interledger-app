@@ -2,6 +2,7 @@ package webhooks_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -11,26 +12,63 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	"gitlab.com/fynbos/backend/providers/unit/external"
 	"gitlab.com/fynbos/backend/providers/unit/webhooks"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/mocks"
 )
+
+type backends struct {
+	unit     *unit_mock.MockClient
+	temporal *mocks.Client
+}
+
+func NewTestBackends(t *testing.T) backends {
+	ctrl := gomock.NewController(t)
+
+	return backends{
+		unit:     unit_mock.NewMockClient(ctrl),
+		temporal: &mocks.Client{},
+	}
+}
+
+func (b backends) Temporal() client.Client {
+	return b.temporal
+}
+
+func (b backends) Unit() unit.Client {
+	return b.unit
+}
 
 func TestWebhook(t *testing.T) {
 	t.Parallel()
-	// ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	client := unit_mock.NewMockClient(ctrl)
-	wh := webhooks.MakeHttpHandler(client)
+	b := NewTestBackends(t)
+	wh := webhooks.MakeHttpHandler(b)
 	svr := httptest.NewServer(wh)
 	t.Cleanup(func() {
 		svr.Close()
 	})
 
 	t.Run("Returns 200", func(st *testing.T) {
-		client.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		client.EXPECT().HandleEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(2)
+		b.unit.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		b.temporal.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
+			func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
+				testWorkflowID := opts.ID
+				testRunID := "test-runid"
+				require.Len(st, args, 1)    // we sent in the array of events
+				require.Len(st, args[0], 2) // the array has 2 entries
+
+				mockWorkflowRun := &mocks.WorkflowRun{}
+				mockWorkflowRun.On("GetID").Return(testWorkflowID)
+				mockWorkflowRun.On("GetRunID").Return(testRunID)
+				mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
+				return mockWorkflowRun
+			}, nil,
+		).Times(1)
 		payload := marshalBody(t, NewCustomerCreatedEvent(), NewCustomerCreatedEvent())
 
 		resp, err := http.Post(svr.URL, "application/json", payload)
@@ -42,7 +80,7 @@ func TestWebhook(t *testing.T) {
 	})
 
 	t.Run("Returns 401 if webhook fails verification", func(st *testing.T) {
-		client.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(unit.ErrUnauthorized).Times(1)
+		b.unit.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(unit.ErrUnauthorized).Times(1)
 		payload := marshalBody(t, NewCustomerCreatedEvent(), NewCustomerCreatedEvent())
 
 		resp, err := http.Post(svr.URL, "application/json", payload)
@@ -60,28 +98,9 @@ func TestWebhook(t *testing.T) {
 	})
 
 	t.Run("Returns 500 if marshalling payload fails", func(st *testing.T) {
-		client.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
+		b.unit.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
 		resp, err := http.Post(svr.URL, "application/json", bytes.NewBuffer([]byte("")))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Equal(t, 500, resp.StatusCode)
-		assert.Equal(t, "Failed to parse payload\n", string(body))
-	})
-
-	t.Run("Tries to handle all events even if first one fails", func(st *testing.T) {
-		client.EXPECT().VerifyWebhook(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		client.EXPECT().HandleEvent(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		payload := marshalBody(t, "", NewCustomerCreatedEvent())
-
-		resp, err := http.Post(svr.URL, "application/json", payload)
 		if err != nil {
 			t.Fatal(err)
 		}

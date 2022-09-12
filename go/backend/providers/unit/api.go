@@ -22,7 +22,6 @@ type Client interface {
 	GetCounterPartyByFundingsourceID(ctx context.Context, fundingsourceID string) (*CounterParty, error)
 	// This will call out to Unit to originate a debit ACH. The result will come via webhook.
 	InitiateUserDeposit(ctx context.Context, args *InitiateUserDepositArgs) (*UserAchDeposit, error)
-	HandleEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) error
 
 	VerifyWebhook(ctx context.Context, body []byte, signature string) error
 	StoreEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) (*DbEvent, error)

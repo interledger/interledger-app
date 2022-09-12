@@ -7,7 +7,6 @@ package mock
 import (
 	context "context"
 	json "encoding/json"
-	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -233,20 +232,6 @@ func (mr *MockClientMockRecorder) GetStatements(ctx, customerID interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatements", reflect.TypeOf((*MockClient)(nil).GetStatements), ctx, customerID)
 }
 
-// HandleEvent mocks base method.
-func (m *MockClient) HandleEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HandleEvent", ctx, event, rawEvent)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HandleEvent indicates an expected call of HandleEvent.
-func (mr *MockClientMockRecorder) HandleEvent(ctx, event, rawEvent interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockClient)(nil).HandleEvent), ctx, event, rawEvent)
-}
-
 // InitiateUserDeposit mocks base method.
 func (m *MockClient) InitiateUserDeposit(ctx context.Context, args *unit.InitiateUserDepositArgs) (*unit.UserAchDeposit, error) {
 	m.ctrl.T.Helper()
@@ -260,20 +245,6 @@ func (m *MockClient) InitiateUserDeposit(ctx context.Context, args *unit.Initiat
 func (mr *MockClientMockRecorder) InitiateUserDeposit(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateUserDeposit", reflect.TypeOf((*MockClient)(nil).InitiateUserDeposit), ctx, args)
-}
-
-// MakeHttpHandler mocks base method.
-func (m *MockClient) MakeHttpHandler() http.HandlerFunc {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MakeHttpHandler")
-	ret0, _ := ret[0].(http.HandlerFunc)
-	return ret0
-}
-
-// MakeHttpHandler indicates an expected call of MakeHttpHandler.
-func (mr *MockClientMockRecorder) MakeHttpHandler() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeHttpHandler", reflect.TypeOf((*MockClient)(nil).MakeHttpHandler))
 }
 
 // StoreEvent mocks base method.
