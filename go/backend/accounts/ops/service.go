@@ -117,7 +117,7 @@ func Get(ctx context.Context, b Backends, accountID string) (*accounts.Account, 
 	}
 
 	var ret accounts.Account
-	err := b.DB().Get(&ret, "SELECT * FROM accounts WHERE id=$1 LIMIT 1", accountID)
+	err := b.DB().GetContext(ctx, &ret, "SELECT * FROM accounts WHERE id=$1 LIMIT 1", accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, accounts.ErrNotFound

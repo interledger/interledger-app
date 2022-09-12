@@ -262,7 +262,7 @@ func PostPending(ctx context.Context, b Backends, id string) (*account_transacti
 			}
 		}
 
-		_, err = b.DB().Exec("UPDATE account_transactions set state = $1 where id = $2", account_transactions.Posted.String(), id)
+		_, err = b.DB().ExecContext(ctx, "UPDATE account_transactions set state = $1 where id = $2", account_transactions.Posted.String(), id)
 		if err != nil {
 			return fmt.Errorf("%w %s", account_transactions.ErrInternal, err.Error())
 		}
@@ -337,7 +337,7 @@ func VoidPending(ctx context.Context, b Backends, id string) (*account_transacti
 			}
 		}
 
-		_, err = b.DB().Exec("UPDATE account_transactions set state = $1 where id = $2", account_transactions.Voided.String(), id)
+		_, err = b.DB().ExecContext(ctx, "UPDATE account_transactions set state = $1 where id = $2", account_transactions.Voided.String(), id)
 		if err != nil {
 			return fmt.Errorf("%w %s", account_transactions.ErrInternal, err.Error())
 		}

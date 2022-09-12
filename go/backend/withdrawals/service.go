@@ -121,7 +121,7 @@ func (s *service) InitiateWithdrawal(ctx context.Context, args *InitiateWithdraw
 
 	// TODO should this be an idempotent key?
 	var withdrawal Withdrawal
-	err = s.db.Get(&withdrawal, `INSERT INTO withdrawals
+	err = s.db.GetContext(ctx, &withdrawal, `INSERT INTO withdrawals
 		(account_id, funding_source_id, amount, state) VALUES ($1, $2, $3, $4)
 		RETURNING *;
 		`, acc.ID, fundingSource.ID, args.Amount, Created)

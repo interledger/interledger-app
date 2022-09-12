@@ -83,7 +83,7 @@ func Get(ctx context.Context, b Backends, identityID string) (*identity.Identity
 	}
 
 	var id identityModel
-	err := b.DB().Get(&id, `SELECT * FROM identities WHERE id=$1 LIMIT 1`, identityID)
+	err := b.DB().GetContext(ctx, &id, `SELECT * FROM identities WHERE id=$1 LIMIT 1`, identityID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, identity.ErrNotFound

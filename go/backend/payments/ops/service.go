@@ -62,7 +62,7 @@ func InitiateOutgoingPayment(
 	}
 
 	var outgoingPayment payments.OutgoingPayment
-	err = b.DB().Get(&outgoingPayment, `INSERT INTO outgoing_payments
+	err = b.DB().GetContext(ctx, &outgoingPayment, `INSERT INTO outgoing_payments
 	(account_id, amount, destination, state) VALUES ($1, $2, $3, $4) RETURNING *`, acc.ID, args.Amount, args.To, payments.Created)
 
 	if err != nil {
