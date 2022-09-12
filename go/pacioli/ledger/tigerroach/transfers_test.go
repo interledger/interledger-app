@@ -609,3 +609,118 @@ func TestVoidTransfers(t *testing.T) {
 		})
 	}
 }
+
+func TestTimoutTransfers(t *testing.T) {
+	ctx := context.Background()
+
+	_, db := test_utils.MigrateCockroachDB(t, ctx)
+	b := test_utils.NewBackends(t, db, nil)
+
+	// Configure Ledger
+	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    1,
+			Name:  "TestLedgerUSD",
+			Asset: "USD",
+			Scale: 2,
+		},
+	})
+	require.NoError(t, err)
+	require.Empty(t, lr)
+	cases := []struct {
+		name  string
+		input []pacioli.CreateTransferArgs
+		err   error
+	}{
+		{
+			name: "success single",
+			input: []pacioli.CreateTransferArgs{
+				{
+					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
+					Amount:          1000,
+					DebitAccountID:  "d7374522-c847-4bec-856b-f607743bb6d3",
+					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
+					Code:            1,
+					Ledger:          1,
+					Flags: pacioli.TransferFlags{
+						Pending: true,
+					},
+					Timeout: uint64(time.Minute * 20),
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Configure the accounts
+			var tids []string
+			for _, args := range tc.input {
+				ar, err := tigerroach.ConfigureAccounts(ctx, b, []pacioli.ConfigureAccountArgs{
+					{
+						ID:       args.CreditAccountID,
+						LedgerID: 1,
+						Code:     1,
+					},
+					{
+						ID:       args.DebitAccountID,
+						LedgerID: 1,
+						Code:     1,
+					},
+				})
+				require.NoError(t, err)
+				require.Empty(t, ar)
+				tids = append(tids, args.ID)
+			}
+
+			// Create the transfers
+			tr, err := tigerroach.CreateTransfers(ctx, b, tc.input)
+			require.NoError(t, err)
+			require.Empty(t, tr)
+
+			// Lookup the transaction/accounts and check their state and debit and credit values
+			for _, args := range tc.input {
+
+				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
+				assert.NoError(t, err)
+				assert.Equal(t, tr.ID, args.ID)
+				assert.True(t, tr.Flags.Pending)
+
+				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
+				assert.NoError(t, err)
+				assert.Greater(t, da.DebitsPending, uint64(0))
+
+				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
+				assert.NoError(t, err)
+				assert.Greater(t, ca.CreditsPending, uint64(0))
+			}
+
+			// Update the transfers timeouts
+			_, err = b.DB().ExecContext(ctx, "update ledger_transfers set timeout_at=$1", time.Now().UTC().Add(-time.Hour))
+			require.NoError(t, err)
+
+			err = tigerroach.TimoutTransfers(ctx, b, tids)
+			if tc.err != nil {
+				require.ErrorIs(t, tc.err, err)
+				return
+			}
+
+			// Lookup the transaction/accounts and check their state and debit and credit values
+			for _, args := range tc.input {
+
+				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
+				assert.NoError(t, err)
+				assert.Equal(t, tr.ID, args.ID)
+				assert.False(t, tr.Flags.Pending)
+
+				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
+				assert.NoError(t, err)
+				assert.Zero(t, da.DebitsPending)
+
+				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
+				assert.NoError(t, err)
+				assert.Zero(t, ca.CreditsPending)
+			}
+		})
+	}
+}
