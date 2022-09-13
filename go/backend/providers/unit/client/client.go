@@ -358,6 +358,13 @@ func (c client) StoreEvent(
 	return ops.StoreEvent(ctx, c.b, event, rawEvent)
 }
 
+func (c client) StoreEvents(
+	ctx context.Context, rawEvents []json.RawMessage,
+) error {
+
+	return ops.StoreEvents(ctx, c.b, rawEvents)
+}
+
 func (c client) GetEvent(
 	ctx context.Context, id string,
 ) (ret *unit.DbEvent, err error) {
@@ -377,4 +384,22 @@ func (c client) GetEvent(
 	}()
 
 	return ops.GetEvent(ctx, c.b, id)
+}
+
+func (c client) NotifyCustomerCreated(
+	ctx context.Context, event external.CustomerCreatedEvent,
+) error {
+	return ops.NotifyCustomerCreated(ctx, c.b, event)
+}
+
+func (c client) NotifyApplicationDenied(
+	ctx context.Context, event external.ApplicationDeniedEvent,
+) error {
+	return ops.NotifyApplicationDenied(ctx, c.b, event)
+}
+
+func (c client) NotifyAchPayment(
+	ctx context.Context, event external.AchPayment,
+) error {
+	return ops.NotifyAchPayment(ctx, c.b, event)
 }

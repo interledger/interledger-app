@@ -489,6 +489,29 @@ func StoreEvent(ctx context.Context, b Backends, event external.Event, rawEvent 
 	return &storedEvent, nil
 }
 
+func StoreEvents(ctx context.Context, b Backends, rawEvents []json.RawMessage) error {
+	query := "INSERT INTO unit_events (id, type, raw_event) VALUES "
+	var queryParams []interface{}
+	const paramsPerEvent = 3
+	for i, rawEvent := range rawEvents {
+		var event external.Event
+		if err := json.Unmarshal(rawEvent, &event); err != nil {
+			return fmt.Errorf("%w %s", unit.ErrInternal, err)
+		}
+
+		query += fmt.Sprintf("($%d, $%d, $%d),", i*paramsPerEvent+1, i*paramsPerEvent+2, i*paramsPerEvent+3)
+		queryParams = append(queryParams, event.ID, string(event.Type), string(rawEvent))
+	}
+	query = query[:len(query)-1]             // remove trailing ','
+	query += " ON CONFLICT (id) DO NOTHING;" // assume that event data is the same if it exists
+	_, err := b.DB().ExecContext(ctx, query, queryParams...)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return nil
+}
+
 func GetEvent(ctx context.Context, b Backends, id string) (*unit.DbEvent, error) {
 	var storedEvent unit.DbEvent
 
@@ -500,45 +523,28 @@ func GetEvent(ctx context.Context, b Backends, id string) (*unit.DbEvent, error)
 	return &storedEvent, nil
 }
 
-func HandleEvent(ctx context.Context, b Backends, event external.Event, rawEvent json.RawMessage) error {
-	_, err := StoreEvent(ctx, b, event, rawEvent)
+func NotifyCustomerCreated(ctx context.Context, b Backends, event external.CustomerCreatedEvent) error {
+	err := b.Temporal().SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserID, "", "onboard-unit-customer-created", event)
 	if err != nil {
-		if err != unit.ErrDuplicateEvent {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
+		return fmt.Errorf("%w %s", unit.ErrInternal, err)
 	}
 
-	switch event.Type {
-	case external.CUSTOMER_CREATED:
-		event := &external.CustomerCreatedEvent{}
-		if err := json.Unmarshal(rawEvent, event); err != nil {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
-		err := b.Temporal().SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserID, "", "onboard-unit-customer-created", event)
-		if err != nil {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
-	case external.APPLICATION_DENIED:
-		event := &external.ApplicationDeniedEvent{}
-		if err := json.Unmarshal(rawEvent, event); err != nil {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
-		err := b.Temporal().SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserID, "", "onboard-unit-application-denied", event)
-		if err != nil {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
-	case external.PAYMENT_CREATED, external.PAYMENT_CLEARING, external.PAYMENT_SENT,
-		external.PAYMENT_REJECTED, external.PAYMENT_RETURNED, external.PAYMENT_CANCELED, external.PAYMENT_PENDING_REVIEW:
-		event := &external.AchPayment{}
-		if err := json.Unmarshal(rawEvent, event); err != nil {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
-		err := b.Temporal().SignalWorkflow(ctx, "deposit_"+event.Attributes.Tags.DepositID, "", "unit-user-ach-deposit", event.Type)
-		if err != nil {
-			return fmt.Errorf("%w %s", unit.ErrInternal, err)
-		}
-	default:
-		// don't fail as Unit may add new events.
+	return nil
+}
+
+func NotifyApplicationDenied(ctx context.Context, b Backends, event external.ApplicationDeniedEvent) error {
+	err := b.Temporal().SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserID, "", "onboard-unit-application-denied", event)
+	if err != nil {
+		return fmt.Errorf("%w %s", unit.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func NotifyAchPayment(ctx context.Context, b Backends, event external.AchPayment) error {
+	err := b.Temporal().SignalWorkflow(ctx, "deposit_"+event.Attributes.Tags.DepositID, "", "unit-user-ach-deposit", event.Type)
+	if err != nil {
+		return fmt.Errorf("%w %s", unit.ErrInternal, err)
 	}
 
 	return nil
