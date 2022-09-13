@@ -482,7 +482,7 @@ func TestVerifyOwnership(t *testing.T) {
 					OwnerName:   "James bond",
 				},
 			},
-			FynbosEnv: "testing",
+			FynbosEnv: "local",
 		},
 		{
 			Name:          "Does not auto verify MX USER when in prod",

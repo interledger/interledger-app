@@ -5,10 +5,10 @@ import (
 )
 
 var allowedEnvs = []string{
-	"prod",
-	"sandbox",
-	"dev",
-	"testing",
+	"prod",    // Live production environment
+	"sandbox", // Semi public testing env
+	"dev",     // Internal testing environment
+	"local",   // For local development
 }
 
 func GetEnv() string {
@@ -32,18 +32,22 @@ func GetEnv() string {
 	return fynbosEnv
 }
 
-func IsTesting() bool {
-	return GetEnv() == "testing"
+// IsLocal returns true if the environment is set up for local development
+func IsLocal() bool {
+	return GetEnv() == "local"
 }
 
+// IsDev returns true if the environment is set up for the internal testing environment
 func IsDev() bool {
 	return GetEnv() == "dev"
 }
 
+// IsSandbox returns true if the environment is set up for the public sandbox environment
 func IsSandbox() bool {
 	return GetEnv() == "sandbox"
 }
 
+// IsProd returns true if the environment is set up for the full public production environment
 func IsProd() bool {
 	return GetEnv() == "prod"
 }
