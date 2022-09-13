@@ -30,12 +30,12 @@ func TestGetEnv(t *testing.T) {
 	})
 }
 
-func TestTesting(t *testing.T) {
-	os.Setenv("FYNBOS_ENV", "testing")
+func TestLocal(t *testing.T) {
+	os.Setenv("FYNBOS_ENV", "local")
 
 	env := _env.GetEnv()
-	assert.Equal(t, "testing", env)
-	assert.True(t, _env.IsTesting())
+	assert.Equal(t, "local", env)
+	assert.True(t, _env.IsLocal())
 	assert.False(t, _env.IsProd())
 	assert.False(t, _env.IsDev())
 	assert.False(t, _env.IsSandbox())
@@ -48,7 +48,7 @@ func TestDev(t *testing.T) {
 	assert.Equal(t, "dev", env)
 	assert.True(t, _env.IsDev())
 	assert.False(t, _env.IsProd())
-	assert.False(t, _env.IsTesting())
+	assert.False(t, _env.IsLocal())
 	assert.False(t, _env.IsSandbox())
 }
 
@@ -60,7 +60,7 @@ func TestSandbox(t *testing.T) {
 	assert.True(t, _env.IsSandbox())
 	assert.False(t, _env.IsProd())
 	assert.False(t, _env.IsDev())
-	assert.False(t, _env.IsTesting())
+	assert.False(t, _env.IsLocal())
 }
 
 func TestProd(t *testing.T) {
@@ -71,5 +71,5 @@ func TestProd(t *testing.T) {
 	assert.True(t, _env.IsProd())
 	assert.False(t, _env.IsSandbox())
 	assert.False(t, _env.IsDev())
-	assert.False(t, _env.IsTesting())
+	assert.False(t, _env.IsLocal())
 }
