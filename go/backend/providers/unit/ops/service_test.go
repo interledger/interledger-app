@@ -1,7 +1,6 @@
 package ops_test
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -12,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/identity"
@@ -317,7 +317,7 @@ func TestInitiateUserDeposit(t *testing.T) {
 	assert.Equal(t, depositID, achDeposit.DepositID)
 }
 
-func TestHandleCreatedCustomerEvent(t *testing.T) {
+func TestNotifyCreatedCustomerEvent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -348,8 +348,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 
 		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags.FynbosUserID, mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
-		rawEvent := marshalEvent(t, customerCreatedEvent)
-		err := ops.HandleEvent(ctx, b, external.Event{ID: customerCreatedEvent.ID, Type: external.EventType(customerCreatedEvent.Type)}, rawEvent)
+		err := ops.NotifyCustomerCreated(ctx, b, customerCreatedEvent)
 
 		if scenario.OnboardingError != nil {
 			assert.ErrorIs(t, err, unit.ErrInternal, scenario.Name)
@@ -359,7 +358,7 @@ func TestHandleCreatedCustomerEvent(t *testing.T) {
 	}
 }
 
-func TestHandleApplicationDeniedEvent(t *testing.T) {
+func TestNotifyApplicationDeniedEvent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -390,8 +389,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 
 		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+applicationDeniedEvent.Attributes.Tags.FynbosUserID, mock.AnythingOfType("string"), "onboard-unit-application-denied", mock.Anything).Return(scenario.OnboardingError).Times(1)
 
-		rawEvent := marshalEvent(t, applicationDeniedEvent)
-		err := ops.HandleEvent(ctx, b, external.Event{ID: applicationDeniedEvent.ID, Type: external.EventType(applicationDeniedEvent.Type)}, rawEvent)
+		err := ops.NotifyApplicationDenied(ctx, b, applicationDeniedEvent)
 
 		if scenario.OnboardingError != nil {
 			assert.ErrorIs(t, err, unit.ErrInternal, scenario.Name)
@@ -401,7 +399,7 @@ func TestHandleApplicationDeniedEvent(t *testing.T) {
 	}
 }
 
-func TestHandlePaymentEvent(t *testing.T) {
+func TestNotifyAchPaymentEvent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -451,37 +449,12 @@ func TestHandlePaymentEvent(t *testing.T) {
 			).Return(nil).Times(1)
 			paymentEvent.ID = uuid.NewString()
 			paymentEvent.Type = string(eventType)
-			rawEvent := marshalEvent(t, paymentEvent)
 
-			err := ops.HandleEvent(ctx, b, external.Event{ID: paymentEvent.ID, Type: eventType}, rawEvent)
+			err := ops.NotifyAchPayment(ctx, b, paymentEvent)
 
 			assert.NoError(t, err)
 		})
 	}
-}
-
-func TestDontFailForUnknownEvent(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	temporalMockClient := &mocks.Client{}
-	mockAccounts := accounts_mock.NewMockClient(ctrl)
-	mockIdentity := identity_mock.NewMockClient(ctrl)
-	b := ops.NewTestBackends(
-		t,
-		test_utils.MigrateCockroachDB(t, context.Background()),
-		mockIdentity,
-		mockAccounts,
-		temporalMockClient,
-		external_mock.NewMockClient(ctrl),
-	)
-
-	customerCreatedEvent := NewCustomerCreatedEvent()
-
-	rawEvent := marshalBody(t, customerCreatedEvent)
-	err := ops.HandleEvent(ctx, b, external.Event{ID: customerCreatedEvent.ID, Type: external.EventType("unknown")}, rawEvent.Bytes())
-	assert.NoError(t, err)
 }
 
 func TestStoreEvent(t *testing.T) {
@@ -546,24 +519,45 @@ func TestStoreDuplicateEvent(t *testing.T) {
 	assert.ErrorIs(t, err, unit.ErrDuplicateEvent)
 }
 
-func marshalBody(t *testing.T, events ...interface{}) *bytes.Buffer {
-	body := struct {
-		Data []json.RawMessage `json:"data"`
-	}{}
+func TestStoreEvents(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	b := ops.NewTestBackends(
+		t,
+		test_utils.MigrateCockroachDB(t, context.Background()),
+		identity_mock.NewMockClient(ctrl),
+		accounts_mock.NewMockClient(ctrl),
+		&mocks.Client{},
+		external_mock.NewMockClient(ctrl),
+	)
+
+	customerCreatedEvent := NewCustomerCreatedEvent()
+	appDeniedEvent := NewApplicationDeniedEvent()
+	rawEvents := []json.RawMessage{
+		marshalEvent(t, customerCreatedEvent),
+		marshalEvent(t, appDeniedEvent),
+		marshalEvent(t, customerCreatedEvent), // add a duplicate
+	}
+
+	err := ops.StoreEvents(context.Background(), b, rawEvents)
+	require.NoError(t, err)
+
+	var events []unit.DbEvent
+	err = b.DB().SelectContext(context.Background(), &events, "SELECT * FROM unit_events;")
+	require.NoError(t, err)
+
+	assert.Len(t, events, 2)
 	for _, event := range events {
-		rawEvent, err := json.Marshal(event)
-		if err != nil {
-			t.Fatal(err)
+		if event.ID == customerCreatedEvent.ID {
+			assert.Equal(t, event.Type, customerCreatedEvent.Type)
+			assert.JSONEq(t, string(event.RawEvent), string(rawEvents[0]))
+		} else if event.ID == appDeniedEvent.ID {
+			assert.Equal(t, event.Type, appDeniedEvent.Type)
+			assert.JSONEq(t, string(event.RawEvent), string(rawEvents[1]))
+		} else {
+			t.Fatal("Unknown event")
 		}
-		body.Data = append(body.Data, rawEvent)
 	}
-
-	raw, err := json.Marshal(body)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return bytes.NewBuffer(raw)
 }
 
 func marshalEvent(t *testing.T, event interface{}) json.RawMessage {

@@ -7,7 +7,6 @@ package mock
 import (
 	context "context"
 	json "encoding/json"
-	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -233,20 +232,6 @@ func (mr *MockClientMockRecorder) GetStatements(ctx, customerID interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatements", reflect.TypeOf((*MockClient)(nil).GetStatements), ctx, customerID)
 }
 
-// HandleEvent mocks base method.
-func (m *MockClient) HandleEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HandleEvent", ctx, event, rawEvent)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HandleEvent indicates an expected call of HandleEvent.
-func (mr *MockClientMockRecorder) HandleEvent(ctx, event, rawEvent interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockClient)(nil).HandleEvent), ctx, event, rawEvent)
-}
-
 // InitiateUserDeposit mocks base method.
 func (m *MockClient) InitiateUserDeposit(ctx context.Context, args *unit.InitiateUserDepositArgs) (*unit.UserAchDeposit, error) {
 	m.ctrl.T.Helper()
@@ -262,18 +247,46 @@ func (mr *MockClientMockRecorder) InitiateUserDeposit(ctx, args interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateUserDeposit", reflect.TypeOf((*MockClient)(nil).InitiateUserDeposit), ctx, args)
 }
 
-// MakeHttpHandler mocks base method.
-func (m *MockClient) MakeHttpHandler() http.HandlerFunc {
+// NotifyAchPayment mocks base method.
+func (m *MockClient) NotifyAchPayment(ctx context.Context, event external.AchPayment) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MakeHttpHandler")
-	ret0, _ := ret[0].(http.HandlerFunc)
+	ret := m.ctrl.Call(m, "NotifyAchPayment", ctx, event)
+	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// MakeHttpHandler indicates an expected call of MakeHttpHandler.
-func (mr *MockClientMockRecorder) MakeHttpHandler() *gomock.Call {
+// NotifyAchPayment indicates an expected call of NotifyAchPayment.
+func (mr *MockClientMockRecorder) NotifyAchPayment(ctx, event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeHttpHandler", reflect.TypeOf((*MockClient)(nil).MakeHttpHandler))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyAchPayment", reflect.TypeOf((*MockClient)(nil).NotifyAchPayment), ctx, event)
+}
+
+// NotifyApplicationDenied mocks base method.
+func (m *MockClient) NotifyApplicationDenied(ctx context.Context, event external.ApplicationDeniedEvent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyApplicationDenied", ctx, event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyApplicationDenied indicates an expected call of NotifyApplicationDenied.
+func (mr *MockClientMockRecorder) NotifyApplicationDenied(ctx, event interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyApplicationDenied", reflect.TypeOf((*MockClient)(nil).NotifyApplicationDenied), ctx, event)
+}
+
+// NotifyCustomerCreated mocks base method.
+func (m *MockClient) NotifyCustomerCreated(ctx context.Context, event external.CustomerCreatedEvent) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyCustomerCreated", ctx, event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyCustomerCreated indicates an expected call of NotifyCustomerCreated.
+func (mr *MockClientMockRecorder) NotifyCustomerCreated(ctx, event interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyCustomerCreated", reflect.TypeOf((*MockClient)(nil).NotifyCustomerCreated), ctx, event)
 }
 
 // StoreEvent mocks base method.
@@ -289,6 +302,20 @@ func (m *MockClient) StoreEvent(ctx context.Context, event external.Event, rawEv
 func (mr *MockClientMockRecorder) StoreEvent(ctx, event, rawEvent interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreEvent", reflect.TypeOf((*MockClient)(nil).StoreEvent), ctx, event, rawEvent)
+}
+
+// StoreEvents mocks base method.
+func (m *MockClient) StoreEvents(ctx context.Context, rawEvents []json.RawMessage) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StoreEvents", ctx, rawEvents)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StoreEvents indicates an expected call of StoreEvents.
+func (mr *MockClientMockRecorder) StoreEvents(ctx, rawEvents interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreEvents", reflect.TypeOf((*MockClient)(nil).StoreEvents), ctx, rawEvents)
 }
 
 // VerifyWebhook mocks base method.
