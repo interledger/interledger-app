@@ -33,8 +33,8 @@ func UnitOnboardCustomerWorkflow(ctx workflow.Context, state UnitOnboardCustomer
 	logger.Info("Onboarding unit customer")
 
 	// Channels that webhooks will use to communicate with the workflow through.
-	customerCreatedChannel := workflow.GetSignalChannel(ctx, "onboard-unit-customer-created")
-	applicationDeniedChannel := workflow.GetSignalChannel(ctx, "onboard-unit-application-denied")
+	customerCreatedChannel := workflow.GetSignalChannel(ctx, unit.OnboardingCustomerCreatedChannel)
+	applicationDeniedChannel := workflow.GetSignalChannel(ctx, unit.OnboardingApplicationDeniedChannel)
 
 	approved, denied := false, false
 
