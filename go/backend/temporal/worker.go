@@ -76,6 +76,7 @@ func NewTemporalWorker(args WorkerArgs, b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(unit_workflows.UnitOnboardCustomerWorkflow)
 	unitOnboardingActivity := unit_activities.NewActivity(b)
 	w.RegisterActivity(unitOnboardingActivity)
+	w.RegisterWorkflow(unit_workflows.UnitHandleEventsWorkflow)
 
 	w.RegisterWorkflow(mx_workflow.CreateMxAccountWorkflow)
 	createMxBankAccountActivity := mx_activities.NewActivity(b)
