@@ -358,6 +358,13 @@ func (c client) StoreEvent(
 	return ops.StoreEvent(ctx, c.b, event, rawEvent)
 }
 
+func (c client) StoreEvents(
+	ctx context.Context, rawEvents []json.RawMessage,
+) error {
+
+	return ops.StoreEvents(ctx, c.b, rawEvents)
+}
+
 func (c client) GetEvent(
 	ctx context.Context, id string,
 ) (ret *unit.DbEvent, err error) {
@@ -379,24 +386,20 @@ func (c client) GetEvent(
 	return ops.GetEvent(ctx, c.b, id)
 }
 
-func (c client) HandleEvent(
-	ctx context.Context, event external.Event, rawEvent json.RawMessage,
-) (err error) {
-	defer func() {
-		if err != nil {
-			log.Error(
-				"Failed to handle event",
-				zap.String("err", err.Error()),
-			)
-			return
-		}
+func (c client) NotifyCustomerCreated(
+	ctx context.Context, event external.CustomerCreatedEvent,
+) error {
+	return ops.NotifyCustomerCreated(ctx, c.b, event)
+}
 
-		log.Debug(
-			"Handled event",
-			zap.String("id", event.ID),
-			zap.String("type", string(event.Type)),
-		)
-	}()
+func (c client) NotifyApplicationDenied(
+	ctx context.Context, event external.ApplicationDeniedEvent,
+) error {
+	return ops.NotifyApplicationDenied(ctx, c.b, event)
+}
 
-	return ops.HandleEvent(ctx, c.b, event, rawEvent)
+func (c client) NotifyAchPayment(
+	ctx context.Context, event external.AchPayment,
+) error {
+	return ops.NotifyAchPayment(ctx, c.b, event)
 }

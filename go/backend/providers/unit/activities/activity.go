@@ -2,14 +2,17 @@ package activities
 
 import (
 	context "context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 	"gitlab.com/fynbos/backend/providers/unit/ops"
 )
 
@@ -128,4 +131,63 @@ func (a *Activity) UnitInitiateUserDeposit(
 	}
 
 	return achDeposit, nil
+}
+
+func (a *Activity) UnitStoreEvents(
+	ctx context.Context,
+	rawEvents []json.RawMessage,
+) error {
+	if err := a.b.Unit().StoreEvents(ctx, rawEvents); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) UnitNotifyCustomerCreated(
+	ctx context.Context,
+	event external.CustomerCreatedEvent,
+) error {
+	err := a.b.Unit().NotifyCustomerCreated(ctx, event)
+	var notFound *serviceerror.NotFound
+	if errors.As(err, &notFound) {
+		return temporal.NewNonRetryableApplicationError("Failed to notify customer created.", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) UnitNotifyApplicationDenied(
+	ctx context.Context,
+	event external.ApplicationDeniedEvent,
+) error {
+	err := a.b.Unit().NotifyApplicationDenied(ctx, event)
+	var notFound *serviceerror.NotFound
+	if errors.As(err, &notFound) {
+		return temporal.NewNonRetryableApplicationError("Failed to notify application denied.", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) UnitNotifyAchPaymentEvent(
+	ctx context.Context,
+	event external.AchPayment,
+) error {
+	err := a.b.Unit().NotifyAchPayment(ctx, event)
+	var notFound *serviceerror.NotFound
+	if errors.As(err, &notFound) {
+		return temporal.NewNonRetryableApplicationError("Failed to notify ach payment.", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
