@@ -331,10 +331,21 @@ func migrate(args *cli.MigrationArgs) {
 func startWorker(args *cli.StartArgs) {
 	log.Info("begin worker start")
 
+	traceShutdown, err := tracing.InitTraceProvider("backend-worker")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		ctx := context.Background()
+		if err := traceShutdown(ctx); err != nil {
+			log.Fatal("failed to shutdown TracerProvider", zap.Error(err))
+		}
+	}()
+
 	var b = new(backends)
 	b.val = validator.New()
 
-	db, err := sqlx.Connect("postgres", args.DbConnectionString)
+	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -355,6 +366,7 @@ func startWorker(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	log.Setup(logger)
 
 	b.countries = country_client.New(b)
 
