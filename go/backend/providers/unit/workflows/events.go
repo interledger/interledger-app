@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -90,7 +89,7 @@ func UnitHandleEventsWorkflow(ctx workflow.Context, rawEvents []json.RawMessage)
 	}
 
 	if didFail {
-		return errors.New(fmt.Sprintf("Failed to handle all unit events. (%d/%d handled)", count, len(rawEvents)))
+		return fmt.Errorf("Failed to handle all unit events. (%d/%d handled)", count, len(rawEvents))
 	}
 
 	return nil

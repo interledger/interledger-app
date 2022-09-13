@@ -136,6 +136,9 @@ func (a *Activity) UnitStoreEvents(
 	ctx context.Context,
 	rawEvents []json.RawMessage,
 ) error {
+	if err := a.b.Unit().StoreEvents(ctx, rawEvents); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -144,6 +147,10 @@ func (a *Activity) UnitNotifyCustomerCreated(
 	ctx context.Context,
 	event external.CustomerCreatedEvent,
 ) error {
+	if err := a.b.Unit().NotifyCustomerCreated(ctx, event); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -151,6 +158,10 @@ func (a *Activity) UnitNotifyApplicationDenied(
 	ctx context.Context,
 	event external.ApplicationDeniedEvent,
 ) error {
+	if err := a.b.Unit().NotifyApplicationDenied(ctx, event); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -158,5 +169,9 @@ func (a *Activity) UnitNotifyAchPaymentEvent(
 	ctx context.Context,
 	event external.AchPayment,
 ) error {
+	if err := a.b.Unit().NotifyAchPayment(ctx, event); err != nil {
+		return err
+	}
+
 	return nil
 }
