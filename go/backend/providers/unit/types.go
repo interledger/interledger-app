@@ -124,3 +124,12 @@ type DbEvent struct {
 	CreatedAt string         `db:"created_at"`
 	UpdatedAt string         `db:"updated_at"`
 }
+
+const (
+	OnboardingCustomerCreatedChannel   = "onboard-unit-customer-created"
+	OnboardingApplicationDeniedChannel = "onboard-unit-application-denied"
+	OnboardingWorkflowName             = "unit_onboarding_"
+
+	AchDepositChannel   = "unit-user-ach-deposit"
+	DepositWorkflowName = "deposit_"
+)

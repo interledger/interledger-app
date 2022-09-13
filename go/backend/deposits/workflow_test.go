@@ -111,7 +111,7 @@ func (s *AchDepositTestSuite) TestGoldenPath() {
 		})
 
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_SENT))
+		s.env.SignalWorkflow(unit.AchDepositChannel, string(unit_external.PAYMENT_SENT))
 	}, time.Millisecond*1)
 
 	s.env.OnActivity(s.depositsActivity.CreateAchDepositTransactions, mock.Anything, mock.Anything, mock.Anything).Return(
@@ -320,7 +320,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsRejected() {
 			return nil, nil
 		})
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_REJECTED))
+		s.env.SignalWorkflow(unit.AchDepositChannel, string(unit_external.PAYMENT_REJECTED))
 	}, time.Millisecond*1)
 	s.env.OnActivity(s.depositsActivity.SetDepositState, mock.Anything, mock.Anything, deposits.Failed).Return(
 		func(ctx context.Context, id string, state deposits.State) error {
@@ -398,7 +398,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsReturned() {
 			return nil, nil
 		})
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_RETURNED))
+		s.env.SignalWorkflow(unit.AchDepositChannel, string(unit_external.PAYMENT_RETURNED))
 	}, time.Millisecond*1)
 	s.env.OnActivity(s.depositsActivity.SetDepositState, mock.Anything, mock.Anything, deposits.Failed).Return(
 		func(ctx context.Context, id string, state deposits.State) error {
@@ -476,7 +476,7 @@ func (s *AchDepositTestSuite) TestFailsDespositIfAchIsCanceled() {
 			return nil, nil
 		})
 	s.env.RegisterDelayedCallback(func() {
-		s.env.SignalWorkflow("unit-user-ach-deposit", string(unit_external.PAYMENT_CANCELED))
+		s.env.SignalWorkflow(unit.AchDepositChannel, string(unit_external.PAYMENT_CANCELED))
 	}, time.Millisecond*1)
 	s.env.OnActivity(s.depositsActivity.SetDepositState, mock.Anything, mock.Anything, deposits.Failed).Return(
 		func(ctx context.Context, id string, state deposits.State) error {

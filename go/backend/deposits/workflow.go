@@ -41,7 +41,7 @@ func DepositWorkflow(ctx workflow.Context, id string) (err error) {
 	var mxActivity *mx_activities.Activity
 
 	// Channels that webhooks will use to communicate with the workflow through.
-	achStatusChannel := workflow.GetSignalChannel(ctx, "unit-user-ach-deposit")
+	achStatusChannel := workflow.GetSignalChannel(ctx, unit.AchDepositChannel)
 
 	defer func() {
 		if err != nil {

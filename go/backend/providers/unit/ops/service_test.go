@@ -346,7 +346,7 @@ func TestNotifyCreatedCustomerEvent(t *testing.T) {
 	for _, scenario := range scenarios {
 		customerCreatedEvent := NewCustomerCreatedEvent()
 
-		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+customerCreatedEvent.Attributes.Tags.FynbosUserID, mock.AnythingOfType("string"), "onboard-unit-customer-created", mock.Anything).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, unit.OnboardingWorkflowName+customerCreatedEvent.Attributes.Tags.FynbosUserID, mock.AnythingOfType("string"), unit.OnboardingCustomerCreatedChannel, mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		err := ops.NotifyCustomerCreated(ctx, b, customerCreatedEvent)
 
@@ -387,7 +387,7 @@ func TestNotifyApplicationDeniedEvent(t *testing.T) {
 	for _, scenario := range scenarios {
 		applicationDeniedEvent := NewApplicationDeniedEvent()
 
-		temporalMockClient.On("SignalWorkflow", mock.Anything, "unit_onboarding_"+applicationDeniedEvent.Attributes.Tags.FynbosUserID, mock.AnythingOfType("string"), "onboard-unit-application-denied", mock.Anything).Return(scenario.OnboardingError).Times(1)
+		temporalMockClient.On("SignalWorkflow", mock.Anything, unit.OnboardingWorkflowName+applicationDeniedEvent.Attributes.Tags.FynbosUserID, mock.AnythingOfType("string"), unit.OnboardingApplicationDeniedChannel, mock.Anything).Return(scenario.OnboardingError).Times(1)
 
 		err := ops.NotifyApplicationDenied(ctx, b, applicationDeniedEvent)
 
@@ -442,9 +442,9 @@ func TestNotifyAchPaymentEvent(t *testing.T) {
 			temporalMockClient.On(
 				"SignalWorkflow",
 				mock.Anything,
-				"deposit_"+depositID,
+				unit.DepositWorkflowName+depositID,
 				mock.AnythingOfType("string"),
-				"unit-user-ach-deposit",
+				unit.AchDepositChannel,
 				string(eventType),
 			).Return(nil).Times(1)
 			paymentEvent.ID = uuid.NewString()

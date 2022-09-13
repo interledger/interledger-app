@@ -524,7 +524,7 @@ func GetEvent(ctx context.Context, b Backends, id string) (*unit.DbEvent, error)
 }
 
 func NotifyCustomerCreated(ctx context.Context, b Backends, event external.CustomerCreatedEvent) error {
-	err := b.Temporal().SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserID, "", "onboard-unit-customer-created", event)
+	err := b.Temporal().SignalWorkflow(ctx, unit.OnboardingWorkflowName+event.Attributes.Tags.FynbosUserID, "", unit.OnboardingCustomerCreatedChannel, event)
 	if err != nil {
 		return fmt.Errorf("%w %s", unit.ErrInternal, err)
 	}
@@ -533,7 +533,7 @@ func NotifyCustomerCreated(ctx context.Context, b Backends, event external.Custo
 }
 
 func NotifyApplicationDenied(ctx context.Context, b Backends, event external.ApplicationDeniedEvent) error {
-	err := b.Temporal().SignalWorkflow(ctx, "unit_onboarding_"+event.Attributes.Tags.FynbosUserID, "", "onboard-unit-application-denied", event)
+	err := b.Temporal().SignalWorkflow(ctx, unit.OnboardingWorkflowName+event.Attributes.Tags.FynbosUserID, "", unit.OnboardingApplicationDeniedChannel, event)
 	if err != nil {
 		return fmt.Errorf("%w %s", unit.ErrInternal, err)
 	}
@@ -542,7 +542,7 @@ func NotifyApplicationDenied(ctx context.Context, b Backends, event external.App
 }
 
 func NotifyAchPayment(ctx context.Context, b Backends, event external.AchPayment) error {
-	err := b.Temporal().SignalWorkflow(ctx, "deposit_"+event.Attributes.Tags.DepositID, "", "unit-user-ach-deposit", event.Type)
+	err := b.Temporal().SignalWorkflow(ctx, unit.DepositWorkflowName+event.Attributes.Tags.DepositID, "", unit.AchDepositChannel, event.Type)
 	if err != nil {
 		return fmt.Errorf("%w %s", unit.ErrInternal, err)
 	}
