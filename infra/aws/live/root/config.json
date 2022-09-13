@@ -19,6 +19,11 @@
       "name": "dev",
       "email": "aws+dev@fynbos.dev",
       "is_logs": false
+    },
+    {
+      "name": "prod",
+      "email": "aws+prod@fynbos.dev",
+      "is_logs": false
     }
   ],
   "users": [
