@@ -182,6 +182,7 @@ func start(args *cli.StartArgs) {
 	b.twilio = twilioService
 
 	us := unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
+	b.unit = us
 	mx := mx_client.New(b, args.MxClientID, args.MxApiKey)
 	b.mxProvider = mx
 
