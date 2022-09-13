@@ -15,7 +15,7 @@ import (
 	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
 )
 
-func TimoutTransfersForever(b Backends) {
+func TimeoutTransfersForever(b Backends) {
 	rand.Seed(time.Now().UnixNano())
 	standard := time.Minute * 5
 	random := time.Duration(rand.Intn(220)) * time.Second
@@ -44,30 +44,41 @@ func timeoutTransfers(ctx context.Context, b Backends) error {
 		return err
 	}
 
-	err = tigerroach.TimoutTransfers(ctx, b, ids)
+	if len(ids) == 0 {
+		// Nothing to do here.
+		return nil
+	}
+
+	successIDs, err := tigerroach.TryTimeoutTransfers(ctx, b, ids)
 	if err != nil {
 		return err
 	}
 
+	if len(successIDs) == 0 {
+		return nil
+	}
+
 	// Now attempt to do the same for tigerbeetle
-	tbTranfers := make([]tb_types.Transfer, len(ids))
-	for i, id := range ids {
+	var tbTranfers []tb_types.Transfer
+	for _, id := range successIDs {
 		newID, err := UuidToU128(uuid.NewString())
 		if err != nil {
-			return err
+			log.Error("failed to convert uuid for tigerbeetle", zap.Error(err))
+			continue
 		}
 
 		pendingID, err := UuidToU128(id)
 		if err != nil {
-			return err
+			log.Error("failed to convert uuid for tigerbeetle", zap.Error(err))
+			continue
 		}
-		tbTranfers[i] = tb_types.Transfer{
+		tbTranfers = append(tbTranfers, tb_types.Transfer{
 			ID:        *newID,
 			PendingID: *pendingID,
 			Flags: pacioli.TransferFlags{
 				VoidPendingTransfer: true,
 			}.ToUint16(),
-		}
+		})
 	}
 	tbErrors, err := b.TigerBeetle().CreateTransfers(tbTranfers)
 	if err != nil {
