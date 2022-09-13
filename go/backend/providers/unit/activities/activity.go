@@ -2,6 +2,7 @@ package activities
 
 import (
 	context "context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,6 +11,7 @@ import (
 
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/providers/unit"
+	"gitlab.com/fynbos/backend/providers/unit/external"
 	"gitlab.com/fynbos/backend/providers/unit/ops"
 )
 
@@ -128,4 +130,33 @@ func (a *Activity) UnitInitiateUserDeposit(
 	}
 
 	return achDeposit, nil
+}
+
+func (a *Activity) UnitStoreEvents(
+	ctx context.Context,
+	rawEvents []json.RawMessage,
+) error {
+
+	return nil
+}
+
+func (a *Activity) UnitNotifyCustomerCreated(
+	ctx context.Context,
+	event external.CustomerCreatedEvent,
+) error {
+	return nil
+}
+
+func (a *Activity) UnitNotifyApplicationDenied(
+	ctx context.Context,
+	event external.ApplicationDeniedEvent,
+) error {
+	return nil
+}
+
+func (a *Activity) UnitNotifyAchPaymentEvent(
+	ctx context.Context,
+	event external.AchPayment,
+) error {
+	return nil
 }
