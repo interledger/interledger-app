@@ -24,7 +24,7 @@ require (
 	github.com/ory/kratos-client-go v0.8.0-alpha.2
 	github.com/osohq/go-oso v0.26.0
 	github.com/riandyrn/otelchi v0.4.0
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.12.0
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.1.16
 	github.com/uptrace/opentelemetry-go-extra/otelsqlx v0.1.16
@@ -37,6 +37,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.9.0
 	go.temporal.io/api v1.6.1-0.20211110205628-60c98e9cbfe2
 	go.temporal.io/sdk v1.13.1
+	go.temporal.io/sdk/contrib/opentelemetry v0.2.0
 	go.uber.org/zap v1.19.1
 	google.golang.org/genproto v0.0.0-20220222213610-43724f9ea8cf
 	google.golang.org/grpc v1.48.0

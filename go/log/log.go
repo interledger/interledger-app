@@ -50,5 +50,5 @@ func Fatal(msg string, fields ...zap.Field) {
 }
 
 func Fatalln(err error) {
-	Fatal("fatal error occurred", zap.Error(err))
+	logger.Fatal("fatal error occurred", zap.Error(err))
 }
