@@ -610,7 +610,7 @@ func TestVoidTransfers(t *testing.T) {
 	}
 }
 
-func TestTimoutTransfers(t *testing.T) {
+func TestTimeoutTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := test_utils.MigrateCockroachDB(t, ctx)
@@ -699,7 +699,7 @@ func TestTimoutTransfers(t *testing.T) {
 			_, err = b.DB().ExecContext(ctx, "update ledger_transfers set timeout_at=$1", time.Now().UTC().Add(-time.Hour))
 			require.NoError(t, err)
 
-			err = tigerroach.TimoutTransfers(ctx, b, tids)
+			_, err = tigerroach.TryTimeoutTransfers(ctx, b, tids)
 			if tc.err != nil {
 				require.ErrorIs(t, tc.err, err)
 				return

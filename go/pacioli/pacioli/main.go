@@ -109,7 +109,7 @@ func start(args *cli.StartArgs) {
 	b := NewBackends(db, tbClient)
 
 	// Start time-ing out transactions
-	go ledger.TimoutTransfersForever(b)
+	go ledger.TimeoutTransfersForever(b)
 
 	hs, err := healthcheck.NewService()
 	if err != nil {

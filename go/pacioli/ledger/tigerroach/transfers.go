@@ -9,6 +9,9 @@ import (
 	"sort"
 	"time"
 
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
@@ -333,7 +336,7 @@ func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 func ListTimedoutTransferIDs(ctx context.Context, b Backends) ([]string, error) {
 	var transfers []string
 	err := b.DB().SelectContext(ctx, &transfers,
-		"SELECT id FROM ledger_transfers WHERE state=$1 and timeout_at<now()", transferStatePending)
+		"SELECT id FROM ledger_transfers WHERE state=$1 and timeout_at < now()", transferStatePending)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -344,25 +347,24 @@ func ListTimedoutTransferIDs(ctx context.Context, b Backends) ([]string, error) 
 	return transfers, err
 }
 
-func TimoutTransfers(ctx context.Context, b Backends, ids []string) error {
+// TryTimeoutTransfers will attemt to update the state of each of the transfers associated with the ids provided.
+// Should a single transfer state fail to be updated the rest will still be updated. A list of successfully updated transfer IDs is returned.
+func TryTimeoutTransfers(ctx context.Context, b Backends, ids []string) ([]string, error) {
+	var success []string
 	transfers, err := ListTransfers(ctx, b, ids)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(transfers) != len(ids) {
-		return fmt.Errorf("list transfers did not lad all expired transfers expected len(%d) actual len (%d)", len(transfers), len(ids))
+		return nil, fmt.Errorf("list transfers did not load all expired transfers expected len(%d) actual len (%d)", len(transfers), len(ids))
 	}
 
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		for _, ex := range transfers {
-			query, args, err := sqlx.In("UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3 and timeout_at<now()",
-				transferStateTimeout, ex.ID, transferStatePending)
-			if err != nil {
-				return fmt.Errorf("%s %w", err, pacioli.ErrInternal)
-			}
+	for _, ex := range transfers {
+		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 
-			rows, err := tx.ExecContext(ctx, query, args...)
+			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3 and timeout_at<now()",
+				transferStateTimeout, ex.ID, transferStatePending)
 			if err != nil {
 				return fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 			}
@@ -371,7 +373,7 @@ func TimoutTransfers(ctx context.Context, b Backends, ids []string) error {
 				return fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 			}
 			if count != 1 {
-				return fmt.Errorf("incorrect number of transfers timed out %w", len(ids), count, pacioli.ErrInternal)
+				return fmt.Errorf("incorrect number of transfers timed out %w", pacioli.ErrInternal)
 			}
 
 			// Update Credit account balance
@@ -400,16 +402,17 @@ func TimoutTransfers(ctx context.Context, b Backends, ids []string) error {
 			if updateCnt != 1 {
 				return fmt.Errorf("%s %s %w", "unable to update debit account balances for timeout", ex.CreditAccountID, pacioli.ErrInternal)
 			}
+
+			return nil
+		})
+		if err != nil {
+			log.Error("transfer timeout failed", zap.Error(err))
+		} else {
+			success = append(success, ex.ID)
 		}
-
-		return nil
-	})
-
-	if err != nil {
-		return fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 
-	return nil
+	return success, nil
 }
 
 func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransferArgs) (pacioli.TransferResultCode, error) {
