@@ -25,5 +25,10 @@ type Client interface {
 
 	VerifyWebhook(ctx context.Context, body []byte, signature string) error
 	StoreEvent(ctx context.Context, event external.Event, rawEvent json.RawMessage) (*DbEvent, error)
+	StoreEvents(ctx context.Context, rawEvents []json.RawMessage) error
 	GetEvent(ctx context.Context, id string) (*DbEvent, error)
+
+	NotifyCustomerCreated(ctx context.Context, event external.CustomerCreatedEvent) error
+	NotifyApplicationDenied(ctx context.Context, event external.ApplicationDeniedEvent) error
+	NotifyAchPayment(ctx context.Context, event external.AchPayment) error
 }
