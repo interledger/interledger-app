@@ -13,12 +13,12 @@ func (s *rpcService) GetStatements(
 	ctx context.Context,
 	req *backendv1.Empty,
 ) (*backendv1.GetStatementsResponse, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	unitCustomer, err := s.unitProvider.GetCustomerByIdentityID(ctx, user.ID)
+	unitCustomer, err := s.b.Unit().GetCustomerByIdentityID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
 			return nil, InternalError("Failed to find customer.")
@@ -26,7 +26,7 @@ func (s *rpcService) GetStatements(
 		return nil, InternalError("Get customer.")
 	}
 
-	statements, err := s.unitProvider.GetStatements(ctx, unitCustomer.ID)
+	statements, err := s.b.Unit().GetStatements(ctx, unitCustomer.ID)
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
 			return nil, NotFoundError("No statements found.")
@@ -64,18 +64,18 @@ func (s *rpcService) GetStatementPDF(
 	ctx context.Context,
 	req *backendv1.GetStatementPDFRequest,
 ) (*backendv1.GetStatementPDFResponse, error) {
-	if err := s.validator.Struct(&validateGetStatementPDF{
+	if err := s.b.Validator().Struct(&validateGetStatementPDF{
 		StatementID: req.GetStatementId(),
 	}); err != nil {
 		return nil, ValidationError(err, validateGetStatementPDFDescription)
 	}
 
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	customer, err := s.unitProvider.GetCustomerByIdentityID(ctx, user.ID)
+	customer, err := s.b.Unit().GetCustomerByIdentityID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, unit.ErrNotFound) {
 			return nil, NotFoundError("Failed to find customer.")
@@ -83,7 +83,7 @@ func (s *rpcService) GetStatementPDF(
 		return nil, InternalError("Get customer.")
 	}
 
-	statementPdf, err := s.unitProvider.GetStatementPDF(ctx, &unit.GetStatementPDFArgs{
+	statementPdf, err := s.b.Unit().GetStatementPDF(ctx, &unit.GetStatementPDFArgs{
 		StatementID: req.GetStatementId(),
 		CustomerID:  customer.ID,
 	})

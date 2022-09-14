@@ -8,7 +8,7 @@ import (
 )
 
 func (s *rpcService) CreateSupportTicket(ctx context.Context, req *pb.CreateSupportTicketRequest) (*pb.Empty, error) {
-	err := s.ticketsClient.CreateTicket(ctx, supporttickets.CreateTicketArgs{
+	err := s.b.SupportTickets().CreateTicket(ctx, supporttickets.CreateTicketArgs{
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		Email:       req.Email,

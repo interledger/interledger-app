@@ -7,12 +7,12 @@ import (
 )
 
 func (s *rpcService) GetIdentity(ctx context.Context, empty *pb.Empty) (*pb.UserIdentity, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	id, err := s.identityService.Get(ctx, user.ID)
+	id, err := s.b.Identity().Get(ctx, user.ID)
 	if err != nil {
 		return nil, grpcError(err)
 	}

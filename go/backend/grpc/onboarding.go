@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
@@ -26,13 +27,13 @@ func (s *rpcService) GetOnboarding(
 	ctx context.Context,
 	req *backendv1.GetOnboardingRequest,
 ) (*backendv1.Onboarding, error) {
-	if err := s.validator.Struct(&validateGetOnboarding{
+	if err := s.b.Validator().Struct(&validateGetOnboarding{
 		Id: req.GetId(),
 	}); err != nil {
 		return nil, ValidationError(err, validateGetOnboardingDescription)
 	}
 
-	onboard, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
+	onboard, err := s.b.Onboarding().GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
 		Id: req.Id,
 	})
 	if err != nil {
@@ -74,7 +75,7 @@ func (s *rpcService) UpdateOnboarding(
 	ctx context.Context,
 	req *backendv1.Onboarding,
 ) (*backendv1.Onboarding, error) {
-	if err := s.validator.Struct(&validateUpdateOnboarding{
+	if err := s.b.Validator().Struct(&validateUpdateOnboarding{
 		CountryOfResidence: req.GetCountryOfResidence(),
 		Email:              req.GetEmail(),
 		Phone:              req.GetPhone(),
@@ -82,7 +83,7 @@ func (s *rpcService) UpdateOnboarding(
 		return nil, ValidationError(err, validateUpdateOnboardingDescription)
 	}
 
-	onboard, err := s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	onboard, err := s.b.Onboarding().UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:               req.GetId(),
 		FirstName:        req.GetFirstName(),
 		LastName:         req.GetLastName(),
@@ -130,18 +131,18 @@ func (s *rpcService) CreateIdentity(
 	ctx context.Context,
 	req *backendv1.CreateIdentityRequest,
 ) (*backendv1.CreateIdentityResponse, error) {
-	if err := s.validator.Struct(&validateCreateIdentity{
+	if err := s.b.Validator().Struct(&validateCreateIdentity{
 		OnboardingId: req.GetOnboardingId(),
 	}); err != nil {
 		return nil, ValidationError(err, validateCreateIdentityDescription)
 	}
 
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	ob, err := s.onboardingService.GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
+	ob, err := s.b.Onboarding().GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
 		Id: req.GetOnboardingId(),
 	})
 	if err != nil {
@@ -152,9 +153,9 @@ func (s *rpcService) CreateIdentity(
 		return nil, ForbiddenError("phone not verified.")
 	}
 
-	id, _ := s.identityService.Get(ctx, user.ID)
+	id, _ := s.b.Identity().Get(ctx, user.ID)
 	if id == nil {
-		id, err = s.identityService.Create(ctx, &identity.CreateArgs{
+		id, err = s.b.Identity().Create(ctx, &identity.CreateArgs{
 			ID:           user.ID,
 			FirstName:    ob.FirstName,
 			LastName:     ob.LastName,
@@ -191,19 +192,19 @@ func (s *rpcService) SendPhoneVerification(
 	ctx context.Context,
 	req *backendv1.SendPhoneVerificationRequest,
 ) (*backendv1.PhoneVerificationResponse, error) {
-	if err := s.validator.Struct(&validateSendPhoneVerification{
+	if err := s.b.Validator().Struct(&validateSendPhoneVerification{
 		To:           req.GetTo(),
 		OnboardingId: req.GetOnboardingId(),
 	}); err != nil {
 		return nil, ValidationError(err, validateSendPhoneVerificationDescription)
 	}
 
-	_, err := s.twilioService.SendVerificationCode(ctx, req.GetTo())
+	_, err := s.b.Twilio().SendVerificationCode(ctx, req.GetTo())
 	if err != nil {
 		return nil, InternalError(err.Error())
 	}
 
-	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	_, err = s.b.Onboarding().UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:    req.GetOnboardingId(),
 		Phone: req.GetTo(),
 	})
@@ -239,7 +240,7 @@ func (s *rpcService) CheckPhoneVerificationCode(
 	ctx context.Context,
 	req *backendv1.CheckPhoneVerificationCodeRequest,
 ) (*backendv1.PhoneVerificationResponse, error) {
-	if err := s.validator.Struct(&validateCheckPhoneVerificationCode{
+	if err := s.b.Validator().Struct(&validateCheckPhoneVerificationCode{
 		To:           req.GetTo(),
 		Code:         req.GetCode(),
 		OnboardingId: req.GetOnboardingId(),
@@ -247,7 +248,7 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		return nil, ValidationError(err, validateCheckPhoneVerificationCodeDescription)
 	}
 
-	verification, err := s.twilioService.CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+	verification, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
 		PhoneNumber: req.GetTo(),
 		Code:        req.GetCode(),
 	})
@@ -259,7 +260,7 @@ func (s *rpcService) CheckPhoneVerificationCode(
 	}
 
 	// If successful set phoneVerified in onboarding table
-	_, err = s.onboardingService.UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
+	_, err = s.b.Onboarding().UpdateOnboarding(ctx, &onboarding.UpdateOnboardingArgs{
 		Id:            req.GetOnboardingId(),
 		PhoneVerified: true,
 	})
@@ -280,12 +281,12 @@ func (s *rpcService) InitiateUnitOnboarding(
 	req *backendv1.InitiateUnitOnboardingRequest,
 ) (*backendv1.InitiateUnitOnboardingResponse, error) {
 
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	err = s.onboardingService.InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
+	err = s.b.Onboarding().InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
 		IdentityID:         user.ID,
 		Ssn:                req.GetSsn(),
 		DateOfBirth:        req.GetDateOfBirth(),
