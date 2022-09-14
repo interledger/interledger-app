@@ -25,13 +25,13 @@ func (s *rpcService) GetAgreement(
 	ctx context.Context,
 	req *backendv1.GetAgreementRequest,
 ) (*backendv1.Agreement, error) {
-	if err := s.validator.Struct(&validateGetAgreement{
+	if err := s.b.Validator().Struct(&validateGetAgreement{
 		ID: req.GetId(),
 	}); err != nil {
 		return nil, ValidationError(err, validateGetAgreementDescription)
 	}
 
-	agreement, err := s.agreementsService.Get(ctx, req.GetId())
+	agreement, err := s.b.Agreements().Get(ctx, req.GetId())
 	if err != nil {
 		if errors.Is(err, agreements.ErrNotFound) {
 			return nil, NotFoundError("Failed to find agreement.")
@@ -68,7 +68,7 @@ func (s *rpcService) SignAgreements(
 	ctx context.Context,
 	req *backendv1.SignAgreementsRequest,
 ) (*backendv1.SignAgreementsResponse, error) {
-	if err := s.validator.Struct(&validateSignAgreements{
+	if err := s.b.Validator().Struct(&validateSignAgreements{
 		AgreementIDs: req.GetAgreementIds(),
 		IdentityID:   req.GetIdentityId(),
 		IPAddress:    req.GetIpAddress(),
@@ -76,7 +76,7 @@ func (s *rpcService) SignAgreements(
 		return nil, ValidationError(err, validateSignAgreementsDescription)
 	}
 
-	err := s.agreementsService.Sign(ctx, &agreements.SignArgs{
+	err := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
 		AgreementIDs: req.GetAgreementIds(),
 		IdentityID:   req.GetIdentityId(),
 		IPAddress:    req.GetIpAddress(),

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -19,20 +20,27 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
+	"gitlab.com/fynbos/backend/identity"
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
+	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
+	"gitlab.com/fynbos/backend/payments"
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
+	"gitlab.com/fynbos/backend/providers/unit"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
+	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -53,9 +61,81 @@ type TestContainer struct {
 	RafikiProvider       *rafiki.MockService
 	DepositService       *deposits.MockService
 	WaitlistClient       *waitlist_mock.MockClient
-	Temporal             *mocks.Client
+	TemporalImpl         *mocks.Client
 	TicketClient         *support_mock.MockClient
 	PaymentsClient       *payments_mock.MockClient
+}
+
+func (t TestContainer) Rafiki() rafiki.Service {
+	return t.RafikiProvider
+}
+
+func (t TestContainer) Accounts() accounts.Client {
+	return t.AccountService
+}
+
+func (t TestContainer) AdminAuth() auth.Service {
+	return t.AdminAuthService
+}
+
+func (t TestContainer) Agreements() agreements.Service {
+	return t.AgreementsService
+}
+
+func (t TestContainer) Deposits() deposits.Service {
+	return t.DepositService
+}
+
+func (t TestContainer) FundingSources() fundingsources.Client {
+	return t.FundingsourceService
+}
+
+func (t TestContainer) HealthCheck() healthcheck.Service {
+	return t.HealthService
+}
+
+func (t TestContainer) Identity() identity.Client {
+	return t.IdentityService
+}
+
+func (t TestContainer) MX() mx.Client {
+	return t.MxProvider
+}
+
+func (t TestContainer) Onboarding() onboarding.Client {
+	return t.OnboardingService
+}
+
+func (t TestContainer) Payments() payments.Client {
+	return t.PaymentsClient
+}
+
+func (t TestContainer) SupportTickets() supporttickets.Client {
+	return t.TicketClient
+}
+
+func (t TestContainer) Temporal() client.Client {
+	return t.TemporalImpl
+}
+
+func (t TestContainer) Twilio() twilio.Service {
+	return t.TwilioService
+}
+
+func (t TestContainer) Unit() unit.Client {
+	return t.UnitProvider
+}
+
+func (t TestContainer) Users() _user.Service {
+	return t.UserService
+}
+
+func (t TestContainer) Validator() *validator.Validate {
+	return validator.New()
+}
+
+func (t TestContainer) Waitlist() waitlist.Client {
+	return t.WaitlistClient
 }
 
 type TestContainerOption func(*TestContainer)
@@ -84,7 +164,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		DepositService:       deposits.NewMockService(ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
 		TicketClient:         support_mock.NewMockClient(ctrl),
-		Temporal:             &mocks.Client{},
+		TemporalImpl:         &mocks.Client{},
 		PaymentsClient:       payments_mock.NewMockClient(ctrl),
 	}
 
@@ -416,25 +496,7 @@ func startTestServer(
 	t *testing.T,
 	c *TestContainer,
 ) (*grpc.Server, backendv1.BackendAdminServiceClient, backendv1.BackendServiceClient) {
-	server, err := NewServer(&ServerArgs{
-		HealthCheckService:   c.HealthService,
-		IdentityService:      c.IdentityService,
-		AccountsService:      c.AccountService,
-		AgreementsService:    c.AgreementsService,
-		AdminAuthService:     c.AdminAuthService,
-		UserService:          c.UserService,
-		UnitProvider:         c.UnitProvider,
-		FundingSourceService: c.FundingsourceService,
-		TwilioService:        c.TwilioService,
-		OnboardingService:    c.OnboardingService,
-		MxProvider:           c.MxProvider,
-		RafikiProvider:       c.RafikiProvider,
-		DepositService:       c.DepositService,
-		WaitlistClient:       c.WaitlistClient,
-		Temporal:             c.Temporal,
-		TicketClient:         c.TicketClient,
-		PaymentsClient:       c.PaymentsClient,
-	})
+	server, err := NewServer(c)
 	if err != nil {
 		t.Fatal(err)
 	}

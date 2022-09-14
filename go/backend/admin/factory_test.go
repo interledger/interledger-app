@@ -25,16 +25,20 @@ import (
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
+	"gitlab.com/fynbos/backend/payments"
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
+	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/proto/backend/v1"
@@ -66,6 +70,71 @@ type TestContainer struct {
 	PacioliClient   pacioli.Client
 	PacioliLedgerID uint32
 	ValidatorImpl   *validator.Validate
+	Auth            auth.Service
+	AgreementsImpl  agreements.Service
+	DepositsImpl    *deposits.MockService
+	Mx              *mx_mock.MockClient
+	PaymentsImpl    *payments_mock.MockClient
+	Tickets         *support_mock.MockClient
+	UsersImpl       user.Service
+	WaitlistImpl    *waitlist_mock.MockClient
+	TwilioImpl      *twilio.MockService
+}
+
+func (c *TestContainer) AdminAuth() auth.Service {
+	return c.Auth
+}
+
+func (c *TestContainer) Agreements() agreements.Service {
+	return c.AgreementsImpl
+}
+
+func (c *TestContainer) Deposits() deposits.Service {
+	return c.DepositsImpl
+}
+
+func (c *TestContainer) FundingSources() fundingsources.Client {
+	return c.Fs
+}
+
+func (c *TestContainer) HealthCheck() healthcheck.Service {
+	return c.Hs
+}
+
+func (c *TestContainer) MX() mx.Client {
+	return c.Mx
+}
+
+func (c *TestContainer) Onboarding() onboarding.Client {
+	return c.Os
+}
+
+func (c *TestContainer) Payments() payments.Client {
+	return c.PaymentsImpl
+}
+
+func (c *TestContainer) Rafiki() rafiki.Service {
+	return c.RafikiProvider
+}
+
+func (c *TestContainer) SupportTickets() supporttickets.Client {
+	return c.Tickets
+}
+
+func (c *TestContainer) Twilio() twilio.Service {
+	return c.TwilioImpl
+}
+
+func (c *TestContainer) Unit() unit.Client {
+	return c.Up
+}
+
+func (c *TestContainer) Users() user.Service {
+	return c.UsersImpl
+}
+
+func (c *TestContainer) Waitlist() waitlist.Client {
+	return c.WaitlistImpl
 }
 
 func (c *TestContainer) Accounts() accounts.Client {
@@ -166,7 +235,10 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
-	us := auth.NewMockService()
+	c.Hs = hs
+
+	att := auth.NewMockService()
+	c.Auth = att
 
 	ags, err := agreements.NewService(&agreements.ServiceArgs{
 		Db: db,
@@ -174,31 +246,21 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	if err != nil {
 		return nil, err
 	}
+	c.AgreementsImpl = ags
 
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit_mock.NewMockClient(c.Ctrl)
 	c.Fs = funding_mock.NewMockClient(c.Ctrl)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
-	tw := twilio.NewMockService(c.Ctrl)
-	server, err := _grpc.NewServer(&_grpc.ServerArgs{
-		HealthCheckService:   hs,
-		IdentityService:      is,
-		AccountsService:      as,
-		AdminAuthService:     us,
-		AgreementsService:    ags,
-		UnitProvider:         c.Up,
-		UserService:          user.NewMockService(),
-		FundingSourceService: c.Fs,
-		TwilioService:        tw,
-		OnboardingService:    os,
-		MxProvider:           mx_mock.NewMockClient(c.Ctrl),
-		RafikiProvider:       c.RafikiProvider,
-		DepositService:       deposits.NewMockService(c.Ctrl),
-		WaitlistClient:       waitlist_mock.NewMockClient(c.Ctrl),
-		Temporal:             c.Tp,
-		TicketClient:         support_mock.NewMockClient(c.Ctrl),
-		PaymentsClient:       payments_mock.NewMockClient(c.Ctrl),
-	})
+	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
+	c.UsersImpl = user.NewMockService()
+	c.Mx = mx_mock.NewMockClient(c.Ctrl)
+	c.DepositsImpl = deposits.NewMockService(c.Ctrl)
+	c.WaitlistImpl = waitlist_mock.NewMockClient(c.Ctrl)
+	c.Tickets = support_mock.NewMockClient(c.Ctrl)
+	c.PaymentsImpl = payments_mock.NewMockClient(c.Ctrl)
+
+	server, err := _grpc.NewServer(c)
 	if err != nil {
 		return nil, err
 	}

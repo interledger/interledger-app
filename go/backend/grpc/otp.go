@@ -7,17 +7,17 @@ import (
 )
 
 func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	id, err := s.identityService.Get(ctx, user.ID)
+	id, err := s.b.Identity().Get(ctx, user.ID)
 	if err != nil {
 		return nil, grpcError(err)
 	}
 
-	_, err = s.twilioService.SendVerificationCode(ctx, id.MobileNumber)
+	_, err = s.b.Twilio().SendVerificationCode(ctx, id.MobileNumber)
 	if err != nil {
 		return nil, grpcError(err)
 	}

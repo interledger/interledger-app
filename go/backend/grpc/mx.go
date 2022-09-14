@@ -13,17 +13,17 @@ func (s *rpcService) GetBankAccountWidget(
 	ctx context.Context,
 	req *backendv1.GetBankAccountWidgetRequest,
 ) (*backendv1.GetBankAccountWidgetResponse, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get account.")
 	}
 
-	url, err := s.mxProvider.GetConnectWidget(ctx, acc.ID, user.ID)
+	url, err := s.b.MX().GetConnectWidget(ctx, acc.ID, user.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get widget.")
 	}
@@ -37,17 +37,17 @@ func (s *rpcService) AddBankAccount(
 	ctx context.Context,
 	req *backendv1.AddBankAccountRequest,
 ) (*backendv1.AddBankAccountResponse, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get account.")
 	}
 
-	workflowUuid, err := s.mxProvider.InitiateCreateAccount(ctx, mx.InitiateCreateAccountArgs{
+	workflowUuid, err := s.b.MX().InitiateCreateAccount(ctx, mx.InitiateCreateAccountArgs{
 		AccountID:  acc.ID,
 		IdentityID: user.ID,
 		UserGuid:   req.GetUserGuid(),
@@ -66,23 +66,23 @@ func (s *rpcService) GetBankAccountDetails(
 	ctx context.Context,
 	req *backendv1.GetBankAccountDetailsRequest,
 ) (*backendv1.BankAccountDetails, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, grpcError(err)
 	}
 
-	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		return nil, grpcError(err)
 	}
 
 	// wait till workflow has completed
-	err = s.mxProvider.WaitForCreateAccount(ctx, req.GetFundingsourceId())
+	err = s.b.MX().WaitForCreateAccount(ctx, req.GetFundingsourceId())
 	if err != nil {
 		return nil, grpcError(err)
 	}
 
-	bankAccount, err := s.mxProvider.GetAccountByFundingsource(ctx, req.GetFundingsourceId())
+	bankAccount, err := s.b.MX().GetAccountByFundingsource(ctx, req.GetFundingsourceId())
 	if errors.Is(err, mx.ErrNotFound) {
 		return nil, grpcError(err)
 	}
@@ -90,7 +90,7 @@ func (s *rpcService) GetBankAccountDetails(
 		return nil, ForbiddenError("Unauthorized.")
 	}
 
-	details, err := s.mxProvider.ReadAccount(ctx, bankAccount.Guid)
+	details, err := s.b.MX().ReadAccount(ctx, bankAccount.Guid)
 	if err != nil {
 		return nil, grpcError(err)
 	}
@@ -124,23 +124,23 @@ func (s *rpcService) ContinueAddingBankAccount(
 	ctx context.Context,
 	req *backendv1.ContinueAddingBankAccountRequest,
 ) (*backendv1.ContinueAddingBankAccountResponse, error) {
-	if err := s.validator.Struct(&validateContinueAddingBankAccount{
+	if err := s.b.Validator().Struct(&validateContinueAddingBankAccount{
 		Otp:      req.GetOtp(),
 		Nickname: req.GetNickName(),
 	}); err != nil {
 		return nil, ValidationError(err, validateContinueAddingBankAccountDescription)
 	}
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get account.")
 	}
 
-	bankAccount, err := s.mxProvider.GetAccountByFundingsource(ctx, req.GetFundingsourceId())
+	bankAccount, err := s.b.MX().GetAccountByFundingsource(ctx, req.GetFundingsourceId())
 	if err != nil {
 		return nil, InternalError("Unable to get bank account details.")
 	}
@@ -148,7 +148,7 @@ func (s *rpcService) ContinueAddingBankAccount(
 		return nil, ForbiddenError("Unauthorized.")
 	}
 
-	err = s.mxProvider.InitiateCreateFundingsource(ctx, mx.InitiateCreateFundingsourceArgs{
+	err = s.b.MX().InitiateCreateFundingsource(ctx, mx.InitiateCreateFundingsourceArgs{
 		AccountID:     acc.ID,
 		Otp:           req.GetOtp(),
 		Name:          req.GetNickName(),

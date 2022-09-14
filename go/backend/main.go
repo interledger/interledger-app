@@ -34,6 +34,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/migrations"
+	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
@@ -44,11 +45,12 @@ import (
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_client "gitlab.com/fynbos/backend/providers/unit/client"
 	unit_webhooks "gitlab.com/fynbos/backend/providers/unit/webhooks"
+	"gitlab.com/fynbos/backend/supporttickets"
 	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
-	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
+	"gitlab.com/fynbos/backend/waitlist"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
@@ -139,14 +141,11 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	users = user.NewLoggingService(users, logger)
-	b.users = users
+	b.users = user.NewLoggingService(users, logger)
 
-	cs := country_client.New(b)
-	b.countries = cs
+	b.countries = country_client.New(b)
 
-	id := identity_client.New(b, logger)
-	b.ids = id
+	b.identity = identity_client.New(b, logger)
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
@@ -154,11 +153,9 @@ func start(args *cli.StartArgs) {
 	}
 	b.pacioli = pClient
 
-	accountsClient := accounts_client.New(b, args.UsdLedgerID, logger)
-	b.accounts = accountsClient
+	b.accounts = accounts_client.New(b, args.UsdLedgerID, logger)
 
-	ts := transactions_client.New(b, logger)
-	b.transactions = ts
+	b.transactions = transactions_client.New(b, logger)
 
 	nos, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      args.NoopLedgerID,
@@ -181,21 +178,19 @@ func start(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	us := unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
-	b.unit = us
-	mx := mx_client.New(b, args.MxClientID, args.MxApiKey)
-	b.mxProvider = mx
+	b.unit = unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
 
-	fs := funding_client.New(b, logger)
-	b.fundingSources = fs
+	b.mxProvider = mx_client.New(b, args.MxClientID, args.MxApiKey)
 
-	os := onboarding_client.New(b)
+	b.fundingSources = funding_client.New(b, logger)
+
+	b.onboarding = onboarding_client.New(b)
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
-		As: accountsClient,
-		Is: id,
-		Fs: fs,
+		As: b.accounts,
+		Is: b.identity,
+		Fs: b.fundingSources,
 		Tp: tp,
 	})
 	if err != nil {
@@ -204,17 +199,16 @@ func start(args *cli.StartArgs) {
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,
-		As: accountsClient,
-		Is: id,
-		Fs: fs,
+		As: b.accounts,
+		Is: b.identity,
+		Fs: b.fundingSources,
 		Tp: tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	ps := payments_client.New(b, logger)
-	b.payments = ps
+	b.payments = payments_client.New(b, logger)
 
 	rafikiProvider, err := rafiki.NewService(&rafiki.ServiceArgs{
 		Db:  db,
@@ -223,19 +217,20 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	b.rafiki = rafikiProvider
 
 	graphql, err := graph.NewService(graph.GraphqlOpts{
 		Db:                               db,
-		Identity:                         id,
-		Account:                          accountsClient,
-		Country:                          cs,
-		User:                             users,
+		Identity:                         b.identity,
+		Account:                          b.accounts,
+		Country:                          b.countries,
+		User:                             b.users,
 		Noop:                             nos,
-		UnitService:                      us,
-		Fs:                               fs,
-		Os:                               os,
+		UnitService:                      b.unit,
+		Fs:                               b.fundingSources,
+		Os:                               b.onboarding,
 		Ws:                               ws,
-		AccountTransactions:              ts,
+		AccountTransactions:              b.transactions,
 		Ds:                               ds,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
@@ -263,11 +258,13 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.healthcheck = health
+
 	adminUsers, err := auth.NewService(args.GoogleOauth2ClientID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	adminUsers = auth.NewLoggingService(adminUsers, logger)
+	b.adminAuth = auth.NewLoggingService(adminUsers, logger)
 
 	ags, err := agreements.NewService(&agreements.ServiceArgs{
 		Db: db,
@@ -275,28 +272,11 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.agreements = ags
 
-	supportTickets := support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
+	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
-	server, err := _grpc.NewServer(&_grpc.ServerArgs{
-		HealthCheckService:   health,
-		IdentityService:      id,
-		AccountsService:      accountsClient,
-		AgreementsService:    ags,
-		AdminAuthService:     adminUsers,
-		UnitProvider:         us,
-		UserService:          users,
-		FundingSourceService: fs,
-		OnboardingService:    os,
-		MxProvider:           mx,
-		RafikiProvider:       rafikiProvider,
-		DepositService:       ds,
-		TwilioService:        twilioService,
-		WaitlistClient:       waitlist_client.New(b, logger),
-		Temporal:             tp,
-		TicketClient:         supportTickets,
-		PaymentsClient:       ps,
-	})
+	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -364,11 +344,9 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	cs := country_client.New(b)
-	b.countries = cs
+	b.countries = country_client.New(b)
 
-	id := identity_client.New(b, logger)
-	b.ids = id
+	b.identity = identity_client.New(b, logger)
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
@@ -376,11 +354,9 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.pacioli = pClient
 
-	as := accounts_client.New(b, args.UsdLedgerID, logger)
-	b.accounts = as
+	b.accounts = accounts_client.New(b, args.UsdLedgerID, logger)
 
-	ts := transactions_client.New(b, logger)
-	b.transactions = ts
+	b.transactions = transactions_client.New(b, logger)
 
 	nos, err := _noop.NewService(_noop.ServiceArgs{
 		LedgerID:      args.NoopLedgerID,
@@ -404,6 +380,7 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	b.unit = unitClient
+
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
 		AccountToken: args.TwilioSecret,
@@ -420,51 +397,38 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.mxProvider = mxImpl
 
-	fs := funding_client.New(b, logger)
-	b.fundingSources = fs
+	b.fundingSources = funding_client.New(b, logger)
 
 	ds, err := deposits.NewService(&deposits.ServiceArgs{
 		Db: db,
-		As: as,
-		Is: id,
-		Fs: fs,
+		As: b.accounts,
+		Is: b.identity,
+		Fs: b.fundingSources,
 		Tp: tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.deposits = ds
 
-	ps := payments_client.New(b, logger)
-	b.payments = ps
+	b.payments = payments_client.New(b, logger)
 
-	os := onboarding_client.New(b)
+	b.onboarding = onboarding_client.New(b)
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,
-		As: as,
-		Is: id,
-		Fs: fs,
+		As: b.accounts,
+		Is: b.identity,
+		Fs: b.fundingSources,
 		Tp: tp,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
+	b.withdrawals = ws
 
 	log.Printf("Worker creating")
-	w, err := temporal.NewTemporalWorker(temporal.WorkerArgs{
-		Client: tp,
-		Ps:     ps,
-		Ds:     ds,
-		As:     as,
-		Np:     nos,
-		Ts:     ts,
-		Is:     id,
-		Os:     os,
-		Up:     unitClient,
-		Ws:     ws,
-		Fs:     fs,
-		Mx:     mxImpl,
-	}, b)
+	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -477,21 +441,67 @@ func startWorker(args *cli.StartArgs) {
 }
 
 type backends struct {
-	val            *validator.Validate
-	db             *sqlx.DB
-	ids            identity.Client
-	countries      country.Client
-	pacioli        pacioli.Client
+	val *validator.Validate
+	db  *sqlx.DB
+
 	accounts       accounts.Client
+	adminAuth      auth.Service
+	agreements     agreements.Service
+	countries      country.Client
+	deposits       deposits.Service
+	fundingSources fundingsources.Client
+	healthcheck    healthcheck.Service
+	identity       identity.Client
+	mxProvider     _mx.Client
 	noop           _noop.Service
-	temporal       client.Client
-	unit           unit.Client
-	users          user.Service
+	onboarding     onboarding.Client
+	pacioli        pacioli.Client
 	payments       payments.Client
+	rafiki         rafiki.Service
+	supportTickets supporttickets.Client
+	temporal       client.Client
 	transactions   account_transactions.Client
 	twilio         _twilio.Service
-	mxProvider     _mx.Client
-	fundingSources fundingsources.Client
+	unit           unit.Client
+	users          user.Service
+	waitlist       waitlist.Client
+	withdrawals    withdrawals.Service
+}
+
+func (b backends) Withdrawals() withdrawals.Service {
+	return b.withdrawals
+}
+
+func (b backends) HealthCheck() healthcheck.Service {
+	return b.healthcheck
+}
+
+func (b backends) Onboarding() onboarding.Client {
+	return b.onboarding
+}
+
+func (b backends) AdminAuth() auth.Service {
+	return b.adminAuth
+}
+
+func (b backends) Agreements() agreements.Service {
+	return b.agreements
+}
+
+func (b backends) Deposits() deposits.Service {
+	return b.deposits
+}
+
+func (b backends) Rafiki() rafiki.Service {
+	return b.rafiki
+}
+
+func (b backends) SupportTickets() supporttickets.Client {
+	return b.supportTickets
+}
+
+func (b backends) Waitlist() waitlist.Client {
+	return b.waitlist
 }
 
 func (b backends) Transactions() account_transactions.Client {
@@ -519,7 +529,7 @@ func (b backends) Accounts() accounts.Client {
 }
 
 func (b backends) Identity() identity.Client {
-	return b.ids
+	return b.identity
 }
 
 func (b backends) Countries() country.Client {

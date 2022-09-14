@@ -36,7 +36,7 @@ func (s *rpcService) GetQuote(
 	ctx context.Context,
 	req *backendv1.GetQuoteRequest,
 ) (*backendv1.Quote, error) {
-	if err := s.validator.Struct(&validateGetQuote{
+	if err := s.b.Validator().Struct(&validateGetQuote{
 		SendAmount:          req.GetSendAmount(),
 		SendCurrencyCode:    req.GetSendCurrencyCode(),
 		ReceiveAmount:       req.GetReceiveAmount(),
@@ -46,17 +46,17 @@ func (s *rpcService) GetQuote(
 		return nil, ValidationError(err, validateGetQuoteDescription)
 	}
 
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
-	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		return nil, InternalError("Account not found.")
 	}
 
 	// temporary until `Quoting` service is written.
-	identifier, err := s.rafikiProvider.GetIdentifierByAccountAndCurrency(
+	identifier, err := s.b.Rafiki().GetIdentifierByAccountAndCurrency(
 		ctx,
 		acc.ID,
 		"USD", // TODO: get currency from somewhere.
@@ -79,7 +79,7 @@ func (s *rpcService) GetQuote(
 		args.ReceiveAssetCode = req.GetReceiveCurrencyCode()
 		args.ReceiveAssetScale = 2 // assuming for now
 	}
-	quote, err := s.rafikiProvider.CreateQuote(ctx, args)
+	quote, err := s.b.Rafiki().CreateQuote(ctx, args)
 	if err != nil {
 		return nil, InternalError("Unable to get quote.")
 	}

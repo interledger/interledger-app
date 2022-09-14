@@ -10,17 +10,17 @@ func (s *rpcService) GetFundingsources(
 	ctx context.Context,
 	req *backendv1.Empty,
 ) (*backendv1.GetFundingsourcesResponse, error) {
-	user, err := s.userService.ForContext(ctx)
+	user, err := s.b.Users().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.accountsService.GetByIdentityID(ctx, user.ID)
+	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get account.")
 	}
 
-	fundingsources, err := s.fundingSourceService.GetByAccountId(ctx, acc.ID)
+	fundingsources, err := s.b.FundingSources().GetByAccountId(ctx, acc.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get fundingsources.")
 	}
