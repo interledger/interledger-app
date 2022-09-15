@@ -4,10 +4,18 @@ import { base64decode } from '@protobuf-ts/runtime'
 import type { RpcError } from '@protobuf-ts/runtime-rpc'
 import { BackendServiceClient } from '~/generated/protobuf-ts/backend/v1/backend_client'
 import { Any } from '~/generated/protobuf-ts/google/protobuf/any'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import {
-  BadRequest, DebugInfo, ErrorInfo, Help,
-  LocalizedMessage, PreconditionFailure, QuotaFailure, RequestInfo,
-  ResourceInfo, RetryInfo
+  BadRequest,
+  DebugInfo,
+  ErrorInfo,
+  Help,
+  LocalizedMessage,
+  PreconditionFailure,
+  QuotaFailure,
+  RequestInfo,
+  ResourceInfo,
+  RetryInfo
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
 
@@ -36,16 +44,21 @@ if (process.env.NODE_ENV === 'production') {
   grpcClient = global.__grpcClient
 }
 
-export { grpcClient, StatusError, isGrpcError }
+export { grpcClient, StatusError, httpMapping, isGrpcError }
+export type { GrpcError }
 
-export interface GrpcError {
+interface GrpcError extends Status {
   code: number
   message: string
   details: any[]
 }
 
 function isGrpcError(res: any): res is GrpcError {
-  return (res as GrpcError).details !== undefined
+  return (
+    (res as GrpcError).code !== undefined &&
+    (res as GrpcError).message !== undefined &&
+    (res as GrpcError).details !== undefined
+  )
 }
 
 /**
@@ -56,16 +69,13 @@ function isGrpcError(res: any): res is GrpcError {
  * @returns GrpcError - the error code and details
  */
 function StatusError(err: RpcError): GrpcError {
-  console.log('status err', err)
+  let status: Status | undefined
+  let details: any[] | undefined
   if (!err.meta) {
     // return null
     throw new Error('No meta on error')
   }
 
-  const message = err.message.split(': ')[2]
-
-  // get error details if any
-  let details: any[] = []
   if (err.meta['grpc-status-details-bin']) {
     const buffer = base64decode(err.meta['grpc-status-details-bin'] as string)
 
@@ -73,20 +83,24 @@ function StatusError(err: RpcError): GrpcError {
       // return null
     }
 
-    let status: Status | undefined
-
     status = Status.fromBinary(buffer)
     details = status.details
       .map((detail) => {
         return Any.unpack(detail, typeRegistry[detail.typeUrl]) || null
       })
       .filter(Boolean)
+
+    return {
+      code: status.code,
+      message: status.message,
+      details
+    }
   }
 
   return {
-    code: +err.code,
-    message: message,
-    details
+    code: codeMapping(err.code),
+    message: 'Status without details',
+    details: []
   }
 }
 
@@ -101,4 +115,77 @@ const typeRegistry: Record<string, any> = {
   'type.googleapis.com/google.rpc.Help': Help,
   'type.googleapis.com/google.rpc.LocalizedMessage': LocalizedMessage,
   'type.googleapis.com/google.rpc.ErrorInfo': ErrorInfo
+}
+
+function httpMapping(code: Code): ResponseInit | undefined {
+  switch (code) {
+    case Code.OK:
+      return { status: 200, statusText: 'OK' }
+    case Code.INVALID_ARGUMENT:
+    case Code.FAILED_PRECONDITION:
+    case Code.OUT_OF_RANGE:
+      return { status: 400, statusText: 'Bad Request' }
+    case Code.UNAUTHENTICATED:
+      return { status: 401, statusText: 'Unauthorized' }
+    case Code.PERMISSION_DENIED:
+      return { status: 403, statusText: 'Forbidden' }
+    case Code.NOT_FOUND:
+      return { status: 404, statusText: 'Not Found' }
+    case Code.ALREADY_EXISTS:
+    case Code.ABORTED:
+      return { status: 409, statusText: 'Conflict' }
+    case Code.RESOURCE_EXHAUSTED:
+      return { status: 429, statusText: 'Too Many Requests' }
+    case Code.CANCELLED:
+      return { status: 499, statusText: 'Client Closed Request' }
+    case Code.UNKNOWN:
+    case Code.INTERNAL:
+    case Code.DATA_LOSS:
+      return { status: 500, statusText: 'Internal Server Error' }
+    case Code.UNIMPLEMENTED:
+      return { status: 501, statusText: 'Not Implemented' }
+    case Code.UNAVAILABLE:
+      return { status: 503, statusText: 'Service Unavailable' }
+    case Code.DEADLINE_EXCEEDED:
+      return { status: 504, statusText: 'Gateway Timeout' }
+  }
+}
+
+function codeMapping(code: string): Code {
+  switch (code) {
+    case 'INVALID_ARGUMENT':
+      return Code.INVALID_ARGUMENT
+    case 'FAILED_PRECONDITION':
+      return Code.FAILED_PRECONDITION
+    case 'OUT_OF_RANGE':
+      return Code.OUT_OF_RANGE
+    case 'UNAUTHENTICATED':
+      return Code.UNAUTHENTICATED
+    case 'PERMISSION_DENIED':
+      return Code.PERMISSION_DENIED
+    case 'NOT_FOUND':
+      return Code.NOT_FOUND
+    case 'ALREADY_EXISTS':
+      return Code.ALREADY_EXISTS
+    case 'ABORTED':
+      return Code.ABORTED
+    case 'RESOURCE_EXHAUSTED':
+      return Code.RESOURCE_EXHAUSTED
+    case 'CANCELLED':
+      return Code.CANCELLED
+    case 'UNKNOWN':
+      return Code.UNKNOWN
+    case 'INTERNAL':
+      return Code.INTERNAL
+    case 'DATA_LOSS':
+      return Code.DATA_LOSS
+    case 'UNIMPLEMENTED':
+      return Code.UNIMPLEMENTED
+    case 'UNAVAILABLE':
+      return Code.UNAVAILABLE
+    case 'DEADLINE_EXCEEDED':
+      return Code.DEADLINE_EXCEEDED
+    default:
+      return Code.OK
+  }
 }
