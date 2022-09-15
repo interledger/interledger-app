@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	agreements_client "gitlab.com/fynbos/backend/agreements/client"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -71,7 +73,7 @@ type TestContainer struct {
 	PacioliLedgerID uint32
 	ValidatorImpl   *validator.Validate
 	Auth            auth.Service
-	AgreementsImpl  agreements.Service
+	AgreementsImpl  agreements.Client
 	DepositsImpl    *deposits.MockService
 	Mx              *mx_mock.MockClient
 	PaymentsImpl    *payments_mock.MockClient
@@ -85,7 +87,7 @@ func (c *TestContainer) AdminAuth() auth.Service {
 	return c.Auth
 }
 
-func (c *TestContainer) Agreements() agreements.Service {
+func (c *TestContainer) Agreements() agreements.Client {
 	return c.AgreementsImpl
 }
 
@@ -240,14 +242,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	att := auth.NewMockService()
 	c.Auth = att
 
-	ags, err := agreements.NewService(&agreements.ServiceArgs{
-		Db: db,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.AgreementsImpl = ags
-
+	c.AgreementsImpl = agreements_client.New(c)
 	c.Ctrl = gomock.NewController(t)
 	c.Up = unit_mock.NewMockClient(c.Ctrl)
 	c.Fs = funding_mock.NewMockClient(c.Ctrl)

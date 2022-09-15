@@ -22,6 +22,8 @@ import (
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
+	agreements_client "gitlab.com/fynbos/backend/agreements/client"
+	agreements_migrations "gitlab.com/fynbos/backend/agreements/migrations"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -52,7 +54,6 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 	"gitlab.com/fynbos/backend/withdrawals"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"go.temporal.io/sdk/client"
@@ -266,13 +267,7 @@ func start(args *cli.StartArgs) {
 	}
 	b.adminAuth = auth.NewLoggingService(adminUsers, logger)
 
-	ags, err := agreements.NewService(&agreements.ServiceArgs{
-		Db: db,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.agreements = ags
+	b.agreements = agreements_client.New(b)
 
 	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
@@ -307,10 +302,7 @@ func migrate(args *cli.MigrationArgs) {
 		}
 	}()
 
-	err = agreements.MigrateFromEmbeddedMarkdowns(context.Background(), &agreements.MigrateFromEmbeddedMarkdownArgs{
-		Db:        db,
-		FynbosEnv: env.GetEnv(),
-	})
+	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), db)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -446,7 +438,7 @@ type backends struct {
 
 	accounts       accounts.Client
 	adminAuth      auth.Service
-	agreements     agreements.Service
+	agreements     agreements.Client
 	countries      country.Client
 	deposits       deposits.Service
 	fundingSources fundingsources.Client
@@ -484,7 +476,7 @@ func (b backends) AdminAuth() auth.Service {
 	return b.adminAuth
 }
 
-func (b backends) Agreements() agreements.Service {
+func (b backends) Agreements() agreements.Client {
 	return b.agreements
 }
 

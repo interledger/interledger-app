@@ -24,7 +24,7 @@ import (
 type Backends interface {
 	Accounts() accounts.Client
 	AdminAuth() auth.Service
-	Agreements() agreements.Service
+	Agreements() agreements.Client
 	Deposits() deposits.Service
 	FundingSources() fundingsources.Client
 	HealthCheck() healthcheck.Service

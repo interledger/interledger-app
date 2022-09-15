@@ -16,6 +16,7 @@ import (
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
+	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
@@ -49,7 +50,7 @@ import (
 type TestContainer struct {
 	HealthService        healthcheck.Service
 	AccountService       *accounts_mock.MockClient
-	AgreementsService    *agreements.MockService
+	AgreementsService    *agreements_mock.MockClient
 	IdentityService      *identity_mock.MockClient
 	AdminAuthService     auth.Service
 	UserService          user.Service
@@ -78,7 +79,7 @@ func (t TestContainer) AdminAuth() auth.Service {
 	return t.AdminAuthService
 }
 
-func (t TestContainer) Agreements() agreements.Service {
+func (t TestContainer) Agreements() agreements.Client {
 	return t.AgreementsService
 }
 
@@ -151,7 +152,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	c := &TestContainer{
 		HealthService:        hs,
 		AccountService:       accounts_mock.NewMockClient(ctrl),
-		AgreementsService:    agreements.NewMockService(ctrl),
+		AgreementsService:    agreements_mock.NewMockClient(ctrl),
 		IdentityService:      identity_mock.NewMockClient(ctrl),
 		AdminAuthService:     auth.NewMockService(),
 		UserService:          user.NewMockService(),
