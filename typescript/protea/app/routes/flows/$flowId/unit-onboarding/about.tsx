@@ -9,7 +9,12 @@ import { apolloClient } from '~/lib/apollo.server'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
 import { DateTime } from 'luxon'
-import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import { useScript } from '~/lib/useScript'
 
@@ -252,7 +257,7 @@ export async function action({ request, params }: ActionArgs) {
     .catch(StatusError)
 
   if (isGrpcError(response)) {
-    throw response
+    throw json({}, httpMapping(response.code))
   }
 
   const headers = await exitFlow(request)

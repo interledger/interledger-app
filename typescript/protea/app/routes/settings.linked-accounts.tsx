@@ -3,7 +3,12 @@ import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
-import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
@@ -20,7 +25,7 @@ export async function loader({ request }: LoaderArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw response
+    throw json({}, httpMapping(response.code))
   }
 
   const linkedAccounts = response.response.fundingsources.map((fs) => ({

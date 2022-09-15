@@ -1,6 +1,12 @@
-import { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { requireUserSession } from '~/lib/kratos.server'
-import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  StatusError,
+  isGrpcError,
+  httpMapping
+} from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   await requireUserSession(request)
@@ -19,7 +25,7 @@ export async function loader({ request, params }: LoaderArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(res)) {
-    throw res
+    throw json({}, httpMapping(res.code))
   }
 
   const statement = res.response.statementPdf

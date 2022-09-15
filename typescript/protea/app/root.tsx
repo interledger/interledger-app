@@ -102,7 +102,7 @@ export default function Page() {
 export function ErrorBoundary({ error }: { error: Error }) {
   return (
     <Document title='An error occurred.'>
-      <Error data={{ body: error.message }} />
+      <Error data={{ title: error.message }} />
     </Document>
   )
 }
@@ -111,7 +111,11 @@ export function CatchBoundary() {
   const caught = useCatch()
   return (
     <Document title='An error occurred.'>
-      <Error status={caught.status} data={caught.data} />
+      <Error
+        status={caught.status}
+        statusText={caught.statusText}
+        data={caught.data}
+      />
     </Document>
   )
 }

@@ -3,8 +3,14 @@ import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon } from '~/components'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { requireUserSession } from '~/lib/kratos.server'
-import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  StatusError,
+  isGrpcError,
+  httpMapping
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -22,15 +28,12 @@ export async function loader({ request }: LoaderArgs) {
     .catch(StatusError)
 
   if (isGrpcError(res)) {
-    if (
-      res.message == 'Failed to find customer.' ||
-      res.message == 'No statements found.'
-    ) {
+    if (res.code == Code.NOT_FOUND) {
       return json({
         statements: []
       })
     }
-    throw res
+    throw json({}, httpMapping(res.code))
   }
 
   const statements = res.response.statements.map((statement) => ({
