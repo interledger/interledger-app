@@ -18,48 +18,61 @@ func TestAddSignup(t *testing.T) {
 	b := ops.NewBackends(t, db, validator.New())
 
 	cases := []struct {
-		name    string
-		email   string
-		country string
-		err     error
+		name     string
+		email    string
+		country  string
+		fullName string
+		err      error
 	}{
 		{
-			name:    "success",
+			name:     "success",
+			email:    "signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+		},
+		{
+			name:     "duplicate",
+			email:    "signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+		},
+		{
+			name:     "duplicate new country",
+			email:    "signup@fynbos.dev",
+			country:  "GB",
+			fullName: "Bob",
+		},
+		{
+			name:     "invalid email",
+			email:    "blahblah",
+			country:  "GB",
+			fullName: "Bob",
+			err:      waitlist.ErrInvalidEmail,
+		},
+		{
+			name:     "invalid country",
+			email:    "nocountry@fynbos.dev",
+			country:  "LALA",
+			fullName: "Bob",
+			err:      waitlist.ErrInvalidCountry,
+		},
+		{
+			name:     "empty country",
+			email:    "nocountry@fynbos.dev",
+			fullName: "Bob",
+			err:      waitlist.ErrInvalidCountry,
+		},
+		{
+			name:    "empty name",
 			email:   "signup@fynbos.dev",
 			country: "ZA",
-		},
-		{
-			name:    "duplicate",
-			email:   "signup@fynbos.dev",
-			country: "ZA",
-		},
-		{
-			name:    "duplicate new country",
-			email:   "signup@fynbos.dev",
-			country: "GB",
-		},
-		{
-			name:    "invalid email",
-			email:   "blahblah",
-			country: "GB",
-			err:     waitlist.ErrInvalidEmail,
-		},
-		{
-			name:    "invalid country",
-			email:   "nocountry@fynbos.dev",
-			country: "LALA",
-			err:     waitlist.ErrInvalidCountry,
-		},
-		{
-			name:  "empty country",
-			email: "nocountry@fynbos.dev",
-			err:   waitlist.ErrInvalidCountry,
+			err:     waitlist.ErrInvalidName,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName)
 			if tc.err == nil {
 				assert.NoError(t, err)
 				return

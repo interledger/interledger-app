@@ -23,7 +23,7 @@ func New(b ops.Backends, logger *zap.Logger) waitlist.Client {
 	}
 }
 
-func (c client) Add(ctx context.Context, email, countryCode string) (err error) {
+func (c client) Add(ctx context.Context, email, countryCode, fullName string) (err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
@@ -40,5 +40,5 @@ func (c client) Add(ctx context.Context, email, countryCode string) (err error) 
 		)
 	}(time.Now())
 
-	return ops.AddSignup(ctx, c.b, email, countryCode)
+	return ops.AddSignup(ctx, c.b, email, countryCode, fullName)
 }

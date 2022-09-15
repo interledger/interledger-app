@@ -15,11 +15,12 @@ func TestJoinWaitlist(t *testing.T) {
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
 
-	c.WaitlistClient.EXPECT().Add(gomock.Any(), "join@fynbos.dev", "ZA").Return(nil).Times(1)
+	c.WaitlistClient.EXPECT().Add(gomock.Any(), "join@fynbos.dev", "ZA", "Bob").Return(nil).Times(1)
 
 	_, err := client.JoinWaitlist(context.Background(), &pb.JoinWaitlistRequest{
 		Email:       "join@fynbos.dev",
 		CountryCode: "ZA",
+		FullName:    "Bob",
 	})
 	assert.NoError(t, err)
 }
