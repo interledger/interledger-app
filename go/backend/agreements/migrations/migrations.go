@@ -1,0 +1,162 @@
+package migrations
+
+import (
+	"context"
+	"embed"
+	"fmt"
+	"os"
+	"regexp"
+	"strings"
+
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/agreements"
+	"gitlab.com/fynbos/env"
+)
+
+//go:embed assets/*
+var fs embed.FS
+
+func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
+	agreementFiles, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrNotFound, err.Error())
+	}
+
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	regex, err := regexp.Compile(`^[a-zA-Z0-9_]+-[0-9]+\.[0-9]+\.[0-9]+\.md$`)
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+	defer txStmt.Close()
+
+	var agreementIDs []string
+	err = tx.SelectContext(ctx, &agreementIDs, "SELECT id FROM agreements")
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	// convert to map for faster lookup
+	agreementsMap := make(map[string]bool)
+	for _, agreement := range agreementIDs {
+		agreementsMap[agreement] = true
+	}
+
+	for _, agreementFile := range agreementFiles {
+		if !regex.MatchString(agreementFile.Name()) {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, "invalid agreement file name format")
+		}
+
+		agreementID := agreementFile.Name()[:len(agreementFile.Name())-3]
+		if _, ok := agreementsMap[agreementID]; ok {
+			continue
+		}
+
+		agreementName := agreementID[:strings.Index(agreementID, "-")]
+		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
+
+		agreementContent, err := os.ReadFile(fmt.Sprintf("%s/%s", dir, agreementFile.Name()))
+		if err != nil {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		}
+
+		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
+		if err != nil {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	return nil
+}
+
+func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) error {
+	dir := fmt.Sprintf("assets/%s", env.GetEnv())
+	agreementFiles, err := fs.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrNotFound, err)
+	}
+
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err = tx.Rollback()
+	}()
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	regex, err := regexp.Compile(`^[a-zA-Z0-9_]+-[0-9]+\.[0-9]+\.[0-9]+\.md$`)
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+	defer txStmt.Close()
+
+	var agreementIDs []string
+	err = tx.SelectContext(ctx, &agreementIDs, "SELECT id FROM agreements")
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	// convert to map for faster lookup
+	agreementsMap := make(map[string]bool)
+	for _, agreement := range agreementIDs {
+		agreementsMap[agreement] = true
+	}
+
+	for _, agreementFile := range agreementFiles {
+		if !regex.MatchString(agreementFile.Name()) {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, "invalid agreement file name format")
+		}
+
+		agreementID := agreementFile.Name()[:len(agreementFile.Name())-3]
+		if _, ok := agreementsMap[agreementID]; ok {
+			continue
+		}
+
+		agreementName := agreementID[:strings.Index(agreementID, "-")]
+		agreementVersion := agreementID[strings.Index(agreementID, "-")+1:]
+
+		agreementContent, err := fs.ReadFile(fmt.Sprintf("%s/%s", dir, agreementFile.Name()))
+		if err != nil {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		}
+
+		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
+		if err != nil {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	}
+
+	return nil
+}

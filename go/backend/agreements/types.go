@@ -1,0 +1,25 @@
+package agreements
+
+type Signature struct {
+	ID          string `db:"id"`
+	AgreementID string `db:"agreement_id"`
+	IdentityID  string `db:"identity_id"`
+	IPAddress   string `db:"ip_address"`
+	CreatedAt   string `db:"created_at"`
+	UpdatedAt   string `db:"updated_at"`
+}
+
+type Agreement struct {
+	ID        string `db:"id"`
+	Name      string `db:"name"`
+	Version   string `db:"version"`
+	Content   string `db:"content"`
+	CreatedAt string `db:"created_at"`
+	UpdatedAt string `db:"updated_at"`
+}
+
+type SignArgs struct {
+	AgreementIDs []string `validate:"required"`
+	IdentityID   string   `validate:"required"`
+	IPAddress    string   `validate:"required,ip_addr"`
+}
