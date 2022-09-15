@@ -6,6 +6,7 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, TextField } from '~/components'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
+import { httpMapping } from '~/lib/proto.server'
 import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
 import type { CountryCode } from 'libphonenumber-js'
 import { parsePhoneNumber } from 'libphonenumber-js'
@@ -174,7 +175,7 @@ export async function action({ request, params }: ActionArgs) {
         if (field != null) fieldErrors[field] = violation.description
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw response
+    } else throw json({}, httpMapping(response.code))
   }
 
   const headers = await updateFlow(request, {

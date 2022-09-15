@@ -4,7 +4,8 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Button, TextField } from '~/components'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
-import { grpcClient, GrpcError, isGrpcError, StatusError } from '~/lib/proto.server'
+import type { GrpcError } from '~/lib/proto.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)

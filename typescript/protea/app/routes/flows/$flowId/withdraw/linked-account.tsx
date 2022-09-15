@@ -6,7 +6,12 @@ import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Button, Router, Icon, RadioGroup } from '~/components'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
-import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
@@ -25,7 +30,7 @@ export async function loader({ request, params }: LoaderArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw response
+    throw json({}, httpMapping(response.code))
   }
 
   const linkedAccounts = response.response.fundingsources.map((fs) => ({

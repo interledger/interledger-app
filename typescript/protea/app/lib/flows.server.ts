@@ -84,10 +84,9 @@ export async function requireFlow(
       if (!currentFlow)
         throw json(
           {
-            title: 'Your flow is invalid',
-            body: 'Expected specific flow type, but found something else.'
+            title: 'Expected specific flow type, but found something else.'
           },
-          { status: 400 }
+          { status: 400, statusText: 'Bad Request' }
         )
       flows.push(currentFlow)
     }
@@ -141,10 +140,9 @@ export async function updateFlow(
   }
   throw json(
     {
-      title: 'Your flow is invalid',
-      body: "Can't update/complete a flow that doesn't exist"
+      title: "Can't update/complete a flow that doesn't exist"
     },
-    { status: 400 }
+    { status: 400, statusText: 'Bad Request' }
   )
 }
 
@@ -173,11 +171,13 @@ export async function exitFlow(request: Request): Promise<Headers> {
   } else if (exitedFlow) {
     return headers
   }
-  throw json({
-    title: 'Your flow has expired',
-    body: 'Your flow timed out, please restart it to continue.',
-    action: { text: 'Restart flow' }
-  })
+  throw json(
+    {
+      title: 'Your flow timed out, please restart it to continue.',
+      action: { text: 'Restart flow' }
+    },
+    { status: 504, statusText: 'Gateway Timeout' }
+  )
 }
 
 const flowTemplate = (id: string, type: string): Flow | undefined => {

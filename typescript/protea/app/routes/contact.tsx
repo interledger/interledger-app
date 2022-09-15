@@ -2,12 +2,9 @@ import type { ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { Button, TextArea, TextField } from '~/components'
-import {
-  grpcClient,
-  GrpcError,
-  isGrpcError,
-  StatusError
-} from '../lib/proto.server'
+import type { GrpcError } from '../lib/proto.server'
+import { httpMapping } from '../lib/proto.server'
+import { grpcClient, isGrpcError, StatusError } from '../lib/proto.server'
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
@@ -158,7 +155,7 @@ export async function action({ request }: ActionArgs) {
         if (field != null) fieldErrors[field] = violation.description
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw response
+    } else throw json({}, httpMapping(response.code))
   }
 
   return redirect('/contact/success')

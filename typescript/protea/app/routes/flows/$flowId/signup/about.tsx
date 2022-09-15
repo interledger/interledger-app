@@ -11,6 +11,7 @@ import { SignupDocument } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
+import { httpMapping } from '~/lib/proto.server'
 import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 type Country = {
@@ -216,7 +217,7 @@ export async function action({ request, params }: ActionArgs) {
         if (field != null) fieldErrors[field] = violation.description
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw response
+    } else throw json({}, httpMapping(response.code))
   }
 
   const id = (response as FinishedUnaryCall<Onboarding, Onboarding>).response.id

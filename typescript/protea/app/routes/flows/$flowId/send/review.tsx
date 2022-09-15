@@ -6,19 +6,16 @@ import { Button, TextField } from '~/components'
 import { updateFlow, getCurrentFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import { requireUserSession } from '~/lib/kratos.server'
-import {
-  grpcClient,
-  GrpcError,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
+import type { GrpcError } from '~/lib/proto.server'
+import { httpMapping } from '~/lib/proto.server'
+import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
 
   await requireUserSession(request)
 
-  const resp = await grpcClient
+  const response = await grpcClient
     .getIdentity(
       {},
       {
@@ -29,11 +26,11 @@ export async function loader({ request, params }: LoaderArgs) {
     )
     .then((v) => v)
     .catch(StatusError)
-  if (isGrpcError(resp)) {
-    throw resp
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
   }
 
-  const identity = resp.response
+  const identity = response.response
 
   const otpResp = await grpcClient
     .sendOTP(
@@ -162,7 +159,7 @@ export async function action({ request, params }: ActionArgs) {
         if (field != null) fieldErrors[field] = violation.description
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw response
+    } else throw json({}, httpMapping(response.code))
   }
 
   const headers = await updateFlow(request, null, true)
