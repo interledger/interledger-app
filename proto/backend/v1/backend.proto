@@ -231,6 +231,7 @@ message InitiateDepositResponse {
 message JoinWaitlistRequest {
   string email = 1;
   string country_code = 2;
+  string full_name = 3;
 }
 
 message JoinWaitlistResponse {}
