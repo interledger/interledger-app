@@ -41,7 +41,7 @@ export function LandingLayout() {
     location.pathname.includes('flows') || location.pathname.includes('login')
 
   return (
-    <div className='relative w-full bg-white'>
+    <div className='relative flex min-h-screen w-full flex-col bg-white'>
       {!isApp && (
         <>
           <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
@@ -68,7 +68,7 @@ export function LandingLayout() {
               </div>
               <div className='hidden items-center lg:flex'>
                 <div className='flex space-x-10 pt-3 pb-2'>
-                  <Router to={route('/login')}>
+                  <Router to={route('/waitlist')}>
                     <span className='text-sm font-medium'>
                       Join the waitlist
                     </span>
@@ -81,9 +81,11 @@ export function LandingLayout() {
           <div className='mb-16 lg:mb-24' />
         </>
       )}
-      <Outlet />
+      <div className='grow'>
+        <Outlet />
+      </div>
       {!isApp && (
-        <footer className='w-full overflow-hidden bg-[#0B2045]'>
+        <footer className='w-full flex-shrink-0 overflow-hidden bg-[#0B2045]'>
           <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
             <div className='relative col-span-full h-20'>
               <div className='absolute right-64 top-0 h-20 w-20 rounded-full bg-slate-600 lg:right-36' />
