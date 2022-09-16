@@ -55,6 +55,7 @@ import (
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
+	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
@@ -214,6 +215,8 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	b.waitlist = waitlist_client.New(b, logger)
 
 	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
 		Db: db,

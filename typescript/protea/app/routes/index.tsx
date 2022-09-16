@@ -1,4 +1,3 @@
-import { Disclosure } from '@headlessui/react'
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
@@ -285,98 +284,99 @@ function MarketingPage() {
         </div>
       </section>
       <div className='w-full bg-slate-50'>
-        <section className='mx-auto grid w-full grid-cols-4 content-start  gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-          <div className='col-span-full mt-20'>
-            <span className='font-display text-2xl lg:text-4xl'>
-              Frequently asked questions
+        {/*  <section className='mx-auto grid w-full grid-cols-4 content-start  gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>*/}
+        {/*    <div className='col-span-full mt-20'>*/}
+        {/*      <span className='font-display text-2xl lg:text-4xl'>*/}
+        {/*        Frequently asked questions*/}
+        {/*      </span>*/}
+        {/*    </div>*/}
+        {/*    <div className='col-span-full mt-6 mb-20 rounded-xl border border-slate-200 bg-white px-8'>*/}
+        {/*      <Disclosure>*/}
+        {/*        {({ open }) => (*/}
+        {/*          <>*/}
+        {/*            <Disclosure.Button className='flex w-full items-center justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-focus'>*/}
+        {/*              <span className={`${open && 'text-primary'}`}>*/}
+        {/*                What is your refund policy?*/}
+        {/*              </span>*/}
+        {/*              <Icon*/}
+        {/*                className={`${*/}
+        {/*                  open && 'rotate-180 transform text-primary'*/}
+        {/*                }`}*/}
+        {/*              >*/}
+        {/*                expand_more*/}
+        {/*              </Icon>*/}
+        {/*            </Disclosure.Button>*/}
+        {/*            <Disclosure.Panel className='border-b border-slate-200 py-4 text-sm last:border-0 last:pb-2'>*/}
+        {/*              If you're unhappy with your purchase for any reason, email*/}
+        {/*              us within 90 days and we'll refund you in full, no questions*/}
+        {/*              asked.*/}
+        {/*            </Disclosure.Panel>*/}
+        {/*          </>*/}
+        {/*        )}*/}
+        {/*      </Disclosure>*/}
+        {/*      <Disclosure as='div'>*/}
+        {/*        {({ open }) => (*/}
+        {/*          <>*/}
+        {/*            <Disclosure.Button className='flex w-full justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-focus'>*/}
+        {/*              <span className={`${open && 'text-primary'}`}>*/}
+        {/*                Do you offer technical support?*/}
+        {/*              </span>*/}
+        {/*              <Icon*/}
+        {/*                className={`${*/}
+        {/*                  open && 'rotate-180 transform text-primary'*/}
+        {/*                }`}*/}
+        {/*              >*/}
+        {/*                expand_more*/}
+        {/*              </Icon>*/}
+        {/*            </Disclosure.Button>*/}
+        {/*            <Disclosure.Panel className='border-b border-slate-200 py-4 text-sm last:border-0 last:pb-2'>*/}
+        {/*              This is the first item's accordion body. It is shown by*/}
+        {/*              default, until the collapse plugin adds the appropriate*/}
+        {/*              classes that we use to style each element. These classes*/}
+        {/*              control the overall appearance, as well as the showing and*/}
+        {/*              hiding via CSS transitions. You can modify any of this with*/}
+        {/*              custom CSS or overriding our default variables. It's also*/}
+        {/*              worth noting that just about any HTML can go within the*/}
+        {/*              .accordion-body, though the transition does limit overflow.*/}
+        {/*            </Disclosure.Panel>*/}
+        {/*          </>*/}
+        {/*        )}*/}
+        {/*      </Disclosure>*/}
+        {/*    </div>*/}
+        {/*    <div className='relative col-span-full h-20'>*/}
+        {/*      <div className='absolute top-0 -left-8 h-20 w-20 rounded-tr-full bg-app lg:-left-40' />*/}
+        {/*      <div className='absolute top-0 left-12 h-20 w-20 rounded-br-full bg-app lg:-left-20' />*/}
+        {/*    </div>*/}
+        {/*  </section>*/}
+        {/*</div>*/}
+        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+          <div className='col-span-full mt-12 flex items-center justify-center lg:col-span-6 lg:col-start-2 lg:my-20 lg:justify-start'>
+            <span className='font-display text-3xl font-medium'>
+              Ready to get started?
             </span>
           </div>
-          <div className='col-span-full mt-6 mb-20 rounded-xl border border-slate-200 bg-white px-8'>
-            <Disclosure>
-              {({ open }) => (
-                <>
-                  <Disclosure.Button className='flex w-full items-center justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-focus'>
-                    <span className={`${open && 'text-primary'}`}>
-                      What is your refund policy?
-                    </span>
-                    <Icon
-                      className={`${
-                        open && 'rotate-180 transform text-primary'
-                      }`}
-                    >
-                      expand_more
-                    </Icon>
-                  </Disclosure.Button>
-                  <Disclosure.Panel className='border-b border-slate-200 py-4 text-sm last:border-0 last:pb-2'>
-                    If you're unhappy with your purchase for any reason, email
-                    us within 90 days and we'll refund you in full, no questions
-                    asked.
-                  </Disclosure.Panel>
-                </>
-              )}
-            </Disclosure>
-            <Disclosure as='div'>
-              {({ open }) => (
-                <>
-                  <Disclosure.Button className='flex w-full justify-between border-b border-slate-200 py-6 text-sm last:border-0 focus:outline-none focus-visible:ring focus-visible:ring-focus'>
-                    <span className={`${open && 'text-primary'}`}>
-                      Do you offer technical support?
-                    </span>
-                    <Icon
-                      className={`${
-                        open && 'rotate-180 transform text-primary'
-                      }`}
-                    >
-                      expand_more
-                    </Icon>
-                  </Disclosure.Button>
-                  <Disclosure.Panel className='border-b border-slate-200 py-4 text-sm last:border-0 last:pb-2'>
-                    This is the first item's accordion body. It is shown by
-                    default, until the collapse plugin adds the appropriate
-                    classes that we use to style each element. These classes
-                    control the overall appearance, as well as the showing and
-                    hiding via CSS transitions. You can modify any of this with
-                    custom CSS or overriding our default variables. It's also
-                    worth noting that just about any HTML can go within the
-                    .accordion-body, though the transition does limit overflow.
-                  </Disclosure.Panel>
-                </>
-              )}
-            </Disclosure>
+          <div className='col-span-full mb-12 mt-6 lg:col-span-3 lg:col-start-9 lg:my-20'>
+            <Router
+              to={route('/waitlist')}
+              className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary'
+            >
+              <span className='font-display font-medium text-white'>
+                Join the waitlist
+              </span>
+            </Router>
           </div>
-          <div className='relative col-span-full h-20'>
-            <div className='absolute top-0 -left-8 h-20 w-20 rounded-tr-full bg-app lg:-left-40' />
-            <div className='absolute top-0 left-12 h-20 w-20 rounded-br-full bg-app lg:-left-20' />
-          </div>
+          {/*<div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>*/}
+          {/*<Router*/}
+          {/*  to={route('/contact')}*/}
+          {/*  className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus'*/}
+          {/*>*/}
+          {/*  <span className='font-display font-medium text-primary'>*/}
+          {/*    Contact us*/}
+          {/*  </span>*/}
+          {/*</Router>*/}
+          {/*</div>*/}
         </section>
       </div>
-      <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        <div className='col-span-full mt-12 flex items-center justify-center lg:col-span-6 lg:col-start-2 lg:my-20 lg:justify-start'>
-          <span className='font-display text-3xl font-medium'>
-            Ready to get started?
-          </span>
-        </div>
-        <div className='col-span-full mt-6 lg:col-span-3 lg:col-start-9 lg:my-20'>
-          <Router
-            to={route('/waitlist')}
-            className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary'
-          >
-            <span className='font-display font-medium text-white'>
-              Join the waitlist
-            </span>
-          </Router>
-        </div>
-        {/*<div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>*/}
-        {/*<Router*/}
-        {/*  to={route('/contact')}*/}
-        {/*  className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus'*/}
-        {/*>*/}
-        {/*  <span className='font-display font-medium text-primary'>*/}
-        {/*    Contact us*/}
-        {/*  </span>*/}
-        {/*</Router>*/}
-        {/*</div>*/}
-      </section>
     </main>
   )
 }
