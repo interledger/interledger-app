@@ -9,16 +9,18 @@ import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const cookie = request.headers.get('cookie') || ''
-  let rpc = await grpcClient.getBankAccountDetails(
-    {
-      fundingsourceId: flow?.data.fundingsourceId,
-    }, 
-    {
-      meta: {
-        cookies: cookie
+  let rpc = await grpcClient
+    .getBankAccountDetails(
+      {
+        fundingsourceId: flow?.data.fundingsourceId
+      },
+      {
+        meta: {
+          cookies: cookie
+        }
       }
-    }
-  ).then((v) => v)
+    )
+    .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
     throw rpc
@@ -28,12 +30,13 @@ export async function loader({ request, params }: LoaderArgs) {
     flow,
     accountNumber: rpc.response.mask,
     institution: rpc.response.institution,
-    type: rpc.response.type,
+    type: rpc.response.type
   })
 }
 
 export default function Page() {
-  const { flow, accountNumber, institution, type } = useLoaderData<typeof loader>()
+  const { flow, accountNumber, institution, type } =
+    useLoaderData<typeof loader>()
   const { nickname } = flow?.data
   return (
     <>
