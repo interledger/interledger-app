@@ -7,8 +7,12 @@ import { updateFlow, getCurrentFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import { requireUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
-import { httpMapping } from '~/lib/proto.server'
-import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)

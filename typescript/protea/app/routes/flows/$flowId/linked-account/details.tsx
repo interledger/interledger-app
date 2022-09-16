@@ -1,7 +1,7 @@
 import { ConnectWidget } from '@mxenabled/web-widget-sdk'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
@@ -30,7 +30,6 @@ export async function loader({ request, params }: LoaderArgs) {
 export default function Page() {
   const submit = useSubmit()
   const { widgetUrl, flow } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
 
   useEffect(function () {
     const widget = new ConnectWidget({
@@ -41,15 +40,21 @@ export default function Page() {
         formData.append('memberGuid', event.member_guid)
         formData.append('userGuid', event.user_guid)
 
-        submit(formData, { method: 'post', action: `/flows/${flow.id}/linked-account/details` })
+        submit(formData, {
+          method: 'post',
+          action: `/flows/${flow.id}/linked-account/details`
+        })
         widget.unmount()
       }
     })
-  }, [])
+  })
 
   return (
     <>
-      <div id='widget' className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4 h-screen'></div>
+      <div
+        id='widget'
+        className='col-span-full h-screen sm:col-span-6 sm:col-start-2 lg:col-start-4'
+      ></div>
     </>
   )
 }
@@ -62,7 +67,7 @@ export async function action({ request, params }: ActionArgs) {
     .addBankAccount(
       {
         memberGuid,
-        userGuid,
+        userGuid
       },
       {
         meta: {
@@ -79,7 +84,7 @@ export async function action({ request, params }: ActionArgs) {
   const headers = await updateFlow(request, {
     memberGuid: memberGuid,
     userGuid: userGuid,
-    fundingsourceId: rpc.response.fundingsourceId,
+    fundingsourceId: rpc.response.fundingsourceId
   })
 
   const flow = await getCurrentFlow(request, params)

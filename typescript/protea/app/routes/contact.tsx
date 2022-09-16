@@ -2,9 +2,13 @@ import type { ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { Button, TextArea, TextField } from '~/components'
-import type { GrpcError } from '../lib/proto.server'
-import { httpMapping } from '../lib/proto.server'
-import { grpcClient, isGrpcError, StatusError } from '../lib/proto.server'
+import type { GrpcError } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
