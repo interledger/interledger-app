@@ -2,7 +2,6 @@ import { NavLink, Outlet, useLocation } from '@remix-run/react'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
-import { Button } from '../Button'
 import { Icon } from '../icons'
 import { Logo } from '../Logo'
 import { Router } from '../Routes'
@@ -58,11 +57,11 @@ export function LandingLayout() {
                   <Logo className='ml-4 h-7 lg:ml-0' />
                 </Router>
                 <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
-                  <HeaderLink
+                  {/* <HeaderLink
                     to={route('/what-is-a-payment-pointer')}
                     title='What is a payment pointer?'
                   />
-                  <HeaderLink to={route('/about')} title='About' />
+                  <HeaderLink to={route('/about')} title='About' /> */}
                   <HeaderLink to={route('/legal')} title='Legal' />
                   <HeaderLink to={route('/contact')} title='Contact' />
                 </div>
@@ -70,10 +69,9 @@ export function LandingLayout() {
               <div className='hidden items-center lg:flex'>
                 <div className='flex space-x-10 pt-3 pb-2'>
                   <Router to={route('/login')}>
-                    <span className='text-sm font-medium'>Log in</span>
-                  </Router>
-                  <Router to={route('/signup')}>
-                    <span className='text-sm font-medium'>Sign up</span>
+                    <span className='text-sm font-medium'>
+                      Join the waitlist
+                    </span>
                   </Router>
                 </div>
               </div>
@@ -104,14 +102,14 @@ export function LandingLayout() {
             </div>
             <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-4'>
               <span className='text-sm font-medium text-white'>Menu</span>
-              <Router to={route('/what-is-a-payment-pointer')}>
+              {/* <Router to={route('/what-is-a-payment-pointer')}>
                 <span className='pt-1.5 text-sm text-white'>
                   What is a payment pointer?
                 </span>
               </Router>
               <Router to={route('/about')}>
                 <span className='text-sm text-white'>About</span>
-              </Router>
+              </Router> */}
               <Router to={route('/legal')}>
                 <span className='text-sm text-white'>Legal</span>
               </Router>
@@ -220,10 +218,10 @@ export function LandingLayout() {
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
+            {/* <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
               What is a payment pointer?
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem> */}
             <NavDrawer.ListItem to={route('/legal')}>Legal</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/contact')}>
               Contact
@@ -231,26 +229,12 @@ export function LandingLayout() {
           </NavDrawer.List>
           <NavDrawer.List>
             <div className='flex flex-col space-y-2'>
-              <Button
-                className='h-11'
-                outline
-                form='signup-phone-details'
-                type='submit'
-              >
-                Log in
-              </Button>
-              <Button
-                className='h-11'
-                form='signup-phone-details'
-                type='submit'
-              >
-                Sign up
-              </Button>
+              <Router className='h-11' to={route('/waitlist')}>
+                <div className='flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-display font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled sm:max-w-max'>
+                  <span className=''>Join the waitlist</span>
+                </div>
+              </Router>
             </div>
-            {/* <NavDrawer.ListItem to={route('/login')}>Log in</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/signup')}>
-              Sign up
-            </NavDrawer.ListItem> */}
           </NavDrawer.List>
         </NavDrawer>
       </NavDrawer.Modal>
