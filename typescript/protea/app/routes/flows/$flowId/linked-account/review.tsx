@@ -10,27 +10,31 @@ import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 export async function loader({ request, params }: LoaderArgs) {
   const flow = await getCurrentFlow(request, params)
   const cookie = request.headers.get('cookie') || ''
-  let accountDetailsRpc = await grpcClient.getBankAccountDetails(
-    {
-      fundingsourceId: flow?.data.fundingsourceId,
-    }, 
-    {
-      meta: {
-        cookies: cookie
+  let accountDetailsRpc = await grpcClient
+    .getBankAccountDetails(
+      {
+        fundingsourceId: flow?.data.fundingsourceId
+      },
+      {
+        meta: {
+          cookies: cookie
+        }
       }
-    }
-  ).then((v) => v)
+    )
+    .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(accountDetailsRpc)) {
     throw accountDetailsRpc
   }
 
-  let otpRpc = await grpcClient.sendOTP(
-    {},
-    {
-      meta: { cookies: cookie } 
-    }
-  ).then((v) => v)
+  let otpRpc = await grpcClient
+    .sendOTP(
+      {},
+      {
+        meta: { cookies: cookie }
+      }
+    )
+    .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(otpRpc)) {
     throw otpRpc
@@ -40,12 +44,13 @@ export async function loader({ request, params }: LoaderArgs) {
     flow,
     accountNumber: accountDetailsRpc.response.mask,
     institution: accountDetailsRpc.response.institution,
-    type: accountDetailsRpc.response.type,
+    type: accountDetailsRpc.response.type
   })
 }
 
 export default function Page() {
-  const { flow, accountNumber, institution, type } = useLoaderData<typeof loader>()
+  const { flow, accountNumber, institution, type } =
+    useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   return (
     <>
@@ -78,7 +83,9 @@ export default function Page() {
         type='text'
         className='col-span-full flex flex-col selection:bg-primary/50 sm:col-span-6 sm:col-start-2 lg:col-start-4'
         aria-invalid={Boolean(actionData?.errors.nickname) || undefined}
-        aria-describedby={actionData?.errors.nickname ? 'nickname-error' : undefined}
+        aria-describedby={
+          actionData?.errors.nickname ? 'nickname-error' : undefined
+        }
         required
         errorMessage={actionData?.errors.nickname || undefined}
       />
@@ -109,40 +116,41 @@ export default function Page() {
 export async function action({ request, params }: ActionArgs) {
   const flow = await getCurrentFlow(request, params)
   const form = await request.formData()
-  const nickname = form.get("nickname") as string
-  const otp = form.get("otp") as string
+  const nickname = form.get('nickname') as string
+  const otp = form.get('otp') as string
   const cookie = request.headers.get('cookie') || ''
 
-  let rpc = await grpcClient.continueAddingBankAccount(
-    {
-      fundingsourceId: flow?.data.fundingsourceId,
-      nickName: nickname,
-      otp: otp,
-    },
-    {
-      meta: {
-        cookies: cookie
+  let rpc = await grpcClient
+    .continueAddingBankAccount(
+      {
+        fundingsourceId: flow?.data.fundingsourceId,
+        nickName: nickname,
+        otp: otp
+      },
+      {
+        meta: {
+          cookies: cookie
+        }
       }
-    }
-  ).then(v => v)
+    )
+    .then((v) => v)
     .catch(StatusError)
 
   const fieldErrors = {
     otp: '',
-    nickname: '',
+    nickname: ''
   }
 
   if (isGrpcError(rpc)) {
     if (rpc.code == 3) {
-      for (let violation of (rpc as GrpcError).details[0]
-        .fieldViolations) {
+      for (let violation of (rpc as GrpcError).details[0].fieldViolations) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw rpc
   }
-  
+
   const headers = await updateFlow(request, { nickname }, true)
   return redirect(
     route('/confirmation/:flowId/linked-account', {
@@ -154,9 +162,7 @@ export async function action({ request, params }: ActionArgs) {
 
 // The field names given by the backend for field violations
 type fieldErrorsMap = 'Otp' | 'Nickname'
-function mapper(
-  field: fieldErrorsMap
-): 'otp' | 'nickname' | null {
+function mapper(field: fieldErrorsMap): 'otp' | 'nickname' | null {
   switch (field) {
     case 'Otp':
       return 'otp'

@@ -11,8 +11,8 @@ declare module "routes-gen" {
     "/confirmation/:flowId/deposit": { "flowId": string };
     "/confirmation/:flowId/send": { "flowId": string };
     "/legal/privacy-policy": Record<string, never>;
-    "/legal/terms-of-use": Record<string, never>;
     "/settings/statements": Record<string, never>;
+    "/legal/terms-of-use": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -57,7 +57,6 @@ declare module "routes-gen" {
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
-    "/mx": Record<string, never>;
   };
 
   export function route<
@@ -72,8 +71,8 @@ declare module "routes-gen" {
       | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
       | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
       | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
-      | ["/settings/statements"]
       | ["/legal/privacy-policy"]
+      | ["/settings/statements"]
       | ["/legal/terms-of-use"]
       | ["/recovery/password"]
       | ["/settings/password"]
@@ -119,6 +118,5 @@ declare module "routes-gen" {
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
-      | ["/mx"]
   >(...args: T): typeof args[0];
 }

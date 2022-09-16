@@ -1,4 +1,4 @@
-import { Button, Icon, Logo, TextField } from '~/components'
+import { Autocomplete, Button, TextField } from '~/components'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { apolloClient } from '~/lib/apollo.server'
@@ -8,6 +8,8 @@ import type { GrpcError } from '~/lib/proto.server'
 import { httpMapping } from '~/lib/proto.server'
 import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { requireNoUserSession } from '~/lib/kratos.server'
+import { useEffect, useState } from 'react'
 
 type Country = {
   id: string
@@ -15,6 +17,7 @@ type Country = {
 }
 
 export async function loader({ request, params }: LoaderArgs) {
+  await requireNoUserSession(request)
   const countries = await apolloClient
     .query<SignupQuery, SignupQueryVariables>({
       query: SignupDocument,
@@ -35,46 +38,114 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
+const shapes = [
+  [
+    'bg-slate-600 rounded-tl-full',
+    'bg-transparent',
+    'bg-yellow-400 rounded-tr-full',
+    'bg-rose-300 rounded-tl-full',
+    'bg-lime-400 rounded-full',
+    'bg-transparent',
+    'bg-rose-500 rounded-full',
+    'bg-lime-300 rounded-tr-full',
+    'bg-transparent',
+    'bg-transparent'
+  ],
+  [
+    'bg-transparent',
+    'bg-rose-400 rounded-full',
+    'bg-lime-500 rounded-bl-full',
+    'bg-transparent',
+    'bg-slate-300 rounded-tl-full',
+    'bg-yellow-200 rounded-tl-full',
+    'bg-slate-500 rounded-br-full',
+    'bg-transparent',
+    'bg-rose-100 rounded-full',
+    'bg-rose-300 rounded-bl-full'
+  ]
+]
+
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { countryCode, countries, email } = useLoaderData<typeof loader>()
-  const country = countries.find(
-    (country: Country) => country.id == countryCode
+
+  const [country, setCountry] = useState<Country>(
+    countries.find((country: Country) => country.id == countryCode) as Country
   )
+
+  const [query, setQuery] = useState<string>('')
+  const [filteredCountries, setFilteredCountries] = useState(countries)
+
+  useEffect(() => {
+    if (query === '') setFilteredCountries(countries)
+    else {
+      setFilteredCountries(
+        countries.filter((country: Country) => {
+          return (
+            country.name
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
+            country.id
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, ''))
+          )
+        })
+      )
+    }
+  }, [query, countries])
 
   return (
     <div className='w-full'>
-      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-between bg-app p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
-        <div className='flex items-center'>
-          <div className='flex items-center justify-start font-display text-2xl font-medium'>
-            <Logo className='h-8' />
-          </div>
+      <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto px-8 pt-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+        <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          {shapes.map((shapeRow) => (
+            <div className='flex' key={shapeRow.toString()}>
+              {shapeRow.map((shape, index) => (
+                <div
+                  key={shape + index}
+                  className={`aspect-square w-full ${shape}`}
+                />
+              ))}
+            </div>
+          ))}
         </div>
-      </header>
-      <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-display text-4xl font-medium'>
-            We aren't in your country yet
+          <span className='font-display text-2xl font-medium'>
+            Join the waitlist
           </span>
           <span className='text-medium'>
-            We unfortunately don't support the country you reside in.
-          </span>
-          <span className='text-medium'>
-            You can sign up to our waitlist, and we will let you know when
-            Fynbos becomes available to you.
+            Leave your details below and we will notify you as soon as
+            enrollment opens.
           </span>
         </div>
 
         <Form
-          id='join_waitlist'
+          id='join-waitlist'
           action={`/waitlist`}
           method='post'
           className='hidden'
         />
+
+        <TextField
+          id='fullName'
+          form='join-waitlist'
+          label='Full name'
+          name='fullName'
+          type='text'
+          className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+          aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
+          aria-describedby={
+            actionData?.errors.fullName ? 'lastName-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.fullName}
+        />
         <TextField
           id='email'
-          form='join_waitlist'
-          label='Email'
+          form='join-waitlist'
+          label='Email address'
           name='email'
           defaultValue={email as string}
           type='text'
@@ -86,22 +157,30 @@ export default function Page() {
           required
           errorMessage={actionData?.errors.email}
         />
+        <Autocomplete
+          id='country'
+          value={country}
+          onChange={setCountry}
+          onQuery={setQuery}
+          options={filteredCountries}
+          label='Country of residence'
+          className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+          aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
+          aria-describedby={
+            actionData?.errors.countryCode ? 'country-error' : undefined
+          }
+          errorMessage={actionData?.errors.countryCode}
+        />
         <input
           id='country'
-          form='join_waitlist'
+          form='join-waitlist'
+          value={String(country?.id)}
           name='country'
-          value={countryCode as string}
           type='hidden'
         />
-        <div className='col-span-full mb-4 flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='flex items-center space-x-3 text-medium'>
-            <Icon>flag</Icon>
-            <span>{country?.name}</span>
-          </div>
-        </div>
         <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <Button form='join_waitlist' type='submit'>
-            Join Waitlist
+          <Button form='join-waitlist' type='submit'>
+            Join now
           </Button>
         </div>
       </div>
@@ -125,10 +204,12 @@ function mapper(field: fieldErrorsMap): 'countryCode' | 'email' | null {
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
+  const fullName = form.get('fullName') as string
   const email = form.get('email') as string
   const country = form.get('country') as string
 
   const fieldErrors = {
+    fullName: '',
     countryCode: '',
     email: ''
   }
@@ -136,7 +217,8 @@ export async function action({ request, params }: ActionArgs) {
   let response = await grpcClient
     .joinWaitlist({
       email,
-      countryCode: country
+      countryCode: country,
+      fullName
     })
     .then((v) => v)
     .catch(StatusError)

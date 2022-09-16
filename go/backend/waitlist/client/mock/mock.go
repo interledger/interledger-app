@@ -35,15 +35,15 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockClient) Add(ctx context.Context, email, countryCode string) error {
+func (m *MockClient) Add(ctx context.Context, email, countryCode, fullName string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", ctx, email, countryCode)
+	ret := m.ctrl.Call(m, "Add", ctx, email, countryCode, fullName)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockClientMockRecorder) Add(ctx, email, countryCode interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Add(ctx, email, countryCode, fullName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, email, countryCode)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, email, countryCode, fullName)
 }
