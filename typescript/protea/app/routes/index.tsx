@@ -113,21 +113,13 @@ function MarketingPage() {
             is simple, secure and programmable.
           </span>
         </div>
-        <div className='col-span-full mt-10 flex flex-col justify-center space-y-4 lg:mt-5 lg:flex-row lg:space-y-0 lg:space-x-4'>
+        <div className='col-span-full mt-10 flex flex-col items-center justify-center space-y-4 lg:mt-5 lg:flex-row lg:space-y-0 lg:space-x-4'>
           <Router
-            to={route('/signup')}
+            to={route('/waitlist')}
             className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10 sm:max-w-fit'
           >
             <span className='font-display font-medium text-white'>
-              Get a payment pointer
-            </span>
-          </Router>
-          <Router
-            to={route('/signup')}
-            className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus px-10 sm:max-w-fit'
-          >
-            <span className='font-display font-medium text-primary'>
-              Learn more
+              Join the waitlist
             </span>
           </Router>
         </div>
@@ -364,24 +356,26 @@ function MarketingPage() {
             Ready to get started?
           </span>
         </div>
-        <div className='col-span-full mt-6 lg:col-span-2 lg:col-start-8 lg:my-20'>
+        <div className='col-span-full mt-6 lg:col-span-3 lg:col-start-9 lg:my-20'>
           <Router
-            to={route('/signup')}
+            to={route('/waitlist')}
             className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary'
           >
-            <span className='font-display font-medium text-white'>Sign up</span>
-          </Router>
-        </div>
-        <div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>
-          <Router
-            to={route('/contact')}
-            className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus'
-          >
-            <span className='font-display font-medium text-primary'>
-              Contact us
+            <span className='font-display font-medium text-white'>
+              Join the waitlist
             </span>
           </Router>
         </div>
+        {/*<div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>*/}
+        {/*<Router*/}
+        {/*  to={route('/contact')}*/}
+        {/*  className='flex h-[50px] w-full items-center justify-center rounded-full border border-focus'*/}
+        {/*>*/}
+        {/*  <span className='font-display font-medium text-primary'>*/}
+        {/*    Contact us*/}
+        {/*  </span>*/}
+        {/*</Router>*/}
+        {/*</div>*/}
       </section>
     </main>
   )
