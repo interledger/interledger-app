@@ -2,7 +2,6 @@ package activities
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/mx/external"
-	"gitlab.com/fynbos/backend/providers/unit"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -159,7 +157,7 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		return wrappedError
 	}
 
-	user, err := a.b.Identity().Get(ctx, acc.IdentityID)
+	_, err = a.b.Identity().Get(ctx, acc.IdentityID)
 	if err != nil {
 		wrappedError := fmt.Errorf("%w %s", mx.ErrInternal, err)
 		if errors.Is(err, identity.ErrNotFound) || errors.Is(err, identity.ErrInvalidArgument) {
@@ -174,36 +172,10 @@ func (a *Activity) CreateUnitCounterParty(ctx context.Context, mxAccountGuid str
 		return wrappedError
 	}
 
-	unitCustomer, err := a.b.Unit().GetCustomerByIdentityID(ctx, user.ID)
-	// TODO: unit needs to have ErrNotFound
-	if err != nil {
-		return fmt.Errorf("%w %s", mx.ErrInternal, err)
-	}
-
 	// perform this just before creating the counter party as we get charged for Mx api calls.
-	accountNumbers, err := a.b.MX().ReadAccount(ctx, mxAccount.Guid)
+	_, err = a.b.MX().ReadAccount(ctx, mxAccount.Guid)
 	if err != nil {
 		// at this stage we know the mx account must exist so keep retrying.
-		return fmt.Errorf("%w %s", mx.ErrInternal, err)
-	}
-
-	// unit api only accepts Checking or Savings.
-	accountType := "Checking"
-	if IsSavings(accountNumbers.Type) {
-		accountType = "Savings"
-	}
-	idempotencyKey := sha256.Sum256([]byte(mxAccount.FundingsourceID))
-	_, err = a.b.Unit().CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
-		Name:            fmt.Sprintf("%s %s", user.FirstName, user.LastName),
-		RoutingNumber:   accountNumbers.RoutingNumber,
-		AccountNumber:   accountNumbers.AccountNumber,
-		AccountType:     accountType,
-		Type:            "Person",
-		IdempotencyKey:  string(idempotencyKey[0:]),
-		UnitCustomerID:  unitCustomer.ID,
-		FundingsourceID: mxAccount.FundingsourceID,
-	})
-	if err != nil {
 		return fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 

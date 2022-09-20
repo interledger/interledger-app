@@ -8,7 +8,6 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/unit"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/client"
 	"google.golang.org/grpc/codes"
@@ -21,7 +20,6 @@ type AdminRpcService struct {
 	AccountsService accounts.Client
 	IdentityService identity.Client
 	AuthService     auth.Service
-	UnitService     unit.Client
 	Temporal        client.Client
 }
 

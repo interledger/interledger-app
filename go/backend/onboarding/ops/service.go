@@ -9,10 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/accounts"
-	"gitlab.com/fynbos/backend/providers/unit"
-	unit_workflows "gitlab.com/fynbos/backend/providers/unit/workflows"
-	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/sdk/client"
 )
 
 // Fetch a users onboarding data
@@ -128,43 +124,4 @@ func CreateAccount(
 	}
 
 	return account, err
-}
-
-func InitiateUnitCustomerOnboarding(ctx context.Context, b Backends, args *onboarding.InitiateUnitCustomerOnboardingArgs) error {
-	if err := b.Validator().Struct(args); err != nil {
-		return fmt.Errorf("%w %s", onboarding.ErrInvalidArgument, err)
-	}
-
-	// TODO: store these args in vault and just pass the key to the workflow.
-
-	_, err := b.Temporal().ExecuteWorkflow(
-		ctx,
-		client.StartWorkflowOptions{
-			ID:                    "unit_onboarding_" + args.IdentityID,
-			TaskQueue:             "backend",
-			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-		},
-		unit_workflows.UnitOnboardCustomerWorkflow, unit_workflows.UnitOnboardCustomerState{
-			CustomerID: "",
-			Type:       "",
-			IdentityID: args.IdentityID,
-			AccountID:  "",
-			ApplicationArgs: unit.CreateApplicationArgs{
-				Ssn:                args.Ssn,
-				DateOfBirth:        args.DateOfBirth,
-				Street:             args.Street,
-				Street2:            args.Street2,
-				City:               args.City,
-				State:              args.State,
-				PostalCode:         args.PostalCode,
-				IpAddress:          args.IpAddress,
-				UserID:             args.IdentityID,
-				DeviceFingerprints: args.DeviceFingerprints,
-			},
-		})
-	if err != nil {
-		return fmt.Errorf("%w %s", onboarding.ErrInternal, err)
-	}
-
-	return nil
 }

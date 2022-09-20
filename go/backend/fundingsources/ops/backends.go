@@ -5,7 +5,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -17,5 +16,4 @@ type Backends interface {
 	Accounts() accounts.Client
 	Identity() identity.Client
 	Temporal() temporal.Client
-	Unit() unit.Client
 }

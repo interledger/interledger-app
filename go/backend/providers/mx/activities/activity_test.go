@@ -2,8 +2,6 @@ package activities
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 	"testing"
 	"time"
 
@@ -24,8 +22,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx/external"
-	"gitlab.com/fynbos/backend/providers/unit"
-	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
 )
@@ -123,16 +119,6 @@ func TestCreateUnitCounterparty(t *testing.T) {
 		nil,
 	).Times(1)
 
-	unitCustomerID := "8"
-	b.unit.EXPECT().GetCustomerByIdentityID(ctx, userID).Return(
-		&unit.Customer{
-			ID:         unitCustomerID,
-			IdentityID: userID,
-			Type:       "person",
-		},
-		nil,
-	)
-
 	b.mx.EXPECT().ReadAccount(ctx, mxAccountGuid).Return(
 		&mx.AccountDetails{
 			Guid:            mxAccountGuid,
@@ -143,17 +129,6 @@ func TestCreateUnitCounterparty(t *testing.T) {
 		},
 		nil,
 	).Times(1)
-	idempotencyKey := sha256.Sum256([]byte(fundingsourceID))
-	b.unit.EXPECT().CreateCounterParty(ctx, &unit.CreateCounterPartyArgs{
-		FundingsourceID: fundingsourceID,
-		Name:            fmt.Sprintf("%s %s", firstName, lastName),
-		UnitCustomerID:  unitCustomerID,
-		RoutingNumber:   "71717171717",
-		AccountNumber:   "81818181234",
-		AccountType:     "Savings",
-		Type:            "Person",
-		IdempotencyKey:  string(idempotencyKey[0:]),
-	})
 
 	err := activity.CreateUnitCounterParty(ctx, mxAccountGuid)
 
@@ -223,7 +198,6 @@ func NewTestActivity(t *testing.T) (*Activity, *testBackends) {
 	b := &testBackends{
 		val:   validator.New(),
 		mx:    mx_mock.NewMockClient(ctrl),
-		unit:  unit_mock.NewMockClient(ctrl),
 		acc:   accounts_mock.NewMockClient(ctrl),
 		ident: identity_mock.NewMockClient(ctrl),
 		fs:    funding_mock.NewMockClient(ctrl),
@@ -237,7 +211,6 @@ func NewTestActivity(t *testing.T) (*Activity, *testBackends) {
 type testBackends struct {
 	val   *validator.Validate
 	mx    *mx_mock.MockClient
-	unit  *unit_mock.MockClient
 	acc   *accounts_mock.MockClient
 	ident *identity_mock.MockClient
 	fs    *funding_mock.MockClient
@@ -269,10 +242,6 @@ func (t testBackends) Twilio() twilio.Service {
 
 func (t testBackends) MX() mx.Client {
 	return t.mx
-}
-
-func (t testBackends) Unit() unit.Client {
-	return t.unit
 }
 
 func (t testBackends) FundingSources() fundingsources.Client {

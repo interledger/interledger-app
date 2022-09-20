@@ -23,8 +23,6 @@ import (
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/unit"
-	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/client"
@@ -45,16 +43,11 @@ type TestContainer struct {
 	PacioliClient   pacioli.Client
 	PacioliLedgerID uint32
 	Tp              *mocks.Client
-	UnitImpl        *unit_mock.MockClient
 	ValidatorImpl   *validator.Validate
 }
 
 func (t TestContainer) Temporal() client.Client {
 	return t.Tp
-}
-
-func (t TestContainer) Unit() unit.Client {
-	return t.UnitImpl
 }
 
 func (t TestContainer) Accounts() accounts.Client {
@@ -114,7 +107,6 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	os := onboarding_client.New(c)
 	c.Os = os
 
-	c.UnitImpl = unit_mock.NewMockClient(ctrl)
 	fs := funding_client.New(c, logger)
 	c.Fs = fs
 

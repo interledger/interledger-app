@@ -51,36 +51,6 @@ export interface Account {
     creditsAccepted: string;
 }
 /**
- * @generated from protobuf message backend.v1.SignalUnitCustomerCreatedRequest
- */
-export interface SignalUnitCustomerCreatedRequest {
-    /**
-     * @generated from protobuf field: string userEmail = 1;
-     */
-    userEmail: string;
-    /**
-     * @generated from protobuf field: string customerId = 2;
-     */
-    customerId: string;
-    /**
-     * @generated from protobuf field: string type = 3;
-     */
-    type: string;
-}
-/**
- * @generated from protobuf message backend.v1.SignalUnitAchDepositEventRequest
- */
-export interface SignalUnitAchDepositEventRequest {
-    /**
-     * @generated from protobuf field: string depositId = 1;
-     */
-    depositId: string;
-    /**
-     * @generated from protobuf field: string eventType = 2;
-     */
-    eventType: string;
-}
-/**
  * @generated from protobuf message backend.v1.Empty
  */
 export interface Empty {
@@ -270,60 +240,6 @@ export interface CreateIdentityRequest {
  * @generated from protobuf message backend.v1.CreateIdentityResponse
  */
 export interface CreateIdentityResponse {
-    /**
-     * @generated from protobuf field: string identityId = 1;
-     */
-    identityId: string;
-}
-/**
- * @generated from protobuf message backend.v1.InitiateUnitOnboardingRequest
- */
-export interface InitiateUnitOnboardingRequest {
-    /**
-     * @generated from protobuf field: string ssn = 1;
-     */
-    ssn: string;
-    /**
-     * @generated from protobuf field: string nationality = 2;
-     */
-    nationality: string;
-    /**
-     * @generated from protobuf field: string date_of_birth = 3;
-     */
-    dateOfBirth: string;
-    /**
-     * @generated from protobuf field: string street = 4;
-     */
-    street: string;
-    /**
-     * @generated from protobuf field: string street2 = 5;
-     */
-    street2: string;
-    /**
-     * @generated from protobuf field: string city = 6;
-     */
-    city: string;
-    /**
-     * @generated from protobuf field: string state = 7;
-     */
-    state: string;
-    /**
-     * @generated from protobuf field: string postal_code = 8;
-     */
-    postalCode: string;
-    /**
-     * @generated from protobuf field: string ip = 9;
-     */
-    ip: string;
-    /**
-     * @generated from protobuf field: repeated string device_fingerprints = 10;
-     */
-    deviceFingerprints: string[];
-}
-/**
- * @generated from protobuf message backend.v1.InitiateUnitOnboardingResponse
- */
-export interface InitiateUnitOnboardingResponse {
     /**
      * @generated from protobuf field: string identityId = 1;
      */
@@ -845,121 +761,6 @@ class Account$Type extends MessageType<Account> {
  * @generated MessageType for protobuf message backend.v1.Account
  */
 export const Account = new Account$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class SignalUnitCustomerCreatedRequest$Type extends MessageType<SignalUnitCustomerCreatedRequest> {
-    constructor() {
-        super("backend.v1.SignalUnitCustomerCreatedRequest", [
-            { no: 1, name: "userEmail", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "customerId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<SignalUnitCustomerCreatedRequest>): SignalUnitCustomerCreatedRequest {
-        const message = { userEmail: "", customerId: "", type: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<SignalUnitCustomerCreatedRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SignalUnitCustomerCreatedRequest): SignalUnitCustomerCreatedRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string userEmail */ 1:
-                    message.userEmail = reader.string();
-                    break;
-                case /* string customerId */ 2:
-                    message.customerId = reader.string();
-                    break;
-                case /* string type */ 3:
-                    message.type = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: SignalUnitCustomerCreatedRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string userEmail = 1; */
-        if (message.userEmail !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.userEmail);
-        /* string customerId = 2; */
-        if (message.customerId !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.customerId);
-        /* string type = 3; */
-        if (message.type !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.type);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.SignalUnitCustomerCreatedRequest
- */
-export const SignalUnitCustomerCreatedRequest = new SignalUnitCustomerCreatedRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class SignalUnitAchDepositEventRequest$Type extends MessageType<SignalUnitAchDepositEventRequest> {
-    constructor() {
-        super("backend.v1.SignalUnitAchDepositEventRequest", [
-            { no: 1, name: "depositId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "eventType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<SignalUnitAchDepositEventRequest>): SignalUnitAchDepositEventRequest {
-        const message = { depositId: "", eventType: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<SignalUnitAchDepositEventRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SignalUnitAchDepositEventRequest): SignalUnitAchDepositEventRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string depositId */ 1:
-                    message.depositId = reader.string();
-                    break;
-                case /* string eventType */ 2:
-                    message.eventType = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: SignalUnitAchDepositEventRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string depositId = 1; */
-        if (message.depositId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.depositId);
-        /* string eventType = 2; */
-        if (message.eventType !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.eventType);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.SignalUnitAchDepositEventRequest
- */
-export const SignalUnitAchDepositEventRequest = new SignalUnitAchDepositEventRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
     constructor() {
@@ -1742,163 +1543,6 @@ class CreateIdentityResponse$Type extends MessageType<CreateIdentityResponse> {
  * @generated MessageType for protobuf message backend.v1.CreateIdentityResponse
  */
 export const CreateIdentityResponse = new CreateIdentityResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class InitiateUnitOnboardingRequest$Type extends MessageType<InitiateUnitOnboardingRequest> {
-    constructor() {
-        super("backend.v1.InitiateUnitOnboardingRequest", [
-            { no: 1, name: "ssn", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "nationality", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "date_of_birth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "street", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "street2", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "city", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "postal_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "ip", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "device_fingerprints", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<InitiateUnitOnboardingRequest>): InitiateUnitOnboardingRequest {
-        const message = { ssn: "", nationality: "", dateOfBirth: "", street: "", street2: "", city: "", state: "", postalCode: "", ip: "", deviceFingerprints: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<InitiateUnitOnboardingRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateUnitOnboardingRequest): InitiateUnitOnboardingRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string ssn */ 1:
-                    message.ssn = reader.string();
-                    break;
-                case /* string nationality */ 2:
-                    message.nationality = reader.string();
-                    break;
-                case /* string date_of_birth */ 3:
-                    message.dateOfBirth = reader.string();
-                    break;
-                case /* string street */ 4:
-                    message.street = reader.string();
-                    break;
-                case /* string street2 */ 5:
-                    message.street2 = reader.string();
-                    break;
-                case /* string city */ 6:
-                    message.city = reader.string();
-                    break;
-                case /* string state */ 7:
-                    message.state = reader.string();
-                    break;
-                case /* string postal_code */ 8:
-                    message.postalCode = reader.string();
-                    break;
-                case /* string ip */ 9:
-                    message.ip = reader.string();
-                    break;
-                case /* repeated string device_fingerprints */ 10:
-                    message.deviceFingerprints.push(reader.string());
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: InitiateUnitOnboardingRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string ssn = 1; */
-        if (message.ssn !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.ssn);
-        /* string nationality = 2; */
-        if (message.nationality !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.nationality);
-        /* string date_of_birth = 3; */
-        if (message.dateOfBirth !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.dateOfBirth);
-        /* string street = 4; */
-        if (message.street !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.street);
-        /* string street2 = 5; */
-        if (message.street2 !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.street2);
-        /* string city = 6; */
-        if (message.city !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.city);
-        /* string state = 7; */
-        if (message.state !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.state);
-        /* string postal_code = 8; */
-        if (message.postalCode !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.postalCode);
-        /* string ip = 9; */
-        if (message.ip !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.ip);
-        /* repeated string device_fingerprints = 10; */
-        for (let i = 0; i < message.deviceFingerprints.length; i++)
-            writer.tag(10, WireType.LengthDelimited).string(message.deviceFingerprints[i]);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.InitiateUnitOnboardingRequest
- */
-export const InitiateUnitOnboardingRequest = new InitiateUnitOnboardingRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class InitiateUnitOnboardingResponse$Type extends MessageType<InitiateUnitOnboardingResponse> {
-    constructor() {
-        super("backend.v1.InitiateUnitOnboardingResponse", [
-            { no: 1, name: "identityId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<InitiateUnitOnboardingResponse>): InitiateUnitOnboardingResponse {
-        const message = { identityId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<InitiateUnitOnboardingResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitiateUnitOnboardingResponse): InitiateUnitOnboardingResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string identityId */ 1:
-                    message.identityId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: InitiateUnitOnboardingResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string identityId = 1; */
-        if (message.identityId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.InitiateUnitOnboardingResponse
- */
-export const InitiateUnitOnboardingResponse = new InitiateUnitOnboardingResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SendPhoneVerificationRequest$Type extends MessageType<SendPhoneVerificationRequest> {
     constructor() {
@@ -3323,9 +2967,7 @@ export const ContinueAddingBankAccountResponse = new ContinueAddingBankAccountRe
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
 export const BackendAdminService = new ServiceType("backend.v1.BackendAdminService", [
-    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account },
-    { name: "SignalUnitCustomerCreated", options: {}, I: SignalUnitCustomerCreatedRequest, O: Empty },
-    { name: "SignalUnitAchDepositEvent", options: {}, I: SignalUnitAchDepositEventRequest, O: Empty }
+    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
@@ -3338,15 +2980,12 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetOnboarding", options: {}, I: GetOnboardingRequest, O: Onboarding },
     { name: "UpdateOnboarding", options: {}, I: Onboarding, O: Onboarding },
     { name: "CreateIdentity", options: {}, I: CreateIdentityRequest, O: CreateIdentityResponse },
-    { name: "InitiateUnitOnboarding", options: {}, I: InitiateUnitOnboardingRequest, O: InitiateUnitOnboardingResponse },
     { name: "GetIdentity", options: {}, I: Empty, O: UserIdentity },
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: PhoneVerificationResponse },
     { name: "CheckPhoneVerificationCode", options: {}, I: CheckPhoneVerificationCodeRequest, O: PhoneVerificationResponse },
     { name: "SendOTP", options: {}, I: Empty, O: Empty },
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
-    { name: "GetStatements", options: {}, I: Empty, O: GetStatementsResponse },
-    { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: GetStatementPDFResponse },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },

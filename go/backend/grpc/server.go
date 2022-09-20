@@ -35,7 +35,6 @@ func NewServer(b Backends) (*grpc.Server, error) {
 		AccountsService: b.Accounts(),
 		IdentityService: b.Identity(),
 		AuthService:     b.AdminAuth(),
-		UnitService:     b.Unit(),
 		Temporal:        b.Temporal(),
 	})
 	grpc_health_v1.RegisterHealthServer(server, b.HealthCheck())
