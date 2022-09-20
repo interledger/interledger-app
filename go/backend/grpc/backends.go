@@ -37,7 +37,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	Twilio() twilio.Service
 	Unit() unit.Client
-	Users() user.Service
+	Users() user.Client
 	Validator() *validator.Validate
 	Waitlist() waitlist.Client
 }

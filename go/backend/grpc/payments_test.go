@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/golang/mock/gomock"
@@ -28,7 +30,7 @@ func TestInitiateOutgoingPayment(t *testing.T) {
 		ID: "some_uuid",
 	}, nil).Times(1)
 
-	resp, err := client.InitiateOutgoingPayment(user.ActingAsContext(t, context.Background(), &user.User{
+	resp, err := client.InitiateOutgoingPayment(user_mock.ActingAsContext(t, context.Background(), &user.User{
 		ID: "something_darkside",
 	}), &pb.InitiateOutgoingPaymentRequest{
 		Amount: 100,
@@ -57,7 +59,7 @@ func TestGetOutgoingPayment(t *testing.T) {
 		ID: "some_uuid",
 	}, nil).Times(1)
 
-	resp, err := client.GetOutgoingPayment(user.ActingAsContext(t, context.Background(), &user.User{
+	resp, err := client.GetOutgoingPayment(user_mock.ActingAsContext(t, context.Background(), &user.User{
 		ID: "userID",
 	}), &pb.GetOutgoingPaymentRequest{Id: "id"})
 	require.NoError(t, err)

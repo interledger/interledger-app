@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"gitlab.com/fynbos/pacioli"
 
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
@@ -109,7 +111,7 @@ func TestUserAccount(s *testing.T) {
 		}
 
 		req := getAccountRequest()
-		err = _user.ActingAs(req, user)
+		err = user_mock.ActingAs(req, user)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -170,7 +172,7 @@ func TestUserAccount(s *testing.T) {
 		}
 
 		req := getAccountTransactionsRequest()
-		err = _user.ActingAs(req, user)
+		err = user_mock.ActingAs(req, user)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	_user "gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestTransactions(s *testing.T) {
@@ -385,7 +386,7 @@ func getTransactions(
 			    }
 			`)
 	req.Var("input", input)
-	err := _user.ActingAs(req, user)
+	err := user_mock.ActingAs(req, user)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +417,7 @@ func getTransaction(container *TestContainer, user *_user.User, id string) (
 			    }
 			`)
 	req.Var("id", id)
-	err := _user.ActingAs(req, user)
+	err := user_mock.ActingAs(req, user)
 	if err != nil {
 		return nil, err
 	}

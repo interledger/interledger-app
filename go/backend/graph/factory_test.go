@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator/v10"
@@ -50,7 +52,7 @@ type TestContainer struct {
 	CountryService       _country.Client
 	FundingSourceService fundingsources.Client
 	IdentityService      identity.Client
-	UserService          _user.Service
+	UserService          _user.Client
 	Mx                   mx.Client
 	NoopService          _noop.Service
 	UnitService          unit.Client
@@ -133,8 +135,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.AccountService = as
 
-	users := _user.NewMockService()
-	c.UserService = _user.NewLoggingService(users, logger)
+	users := user_mock.NewMock()
+	c.UserService = users
 
 	ts := transactions_client.New(c, logger)
 	c.TransactionService = ts
@@ -219,7 +221,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Graph = graph
 
 	router := chi.NewRouter()
-	router.Use(_user.MakeMiddleware(users))
 	router.Handle("/graphql", MakeHandler(graph, GraphqlHttpHandlerOpts{}))
 	server := httptest.NewServer(router)
 	c.Server = server

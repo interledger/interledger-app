@@ -7,7 +7,7 @@ import (
 )
 
 func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

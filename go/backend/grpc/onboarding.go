@@ -137,7 +137,7 @@ func (s *rpcService) CreateIdentity(
 		return nil, ValidationError(err, validateCreateIdentityDescription)
 	}
 
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -281,7 +281,7 @@ func (s *rpcService) InitiateUnitOnboarding(
 	req *backendv1.InitiateUnitOnboardingRequest,
 ) (*backendv1.InitiateUnitOnboardingResponse, error) {
 
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

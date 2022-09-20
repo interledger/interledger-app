@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -172,7 +174,7 @@ func getFundingSourcesByUserId(container *TestContainer, user *_user.User) ([]*g
 			        }
 			    }
 			`)
-	err := _user.ActingAs(req, user)
+	err := user_mock.ActingAs(req, user)
 	if err != nil {
 		return nil, err
 	}

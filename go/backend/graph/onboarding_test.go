@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/machinebox/graphql"
@@ -234,7 +236,7 @@ func createAccount(container *TestContainer, user *_user.User, input *generated.
 			    }
 			`)
 	req.Var("input", input)
-	if err := _user.ActingAs(req, user); err != nil {
+	if err := user_mock.ActingAs(req, user); err != nil {
 		return nil, err
 	}
 
@@ -278,7 +280,7 @@ func verifyAccount(container *TestContainer, user *_user.User, input *generated.
 			    }
 			`)
 	req.Var("input", input)
-	if err := _user.ActingAs(req, user); err != nil {
+	if err := user_mock.ActingAs(req, user); err != nil {
 		return nil, err
 	}
 
@@ -306,7 +308,7 @@ func initiateOnboarding(container *TestContainer, user *_user.User) (*generated.
 			        }
 			    }
 			`)
-	if err := _user.ActingAs(req, user); err != nil {
+	if err := user_mock.ActingAs(req, user); err != nil {
 		return nil, err
 	}
 
@@ -335,7 +337,7 @@ func onboardAccount(container *TestContainer, user *_user.User, input *generated
 			    }
 			`)
 	req.Var("input", input)
-	if err := _user.ActingAs(req, user); err != nil {
+	if err := user_mock.ActingAs(req, user); err != nil {
 		return nil, err
 	}
 

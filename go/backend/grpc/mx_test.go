@@ -37,6 +37,7 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
@@ -53,7 +54,7 @@ type TestContainer struct {
 	AgreementsService    *agreements_mock.MockClient
 	IdentityService      *identity_mock.MockClient
 	AdminAuthService     auth.Service
-	UserService          user.Service
+	UserService          user.Client
 	FundingsourceService *funding_mock.MockClient
 	TwilioService        *twilio.MockService
 	OnboardingService    *onboarding_mock.MockClient
@@ -127,7 +128,7 @@ func (t TestContainer) Unit() unit.Client {
 	return t.UnitProvider
 }
 
-func (t TestContainer) Users() _user.Service {
+func (t TestContainer) Users() _user.Client {
 	return t.UserService
 }
 
@@ -155,7 +156,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		AgreementsService:    agreements_mock.NewMockClient(ctrl),
 		IdentityService:      identity_mock.NewMockClient(ctrl),
 		AdminAuthService:     auth.NewMockService(),
-		UserService:          user.NewMockService(),
+		UserService:          user_mock.NewMock(),
 		FundingsourceService: funding_mock.NewMockClient(ctrl),
 		TwilioService:        twilio.NewMockService(ctrl),
 		UnitProvider:         unit_mock.NewMockClient(ctrl),
@@ -224,7 +225,7 @@ func TestGetBankAccountWidget(t *testing.T) {
 		scenario.RunBefore()
 
 		resp, err := client.GetBankAccountWidget(
-			_user.ActingAsContext(t, context.Background(), &_user.User{
+			user_mock.ActingAsContext(t, context.Background(), &_user.User{
 				ID:    userID,
 				Email: faker.Email(),
 			}),
@@ -319,7 +320,7 @@ func TestAddBankAccount(t *testing.T) {
 			scenario.RunBefore()
 
 			response, err := client.AddBankAccount(
-				_user.ActingAsContext(t, context.Background(), &user.User{ID: userID}),
+				user_mock.ActingAsContext(t, context.Background(), &user.User{ID: userID}),
 				&backendv1.AddBankAccountRequest{
 					UserGuid:   mxUserGuid,
 					MemberGuid: mxMemberGuid,
@@ -371,7 +372,7 @@ func TestGetBankDetails(t *testing.T) {
 		)
 
 		resp, err := client.GetBankAccountDetails(
-			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			user_mock.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
 			&backendv1.GetBankAccountDetailsRequest{
 				FundingsourceId: fundingsourceID,
 			})
@@ -409,7 +410,7 @@ func TestGetBankDetails(t *testing.T) {
 		)
 
 		resp, err := client.GetBankAccountDetails(
-			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			user_mock.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
 			&backendv1.GetBankAccountDetailsRequest{
 				FundingsourceId: fundingsourceID,
 			})
@@ -450,7 +451,7 @@ func TestContinueAddingBankAccount(t *testing.T) {
 		).Times(1)
 
 		resp, err := client.ContinueAddingBankAccount(
-			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			user_mock.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
 			&backendv1.ContinueAddingBankAccountRequest{
 				FundingsourceId: fundingsourceID,
 				Otp:             "1234",
@@ -479,7 +480,7 @@ func TestContinueAddingBankAccount(t *testing.T) {
 		}).Times(1)
 
 		resp, err := client.ContinueAddingBankAccount(
-			_user.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
+			user_mock.ActingAsContext(st, context.Background(), &user.User{ID: userID}),
 			&backendv1.ContinueAddingBankAccountRequest{
 				FundingsourceId: fundingsourceID,
 				Otp:             "1234",

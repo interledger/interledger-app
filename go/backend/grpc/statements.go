@@ -13,7 +13,7 @@ func (s *rpcService) GetStatements(
 	ctx context.Context,
 	req *backendv1.Empty,
 ) (*backendv1.GetStatementsResponse, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -70,7 +70,7 @@ func (s *rpcService) GetStatementPDF(
 		return nil, ValidationError(err, validateGetStatementPDFDescription)
 	}
 
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

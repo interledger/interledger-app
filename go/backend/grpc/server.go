@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	_admin "gitlab.com/fynbos/backend/admin"
-	"gitlab.com/fynbos/backend/user"
+	user_middleware "gitlab.com/fynbos/backend/user/middleware"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -25,7 +25,7 @@ func NewServer(b Backends) (*grpc.Server, error) {
 	server := grpc.NewServer(
 		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
 		b.AdminAuth().MakeUnaryInterceptors(),
-		user.MakeUnaryInterceptor(b.Users()),
+		user_middleware.MakeUnaryInterceptor(b.Users()),
 	)
 	backendv1.RegisterBackendServiceServer(server, &rpcService{
 		b: b,

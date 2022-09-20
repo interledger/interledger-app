@@ -64,7 +64,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 }
 
 func (r *mutationResolver) InitiateOnboarding(ctx context.Context) (*generated.InitiateOnboardingMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -121,7 +121,7 @@ func (r *mutationResolver) InitiateOnboarding(ctx context.Context) (*generated.I
 }
 
 func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.OnboardingMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -189,7 +189,7 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Onboa
 }
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -255,7 +255,7 @@ func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.Ve
 }
 
 func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generated.LinkUsdBankAccountInput) (*generated.LinkFundingSourceMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -315,7 +315,7 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 }
 
 func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input generated.VerifyUsdBankAccountInput) (*generated.VerifyUsdBankAccountMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -356,7 +356,7 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 }
 
 func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generated.WithdrawalInput) (*generated.WithdrawalMutationResponse, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -429,7 +429,7 @@ func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generat
 }
 
 func (r *queryResolver) Identity(ctx context.Context) (*generated.Identity, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -467,7 +467,7 @@ func (r *queryResolver) Identity(ctx context.Context) (*generated.Identity, erro
 }
 
 func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.FundingSource, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -508,7 +508,7 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 }
 
 func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -560,7 +560,7 @@ func (r *queryResolver) Countries(ctx context.Context) ([]*generated.Country, er
 }
 
 func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagination) (*generated.TransactionsConnection, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -606,7 +606,7 @@ func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagina
 }
 
 func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.Transaction, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -646,7 +646,7 @@ func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.
 }
 
 func (r *transactionsConnectionResolver) PageInfo(ctx context.Context, obj *generated.TransactionsConnection) (*generated.PageInfo, error) {
-	user, err := r.UserService.ForContext(ctx)
+	user, err := r.UserService.UserForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil

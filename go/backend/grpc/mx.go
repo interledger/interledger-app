@@ -13,7 +13,7 @@ func (s *rpcService) GetBankAccountWidget(
 	ctx context.Context,
 	req *backendv1.GetBankAccountWidgetRequest,
 ) (*backendv1.GetBankAccountWidgetResponse, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -37,7 +37,7 @@ func (s *rpcService) AddBankAccount(
 	ctx context.Context,
 	req *backendv1.AddBankAccountRequest,
 ) (*backendv1.AddBankAccountResponse, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -66,7 +66,7 @@ func (s *rpcService) GetBankAccountDetails(
 	ctx context.Context,
 	req *backendv1.GetBankAccountDetailsRequest,
 ) (*backendv1.BankAccountDetails, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, grpcError(err)
 	}
@@ -130,7 +130,7 @@ func (s *rpcService) ContinueAddingBankAccount(
 	}); err != nil {
 		return nil, ValidationError(err, validateContinueAddingBankAccountDescription)
 	}
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
