@@ -113,7 +113,6 @@ type ComplexityRoot struct {
 		CreateAccount        func(childComplexity int, input CreateAccountInput) int
 		InitiateDeposit      func(childComplexity int, input DepositInput) int
 		InitiateOnboarding   func(childComplexity int) int
-		InitiateWithdrawal   func(childComplexity int, input WithdrawalInput) int
 		LinkUsdBankAccount   func(childComplexity int, input LinkUsdBankAccountInput) int
 		OnboardAccount       func(childComplexity int) int
 		VerifyAccount        func(childComplexity int, input VerifyAccountInput) int
@@ -179,20 +178,6 @@ type ComplexityRoot struct {
 		Message       func(childComplexity int) int
 		Success       func(childComplexity int) int
 	}
-
-	Withdrawal struct {
-		Amount    func(childComplexity int) int
-		ID        func(childComplexity int) int
-		State     func(childComplexity int) int
-		Timestamp func(childComplexity int) int
-	}
-
-	WithdrawalMutationResponse struct {
-		Code       func(childComplexity int) int
-		Message    func(childComplexity int) int
-		Success    func(childComplexity int) int
-		Withdrawal func(childComplexity int) int
-	}
 }
 
 type AccountResolver interface {
@@ -206,7 +191,6 @@ type MutationResolver interface {
 	LinkUsdBankAccount(ctx context.Context, input LinkUsdBankAccountInput) (*LinkFundingSourceMutationResponse, error)
 	VerifyUsdBankAccount(ctx context.Context, input VerifyUsdBankAccountInput) (*VerifyUsdBankAccountMutationResponse, error)
 	InitiateDeposit(ctx context.Context, input DepositInput) (*DepositMutationResponse, error)
-	InitiateWithdrawal(ctx context.Context, input WithdrawalInput) (*WithdrawalMutationResponse, error)
 }
 type QueryResolver interface {
 	Identity(ctx context.Context) (*Identity, error)
@@ -525,18 +509,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.InitiateOnboarding(childComplexity), true
 
-	case "Mutation.initiateWithdrawal":
-		if e.complexity.Mutation.InitiateWithdrawal == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_initiateWithdrawal_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.InitiateWithdrawal(childComplexity, args["input"].(WithdrawalInput)), true
-
 	case "Mutation.linkUsdBankAccount":
 		if e.complexity.Mutation.LinkUsdBankAccount == nil {
 			break
@@ -821,62 +793,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VerifyUsdBankAccountMutationResponse.Success(childComplexity), true
 
-	case "Withdrawal.amount":
-		if e.complexity.Withdrawal.Amount == nil {
-			break
-		}
-
-		return e.complexity.Withdrawal.Amount(childComplexity), true
-
-	case "Withdrawal.id":
-		if e.complexity.Withdrawal.ID == nil {
-			break
-		}
-
-		return e.complexity.Withdrawal.ID(childComplexity), true
-
-	case "Withdrawal.state":
-		if e.complexity.Withdrawal.State == nil {
-			break
-		}
-
-		return e.complexity.Withdrawal.State(childComplexity), true
-
-	case "Withdrawal.timestamp":
-		if e.complexity.Withdrawal.Timestamp == nil {
-			break
-		}
-
-		return e.complexity.Withdrawal.Timestamp(childComplexity), true
-
-	case "WithdrawalMutationResponse.code":
-		if e.complexity.WithdrawalMutationResponse.Code == nil {
-			break
-		}
-
-		return e.complexity.WithdrawalMutationResponse.Code(childComplexity), true
-
-	case "WithdrawalMutationResponse.message":
-		if e.complexity.WithdrawalMutationResponse.Message == nil {
-			break
-		}
-
-		return e.complexity.WithdrawalMutationResponse.Message(childComplexity), true
-
-	case "WithdrawalMutationResponse.success":
-		if e.complexity.WithdrawalMutationResponse.Success == nil {
-			break
-		}
-
-		return e.complexity.WithdrawalMutationResponse.Success(childComplexity), true
-
-	case "WithdrawalMutationResponse.withdrawal":
-		if e.complexity.WithdrawalMutationResponse.Withdrawal == nil {
-			break
-		}
-
-		return e.complexity.WithdrawalMutationResponse.Withdrawal(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -962,7 +878,6 @@ type Mutation {
     input: VerifyUsdBankAccountInput!
   ): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
-  initiateWithdrawal(input: WithdrawalInput!): WithdrawalMutationResponse!
 }
 
 interface MutationResponse {
@@ -1092,17 +1007,6 @@ type Transaction {
   status: String!
 }
 
-input WithdrawalInput {
-  fundingSourceID: ID!
-  amount: String!
-}
-
-type WithdrawalMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  withdrawal: Withdrawal
-}
 
 type Account {
   id: ID!
@@ -1142,13 +1046,6 @@ type Deposit {
   amount: String!
   timestamp: String!
 }
-
-type Withdrawal {
-  id: ID!
-  state: String!
-  amount: String!
-  timestamp: String!
-}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1179,21 +1076,6 @@ func (ec *executionContext) field_Mutation_initiateDeposit_args(ctx context.Cont
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNDepositInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_initiateWithdrawal_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 WithdrawalInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNWithdrawalInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawalInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2896,48 +2778,6 @@ func (ec *executionContext) _Mutation_initiateDeposit(ctx context.Context, field
 	return ec.marshalNDepositMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositMutationResponse(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_initiateWithdrawal(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_initiateWithdrawal_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitiateWithdrawal(rctx, args["input"].(WithdrawalInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*WithdrawalMutationResponse)
-	fc.Result = res
-	return ec.marshalNWithdrawalMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawalMutationResponse(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _OnboardingMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *OnboardingMutationResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4164,283 +4004,6 @@ func (ec *executionContext) _VerifyUsdBankAccountMutationResponse_fundingSource(
 	res := resTmp.(*FundingSource)
 	fc.Result = res
 	return ec.marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Withdrawal_id(ctx context.Context, field graphql.CollectedField, obj *Withdrawal) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Withdrawal",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Withdrawal_state(ctx context.Context, field graphql.CollectedField, obj *Withdrawal) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Withdrawal",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.State, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Withdrawal_amount(ctx context.Context, field graphql.CollectedField, obj *Withdrawal) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Withdrawal",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Amount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Withdrawal_timestamp(ctx context.Context, field graphql.CollectedField, obj *Withdrawal) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Withdrawal",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Timestamp, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WithdrawalMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *WithdrawalMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WithdrawalMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WithdrawalMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *WithdrawalMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WithdrawalMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Success, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WithdrawalMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *WithdrawalMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WithdrawalMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _WithdrawalMutationResponse_withdrawal(ctx context.Context, field graphql.CollectedField, obj *WithdrawalMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "WithdrawalMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Withdrawal, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*Withdrawal)
-	fc.Result = res
-	return ec.marshalOWithdrawal2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawal(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -5879,37 +5442,6 @@ func (ec *executionContext) unmarshalInputVerifyUsdBankAccountInput(ctx context.
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputWithdrawalInput(ctx context.Context, obj interface{}) (WithdrawalInput, error) {
-	var it WithdrawalInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "fundingSourceID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fundingSourceID"))
-			it.FundingSourceID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "amount":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
-			it.Amount, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -5967,13 +5499,6 @@ func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.Selec
 			return graphql.Null
 		}
 		return ec._DepositMutationResponse(ctx, sel, obj)
-	case WithdrawalMutationResponse:
-		return ec._WithdrawalMutationResponse(ctx, sel, &obj)
-	case *WithdrawalMutationResponse:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._WithdrawalMutationResponse(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -6632,16 +6157,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "initiateWithdrawal":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_initiateWithdrawal(ctx, field)
-			}
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7256,125 +6771,6 @@ func (ec *executionContext) _VerifyUsdBankAccountMutationResponse(ctx context.Co
 		case "fundingSource":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._VerifyUsdBankAccountMutationResponse_fundingSource(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var withdrawalImplementors = []string{"Withdrawal"}
-
-func (ec *executionContext) _Withdrawal(ctx context.Context, sel ast.SelectionSet, obj *Withdrawal) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, withdrawalImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Withdrawal")
-		case "id":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Withdrawal_id(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "state":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Withdrawal_state(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "amount":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Withdrawal_amount(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "timestamp":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Withdrawal_timestamp(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var withdrawalMutationResponseImplementors = []string{"WithdrawalMutationResponse", "MutationResponse"}
-
-func (ec *executionContext) _WithdrawalMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *WithdrawalMutationResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, withdrawalMutationResponseImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("WithdrawalMutationResponse")
-		case "code":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WithdrawalMutationResponse_code(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "success":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WithdrawalMutationResponse_success(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "message":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WithdrawalMutationResponse_message(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "withdrawal":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._WithdrawalMutationResponse_withdrawal(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -8295,25 +7691,6 @@ func (ec *executionContext) marshalNVerifyUsdBankAccountMutationResponse2ᚖgitl
 	return ec._VerifyUsdBankAccountMutationResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNWithdrawalInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawalInput(ctx context.Context, v interface{}) (WithdrawalInput, error) {
-	res, err := ec.unmarshalInputWithdrawalInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNWithdrawalMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawalMutationResponse(ctx context.Context, sel ast.SelectionSet, v WithdrawalMutationResponse) graphql.Marshaler {
-	return ec._WithdrawalMutationResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNWithdrawalMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawalMutationResponse(ctx context.Context, sel ast.SelectionSet, v *WithdrawalMutationResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._WithdrawalMutationResponse(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -8635,13 +8012,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOWithdrawal2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐWithdrawal(ctx context.Context, sel ast.SelectionSet, v *Withdrawal) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Withdrawal(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

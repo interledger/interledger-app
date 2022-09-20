@@ -179,27 +179,6 @@ type VerifyUsdBankAccountMutationResponse struct {
 
 func (VerifyUsdBankAccountMutationResponse) IsMutationResponse() {}
 
-type Withdrawal struct {
-	ID        string `json:"id"`
-	State     string `json:"state"`
-	Amount    string `json:"amount"`
-	Timestamp string `json:"timestamp"`
-}
-
-type WithdrawalInput struct {
-	FundingSourceID string `json:"fundingSourceID"`
-	Amount          string `json:"amount"`
-}
-
-type WithdrawalMutationResponse struct {
-	Code       string      `json:"code"`
-	Success    bool        `json:"success"`
-	Message    string      `json:"message"`
-	Withdrawal *Withdrawal `json:"withdrawal"`
-}
-
-func (WithdrawalMutationResponse) IsMutationResponse() {}
-
 type TransactionType string
 
 const (

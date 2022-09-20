@@ -26,7 +26,6 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
-	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
@@ -58,7 +57,6 @@ type TestContainer struct {
 	UnitService          unit.Client
 	UnitMockServer       *httptest.Server
 	DepositService       deposits.Service
-	WithdrawalService    withdrawals.Service
 	TransactionService   account_transactions.Client
 	Os                   onboarding.Client
 	PacioliClient        pacioli.Client
@@ -192,18 +190,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	os := onboarding_client.New(c)
 	c.Os = os
 
-	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
-		Db: db,
-		As: as,
-		Is: is,
-		Fs: fs,
-		Tp: tp,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.WithdrawalService = ws
-
 	graph, err := NewService(GraphqlOpts{
 		Db:                  db,
 		Identity:            is,
@@ -214,7 +200,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		AccountTransactions: ts,
 		Ds:                  ds,
 		Os:                  os,
-		Ws:                  ws,
 		Fs:                  fs,
 	})
 	graph = NewLoggingService(graph, logger)
