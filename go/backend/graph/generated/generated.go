@@ -63,20 +63,6 @@ type ComplexityRoot struct {
 		Success func(childComplexity int) int
 	}
 
-	Deposit struct {
-		Amount    func(childComplexity int) int
-		ID        func(childComplexity int) int
-		State     func(childComplexity int) int
-		Timestamp func(childComplexity int) int
-	}
-
-	DepositMutationResponse struct {
-		Code    func(childComplexity int) int
-		Deposit func(childComplexity int) int
-		Message func(childComplexity int) int
-		Success func(childComplexity int) int
-	}
-
 	FundingSource struct {
 		ID                 func(childComplexity int) int
 		Mask               func(childComplexity int) int
@@ -111,7 +97,6 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateAccount        func(childComplexity int, input CreateAccountInput) int
-		InitiateDeposit      func(childComplexity int, input DepositInput) int
 		InitiateOnboarding   func(childComplexity int) int
 		LinkUsdBankAccount   func(childComplexity int, input LinkUsdBankAccountInput) int
 		OnboardAccount       func(childComplexity int) int
@@ -190,7 +175,6 @@ type MutationResolver interface {
 	VerifyAccount(ctx context.Context, input VerifyAccountInput) (*VerifyAccountMutationResponse, error)
 	LinkUsdBankAccount(ctx context.Context, input LinkUsdBankAccountInput) (*LinkFundingSourceMutationResponse, error)
 	VerifyUsdBankAccount(ctx context.Context, input VerifyUsdBankAccountInput) (*VerifyUsdBankAccountMutationResponse, error)
-	InitiateDeposit(ctx context.Context, input DepositInput) (*DepositMutationResponse, error)
 }
 type QueryResolver interface {
 	Identity(ctx context.Context) (*Identity, error)
@@ -281,62 +265,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CreateAccountMutationResponse.Success(childComplexity), true
-
-	case "Deposit.amount":
-		if e.complexity.Deposit.Amount == nil {
-			break
-		}
-
-		return e.complexity.Deposit.Amount(childComplexity), true
-
-	case "Deposit.id":
-		if e.complexity.Deposit.ID == nil {
-			break
-		}
-
-		return e.complexity.Deposit.ID(childComplexity), true
-
-	case "Deposit.state":
-		if e.complexity.Deposit.State == nil {
-			break
-		}
-
-		return e.complexity.Deposit.State(childComplexity), true
-
-	case "Deposit.timestamp":
-		if e.complexity.Deposit.Timestamp == nil {
-			break
-		}
-
-		return e.complexity.Deposit.Timestamp(childComplexity), true
-
-	case "DepositMutationResponse.code":
-		if e.complexity.DepositMutationResponse.Code == nil {
-			break
-		}
-
-		return e.complexity.DepositMutationResponse.Code(childComplexity), true
-
-	case "DepositMutationResponse.deposit":
-		if e.complexity.DepositMutationResponse.Deposit == nil {
-			break
-		}
-
-		return e.complexity.DepositMutationResponse.Deposit(childComplexity), true
-
-	case "DepositMutationResponse.message":
-		if e.complexity.DepositMutationResponse.Message == nil {
-			break
-		}
-
-		return e.complexity.DepositMutationResponse.Message(childComplexity), true
-
-	case "DepositMutationResponse.success":
-		if e.complexity.DepositMutationResponse.Success == nil {
-			break
-		}
-
-		return e.complexity.DepositMutationResponse.Success(childComplexity), true
 
 	case "FundingSource.id":
 		if e.complexity.FundingSource.ID == nil {
@@ -489,18 +417,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateAccount(childComplexity, args["input"].(CreateAccountInput)), true
-
-	case "Mutation.initiateDeposit":
-		if e.complexity.Mutation.InitiateDeposit == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_initiateDeposit_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.InitiateDeposit(childComplexity, args["input"].(DepositInput)), true
 
 	case "Mutation.initiateOnboarding":
 		if e.complexity.Mutation.InitiateOnboarding == nil {
@@ -877,7 +793,6 @@ type Mutation {
   verifyUsdBankAccount(
     input: VerifyUsdBankAccountInput!
   ): VerifyUsdBankAccountMutationResponse!
-  initiateDeposit(input: DepositInput!): DepositMutationResponse!
 }
 
 interface MutationResponse {
@@ -979,18 +894,6 @@ input VerifyUsdBankAccountInput {
   FundingSourceId: String!
 }
 
-input DepositInput {
-  fundingSourceID: ID!
-  amount: String!
-}
-
-type DepositMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  deposit: Deposit
-}
-
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
@@ -1039,13 +942,6 @@ type TransactionsConnection {
   pageInfo: PageInfo!
   edges: [TransactionEdge!]!
 }
-
-type Deposit {
-  id: ID!
-  state: String!
-  amount: String!
-  timestamp: String!
-}
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1061,21 +957,6 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateAccountInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐCreateAccountInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_initiateDeposit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 DepositInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNDepositInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1522,283 +1403,6 @@ func (ec *executionContext) _CreateAccountMutationResponse_account(ctx context.C
 	res := resTmp.(*Account)
 	fc.Result = res
 	return ec.marshalOAccount2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐAccount(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Deposit_id(ctx context.Context, field graphql.CollectedField, obj *Deposit) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Deposit",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Deposit_state(ctx context.Context, field graphql.CollectedField, obj *Deposit) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Deposit",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.State, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Deposit_amount(ctx context.Context, field graphql.CollectedField, obj *Deposit) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Deposit",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Amount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Deposit_timestamp(ctx context.Context, field graphql.CollectedField, obj *Deposit) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Deposit",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Timestamp, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DepositMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *DepositMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DepositMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DepositMutationResponse_success(ctx context.Context, field graphql.CollectedField, obj *DepositMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DepositMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Success, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DepositMutationResponse_message(ctx context.Context, field graphql.CollectedField, obj *DepositMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DepositMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Message, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _DepositMutationResponse_deposit(ctx context.Context, field graphql.CollectedField, obj *DepositMutationResponse) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "DepositMutationResponse",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Deposit, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*Deposit)
-	fc.Result = res
-	return ec.marshalODeposit2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDeposit(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _FundingSource_id(ctx context.Context, field graphql.CollectedField, obj *FundingSource) (ret graphql.Marshaler) {
@@ -2734,48 +2338,6 @@ func (ec *executionContext) _Mutation_verifyUsdBankAccount(ctx context.Context, 
 	res := resTmp.(*VerifyUsdBankAccountMutationResponse)
 	fc.Result = res
 	return ec.marshalNVerifyUsdBankAccountMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐVerifyUsdBankAccountMutationResponse(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_initiateDeposit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_initiateDeposit_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitiateDeposit(rctx, args["input"].(DepositInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*DepositMutationResponse)
-	fc.Result = res
-	return ec.marshalNDepositMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositMutationResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _OnboardingMutationResponse_code(ctx context.Context, field graphql.CollectedField, obj *OnboardingMutationResponse) (ret graphql.Marshaler) {
@@ -5239,37 +4801,6 @@ func (ec *executionContext) unmarshalInputCreateAccountInput(ctx context.Context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDepositInput(ctx context.Context, obj interface{}) (DepositInput, error) {
-	var it DepositInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "fundingSourceID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fundingSourceID"))
-			it.FundingSourceID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "amount":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
-			it.Amount, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputLinkUsdBankAccountInput(ctx context.Context, obj interface{}) (LinkUsdBankAccountInput, error) {
 	var it LinkUsdBankAccountInput
 	asMap := map[string]interface{}{}
@@ -5492,13 +5023,6 @@ func (ec *executionContext) _MutationResponse(ctx context.Context, sel ast.Selec
 			return graphql.Null
 		}
 		return ec._VerifyUsdBankAccountMutationResponse(ctx, sel, obj)
-	case DepositMutationResponse:
-		return ec._DepositMutationResponse(ctx, sel, &obj)
-	case *DepositMutationResponse:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._DepositMutationResponse(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -5653,125 +5177,6 @@ func (ec *executionContext) _CreateAccountMutationResponse(ctx context.Context, 
 		case "account":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._CreateAccountMutationResponse_account(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var depositImplementors = []string{"Deposit"}
-
-func (ec *executionContext) _Deposit(ctx context.Context, sel ast.SelectionSet, obj *Deposit) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, depositImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Deposit")
-		case "id":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Deposit_id(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "state":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Deposit_state(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "amount":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Deposit_amount(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "timestamp":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Deposit_timestamp(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var depositMutationResponseImplementors = []string{"DepositMutationResponse", "MutationResponse"}
-
-func (ec *executionContext) _DepositMutationResponse(ctx context.Context, sel ast.SelectionSet, obj *DepositMutationResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, depositMutationResponseImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("DepositMutationResponse")
-		case "code":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DepositMutationResponse_code(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "success":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DepositMutationResponse_success(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "message":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DepositMutationResponse_message(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "deposit":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._DepositMutationResponse_deposit(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -6140,16 +5545,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "verifyUsdBankAccount":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_verifyUsdBankAccount(ctx, field)
-			}
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "initiateDeposit":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_initiateDeposit(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -7307,25 +6702,6 @@ func (ec *executionContext) marshalNCreateAccountMutationResponse2ᚖgitlabᚗco
 	return ec._CreateAccountMutationResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDepositInput2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositInput(ctx context.Context, v interface{}) (DepositInput, error) {
-	res, err := ec.unmarshalInputDepositInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDepositMutationResponse2gitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositMutationResponse(ctx context.Context, sel ast.SelectionSet, v DepositMutationResponse) graphql.Marshaler {
-	return ec._DepositMutationResponse(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNDepositMutationResponse2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDepositMutationResponse(ctx context.Context, sel ast.SelectionSet, v *DepositMutationResponse) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._DepositMutationResponse(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNFundingSource2ᚕᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx context.Context, sel ast.SelectionSet, v []*FundingSource) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -7975,13 +7351,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
-}
-
-func (ec *executionContext) marshalODeposit2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐDeposit(ctx context.Context, sel ast.SelectionSet, v *Deposit) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Deposit(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOFundingSource2ᚖgitlabᚗcomᚋfynbosᚋbackendᚋgraphᚋgeneratedᚐFundingSource(ctx context.Context, sel ast.SelectionSet, v *FundingSource) graphql.Marshaler {

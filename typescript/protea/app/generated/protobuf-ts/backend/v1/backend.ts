@@ -3348,8 +3348,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetStatements", options: {}, I: Empty, O: GetStatementsResponse },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: GetStatementPDFResponse },
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
-    { name: "InitiateDeposit", options: {}, I: InitiateDepositRequest, O: InitiateDepositResponse },
-    { name: "GetDeposit", options: {}, I: GetDepositRequest, O: Deposit },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },

@@ -202,8 +202,6 @@ type BackendServiceClient interface {
 	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*GetStatementPDFResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
-	InitiateDeposit(ctx context.Context, in *InitiateDepositRequest, opts ...grpc.CallOption) (*InitiateDepositResponse, error)
-	GetDeposit(ctx context.Context, in *GetDepositRequest, opts ...grpc.CallOption) (*Deposit, error)
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -372,24 +370,6 @@ func (c *backendServiceClient) GetQuote(ctx context.Context, in *GetQuoteRequest
 	return out, nil
 }
 
-func (c *backendServiceClient) InitiateDeposit(ctx context.Context, in *InitiateDepositRequest, opts ...grpc.CallOption) (*InitiateDepositResponse, error) {
-	out := new(InitiateDepositResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/InitiateDeposit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetDeposit(ctx context.Context, in *GetDepositRequest, opts ...grpc.CallOption) (*Deposit, error) {
-	out := new(Deposit)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetDeposit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -463,8 +443,6 @@ type BackendServiceServer interface {
 	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*GetStatementPDFResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
-	InitiateDeposit(context.Context, *InitiateDepositRequest) (*InitiateDepositResponse, error)
-	GetDeposit(context.Context, *GetDepositRequest) (*Deposit, error)
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
@@ -526,12 +504,6 @@ func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetSt
 }
 func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequest) (*Quote, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetQuote not implemented")
-}
-func (UnimplementedBackendServiceServer) InitiateDeposit(context.Context, *InitiateDepositRequest) (*InitiateDepositResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitiateDeposit not implemented")
-}
-func (UnimplementedBackendServiceServer) GetDeposit(context.Context, *GetDepositRequest) (*Deposit, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDeposit not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -866,42 +838,6 @@ func _BackendService_GetQuote_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_InitiateDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitiateDepositRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).InitiateDeposit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/InitiateDeposit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).InitiateDeposit(ctx, req.(*InitiateDepositRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDepositRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetDeposit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetDeposit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetDeposit(ctx, req.(*GetDepositRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1066,14 +1002,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetQuote",
 			Handler:    _BackendService_GetQuote_Handler,
-		},
-		{
-			MethodName: "InitiateDeposit",
-			Handler:    _BackendService_InitiateDeposit_Handler,
-		},
-		{
-			MethodName: "GetDeposit",
-			Handler:    _BackendService_GetDeposit_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",

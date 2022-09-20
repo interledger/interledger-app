@@ -20,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	_grpc "gitlab.com/fynbos/backend/grpc"
@@ -76,7 +75,6 @@ type TestContainer struct {
 	ValidatorImpl   *validator.Validate
 	Auth            auth.Service
 	AgreementsImpl  agreements.Client
-	DepositsImpl    *deposits.MockService
 	Mx              *mx_mock.MockClient
 	PaymentsImpl    *payments_mock.MockClient
 	Tickets         *support_mock.MockClient
@@ -91,10 +89,6 @@ func (c *TestContainer) AdminAuth() auth.Service {
 
 func (c *TestContainer) Agreements() agreements.Client {
 	return c.AgreementsImpl
-}
-
-func (c *TestContainer) Deposits() deposits.Service {
-	return c.DepositsImpl
 }
 
 func (c *TestContainer) FundingSources() fundingsources.Client {
@@ -252,7 +246,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
 	c.UsersImpl = user_mock.NewMock()
 	c.Mx = mx_mock.NewMockClient(c.Ctrl)
-	c.DepositsImpl = deposits.NewMockService(c.Ctrl)
 	c.WaitlistImpl = waitlist_mock.NewMockClient(c.Ctrl)
 	c.Tickets = support_mock.NewMockClient(c.Ctrl)
 	c.PaymentsImpl = payments_mock.NewMockClient(c.Ctrl)

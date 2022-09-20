@@ -29,7 +29,6 @@ import (
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	"gitlab.com/fynbos/backend/graph"
@@ -200,17 +199,6 @@ func start(args *cli.StartArgs) {
 
 	b.onboarding = onboarding_client.New(b)
 
-	ds, err := deposits.NewService(&deposits.ServiceArgs{
-		Db: db,
-		As: b.accounts,
-		Is: b.identity,
-		Fs: b.fundingSources,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	b.waitlist = waitlist_client.New(b, logger)
 
 	b.payments = payments_client.New(b, logger)
@@ -235,7 +223,6 @@ func start(args *cli.StartArgs) {
 		Fs:                               b.fundingSources,
 		Os:                               b.onboarding,
 		AccountTransactions:              b.transactions,
-		Ds:                               ds,
 		QueryCacheSize:                   1000,
 		AutomaticPersistedQueryCacheSize: 100,
 	})
@@ -409,18 +396,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.fundingSources = funding_client.New(b, logger)
 
-	ds, err := deposits.NewService(&deposits.ServiceArgs{
-		Db: db,
-		As: b.accounts,
-		Is: b.identity,
-		Fs: b.fundingSources,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.deposits = ds
-
 	b.payments = payments_client.New(b, logger)
 
 	b.onboarding = onboarding_client.New(b)
@@ -446,7 +421,6 @@ type backends struct {
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	countries      country.Client
-	deposits       deposits.Service
 	fundingSources fundingsources.Client
 	healthcheck    healthcheck.Service
 	identity       identity.Client
@@ -479,10 +453,6 @@ func (b backends) AdminAuth() auth.Service {
 
 func (b backends) Agreements() agreements.Client {
 	return b.agreements
-}
-
-func (b backends) Deposits() deposits.Service {
-	return b.deposits
 }
 
 func (b backends) Rafiki() rafiki.Service {
