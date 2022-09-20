@@ -18,7 +18,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/withdrawals"
 )
 
 type Resolver struct {
@@ -33,6 +32,5 @@ type Resolver struct {
 	AccountTransactions account_transactions.Client
 	Ds                  deposits.Service
 	Os                  onboarding.Client
-	Ws                  withdrawals.Service
 	Fs                  fundingsources.Client
 }

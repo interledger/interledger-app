@@ -57,7 +57,6 @@ import (
 	user_client "gitlab.com/fynbos/backend/user/client"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
-	"gitlab.com/fynbos/backend/withdrawals"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
@@ -214,17 +213,6 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
-	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
-		Db: db,
-		As: b.accounts,
-		Is: b.identity,
-		Fs: b.fundingSources,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	b.payments = payments_client.New(b, logger)
 
 	rafikiProvider, err := rafiki.NewService(&rafiki.ServiceArgs{
@@ -246,7 +234,6 @@ func start(args *cli.StartArgs) {
 		UnitService:                      b.unit,
 		Fs:                               b.fundingSources,
 		Os:                               b.onboarding,
-		Ws:                               ws,
 		AccountTransactions:              b.transactions,
 		Ds:                               ds,
 		QueryCacheSize:                   1000,
@@ -438,18 +425,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.onboarding = onboarding_client.New(b)
 
-	ws, err := withdrawals.NewService(&withdrawals.ServiceArgs{
-		Db: db,
-		As: b.accounts,
-		Is: b.identity,
-		Fs: b.fundingSources,
-		Tp: tp,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.withdrawals = ws
-
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -488,11 +463,6 @@ type backends struct {
 	unit           unit.Client
 	users          user.Client
 	waitlist       waitlist.Client
-	withdrawals    withdrawals.Service
-}
-
-func (b backends) Withdrawals() withdrawals.Service {
-	return b.withdrawals
 }
 
 func (b backends) HealthCheck() healthcheck.Service {

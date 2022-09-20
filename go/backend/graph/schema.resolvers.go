@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	faker "github.com/bxcodec/faker/v3"
@@ -21,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/unit"
-	"gitlab.com/fynbos/backend/withdrawals"
 )
 
 func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated.Account) ([]*generated.Transaction, error) {
@@ -64,7 +62,7 @@ func (r *accountResolver) RecentTransactions(ctx context.Context, obj *generated
 }
 
 func (r *mutationResolver) InitiateOnboarding(ctx context.Context) (*generated.InitiateOnboardingMutationResponse, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -121,7 +119,7 @@ func (r *mutationResolver) InitiateOnboarding(ctx context.Context) (*generated.I
 }
 
 func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.OnboardingMutationResponse, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -189,7 +187,7 @@ func (r *mutationResolver) OnboardAccount(ctx context.Context) (*generated.Onboa
 }
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, input generated.CreateAccountInput) (*generated.CreateAccountMutationResponse, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -255,7 +253,7 @@ func (r *mutationResolver) VerifyAccount(ctx context.Context, input generated.Ve
 }
 
 func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generated.LinkUsdBankAccountInput) (*generated.LinkFundingSourceMutationResponse, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -315,7 +313,7 @@ func (r *mutationResolver) LinkUsdBankAccount(ctx context.Context, input generat
 }
 
 func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input generated.VerifyUsdBankAccountInput) (*generated.VerifyUsdBankAccountMutationResponse, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -355,81 +353,8 @@ func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.
 	panic("not implemented.")
 }
 
-func (r *mutationResolver) InitiateWithdrawal(ctx context.Context, input generated.WithdrawalInput) (*generated.WithdrawalMutationResponse, error) {
-	user, err := r.UserService.UserForContext(ctx)
-	if err != nil {
-		ForbiddenError(ctx)
-		return nil, nil
-	}
-
-	parsedAmount, err := strconv.ParseUint(input.Amount, 10, 64)
-	if err != nil {
-		InvalidArgument(ctx, err.Error())
-		return nil, nil
-	}
-	acc, err := r.AccountService.GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		switch {
-		case errors.Is(err, accounts.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		case errors.Is(err, accounts.ErrNotFound):
-			return &generated.WithdrawalMutationResponse{
-				Code:    "404",
-				Success: false,
-				Message: "Deposit failed: Account not found.",
-			}, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
-	// TODO: determine provider to use
-	withdrawal, err := r.Ws.InitiateWithdrawal(ctx, &withdrawals.InitiateWithdrawalArgs{
-		IdentityID:      user.ID,
-		AccountID:       acc.ID,
-		FundingSourceID: input.FundingSourceID,
-		Amount:          parsedAmount,
-	})
-	if err != nil {
-		switch {
-		case errors.Is(err, withdrawals.ErrInvalidArgument):
-			InvalidArgument(ctx, err.Error())
-			return nil, nil
-		case errors.Is(err, withdrawals.ErrUnverifiedFundingSource):
-			return &generated.WithdrawalMutationResponse{
-				Code:    "403",
-				Success: false,
-				Message: "Withdrawal failed: Destination is unverified.",
-			}, nil
-		case errors.Is(err, withdrawals.ErrInsufficientBalance):
-			return &generated.WithdrawalMutationResponse{
-				Code:    "422",
-				Success: false,
-				Message: "Withdrawal failed: Insufficient balance.",
-			}, nil
-		default:
-			InternalServerError(ctx)
-			return nil, nil
-		}
-	}
-
-	return &generated.WithdrawalMutationResponse{
-		Code:    "200",
-		Success: true,
-		Message: "Withdrawal initiated.",
-		Withdrawal: &generated.Withdrawal{
-			ID:        withdrawal.ID,
-			State:     withdrawal.State.String(),
-			Amount:    strconv.FormatInt(int64(withdrawal.Amount), 10),
-			Timestamp: withdrawal.CreatedAt,
-		},
-	}, nil
-}
-
 func (r *queryResolver) Identity(ctx context.Context) (*generated.Identity, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -467,7 +392,7 @@ func (r *queryResolver) Identity(ctx context.Context) (*generated.Identity, erro
 }
 
 func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.FundingSource, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -508,7 +433,7 @@ func (r *queryResolver) FundingSources(ctx context.Context) ([]*generated.Fundin
 }
 
 func (r *queryResolver) Account(ctx context.Context) (*generated.Account, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -560,7 +485,7 @@ func (r *queryResolver) Countries(ctx context.Context) ([]*generated.Country, er
 }
 
 func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagination) (*generated.TransactionsConnection, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -606,7 +531,7 @@ func (r *queryResolver) Transactions(ctx context.Context, input generated.Pagina
 }
 
 func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.Transaction, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil
@@ -646,7 +571,7 @@ func (r *queryResolver) Transaction(ctx context.Context, id string) (*generated.
 }
 
 func (r *transactionsConnectionResolver) PageInfo(ctx context.Context, obj *generated.TransactionsConnection) (*generated.PageInfo, error) {
-	user, err := r.UserService.UserForContext(ctx)
+	user, err := r.UserService.ForContext(ctx)
 	if err != nil {
 		ForbiddenError(ctx)
 		return nil, nil

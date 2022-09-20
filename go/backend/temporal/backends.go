@@ -13,7 +13,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/withdrawals"
 	"go.temporal.io/sdk/client"
 )
 
@@ -31,5 +30,4 @@ type Backends interface {
 	MX() mx.Client
 	Unit() unit.Client
 	FundingSources() fundingsources.Client
-	Withdrawals() withdrawals.Service
 }

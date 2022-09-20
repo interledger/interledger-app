@@ -19,7 +19,6 @@ type Mutation {
     input: VerifyUsdBankAccountInput!
   ): VerifyUsdBankAccountMutationResponse!
   initiateDeposit(input: DepositInput!): DepositMutationResponse!
-  initiateWithdrawal(input: WithdrawalInput!): WithdrawalMutationResponse!
 }
 
 interface MutationResponse {
@@ -149,17 +148,6 @@ type Transaction {
   status: String!
 }
 
-input WithdrawalInput {
-  fundingSourceID: ID!
-  amount: String!
-}
-
-type WithdrawalMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  withdrawal: Withdrawal
-}
 
 type Account {
   id: ID!
@@ -194,13 +182,6 @@ type TransactionsConnection {
 }
 
 type Deposit {
-  id: ID!
-  state: String!
-  amount: String!
-  timestamp: String!
-}
-
-type Withdrawal {
   id: ID!
   state: String!
   amount: String!
