@@ -23,7 +23,6 @@ import (
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_identity "gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -38,7 +37,6 @@ type TestContainer struct {
 	Logger          *zap.Logger
 	Db              *sqlx.DB
 	Cs              country.Client
-	NoopImpl        noop.Service
 	Is              _identity.Client
 	Fs              fundingsources.Client
 	Os              onboarding.Client
@@ -49,10 +47,6 @@ type TestContainer struct {
 	Tp              *mocks.Client
 	UnitImpl        *unit_mock.MockClient
 	ValidatorImpl   *validator.Validate
-}
-
-func (t TestContainer) Noop() noop.Service {
-	return t.NoopImpl
 }
 
 func (t TestContainer) Temporal() client.Client {
@@ -115,17 +109,6 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	ts := transactions_client.New(c, logger)
 	c.Ts = ts
 
-	noop, err := noop.NewService(noop.ServiceArgs{
-		LedgerID:      c.PacioliLedgerID,
-		EquityAccID:   "46d4b2bd-e29b-4a63-9aa8-7990776c714e",
-		PacioliTenant: "dev",
-		PacioliClient: pClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	c.NoopImpl = noop
 	c.Tp = &mocks.Client{}
 
 	os := onboarding_client.New(c)

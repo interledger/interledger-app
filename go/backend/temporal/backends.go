@@ -8,7 +8,6 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/providers/mx"
-	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/twilio"
 	"go.temporal.io/sdk/client"
@@ -21,7 +20,6 @@ type Backends interface {
 	Identity() identity.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
-	Noop() noop.Service
 	Twilio() twilio.Service
 	MX() mx.Client
 	Unit() unit.Client

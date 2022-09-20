@@ -111,38 +111,20 @@ func TestTransactions(s *testing.T) {
 	for i < totalTransactions {
 		if i%2 == 0 {
 			transactionsAsc[i], err = NewDeposit(c, &account_transactions.CreateTransactionArgs{
-				AccountID:   acc.ID,
-				Description: "Test transaction",
-				Type:        "deposit",
-				NetAmount:   1000,
-				LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
-					{
-						LedgerID:        c.NoopService.GetLedgerID(),
-						CreditAccountID: c.NoopService.GetEquityAccountID(),
-						DebitAccountID:  acc.LedgerAccountID,
-						Amount:          1000,
-						Code:            1,
-						Flags:           account_transactions.LedgerTransferFlags{},
-					},
-				},
+				AccountID:       acc.ID,
+				Description:     "Test transaction",
+				Type:            "deposit",
+				NetAmount:       1000,
+				LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{},
 			})
 		} else {
 			transactionsAsc[i], err = NewOutgoingPayment(
 				c, &account_transactions.CreateTransactionArgs{
-					AccountID:   acc.ID,
-					Description: "Sent to $test.fynbos.dev/alice",
-					Type:        "outgoingPayment",
-					NetAmount:   100,
-					LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
-						{
-							LedgerID:        c.NoopService.GetLedgerID(),
-							DebitAccountID:  c.NoopService.GetEquityAccountID(),
-							CreditAccountID: acc.LedgerAccountID,
-							Amount:          100,
-							Code:            1,
-							Flags:           account_transactions.LedgerTransferFlags{},
-						},
-					},
+					AccountID:       acc.ID,
+					Description:     "Sent to $test.fynbos.dev/alice",
+					Type:            "outgoingPayment",
+					NetAmount:       100,
+					LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{},
 				},
 			)
 		}

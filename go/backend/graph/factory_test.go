@@ -35,7 +35,6 @@ import (
 	_country "gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/providers/mx"
-	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	_user "gitlab.com/fynbos/backend/user"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -52,7 +51,6 @@ type TestContainer struct {
 	IdentityService      identity.Client
 	UserService          _user.Client
 	Mx                   mx.Client
-	NoopService          _noop.Service
 	UnitService          unit.Client
 	UnitMockServer       *httptest.Server
 	TransactionService   account_transactions.Client
@@ -64,10 +62,6 @@ type TestContainer struct {
 	Server               *httptest.Server
 	ValidatorImpl        *validator.Validate
 	Tp                   client.Client
-}
-
-func (c *TestContainer) Noop() _noop.Service {
-	return c.NoopService
 }
 
 func (c *TestContainer) Temporal() client.Client {
@@ -137,19 +131,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	ts := transactions_client.New(c, logger)
 	c.TransactionService = ts
 
-	equityAccID := "46d4b2bd-e29b-4a63-9aa8-7990776c714e"
-	noopProvider, err := _noop.NewService(_noop.ServiceArgs{
-		LedgerID:      c.PacioliLedgerID,
-		EquityAccID:   equityAccID,
-		PacioliTenant: "dev",
-		PacioliClient: pClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	c.NoopService = noopProvider
-
 	c.UnitMockServer = test_utils.SetupUnitMockServer(ctx)
 
 	tp := &mocks.Client{}
@@ -182,7 +163,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		User:                users,
 		Account:             as,
 		Country:             cs,
-		Noop:                noopProvider,
 		AccountTransactions: ts,
 		Os:                  os,
 		Fs:                  fs,

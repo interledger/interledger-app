@@ -5,7 +5,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/providers/noop"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -14,6 +13,5 @@ type Backends interface {
 	DB() *sqlx.DB
 	Accounts() accounts.Client
 	Identity() identity.Client
-	Noop() noop.Service
 	Temporal() temporal.Client
 }

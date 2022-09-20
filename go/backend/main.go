@@ -41,7 +41,6 @@ import (
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
-	_noop "gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_client "gitlab.com/fynbos/backend/providers/unit/client"
@@ -168,17 +167,6 @@ func start(args *cli.StartArgs) {
 
 	b.transactions = transactions_client.New(b, logger)
 
-	nos, err := _noop.NewService(_noop.ServiceArgs{
-		LedgerID:      args.NoopLedgerID,
-		EquityAccID:   args.NoopEquityAccountID,
-		PacioliTenant: "dev",
-		PacioliClient: pClient,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.noop = nos
-
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
 		AccountToken: args.TwilioSecret,
@@ -214,7 +202,6 @@ func start(args *cli.StartArgs) {
 		Account:                          b.accounts,
 		Country:                          b.countries,
 		User:                             b.users,
-		Noop:                             nos,
 		UnitService:                      b.unit,
 		Fs:                               b.fundingSources,
 		Os:                               b.onboarding,
@@ -351,17 +338,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.transactions = transactions_client.New(b, logger)
 
-	nos, err := _noop.NewService(_noop.ServiceArgs{
-		LedgerID:      args.NoopLedgerID,
-		EquityAccID:   args.NoopEquityAccountID,
-		PacioliTenant: "dev",
-		PacioliClient: pClient,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.noop = nos
-
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
@@ -419,7 +395,6 @@ type backends struct {
 	healthcheck    healthcheck.Service
 	identity       identity.Client
 	mxProvider     _mx.Client
-	noop           _noop.Service
 	onboarding     onboarding.Client
 	pacioli        pacioli.Client
 	rafiki         rafiki.Service
@@ -466,10 +441,6 @@ func (b backends) Transactions() account_transactions.Client {
 
 func (b backends) Users() user.Client {
 	return b.users
-}
-
-func (b backends) Noop() _noop.Service {
-	return b.noop
 }
 
 func (b backends) Temporal() client.Client {

@@ -3,12 +3,9 @@ package graph
 import (
 	"context"
 	"fmt"
-	"testing"
-	"time"
-
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-
 	"gitlab.com/fynbos/pacioli"
+	"testing"
 
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/identity"
@@ -48,8 +45,6 @@ func TestUserAccount(s *testing.T) {
 			Email: faker.Email(),
 		}
 
-		ledgerID := uint32(1)
-
 		id, err := NewIdentity(container, &identity.CreateArgs{
 			ID:           user.ID,
 			FirstName:    faker.FirstName(),
@@ -62,7 +57,7 @@ func TestUserAccount(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		acc, err := NewAccount(container, &onboarding.CreateAccountArgs{
+		_, err = NewAccount(container, &onboarding.CreateAccountArgs{
 			IdentityID: id.ID,
 			Country:    id.Country,
 		})
@@ -70,36 +65,7 @@ func TestUserAccount(s *testing.T) {
 			t.Fatal(err)
 		}
 
-		transferErrs, err := container.PacioliClient.CreateTransfers(ctx, []pacioli.CreateTransferArgs{
-			{
-				ID:              uuid.NewString(),
-				DebitAccountID:  acc.LedgerAccountID,
-				CreditAccountID: container.NoopService.GetEquityAccountID(),
-				Amount:          200,
-				Code:            1,
-				Ledger:          ledgerID,
-			},
-			{
-				ID:              uuid.NewString(),
-				DebitAccountID:  container.NoopService.GetEquityAccountID(),
-				CreditAccountID: acc.LedgerAccountID,
-				Amount:          100,
-				Code:            1,
-				Ledger:          ledgerID,
-			},
-			{
-				ID:              uuid.NewString(),
-				DebitAccountID:  container.NoopService.GetEquityAccountID(),
-				CreditAccountID: acc.LedgerAccountID,
-				Amount:          20,
-				Code:            1,
-				Flags: pacioli.TransferFlags{
-					Pending: true,
-				},
-				Timeout: uint64(10 * time.Millisecond),
-				Ledger:  ledgerID,
-			},
-		})
+		transferErrs, err := container.PacioliClient.CreateTransfers(ctx, []pacioli.CreateTransferArgs{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -152,20 +118,11 @@ func TestUserAccount(s *testing.T) {
 			t.Fatal(err)
 		}
 		deposit, err := NewDeposit(container, &account_transactions.CreateTransactionArgs{
-			AccountID:   acc.ID,
-			Description: "Test transaction",
-			Type:        "deposit",
-			NetAmount:   10000,
-			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{
-				{
-					LedgerID:        container.NoopService.GetLedgerID(),
-					CreditAccountID: container.NoopService.GetEquityAccountID(),
-					DebitAccountID:  acc.LedgerAccountID,
-					Amount:          10000,
-					Code:            1,
-					Flags:           account_transactions.LedgerTransferFlags{},
-				},
-			},
+			AccountID:       acc.ID,
+			Description:     "Test transaction",
+			Type:            "deposit",
+			NetAmount:       10000,
+			LedgerTransfers: []account_transactions.CreateLedgerTransferArgs{},
 		})
 		if err != nil {
 			t.Fatal(err)
