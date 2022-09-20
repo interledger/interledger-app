@@ -17,8 +17,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
-	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/country"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -38,7 +36,6 @@ type TestContainer struct {
 	Is              _identity.Client
 	Fs              fundingsources.Client
 	Os              onboarding.Client
-	Ts              account_transactions.Client
 	as              accounts.Client
 	PacioliClient   pacioli.Client
 	PacioliLedgerID uint32
@@ -98,9 +95,6 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 
 	as := accounts_client.New(c, c.PacioliLedgerID, logger)
 	c.as = as
-
-	ts := transactions_client.New(c, logger)
-	c.Ts = ts
 
 	c.Tp = &mocks.Client{}
 
