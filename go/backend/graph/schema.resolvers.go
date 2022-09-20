@@ -349,10 +349,6 @@ func (r *mutationResolver) VerifyUsdBankAccount(ctx context.Context, input gener
 	}, nil
 }
 
-func (r *mutationResolver) InitiateDeposit(ctx context.Context, input generated.DepositInput) (*generated.DepositMutationResponse, error) {
-	panic("not implemented.")
-}
-
 func (r *queryResolver) Identity(ctx context.Context) (*generated.Identity, error) {
 	user, err := r.UserService.ForContext(ctx)
 	if err != nil {

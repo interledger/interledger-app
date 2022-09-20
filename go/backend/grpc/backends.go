@@ -5,7 +5,6 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -25,7 +24,6 @@ type Backends interface {
 	Accounts() accounts.Client
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
-	Deposits() deposits.Service
 	FundingSources() fundingsources.Client
 	HealthCheck() healthcheck.Service
 	Identity() identity.Client

@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/graph/generated"
 	"gitlab.com/fynbos/backend/identity"
@@ -29,7 +28,6 @@ type GraphqlOpts struct {
 	AccountTransactions              account_transactions.Client `validate:"required"`
 	Noop                             noop.Service                `validate:"required"`
 	UnitService                      unit.Client                 `validate:"required"`
-	Ds                               deposits.Service            `validate:"required"`
 	Os                               onboarding.Client           `validate:"required"`
 	Fs                               fundingsources.Client       `validate:"required"`
 	QueryCacheSize                   uint
@@ -61,7 +59,6 @@ func NewService(opts GraphqlOpts) (*handler.Server, error) {
 		NoopService:         opts.Noop,
 		UnitService:         opts.UnitService,
 		AccountTransactions: opts.AccountTransactions,
-		Ds:                  opts.Ds,
 		Os:                  opts.Os,
 		Fs:                  opts.Fs,
 	}}))

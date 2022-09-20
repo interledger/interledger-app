@@ -65,8 +65,6 @@ service BackendService {
   rpc GetStatementPDF(GetStatementPDFRequest) returns (GetStatementPDFResponse);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
-  rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
-  rpc GetDeposit(GetDepositRequest) returns(Deposit);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);

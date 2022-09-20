@@ -17,7 +17,6 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
-	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -61,7 +60,6 @@ type TestContainer struct {
 	UnitProvider         *unit_mock.MockClient
 	MxProvider           *mx_mock.MockClient
 	RafikiProvider       *rafiki.MockService
-	DepositService       *deposits.MockService
 	WaitlistClient       *waitlist_mock.MockClient
 	TemporalImpl         *mocks.Client
 	TicketClient         *support_mock.MockClient
@@ -82,10 +80,6 @@ func (t TestContainer) AdminAuth() auth.Service {
 
 func (t TestContainer) Agreements() agreements.Client {
 	return t.AgreementsService
-}
-
-func (t TestContainer) Deposits() deposits.Service {
-	return t.DepositService
 }
 
 func (t TestContainer) FundingSources() fundingsources.Client {
@@ -163,7 +157,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		OnboardingService:    onboarding_mock.NewMockClient(ctrl),
 		MxProvider:           mx_mock.NewMockClient(ctrl),
 		RafikiProvider:       rafiki.NewMockService(ctrl),
-		DepositService:       deposits.NewMockService(ctrl),
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
 		TicketClient:         support_mock.NewMockClient(ctrl),
 		TemporalImpl:         &mocks.Client{},

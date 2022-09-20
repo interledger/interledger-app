@@ -19,7 +19,6 @@ import (
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
 	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	"gitlab.com/fynbos/backend/deposits"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	"gitlab.com/fynbos/backend/identity"
 	identity_client "gitlab.com/fynbos/backend/identity/client"
@@ -56,7 +55,6 @@ type TestContainer struct {
 	NoopService          _noop.Service
 	UnitService          unit.Client
 	UnitMockServer       *httptest.Server
-	DepositService       deposits.Service
 	TransactionService   account_transactions.Client
 	Os                   onboarding.Client
 	PacioliClient        pacioli.Client
@@ -175,18 +173,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		}, nil,
 	)
 
-	ds, err := deposits.NewService(&deposits.ServiceArgs{
-		Db: db,
-		As: as,
-		Is: is,
-		Fs: fs,
-		Tp: tp,
-	})
-	if err != nil {
-		return nil, err
-	}
-	c.DepositService = ds
-
 	os := onboarding_client.New(c)
 	c.Os = os
 
@@ -198,7 +184,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 		Country:             cs,
 		Noop:                noopProvider,
 		AccountTransactions: ts,
-		Ds:                  ds,
 		Os:                  os,
 		Fs:                  fs,
 	})

@@ -18,7 +18,6 @@ type Mutation {
   verifyUsdBankAccount(
     input: VerifyUsdBankAccountInput!
   ): VerifyUsdBankAccountMutationResponse!
-  initiateDeposit(input: DepositInput!): DepositMutationResponse!
 }
 
 interface MutationResponse {
@@ -120,18 +119,6 @@ input VerifyUsdBankAccountInput {
   FundingSourceId: String!
 }
 
-input DepositInput {
-  fundingSourceID: ID!
-  amount: String!
-}
-
-type DepositMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  deposit: Deposit
-}
-
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
@@ -179,11 +166,4 @@ type TransactionEdge {
 type TransactionsConnection {
   pageInfo: PageInfo!
   edges: [TransactionEdge!]!
-}
-
-type Deposit {
-  id: ID!
-  state: String!
-  amount: String!
-  timestamp: String!
 }
