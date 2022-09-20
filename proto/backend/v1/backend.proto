@@ -25,11 +25,11 @@ message Account {
   uint64 creditsAccepted = 6;
 }
 
-message Empty{}
+message Empty {}
 
 service BackendService {
   rpc GetBankAccountWidget(GetBankAccountWidgetRequest) returns (GetBankAccountWidgetResponse);
-  rpc AddBankAccount (AddBankAccountRequest) returns (AddBankAccountResponse);
+  rpc AddBankAccount(AddBankAccountRequest) returns (AddBankAccountResponse);
   rpc GetBankAccountDetails(GetBankAccountDetailsRequest) returns (BankAccountDetails);
   rpc ContinueAddingBankAccount(ContinueAddingBankAccountRequest) returns (ContinueAddingBankAccountResponse);
   // Returns the current onboarding flow.
@@ -72,7 +72,7 @@ message GetStatementPDFResponse {
   bytes statementPdf = 2;
 }
 
-message CreateSupportTicketRequest{
+message CreateSupportTicketRequest {
   string description = 1;
   string firstName = 2;
   string lastName = 3;
@@ -181,15 +181,6 @@ message Quote {
   string expiresAt = 6;
 }
 
-message InitiateDepositRequest {
-  string fundingsourceId = 1;
-  uint64 amount = 2;
-}
-
-message InitiateDepositResponse {
-  string depositId = 1;
-}
-
 message JoinWaitlistRequest {
   string email = 1;
   string country_code = 2;
@@ -200,39 +191,6 @@ message JoinWaitlistResponse {}
 
 message GetFundingsourcesResponse {
   repeated FundingSource fundingsources = 1;
-}
-
-message Deposit {
-  string id = 1;
-  string fundingsourceId = 2;
-  uint64 amount = 3;
-  string state = 4;
-}
-
-message GetDepositRequest {
-  string id = 1;
-}
-
-message InitiateOutgoingPaymentRequest {
-  uint64 amount = 1;
-  string to = 2;
-  string otp = 3;
-}
-
-message InitiateOutgoingPaymentResponse {
-  string id = 1;
-}
-
-message GetOutgoingPaymentRequest {
-  string id = 1;
-}
-
-message OutgoingPayment {
-  string id = 1;
-  string accountId = 2;
-  string destination = 3;
-  uint64 amount = 4;
-  string state = 5;
 }
 
 message UserIdentity {
