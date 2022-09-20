@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -35,7 +37,7 @@ func TestGraphql(s *testing.T) {
 	s.Run("get identity", func(t *testing.T) {
 		t.Run("requires authenticated user", func(tt *testing.T) {
 			req := getIdentityRequest()
-			err := _user.ActingAs(req, nil)
+			err := user_mock.ActingAs(req, nil)
 			if err != nil {
 				return
 			}
@@ -58,7 +60,7 @@ func TestGraphql(s *testing.T) {
 				Email: faker.Email(),
 			}
 			req := getIdentityRequest()
-			err = _user.ActingAs(req, user)
+			err = user_mock.ActingAs(req, user)
 			if err != nil {
 				tt.Fatal(err)
 			}
@@ -94,7 +96,7 @@ func TestGraphql(s *testing.T) {
 			}
 
 			getReq := getIdentityRequest()
-			err = _user.ActingAs(getReq, user)
+			err = user_mock.ActingAs(getReq, user)
 			if err != nil {
 				return
 			}
@@ -117,7 +119,7 @@ func TestGraphql(s *testing.T) {
 	s.Run("authenticated user is required to link usd bank account", func(t *testing.T) {
 		args := generateLinkUsdBankAccountInput()
 		req := linkUsdBankAccountRequest(args)
-		err := _user.ActingAs(req, nil)
+		err := user_mock.ActingAs(req, nil)
 		if err != nil {
 			return
 		}
@@ -162,7 +164,7 @@ func TestGraphql(s *testing.T) {
 
 		args := generateLinkUsdBankAccountInput()
 		req := linkUsdBankAccountRequest(args)
-		err = _user.ActingAs(req, user)
+		err = user_mock.ActingAs(req, user)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -194,7 +196,7 @@ func TestGraphql(s *testing.T) {
 
 		// verify it
 		verifyReq := verifyUsdBankAccount(generateVerifyUsdBankAccountInput(withFundingSourceID(fs.ID)))
-		err = _user.ActingAs(verifyReq, user)
+		err = user_mock.ActingAs(verifyReq, user)
 		if err != nil {
 			return
 		}

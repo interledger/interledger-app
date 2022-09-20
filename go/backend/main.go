@@ -54,6 +54,7 @@ import (
 	"gitlab.com/fynbos/backend/temporal"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
+	user_client "gitlab.com/fynbos/backend/user/client"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/withdrawals"
@@ -148,7 +149,6 @@ func start(args *cli.StartArgs) {
 			Description: "Dev Kratos",
 		},
 	}
-	kratosClient := kratos.NewAPIClient(configuration)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
@@ -156,11 +156,7 @@ func start(args *cli.StartArgs) {
 	}
 	b.temporal = tp
 
-	users, err := user.NewService(kratosClient)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.users = user.NewLoggingService(users, logger)
+	b.users = user_client.New(b, args.KratosUrl)
 
 	b.countries = country_client.New(b)
 
@@ -265,9 +261,9 @@ func start(args *cli.StartArgs) {
 	router.Routes()
 	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
-	router.Handle("/graphql", user.MakeMiddleware(users)(graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
+	router.Handle("/graphql", graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
 		WebSocketKeepAlivePingInterval: 10 * time.Second,
-	})))
+	}))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
@@ -490,7 +486,7 @@ type backends struct {
 	transactions   account_transactions.Client
 	twilio         _twilio.Service
 	unit           unit.Client
-	users          user.Service
+	users          user.Client
 	waitlist       waitlist.Client
 	withdrawals    withdrawals.Service
 }
@@ -535,7 +531,7 @@ func (b backends) Transactions() account_transactions.Client {
 	return b.transactions
 }
 
-func (b backends) Users() user.Service {
+func (b backends) Users() user.Client {
 	return b.users
 }
 

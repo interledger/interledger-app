@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
 	_user "gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -35,7 +36,7 @@ func TestGetFundingsources(t *testing.T) {
 
 	t.Run("requires authenticated user", func(st *testing.T) {
 		response, err := client.GetFundingsources(
-			_user.ActingAsContext(t, context.Background(), nil),
+			user_mock.ActingAsContext(t, context.Background(), nil),
 			&backendv1.Empty{},
 		)
 
@@ -61,7 +62,7 @@ func TestGetFundingsources(t *testing.T) {
 		c.FundingsourceService.EXPECT().GetByAccountId(gomock.Any(), accountID).Return(expectedFundingsources, nil).Times(1)
 
 		response, err := client.GetFundingsources(
-			_user.ActingAsContext(t, context.Background(), user),
+			user_mock.ActingAsContext(t, context.Background(), user),
 			&backendv1.Empty{},
 		)
 		if err != nil {

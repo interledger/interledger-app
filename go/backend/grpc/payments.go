@@ -8,7 +8,7 @@ import (
 )
 
 func (s *rpcService) InitiateOutgoingPayment(ctx context.Context, req *pb.InitiateOutgoingPaymentRequest) (*pb.InitiateOutgoingPaymentResponse, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -27,7 +27,7 @@ func (s *rpcService) InitiateOutgoingPayment(ctx context.Context, req *pb.Initia
 }
 
 func (s *rpcService) GetOutgoingPayment(ctx context.Context, req *pb.GetOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

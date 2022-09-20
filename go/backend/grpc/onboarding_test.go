@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -166,7 +168,7 @@ func TestCreateIdentity(s *testing.T) {
 		}, nil).Times(1)
 
 		resp, err := client.CreateIdentity(
-			_user.ActingAsContext(t, context.Background(), &_user.User{
+			user_mock.ActingAsContext(t, context.Background(), &_user.User{
 				ID:    userId,
 				Email: email,
 			}),
@@ -204,7 +206,7 @@ func TestCreateIdentity(s *testing.T) {
 		c.IdentityService.EXPECT().Create(gomock.Any(), nil).Return(nil, nil).Times(0)
 
 		resp, err := client.CreateIdentity(
-			_user.ActingAsContext(t, context.Background(), &_user.User{
+			user_mock.ActingAsContext(t, context.Background(), &_user.User{
 				ID:    userId,
 				Email: email,
 			}),
@@ -423,7 +425,7 @@ func TestInitiateUnitOnboarding(s *testing.T) {
 		c.OnboardingService.EXPECT().InitiateUnitCustomerOnboarding(gomock.Any(), args).Return(nil).Times(1)
 
 		resp, err := client.InitiateUnitOnboarding(
-			_user.ActingAsContext(t, context.Background(), &_user.User{
+			user_mock.ActingAsContext(t, context.Background(), &_user.User{
 				ID:    userId,
 				Email: email,
 			}),

@@ -25,7 +25,7 @@ type GraphqlOpts struct {
 	Db *sqlx.DB
 	// TODO: refactor Identity -> Is etc.
 	Identity                         identity.Client             `validate:"required"`
-	User                             user.Service                `validate:"required"`
+	User                             user.Client                 `validate:"required"`
 	Account                          accounts.Client             `validate:"required"`
 	Country                          country.Client              `validate:"required"`
 	AccountTransactions              account_transactions.Client `validate:"required"`

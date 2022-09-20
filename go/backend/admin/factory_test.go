@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
 
 	"github.com/go-playground/validator/v10"
@@ -78,7 +80,7 @@ type TestContainer struct {
 	Mx              *mx_mock.MockClient
 	PaymentsImpl    *payments_mock.MockClient
 	Tickets         *support_mock.MockClient
-	UsersImpl       user.Service
+	UsersImpl       user.Client
 	WaitlistImpl    *waitlist_mock.MockClient
 	TwilioImpl      *twilio.MockService
 }
@@ -131,7 +133,7 @@ func (c *TestContainer) Unit() unit.Client {
 	return c.Up
 }
 
-func (c *TestContainer) Users() user.Service {
+func (c *TestContainer) Users() user.Client {
 	return c.UsersImpl
 }
 
@@ -248,7 +250,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Fs = funding_mock.NewMockClient(c.Ctrl)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
-	c.UsersImpl = user.NewMockService()
+	c.UsersImpl = user_mock.NewMock()
 	c.Mx = mx_mock.NewMockClient(c.Ctrl)
 	c.DepositsImpl = deposits.NewMockService(c.Ctrl)
 	c.WaitlistImpl = waitlist_mock.NewMockClient(c.Ctrl)

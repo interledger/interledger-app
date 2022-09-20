@@ -11,7 +11,7 @@ func (s *rpcService) InitiateDeposit(
 	ctx context.Context,
 	req *backendv1.InitiateDepositRequest,
 ) (*backendv1.InitiateDepositResponse, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no user.")
 	}
@@ -39,7 +39,7 @@ func (s *rpcService) InitiateDeposit(
 func (s *rpcService) GetDeposit(ctx context.Context,
 	req *backendv1.GetDepositRequest,
 ) (*backendv1.Deposit, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no user.")
 	}

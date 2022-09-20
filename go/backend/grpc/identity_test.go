@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +33,7 @@ func TestGetIdentity(t *testing.T) {
 		Country:      "ZA",
 	}, nil)
 
-	id, err := client.GetIdentity(user.ActingAsContext(t, context.Background(), &user.User{
+	id, err := client.GetIdentity(user_mock.ActingAsContext(t, context.Background(), &user.User{
 		ID: "user_uuid",
 	}), &pb.Empty{})
 	require.NoError(t, err)

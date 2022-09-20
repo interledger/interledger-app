@@ -46,7 +46,7 @@ func (s *rpcService) GetQuote(
 		return nil, ValidationError(err, validateGetQuoteDescription)
 	}
 
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

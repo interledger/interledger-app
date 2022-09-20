@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/providers/unit"
 	_user "gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -38,7 +39,7 @@ func TestGetStatements(t *testing.T) {
 			},
 		}, nil).Times(1)
 
-		res, err := client.GetStatements(_user.ActingAsContext(t, context.Background(), &_user.User{
+		res, err := client.GetStatements(user_mock.ActingAsContext(t, context.Background(), &_user.User{
 			ID: userID,
 		}), &backendv1.Empty{})
 		if err != nil {
@@ -58,7 +59,7 @@ func TestGetStatements(t *testing.T) {
 		}, nil).Times(1)
 		c.UnitProvider.EXPECT().GetStatements(gomock.Any(), gomock.Any()).Return(nil, unit.ErrNotFound).Times(1)
 
-		res, err := client.GetStatements(_user.ActingAsContext(t, context.Background(), &_user.User{
+		res, err := client.GetStatements(user_mock.ActingAsContext(t, context.Background(), &_user.User{
 			ID: uuid.NewString(),
 		}), &backendv1.Empty{})
 
@@ -85,7 +86,7 @@ func TestGetStatementPDF(t *testing.T) {
 			PDF: statementContentPDF,
 		}, nil).Times(1)
 
-		res, err := client.GetStatementPDF(_user.ActingAsContext(t, context.Background(), &_user.User{
+		res, err := client.GetStatementPDF(user_mock.ActingAsContext(t, context.Background(), &_user.User{
 			ID: uuid.NewString(),
 		}), &backendv1.GetStatementPDFRequest{
 			StatementId: statementID,
@@ -103,7 +104,7 @@ func TestGetStatementPDF(t *testing.T) {
 			ID: uuid.NewString(),
 		}, nil).Times(1)
 		c.UnitProvider.EXPECT().GetStatementPDF(gomock.Any(), gomock.Any()).Return(nil, unit.ErrNotFound).Times(1)
-		res, err := client.GetStatementPDF(_user.ActingAsContext(t, context.Background(), &_user.User{
+		res, err := client.GetStatementPDF(user_mock.ActingAsContext(t, context.Background(), &_user.User{
 			ID: uuid.NewString(),
 		}), &backendv1.GetStatementPDFRequest{
 			StatementId: "23",

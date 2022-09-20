@@ -24,7 +24,7 @@ import (
 type Resolver struct {
 	// appending service to avoid name clashed with function names.
 	IdentityService     identity.Client
-	UserService         user.Service
+	UserService         user.Client
 	CountryService      country.Client
 	AccountService      accounts.Client
 	NoopService         noop.Service

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/withdrawals"
 
 	"gitlab.com/fynbos/backend/identity"
@@ -418,7 +419,7 @@ func initiateWithdrawal(container *TestContainer, user *_user.User, input *gener
 			    }
 			`)
 	req.Var("input", input)
-	err := _user.ActingAs(req, user)
+	err := user_mock.ActingAs(req, user)
 	if err != nil {
 		return nil, err
 	}

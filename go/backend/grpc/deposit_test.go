@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/deposits"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -70,7 +71,7 @@ func TestInitiateDeposit(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(st *testing.T) {
 			response, err := client.InitiateDeposit(
-				_user.ActingAsContext(st, context.Background(), tc.User),
+				user_mock.ActingAsContext(st, context.Background(), tc.User),
 				&backendv1.InitiateDepositRequest{
 					FundingsourceId: tc.FundingsourceID,
 					Amount:          1000,
@@ -159,7 +160,7 @@ func TestGetDeposit(t *testing.T) {
 			}
 
 			deposit, err := client.GetDeposit(
-				_user.ActingAsContext(st, context.Background(), tc.User),
+				user_mock.ActingAsContext(st, context.Background(), tc.User),
 				&backendv1.GetDepositRequest{
 					Id: depositID,
 				},

@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	_user "gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -79,7 +80,7 @@ func TestGetQuote(t *testing.T) {
 	).Times(1)
 
 	quote, err := client.GetQuote(
-		_user.ActingAsContext(t, context.Background(), user),
+		user_mock.ActingAsContext(t, context.Background(), user),
 		&backendv1.GetQuoteRequest{
 			SendAmount:             sendAmount,
 			SendCurrencyCode:       currencyCode,

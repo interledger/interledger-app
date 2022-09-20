@@ -10,7 +10,7 @@ func (s *rpcService) GetFundingsources(
 	ctx context.Context,
 	req *backendv1.Empty,
 ) (*backendv1.GetFundingsourcesResponse, error) {
-	user, err := s.b.Users().ForContext(ctx)
+	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
