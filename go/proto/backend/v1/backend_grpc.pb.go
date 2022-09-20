@@ -23,8 +23,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackendAdminServiceClient interface {
 	GetUserAccountByEmail(ctx context.Context, in *GetUserAccountByEmailRequest, opts ...grpc.CallOption) (*Account, error)
-	SignalUnitCustomerCreated(ctx context.Context, in *SignalUnitCustomerCreatedRequest, opts ...grpc.CallOption) (*Empty, error)
-	SignalUnitAchDepositEvent(ctx context.Context, in *SignalUnitAchDepositEventRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendAdminServiceClient struct {
@@ -44,31 +42,11 @@ func (c *backendAdminServiceClient) GetUserAccountByEmail(ctx context.Context, i
 	return out, nil
 }
 
-func (c *backendAdminServiceClient) SignalUnitCustomerCreated(ctx context.Context, in *SignalUnitCustomerCreatedRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendAdminService/SignalUnitCustomerCreated", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendAdminServiceClient) SignalUnitAchDepositEvent(ctx context.Context, in *SignalUnitAchDepositEventRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendAdminService/SignalUnitAchDepositEvent", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // BackendAdminServiceServer is the server API for BackendAdminService service.
 // All implementations should embed UnimplementedBackendAdminServiceServer
 // for forward compatibility
 type BackendAdminServiceServer interface {
 	GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error)
-	SignalUnitCustomerCreated(context.Context, *SignalUnitCustomerCreatedRequest) (*Empty, error)
-	SignalUnitAchDepositEvent(context.Context, *SignalUnitAchDepositEventRequest) (*Empty, error)
 }
 
 // UnimplementedBackendAdminServiceServer should be embedded to have forward compatible implementations.
@@ -77,12 +55,6 @@ type UnimplementedBackendAdminServiceServer struct {
 
 func (UnimplementedBackendAdminServiceServer) GetUserAccountByEmail(context.Context, *GetUserAccountByEmailRequest) (*Account, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserAccountByEmail not implemented")
-}
-func (UnimplementedBackendAdminServiceServer) SignalUnitCustomerCreated(context.Context, *SignalUnitCustomerCreatedRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SignalUnitCustomerCreated not implemented")
-}
-func (UnimplementedBackendAdminServiceServer) SignalUnitAchDepositEvent(context.Context, *SignalUnitAchDepositEventRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SignalUnitAchDepositEvent not implemented")
 }
 
 // UnsafeBackendAdminServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -114,42 +86,6 @@ func _BackendAdminService_GetUserAccountByEmail_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendAdminService_SignalUnitCustomerCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SignalUnitCustomerCreatedRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendAdminServiceServer).SignalUnitCustomerCreated(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendAdminService/SignalUnitCustomerCreated",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendAdminServiceServer).SignalUnitCustomerCreated(ctx, req.(*SignalUnitCustomerCreatedRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendAdminService_SignalUnitAchDepositEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SignalUnitAchDepositEventRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendAdminServiceServer).SignalUnitAchDepositEvent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendAdminService/SignalUnitAchDepositEvent",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendAdminServiceServer).SignalUnitAchDepositEvent(ctx, req.(*SignalUnitAchDepositEventRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // BackendAdminService_ServiceDesc is the grpc.ServiceDesc for BackendAdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,14 +96,6 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserAccountByEmail",
 			Handler:    _BackendAdminService_GetUserAccountByEmail_Handler,
-		},
-		{
-			MethodName: "SignalUnitCustomerCreated",
-			Handler:    _BackendAdminService_SignalUnitCustomerCreated_Handler,
-		},
-		{
-			MethodName: "SignalUnitAchDepositEvent",
-			Handler:    _BackendAdminService_SignalUnitAchDepositEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -188,7 +116,6 @@ type BackendServiceClient interface {
 	UpdateOnboarding(ctx context.Context, in *Onboarding, opts ...grpc.CallOption) (*Onboarding, error)
 	// Creates a user identity, with the data in onboarding.
 	CreateIdentity(ctx context.Context, in *CreateIdentityRequest, opts ...grpc.CallOption) (*CreateIdentityResponse, error)
-	InitiateUnitOnboarding(ctx context.Context, in *InitiateUnitOnboardingRequest, opts ...grpc.CallOption) (*InitiateUnitOnboardingResponse, error)
 	GetIdentity(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserIdentity, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
@@ -197,9 +124,6 @@ type BackendServiceClient interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
-	// Ability to list statements and get a statement PDF.
-	GetStatements(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetStatementsResponse, error)
-	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*GetStatementPDFResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
@@ -278,15 +202,6 @@ func (c *backendServiceClient) CreateIdentity(ctx context.Context, in *CreateIde
 	return out, nil
 }
 
-func (c *backendServiceClient) InitiateUnitOnboarding(ctx context.Context, in *InitiateUnitOnboardingRequest, opts ...grpc.CallOption) (*InitiateUnitOnboardingResponse, error) {
-	out := new(InitiateUnitOnboardingResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/InitiateUnitOnboarding", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) GetIdentity(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserIdentity, error) {
 	out := new(UserIdentity)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentity", in, out, opts...)
@@ -335,24 +250,6 @@ func (c *backendServiceClient) GetAgreement(ctx context.Context, in *GetAgreemen
 func (c *backendServiceClient) SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error) {
 	out := new(SignAgreementsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SignAgreements", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetStatements(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetStatementsResponse, error) {
-	out := new(GetStatementsResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatements", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*GetStatementPDFResponse, error) {
-	out := new(GetStatementPDFResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +306,6 @@ type BackendServiceServer interface {
 	UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error)
 	// Creates a user identity, with the data in onboarding.
 	CreateIdentity(context.Context, *CreateIdentityRequest) (*CreateIdentityResponse, error)
-	InitiateUnitOnboarding(context.Context, *InitiateUnitOnboardingRequest) (*InitiateUnitOnboardingResponse, error)
 	GetIdentity(context.Context, *Empty) (*UserIdentity, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
@@ -418,9 +314,6 @@ type BackendServiceServer interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
-	// Ability to list statements and get a statement PDF.
-	GetStatements(context.Context, *Empty) (*GetStatementsResponse, error)
-	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*GetStatementPDFResponse, error)
 	// Will get a quote that details transaction fees and how much the receiver will get.
 	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
@@ -453,9 +346,6 @@ func (UnimplementedBackendServiceServer) UpdateOnboarding(context.Context, *Onbo
 func (UnimplementedBackendServiceServer) CreateIdentity(context.Context, *CreateIdentityRequest) (*CreateIdentityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateIdentity not implemented")
 }
-func (UnimplementedBackendServiceServer) InitiateUnitOnboarding(context.Context, *InitiateUnitOnboardingRequest) (*InitiateUnitOnboardingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitiateUnitOnboarding not implemented")
-}
 func (UnimplementedBackendServiceServer) GetIdentity(context.Context, *Empty) (*UserIdentity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIdentity not implemented")
 }
@@ -473,12 +363,6 @@ func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgree
 }
 func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignAgreements not implemented")
-}
-func (UnimplementedBackendServiceServer) GetStatements(context.Context, *Empty) (*GetStatementsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStatements not implemented")
-}
-func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*GetStatementPDFResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
 }
 func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequest) (*Quote, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetQuote not implemented")
@@ -630,24 +514,6 @@ func _BackendService_CreateIdentity_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_InitiateUnitOnboarding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitiateUnitOnboardingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).InitiateUnitOnboarding(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/InitiateUnitOnboarding",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).InitiateUnitOnboarding(ctx, req.(*InitiateUnitOnboardingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_GetIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -752,42 +618,6 @@ func _BackendService_SignAgreements_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).SignAgreements(ctx, req.(*SignAgreementsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetStatements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetStatements(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetStatements",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetStatements(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetStatementPDFRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetStatementPDF(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetStatementPDF",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetStatementPDF(ctx, req.(*GetStatementPDFRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -900,10 +730,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_CreateIdentity_Handler,
 		},
 		{
-			MethodName: "InitiateUnitOnboarding",
-			Handler:    _BackendService_InitiateUnitOnboarding_Handler,
-		},
-		{
 			MethodName: "GetIdentity",
 			Handler:    _BackendService_GetIdentity_Handler,
 		},
@@ -926,14 +752,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignAgreements",
 			Handler:    _BackendService_SignAgreements_Handler,
-		},
-		{
-			MethodName: "GetStatements",
-			Handler:    _BackendService_GetStatements_Handler,
-		},
-		{
-			MethodName: "GetStatementPDF",
-			Handler:    _BackendService_GetStatementPDF_Handler,
 		},
 		{
 			MethodName: "GetQuote",

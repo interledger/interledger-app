@@ -20,19 +20,6 @@ type CreateAccountArgs struct {
 	Country    string `validate:"required,iso3166_1_alpha2"`
 }
 
-type InitiateUnitCustomerOnboardingArgs struct {
-	IdentityID         string   `validate:"required"`
-	Ssn                string   `validate:"required"`
-	DateOfBirth        string   `validate:"required"`
-	Street             string   `validate:"required"`
-	Street2            string   `validate:""`
-	City               string   `validate:"required"`
-	State              string   `validate:"required"`
-	PostalCode         string   `validate:"required"`
-	IpAddress          string   `validate:"required"`
-	DeviceFingerprints []string `validate:"required"`
-}
-
 type Onboarding struct {
 	ID               string
 	FirstName        string `db:"first_name"`

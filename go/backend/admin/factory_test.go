@@ -31,8 +31,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
-	"gitlab.com/fynbos/backend/providers/unit"
-	unit_mock "gitlab.com/fynbos/backend/providers/unit/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
@@ -59,7 +57,6 @@ type TestContainer struct {
 	Hs              healthcheck.Service
 	Os              onboarding.Client
 	Oso             *oso.Oso
-	Up              unit.Client
 	Cs              country.Client
 	Tp              *mocks.Client
 	RafikiProvider  *rafiki.MockService
@@ -116,10 +113,6 @@ func (c *TestContainer) Twilio() twilio.Service {
 
 func (c *TestContainer) Unit() unit.Client {
 	return c.Up
-}
-
-func (c *TestContainer) Users() user.Client {
-	return c.UsersImpl
 }
 
 func (c *TestContainer) Waitlist() waitlist.Client {
@@ -215,7 +208,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.AgreementsImpl = agreements_client.New(c)
 	c.Ctrl = gomock.NewController(t)
-	c.Up = unit_mock.NewMockClient(c.Ctrl)
 	c.Fs = funding_mock.NewMockClient(c.Ctrl)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	c.TwilioImpl = twilio.NewMockService(c.Ctrl)

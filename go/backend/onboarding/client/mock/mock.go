@@ -66,20 +66,6 @@ func (mr *MockClientMockRecorder) GetOnboarding(ctx, args interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOnboarding", reflect.TypeOf((*MockClient)(nil).GetOnboarding), ctx, args)
 }
 
-// InitiateUnitCustomerOnboarding mocks base method.
-func (m *MockClient) InitiateUnitCustomerOnboarding(ctx context.Context, args *onboarding.InitiateUnitCustomerOnboardingArgs) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitiateUnitCustomerOnboarding", ctx, args)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// InitiateUnitCustomerOnboarding indicates an expected call of InitiateUnitCustomerOnboarding.
-func (mr *MockClientMockRecorder) InitiateUnitCustomerOnboarding(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitiateUnitCustomerOnboarding", reflect.TypeOf((*MockClient)(nil).InitiateUnitCustomerOnboarding), ctx, args)
-}
-
 // UpdateOnboarding mocks base method.
 func (m *MockClient) UpdateOnboarding(ctx context.Context, args *onboarding.UpdateOnboardingArgs) (*onboarding.Onboarding, error) {
 	m.ctrl.T.Helper()

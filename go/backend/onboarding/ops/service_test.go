@@ -17,13 +17,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
-	"gitlab.com/fynbos/backend/providers/unit"
-	unit_workflows "gitlab.com/fynbos/backend/providers/unit/workflows"
 	test_utils "gitlab.com/fynbos/backend/utils"
-	"go.temporal.io/sdk/client"
 	temporal "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 )
@@ -54,75 +50,6 @@ func (b backends) Identity() identity.Client {
 
 func (b backends) Temporal() temporal.Client {
 	return b.temporal
-}
-
-func TestInitiatesOnboarding(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	tp := &mocks.Client{}
-
-	b := &backends{
-		validator: validator.New(),
-		db:        &sqlx.DB{},
-		accounts:  accounts_mock.NewMockClient(ctrl),
-		identity:  identity_mock.NewMockClient(ctrl),
-		temporal:  tp,
-	}
-
-	identityID := uuid.NewString()
-	deviceFingerprints := make([]string, 1)
-	deviceFingerprints = append(deviceFingerprints, "Some randon fingerprint")
-
-	args := &onboarding.InitiateUnitCustomerOnboardingArgs{
-		IdentityID:         identityID,
-		Ssn:                faker.CCNumber(),
-		DateOfBirth:        faker.Date(),
-		Street:             faker.Name(),
-		Street2:            faker.Name(),
-		City:               faker.Name(),
-		State:              faker.Name(),
-		PostalCode:         faker.Name(),
-		IpAddress:          faker.IPv4(),
-		DeviceFingerprints: deviceFingerprints,
-	}
-	tp.On(
-		"ExecuteWorkflow",
-		mock.Anything,
-		mock.Anything,
-		mock.Anything,
-		unit_workflows.UnitOnboardCustomerState{
-			CustomerID: "",
-			Type:       "",
-			IdentityID: args.IdentityID,
-			AccountID:  "",
-			ApplicationArgs: unit.CreateApplicationArgs{
-				Ssn:                args.Ssn,
-				DateOfBirth:        args.DateOfBirth,
-				Street:             args.Street,
-				Street2:            args.Street2,
-				City:               args.City,
-				State:              args.State,
-				PostalCode:         args.PostalCode,
-				IpAddress:          args.IpAddress,
-				UserID:             args.IdentityID,
-				DeviceFingerprints: args.DeviceFingerprints,
-			},
-		},
-	).Return(
-		func(ctx context.Context, opts client.StartWorkflowOptions, workflow interface{}, args ...interface{}) client.WorkflowRun {
-			testWorkflowID := opts.ID
-			testRunID := "test-runid"
-
-			mockWorkflowRun := &mocks.WorkflowRun{}
-			mockWorkflowRun.On("GetID").Return(testWorkflowID)
-			mockWorkflowRun.On("GetRunID").Return(testRunID)
-			mockWorkflowRun.On("Get", mock.Anything, mock.Anything).Return(nil)
-			return mockWorkflowRun
-		}, nil,
-	).Times(1)
-
-	err := ops.InitiateUnitCustomerOnboarding(context.Background(), b, args)
-
-	assert.NoError(t, err)
 }
 
 func TestGetOnboarding(s *testing.T) {

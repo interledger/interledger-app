@@ -41,9 +41,6 @@ import (
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/rafiki"
-	"gitlab.com/fynbos/backend/providers/unit"
-	unit_client "gitlab.com/fynbos/backend/providers/unit/client"
-	unit_webhooks "gitlab.com/fynbos/backend/providers/unit/webhooks"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
@@ -176,8 +173,6 @@ func start(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	b.unit = unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
-
 	b.mxProvider = mx_client.New(b, args.MxClientID, args.MxApiKey)
 
 	b.fundingSources = funding_client.New(b, logger)
@@ -202,7 +197,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Post("/webhooks/unit", unit_webhooks.MakeHttpHandler(b))
 
 	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
 	go func() {
@@ -322,12 +316,6 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.temporal = tp
 
-	unitClient := unit_client.NewClient(b, args.UnitToken, args.UnitWebhookToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.unit = unitClient
-
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
 		AccountToken: args.TwilioSecret,
@@ -380,7 +368,6 @@ type backends struct {
 	temporal       client.Client
 	transactions   account_transactions.Client
 	twilio         _twilio.Service
-	unit           unit.Client
 	users          user.Client
 	waitlist       waitlist.Client
 }
@@ -423,10 +410,6 @@ func (b backends) Users() user.Client {
 
 func (b backends) Temporal() client.Client {
 	return b.temporal
-}
-
-func (b backends) Unit() unit.Client {
-	return b.unit
 }
 
 func (b backends) Accounts() accounts.Client {

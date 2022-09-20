@@ -32,7 +32,3 @@ func (c client) UpdateOnboarding(ctx context.Context, args *onboarding.UpdateOnb
 func (c client) CreateAccount(ctx context.Context, args *onboarding.CreateAccountArgs) (*accounts.Account, error) {
 	return ops.CreateAccount(ctx, c.b, args)
 }
-
-func (c client) InitiateUnitCustomerOnboarding(ctx context.Context, args *onboarding.InitiateUnitCustomerOnboardingArgs) error {
-	return ops.InitiateUnitCustomerOnboarding(ctx, c.b, args)
-}

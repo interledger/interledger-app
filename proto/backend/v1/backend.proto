@@ -10,8 +10,6 @@ option go_package = "./backend/v1;backend";
 
 service BackendAdminService {
   rpc GetUserAccountByEmail(GetUserAccountByEmailRequest) returns (Account);
-  rpc SignalUnitCustomerCreated(SignalUnitCustomerCreatedRequest) returns (Empty);
-  rpc SignalUnitAchDepositEvent(SignalUnitAchDepositEventRequest) returns(Empty);
 }
 
 message GetUserAccountByEmailRequest {
@@ -27,17 +25,6 @@ message Account {
   uint64 creditsAccepted = 6;
 }
 
-message SignalUnitCustomerCreatedRequest {
-  string userEmail = 1;
-  string customerId = 2;
-  string type = 3;
-}
-
-message SignalUnitAchDepositEventRequest {
-  string depositId = 1;
-  string eventType = 2;
-}
-
 message Empty{}
 
 service BackendService {
@@ -51,7 +38,6 @@ service BackendService {
   rpc UpdateOnboarding(Onboarding) returns (Onboarding);
   // Creates a user identity, with the data in onboarding.
   rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
-  rpc InitiateUnitOnboarding(InitiateUnitOnboardingRequest) returns (InitiateUnitOnboardingResponse);
   rpc GetIdentity(Empty) returns (UserIdentity);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
@@ -60,9 +46,6 @@ service BackendService {
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
-  // Ability to list statements and get a statement PDF.
-  rpc GetStatements(Empty) returns (GetStatementsResponse);
-  rpc GetStatementPDF(GetStatementPDFRequest) returns (GetStatementPDFResponse);
   // Will get a quote that details transaction fees and how much the receiver will get.
   rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
@@ -138,23 +121,6 @@ message CreateIdentityRequest {
 }
 
 message CreateIdentityResponse {
-  string identityId = 1;
-}
-
-message InitiateUnitOnboardingRequest {
-  string ssn = 1;
-  string nationality = 2;
-  string date_of_birth = 3;
-  string street = 4;
-  string street2 = 5;
-  string city = 6;
-  string state = 7;
-  string postal_code = 8;
-  string ip = 9;
-  repeated string device_fingerprints = 10;
-}
-
-message InitiateUnitOnboardingResponse {
   string identityId = 1;
 }
 

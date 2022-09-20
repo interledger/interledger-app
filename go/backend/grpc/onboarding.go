@@ -275,35 +275,3 @@ func (s *rpcService) CheckPhoneVerificationCode(
 		Status: "approved",
 	}, nil
 }
-
-func (s *rpcService) InitiateUnitOnboarding(
-	ctx context.Context,
-	req *backendv1.InitiateUnitOnboardingRequest,
-) (*backendv1.InitiateUnitOnboardingResponse, error) {
-
-	user, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	err = s.b.Onboarding().InitiateUnitCustomerOnboarding(ctx, &onboarding.InitiateUnitCustomerOnboardingArgs{
-		IdentityID:         user.ID,
-		Ssn:                req.GetSsn(),
-		DateOfBirth:        req.GetDateOfBirth(),
-		Street:             req.GetStreet(),
-		Street2:            req.GetStreet2(),
-		City:               req.GetCity(),
-		State:              req.GetState(),
-		PostalCode:         req.GetPostalCode(),
-		IpAddress:          req.GetIp(),
-		DeviceFingerprints: req.GetDeviceFingerprints(),
-	})
-
-	if err != nil {
-		return nil, InternalError("Initiate Unit customer onboarding.")
-	}
-
-	return &backendv1.InitiateUnitOnboardingResponse{
-		IdentityId: user.ID,
-	}, nil
-}

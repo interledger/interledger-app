@@ -11,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
-	"gitlab.com/fynbos/backend/providers/unit"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
@@ -32,7 +31,6 @@ type Backends interface {
 	SupportTickets() supporttickets.Client
 	Temporal() temporal.Client
 	Twilio() twilio.Service
-	Unit() unit.Client
 	Users() user.Client
 	Validator() *validator.Validate
 	Waitlist() waitlist.Client

@@ -12,15 +12,12 @@ import (
 )
 
 type MigrationArgs struct {
-	ConnectionString    string
-	NoopLedgerID        uint32
-	NoopEquityAccountID string
-	UnitWebhookToken    string
-	PacioliUrl          string
-	UsdLedgerID         uint32
-	KratosUrl           string
-	LogLevel            string
-	LogOutputPath       string
+	ConnectionString string
+	PacioliUrl       string
+	UsdLedgerID      uint32
+	KratosUrl        string
+	LogLevel         string
+	LogOutputPath    string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -72,14 +69,12 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	}
 
 	return &MigrationArgs{
-		ConnectionString:    connString,
-		PacioliUrl:          pacioliUrl,
-		NoopEquityAccountID: noopEquityAccount,
-		NoopLedgerID:        uint32(usdLedgerID),
-		UsdLedgerID:         uint32(usdLedgerID),
-		KratosUrl:           kratosUrl,
-		LogLevel:            logLevel,
-		LogOutputPath:       logOutputPath,
+		ConnectionString: connString,
+		PacioliUrl:       pacioliUrl,
+		UsdLedgerID:      uint32(usdLedgerID),
+		KratosUrl:        kratosUrl,
+		LogLevel:         logLevel,
+		LogOutputPath:    logOutputPath,
 	}, nil
 }
 
@@ -91,11 +86,6 @@ type StartArgs struct {
 	UsdLedgerID          uint32
 	LogLevel             string
 	LogOutputPath        string
-	NoopLedgerID         uint32
-	NoopEquityAccountID  string
-	UnitToken            string
-	UnitBaseURL          string
-	UnitWebhookToken     string
 	GoogleOauth2ClientID string
 	MxClientID           string
 	MxApiKey             string
@@ -161,26 +151,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, err
 	}
 
-	noopEquityAccount := os.Getenv("NOOP_EQUITY_ACCOUNT_ID")
-	if noopEquityAccount == "" {
-		return nil, errors.New("NOOP_EQUITY_ACCOUNT_ID is required.")
-	}
-
-	unitToken := os.Getenv("UNIT_TOKEN")
-	if unitToken == "" {
-		return nil, errors.New("UNIT_TOKEN is required")
-	}
-
-	unitBaseURL := os.Getenv("UNIT_BASE_URL")
-	if unitBaseURL == "" {
-		return nil, errors.New("UNIT_BASE_URL is required")
-	}
-
-	unitWebhookToken := os.Getenv("UNIT_WEBHOOK_TOKEN")
-	if unitWebhookToken == "" {
-		return nil, errors.New("UNIT_WEBHOOK_TOKEN is required")
-	}
-
 	googleOauth2ClientID := os.Getenv("GOOGLE_OUATH2_CLIENT_ID")
 	if googleOauth2ClientID == "" {
 		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
@@ -239,11 +209,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		UsdLedgerID:          uint32(usdLedgerID),
 		LogLevel:             logLevel,
 		LogOutputPath:        logOutputPath,
-		NoopLedgerID:         uint32(usdLedgerID), // all on the same ledger at the moment.
-		NoopEquityAccountID:  noopEquityAccount,
-		UnitToken:            unitToken,
-		UnitBaseURL:          unitBaseURL,
-		UnitWebhookToken:     unitWebhookToken,
 		GoogleOauth2ClientID: googleOauth2ClientID,
 		MxClientID:           mxClientID,
 		MxApiKey:             mxApiKey,
