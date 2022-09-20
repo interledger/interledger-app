@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
-	"gitlab.com/fynbos/backend/providers/noop"
 	"gitlab.com/fynbos/backend/providers/unit"
 	unit_workflows "gitlab.com/fynbos/backend/providers/unit/workflows"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -34,7 +33,6 @@ type backends struct {
 	db        *sqlx.DB
 	accounts  accounts.Client
 	identity  identity.Client
-	noop      noop.Service
 	temporal  temporal.Client
 }
 
@@ -54,10 +52,6 @@ func (b backends) Identity() identity.Client {
 	return b.identity
 }
 
-func (b backends) Noop() noop.Service {
-	return b.noop
-}
-
 func (b backends) Temporal() temporal.Client {
 	return b.temporal
 }
@@ -71,7 +65,6 @@ func TestInitiatesOnboarding(t *testing.T) {
 		db:        &sqlx.DB{},
 		accounts:  accounts_mock.NewMockClient(ctrl),
 		identity:  identity_mock.NewMockClient(ctrl),
-		noop:      noop.NewMockService(ctrl),
 		temporal:  tp,
 	}
 
@@ -143,7 +136,6 @@ func TestGetOnboarding(s *testing.T) {
 		db:        db,
 		accounts:  accounts_mock.NewMockClient(ctrl),
 		identity:  identity_mock.NewMockClient(ctrl),
-		noop:      noop.NewMockService(ctrl),
 		temporal:  tp,
 	}
 
@@ -227,7 +219,6 @@ func TestUpdateOnboarding(s *testing.T) {
 		db:        db,
 		accounts:  accounts_mock.NewMockClient(ctrl),
 		identity:  identity_mock.NewMockClient(ctrl),
-		noop:      noop.NewMockService(ctrl),
 		temporal:  tp,
 	}
 
