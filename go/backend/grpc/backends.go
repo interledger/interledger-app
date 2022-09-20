@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/providers/unit"
@@ -29,7 +28,6 @@ type Backends interface {
 	Identity() identity.Client
 	MX() mx.Client
 	Onboarding() onboarding.Client
-	Payments() payments.Client
 	Rafiki() rafiki.Service
 	SupportTickets() supporttickets.Client
 	Temporal() temporal.Client

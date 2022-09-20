@@ -39,8 +39,6 @@ import (
 	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-	"gitlab.com/fynbos/backend/payments"
-	payments_client "gitlab.com/fynbos/backend/payments/client"
 	_mx "gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	_noop "gitlab.com/fynbos/backend/providers/noop"
@@ -200,8 +198,6 @@ func start(args *cli.StartArgs) {
 	b.onboarding = onboarding_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, logger)
-
-	b.payments = payments_client.New(b, logger)
 
 	rafikiProvider, err := rafiki.NewService(&rafiki.ServiceArgs{
 		Db:  db,
@@ -396,8 +392,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.fundingSources = funding_client.New(b, logger)
 
-	b.payments = payments_client.New(b, logger)
-
 	b.onboarding = onboarding_client.New(b)
 
 	log.Info("Worker creating")
@@ -428,7 +422,6 @@ type backends struct {
 	noop           _noop.Service
 	onboarding     onboarding.Client
 	pacioli        pacioli.Client
-	payments       payments.Client
 	rafiki         rafiki.Service
 	supportTickets supporttickets.Client
 	temporal       client.Client
@@ -509,10 +502,6 @@ func (b backends) DB() *sqlx.DB {
 
 func (b backends) Validator() *validator.Validate {
 	return b.val
-}
-
-func (b backends) Payments() payments.Client {
-	return b.payments
 }
 
 func (b backends) Twilio() _twilio.Service {

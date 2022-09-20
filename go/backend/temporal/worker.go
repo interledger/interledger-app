@@ -1,7 +1,6 @@
 package temporal
 
 import (
-	payments_workflow "gitlab.com/fynbos/backend/payments/workflows"
 	mx_activities "gitlab.com/fynbos/backend/providers/mx/activities"
 	mx_workflow "gitlab.com/fynbos/backend/providers/mx/workflows"
 	unit_activities "gitlab.com/fynbos/backend/providers/unit/activities"
@@ -11,11 +10,6 @@ import (
 
 func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
-
-	// Register Outgoing Payments Workflow
-	w.RegisterWorkflow(payments_workflow.OutgoingPaymentWorkflow)
-	paymentsActivities := payments_workflow.NewActivity(b)
-	w.RegisterActivity(paymentsActivities)
 
 	// Register onboard unit customer workflow
 	w.RegisterWorkflow(unit_workflows.UnitOnboardCustomerWorkflow)
