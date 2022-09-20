@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identity"
-	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
@@ -18,12 +17,10 @@ import (
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:             status.Error(codes.Unauthenticated, "Unauthenticated"),
-	identity.ErrNotFound:            status.Error(codes.NotFound, "User identity not found"),
-	payments.ErrInsufficientBalance: status.Error(codes.InvalidArgument, "Insufficient funds"),
-	payments.ErrNotFound:            status.Error(codes.NotFound, "Unknown payment"),
-	mx.ErrNotFound:                  status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP:            NewValidationError("OTP", "Could not validate OTP"),
+	user.ErrNoUserFound:  status.Error(codes.Unauthenticated, "Unauthenticated"),
+	identity.ErrNotFound: status.Error(codes.NotFound, "User identity not found"),
+	mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
+	twilio.ErrInvalidOTP: NewValidationError("OTP", "Could not validate OTP"),
 }
 
 func validationDesc(fe validator.FieldError) string {

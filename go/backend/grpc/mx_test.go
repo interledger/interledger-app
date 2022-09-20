@@ -24,8 +24,6 @@ import (
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
-	"gitlab.com/fynbos/backend/payments"
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
@@ -63,7 +61,6 @@ type TestContainer struct {
 	WaitlistClient       *waitlist_mock.MockClient
 	TemporalImpl         *mocks.Client
 	TicketClient         *support_mock.MockClient
-	PaymentsClient       *payments_mock.MockClient
 }
 
 func (t TestContainer) Rafiki() rafiki.Service {
@@ -100,10 +97,6 @@ func (t TestContainer) MX() mx.Client {
 
 func (t TestContainer) Onboarding() onboarding.Client {
 	return t.OnboardingService
-}
-
-func (t TestContainer) Payments() payments.Client {
-	return t.PaymentsClient
 }
 
 func (t TestContainer) SupportTickets() supporttickets.Client {
@@ -160,7 +153,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
 		TicketClient:         support_mock.NewMockClient(ctrl),
 		TemporalImpl:         &mocks.Client{},
-		PaymentsClient:       payments_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

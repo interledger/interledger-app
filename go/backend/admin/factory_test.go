@@ -28,8 +28,6 @@ import (
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-	"gitlab.com/fynbos/backend/payments"
-	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/noop"
@@ -76,7 +74,6 @@ type TestContainer struct {
 	Auth            auth.Service
 	AgreementsImpl  agreements.Client
 	Mx              *mx_mock.MockClient
-	PaymentsImpl    *payments_mock.MockClient
 	Tickets         *support_mock.MockClient
 	UsersImpl       user.Client
 	WaitlistImpl    *waitlist_mock.MockClient
@@ -105,10 +102,6 @@ func (c *TestContainer) MX() mx.Client {
 
 func (c *TestContainer) Onboarding() onboarding.Client {
 	return c.Os
-}
-
-func (c *TestContainer) Payments() payments.Client {
-	return c.PaymentsImpl
 }
 
 func (c *TestContainer) Rafiki() rafiki.Service {
@@ -248,7 +241,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Mx = mx_mock.NewMockClient(c.Ctrl)
 	c.WaitlistImpl = waitlist_mock.NewMockClient(c.Ctrl)
 	c.Tickets = support_mock.NewMockClient(c.Ctrl)
-	c.PaymentsImpl = payments_mock.NewMockClient(c.Ctrl)
 
 	server, err := _grpc.NewServer(c)
 	if err != nil {

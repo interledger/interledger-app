@@ -205,8 +205,6 @@ type BackendServiceClient interface {
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
-	InitiateOutgoingPayment(ctx context.Context, in *InitiateOutgoingPaymentRequest, opts ...grpc.CallOption) (*InitiateOutgoingPaymentResponse, error)
-	GetOutgoingPayment(ctx context.Context, in *GetOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 }
 
 type backendServiceClient struct {
@@ -397,24 +395,6 @@ func (c *backendServiceClient) CreateSupportTicket(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *backendServiceClient) InitiateOutgoingPayment(ctx context.Context, in *InitiateOutgoingPaymentRequest, opts ...grpc.CallOption) (*InitiateOutgoingPaymentResponse, error) {
-	out := new(InitiateOutgoingPaymentResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/InitiateOutgoingPayment", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetOutgoingPayment(ctx context.Context, in *GetOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error) {
-	out := new(OutgoingPayment)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetOutgoingPayment", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -446,8 +426,6 @@ type BackendServiceServer interface {
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
-	InitiateOutgoingPayment(context.Context, *InitiateOutgoingPaymentRequest) (*InitiateOutgoingPaymentResponse, error)
-	GetOutgoingPayment(context.Context, *GetOutgoingPaymentRequest) (*OutgoingPayment, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -513,12 +491,6 @@ func (UnimplementedBackendServiceServer) GetFundingsources(context.Context, *Emp
 }
 func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSupportTicket not implemented")
-}
-func (UnimplementedBackendServiceServer) InitiateOutgoingPayment(context.Context, *InitiateOutgoingPaymentRequest) (*InitiateOutgoingPaymentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitiateOutgoingPayment not implemented")
-}
-func (UnimplementedBackendServiceServer) GetOutgoingPayment(context.Context, *GetOutgoingPaymentRequest) (*OutgoingPayment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOutgoingPayment not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -892,42 +864,6 @@ func _BackendService_CreateSupportTicket_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_InitiateOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitiateOutgoingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).InitiateOutgoingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/InitiateOutgoingPayment",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).InitiateOutgoingPayment(ctx, req.(*InitiateOutgoingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOutgoingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetOutgoingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetOutgoingPayment",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetOutgoingPayment(ctx, req.(*GetOutgoingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1014,14 +950,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSupportTicket",
 			Handler:    _BackendService_CreateSupportTicket_Handler,
-		},
-		{
-			MethodName: "InitiateOutgoingPayment",
-			Handler:    _BackendService_InitiateOutgoingPayment_Handler,
-		},
-		{
-			MethodName: "GetOutgoingPayment",
-			Handler:    _BackendService_GetOutgoingPayment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

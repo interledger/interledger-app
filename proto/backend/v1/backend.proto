@@ -68,8 +68,6 @@ service BackendService {
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
-  rpc InitiateOutgoingPayment(InitiateOutgoingPaymentRequest) returns (InitiateOutgoingPaymentResponse);
-  rpc GetOutgoingPayment(GetOutgoingPaymentRequest) returns (OutgoingPayment);
 }
 
 message GetStatementsResponse {

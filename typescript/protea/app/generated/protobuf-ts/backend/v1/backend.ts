@@ -3350,7 +3350,5 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetQuote", options: {}, I: GetQuoteRequest, O: Quote },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
-    { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
-    { name: "InitiateOutgoingPayment", options: {}, I: InitiateOutgoingPaymentRequest, O: InitiateOutgoingPaymentResponse },
-    { name: "GetOutgoingPayment", options: {}, I: GetOutgoingPaymentRequest, O: OutgoingPayment }
+    { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty }
 ]);
