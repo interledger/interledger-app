@@ -18,8 +18,6 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	"gitlab.com/fynbos/backend/accounts"
-	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
@@ -156,8 +154,6 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	b.pacioli = pClient
-
-	b.accounts = accounts_client.New(b, args.UsdLedgerID, logger)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -302,8 +298,6 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.pacioli = pClient
 
-	b.accounts = accounts_client.New(b, args.UsdLedgerID, logger)
-
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
@@ -347,7 +341,6 @@ type backends struct {
 	val *validator.Validate
 	db  *sqlx.DB
 
-	accounts       accounts.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	countries      country.Client
@@ -399,10 +392,6 @@ func (b backends) Users() user.Client {
 
 func (b backends) Temporal() client.Client {
 	return b.temporal
-}
-
-func (b backends) Accounts() accounts.Client {
-	return b.accounts
 }
 
 func (b backends) Identity() identity.Client {

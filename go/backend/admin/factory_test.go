@@ -14,8 +14,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/osohq/go-oso"
-	"gitlab.com/fynbos/backend/accounts"
-	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
@@ -51,7 +49,6 @@ type TestContainer struct {
 	Ctx             context.Context
 	Ctrl            *gomock.Controller
 	Db              *sqlx.DB
-	As              accounts.Client
 	Fs              fundingsources.Client
 	Is              identity.Client
 	Hs              healthcheck.Service
@@ -119,10 +116,6 @@ func (c *TestContainer) Waitlist() waitlist.Client {
 	return c.WaitlistImpl
 }
 
-func (c *TestContainer) Accounts() accounts.Client {
-	return c.As
-}
-
 func (c *TestContainer) Temporal() client.Client {
 	return c.Tp
 }
@@ -179,10 +172,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	is := identity_client.New(c, logger)
 	c.Is = is
-
-	as := accounts_client.New(c, c.PacioliLedgerID, logger)
-
-	c.As = as
 
 	c.Tp = &mocks.Client{}
 

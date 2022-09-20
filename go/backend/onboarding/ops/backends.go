@@ -3,7 +3,6 @@ package ops
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -11,7 +10,6 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
-	Accounts() accounts.Client
 	Identity() identity.Client
 	Temporal() temporal.Client
 }

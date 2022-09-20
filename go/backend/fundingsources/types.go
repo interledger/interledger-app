@@ -29,12 +29,11 @@ type UnitCounterParty struct {
 
 type CreateArgs struct {
 	ID                string `validate:"omitempty,uuid4"`
-	IdentityID        string `validate:"required,uuid4"`
-	AccountID         string `validate:"required,uuid4"`
+	WalletID          string `validate:"required,uuid4"`
 	Name              string `validate:"required"`
 	Mask              string
 	VerificationState string `validate:"required"`
-	Type              string `validate:"oneof=noop mx"`
+	Type              string `validate:"oneof= mx"`
 	SubType           string `validate:"required"`
 }
 

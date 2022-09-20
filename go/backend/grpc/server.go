@@ -32,7 +32,6 @@ func NewServer(b Backends) (*grpc.Server, error) {
 	})
 	backendv1.RegisterBackendAdminServiceServer(server, &_admin.AdminRpcService{
 		Validator:       b.Validator(),
-		AccountsService: b.Accounts(),
 		IdentityService: b.Identity(),
 		AuthService:     b.AdminAuth(),
 		Temporal:        b.Temporal(),

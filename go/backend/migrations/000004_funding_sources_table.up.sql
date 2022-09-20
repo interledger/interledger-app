@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS funding_sources (
 	mask						TEXT NOT NULL,
 	verification_state          TEXT NOT NULL,
 	type			            TEXT NOT NULL,
-	type_id          			UUID NOT NULL,
 	subtype                     TEXT NOT NULL,
 	created_at                  TIMESTAMP NOT NULL DEFAULT now(),
     updated_at                  TIMESTAMP NOT NULL DEFAULT now()

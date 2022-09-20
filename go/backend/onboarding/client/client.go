@@ -3,8 +3,6 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/accounts"
-
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/onboarding/ops"
 )
@@ -27,8 +25,4 @@ func (c client) GetOnboarding(ctx context.Context, args *onboarding.GetOnboardin
 
 func (c client) UpdateOnboarding(ctx context.Context, args *onboarding.UpdateOnboardingArgs) (*onboarding.Onboarding, error) {
 	return ops.UpdateOnboarding(ctx, c.b, args)
-}
-
-func (c client) CreateAccount(ctx context.Context, args *onboarding.CreateAccountArgs) (*accounts.Account, error) {
-	return ops.CreateAccount(ctx, c.b, args)
 }

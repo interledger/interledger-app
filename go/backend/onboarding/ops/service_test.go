@@ -8,7 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/onboarding"
 
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/identity"
 
 	"github.com/bxcodec/faker/v3"
@@ -17,7 +16,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	temporal "go.temporal.io/sdk/client"
@@ -27,7 +25,6 @@ import (
 type backends struct {
 	validator *validator.Validate
 	db        *sqlx.DB
-	accounts  accounts.Client
 	identity  identity.Client
 	temporal  temporal.Client
 }
@@ -38,10 +35,6 @@ func (b backends) Validator() *validator.Validate {
 
 func (b backends) DB() *sqlx.DB {
 	return b.db
-}
-
-func (b backends) Accounts() accounts.Client {
-	return b.accounts
 }
 
 func (b backends) Identity() identity.Client {
@@ -61,7 +54,6 @@ func TestGetOnboarding(s *testing.T) {
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
-		accounts:  accounts_mock.NewMockClient(ctrl),
 		identity:  identity_mock.NewMockClient(ctrl),
 		temporal:  tp,
 	}
@@ -144,7 +136,6 @@ func TestUpdateOnboarding(s *testing.T) {
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
-		accounts:  accounts_mock.NewMockClient(ctrl),
 		identity:  identity_mock.NewMockClient(ctrl),
 		temporal:  tp,
 	}

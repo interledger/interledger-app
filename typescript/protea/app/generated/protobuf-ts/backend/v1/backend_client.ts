@@ -6,8 +6,6 @@ import type { CreateSupportTicketRequest } from "./backend";
 import type { GetFundingsourcesResponse } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
-import type { Quote } from "./backend";
-import type { GetQuoteRequest } from "./backend";
 import type { SignAgreementsResponse } from "./backend";
 import type { SignAgreementsRequest } from "./backend";
 import type { Agreement } from "./backend";
@@ -129,12 +127,6 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: SignAgreements(backend.v1.SignAgreementsRequest) returns (backend.v1.SignAgreementsResponse);
      */
     signAgreements(input: SignAgreementsRequest, options?: RpcOptions): UnaryCall<SignAgreementsRequest, SignAgreementsResponse>;
-    /**
-     * Will get a quote that details transaction fees and how much the receiver will get.
-     *
-     * @generated from protobuf rpc: GetQuote(backend.v1.GetQuoteRequest) returns (backend.v1.Quote);
-     */
-    getQuote(input: GetQuoteRequest, options?: RpcOptions): UnaryCall<GetQuoteRequest, Quote>;
     /**
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
@@ -259,33 +251,24 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<SignAgreementsRequest, SignAgreementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * Will get a quote that details transaction fees and how much the receiver will get.
-     *
-     * @generated from protobuf rpc: GetQuote(backend.v1.GetQuoteRequest) returns (backend.v1.Quote);
-     */
-    getQuote(input: GetQuoteRequest, options?: RpcOptions): UnaryCall<GetQuoteRequest, Quote> {
-        const method = this.methods[13], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetQuoteRequest, Quote>("unary", this._transport, method, opt, input);
-    }
-    /**
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetFundingsources(backend.v1.Empty) returns (backend.v1.GetFundingsourcesResponse);
      */
     getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse> {
-        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetFundingsourcesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);
      */
     createSupportTicket(input: CreateSupportTicketRequest, options?: RpcOptions): UnaryCall<CreateSupportTicketRequest, Empty> {
-        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        const method = this.methods[15], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateSupportTicketRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }
