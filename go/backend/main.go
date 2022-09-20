@@ -31,7 +31,6 @@ import (
 	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
-	"gitlab.com/fynbos/backend/graph"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -196,31 +195,10 @@ func start(args *cli.StartArgs) {
 	}
 	b.rafiki = rafikiProvider
 
-	graphql, err := graph.NewService(graph.GraphqlOpts{
-		Db:                               db,
-		Identity:                         b.identity,
-		Account:                          b.accounts,
-		Country:                          b.countries,
-		User:                             b.users,
-		UnitService:                      b.unit,
-		Fs:                               b.fundingSources,
-		Os:                               b.onboarding,
-		AccountTransactions:              b.transactions,
-		QueryCacheSize:                   1000,
-		AutomaticPersistedQueryCacheSize: 100,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	graphql = graph.NewLoggingService(graphql, logger)
-
 	router := chi.NewRouter()
 	router.Routes()
 	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
-	router.Handle("/graphql", graph.MakeHandler(graphql, graph.GraphqlHttpHandlerOpts{
-		WebSocketKeepAlivePingInterval: 10 * time.Second,
-	}))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
