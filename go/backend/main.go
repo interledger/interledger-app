@@ -20,8 +20,6 @@ import (
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
 	"gitlab.com/fynbos/backend/accounts"
 	accounts_client "gitlab.com/fynbos/backend/accounts/client"
-	account_transactions "gitlab.com/fynbos/backend/accounttransactions"
-	transactions_client "gitlab.com/fynbos/backend/accounttransactions/client"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
@@ -160,8 +158,6 @@ func start(args *cli.StartArgs) {
 	b.pacioli = pClient
 
 	b.accounts = accounts_client.New(b, args.UsdLedgerID, logger)
-
-	b.transactions = transactions_client.New(b, logger)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -308,8 +304,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.accounts = accounts_client.New(b, args.UsdLedgerID, logger)
 
-	b.transactions = transactions_client.New(b, logger)
-
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
@@ -366,7 +360,6 @@ type backends struct {
 	rafiki         rafiki.Service
 	supportTickets supporttickets.Client
 	temporal       client.Client
-	transactions   account_transactions.Client
 	twilio         _twilio.Service
 	users          user.Client
 	waitlist       waitlist.Client
@@ -398,10 +391,6 @@ func (b backends) SupportTickets() supporttickets.Client {
 
 func (b backends) Waitlist() waitlist.Client {
 	return b.waitlist
-}
-
-func (b backends) Transactions() account_transactions.Client {
-	return b.transactions
 }
 
 func (b backends) Users() user.Client {

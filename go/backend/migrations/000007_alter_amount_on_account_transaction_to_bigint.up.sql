@@ -1,1 +1,0 @@
-ALTER TABLE account_transactions ALTER column net_amount TYPE bigint;
