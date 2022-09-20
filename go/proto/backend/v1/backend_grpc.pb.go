@@ -124,8 +124,6 @@ type BackendServiceClient interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
-	// Will get a quote that details transaction fees and how much the receiver will get.
-	GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -256,15 +254,6 @@ func (c *backendServiceClient) SignAgreements(ctx context.Context, in *SignAgree
 	return out, nil
 }
 
-func (c *backendServiceClient) GetQuote(ctx context.Context, in *GetQuoteRequest, opts ...grpc.CallOption) (*Quote, error) {
-	out := new(Quote)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetQuote", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -314,8 +303,6 @@ type BackendServiceServer interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
-	// Will get a quote that details transaction fees and how much the receiver will get.
-	GetQuote(context.Context, *GetQuoteRequest) (*Quote, error)
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
@@ -363,9 +350,6 @@ func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgree
 }
 func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignAgreements not implemented")
-}
-func (UnimplementedBackendServiceServer) GetQuote(context.Context, *GetQuoteRequest) (*Quote, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetQuote not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -622,24 +606,6 @@ func _BackendService_SignAgreements_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetQuoteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetQuote(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetQuote",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetQuote(ctx, req.(*GetQuoteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -752,10 +718,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignAgreements",
 			Handler:    _BackendService_SignAgreements_Handler,
-		},
-		{
-			MethodName: "GetQuote",
-			Handler:    _BackendService_GetQuote_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",

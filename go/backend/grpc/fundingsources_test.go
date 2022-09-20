@@ -7,7 +7,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/fundingsources"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -26,13 +25,6 @@ func TestGetFundingsources(t *testing.T) {
 		ID: uuid.NewString(),
 	}
 	accountID := uuid.NewString()
-	c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), gomock.Any()).Return(
-		&accounts.Account{
-			ID:         accountID,
-			IdentityID: user.ID,
-		},
-		nil,
-	).AnyTimes()
 
 	t.Run("requires authenticated user", func(st *testing.T) {
 		response, err := client.GetFundingsources(
@@ -59,7 +51,7 @@ func TestGetFundingsources(t *testing.T) {
 				Mask:      "cba",
 			},
 		}
-		c.FundingsourceService.EXPECT().GetByAccountId(gomock.Any(), accountID).Return(expectedFundingsources, nil).Times(1)
+		c.FundingsourceService.EXPECT().GetByWalletId(gomock.Any(), accountID).Return(expectedFundingsources, nil).Times(1)
 
 		response, err := client.GetFundingsources(
 			user_mock.ActingAsContext(t, context.Background(), user),

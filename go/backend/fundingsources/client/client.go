@@ -65,12 +65,12 @@ func (c client) Get(ctx context.Context, id string) (fs *fundingsources.FundingS
 	return ops.Get(ctx, c.b, id)
 }
 
-func (c client) GetByAccountId(ctx context.Context, identityId string) (fsl []fundingsources.FundingSource, err error) {
+func (c client) GetByWalletId(ctx context.Context, walletId string) (fsl []fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
 				"Failed to get funding sources.",
-				zap.String("identityId", identityId),
+				zap.String("walletId", walletId),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
 			)
@@ -84,7 +84,7 @@ func (c client) GetByAccountId(ctx context.Context, identityId string) (fsl []fu
 		)
 	}(time.Now())
 
-	return ops.GetByAccountId(ctx, c.b, identityId)
+	return ops.GetByWalletId(ctx, c.b, walletId)
 }
 
 func (c client) Verify(ctx context.Context, args *fundingsources.VerifyArgs) (fs *fundingsources.FundingSource, err error) {
@@ -108,28 +108,4 @@ func (c client) Verify(ctx context.Context, args *fundingsources.VerifyArgs) (fs
 	}(time.Now())
 
 	return ops.Verify(ctx, c.b, args)
-}
-
-func (c client) CreateBankAccount(ctx context.Context, args *fundingsources.CreateBankAccountArgs) (fs *fundingsources.FundingSource, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			c.logger.Error(
-				"Failed to link bank account.",
-				zap.String("identityID", args.IdentityID),
-				zap.String("accountID", args.AccountID),
-				zap.Int64("took", time.Since(begin).Milliseconds()),
-				zap.String("msg", err.Error()),
-			)
-			return
-		}
-
-		c.logger.Debug(
-			"Linked Bank account",
-			zap.String("id", fs.ID),
-			zap.String("accountID", fs.AccountID),
-			zap.String("identityID", args.IdentityID),
-		)
-	}(time.Now())
-
-	return ops.CreateBankAccount(ctx, c.b, args)
 }

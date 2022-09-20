@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	accounts "gitlab.com/fynbos/backend/accounts"
 	onboarding "gitlab.com/fynbos/backend/onboarding"
 )
 
@@ -34,21 +33,6 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
-}
-
-// CreateAccount mocks base method.
-func (m *MockClient) CreateAccount(ctx context.Context, args *onboarding.CreateAccountArgs) (*accounts.Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAccount", ctx, args)
-	ret0, _ := ret[0].(*accounts.Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateAccount indicates an expected call of CreateAccount.
-func (mr *MockClientMockRecorder) CreateAccount(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockClient)(nil).CreateAccount), ctx, args)
 }
 
 // GetOnboarding mocks base method.

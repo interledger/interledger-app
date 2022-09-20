@@ -12,8 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/accounts"
-	accounts_mock "gitlab.com/fynbos/backend/accounts/client/mock"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
@@ -45,7 +43,6 @@ import (
 
 type TestContainer struct {
 	HealthService        healthcheck.Service
-	AccountService       *accounts_mock.MockClient
 	AgreementsService    *agreements_mock.MockClient
 	IdentityService      *identity_mock.MockClient
 	AdminAuthService     auth.Service
@@ -62,10 +59,6 @@ type TestContainer struct {
 
 func (t TestContainer) Rafiki() rafiki.Service {
 	return t.RafikiProvider
-}
-
-func (t TestContainer) Accounts() accounts.Client {
-	return t.AccountService
 }
 
 func (t TestContainer) AdminAuth() auth.Service {
@@ -132,7 +125,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	}
 	c := &TestContainer{
 		HealthService:        hs,
-		AccountService:       accounts_mock.NewMockClient(ctrl),
 		AgreementsService:    agreements_mock.NewMockClient(ctrl),
 		IdentityService:      identity_mock.NewMockClient(ctrl),
 		AdminAuthService:     auth.NewMockService(),
@@ -171,10 +163,10 @@ func TestGetBankAccountWidget(t *testing.T) {
 			Name:          "Returns the mx connect widget url.",
 			ExpectedError: "",
 			RunBefore: func() {
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
-					ID:         accountID,
-					IdentityID: userID,
-				}, nil).Times(1)
+				//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
+				//	ID:         accountID,
+				//	IdentityID: userID,
+				//}, nil).Times(1)
 				c.MxProvider.EXPECT().GetConnectWidget(gomock.Any(), accountID, userID).Return(widgetUrl, nil).Times(1)
 			},
 		},
@@ -182,17 +174,17 @@ func TestGetBankAccountWidget(t *testing.T) {
 			Name:          "Returns internal error if account not found.",
 			ExpectedError: "rpc error: code = Internal desc = Internal server error: Unable to get account.",
 			RunBefore: func() {
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(nil, accounts.ErrNotFound).Times(1)
+				//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(nil, accounts.ErrNotFound).Times(1)
 			},
 		},
 		{
 			Name:          "Returns internal error if the connect widget url cannot be generated.",
 			ExpectedError: "rpc error: code = Internal desc = Internal server error: Unable to get widget.",
 			RunBefore: func() {
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
-					ID:         accountID,
-					IdentityID: userID,
-				}, nil).Times(1)
+				//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(&accounts.Account{
+				//	ID:         accountID,
+				//	IdentityID: userID,
+				//}, nil).Times(1)
 				c.MxProvider.EXPECT().GetConnectWidget(gomock.Any(), accountID, userID).Return("", fundingsources.ErrInternal).Times(1)
 			},
 		},
@@ -242,13 +234,13 @@ func TestAddBankAccount(t *testing.T) {
 				mxUserGuid = uuid.NewString()
 				accountID = uuid.NewString()
 				userID = uuid.NewString()
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-					&accounts.Account{
-						ID:         accountID,
-						IdentityID: userID,
-					},
-					nil,
-				).Times(1)
+				//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+				//	&accounts.Account{
+				//		ID:         accountID,
+				//		IdentityID: userID,
+				//	},
+				//	nil,
+				//).Times(1)
 				workflowUuid = uuid.NewString()
 				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), mx.InitiateCreateAccountArgs{
 					IdentityID: userID,
@@ -264,10 +256,10 @@ func TestAddBankAccount(t *testing.T) {
 			RunBefore: func() {
 				accountID = uuid.NewString()
 				userID = uuid.NewString()
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-					nil,
-					accounts.ErrNotFound,
-				).Times(1)
+				//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+				//	nil,
+				//	accounts.ErrNotFound,
+				//).Times(1)
 				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), gomock.Any()).Times(0)
 			},
 		},
@@ -277,13 +269,13 @@ func TestAddBankAccount(t *testing.T) {
 			RunBefore: func() {
 				accountID = uuid.NewString()
 				userID = uuid.NewString()
-				c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-					&accounts.Account{
-						ID:         accountID,
-						IdentityID: userID,
-					},
-					nil,
-				).Times(1)
+				//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+				//	&accounts.Account{
+				//		ID:         accountID,
+				//		IdentityID: userID,
+				//	},
+				//	nil,
+				//).Times(1)
 				c.MxProvider.EXPECT().InitiateCreateAccount(gomock.Any(), gomock.Any()).Return(
 					"",
 					mx.ErrInternal,
@@ -326,13 +318,13 @@ func TestGetBankDetails(t *testing.T) {
 		fundingsourceID := uuid.NewString()
 		mxAccountGuid := "acc_" + uuid.NewString()
 
-		c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-			&accounts.Account{
-				ID:         accountID,
-				IdentityID: userID,
-			},
-			nil,
-		)
+		//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+		//	&accounts.Account{
+		//		ID:         accountID,
+		//		IdentityID: userID,
+		//	},
+		//	nil,
+		//)
 		c.MxProvider.EXPECT().WaitForCreateAccount(gomock.Any(), fundingsourceID).Return(nil)
 		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(&mx.Account{
 			Guid:      mxAccountGuid,
@@ -369,13 +361,14 @@ func TestGetBankDetails(t *testing.T) {
 		fundingsourceID := uuid.NewString()
 		mxAccountGuid := "acc_" + uuid.NewString()
 
-		c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-			&accounts.Account{
-				ID:         accountID,
-				IdentityID: userID,
-			},
-			nil,
-		)
+		fmt.Println(accountID)
+		//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+		//	&accounts.Account{
+		//		ID:         accountID,
+		//		IdentityID: userID,
+		//	},
+		//	nil,
+		//)
 		c.MxProvider.EXPECT().WaitForCreateAccount(gomock.Any(), fundingsourceID).Return(nil)
 		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(
 			&mx.Account{
@@ -409,13 +402,13 @@ func TestContinueAddingBankAccount(t *testing.T) {
 	fundingsourceID := uuid.NewString()
 	mxAccountGuid := "acc_" + uuid.NewString()
 
-	c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
-		&accounts.Account{
-			ID:         accountID,
-			IdentityID: userID,
-		},
-		nil,
-	).AnyTimes()
+	//c.AccountService.EXPECT().GetByIdentityID(gomock.Any(), userID).Return(
+	//	&accounts.Account{
+	//		ID:         accountID,
+	//		IdentityID: userID,
+	//	},
+	//	nil,
+	//).AnyTimes()
 
 	t.Run("user can only get their own account info", func(st *testing.T) {
 		c.MxProvider.EXPECT().GetAccountByFundingsource(gomock.Any(), fundingsourceID).Return(

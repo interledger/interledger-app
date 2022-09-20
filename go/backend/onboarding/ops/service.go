@@ -6,9 +6,6 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/onboarding"
-
-	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/accounts"
 )
 
 // Fetch a users onboarding data
@@ -92,36 +89,4 @@ func UpdateOnboarding(
 	}
 
 	return &ob, nil
-}
-
-// Creating an account with Fynbos means that your identity is stored in our system and you get
-// a Fynbos account. The account is not yet backed by any provider and as such the user won't be
-// able to do anything with it.
-func CreateAccount(
-	ctx context.Context,
-	b Backends,
-	args *onboarding.CreateAccountArgs,
-) (*accounts.Account, error) {
-	if err := b.Validator().Struct(args); err != nil {
-		return nil, fmt.Errorf("%w %s", onboarding.ErrInvalidArgument, err)
-	}
-
-	id, err := b.Identity().Get(ctx, args.IdentityID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", onboarding.ErrInternal, err)
-	}
-	account, err := b.Accounts().Create(ctx, &accounts.CreateAccountArgs{
-		IdentityID:                 id.ID,
-		CreditsMustNotExceedDebits: true,
-		Provider:                   "unit",
-		ProviderID:                 uuid.NewString(),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", onboarding.ErrInternal, err)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return account, err
 }

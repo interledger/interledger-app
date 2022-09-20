@@ -1,64 +1,19 @@
 package admin
 
 import (
-	"context"
-	"errors"
-
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/identity"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/client"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type AdminRpcService struct {
 	backendv1.UnimplementedBackendAdminServiceServer
 	Validator       *validator.Validate
-	AccountsService accounts.Client
 	IdentityService identity.Client
 	AuthService     auth.Service
 	Temporal        client.Client
-}
-
-func (s *AdminRpcService) GetUserAccountByEmail(
-	ctx context.Context,
-	req *backendv1.GetUserAccountByEmailRequest,
-) (*backendv1.Account, error) {
-	adminUser, err := s.AuthService.ForContext(ctx)
-	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Unauthenticated.")
-	}
-	isAdmin := authorizeAdmin(adminUser.Email)
-	if !isAdmin {
-		return nil, status.Error(codes.PermissionDenied, "Forbidden.")
-	}
-
-	id, err := s.IdentityService.GetByEmail(ctx, req.GetEmail())
-	if err != nil {
-		switch {
-		case errors.Is(err, identity.ErrNotFound):
-			return nil, status.Error(codes.NotFound, err.Error())
-		default:
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-	}
-
-	acc, err := s.AccountsService.GetByIdentityID(ctx, id.ID)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &backendv1.Account{
-		Id:              acc.ID,
-		Balance:         acc.AvailableBalance,
-		DebitsReserved:  acc.DebitsReserved,
-		DebitsAccepted:  acc.DebitsAccepted,
-		CreditsReserved: acc.CreditsReserved,
-		CreditsAccepted: acc.CreditsAccepted,
-	}, nil
 }
 
 func authorizeAdmin(email string) bool {

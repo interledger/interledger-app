@@ -15,8 +15,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/accounts"
-	accounts_client "gitlab.com/fynbos/backend/accounts/client"
 	"gitlab.com/fynbos/backend/country"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_identity "gitlab.com/fynbos/backend/identity"
@@ -36,7 +34,6 @@ type TestContainer struct {
 	Is              _identity.Client
 	Fs              fundingsources.Client
 	Os              onboarding.Client
-	as              accounts.Client
 	PacioliClient   pacioli.Client
 	PacioliLedgerID uint32
 	Tp              *mocks.Client
@@ -45,10 +42,6 @@ type TestContainer struct {
 
 func (t TestContainer) Temporal() client.Client {
 	return t.Tp
-}
-
-func (t TestContainer) Accounts() accounts.Client {
-	return t.as
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -93,9 +86,6 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	pClient := test_utils.SetupPacioli(t, ctx)
 	c.PacioliClient = pClient
 
-	as := accounts_client.New(c, c.PacioliLedgerID, logger)
-	c.as = as
-
 	c.Tp = &mocks.Client{}
 
 	os := onboarding_client.New(c)
@@ -105,16 +95,4 @@ func NewTestContainer(ctx context.Context, t *testing.T, ctrl *gomock.Controller
 	c.Fs = fs
 
 	return c, nil
-}
-
-func NewAccount(
-	container *TestContainer,
-	input *onboarding.CreateAccountArgs,
-) (*accounts.Account, error) {
-	acc, err := container.Os.CreateAccount(container.Ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
-	return acc, nil
 }

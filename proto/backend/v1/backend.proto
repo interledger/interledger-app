@@ -46,8 +46,6 @@ service BackendService {
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
-  // Will get a quote that details transaction fees and how much the receiver will get.
-  rpc GetQuote(GetQuoteRequest) returns (Quote);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
@@ -156,29 +154,6 @@ message SignAgreementsRequest {
 
 message SignAgreementsResponse {
   bool signed = 1;
-}
-
-message GetQuoteRequest {
-  // e.g. R1 -> receiveAmount = 100. Assumes assetScale = 2.
-  uint64 sendAmount = 1;
-  // ISO4217 code
-  string sendCurrencyCode = 2;
-  // e.g. R1 -> receiveAmount = 100. Assumes assetScale = 2.
-  uint64 receiveAmount = 3;
-  // ISO4217 code
-  string receiveCurrencyCode = 4;
-  // To whom the user is sending the payment
-  string receiverPaymentPointer = 5;
-}
-
-// This is not finalised. Revisit when the `Quoting` service is implemented.
-message Quote {
-  string id = 1;
-  uint64 receiveAmount = 2;
-  string receiveCurrencyCode = 3;
-  uint64 sendAmount = 4;
-  string sendCurrencyCode = 5;
-  string expiresAt = 6;
 }
 
 message JoinWaitlistRequest {

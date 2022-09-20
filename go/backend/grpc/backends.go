@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/accounts"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -19,7 +18,6 @@ import (
 )
 
 type Backends interface {
-	Accounts() accounts.Client
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
 	FundingSources() fundingsources.Client

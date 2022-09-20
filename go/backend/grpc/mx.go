@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -18,12 +19,9 @@ func (s *rpcService) GetBankAccountWidget(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		return nil, InternalError("Unable to get account.")
-	}
-
-	url, err := s.b.MX().GetConnectWidget(ctx, acc.ID, user.ID)
+	//FIXME: change to wallet
+	walletId := uuid.NewString()
+	url, err := s.b.MX().GetConnectWidget(ctx, walletId, user.ID)
 	if err != nil {
 		return nil, InternalError("Unable to get widget.")
 	}
@@ -42,13 +40,10 @@ func (s *rpcService) AddBankAccount(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		return nil, InternalError("Unable to get account.")
-	}
-
+	//FIXME: change to wallet
+	walletId := uuid.NewString()
 	workflowUuid, err := s.b.MX().InitiateCreateAccount(ctx, mx.InitiateCreateAccountArgs{
-		AccountID:  acc.ID,
+		AccountID:  walletId,
 		IdentityID: user.ID,
 		UserGuid:   req.GetUserGuid(),
 		MemberGuid: req.GetMemberGuid(),
@@ -66,15 +61,13 @@ func (s *rpcService) GetBankAccountDetails(
 	ctx context.Context,
 	req *backendv1.GetBankAccountDetailsRequest,
 ) (*backendv1.BankAccountDetails, error) {
-	user, err := s.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, grpcError(err)
 	}
 
-	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		return nil, grpcError(err)
-	}
+	//FIXME: change to wallet
+	walletId := uuid.NewString()
 
 	// wait till workflow has completed
 	err = s.b.MX().WaitForCreateAccount(ctx, req.GetFundingsourceId())
@@ -86,7 +79,7 @@ func (s *rpcService) GetBankAccountDetails(
 	if errors.Is(err, mx.ErrNotFound) {
 		return nil, grpcError(err)
 	}
-	if bankAccount.AccountID != acc.ID {
+	if bankAccount.AccountID != walletId {
 		return nil, ForbiddenError("Unauthorized.")
 	}
 
@@ -130,26 +123,24 @@ func (s *rpcService) ContinueAddingBankAccount(
 	}); err != nil {
 		return nil, ValidationError(err, validateContinueAddingBankAccountDescription)
 	}
-	user, err := s.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	acc, err := s.b.Accounts().GetByIdentityID(ctx, user.ID)
-	if err != nil {
-		return nil, InternalError("Unable to get account.")
-	}
+	//FIXME: change to wallet
+	walletId := uuid.NewString()
 
 	bankAccount, err := s.b.MX().GetAccountByFundingsource(ctx, req.GetFundingsourceId())
 	if err != nil {
 		return nil, InternalError("Unable to get bank account details.")
 	}
-	if bankAccount.AccountID != acc.ID {
+	if bankAccount.AccountID != walletId {
 		return nil, ForbiddenError("Unauthorized.")
 	}
 
 	err = s.b.MX().InitiateCreateFundingsource(ctx, mx.InitiateCreateFundingsourceArgs{
-		AccountID:     acc.ID,
+		AccountID:     walletId,
 		Otp:           req.GetOtp(),
 		Name:          req.GetNickName(),
 		MxAccountGuid: bankAccount.Guid,
