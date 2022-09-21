@@ -10,7 +10,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -183,7 +182,6 @@ func start(args *cli.StartArgs) {
 	router := chi.NewRouter()
 	router.Routes()
 	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
-	router.Handle("/playground", playground.Handler("GraphQL playground", "/graphql"))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
