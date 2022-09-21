@@ -65,32 +65,17 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
 }
 
-// GetByWalletId mocks base method.
-func (m *MockClient) GetByWalletId(ctx context.Context, walletId string) ([]fundingsources.FundingSource, error) {
+// ListByWalletId mocks base method.
+func (m *MockClient) ListByWalletId(ctx context.Context, walletId string) ([]fundingsources.FundingSource, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByWalletId", ctx, walletId)
+	ret := m.ctrl.Call(m, "ListByWalletId", ctx, walletId)
 	ret0, _ := ret[0].([]fundingsources.FundingSource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByWalletId indicates an expected call of GetByWalletId.
-func (mr *MockClientMockRecorder) GetByWalletId(ctx, walletId interface{}) *gomock.Call {
+// ListByWalletId indicates an expected call of ListByWalletId.
+func (mr *MockClientMockRecorder) ListByWalletId(ctx, walletId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByWalletId", reflect.TypeOf((*MockClient)(nil).GetByWalletId), ctx, walletId)
-}
-
-// Verify mocks base method.
-func (m *MockClient) Verify(ctx context.Context, args *fundingsources.VerifyArgs) (*fundingsources.FundingSource, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", ctx, args)
-	ret0, _ := ret[0].(*fundingsources.FundingSource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Verify indicates an expected call of Verify.
-func (mr *MockClientMockRecorder) Verify(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockClient)(nil).Verify), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWalletId", reflect.TypeOf((*MockClient)(nil).ListByWalletId), ctx, walletId)
 }

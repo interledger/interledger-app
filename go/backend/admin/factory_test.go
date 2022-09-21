@@ -18,7 +18,6 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	"gitlab.com/fynbos/backend/fundingsources"
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
