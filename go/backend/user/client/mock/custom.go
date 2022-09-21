@@ -15,10 +15,22 @@ import (
 
 var _ user.Client = mockClient{}
 
-type mockClient struct{}
+type mockClient struct {
+	wallets    map[string]*user.Wallet
+	walletUser map[string]string
+}
 
 func (mc mockClient) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
-	return nil, user.ErrNoWalletFound
+	wallet := mc.wallets[id]
+	if wallet == nil {
+		return nil, user.ErrNoWalletFound
+	}
+	walletUser := mc.walletUser[wallet.ID]
+
+	if walletUser != userID {
+		return nil, user.ErrNoWalletFound
+	}
+	return wallet, nil
 }
 
 func (mc mockClient) UserForCookie(ctx context.Context, cookie string) (*user.User, error) {
@@ -53,14 +65,25 @@ func (mc mockClient) WalletForContext(ctx context.Context) (*user.Wallet, error)
 }
 
 func (mc mockClient) CreateNewWallet(_ context.Context, userID, walletName string) (*user.Wallet, error) {
-	return &user.Wallet{
+	wallet := &user.Wallet{
 		ID:   uuid.NewString(),
 		Name: walletName,
-	}, nil
+	}
+
+	mc.wallets[wallet.ID] = wallet
+	mc.walletUser[wallet.ID] = userID
+
+	return wallet, nil
 }
 
-func (mc mockClient) ListWallets(_ context.Context, _ string) ([]user.Wallet, error) {
-	return nil, nil
+func (mc mockClient) ListWallets(_ context.Context, userId string) ([]user.Wallet, error) {
+	var wallets []user.Wallet
+	for key, element := range mc.walletUser {
+		if element == userId {
+			wallets = append(wallets, *mc.wallets[key])
+		}
+	}
+	return wallets, nil
 }
 
 var _testCookieName = "ory_kratos_session"
@@ -108,5 +131,8 @@ func ActingAs(req *graphql.Request, usr *user.User) error {
 }
 
 func NewMock() user.Client {
-	return &mockClient{}
+	return &mockClient{
+		wallets:    make(map[string]*user.Wallet),
+		walletUser: make(map[string]string),
+	}
 }

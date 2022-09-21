@@ -109,9 +109,9 @@ func GetWallet(ctx context.Context, b Backends, userID, walletID string) (*user.
 
 	var wallet user.Wallet
 	err := b.DB().GetContext(ctx, &wallet,
-		"SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1 and w.id=$2", userID, wallet)
+		"SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1 and w.id=$2", userID, walletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, user.ErrNoWalletFound
 	}
 	if err != nil {
 		return nil, err
