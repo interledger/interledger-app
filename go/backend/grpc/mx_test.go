@@ -2,12 +2,13 @@ package grpc
 
 import (
 	"fmt"
+	"net"
+	"testing"
+
 	test_utils "gitlab.com/fynbos/backend/utils"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"net"
-	"testing"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -19,8 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/fundingsources"
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/identity"
-	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
@@ -40,7 +39,6 @@ type TestContainer struct {
 	HealthService        healthcheck.Service
 	AgreementsService    *agreements_mock.MockClient
 	CountriesService     *country_mock.MockClient
-	IdentityService      *identity_mock.MockClient
 	AdminAuthService     auth.Service
 	UserService          user.Client
 	FundingsourceService *funding_mock.MockClient
@@ -74,10 +72,6 @@ func (t TestContainer) FundingSources() fundingsources.Client {
 
 func (t TestContainer) HealthCheck() healthcheck.Service {
 	return t.HealthService
-}
-
-func (t TestContainer) Identity() identity.Client {
-	return t.IdentityService
 }
 
 func (t TestContainer) Onboarding() onboarding.Client {
@@ -122,7 +116,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		HealthService:        hs,
 		AgreementsService:    agreements_mock.NewMockClient(ctrl),
 		CountriesService:     country_mock.NewMockClient(ctrl),
-		IdentityService:      identity_mock.NewMockClient(ctrl),
 		AdminAuthService:     auth.NewMockService(),
 		UserService:          user_mock.NewMock(),
 		FundingsourceService: funding_mock.NewMockClient(ctrl),

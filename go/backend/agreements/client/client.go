@@ -23,8 +23,8 @@ func (c client) Sign(ctx context.Context, args *agreements.SignArgs) error {
 	return ops.Sign(ctx, c.b, args)
 }
 
-func (c client) GetSignatures(ctx context.Context, identityID string) ([]agreements.Signature, error) {
-	return ops.GetSignatures(ctx, c.b, identityID)
+func (c client) GetSignatures(ctx context.Context, userID string) ([]agreements.Signature, error) {
+	return ops.GetSignatures(ctx, c.b, userID)
 }
 
 func (c client) Get(ctx context.Context, id string) (*agreements.Agreement, error) {

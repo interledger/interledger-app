@@ -4,16 +4,12 @@ import (
 	"context"
 	"testing"
 
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/twilio"
-	_user "gitlab.com/fynbos/backend/user"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -124,101 +120,6 @@ func TestUpdateOnboarding(s *testing.T) {
 		assert.Error(t, err)
 		assert.EqualError(t, err, "rpc error: code = Internal desc = Internal server error: Update onboarding.")
 		assert.Nil(t, resp)
-	})
-}
-
-func TestCreateIdentity(s *testing.T) {
-	ctrl := gomock.NewController(s)
-	c := NewTestContainer(s, ctrl)
-	_, _, client := startTestServer(s, c)
-	userId := uuid.NewString()
-
-	s.Run("Creates identity from onboarding", func(t *testing.T) {
-		ID, name, surname, country, email, phone := uuid.NewString(), faker.FirstName(), faker.LastName(), "US", faker.Email(), faker.E164PhoneNumber()
-		c.OnboardingService.EXPECT().GetOnboarding(gomock.Any(), &onboarding.GetOnboardingArgs{
-			Id: ID,
-		}).Return(&onboarding.Onboarding{
-			ID:               ID,
-			FirstName:        name,
-			LastName:         surname,
-			Country:          country,
-			Email:            email,
-			Phone:            phone,
-			PhoneVerified:    true,
-			ServiceAgreement: true,
-		}, nil).Times(1)
-
-		// This error is swallowed if there is no identity, so we don't need to worry about it here.
-		c.IdentityService.EXPECT().Get(gomock.Any(), userId).Return(nil, nil).Times(1)
-
-		c.IdentityService.EXPECT().Create(gomock.Any(), &identity.CreateArgs{
-			ID:           userId,
-			FirstName:    name,
-			LastName:     surname,
-			Country:      country,
-			Email:        email,
-			MobileNumber: phone,
-		}).Return(&identity.Identity{
-			ID:           userId,
-			FirstName:    name,
-			LastName:     surname,
-			Country:      country,
-			Email:        email,
-			MobileNumber: phone,
-		}, nil).Times(1)
-
-		resp, err := client.CreateIdentity(
-			user_mock.ActingAsContext(t, context.Background(), &_user.User{
-				ID:    userId,
-				Email: email,
-			}),
-			&backendv1.CreateIdentityRequest{
-				OnboardingId: ID,
-			},
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Equal(t, userId, resp.GetIdentityId())
-	})
-
-	s.Run("Already has identity, so just returns it", func(t *testing.T) {
-		ID, name, surname, country, email, phone := uuid.NewString(), faker.FirstName(), faker.LastName(), "US", faker.Email(), faker.E164PhoneNumber()
-		c.OnboardingService.EXPECT().GetOnboarding(gomock.Any(), &onboarding.GetOnboardingArgs{
-			Id: ID,
-		}).Return(&onboarding.Onboarding{
-			ID:               ID,
-			FirstName:        name,
-			LastName:         surname,
-			Country:          country,
-			Email:            email,
-			Phone:            phone,
-			PhoneVerified:    true,
-			ServiceAgreement: true,
-		}, nil).Times(1)
-
-		c.IdentityService.EXPECT().Get(gomock.Any(), userId).Return(&identity.Identity{
-			ID: userId,
-		}, nil).Times(1)
-
-		// Shouldn't need to call this if an identity exists for the user.
-		c.IdentityService.EXPECT().Create(gomock.Any(), nil).Return(nil, nil).Times(0)
-
-		resp, err := client.CreateIdentity(
-			user_mock.ActingAsContext(t, context.Background(), &_user.User{
-				ID:    userId,
-				Email: email,
-			}),
-			&backendv1.CreateIdentityRequest{
-				OnboardingId: ID,
-			},
-		)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		assert.Equal(t, userId, resp.GetIdentityId())
 	})
 }
 

@@ -41,14 +41,14 @@ func Sign(ctx context.Context, b Backends, args *agreements.SignArgs) error {
 		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
-	txStmt, err := tx.PrepareContext(ctx, "INSERT INTO agreement_signatures (agreement_id, identity_id, ip_address) VALUES ($1, $2, $3)")
+	txStmt, err := tx.PrepareContext(ctx, "INSERT INTO agreement_signatures (agreement_id, user_id, ip_address) VALUES ($1, $2, $3)")
 	if err != nil {
 		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 	defer txStmt.Close()
 
 	for _, id := range args.AgreementIDs {
-		_, err := txStmt.ExecContext(ctx, id, args.IdentityID, args.IPAddress)
+		_, err := txStmt.ExecContext(ctx, id, args.UserID, args.IPAddress)
 		if err != nil {
 			if pgErr, isPGErr := err.(pq.Error); isPGErr {
 				if pgErr.Code != "23503" {
@@ -67,10 +67,10 @@ func Sign(ctx context.Context, b Backends, args *agreements.SignArgs) error {
 	return nil
 }
 
-func GetSignatures(ctx context.Context, b Backends, identityID string) ([]agreements.Signature, error) {
+func GetSignatures(ctx context.Context, b Backends, userID string) ([]agreements.Signature, error) {
 	var agreementSigns []agreements.Signature
 
-	err := b.DB().SelectContext(ctx, &agreementSigns, "SELECT * FROM agreement_signatures WHERE identity_id = $1", identityID)
+	err := b.DB().SelectContext(ctx, &agreementSigns, "SELECT * FROM agreement_signatures WHERE user_id = $1", userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, agreements.ErrNotFound
@@ -83,7 +83,7 @@ func GetSignatures(ctx context.Context, b Backends, identityID string) ([]agreem
 		signatures = append(signatures, agreements.Signature{
 			ID:          sign.ID,
 			AgreementID: sign.AgreementID,
-			IdentityID:  sign.IdentityID,
+			UserID:      sign.UserID,
 			IPAddress:   sign.IPAddress,
 			CreatedAt:   sign.CreatedAt,
 			UpdatedAt:   sign.UpdatedAt,

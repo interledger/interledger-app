@@ -1,8 +1,9 @@
 package user
 
 type User struct {
-	ID    string
-	Email string
+	ID          string
+	Email       string
+	PhoneNumber string
 }
 
 type Wallet struct {

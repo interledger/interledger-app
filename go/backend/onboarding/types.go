@@ -15,11 +15,6 @@ type UpdateOnboardingArgs struct {
 	ServiceAgreement bool   `validate:"omitempty"`
 }
 
-type CreateAccountArgs struct {
-	IdentityID string `validate:"required,uuid"`
-	Country    string `validate:"required,iso3166_1_alpha2"`
-}
-
 type Onboarding struct {
 	ID               string
 	FirstName        string `db:"first_name"`

@@ -51,18 +51,18 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 }
 
 // GetSignatures mocks base method.
-func (m *MockClient) GetSignatures(ctx context.Context, identityID string) ([]agreements.Signature, error) {
+func (m *MockClient) GetSignatures(ctx context.Context, userID string) ([]agreements.Signature, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSignatures", ctx, identityID)
+	ret := m.ctrl.Call(m, "GetSignatures", ctx, userID)
 	ret0, _ := ret[0].([]agreements.Signature)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSignatures indicates an expected call of GetSignatures.
-func (mr *MockClientMockRecorder) GetSignatures(ctx, identityID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetSignatures(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSignatures", reflect.TypeOf((*MockClient)(nil).GetSignatures), ctx, identityID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSignatures", reflect.TypeOf((*MockClient)(nil).GetSignatures), ctx, userID)
 }
 
 // Sign mocks base method.

@@ -46,7 +46,7 @@ func (s *rpcService) GetAgreement(
 
 type validateSignAgreements struct {
 	AgreementIDs []string `validate:"required,min=1"`
-	IdentityID   string   `validate:"required,uuid"`
+	UserID       string   `validate:"required,uuid"`
 	IPAddress    string   `validate:"required,ip_addr"`
 }
 
@@ -57,7 +57,7 @@ func validateSignAgreementsDescription(err validator.FieldError) string {
 	case "min":
 		return "You have to provide at least one agreement."
 	case "uuid":
-		return "Identity id must be a valid uuid."
+		return "Must be a valid uuid."
 	case "ip_addr":
 		return "IP address must be a valid ip address."
 	}
@@ -70,7 +70,7 @@ func (s *rpcService) SignAgreements(
 ) (*backendv1.SignAgreementsResponse, error) {
 	if err := s.b.Validator().Struct(&validateSignAgreements{
 		AgreementIDs: req.GetAgreementIds(),
-		IdentityID:   req.GetIdentityId(),
+		UserID:       req.UserId,
 		IPAddress:    req.GetIpAddress(),
 	}); err != nil {
 		return nil, ValidationError(err, validateSignAgreementsDescription)
@@ -78,7 +78,7 @@ func (s *rpcService) SignAgreements(
 
 	err := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
 		AgreementIDs: req.GetAgreementIds(),
-		IdentityID:   req.GetIdentityId(),
+		UserID:       req.UserId,
 		IPAddress:    req.GetIpAddress(),
 	})
 	if err != nil {

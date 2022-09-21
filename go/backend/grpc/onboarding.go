@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/twilio"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -110,66 +109,6 @@ func (s *rpcService) UpdateOnboarding(
 		Phone:              &onboard.Phone,
 		PhoneVerified:      &onboard.PhoneVerified,
 		ServiceAgreement:   &onboard.ServiceAgreement,
-	}, nil
-}
-
-type validateCreateIdentity struct {
-	OnboardingId string `validate:"required,uuid"`
-}
-
-func validateCreateIdentityDescription(err validator.FieldError) string {
-	switch err.Tag() {
-	case "required":
-		return "Onboarding id is required."
-	case "uuid":
-		return "Invalid onboarding id."
-	}
-	return ""
-}
-
-func (s *rpcService) CreateIdentity(
-	ctx context.Context,
-	req *backendv1.CreateIdentityRequest,
-) (*backendv1.CreateIdentityResponse, error) {
-	if err := s.b.Validator().Struct(&validateCreateIdentity{
-		OnboardingId: req.GetOnboardingId(),
-	}); err != nil {
-		return nil, ValidationError(err, validateCreateIdentityDescription)
-	}
-
-	user, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	ob, err := s.b.Onboarding().GetOnboarding(ctx, &onboarding.GetOnboardingArgs{
-		Id: req.GetOnboardingId(),
-	})
-	if err != nil {
-		return nil, NotFoundError("failed to find onboarding")
-	}
-
-	if !ob.PhoneVerified {
-		return nil, ForbiddenError("phone not verified.")
-	}
-
-	id, _ := s.b.Identity().Get(ctx, user.ID)
-	if id == nil {
-		id, err = s.b.Identity().Create(ctx, &identity.CreateArgs{
-			ID:           user.ID,
-			FirstName:    ob.FirstName,
-			LastName:     ob.LastName,
-			MobileNumber: ob.Phone,
-			Email:        ob.Email,
-			Country:      ob.Country,
-		})
-		if err != nil {
-			return nil, InternalError("Failed to create identity.")
-		}
-	}
-
-	return &backendv1.CreateIdentityResponse{
-		IdentityId: id.ID,
 	}, nil
 }
 
