@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -81,4 +82,18 @@ func TestListWallets(t *testing.T) {
 	wallets, err := ops.ListWallets(ctx, b, userID)
 	require.NoError(t, err)
 	require.Len(t, wallets, 2)
+}
+
+func TestGetWallet(t *testing.T) {
+	ctx := context.Background()
+	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	b := user_client.NewTestBackends(t, dbc, nil)
+	userID := uuid.NewString()
+	w, err := ops.CreateWallet(ctx, b, userID, "default")
+
+	wallet, err := ops.GetWallet(ctx, b, userID, w.ID)
+
+	require.NoError(t, err)
+	require.Equal(t, w.ID, wallet.ID)
+	require.Equal(t, w.Name, wallet.Name)
 }
