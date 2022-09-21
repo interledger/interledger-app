@@ -8,7 +8,6 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/onboarding"
-	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/twilio"
@@ -23,7 +22,6 @@ type Backends interface {
 	FundingSources() fundingsources.Client
 	HealthCheck() healthcheck.Service
 	Identity() identity.Client
-	MX() mx.Client
 	Onboarding() onboarding.Client
 	Rafiki() rafiki.Service
 	SupportTickets() supporttickets.Client

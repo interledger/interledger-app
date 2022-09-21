@@ -3,6 +3,7 @@ package admin_test
 import (
 	"context"
 	"fmt"
+	"gitlab.com/fynbos/backend/fundingsources"
 	"net"
 	"testing"
 
@@ -25,8 +26,6 @@ import (
 	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-	"gitlab.com/fynbos/backend/providers/mx"
-	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
@@ -64,7 +63,6 @@ type TestContainer struct {
 	ValidatorImpl   *validator.Validate
 	Auth            auth.Service
 	AgreementsImpl  agreements.Client
-	Mx              *mx_mock.MockClient
 	Tickets         *support_mock.MockClient
 	UsersImpl       user.Client
 	WaitlistImpl    *waitlist_mock.MockClient
@@ -87,10 +85,6 @@ func (c *TestContainer) HealthCheck() healthcheck.Service {
 	return c.Hs
 }
 
-func (c *TestContainer) MX() mx.Client {
-	return c.Mx
-}
-
 func (c *TestContainer) Onboarding() onboarding.Client {
 	return c.Os
 }
@@ -105,10 +99,6 @@ func (c *TestContainer) SupportTickets() supporttickets.Client {
 
 func (c *TestContainer) Twilio() twilio.Service {
 	return c.TwilioImpl
-}
-
-func (c *TestContainer) Unit() unit.Client {
-	return c.Up
 }
 
 func (c *TestContainer) Waitlist() waitlist.Client {
@@ -137,6 +127,9 @@ func (c *TestContainer) Countries() country.Client {
 
 func (c *TestContainer) Pacioli() pacioli.Client {
 	return c.PacioliClient
+}
+func (c *TestContainer) Users() user.Client {
+	return c.UsersImpl
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
@@ -200,7 +193,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
 	c.UsersImpl = user_mock.NewMock()
-	c.Mx = mx_mock.NewMockClient(c.Ctrl)
 	c.WaitlistImpl = waitlist_mock.NewMockClient(c.Ctrl)
 	c.Tickets = support_mock.NewMockClient(c.Ctrl)
 

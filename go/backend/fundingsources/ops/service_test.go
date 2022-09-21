@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"gitlab.com/fynbos/backend/fundingsources"
@@ -54,12 +55,11 @@ func TestFundingSources(s *testing.T) {
 			Provider: "mx",
 			Type:     "bank",
 		})
-		if err != nil {
-			t.Fatal("Should be able to create a funding source")
-		}
+		require.NoError(t, err)
 
 		fs, err := c.Fs.Get(ctx, fsCreated.ID)
 
+		require.NoError(t, err)
 		assert.NotNil(t, fs)
 		assert.Equal(t, fs.ID, fsCreated.ID)
 		assert.Equal(t, fs.WalletId, wallet.ID)
@@ -83,6 +83,7 @@ func TestFundingSources(s *testing.T) {
 		}
 
 		fses, err := c.Fs.ListByWalletId(ctx, wallet.ID)
+		require.NoError(t, err)
 
 		assert.NotNil(t, fses)
 		assert.Len(t, fses, 1)
