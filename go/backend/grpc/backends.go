@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/fundingsources"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identity"
@@ -19,6 +20,7 @@ import (
 type Backends interface {
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
+	Countries() country.Client
 	FundingSources() fundingsources.Client
 	HealthCheck() healthcheck.Service
 	Identity() identity.Client
