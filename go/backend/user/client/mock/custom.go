@@ -76,10 +76,10 @@ func (mc mockClient) CreateNewWallet(_ context.Context, userID, walletName strin
 	return wallet, nil
 }
 
-func (mc mockClient) ListWallets(_ context.Context, userId string) ([]user.Wallet, error) {
+func (mc mockClient) ListWallets(_ context.Context, userID string) ([]user.Wallet, error) {
 	var wallets []user.Wallet
 	for key, element := range mc.walletUser {
-		if element == userId {
+		if element == userID {
 			wallets = append(wallets, *mc.wallets[key])
 		}
 	}

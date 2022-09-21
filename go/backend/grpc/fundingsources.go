@@ -6,14 +6,14 @@ import (
 )
 
 func (s *rpcService) GetFundingsources(
-	ctx context.Context,
-	req *backendv1.GetFundingsourcesRequest,
+	ctx context.Context, _ *backendv1.Empty,
 ) (*backendv1.GetFundingsourcesResponse, error) {
-	user, err := s.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
-	wallet, err := s.b.Users().GetWallet(ctx, user.ID, req.GetWalletId())
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

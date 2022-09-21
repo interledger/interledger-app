@@ -353,15 +353,6 @@ export interface JoinWaitlistRequest {
 export interface JoinWaitlistResponse {
 }
 /**
- * @generated from protobuf message backend.v1.GetFundingsourcesRequest
- */
-export interface GetFundingsourcesRequest {
-    /**
-     * @generated from protobuf field: string walletId = 1;
-     */
-    walletId: string;
-}
-/**
  * @generated from protobuf message backend.v1.GetFundingsourcesResponse
  */
 export interface GetFundingsourcesResponse {
@@ -1826,53 +1817,6 @@ class JoinWaitlistResponse$Type extends MessageType<JoinWaitlistResponse> {
  */
 export const JoinWaitlistResponse = new JoinWaitlistResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetFundingsourcesRequest$Type extends MessageType<GetFundingsourcesRequest> {
-    constructor() {
-        super("backend.v1.GetFundingsourcesRequest", [
-            { no: 1, name: "walletId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<GetFundingsourcesRequest>): GetFundingsourcesRequest {
-        const message = { walletId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetFundingsourcesRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetFundingsourcesRequest): GetFundingsourcesRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string walletId */ 1:
-                    message.walletId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetFundingsourcesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string walletId = 1; */
-        if (message.walletId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.GetFundingsourcesRequest
- */
-export const GetFundingsourcesRequest = new GetFundingsourcesRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class GetFundingsourcesResponse$Type extends MessageType<GetFundingsourcesResponse> {
     constructor() {
         super("backend.v1.GetFundingsourcesResponse", [
@@ -2262,6 +2206,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
-    { name: "GetFundingsources", options: {}, I: GetFundingsourcesRequest, O: GetFundingsourcesResponse },
+    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty }
 ]);
