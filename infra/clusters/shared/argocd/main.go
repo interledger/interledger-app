@@ -116,6 +116,13 @@ func main() {
 			return err
 		}
 
+		err = newCockroachApplicationSet(ctx, cockroachApplicationSetArgs{
+			Namespace: namespace.Metadata.Name().Elem(),
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
+
 		err = newPacioliApplicationSet(ctx, pacioliApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
