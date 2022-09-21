@@ -15,6 +15,7 @@ import (
 
 func TestGetFundingsources(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
@@ -24,12 +25,18 @@ func TestGetFundingsources(t *testing.T) {
 	user := &_user.User{
 		ID: uuid.NewString(),
 	}
-	accountID := uuid.NewString()
 
 	t.Run("requires authenticated user", func(st *testing.T) {
+		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+		if err != nil {
+			t.Fatal(err)
+		}
+		walletID := wallet.ID
 		response, err := client.GetFundingsources(
 			user_mock.ActingAsContext(t, context.Background(), nil),
-			&backendv1.Empty{},
+			&backendv1.GetFundingsourcesRequest{
+				WalletId: walletID,
+			},
 		)
 
 		assert.Nil(st, response)
@@ -37,25 +44,32 @@ func TestGetFundingsources(t *testing.T) {
 	})
 
 	t.Run("returns fundingsources", func(st *testing.T) {
+		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+		if err != nil {
+			t.Fatal(err)
+		}
+		walletID := wallet.ID
 		expectedFundingsources := []fundingsources.FundingSource{
 			{
-				ID:        uuid.NewString(),
-				AccountID: accountID,
-				Name:      "test1",
-				Mask:      "abc",
+				ID:       uuid.NewString(),
+				WalletId: walletID,
+				Name:     "test1",
+				Mask:     "abc",
 			},
 			{
-				ID:        uuid.NewString(),
-				AccountID: accountID,
-				Name:      "test2",
-				Mask:      "cba",
+				ID:       uuid.NewString(),
+				WalletId: walletID,
+				Name:     "test2",
+				Mask:     "cba",
 			},
 		}
-		c.FundingsourceService.EXPECT().GetByWalletId(gomock.Any(), accountID).Return(expectedFundingsources, nil).Times(1)
+		c.FundingsourceService.EXPECT().ListByWalletId(gomock.Any(), walletID).Return(expectedFundingsources, nil).Times(1)
 
 		response, err := client.GetFundingsources(
 			user_mock.ActingAsContext(t, context.Background(), user),
-			&backendv1.Empty{},
+			&backendv1.GetFundingsourcesRequest{
+				WalletId: walletID,
+			},
 		)
 		if err != nil {
 			st.Fatal(err)

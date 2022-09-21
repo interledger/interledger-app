@@ -47,7 +47,7 @@ service BackendService {
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
-  rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
+  rpc GetFundingsources(GetFundingsourcesRequest) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
 }
 
@@ -163,6 +163,10 @@ message JoinWaitlistRequest {
 }
 
 message JoinWaitlistResponse {}
+
+message GetFundingsourcesRequest {
+  string walletId = 1;
+}
 
 message GetFundingsourcesResponse {
   repeated FundingSource fundingsources = 1;

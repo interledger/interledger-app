@@ -34,8 +34,6 @@ import (
 	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
-	_mx "gitlab.com/fynbos/backend/providers/mx"
-	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_client "gitlab.com/fynbos/backend/supporttickets/client"
@@ -165,7 +163,7 @@ func start(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	b.mxProvider = mx_client.New(b, args.MxClientID, args.MxApiKey)
+	//b.mxProvider = mx_client.New(b, args.MxClientID, args.MxApiKey)
 
 	b.fundingSources = funding_client.New(b, logger)
 
@@ -314,11 +312,11 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	mxImpl := mx_client.New(b, args.MxClientID, args.MxApiKey)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.mxProvider = mxImpl
+	//mxImpl := mx_client.New(b, args.MxClientID, args.MxApiKey)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//b.mxProvider = mxImpl
 
 	b.fundingSources = funding_client.New(b, logger)
 
@@ -347,7 +345,6 @@ type backends struct {
 	fundingSources fundingsources.Client
 	healthcheck    healthcheck.Service
 	identity       identity.Client
-	mxProvider     _mx.Client
 	onboarding     onboarding.Client
 	pacioli        pacioli.Client
 	rafiki         rafiki.Service
@@ -418,9 +415,9 @@ func (b backends) Twilio() _twilio.Service {
 	return b.twilio
 }
 
-func (b backends) MX() _mx.Client {
-	return b.mxProvider
-}
+//func (b backends) MX() _mx.Client {
+//	return b.mxProvider
+//}
 
 func (b backends) FundingSources() fundingsources.Client {
 	return b.fundingSources

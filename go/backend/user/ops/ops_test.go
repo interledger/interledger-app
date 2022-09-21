@@ -90,6 +90,7 @@ func TestGetWallet(t *testing.T) {
 	b := user_client.NewTestBackends(t, dbc, nil)
 	userID := uuid.NewString()
 	w, err := ops.CreateWallet(ctx, b, userID, "default")
+	require.NoError(t, err)
 
 	wallet, err := ops.GetWallet(ctx, b, userID, w.ID)
 
