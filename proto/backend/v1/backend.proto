@@ -49,6 +49,7 @@ service BackendService {
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
+  rpc GetCountries(Empty) returns (GetCountriesResponse);
 }
 
 message GetStatementsResponse {
@@ -198,4 +199,13 @@ message ContinueAddingBankAccountRequest {
 message ContinueAddingBankAccountResponse {
   bool success = 1;
   string error = 2;
+}
+
+message Country {
+  string id =1;
+  string name = 2;
+}
+
+message GetCountriesResponse {
+  repeated Country countries = 1;
 }
