@@ -78,7 +78,7 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 			log.Warn("user has multiple wallets, using a default", zap.String("user_id", u.ID))
 		}
 
-		newCtx = context.WithValue(newCtx, walletCtxKey, wallets[0])
+		newCtx = context.WithValue(newCtx, walletCtxKey, &wallets[0])
 
 		return handler(newCtx, req)
 	})

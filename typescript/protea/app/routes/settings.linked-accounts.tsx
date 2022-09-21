@@ -13,12 +13,9 @@ import {
 export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
 
-  // FIXME: When wallets is added to frontend
   const response = await grpcClient
     .getFundingsources(
-      {
-        walletId: 'temp'
-      },
+      {},
       {
         meta: {
           cookies: cookie || ''

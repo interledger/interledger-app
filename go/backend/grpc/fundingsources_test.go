@@ -27,16 +27,10 @@ func TestGetFundingsources(t *testing.T) {
 	}
 
 	t.Run("requires authenticated user", func(st *testing.T) {
-		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
-		if err != nil {
-			t.Fatal(err)
-		}
-		walletID := wallet.ID
+
 		response, err := client.GetFundingsources(
 			user_mock.ActingAsContext(t, context.Background(), nil),
-			&backendv1.GetFundingsourcesRequest{
-				WalletId: walletID,
-			},
+			&backendv1.Empty{},
 		)
 
 		assert.Nil(st, response)
@@ -67,9 +61,7 @@ func TestGetFundingsources(t *testing.T) {
 
 		response, err := client.GetFundingsources(
 			user_mock.ActingAsContext(t, context.Background(), user),
-			&backendv1.GetFundingsourcesRequest{
-				WalletId: walletID,
-			},
+			&backendv1.Empty{},
 		)
 		if err != nil {
 			st.Fatal(err)

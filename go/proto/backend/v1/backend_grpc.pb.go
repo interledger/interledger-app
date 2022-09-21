@@ -125,7 +125,7 @@ type BackendServiceClient interface {
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
-	GetFundingsources(ctx context.Context, in *GetFundingsourcesRequest, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
+	GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -263,7 +263,7 @@ func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlis
 	return out, nil
 }
 
-func (c *backendServiceClient) GetFundingsources(ctx context.Context, in *GetFundingsourcesRequest, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error) {
+func (c *backendServiceClient) GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error) {
 	out := new(GetFundingsourcesResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetFundingsources", in, out, opts...)
 	if err != nil {
@@ -304,7 +304,7 @@ type BackendServiceServer interface {
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
-	GetFundingsources(context.Context, *GetFundingsourcesRequest) (*GetFundingsourcesResponse, error)
+	GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 }
 
@@ -354,7 +354,7 @@ func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAg
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
 }
-func (UnimplementedBackendServiceServer) GetFundingsources(context.Context, *GetFundingsourcesRequest) (*GetFundingsourcesResponse, error) {
+func (UnimplementedBackendServiceServer) GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFundingsources not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error) {
@@ -625,7 +625,7 @@ func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, 
 }
 
 func _BackendService_GetFundingsources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFundingsourcesRequest)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -637,7 +637,7 @@ func _BackendService_GetFundingsources_Handler(srv interface{}, ctx context.Cont
 		FullMethod: "/backend.v1.BackendService/GetFundingsources",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetFundingsources(ctx, req.(*GetFundingsourcesRequest))
+		return srv.(BackendServiceServer).GetFundingsources(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
