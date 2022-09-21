@@ -27,6 +27,6 @@ func (c client) GetByAlpha2(ctx context.Context, code string) (*country.Country,
 	return ops.GetByAlpha2(ctx, c.b, code)
 }
 
-func (c client) GetAll(ctx context.Context) ([]*country.Country, error) {
+func (c client) GetAll(ctx context.Context) ([]country.Country, error) {
 	return ops.GetAll(ctx, c.b)
 }
