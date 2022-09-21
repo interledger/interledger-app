@@ -65,7 +65,7 @@ func (c client) Get(ctx context.Context, id string) (fs *fundingsources.FundingS
 	return ops.Get(ctx, c.b, id)
 }
 
-func (c client) GetByWalletId(ctx context.Context, walletId string) (fsl []fundingsources.FundingSource, err error) {
+func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []fundingsources.FundingSource, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
@@ -84,28 +84,5 @@ func (c client) GetByWalletId(ctx context.Context, walletId string) (fsl []fundi
 		)
 	}(time.Now())
 
-	return ops.GetByWalletId(ctx, c.b, walletId)
-}
-
-func (c client) Verify(ctx context.Context, args *fundingsources.VerifyArgs) (fs *fundingsources.FundingSource, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			c.logger.Error(
-				"Failed to verify funding source.",
-				zap.String("id", args.FundingSourceID),
-				zap.String("identityID", args.IdentityID),
-				zap.Int64("took", time.Since(begin).Milliseconds()),
-				zap.String("msg", err.Error()),
-			)
-			return
-		}
-
-		c.logger.Debug(
-			"Verified funding source",
-			zap.String("id", args.FundingSourceID),
-			zap.String("identityID", args.IdentityID),
-		)
-	}(time.Now())
-
-	return ops.Verify(ctx, c.b, args)
+	return ops.ListByWalletId(ctx, c.b, walletId)
 }

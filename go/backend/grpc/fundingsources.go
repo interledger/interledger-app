@@ -16,7 +16,7 @@ func (s *rpcService) GetFundingsources(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	fundingsources, err := s.b.FundingSources().GetByWalletId(ctx, "id")
+	fundingsources, err := s.b.FundingSources().ListByWalletId(ctx, "id")
 	if err != nil {
 		return nil, InternalError("Unable to get fundingsources.")
 	}
