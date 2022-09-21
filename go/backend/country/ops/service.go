@@ -6,9 +6,6 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/country"
-
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/jmoiron/sqlx"
 )
 
 func Get(ctx context.Context, b Backends, id string) (*country.Country, error) {
@@ -47,32 +44,11 @@ func GetByAlpha2(ctx context.Context, b Backends, code string) (*country.Country
 	return &ret, nil
 }
 
-func GetAll(ctx context.Context, b Backends) ([]*country.Country, error) {
-	countries := []country.Country{}
-	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		err := tx.Select(&countries, "SELECT * FROM countries ORDER BY name ASC")
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return country.ErrNotFound
-			}
-
-			return fmt.Errorf("%w %s", country.ErrInternal, err.Error())
-		}
-		return nil
-	})
+func GetAll(ctx context.Context, b Backends) ([]country.Country, error) {
+	var ret []country.Country
+	err := b.DB().SelectContext(ctx, &ret, "SELECT * FROM countries ORDER BY name ASC;")
 	if err != nil {
 		return nil, err
-	}
-
-	ret := make([]*country.Country, len(countries))
-	for i, trx := range countries {
-		ret[i] = &country.Country{
-			ID:          trx.ID,
-			Name:        trx.Name,
-			Alpha_2:     trx.Alpha_2,
-			Alpha_3:     trx.Alpha_3,
-			NumericCode: trx.NumericCode,
-		}
 	}
 
 	return ret, nil
