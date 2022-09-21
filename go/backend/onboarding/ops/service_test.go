@@ -8,15 +8,11 @@ import (
 
 	"gitlab.com/fynbos/backend/onboarding"
 
-	"gitlab.com/fynbos/backend/identity"
-
 	"github.com/bxcodec/faker/v3"
 	"github.com/go-playground/validator/v10"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	identity_mock "gitlab.com/fynbos/backend/identity/client/mock"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	temporal "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
@@ -25,7 +21,6 @@ import (
 type backends struct {
 	validator *validator.Validate
 	db        *sqlx.DB
-	identity  identity.Client
 	temporal  temporal.Client
 }
 
@@ -37,24 +32,18 @@ func (b backends) DB() *sqlx.DB {
 	return b.db
 }
 
-func (b backends) Identity() identity.Client {
-	return b.identity
-}
-
 func (b backends) Temporal() temporal.Client {
 	return b.temporal
 }
 
 func TestGetOnboarding(s *testing.T) {
 	ctx := context.Background()
-	ctrl := gomock.NewController(s)
 	tp := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(s, ctx)
 
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
-		identity:  identity_mock.NewMockClient(ctrl),
 		temporal:  tp,
 	}
 
@@ -129,14 +118,12 @@ func TestGetOnboarding(s *testing.T) {
 
 func TestUpdateOnboarding(s *testing.T) {
 	ctx := context.Background()
-	ctrl := gomock.NewController(s)
 	tp := &mocks.Client{}
 	db := test_utils.MigrateCockroachDB(s, ctx)
 
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
-		identity:  identity_mock.NewMockClient(ctrl),
 		temporal:  tp,
 	}
 

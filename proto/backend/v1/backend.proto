@@ -36,9 +36,6 @@ service BackendService {
   rpc GetOnboarding(GetOnboardingRequest) returns (Onboarding);
   // Creates the onboarding flow if it does not already exist.
   rpc UpdateOnboarding(Onboarding) returns (Onboarding);
-  // Creates a user identity, with the data in onboarding.
-  rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
-  rpc GetIdentity(Empty) returns (UserIdentity);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
   rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
@@ -115,14 +112,6 @@ message Onboarding {
   optional bool service_agreement = 8;
 }
 
-message CreateIdentityRequest {
-  string onboardingId = 1;
-}
-
-message CreateIdentityResponse {
-  string identityId = 1;
-}
-
 message SendPhoneVerificationRequest {
   string to = 1;
   string onboardingId = 2;
@@ -149,7 +138,7 @@ message Agreement {
 
 message SignAgreementsRequest {
   repeated string agreementIds = 1;
-  string identityId = 2;
+  string userId = 2;
   string ipAddress = 3;
 }
 
@@ -167,16 +156,6 @@ message JoinWaitlistResponse {}
 
 message GetFundingsourcesResponse {
   repeated FundingSource fundingsources = 1;
-}
-
-message UserIdentity {
-  string id = 1;
-  string firstName = 2;
-  string lastName = 3;
-  string mobileNumber = 4;
-  string email = 5;
-  string dateOfBirth = 6;
-  string countryCode = 7;
 }
 
 message GetBankAccountDetailsRequest {

@@ -65,7 +65,7 @@ func TestSignAgreement(t *testing.T) {
 			context.Background(),
 			&backendv1.SignAgreementsRequest{
 				AgreementIds: []string{"privacy_policy-2.0.0", "user_policy-1.0.0"},
-				IdentityId:   uuid.NewString(),
+				UserId:       uuid.NewString(),
 				IpAddress:    faker.IPv4(),
 			},
 		)
@@ -83,7 +83,7 @@ func TestSignAgreement(t *testing.T) {
 			context.Background(),
 			&backendv1.SignAgreementsRequest{
 				AgreementIds: []string{"privacy_policy-3.0.0", "user_policy-2.0.0"},
-				IdentityId:   uuid.NewString(),
+				UserId:       uuid.NewString(),
 				IpAddress:    faker.IPv4(),
 			},
 		)

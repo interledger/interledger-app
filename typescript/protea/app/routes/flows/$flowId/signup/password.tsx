@@ -230,26 +230,6 @@ export async function action({ request, params }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  // Pull the kratos cookie from the res set-cookie
-  const kratoscookie = (res.headers.get('Set-Cookie') as string)
-    .split(', ')
-    .find((val: string) => val.startsWith('ory_kratos_session='))
-    ?.split('; ')[0]
-
-  await grpcClient
-    .createIdentity(
-      {
-        onboardingId: onboardingId
-      },
-      {
-        meta: {
-          cookies: kratoscookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
   const headers = await exitFlow(request)
   const flowSettings = headers.get('Set-Cookie') as string
 

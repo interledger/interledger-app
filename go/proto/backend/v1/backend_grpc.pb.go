@@ -114,9 +114,6 @@ type BackendServiceClient interface {
 	GetOnboarding(ctx context.Context, in *GetOnboardingRequest, opts ...grpc.CallOption) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
 	UpdateOnboarding(ctx context.Context, in *Onboarding, opts ...grpc.CallOption) (*Onboarding, error)
-	// Creates a user identity, with the data in onboarding.
-	CreateIdentity(ctx context.Context, in *CreateIdentityRequest, opts ...grpc.CallOption) (*CreateIdentityResponse, error)
-	GetIdentity(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserIdentity, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
@@ -186,24 +183,6 @@ func (c *backendServiceClient) GetOnboarding(ctx context.Context, in *GetOnboard
 func (c *backendServiceClient) UpdateOnboarding(ctx context.Context, in *Onboarding, opts ...grpc.CallOption) (*Onboarding, error) {
 	out := new(Onboarding)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdateOnboarding", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateIdentity(ctx context.Context, in *CreateIdentityRequest, opts ...grpc.CallOption) (*CreateIdentityResponse, error) {
-	out := new(CreateIdentityResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateIdentity", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetIdentity(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserIdentity, error) {
-	out := new(UserIdentity)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentity", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -303,9 +282,6 @@ type BackendServiceServer interface {
 	GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error)
 	// Creates the onboarding flow if it does not already exist.
 	UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error)
-	// Creates a user identity, with the data in onboarding.
-	CreateIdentity(context.Context, *CreateIdentityRequest) (*CreateIdentityResponse, error)
-	GetIdentity(context.Context, *Empty) (*UserIdentity, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
 	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
@@ -340,12 +316,6 @@ func (UnimplementedBackendServiceServer) GetOnboarding(context.Context, *GetOnbo
 }
 func (UnimplementedBackendServiceServer) UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOnboarding not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateIdentity(context.Context, *CreateIdentityRequest) (*CreateIdentityResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateIdentity not implemented")
-}
-func (UnimplementedBackendServiceServer) GetIdentity(context.Context, *Empty) (*UserIdentity, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetIdentity not implemented")
 }
 func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
@@ -490,42 +460,6 @@ func _BackendService_UpdateOnboarding_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).UpdateOnboarding(ctx, req.(*Onboarding))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateIdentityRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateIdentity(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CreateIdentity",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateIdentity(ctx, req.(*CreateIdentityRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetIdentity(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetIdentity",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetIdentity(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -722,14 +656,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateOnboarding",
 			Handler:    _BackendService_UpdateOnboarding_Handler,
-		},
-		{
-			MethodName: "CreateIdentity",
-			Handler:    _BackendService_CreateIdentity_Handler,
-		},
-		{
-			MethodName: "GetIdentity",
-			Handler:    _BackendService_GetIdentity_Handler,
 		},
 		{
 			MethodName: "SendPhoneVerification",

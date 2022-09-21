@@ -3,9 +3,10 @@ package admin_test
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/fundingsources"
 	"net"
 	"testing"
+
+	"gitlab.com/fynbos/backend/fundingsources"
 
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 
@@ -22,8 +23,6 @@ import (
 	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/identity"
-	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/providers/rafiki"
@@ -38,7 +37,6 @@ import (
 	"gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -48,7 +46,6 @@ type TestContainer struct {
 	Ctrl            *gomock.Controller
 	Db              *sqlx.DB
 	Fs              fundingsources.Client
-	Is              identity.Client
 	Hs              healthcheck.Service
 	Os              onboarding.Client
 	Oso             *oso.Oso
@@ -117,10 +114,6 @@ func (c *TestContainer) DB() *sqlx.DB {
 	return c.Db
 }
 
-func (c *TestContainer) Identity() identity.Client {
-	return c.Is
-}
-
 func (c *TestContainer) Countries() country.Client {
 	return c.Cs
 }
@@ -150,20 +143,12 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	c.Db = db
 
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		return nil, err
-	}
-
 	pClient := test_utils.SetupPacioli(t, ctx)
 	c.PacioliClient = pClient
 	c.PacioliLedgerID = 1
 
 	cs := country_client.New(c)
 	c.Cs = cs
-
-	is := identity_client.New(c, logger)
-	c.Is = is
 
 	c.Tp = &mocks.Client{}
 

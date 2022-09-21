@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/identity"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
@@ -16,8 +15,7 @@ import (
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:  status.Error(codes.Unauthenticated, "Unauthenticated"),
-	identity.ErrNotFound: status.Error(codes.NotFound, "User identity not found"),
+	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
 	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
 	twilio.ErrInvalidOTP: NewValidationError("OTP", "Could not validate OTP"),
 }

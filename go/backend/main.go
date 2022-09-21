@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"gitlab.com/fynbos/backend/fundingsources"
 	"net"
 	"net/http"
 	"os"
@@ -25,11 +24,10 @@ import (
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
+	"gitlab.com/fynbos/backend/fundingsources"
 	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
-	"gitlab.com/fynbos/backend/identity"
-	identity_client "gitlab.com/fynbos/backend/identity/client"
 	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
@@ -143,8 +141,6 @@ func start(args *cli.StartArgs) {
 	b.users = user_client.New(b, args.KratosUrl)
 
 	b.countries = country_client.New(b)
-
-	b.identity = identity_client.New(b, logger)
 
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
@@ -286,8 +282,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.countries = country_client.New(b)
 
-	b.identity = identity_client.New(b, logger)
-
 	pClient, err := pacioli_client.New(args.PacioliUrl)
 	if err != nil {
 		log.Fatalln(err)
@@ -342,7 +336,6 @@ type backends struct {
 	countries      country.Client
 	fundingSources fundingsources.Client
 	healthcheck    healthcheck.Service
-	identity       identity.Client
 	onboarding     onboarding.Client
 	pacioli        pacioli.Client
 	rafiki         rafiki.Service
@@ -387,10 +380,6 @@ func (b backends) Users() user.Client {
 
 func (b backends) Temporal() client.Client {
 	return b.temporal
-}
-
-func (b backends) Identity() identity.Client {
-	return b.identity
 }
 
 func (b backends) Countries() country.Client {

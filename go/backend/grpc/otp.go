@@ -12,12 +12,7 @@ func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	id, err := s.b.Identity().Get(ctx, user.ID)
-	if err != nil {
-		return nil, grpcError(err)
-	}
-
-	_, err = s.b.Twilio().SendVerificationCode(ctx, id.MobileNumber)
+	_, err = s.b.Twilio().SendVerificationCode(ctx, user.PhoneNumber)
 	if err != nil {
 		return nil, grpcError(err)
 	}
