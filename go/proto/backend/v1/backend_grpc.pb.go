@@ -122,7 +122,7 @@ type BackendServiceClient interface {
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
-	GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error)
+	GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 }
@@ -243,9 +243,9 @@ func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlis
 	return out, nil
 }
 
-func (c *backendServiceClient) GetFundingsources(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetFundingsourcesResponse, error) {
-	out := new(GetFundingsourcesResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetFundingsources", in, out, opts...)
+func (c *backendServiceClient) GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error) {
+	out := new(GetLinkedAccountsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetLinkedAccounts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ type BackendServiceServer interface {
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
-	GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error)
+	GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 }
@@ -335,8 +335,8 @@ func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAg
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
 }
-func (UnimplementedBackendServiceServer) GetFundingsources(context.Context, *Empty) (*GetFundingsourcesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFundingsources not implemented")
+func (UnimplementedBackendServiceServer) GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccounts not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSupportTicket not implemented")
@@ -572,20 +572,20 @@ func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetFundingsources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _BackendService_GetLinkedAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).GetFundingsources(ctx, in)
+		return srv.(BackendServiceServer).GetLinkedAccounts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetFundingsources",
+		FullMethod: "/backend.v1.BackendService/GetLinkedAccounts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetFundingsources(ctx, req.(*Empty))
+		return srv.(BackendServiceServer).GetLinkedAccounts(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -682,8 +682,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_JoinWaitlist_Handler,
 		},
 		{
-			MethodName: "GetFundingsources",
-			Handler:    _BackendService_GetFundingsources_Handler,
+			MethodName: "GetLinkedAccounts",
+			Handler:    _BackendService_GetLinkedAccounts_Handler,
 		},
 		{
 			MethodName: "CreateSupportTicket",

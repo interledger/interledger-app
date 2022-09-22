@@ -44,7 +44,7 @@ service BackendService {
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
-  rpc GetFundingsources(Empty) returns (GetFundingsourcesResponse);
+  rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
 }
@@ -90,9 +90,9 @@ message AddBankAccountResponse {
   string fundingsourceId = 1;
 }
 
-message FundingSource {
+message LinkedAccount {
   string id = 1;
-  string state = 2;
+  string type = 2;
   string name = 3;
   string mask = 4;
 }
@@ -154,8 +154,8 @@ message JoinWaitlistRequest {
 
 message JoinWaitlistResponse {}
 
-message GetFundingsourcesResponse {
-  repeated FundingSource fundingsources = 1;
+message GetLinkedAccountsResponse {
+  repeated LinkedAccount linkedAccounts = 1;
 }
 
 message GetBankAccountDetailsRequest {

@@ -4,7 +4,7 @@
 import { BackendService } from "./backend";
 import type { GetCountriesResponse } from "./backend";
 import type { CreateSupportTicketRequest } from "./backend";
-import type { GetFundingsourcesResponse } from "./backend";
+import type { GetLinkedAccountsResponse } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
 import type { SignAgreementsResponse } from "./backend";
@@ -120,9 +120,9 @@ export interface IBackendServiceClient {
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse>;
     /**
-     * @generated from protobuf rpc: GetFundingsources(backend.v1.Empty) returns (backend.v1.GetFundingsourcesResponse);
+     * @generated from protobuf rpc: GetLinkedAccounts(backend.v1.Empty) returns (backend.v1.GetLinkedAccountsResponse);
      */
-    getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse>;
+    getLinkedAccounts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetLinkedAccountsResponse>;
     /**
      * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);
      */
@@ -234,11 +234,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: GetFundingsources(backend.v1.Empty) returns (backend.v1.GetFundingsourcesResponse);
+     * @generated from protobuf rpc: GetLinkedAccounts(backend.v1.Empty) returns (backend.v1.GetLinkedAccountsResponse);
      */
-    getFundingsources(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetFundingsourcesResponse> {
+    getLinkedAccounts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetLinkedAccountsResponse> {
         const method = this.methods[12], opt = this._transport.mergeOptions(options);
-        return stackIntercept<Empty, GetFundingsourcesResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<Empty, GetLinkedAccountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);

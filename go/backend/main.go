@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -24,10 +26,9 @@ import (
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	"gitlab.com/fynbos/backend/fundingsources"
-	funding_client "gitlab.com/fynbos/backend/fundingsources/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
+	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/migrations"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
@@ -160,7 +161,7 @@ func start(args *cli.StartArgs) {
 
 	//b.mxProvider = mx_client.New(b, args.MxClientID, args.MxApiKey)
 
-	b.fundingSources = funding_client.New(b, logger)
+	b.linkedaccounts = linked_account_client.New(b, logger)
 
 	b.onboarding = onboarding_client.New(b)
 
@@ -310,7 +311,7 @@ func startWorker(args *cli.StartArgs) {
 	//}
 	//b.mxProvider = mxImpl
 
-	b.fundingSources = funding_client.New(b, logger)
+	b.linkedaccounts = linked_account_client.New(b, logger)
 
 	b.onboarding = onboarding_client.New(b)
 
@@ -334,7 +335,7 @@ type backends struct {
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	countries      country.Client
-	fundingSources fundingsources.Client
+	linkedaccounts linkedaccounts.Client
 	healthcheck    healthcheck.Service
 	onboarding     onboarding.Client
 	pacioli        pacioli.Client
@@ -406,6 +407,6 @@ func (b backends) Twilio() _twilio.Service {
 //	return b.mxProvider
 //}
 
-func (b backends) FundingSources() fundingsources.Client {
-	return b.fundingSources
+func (b backends) LinkedAccounts() linkedaccounts.Client {
+	return b.linkedaccounts
 }

@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	fundingsources "gitlab.com/fynbos/backend/fundingsources"
+	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
 )
 
 // MockClient is a mock of Client interface.
@@ -36,10 +36,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockClient) Create(ctx context.Context, args *fundingsources.CreateArgs) (*fundingsources.FundingSource, error) {
+func (m *MockClient) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, args)
-	ret0, _ := ret[0].(*fundingsources.FundingSource)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,10 +51,10 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(ctx context.Context, id string) (*fundingsources.FundingSource, error) {
+func (m *MockClient) Get(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(*fundingsources.FundingSource)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -66,10 +66,10 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 }
 
 // ListByWalletId mocks base method.
-func (m *MockClient) ListByWalletId(ctx context.Context, walletId string) ([]fundingsources.FundingSource, error) {
+func (m *MockClient) ListByWalletId(ctx context.Context, walletId string) ([]linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByWalletId", ctx, walletId)
-	ret0, _ := ret[0].([]fundingsources.FundingSource)
+	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

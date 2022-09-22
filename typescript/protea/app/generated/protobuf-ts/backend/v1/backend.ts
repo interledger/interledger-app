@@ -161,17 +161,17 @@ export interface AddBankAccountResponse {
     fundingsourceId: string;
 }
 /**
- * @generated from protobuf message backend.v1.FundingSource
+ * @generated from protobuf message backend.v1.LinkedAccount
  */
-export interface FundingSource {
+export interface LinkedAccount {
     /**
      * @generated from protobuf field: string id = 1;
      */
     id: string;
     /**
-     * @generated from protobuf field: string state = 2;
+     * @generated from protobuf field: string type = 2;
      */
-    state: string;
+    type: string;
     /**
      * @generated from protobuf field: string name = 3;
      */
@@ -335,13 +335,13 @@ export interface JoinWaitlistRequest {
 export interface JoinWaitlistResponse {
 }
 /**
- * @generated from protobuf message backend.v1.GetFundingsourcesResponse
+ * @generated from protobuf message backend.v1.GetLinkedAccountsResponse
  */
-export interface GetFundingsourcesResponse {
+export interface GetLinkedAccountsResponse {
     /**
-     * @generated from protobuf field: repeated backend.v1.FundingSource fundingsources = 1;
+     * @generated from protobuf field: repeated backend.v1.LinkedAccount linkedAccounts = 1;
      */
-    fundingsources: FundingSource[];
+    linkedAccounts: LinkedAccount[];
 }
 /**
  * @generated from protobuf message backend.v1.GetBankAccountDetailsRequest
@@ -1032,23 +1032,23 @@ class AddBankAccountResponse$Type extends MessageType<AddBankAccountResponse> {
  */
 export const AddBankAccountResponse = new AddBankAccountResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class FundingSource$Type extends MessageType<FundingSource> {
+class LinkedAccount$Type extends MessageType<LinkedAccount> {
     constructor() {
-        super("backend.v1.FundingSource", [
+        super("backend.v1.LinkedAccount", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<FundingSource>): FundingSource {
-        const message = { id: "", state: "", name: "", mask: "" };
+    create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
+        const message = { id: "", type: "", name: "", mask: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<FundingSource>(this, message, value);
+            reflectionMergePartial<LinkedAccount>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: FundingSource): FundingSource {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedAccount): LinkedAccount {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1056,8 +1056,8 @@ class FundingSource$Type extends MessageType<FundingSource> {
                 case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* string state */ 2:
-                    message.state = reader.string();
+                case /* string type */ 2:
+                    message.type = reader.string();
                     break;
                 case /* string name */ 3:
                     message.name = reader.string();
@@ -1076,13 +1076,13 @@ class FundingSource$Type extends MessageType<FundingSource> {
         }
         return message;
     }
-    internalBinaryWrite(message: FundingSource, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: LinkedAccount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string state = 2; */
-        if (message.state !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.state);
+        /* string type = 2; */
+        if (message.type !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
         /* string name = 3; */
         if (message.name !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.name);
@@ -1096,9 +1096,9 @@ class FundingSource$Type extends MessageType<FundingSource> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.FundingSource
+ * @generated MessageType for protobuf message backend.v1.LinkedAccount
  */
-export const FundingSource = new FundingSource$Type();
+export const LinkedAccount = new LinkedAccount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetOnboardingRequest$Type extends MessageType<GetOnboardingRequest> {
     constructor() {
@@ -1694,26 +1694,26 @@ class JoinWaitlistResponse$Type extends MessageType<JoinWaitlistResponse> {
  */
 export const JoinWaitlistResponse = new JoinWaitlistResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetFundingsourcesResponse$Type extends MessageType<GetFundingsourcesResponse> {
+class GetLinkedAccountsResponse$Type extends MessageType<GetLinkedAccountsResponse> {
     constructor() {
-        super("backend.v1.GetFundingsourcesResponse", [
-            { no: 1, name: "fundingsources", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => FundingSource }
+        super("backend.v1.GetLinkedAccountsResponse", [
+            { no: 1, name: "linkedAccounts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LinkedAccount }
         ]);
     }
-    create(value?: PartialMessage<GetFundingsourcesResponse>): GetFundingsourcesResponse {
-        const message = { fundingsources: [] };
+    create(value?: PartialMessage<GetLinkedAccountsResponse>): GetLinkedAccountsResponse {
+        const message = { linkedAccounts: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetFundingsourcesResponse>(this, message, value);
+            reflectionMergePartial<GetLinkedAccountsResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetFundingsourcesResponse): GetFundingsourcesResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetLinkedAccountsResponse): GetLinkedAccountsResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.FundingSource fundingsources */ 1:
-                    message.fundingsources.push(FundingSource.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated backend.v1.LinkedAccount linkedAccounts */ 1:
+                    message.linkedAccounts.push(LinkedAccount.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1726,10 +1726,10 @@ class GetFundingsourcesResponse$Type extends MessageType<GetFundingsourcesRespon
         }
         return message;
     }
-    internalBinaryWrite(message: GetFundingsourcesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.FundingSource fundingsources = 1; */
-        for (let i = 0; i < message.fundingsources.length; i++)
-            FundingSource.internalBinaryWrite(message.fundingsources[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: GetLinkedAccountsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.LinkedAccount linkedAccounts = 1; */
+        for (let i = 0; i < message.linkedAccounts.length; i++)
+            LinkedAccount.internalBinaryWrite(message.linkedAccounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1737,9 +1737,9 @@ class GetFundingsourcesResponse$Type extends MessageType<GetFundingsourcesRespon
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetFundingsourcesResponse
+ * @generated MessageType for protobuf message backend.v1.GetLinkedAccountsResponse
  */
-export const GetFundingsourcesResponse = new GetFundingsourcesResponse$Type();
+export const GetLinkedAccountsResponse = new GetLinkedAccountsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountDetailsRequest$Type extends MessageType<GetBankAccountDetailsRequest> {
     constructor() {
@@ -2093,7 +2093,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
-    { name: "GetFundingsources", options: {}, I: Empty, O: GetFundingsourcesResponse },
+    { name: "GetLinkedAccounts", options: {}, I: Empty, O: GetLinkedAccountsResponse },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
     { name: "GetCountries", options: {}, I: Empty, O: GetCountriesResponse }
 ]);

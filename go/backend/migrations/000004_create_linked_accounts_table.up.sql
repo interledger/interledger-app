@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS funding_sources (
+CREATE TABLE IF NOT EXISTS linked_accounts (
 	id 							UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	wallet_id                   UUID NOT NULL,
 	name 						TEXT NOT NULL,
