@@ -30,9 +30,9 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/migrations"
-	"gitlab.com/fynbos/backend/onboarding"
-	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/providers/rafiki"
+	"gitlab.com/fynbos/backend/signup"
+	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
@@ -162,7 +162,7 @@ func start(args *cli.StartArgs) {
 
 	b.linkedaccounts = linked_account_client.New(b, logger)
 
-	b.onboarding = onboarding_client.New(b)
+	b.signup = signup_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, logger)
 
@@ -312,7 +312,7 @@ func startWorker(args *cli.StartArgs) {
 
 	b.linkedaccounts = linked_account_client.New(b, logger)
 
-	b.onboarding = onboarding_client.New(b)
+	b.signup = signup_client.New(b)
 
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
@@ -336,7 +336,7 @@ type backends struct {
 	countries      country.Client
 	linkedaccounts linkedaccounts.Client
 	healthcheck    healthcheck.Service
-	onboarding     onboarding.Client
+	signup         signup.Client
 	pacioli        pacioli.Client
 	rafiki         rafiki.Service
 	supportTickets supporttickets.Client
@@ -350,8 +350,8 @@ func (b backends) HealthCheck() healthcheck.Service {
 	return b.healthcheck
 }
 
-func (b backends) Onboarding() onboarding.Client {
-	return b.onboarding
+func (b backends) Signup() signup.Client {
+	return b.signup
 }
 
 func (b backends) AdminAuth() auth.Service {

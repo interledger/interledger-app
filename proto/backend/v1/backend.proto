@@ -32,13 +32,15 @@ service BackendService {
   rpc AddBankAccount(AddBankAccountRequest) returns (AddBankAccountResponse);
   rpc GetBankAccountDetails(GetBankAccountDetailsRequest) returns (BankAccountDetails);
   rpc ContinueAddingBankAccount(ContinueAddingBankAccountRequest) returns (ContinueAddingBankAccountResponse);
-  // Returns the current onboarding flow.
-  rpc GetOnboarding(GetOnboardingRequest) returns (Onboarding);
-  // Creates the onboarding flow if it does not already exist.
-  rpc UpdateOnboarding(Onboarding) returns (Onboarding);
+
+  rpc SetSignupUserData(SetSignupUserDataRequest) returns (SetSignupUserDataResponse);
+  rpc SetSignupMobileNumber(SetSignupMobileNumberRequest) returns (Empty);
+  // Returns the current signup flow.
+  rpc GetSignup(GetSignupRequest) returns (Signup);
+  // Called after the user is created on Kratos with the new userID.
+  rpc CompleteSignup(CompleteSignupRequest) returns (Empty);
   // Allows sending and checking an sms verification.
-  rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (PhoneVerificationResponse);
-  rpc CheckPhoneVerificationCode(CheckPhoneVerificationCodeRequest) returns (PhoneVerificationResponse);
+  rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
   rpc SendOTP(Empty) returns (Empty);
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
@@ -97,35 +99,46 @@ message LinkedAccount {
   string mask = 4;
 }
 
-message GetOnboardingRequest {
+message GetSignupRequest {
   string id = 1;
 }
 
-message Onboarding {
+message SetSignupUserDataRequest {
   optional string id = 1;
-  optional string first_name = 2;
-  optional string last_name = 3;
-  optional string country_of_residence = 4;
-  optional string email = 5;
-  optional string phone = 6;
-  optional bool phone_verified = 7;
-  optional bool service_agreement = 8;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
+  string countryCode = 5;
+}
+
+message SetSignupUserDataResponse {
+  string id = 1;
+}
+
+message SetSignupMobileNumberRequest {
+  string id = 1;
+  string mobile = 2;
+  string otp = 3;
+}
+
+message Signup {
+  string id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
+  string countryCode = 5;
+  string mobileNumber = 6;
+  string userId = 7;
+  bool completed = 8;
+}
+
+message CompleteSignupRequest {
+  string id = 1;
+  string userId = 2;
 }
 
 message SendPhoneVerificationRequest {
   string to = 1;
-  string onboardingId = 2;
-}
-
-message CheckPhoneVerificationCodeRequest {
-  string to = 1;
-  string code = 2;
-  string onboardingId = 3;
-}
-
-message PhoneVerificationResponse {
-  // The status from twilio. Can be "approved" or "pending"
-  string status = 1;
 }
 
 message GetAgreementRequest {

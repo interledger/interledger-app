@@ -6,6 +6,10 @@ import (
 	"net"
 	"testing"
 
+	signup_client "gitlab.com/fynbos/backend/signup/client"
+
+	"gitlab.com/fynbos/backend/signup"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -23,8 +27,6 @@ import (
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/onboarding"
-	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
@@ -47,7 +49,7 @@ type TestContainer struct {
 	Db              *sqlx.DB
 	linkedAccounts  linkedaccounts.Client
 	Hs              healthcheck.Service
-	Os              onboarding.Client
+	Si              signup.Client
 	Oso             *oso.Oso
 	Cs              country.Client
 	Tp              *mocks.Client
@@ -82,8 +84,8 @@ func (c *TestContainer) HealthCheck() healthcheck.Service {
 	return c.Hs
 }
 
-func (c *TestContainer) Onboarding() onboarding.Client {
-	return c.Os
+func (c *TestContainer) Signup() signup.Client {
+	return c.Si
 }
 
 func (c *TestContainer) Rafiki() rafiki.Service {
@@ -152,8 +154,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.Tp = &mocks.Client{}
 
-	os := onboarding_client.New(c)
-	c.Os = os
+	si := signup_client.New(c)
+	c.Si = si
 	port, err := test_utils.GetFreePort()
 	if err != nil {
 		t.Fatal(err)
