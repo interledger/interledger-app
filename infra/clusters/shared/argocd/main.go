@@ -137,9 +137,21 @@ func main() {
 			return err
 		}
 
-		err = newRetoolApplicationSet(ctx, retoolApplicationSetArgs{
+		postgresApplicationSet, err := newPostgresApplicationSet(ctx, postgresApplicationSetArgs{
 			Namespace: namespace.Metadata.Name().Elem(),
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
+		if err != nil {
+			return err
+		}
+
+		err = newRetoolApplicationSet(
+			ctx,
+			retoolApplicationSetArgs{
+				Namespace: namespace.Metadata.Name().Elem(),
+			},
+			pulumi.Provider(kubeProvider),
+			pulumi.DependsOn([]pulumi.Resource{argo, namespace, postgresApplicationSet}),
+		)
 		if err != nil {
 			return err
 		}
