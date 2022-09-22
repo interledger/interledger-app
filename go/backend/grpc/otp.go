@@ -19,3 +19,20 @@ func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error
 
 	return &pb.Empty{}, nil
 }
+
+func (s *rpcService) SendPhoneVerification(
+	ctx context.Context,
+	req *pb.SendPhoneVerificationRequest,
+) (*pb.Empty, error) {
+	err := s.b.Validator().Var(req.To, "required,e164")
+	if err != nil {
+		return nil, NewValidationError("To", "Phone number is invalid")
+	}
+
+	_, err = s.b.Twilio().SendVerificationCode(ctx, req.To)
+	if err != nil {
+		return nil, grpcError(err)
+	}
+
+	return &pb.Empty{}, nil
+}

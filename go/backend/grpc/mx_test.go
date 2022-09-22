@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/signup"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc"
@@ -20,9 +21,8 @@ import (
 	country_mock "gitlab.com/fynbos/backend/country/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/onboarding"
-	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
+	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
@@ -43,7 +43,7 @@ type TestContainer struct {
 	UserService       user.Client
 	linkedaccounts    *linked_accounts_mock.MockClient
 	TwilioService     *twilio.MockService
-	OnboardingService *onboarding_mock.MockClient
+	SignupService     *signup_mock.MockClient
 	RafikiProvider    *rafiki.MockService
 	WaitlistClient    *waitlist_mock.MockClient
 	TemporalImpl      *mocks.Client
@@ -74,8 +74,8 @@ func (t TestContainer) HealthCheck() healthcheck.Service {
 	return t.HealthService
 }
 
-func (t TestContainer) Onboarding() onboarding.Client {
-	return t.OnboardingService
+func (t TestContainer) Signup() signup.Client {
+	return t.SignupService
 }
 
 func (t TestContainer) SupportTickets() supporttickets.Client {
@@ -120,7 +120,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		UserService:       user_mock.NewMock(),
 		linkedaccounts:    linked_accounts_mock.NewMockClient(ctrl),
 		TwilioService:     twilio.NewMockService(ctrl),
-		OnboardingService: onboarding_mock.NewMockClient(ctrl),
+		SignupService:     signup_mock.NewMockClient(ctrl),
 		RafikiProvider:    rafiki.NewMockService(ctrl),
 		WaitlistClient:    waitlist_mock.NewMockClient(ctrl),
 		TicketClient:      support_mock.NewMockClient(ctrl),

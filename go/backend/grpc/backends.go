@@ -7,8 +7,8 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/onboarding"
 	"gitlab.com/fynbos/backend/providers/rafiki"
+	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
@@ -22,7 +22,7 @@ type Backends interface {
 	Countries() country.Client
 	LinkedAccounts() linkedaccounts.Client
 	HealthCheck() healthcheck.Service
-	Onboarding() onboarding.Client
+	Signup() signup.Client
 	Rafiki() rafiki.Service
 	SupportTickets() supporttickets.Client
 	Temporal() temporal.Client

@@ -110,13 +110,14 @@ type BackendServiceClient interface {
 	AddBankAccount(ctx context.Context, in *AddBankAccountRequest, opts ...grpc.CallOption) (*AddBankAccountResponse, error)
 	GetBankAccountDetails(ctx context.Context, in *GetBankAccountDetailsRequest, opts ...grpc.CallOption) (*BankAccountDetails, error)
 	ContinueAddingBankAccount(ctx context.Context, in *ContinueAddingBankAccountRequest, opts ...grpc.CallOption) (*ContinueAddingBankAccountResponse, error)
-	// Returns the current onboarding flow.
-	GetOnboarding(ctx context.Context, in *GetOnboardingRequest, opts ...grpc.CallOption) (*Onboarding, error)
-	// Creates the onboarding flow if it does not already exist.
-	UpdateOnboarding(ctx context.Context, in *Onboarding, opts ...grpc.CallOption) (*Onboarding, error)
+	SetSignupUserData(ctx context.Context, in *SetSignupUserDataRequest, opts ...grpc.CallOption) (*SetSignupUserDataResponse, error)
+	SetSignupMobileNumber(ctx context.Context, in *SetSignupMobileNumberRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Returns the current signup flow.
+	GetSignup(ctx context.Context, in *GetSignupRequest, opts ...grpc.CallOption) (*Signup, error)
+	// Called after the user is created on Kratos with the new userID.
+	CompleteSignup(ctx context.Context, in *CompleteSignupRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Allows sending and checking an sms verification.
-	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
-	CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error)
+	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
@@ -171,36 +172,45 @@ func (c *backendServiceClient) ContinueAddingBankAccount(ctx context.Context, in
 	return out, nil
 }
 
-func (c *backendServiceClient) GetOnboarding(ctx context.Context, in *GetOnboardingRequest, opts ...grpc.CallOption) (*Onboarding, error) {
-	out := new(Onboarding)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetOnboarding", in, out, opts...)
+func (c *backendServiceClient) SetSignupUserData(ctx context.Context, in *SetSignupUserDataRequest, opts ...grpc.CallOption) (*SetSignupUserDataResponse, error) {
+	out := new(SetSignupUserDataResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetSignupUserData", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *backendServiceClient) UpdateOnboarding(ctx context.Context, in *Onboarding, opts ...grpc.CallOption) (*Onboarding, error) {
-	out := new(Onboarding)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdateOnboarding", in, out, opts...)
+func (c *backendServiceClient) SetSignupMobileNumber(ctx context.Context, in *SetSignupMobileNumberRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetSignupMobileNumber", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *backendServiceClient) SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error) {
-	out := new(PhoneVerificationResponse)
+func (c *backendServiceClient) GetSignup(ctx context.Context, in *GetSignupRequest, opts ...grpc.CallOption) (*Signup, error) {
+	out := new(Signup)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetSignup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CompleteSignup(ctx context.Context, in *CompleteSignupRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CompleteSignup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SendPhoneVerification", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CheckPhoneVerificationCode(ctx context.Context, in *CheckPhoneVerificationCodeRequest, opts ...grpc.CallOption) (*PhoneVerificationResponse, error) {
-	out := new(PhoneVerificationResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckPhoneVerificationCode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -278,13 +288,14 @@ type BackendServiceServer interface {
 	AddBankAccount(context.Context, *AddBankAccountRequest) (*AddBankAccountResponse, error)
 	GetBankAccountDetails(context.Context, *GetBankAccountDetailsRequest) (*BankAccountDetails, error)
 	ContinueAddingBankAccount(context.Context, *ContinueAddingBankAccountRequest) (*ContinueAddingBankAccountResponse, error)
-	// Returns the current onboarding flow.
-	GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error)
-	// Creates the onboarding flow if it does not already exist.
-	UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error)
+	SetSignupUserData(context.Context, *SetSignupUserDataRequest) (*SetSignupUserDataResponse, error)
+	SetSignupMobileNumber(context.Context, *SetSignupMobileNumberRequest) (*Empty, error)
+	// Returns the current signup flow.
+	GetSignup(context.Context, *GetSignupRequest) (*Signup, error)
+	// Called after the user is created on Kratos with the new userID.
+	CompleteSignup(context.Context, *CompleteSignupRequest) (*Empty, error)
 	// Allows sending and checking an sms verification.
-	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error)
-	CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error)
+	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error)
 	SendOTP(context.Context, *Empty) (*Empty, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
@@ -311,17 +322,20 @@ func (UnimplementedBackendServiceServer) GetBankAccountDetails(context.Context, 
 func (UnimplementedBackendServiceServer) ContinueAddingBankAccount(context.Context, *ContinueAddingBankAccountRequest) (*ContinueAddingBankAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ContinueAddingBankAccount not implemented")
 }
-func (UnimplementedBackendServiceServer) GetOnboarding(context.Context, *GetOnboardingRequest) (*Onboarding, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOnboarding not implemented")
+func (UnimplementedBackendServiceServer) SetSignupUserData(context.Context, *SetSignupUserDataRequest) (*SetSignupUserDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSignupUserData not implemented")
 }
-func (UnimplementedBackendServiceServer) UpdateOnboarding(context.Context, *Onboarding) (*Onboarding, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateOnboarding not implemented")
+func (UnimplementedBackendServiceServer) SetSignupMobileNumber(context.Context, *SetSignupMobileNumberRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSignupMobileNumber not implemented")
 }
-func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*PhoneVerificationResponse, error) {
+func (UnimplementedBackendServiceServer) GetSignup(context.Context, *GetSignupRequest) (*Signup, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSignup not implemented")
+}
+func (UnimplementedBackendServiceServer) CompleteSignup(context.Context, *CompleteSignupRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteSignup not implemented")
+}
+func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
-}
-func (UnimplementedBackendServiceServer) CheckPhoneVerificationCode(context.Context, *CheckPhoneVerificationCodeRequest) (*PhoneVerificationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckPhoneVerificationCode not implemented")
 }
 func (UnimplementedBackendServiceServer) SendOTP(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendOTP not implemented")
@@ -428,38 +442,74 @@ func _BackendService_ContinueAddingBankAccount_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetOnboarding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOnboardingRequest)
+func _BackendService_SetSignupUserData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSignupUserDataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).GetOnboarding(ctx, in)
+		return srv.(BackendServiceServer).SetSignupUserData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetOnboarding",
+		FullMethod: "/backend.v1.BackendService/SetSignupUserData",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetOnboarding(ctx, req.(*GetOnboardingRequest))
+		return srv.(BackendServiceServer).SetSignupUserData(ctx, req.(*SetSignupUserDataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_UpdateOnboarding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Onboarding)
+func _BackendService_SetSignupMobileNumber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSignupMobileNumberRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).UpdateOnboarding(ctx, in)
+		return srv.(BackendServiceServer).SetSignupMobileNumber(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/UpdateOnboarding",
+		FullMethod: "/backend.v1.BackendService/SetSignupMobileNumber",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).UpdateOnboarding(ctx, req.(*Onboarding))
+		return srv.(BackendServiceServer).SetSignupMobileNumber(ctx, req.(*SetSignupMobileNumberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetSignup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSignupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetSignup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetSignup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetSignup(ctx, req.(*GetSignupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CompleteSignup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteSignupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CompleteSignup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CompleteSignup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CompleteSignup(ctx, req.(*CompleteSignupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -478,24 +528,6 @@ func _BackendService_SendPhoneVerification_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).SendPhoneVerification(ctx, req.(*SendPhoneVerificationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CheckPhoneVerificationCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckPhoneVerificationCodeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CheckPhoneVerificationCode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CheckPhoneVerificationCode",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CheckPhoneVerificationCode(ctx, req.(*CheckPhoneVerificationCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -650,20 +682,24 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_ContinueAddingBankAccount_Handler,
 		},
 		{
-			MethodName: "GetOnboarding",
-			Handler:    _BackendService_GetOnboarding_Handler,
+			MethodName: "SetSignupUserData",
+			Handler:    _BackendService_SetSignupUserData_Handler,
 		},
 		{
-			MethodName: "UpdateOnboarding",
-			Handler:    _BackendService_UpdateOnboarding_Handler,
+			MethodName: "SetSignupMobileNumber",
+			Handler:    _BackendService_SetSignupMobileNumber_Handler,
+		},
+		{
+			MethodName: "GetSignup",
+			Handler:    _BackendService_GetSignup_Handler,
+		},
+		{
+			MethodName: "CompleteSignup",
+			Handler:    _BackendService_CompleteSignup_Handler,
 		},
 		{
 			MethodName: "SendPhoneVerification",
 			Handler:    _BackendService_SendPhoneVerification_Handler,
-		},
-		{
-			MethodName: "CheckPhoneVerificationCode",
-			Handler:    _BackendService_CheckPhoneVerificationCode_Handler,
 		},
 		{
 			MethodName: "SendOTP",
