@@ -7,13 +7,13 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func TestGetFundingsources(t *testing.T) {
+func TestGetLinkedAccounts(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -28,7 +28,7 @@ func TestGetFundingsources(t *testing.T) {
 
 	t.Run("requires authenticated user", func(st *testing.T) {
 
-		response, err := client.GetFundingsources(
+		response, err := client.GetLinkedAccounts(
 			user_mock.ActingAsContext(t, context.Background(), nil),
 			&backendv1.Empty{},
 		)
@@ -37,13 +37,13 @@ func TestGetFundingsources(t *testing.T) {
 		assert.Error(st, err)
 	})
 
-	t.Run("returns fundingsources", func(st *testing.T) {
+	t.Run("returns linked accounts", func(st *testing.T) {
 		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
 		if err != nil {
 			t.Fatal(err)
 		}
 		walletID := wallet.ID
-		expectedFundingsources := []fundingsources.FundingSource{
+		expectedLinkedAccounts := []linkedaccounts.LinkedAccount{
 			{
 				ID:       uuid.NewString(),
 				WalletId: walletID,
@@ -57,9 +57,9 @@ func TestGetFundingsources(t *testing.T) {
 				Mask:     "cba",
 			},
 		}
-		c.FundingsourceService.EXPECT().ListByWalletId(gomock.Any(), walletID).Return(expectedFundingsources, nil).Times(1)
+		c.linkedaccounts.EXPECT().ListByWalletId(gomock.Any(), walletID).Return(expectedLinkedAccounts, nil).Times(1)
 
-		response, err := client.GetFundingsources(
+		response, err := client.GetLinkedAccounts(
 			user_mock.ActingAsContext(t, context.Background(), user),
 			&backendv1.Empty{},
 		)
@@ -67,12 +67,12 @@ func TestGetFundingsources(t *testing.T) {
 			st.Fatal(err)
 		}
 
-		assert.Len(st, response.GetFundingsources(), 2)
-		assert.Equal(st, response.GetFundingsources()[0].Id, expectedFundingsources[0].ID)
-		assert.Equal(st, response.GetFundingsources()[0].Name, expectedFundingsources[0].Name)
-		assert.Equal(st, response.GetFundingsources()[0].Mask, expectedFundingsources[0].Mask)
-		assert.Equal(st, response.GetFundingsources()[1].Id, expectedFundingsources[1].ID)
-		assert.Equal(st, response.GetFundingsources()[1].Name, expectedFundingsources[1].Name)
-		assert.Equal(st, response.GetFundingsources()[1].Mask, expectedFundingsources[1].Mask)
+		assert.Len(st, response.GetLinkedAccounts(), 2)
+		assert.Equal(st, response.GetLinkedAccounts()[0].Id, expectedLinkedAccounts[0].ID)
+		assert.Equal(st, response.GetLinkedAccounts()[0].Name, expectedLinkedAccounts[0].Name)
+		assert.Equal(st, response.GetLinkedAccounts()[0].Mask, expectedLinkedAccounts[0].Mask)
+		assert.Equal(st, response.GetLinkedAccounts()[1].Id, expectedLinkedAccounts[1].ID)
+		assert.Equal(st, response.GetLinkedAccounts()[1].Name, expectedLinkedAccounts[1].Name)
+		assert.Equal(st, response.GetLinkedAccounts()[1].Mask, expectedLinkedAccounts[1].Mask)
 	})
 }

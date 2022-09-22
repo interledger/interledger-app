@@ -5,6 +5,7 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc"
@@ -17,9 +18,8 @@ import (
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
 	"gitlab.com/fynbos/backend/country"
 	country_mock "gitlab.com/fynbos/backend/country/client/mock"
-	"gitlab.com/fynbos/backend/fundingsources"
-	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
+	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_mock "gitlab.com/fynbos/backend/onboarding/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
@@ -36,18 +36,18 @@ import (
 )
 
 type TestContainer struct {
-	HealthService        healthcheck.Service
-	AgreementsService    *agreements_mock.MockClient
-	CountriesService     *country_mock.MockClient
-	AdminAuthService     auth.Service
-	UserService          user.Client
-	FundingsourceService *funding_mock.MockClient
-	TwilioService        *twilio.MockService
-	OnboardingService    *onboarding_mock.MockClient
-	RafikiProvider       *rafiki.MockService
-	WaitlistClient       *waitlist_mock.MockClient
-	TemporalImpl         *mocks.Client
-	TicketClient         *support_mock.MockClient
+	HealthService     healthcheck.Service
+	AgreementsService *agreements_mock.MockClient
+	CountriesService  *country_mock.MockClient
+	AdminAuthService  auth.Service
+	UserService       user.Client
+	linkedaccounts    *linked_accounts_mock.MockClient
+	TwilioService     *twilio.MockService
+	OnboardingService *onboarding_mock.MockClient
+	RafikiProvider    *rafiki.MockService
+	WaitlistClient    *waitlist_mock.MockClient
+	TemporalImpl      *mocks.Client
+	TicketClient      *support_mock.MockClient
 }
 
 func (t TestContainer) Rafiki() rafiki.Service {
@@ -66,8 +66,8 @@ func (t TestContainer) Countries() country.Client {
 	return t.CountriesService
 }
 
-func (t TestContainer) FundingSources() fundingsources.Client {
-	return t.FundingsourceService
+func (t TestContainer) LinkedAccounts() linkedaccounts.Client {
+	return t.linkedaccounts
 }
 
 func (t TestContainer) HealthCheck() healthcheck.Service {
@@ -113,18 +113,18 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		t.Fatal(err)
 	}
 	c := &TestContainer{
-		HealthService:        hs,
-		AgreementsService:    agreements_mock.NewMockClient(ctrl),
-		CountriesService:     country_mock.NewMockClient(ctrl),
-		AdminAuthService:     auth.NewMockService(),
-		UserService:          user_mock.NewMock(),
-		FundingsourceService: funding_mock.NewMockClient(ctrl),
-		TwilioService:        twilio.NewMockService(ctrl),
-		OnboardingService:    onboarding_mock.NewMockClient(ctrl),
-		RafikiProvider:       rafiki.NewMockService(ctrl),
-		WaitlistClient:       waitlist_mock.NewMockClient(ctrl),
-		TicketClient:         support_mock.NewMockClient(ctrl),
-		TemporalImpl:         &mocks.Client{},
+		HealthService:     hs,
+		AgreementsService: agreements_mock.NewMockClient(ctrl),
+		CountriesService:  country_mock.NewMockClient(ctrl),
+		AdminAuthService:  auth.NewMockService(),
+		UserService:       user_mock.NewMock(),
+		linkedaccounts:    linked_accounts_mock.NewMockClient(ctrl),
+		TwilioService:     twilio.NewMockService(ctrl),
+		OnboardingService: onboarding_mock.NewMockClient(ctrl),
+		RafikiProvider:    rafiki.NewMockService(ctrl),
+		WaitlistClient:    waitlist_mock.NewMockClient(ctrl),
+		TicketClient:      support_mock.NewMockClient(ctrl),
+		TemporalImpl:      &mocks.Client{},
 	}
 
 	for _, opt := range opts {

@@ -4,30 +4,30 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/fundingsources"
-	"gitlab.com/fynbos/backend/fundingsources/ops"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/linkedaccounts/ops"
 	"go.uber.org/zap"
 )
 
-var _ fundingsources.Client = client{}
+var _ linkedaccounts.Client = client{}
 
 type client struct {
 	logger *zap.Logger
 	b      ops.Backends
 }
 
-func New(b ops.Backends, logger *zap.Logger) fundingsources.Client {
+func New(b ops.Backends, logger *zap.Logger) linkedaccounts.Client {
 	return &client{
 		b:      b,
-		logger: logger.With(zap.String("ops", "funding-sources")),
+		logger: logger.With(zap.String("ops", "linked-accounts")),
 	}
 }
 
-func (c client) Create(ctx context.Context, args *fundingsources.CreateArgs) (fs *fundingsources.FundingSource, err error) {
+func (c client) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
-				"Failed to create funding source.",
+				"Failed to create linked account.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
 			)
@@ -35,7 +35,7 @@ func (c client) Create(ctx context.Context, args *fundingsources.CreateArgs) (fs
 		}
 
 		c.logger.Debug(
-			"Created funding source.",
+			"Created linked account.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
 	}(time.Now())
@@ -43,11 +43,11 @@ func (c client) Create(ctx context.Context, args *fundingsources.CreateArgs) (fs
 	return ops.Create(ctx, c.b, args)
 }
 
-func (c client) Get(ctx context.Context, id string) (fs *fundingsources.FundingSource, err error) {
+func (c client) Get(ctx context.Context, id string) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
-				"Failed to get funding source.",
+				"Failed to get linked account.",
 				zap.String("id", id),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -56,7 +56,7 @@ func (c client) Get(ctx context.Context, id string) (fs *fundingsources.FundingS
 		}
 
 		c.logger.Debug(
-			"Got funding source.",
+			"Got linked account.",
 			zap.String("id", fs.ID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
@@ -65,11 +65,11 @@ func (c client) Get(ctx context.Context, id string) (fs *fundingsources.FundingS
 	return ops.Get(ctx, c.b, id)
 }
 
-func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []fundingsources.FundingSource, err error) {
+func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			c.logger.Error(
-				"Failed to get funding sources.",
+				"Failed to get linked accounts.",
 				zap.String("walletId", walletId),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -78,7 +78,7 @@ func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []fund
 		}
 
 		c.logger.Debug(
-			"Got funding source.",
+			"Got linked accounts.",
 			// zap.String("id", fs[0]),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)

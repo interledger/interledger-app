@@ -14,7 +14,7 @@ export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
 
   const response = await grpcClient
-    .getFundingsources(
+    .getLinkedAccounts(
       {},
       {
         meta: {
@@ -28,10 +28,10 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(response.code))
   }
 
-  const linkedAccounts = response.response.fundingsources.map((fs) => ({
-    id: fs?.id,
-    name: fs?.name,
-    description: fs?.mask,
+  const linkedAccounts = response.response.linkedAccounts.map((la) => ({
+    id: la?.id,
+    name: la?.name,
+    description: la?.mask,
     icon: 'account_balance' // TODO: get actual icon from fundingsource subtype
   }))
 

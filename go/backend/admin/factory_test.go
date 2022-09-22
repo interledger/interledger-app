@@ -6,7 +6,7 @@ import (
 	"net"
 	"testing"
 
-	"gitlab.com/fynbos/backend/fundingsources"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 
@@ -20,9 +20,9 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
-	funding_mock "gitlab.com/fynbos/backend/fundingsources/client/mock"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
+	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/onboarding"
 	onboarding_client "gitlab.com/fynbos/backend/onboarding/client"
 	"gitlab.com/fynbos/backend/providers/rafiki"
@@ -45,7 +45,7 @@ type TestContainer struct {
 	Ctx             context.Context
 	Ctrl            *gomock.Controller
 	Db              *sqlx.DB
-	Fs              fundingsources.Client
+	linkedAccounts  linkedaccounts.Client
 	Hs              healthcheck.Service
 	Os              onboarding.Client
 	Oso             *oso.Oso
@@ -74,8 +74,8 @@ func (c *TestContainer) Agreements() agreements.Client {
 	return c.AgreementsImpl
 }
 
-func (c *TestContainer) FundingSources() fundingsources.Client {
-	return c.Fs
+func (c *TestContainer) LinkedAccounts() linkedaccounts.Client {
+	return c.linkedAccounts
 }
 
 func (c *TestContainer) HealthCheck() healthcheck.Service {
@@ -174,7 +174,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.AgreementsImpl = agreements_client.New(c)
 	c.Ctrl = gomock.NewController(t)
-	c.Fs = funding_mock.NewMockClient(c.Ctrl)
+	c.linkedAccounts = linked_account_mock.NewMockClient(c.Ctrl)
 	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
 	c.UsersImpl = user_mock.NewMock()

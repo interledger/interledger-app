@@ -1,6 +1,6 @@
-package fundingsources
+package linkedaccounts
 
-type FundingSource struct {
+type LinkedAccount struct {
 	ID        string
 	WalletId  string `db:"wallet_id"`
 	Name      string
