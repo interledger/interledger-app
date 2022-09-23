@@ -104,7 +104,6 @@ export async function action({ request, params }: ActionArgs) {
     await grpcClient
       .sendPhoneVerification({
         to: resend,
-        onboardingId
       })
       .then((v) => v)
       .catch(StatusError)
@@ -114,26 +113,6 @@ export async function action({ request, params }: ActionArgs) {
         ...fieldErrors
       }
     })
-  }
-
-  let response = await grpcClient
-    .checkPhoneVerificationCode({
-      to: phone,
-      code,
-      onboardingId
-    })
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
   }
 
   const headers = await updateFlow(request, {

@@ -5,7 +5,6 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Autocomplete, Button, Router, TextField } from '~/components'
-import type { Onboarding } from '~/generated/protobuf-ts/backend/v1/backend'
 import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
 import { SignupDocument } from '~/generated/types'
 import { apolloClient } from '~/lib/apollo.server'
@@ -13,6 +12,7 @@ import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import { httpMapping } from '~/lib/proto.server'
 import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
+import {SetSignupUserDataResponse} from "~/generated/protobuf-ts/backend/v1/backend";
 
 type Country = {
   id: string
@@ -200,10 +200,10 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   let response = await grpcClient
-    .updateOnboarding({
+    .setSignupUserData({
       firstName,
       lastName,
-      countryOfResidence: country,
+      countryCode: country,
       email
     })
     .then((v) => v)
@@ -220,7 +220,7 @@ export async function action({ request, params }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  const id = (response as FinishedUnaryCall<Onboarding, Onboarding>).response.id
+  const id = (response as FinishedUnaryCall<SetSignupUserDataResponse, SetSignupUserDataResponse>).response.id
 
   const headers = await updateFlow(request, {
     id,
