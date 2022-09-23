@@ -21,7 +21,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 	}
 
 	chart, err := helm.NewChart(ctx, "kratos", helm.ChartArgs{
-		Version: pulumi.String("0.21.5"),
+		Version: pulumi.String("0.25.4"),
 		Chart:   pulumi.String("kratos"),
 		FetchArgs: &helm.FetchArgs{
 			Repo: pulumi.String("https://k8s.ory.sh/helm/charts"),
@@ -39,13 +39,15 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 		},
 		Values: pulumi.Map{
 			"image": pulumi.Map{
-				"tag": pulumi.String("v0.8.2-alpha.1"),
+				"tag": pulumi.String("v0.10.1"),
 			},
 			"autoscaling": pulumi.Map{
 				"enabled": pulumi.Bool(false),
 			},
 			"kratos": pulumi.Map{
-				"autoMigrate": pulumi.Bool(true),
+				"automigration": pulumi.Map{
+					"enabled": pulumi.Bool(true),
+				},
 				"development": pulumi.Bool(true),
 				"identitySchemas": pulumi.Map{
 					"identity.schema.json": pulumi.String("{\n          \"$id\": \"https://fynbos.dev/users/email-password/identity.schema.json\",\n          \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n          \"title\": \"User\",\n          \"type\": \"object\",\n          \"properties\": {\n            \"traits\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"email\": {\n                  \"type\": \"string\",\n                  \"format\": \"email\",\n                  \"title\": \"E-Mail\",\n                  \"ory.sh/kratos\": {\n                    \"credentials\": {\n                      \"password\": {\n                        \"identifier\": true\n                      }\n                    },\n                    \"verification\": {\n                      \"via\": \"email\"\n                    },\n                    \"recovery\": {\n                      \"via\": \"email\"\n                    }\n                  }\n                }\n              },\n              \"required\": [\n                \"email\"\n              ],\n              \"additionalProperties\": false\n            }\n          }\n        }"),
@@ -63,7 +65,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 					},
 					"selfservice": pulumi.Map{
 						"default_browser_return_url": pulumi.String(domain),
-						"whitelisted_return_urls": pulumi.StringArray{
+						"allowed_return_urls": pulumi.StringArray{
 							pulumi.String(domain),
 						},
 						"methods": pulumi.Map{
@@ -150,7 +152,13 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 						},
 					},
 					"identity": pulumi.Map{
-						"default_schema_url": pulumi.String("file:///etc/config/identity.schema.json"),
+						"schemas": pulumi.MapArray{
+							pulumi.Map{
+								"id":  pulumi.String("default"),
+								"url": pulumi.String("file:///etc/config/identity.schema.json"),
+							},
+						},
+						"default_schema_id": pulumi.String("default"),
 					},
 					"courier": pulumi.Map{
 						"smtp": pulumi.Map{
