@@ -155,14 +155,12 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   const flow = await getCurrentFlow(request, params)
-  const onboardingId = flow?.data.id
 
   const phoneNumber = parsePhoneNumber(phone, country as CountryCode)
 
   let response = await grpcClient
     .sendPhoneVerification({
-      to: phoneNumber.number,
-      onboardingId
+      to: phoneNumber.number
     })
     .then((v) => v)
     .catch(StatusError)

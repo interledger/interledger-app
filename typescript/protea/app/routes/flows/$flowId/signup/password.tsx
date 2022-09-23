@@ -175,28 +175,8 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   const flow = await getCurrentFlow(request, params)
-  const onboardingId = flow?.data.id
+
   const email = flow?.data.email
-
-  // TODO replace with service agreement service.
-  let response = await grpcClient
-    .updateOnboarding({
-      id: onboardingId,
-      serviceAgreement: true
-    })
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
-  }
 
   const res = await fetch(
     `${KRATOS_URL}/self-service/registration?flow=${flowId}`,
