@@ -43,7 +43,6 @@ import (
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -143,11 +142,11 @@ func start(args *cli.StartArgs) {
 
 	b.countries = country_client.New(b)
 
-	pClient, err := pacioli_client.New(args.PacioliUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.pacioli = pClient
+	//pClient, err := pacioli_client.New(args.PacioliUrl)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//b.pacioli = pClient
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -283,11 +282,11 @@ func startWorker(args *cli.StartArgs) {
 
 	b.countries = country_client.New(b)
 
-	pClient, err := pacioli_client.New(args.PacioliUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.pacioli = pClient
+	//pClient, err := pacioli_client.New(args.PacioliUrl)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
+	//b.pacioli = pClient
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
