@@ -3,7 +3,6 @@ package migrations
 import (
 	"embed"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 
@@ -65,17 +64,17 @@ func Migrate() error {
 // https://github.com/lib/pq/commit/b9bb726ebf154627a21b50f9ffa4b28c6ed3f4d8
 func InlineSslCreds(baseUrl string, pathToPrivateKey string, pathToClientCert string, pathToRootCert string) (string, error) {
 	connString := baseUrl + "&sslinline=true"
-	sslkeyBytes, err := ioutil.ReadFile(pathToPrivateKey)
+	sslkeyBytes, err := os.ReadFile(pathToPrivateKey)
 	if err != nil {
 		return "", err
 	}
 
-	sslcertBytes, err := ioutil.ReadFile(pathToClientCert)
+	sslcertBytes, err := os.ReadFile(pathToClientCert)
 	if err != nil {
 		return "", err
 	}
 
-	sslrootcertBytes, err := ioutil.ReadFile(pathToRootCert)
+	sslrootcertBytes, err := os.ReadFile(pathToRootCert)
 	if err != nil {
 		return "", err
 	}

@@ -3,7 +3,7 @@ package seed
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 
@@ -14,7 +14,7 @@ import (
 
 func TigerBeetle(b ledger.Backends, filePath string) error {
 	ctx := context.Background()
-	confRaw, err := ioutil.ReadFile(filePath)
+	confRaw, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
