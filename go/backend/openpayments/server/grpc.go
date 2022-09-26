@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -31,12 +30,12 @@ func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.PaymentPoi
 
 	err := g.b.Validator().Struct(pp)
 	if err != nil {
-		return nil, grpc.ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	err = ops.CreatePaymentPointer(ctx, g.b, pp)
 	if err != nil {
-		return nil, grpc.ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Empty{}, nil
@@ -45,7 +44,7 @@ func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.PaymentPoi
 func (g grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPointerRequest) (*pb.PaymentPointer, error) {
 	pp, err := ops.GetPaymentPointer(ctx, g.b, req.Url)
 	if err != nil {
-		return nil, grpc.ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.PaymentPointer{

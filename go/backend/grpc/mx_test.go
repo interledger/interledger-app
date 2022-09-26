@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/signup"
 	test_utils "gitlab.com/fynbos/backend/utils"
@@ -48,6 +50,10 @@ type TestContainer struct {
 	WaitlistClient    *waitlist_mock.MockClient
 	TemporalImpl      *mocks.Client
 	TicketClient      *support_mock.MockClient
+}
+
+func (t TestContainer) DB() *sqlx.DB {
+	return nil
 }
 
 func (t TestContainer) Rafiki() rafiki.Service {

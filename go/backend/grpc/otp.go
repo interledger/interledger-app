@@ -14,7 +14,7 @@ func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error
 
 	_, err = s.b.Twilio().SendVerificationCode(ctx, user.PhoneNumber)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Empty{}, nil
@@ -31,7 +31,7 @@ func (s *rpcService) SendPhoneVerification(
 
 	_, err = s.b.Twilio().SendVerificationCode(ctx, req.To)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Empty{}, nil
