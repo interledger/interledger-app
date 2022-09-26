@@ -15,7 +15,6 @@ import type { SendPhoneVerificationRequest } from "./backend";
 import type { CompleteSignupRequest } from "./backend";
 import type { Signup } from "./backend";
 import type { GetSignupRequest } from "./backend";
-import type { Empty } from "./backend";
 import type { SetSignupMobileNumberRequest } from "./backend";
 import type { SetSignupUserDataResponse } from "./backend";
 import type { SetSignupUserDataRequest } from "./backend";
@@ -27,6 +26,10 @@ import type { AddBankAccountResponse } from "./backend";
 import type { AddBankAccountRequest } from "./backend";
 import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
+import { OpenPaymentService } from "./backend";
+import type { GetPaymentPointerRequest } from "./backend";
+import type { Empty } from "./backend";
+import type { PaymentPointer } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendAdminService } from "./backend";
@@ -59,6 +62,43 @@ export class BackendAdminServiceClient implements IBackendAdminServiceClient, Se
     getUserAccountByEmail(input: GetUserAccountByEmailRequest, options?: RpcOptions): UnaryCall<GetUserAccountByEmailRequest, Account> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetUserAccountByEmailRequest, Account>("unary", this._transport, method, opt, input);
+    }
+}
+/**
+ * @generated from protobuf service backend.v1.OpenPaymentService
+ */
+export interface IOpenPaymentServiceClient {
+    /**
+     * @generated from protobuf rpc: CreatePaymentPointer(backend.v1.PaymentPointer) returns (backend.v1.Empty);
+     */
+    createPaymentPointer(input: PaymentPointer, options?: RpcOptions): UnaryCall<PaymentPointer, Empty>;
+    /**
+     * @generated from protobuf rpc: GetPaymentPointer(backend.v1.GetPaymentPointerRequest) returns (backend.v1.PaymentPointer);
+     */
+    getPaymentPointer(input: GetPaymentPointerRequest, options?: RpcOptions): UnaryCall<GetPaymentPointerRequest, PaymentPointer>;
+}
+/**
+ * @generated from protobuf service backend.v1.OpenPaymentService
+ */
+export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, ServiceInfo {
+    typeName = OpenPaymentService.typeName;
+    methods = OpenPaymentService.methods;
+    options = OpenPaymentService.options;
+    constructor(private readonly _transport: RpcTransport) {
+    }
+    /**
+     * @generated from protobuf rpc: CreatePaymentPointer(backend.v1.PaymentPointer) returns (backend.v1.Empty);
+     */
+    createPaymentPointer(input: PaymentPointer, options?: RpcOptions): UnaryCall<PaymentPointer, Empty> {
+        const method = this.methods[0], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaymentPointer, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetPaymentPointer(backend.v1.GetPaymentPointerRequest) returns (backend.v1.PaymentPointer);
+     */
+    getPaymentPointer(input: GetPaymentPointerRequest, options?: RpcOptions): UnaryCall<GetPaymentPointerRequest, PaymentPointer> {
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPaymentPointerRequest, PaymentPointer>("unary", this._transport, method, opt, input);
     }
 }
 /**

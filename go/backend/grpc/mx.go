@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -61,7 +62,7 @@ func (s *rpcService) GetBankAccountDetails(
 	return nil, nil
 	//_, err := s.b.Users().UserForContext(ctx)
 	//if err != nil {
-	//	return nil, grpcError(err)
+	//	return nil, ToGRPCError(err)
 	//}
 	//
 	////FIXME: change to wallet
@@ -70,12 +71,12 @@ func (s *rpcService) GetBankAccountDetails(
 	//// wait till workflow has completed
 	//err = s.b.MX().WaitForCreateAccount(ctx, req.GetFundingsourceId())
 	//if err != nil {
-	//	return nil, grpcError(err)
+	//	return nil, ToGRPCError(err)
 	//}
 	//
 	//bankAccount, err := s.b.MX().GetAccountByFundingsource(ctx, req.GetFundingsourceId())
 	//if errors.Is(err, mx.ErrNotFound) {
-	//	return nil, grpcError(err)
+	//	return nil, ToGRPCError(err)
 	//}
 	//if bankAccount.AccountID != walletId {
 	//	return nil, ForbiddenError("Unauthorized.")
@@ -83,7 +84,7 @@ func (s *rpcService) GetBankAccountDetails(
 	//
 	//details, err := s.b.MX().ReadAccount(ctx, bankAccount.Guid)
 	//if err != nil {
-	//	return nil, grpcError(err)
+	//	return nil, ToGRPCError(err)
 	//}
 	//
 	//maskStart := len(details.AccountNumber) - 4

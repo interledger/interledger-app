@@ -16,7 +16,7 @@ func (s *rpcService) CreateSupportTicket(ctx context.Context, req *pb.CreateSupp
 	})
 
 	if err != nil {
-		return nil, grpcError(err)
+		return nil, ToGRPCError(err)
 	}
 
 	return &pb.Empty{}, nil

@@ -25,6 +25,24 @@ message Account {
   uint64 creditsAccepted = 6;
 }
 
+
+service OpenPaymentService {
+  rpc CreatePaymentPointer(PaymentPointer) returns (Empty);
+  rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
+}
+
+message GetPaymentPointerRequest {
+  string url = 1;
+}
+
+message PaymentPointer {
+  string url = 1;
+  string asset = 2;
+  int32 assetScale = 3;
+  string alias = 4;
+  string walletID = 5;
+}
+
 message Empty {}
 
 service BackendService {
