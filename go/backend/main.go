@@ -9,8 +9,6 @@ import (
 	"os"
 	"time"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -28,8 +26,10 @@ import (
 	country_client "gitlab.com/fynbos/backend/country/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/migrations"
+	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
@@ -181,6 +181,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
+
+	open_server.StartOpenPaymentsHTTP(b, args.OpenPaymentsPort)
 
 	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
 	go func() {
