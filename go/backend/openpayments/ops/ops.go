@@ -17,15 +17,6 @@ func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.
 		return fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
 	}
 
-	existing, err := GetPaymentPointer(ctx, b, pointer.URL)
-	if err != nil && !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
-		return err
-	}
-
-	if existing != nil {
-		return fmt.Errorf("%w payment pointer url exists already (%s)", openpayments.ErrPaymentPointerExists, pointer.URL)
-	}
-
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO payment_pointers (wallet_id, url, alias, asset, scale) VALUES ($1,$2,$3,$4,$5)",
 		pointer.WalletID, pointer.URL, pointer.Alias, pointer.Asset, pointer.AssetScale)
 

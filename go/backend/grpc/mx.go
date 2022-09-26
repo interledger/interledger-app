@@ -62,7 +62,7 @@ func (s *rpcService) GetBankAccountDetails(
 	return nil, nil
 	//_, err := s.b.Users().UserForContext(ctx)
 	//if err != nil {
-	//	return nil, ToGRPCError(err)
+	//	return nil, toGRPCError(err)
 	//}
 	//
 	////FIXME: change to wallet
@@ -71,12 +71,12 @@ func (s *rpcService) GetBankAccountDetails(
 	//// wait till workflow has completed
 	//err = s.b.MX().WaitForCreateAccount(ctx, req.GetFundingsourceId())
 	//if err != nil {
-	//	return nil, ToGRPCError(err)
+	//	return nil, toGRPCError(err)
 	//}
 	//
 	//bankAccount, err := s.b.MX().GetAccountByFundingsource(ctx, req.GetFundingsourceId())
 	//if errors.Is(err, mx.ErrNotFound) {
-	//	return nil, ToGRPCError(err)
+	//	return nil, toGRPCError(err)
 	//}
 	//if bankAccount.AccountID != walletId {
 	//	return nil, ForbiddenError("Unauthorized.")
@@ -84,7 +84,7 @@ func (s *rpcService) GetBankAccountDetails(
 	//
 	//details, err := s.b.MX().ReadAccount(ctx, bankAccount.Guid)
 	//if err != nil {
-	//	return nil, ToGRPCError(err)
+	//	return nil, toGRPCError(err)
 	//}
 	//
 	//maskStart := len(details.AccountNumber) - 4

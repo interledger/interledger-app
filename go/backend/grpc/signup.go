@@ -22,12 +22,12 @@ func (s *rpcService) SetSignupUserData(ctx context.Context, req *pb.SetSignupUse
 
 	err := s.b.Validator().Struct(args)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	id, err = s.b.Signup().SetUserData(ctx, args)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.SetSignupUserDataResponse{Id: id}, nil
@@ -41,12 +41,12 @@ func (s *rpcService) SetSignupMobileNumber(ctx context.Context, req *pb.SetSignu
 	}
 	err := s.b.Validator().Struct(args)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	err = s.b.Signup().SetMobileNumber(ctx, args)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Empty{}, nil
@@ -55,7 +55,7 @@ func (s *rpcService) SetSignupMobileNumber(ctx context.Context, req *pb.SetSignu
 func (s *rpcService) GetSignup(ctx context.Context, req *pb.GetSignupRequest) (*pb.Signup, error) {
 	su, err := s.b.Signup().Get(ctx, req.Id)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Signup{
@@ -73,7 +73,7 @@ func (s *rpcService) GetSignup(ctx context.Context, req *pb.GetSignupRequest) (*
 func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupRequest) (*pb.Empty, error) {
 	err := s.b.Signup().Complete(ctx, req.Id, req.UserId)
 	if err != nil {
-		return nil, ToGRPCError(err)
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Empty{}, nil

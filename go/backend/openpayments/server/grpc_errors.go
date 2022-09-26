@@ -1,12 +1,12 @@
-package grpc
+package server
 
 import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/openpayments"
+
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -15,9 +15,7 @@ import (
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
-	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP: NewValidationError("OTP", "Could not validate OTP"),
+	openpayments.ErrPaymentPointerNotFound: NotFoundError("payment pointer not found"),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -71,27 +69,7 @@ func toGRPCError(err error) error {
 	return status.Error(codes.Internal, "Internal server error")
 }
 
-func NewValidationError(field string, description string) error {
-	st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
-	br := &errdetails.BadRequest{}
-
-	v := &errdetails.BadRequest_FieldViolation{
-		Field:       field,
-		Description: description,
-	}
-	br.FieldViolations = append(br.FieldViolations, v)
-
-	st, err := st.WithDetails(br)
-	if err != nil {
-		// If this errored, it will always error
-		// here, so better panic so we can figure
-		// out why than have this silently passing.
-		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
-	}
-	return st.Err()
-}
-
-// Validation error will build an immutable error representing the status of the response.
+// ValidationError will build an immutable error representing the status of the response.
 func ValidationError(err error, description func(validator.FieldError) string) error {
 	var validatorError validator.ValidationErrors
 	if errors.As(err, &validatorError) {
@@ -117,24 +95,10 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 	}
 
 	// Default to Internal error if not validation error.
-	return status.Error(codes.Internal, "Internal server error: Validation error")
+	return status.Error(codes.Internal, "Internal server error")
 }
 
-// Validation error will build an immutable error representing the status of the response.
-func InternalError(message string) error {
-	return status.Error(codes.Internal, "Internal server error: "+message)
-}
-
-// Validation error will build an immutable error representing the status of the response.
-func ForbiddenError(message string) error {
-	return status.Error(codes.PermissionDenied, "Forbidden: "+message)
-}
-
-func UnauthenticatedError(message string) error {
-	return status.Error(codes.Unauthenticated, "Unauthenticated: "+message)
-}
-
-// Not found error will build an immutable error representing the status of the response.
+// NotFoundError will build an immutable error representing the status of the response.
 func NotFoundError(message string) error {
 	return status.Error(codes.NotFound, "Not found: "+message)
 }

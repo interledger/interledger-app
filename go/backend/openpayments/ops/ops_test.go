@@ -35,7 +35,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "success",
 			url:       "http://fynbos.me/1",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "USD",
 			scale:     2,
 			err:       nil,
