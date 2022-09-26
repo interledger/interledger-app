@@ -4,10 +4,8 @@ import (
 	"context"
 
 	"gitlab.com/fynbos/backend/grpc"
-
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
