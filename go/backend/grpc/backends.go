@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
@@ -17,6 +18,7 @@ import (
 )
 
 type Backends interface {
+	DB() *sqlx.DB
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
 	Countries() country.Client

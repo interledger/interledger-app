@@ -11,7 +11,7 @@ func (s *rpcService) GetCountries(
 ) (*backendv1.GetCountriesResponse, error) {
 	countries, err := s.b.Countries().GetAll(ctx)
 	if err != nil {
-		return nil, grpcError(err)
+		return nil, ToGRPCError(err)
 	}
 
 	ret := make([]*backendv1.Country, len(countries))

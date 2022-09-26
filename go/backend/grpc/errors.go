@@ -32,13 +32,23 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid country code."
 	case "email":
 		return "Provide a valid email address."
+	case "url":
+		return "Provide a valid URL"
+	case "iso4217":
+		return "Provide a valid currency"
 	}
 
 	return ""
 }
 
-// grpcError converts a given error to its frontend friendly equivalent.
-func grpcError(err error) error {
+// ToGRPCError converts a given error to its frontend friendly equivalent.
+// TODO: Decide whether to move errors for the frontend to it's own package,
+// Probably as more services in backends becomes their own GRPC services
+func ToGRPCError(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	// Check if it is a validation error
 	var validatorError validator.ValidationErrors
 	if errors.As(err, &validatorError) {

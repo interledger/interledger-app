@@ -11,6 +11,10 @@ const (
 )
 
 func IsErrorCode(err error, code pq.ErrorCode) bool {
+	if err == nil {
+		return false
+	}
+
 	var pgErr *pq.Error
 	if errors.As(err, &pgErr) {
 		return pgErr.Code == code

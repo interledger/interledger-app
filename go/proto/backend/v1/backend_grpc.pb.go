@@ -102,6 +102,126 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "backend/v1/backend.proto",
 }
 
+// OpenPaymentServiceClient is the client API for OpenPaymentService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type OpenPaymentServiceClient interface {
+	CreatePaymentPointer(ctx context.Context, in *PaymentPointer, opts ...grpc.CallOption) (*Empty, error)
+	GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error)
+}
+
+type openPaymentServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewOpenPaymentServiceClient(cc grpc.ClientConnInterface) OpenPaymentServiceClient {
+	return &openPaymentServiceClient{cc}
+}
+
+func (c *openPaymentServiceClient) CreatePaymentPointer(ctx context.Context, in *PaymentPointer, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CreatePaymentPointer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *openPaymentServiceClient) GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error) {
+	out := new(PaymentPointer)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/GetPaymentPointer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// OpenPaymentServiceServer is the server API for OpenPaymentService service.
+// All implementations should embed UnimplementedOpenPaymentServiceServer
+// for forward compatibility
+type OpenPaymentServiceServer interface {
+	CreatePaymentPointer(context.Context, *PaymentPointer) (*Empty, error)
+	GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error)
+}
+
+// UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
+type UnimplementedOpenPaymentServiceServer struct {
+}
+
+func (UnimplementedOpenPaymentServiceServer) CreatePaymentPointer(context.Context, *PaymentPointer) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentPointer not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentPointer not implemented")
+}
+
+// UnsafeOpenPaymentServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OpenPaymentServiceServer will
+// result in compilation errors.
+type UnsafeOpenPaymentServiceServer interface {
+	mustEmbedUnimplementedOpenPaymentServiceServer()
+}
+
+func RegisterOpenPaymentServiceServer(s grpc.ServiceRegistrar, srv OpenPaymentServiceServer) {
+	s.RegisterService(&OpenPaymentService_ServiceDesc, srv)
+}
+
+func _OpenPaymentService_CreatePaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaymentPointer)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).CreatePaymentPointer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/CreatePaymentPointer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).CreatePaymentPointer(ctx, req.(*PaymentPointer))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OpenPaymentService_GetPaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentPointerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).GetPaymentPointer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/GetPaymentPointer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).GetPaymentPointer(ctx, req.(*GetPaymentPointerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// OpenPaymentService_ServiceDesc is the grpc.ServiceDesc for OpenPaymentService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "backend.v1.OpenPaymentService",
+	HandlerType: (*OpenPaymentServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreatePaymentPointer",
+			Handler:    _OpenPaymentService_CreatePaymentPointer_Handler,
+		},
+		{
+			MethodName: "GetPaymentPointer",
+			Handler:    _OpenPaymentService_GetPaymentPointer_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "backend/v1/backend.proto",
+}
+
 // BackendServiceClient is the client API for BackendService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
