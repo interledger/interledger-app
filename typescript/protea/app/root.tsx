@@ -7,9 +7,10 @@ import {
   Scripts,
   ScrollRestoration,
   useCatch,
-  useLoaderData
+  useLoaderData,
+  useLocation
 } from '@remix-run/react'
-import { WalletLayout, LandingLayout, Error } from '~/components'
+import { WalletLayout, LandingLayout, Error, FocusLayout } from '~/components'
 import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
@@ -86,15 +87,19 @@ function Document({
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = await hasUserSession(request)
-  return json({ isUser })
+  const pathname = new URL(request.url).pathname
+  let isFocussed = pathname.startsWith('/signup')
+  return json({ isUser, isFocussed })
 }
 
 export default function Page() {
-  const { isUser } = useLoaderData<typeof loader>()
+  const { isUser, isFocussed } = useLoaderData<typeof loader>()
   return (
     <Document>
-      {isUser && <WalletLayout />}
-      {!isUser && <LandingLayout />}
+      {/*TODO Resolve layouts once Just has had a chance to look at the */}
+      {isFocussed && <FocusLayout />}
+      {!isFocussed && isUser && <WalletLayout />}
+      {!isFocussed && !isUser && <LandingLayout />}
     </Document>
   )
 }

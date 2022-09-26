@@ -1,21 +1,17 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Checkbox, Router, TextField } from '~/components'
-import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { httpMapping } from '~/lib/proto.server'
-import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
-  KRATOS_URL,
   getCsrfTokenFromFlow,
-  handleFlowError
+  handleFlowError,
+  KRATOS_URL
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
 
-export async function loader({ request, params }: LoaderArgs) {
-  const flow = await getCurrentFlow(request, params)
+export async function loader({ request }: LoaderArgs) {
+  const flow = await getCurrentFlow(request, flowType.Signup)
   const cookie = String(request.headers.get('cookie'))
 
   const url = new URL(request.url)
@@ -174,7 +170,7 @@ export async function action({ request, params }: ActionArgs) {
     )
   }
 
-  const flow = await getCurrentFlow(request, params)
+  const flow = await getCurrentFlow(request, flowType.Signup)
 
   const email = flow?.data.email
 
@@ -210,11 +206,11 @@ export async function action({ request, params }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  const headers = await exitFlow(request)
+  const headers = await exitFlow(request, flowType.Signup)
   const flowSettings = headers.get('Set-Cookie') as string
 
   res.headers.append('Set-Cookie', flowSettings)
-  return redirect(route('/onboarding/unit'), {
+  return redirect(route('/'), {
     headers: res.headers
   })
 }

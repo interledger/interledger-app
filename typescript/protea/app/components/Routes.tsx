@@ -38,6 +38,8 @@ const RouterRoot = forwardRef<any, RouterProps>(
 
 RouterRoot.displayName = 'Link Router'
 
+/** TODO: Refactor Button to return a routing element that looks like a button, it doesn't need to be a button under the hood. (We have the button for that XD) */
+
 /**
  * Exposes a headless button that will route to `to`,
  * and can be wrapped around a styled button for accessibility.

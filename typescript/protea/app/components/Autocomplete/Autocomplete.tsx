@@ -1,7 +1,7 @@
 import { Combobox, Transition } from '@headlessui/react'
 import type { FC } from 'react'
 import { Fragment } from 'react'
-import { Icon } from '.'
+import { Icon } from '..'
 
 type AutocompleteOptions = {
   id: string
@@ -76,7 +76,7 @@ export const Autocomplete: FC<AutocompleteProps> = ({
             leaveTo='opacity-0'
             afterLeave={() => onQuery('')}
           >
-            <Combobox.Options className='absolute mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 shadow-lg focus:outline-none sm:text-sm'>
+            <Combobox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 shadow-lg focus:outline-none sm:text-sm'>
               {options.length > 0 &&
                 options.map((option, index) => (
                   <Combobox.Option

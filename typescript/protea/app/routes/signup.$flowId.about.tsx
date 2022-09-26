@@ -4,34 +4,40 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { Autocomplete, Button, Router, TextField } from '~/components'
-import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
-import { SignupDocument } from '~/generated/types'
-import { apolloClient } from '~/lib/apollo.server'
-import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { Autocomplete, Button, TextField } from '~/components'
+import {
+  flowType,
+  getCurrentFlow,
+  requireFlow,
+  updateFlow
+} from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
-import { httpMapping } from '~/lib/proto.server'
-import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
-import {SetSignupUserDataResponse} from "~/generated/protobuf-ts/backend/v1/backend";
-
-type Country = {
-  id: string
-  name: string
-}
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
+import type {
+  Country,
+  SetSignupUserDataResponse
+} from '~/generated/protobuf-ts/backend/v1/backend'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const flow = await getCurrentFlow(request, params)
-  const countries = await apolloClient
-    .query<SignupQuery, SignupQueryVariables>({
-      query: SignupDocument,
-      context: {
-        headers: request.headers
-      }
-    })
-    .then((val) => val.data.countries as Country[])
+  await requireFlow(request, flowType.Signup, params)
+  const flow = await getCurrentFlow(request, flowType.Signup)
+
+  let response = await grpcClient
+    .getCountries({})
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
   return json({
     flow,
-    countries
+    countries: response.response.countries
   })
 }
 
@@ -52,7 +58,7 @@ export default function Page() {
     if (query === '') setFilteredCountries(countries)
     else {
       setFilteredCountries(
-        countries.filter((country: Country) => {
+        countries.filter((country) => {
           return (
             country.name
               .toLowerCase()
@@ -69,16 +75,15 @@ export default function Page() {
   }, [query, countries])
 
   return (
-    <>
-      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
+      <div className='col-span-full pb-4 sm:col-span-6 sm:col-start-2'>
         <span className='font-display text-2xl font-medium'>
-          Create a new account
+          Your personal details
         </span>
-        <span>We need to collect some basic information about you.</span>
       </div>
       <Form
         id='signup-about-details'
-        action={`/flows/${flow.id}/signup/about`}
+        action={`/signup/${flow.id}/about`}
         method='post'
         className='hidden'
       />
@@ -90,7 +95,7 @@ export default function Page() {
         name='firstName'
         defaultValue={flow?.data.firstName}
         type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
         aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
         aria-describedby={
           actionData?.errors.firstName ? 'firstName-error' : undefined
@@ -106,7 +111,7 @@ export default function Page() {
         name='lastName'
         defaultValue={flow?.data.lastName}
         type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
         aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
         aria-describedby={
           actionData?.errors.lastName ? 'lastName-error' : undefined
@@ -114,14 +119,29 @@ export default function Page() {
         required
         errorMessage={actionData?.errors.lastName}
       />
+
+      <TextField
+        id='email'
+        form='signup-about-details'
+        label='Email'
+        name='email'
+        defaultValue={flow?.data.email}
+        type='text'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        aria-invalid={Boolean(actionData?.errors.email) || undefined}
+        aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
+        required
+        errorMessage={actionData?.errors.email}
+      />
+
       <Autocomplete
         id='country'
         value={country}
         onChange={setCountry}
         onQuery={setQuery}
         options={filteredCountries}
-        label='Country'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        label='Country of residence'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
         aria-invalid={Boolean(actionData?.errors.country) || undefined}
         aria-describedby={
           actionData?.errors.country ? 'country-error' : undefined
@@ -135,29 +155,12 @@ export default function Page() {
         type='hidden'
       />
 
-      <TextField
-        id='email'
-        form='signup-about-details'
-        label='Email'
-        name='email'
-        defaultValue={flow?.data.email}
-        type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        aria-invalid={Boolean(actionData?.errors.email) || undefined}
-        aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
-        required
-        errorMessage={actionData?.errors.email}
-      />
-
-      <div className='col-span-full flex items-center justify-between pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/login')}>
-          <span className='text-primary'>Already have an account?</span>
-        </Router>
+      <div className='col-span-full flex items-center justify-end pt-4 sm:col-span-6 sm:col-start-2'>
         <Button form='signup-about-details' type='submit'>
           Continue
         </Button>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -188,6 +191,9 @@ export async function action({ request, params }: ActionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
 
+  console.log('COUNTRY', country)
+
+  // TODO: Determine what countries to let through.
   if (country != 'US') {
     return redirect(`/waitlist?country=${country}&email=${email}`, {})
   }
@@ -220,20 +226,24 @@ export async function action({ request, params }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  const id = (response as FinishedUnaryCall<SetSignupUserDataResponse, SetSignupUserDataResponse>).response.id
+  const id = (
+    response as FinishedUnaryCall<
+      SetSignupUserDataResponse,
+      SetSignupUserDataResponse
+    >
+  ).response.id
 
-  const headers = await updateFlow(request, {
+  const headers = await updateFlow(request, flowType.Signup, {
     id,
     firstName,
     lastName,
     country,
     email
   })
-  const flow = await getCurrentFlow(request, params)
 
   return redirect(
-    route('/flows/:flowId/signup/phone', {
-      flowId: flow?.id as string
+    route('/signup/:flowId/phone', {
+      flowId: params.flowId as string
     }),
     { headers }
   )

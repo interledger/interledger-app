@@ -7,6 +7,33 @@ import { Icon, Router, Snackbar } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
+const shapes = [
+  [
+    'bg-slate-600 rounded-tl-full',
+    'bg-transparent',
+    'bg-yellow-400 rounded-tr-full',
+    'bg-rose-300 rounded-tl-full',
+    'bg-lime-400 rounded-full',
+    'bg-transparent',
+    'bg-rose-500 rounded-full',
+    'bg-lime-300 rounded-tr-full',
+    'bg-transparent',
+    'bg-transparent'
+  ],
+  [
+    'bg-transparent',
+    'bg-rose-400 rounded-full',
+    'bg-lime-500 rounded-bl-full',
+    'bg-transparent',
+    'bg-slate-300 rounded-tl-full',
+    'bg-yellow-200 rounded-tl-full',
+    'bg-slate-500 rounded-br-full',
+    'bg-transparent',
+    'bg-rose-100 rounded-full',
+    'bg-rose-300 rounded-bl-full'
+  ]
+]
+
 export async function loader({ request }: LoaderArgs) {
   const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
@@ -45,22 +72,24 @@ export default function Page() {
         id='cookie-snackbar'
         onClose={() => setSnackbar(false)}
       />
-      {/* Header */}
-      <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-app p-4 text-medium sm:min-w-full'>
-        <Link className='sm:hidden' to={route('/')}>
-          <div className='-ml-3 p-3 text-medium'>
-            <Icon>arrow_back</Icon>
-          </div>
-        </Link>
-        <div className='flex items-center justify-start font-display text-2xl font-medium'>
-          Settings
+      <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto py-4 px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+        <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          {shapes.map((shapeRow) => (
+            <div className='flex' key={shapeRow.toString()}>
+              {shapeRow.map((shape, index) => (
+                <div
+                  key={shape + index}
+                  className={`aspect-square w-full ${shape}`}
+                />
+              ))}
+            </div>
+          ))}
         </div>
-      </header>
-      {/* Body */}
-      <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        {/* Activity item */}
-        <span className='col-span-full font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          Personal info
+        <span className='col-span-full mt-4 font-display text-2xl font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          Settings
+        </span>
+        <span className='col-span-full mt-3 font-display text-lg font-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          Profile
         </span>
         <div className='col-span-full flex items-center justify-between rounded-xl bg-container p-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex space-x-3'>
