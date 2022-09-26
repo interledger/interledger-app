@@ -1,0 +1,53 @@
+import { Transition, Dialog as HeadlessDialog } from '@headlessui/react'
+import { useLocation } from '@remix-run/react'
+import type { Dispatch, FC, SetStateAction } from 'react'
+import { Fragment, useEffect } from 'react'
+
+type DialogProps = {
+  open: boolean
+  setOpen: Dispatch<SetStateAction<boolean>>
+}
+
+export const Dialog: FC<DialogProps> = ({ children, open, setOpen }) => {
+  const location = useLocation()
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.key, setOpen])
+
+  return (
+    <Transition.Root show={open} as={Fragment}>
+      <HeadlessDialog as='div' className='relative z-50' onClose={setOpen}>
+        <Transition.Child
+          as={Fragment}
+          enter='ease-in-out duration-200'
+          enterFrom='opacity-0'
+          enterTo='opacity-100'
+          leave='ease-in-out duration-200'
+          leaveFrom='opacity-100'
+          leaveTo='opacity-0'
+        >
+          <div className='fixed inset-0 bg-scrim/75 backdrop-blur-sm transition-opacity' />
+        </Transition.Child>
+
+        <div className='pointer-events-none fixed inset-0 flex items-center justify-center overflow-hidden'>
+          <Transition.Child
+            as={Fragment}
+            enter='ease-in-out duration-200'
+            enterFrom='opacity-0 scale-75'
+            enterTo='opacity-100 scale-100'
+            leave='ease-in-out duration-200'
+            leaveFrom='opacity-100 scale-100'
+            leaveTo='opacity-0 scale-75'
+          >
+            <HeadlessDialog.Panel className='pointer-events-auto mx-8 flex w-full flex-col space-y-2 rounded-3xl bg-page p-6 sm:max-w-xs'>
+              {children}
+            </HeadlessDialog.Panel>
+          </Transition.Child>
+        </div>
+      </HeadlessDialog>
+    </Transition.Root>
+  )
+}
+
+Dialog.displayName = 'Dialog'

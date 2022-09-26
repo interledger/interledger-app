@@ -15,7 +15,7 @@ export const Button = forwardRef<any, ButtonProps>(
         ref={ref}
         {...buttonProps}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full font-display font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled sm:max-w-max',
+          'flex h-12 w-full items-center justify-center rounded-full font-display font-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
           icon ? 'pl-4 pr-6' : 'px-6',
           outline
             ? 'border-2 border-blue-500 bg-app text-primary active:ring-active hover:enabled:border-hover'
