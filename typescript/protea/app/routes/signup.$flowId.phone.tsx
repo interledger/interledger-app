@@ -7,6 +7,7 @@ import {
   useFetcher,
   useLoaderData
 } from '@remix-run/react'
+import type { PhoneAutocompleteOptions } from '~/components'
 import { Button, Icon, PhoneAutoComplete, TextField } from '~/components'
 import {
   flowType,
@@ -79,7 +80,7 @@ export default function Page() {
         form='signup-phone-otp'
         name='phone'
         defaultCountry={flow?.data.country}
-        options={countries}
+        options={countries as PhoneAutocompleteOptions[]}
         label='Mobile number'
         className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
         aria-invalid={Boolean(otpFetcher.data?.errors?.phone) || undefined}

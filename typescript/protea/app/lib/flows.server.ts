@@ -173,7 +173,7 @@ const flowTemplate = (id: string, type: flowType): Flow => {
     case flowType.LinkAccount:
       return {
         id,
-        startRoute: route('/link-account'),
+        startRoute: route('/'),
         data: {},
         defaultExitTo: route('/settings/linked-accounts')
       }
@@ -182,7 +182,7 @@ const flowTemplate = (id: string, type: flowType): Flow => {
         id,
         startRoute: route('/signup'),
         data: {},
-        defaultExitTo: route('/link-account')
+        defaultExitTo: route('/')
       }
     default:
       throw json(

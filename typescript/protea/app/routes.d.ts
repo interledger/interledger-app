@@ -4,23 +4,19 @@ declare module "routes-gen" {
     "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/linked-accounts": Record<string, never>;
-    "/settings/statements/:id": { "id": string };
     "/signup/:flowId/password": { "flowId": string };
     "/legal/privacy-policy": Record<string, never>;
     "/signup/:flowId/about": { "flowId": string };
     "/signup/:flowId/phone": { "flowId": string };
-    "/settings/statements": Record<string, never>;
     "/legal/terms-of-use": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
-    "/signup/dialog/sms": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/activity/filter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
-    "/onboarding/unit": Record<string, never>;
-    "/link-account": Record<string, never>;
+    "/api/sendOtp": Record<string, never>;
     "/disclosures": Record<string, never>;
     "/pay/amount": Record<string, never>;
     "/activity": Record<string, never>;
@@ -49,23 +45,19 @@ declare module "routes-gen" {
       | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/linked-accounts"]
-      | ["/settings/statements/:id", RouteParams["/settings/statements/:id"]]
       | ["/signup/:flowId/password", RouteParams["/signup/:flowId/password"]]
       | ["/legal/privacy-policy"]
       | ["/signup/:flowId/about", RouteParams["/signup/:flowId/about"]]
       | ["/signup/:flowId/phone", RouteParams["/signup/:flowId/phone"]]
-      | ["/settings/statements"]
       | ["/legal/terms-of-use"]
       | ["/recovery/password"]
       | ["/settings/password"]
-      | ["/signup/dialog/sms"]
       | ["/api/maps/geocode"]
       | ["/waitlist/success"]
       | ["/activity/filter"]
       | ["/contact/success"]
       | ["/login/challenge"]
-      | ["/onboarding/unit"]
-      | ["/link-account"]
+      | ["/api/sendOtp"]
       | ["/disclosures"]
       | ["/pay/amount"]
       | ["/activity"]

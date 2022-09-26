@@ -1,15 +1,14 @@
 import type { ChangeEventHandler } from 'react'
 import { useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button, TextField } from '~/components'
-import { getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 
-export async function loader({ request, params }: LoaderArgs) {
-  const flow = await getCurrentFlow(request, params)
+export async function loader({ request }: LoaderArgs) {
+  const flow = await getCurrentFlow(request, flowType.Pay)
   return json({
     flow
   })
@@ -104,13 +103,10 @@ export async function action({ request, params }: ActionArgs) {
     displayTotal: formatMoney(total)
   }
 
-  const headers = await updateFlow(request, data)
-  const flow = await getCurrentFlow(request, params)
+  const headers = await updateFlow(request, flowType.Pay, data)
+  const flow = await getCurrentFlow(request, flowType.Pay)
   if (routeTo == 'next') {
-    return redirect(
-      route('/flows/:flowId/send/review', { flowId: flow?.id as string }),
-      { headers }
-    )
+    return redirect(route('/'), { headers })
   } else {
     return json(data, { headers })
   }

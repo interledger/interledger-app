@@ -17,7 +17,7 @@ interface PhoneFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   options: PhoneAutocompleteOptions[]
 }
 
-type PhoneAutocompleteOptions = {
+export type PhoneAutocompleteOptions = {
   id: CountryCode
   name: string
 }

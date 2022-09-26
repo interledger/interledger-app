@@ -404,28 +404,6 @@ function AppPage() {
           <span>Balance</span>
           <span className='font-display text-4xl'>{balance}</span>
         </div>
-        <div className='col-span-full flex justify-center space-x-3 py-4 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <Router
-            className='rounded-full'
-            to={route('/flows/:flowId/deposit/linked-account', {
-              flowId: 'init'
-            })}
-          >
-            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
-              Deposit
-            </div>
-          </Router>
-          <Router
-            className='rounded-full'
-            to={route('/flows/:flowId/withdraw/linked-account', {
-              flowId: 'init'
-            })}
-          >
-            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
-              Withdraw
-            </div>
-          </Router>
-        </div>
         {recentActivities.length > 0 && (
           <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <span className='font-display text-lg font-medium'>

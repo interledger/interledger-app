@@ -14,7 +14,7 @@
     "generate:watch": "graphql-codegen --watch --config codegen.yml",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
     "dev:css": "tailwindcss -w -i ./styles/app.css -o app/styles/app.css",
-    "precommit": "yarn format && yarn lint && yarn routes-gen && yarn generate && yarn build",
+    "precommit": "yarn format && yarn lint && yarn routes-gen && yarn build",
     "test": "playwright test",
     "test:report": "playwright show-report"
   },
