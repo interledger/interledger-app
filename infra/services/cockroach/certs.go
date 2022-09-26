@@ -2,6 +2,7 @@ package cockroach
 
 import (
 	"fmt"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
@@ -79,7 +80,8 @@ func CreateClientCert(ctx *pulumi.Context, args *ClientCertArgs, opts ...pulumi.
 		ApiVersion: pulumi.String("cert-manager.io/v1"),
 		Kind:       pulumi.String("Certificate"),
 		Metadata: v1.ObjectMetaArgs{
-			Name: pulumi.Sprintf("cockroach-%s-client", args.Name),
+			Name:      pulumi.Sprintf("cockroach-%s-client", args.Name),
+			Namespace: pulumi.String(args.Namespace),
 		},
 		OtherFields: kubernetes.UntypedArgs{
 			"spec": pulumi.Map{
@@ -103,7 +105,7 @@ func CreateClientCert(ctx *pulumi.Context, args *ClientCertArgs, opts ...pulumi.
 				"secretName": pulumi.Sprintf("cockroachdb-%s", args.Name),
 				"issuerRef": pulumi.Map{
 					"name":  pulumi.String(args.Issuer),
-					"kind":  pulumi.String("Issuer"),
+					"kind":  pulumi.String("ClusterIssuer"),
 					"group": pulumi.String("cert-manager.io"),
 				},
 			},

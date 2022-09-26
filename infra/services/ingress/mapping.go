@@ -2,6 +2,7 @@ package ingress
 
 import (
 	"fmt"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
@@ -15,6 +16,7 @@ type MappingArgs struct {
 	Rewrite         string
 	Service         string
 	EnableWebsocket bool
+	Namespace       string
 }
 
 func DeployMapping(ctx *pulumi.Context, args *MappingArgs, opts ...pulumi.ResourceOption) error {
@@ -36,7 +38,8 @@ func DeployMapping(ctx *pulumi.Context, args *MappingArgs, opts ...pulumi.Resour
 		ApiVersion: pulumi.String("getambassador.io/v3alpha1"),
 		Kind:       pulumi.String("Mapping"),
 		Metadata: v1.ObjectMetaArgs{
-			Name: pulumi.String(args.Name),
+			Name:      pulumi.String(args.Name),
+			Namespace: pulumi.String(args.Namespace),
 		},
 		OtherFields: kubernetes.UntypedArgs{
 			"spec": spec,

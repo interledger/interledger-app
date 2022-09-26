@@ -37,6 +37,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 				}
 			},
 		},
+		Namespace: pulumi.String("kratos"),
 		Values: pulumi.Map{
 			"image": pulumi.Map{
 				"tag": pulumi.String("v0.10.1"),
@@ -54,7 +55,7 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 				},
 				"emailTemplates": emailTemplates,
 				"config": pulumi.Map{
-					"dsn": pulumi.String("cockroach://kratos@cockroachdb-public:26257/kratos?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslcert=/cockroach-certs/client.kratos.crt&sslkey=/cockroach-certs/client.kratos.key&sslrootcert=/cockroach-certs/ca.crt"),
+					"dsn": pulumi.String("cockroach://kratos@cockroachdb-public.cockroachdb:26257/kratos?sslmode=verify-full&max_conns=20&max_idle_conns=4&sslcert=/cockroach-certs/client.kratos.crt&sslkey=/cockroach-certs/client.kratos.key&sslrootcert=/cockroach-certs/ca.crt"),
 					"serve": pulumi.Map{
 						"public": pulumi.Map{
 							"base_url": pulumi.String(domain),
@@ -224,22 +225,24 @@ func DeployKratos(ctx *pulumi.Context, cert *apiextensions.CustomResource, domai
 
 func DeployKratosIngress(ctx *pulumi.Context, opts ...pulumi.ResourceOption) error {
 	err := ingress.DeployMapping(ctx, &ingress.MappingArgs{
-		Name:     "kratos-self-service",
-		Hostname: "*",
-		Prefix:   "/self-service/",
-		Rewrite:  "/self-service/",
-		Service:  "kratos-public",
+		Name:      "kratos-self-service",
+		Hostname:  "*",
+		Prefix:    "/self-service/",
+		Rewrite:   "/self-service/",
+		Service:   "kratos-public",
+		Namespace: "kratos",
 	}, opts...)
 	if err != nil {
 		return err
 	}
 
 	err = ingress.DeployMapping(ctx, &ingress.MappingArgs{
-		Name:     "kratos-sessions",
-		Hostname: "*",
-		Prefix:   "/sessions/",
-		Rewrite:  "/sessions/",
-		Service:  "kratos-public",
+		Name:      "kratos-sessions",
+		Hostname:  "*",
+		Prefix:    "/sessions/",
+		Rewrite:   "/sessions/",
+		Service:   "kratos-public",
+		Namespace: "kratos",
 	}, opts...)
 	if err != nil {
 		return err
