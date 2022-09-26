@@ -11,61 +11,27 @@ services:
     volumes:
      - "crdb:/cockroach/cockroach-data"
 
-  postgres:
-    image: postgres
-    networks:
-      fynbos-dev:
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: postgres
-      POSTGRES_DB: development
-    volumes:
-      - "postgresql:/var/lib/postgresql/data"
-
-  redis:
-    image: 'bitnami/redis'
-    networks:
-      fynbos-dev:
-    restart: always
-    environment:
-      ALLOW_EMPTY_PASSWORD: yes
-
-  tigerbeetle:
-    image: "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977"
-    networks:
-      fynbos-dev:
-        ipv4_address: 10.5.0.5
-    restart: always
-    ports:
-      - "3000:3000"
-    entrypoint:
-      - "bash"
-      - "-c"
-      - "[ ! -f /var/lib/tigerbeetle/cluster_0000000000_replica_000.tigerbeetle ] && mkdir -p /var/lib/tigerbeetle/ && ./tigerbeetle init --cluster=0 --replica=0 --directory=/var/lib/tigerbeetle/; ./tigerbeetle start --cluster=0 --replica=0 --addresses=0.0.0.0:3000 --directory=/var/lib/tigerbeetle"
-
-  rafiki:
-    image: ghcr.io/interledger/rafiki-backend:latest
-    restart: always
-    networks:
-      fynbos-dev:
-    ports:
-      - "3001:3001"
-    environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/development
-      REDIS_URL: redis://redis:6379
-      TIGERBEETLE_CLUSTER_ID: 0
-      TIGERBEETLE_REPLICA_ADDRESSES: '["10.5.0.5:3000"]'
+  # tigerbeetle:
+  #   image: "823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977"
+  #   networks:
+  #     fynbos-dev:
+  #       ipv4_address: 10.5.0.5
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   entrypoint:
+  #     - "bash"
+  #     - "-c"
+  #     - "[ ! -f /var/lib/tigerbeetle/cluster_0000000000_replica_000.tigerbeetle ] && mkdir -p /var/lib/tigerbeetle/ && ./tigerbeetle init --cluster=0 --replica=0 --directory=/var/lib/tigerbeetle/; ./tigerbeetle start --cluster=0 --replica=0 --addresses=0.0.0.0:3000 --directory=/var/lib/tigerbeetle"
 
 volumes:
   crdb:
-  postgresql:
 
 # assign ip until tigerbeetle client does dns resolution
 networks:
   fynbos-dev:
-    driver: bridge
-    ipam:
-     config:
-       - subnet: 10.5.0.0/24
-         gateway: 10.5.0.1
+#     driver: bridge
+#     ipam:
+#      config:
+#        - subnet: 10.5.0.0/24
+#          gateway: 10.5.0.1
