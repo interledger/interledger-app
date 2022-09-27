@@ -20,8 +20,9 @@ func TestGetCountries(t *testing.T) {
 	c.CountriesService.EXPECT().GetAll(gomock.Any()).Return(
 		[]country.Country{
 			{
-				ID:   "1234",
-				Name: "South Africa",
+				ID:      "1234",
+				Alpha_2: "ZA",
+				Name:    "South Africa",
 			},
 		},
 		nil,
@@ -31,6 +32,6 @@ func TestGetCountries(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, rpc.Countries, 1)
-	assert.Equal(t, "1234", rpc.Countries[0].Id)
+	assert.Equal(t, "ZA", rpc.Countries[0].Id)
 	assert.Equal(t, "South Africa", rpc.Countries[0].Name)
 }
