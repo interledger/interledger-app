@@ -18,17 +18,26 @@ func NewGRPCServer(b Backends) pb.OpenPaymentServiceServer {
 	return &grpcServer{b: b}
 }
 
-func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.PaymentPointer) (*pb.Empty, error) {
+func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaymentPointerRequest) (*pb.Empty, error) {
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
 
 	pp := openpayments.PaymentPointer{
 		URL:        req.Url,
-		WalletID:   req.WalletID,
+		WalletID:   wallet.ID,
 		Alias:      req.Alias,
 		Asset:      req.Asset,
 		AssetScale: int(req.AssetScale),
 	}
 
-	err := g.b.Validator().Struct(pp)
+	err = g.b.Validator().Struct(pp)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -56,8 +65,18 @@ func (g grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPoi
 	}, nil
 }
 
-func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, req *pb.ListWalletPaymentPointersRequest) (*pb.ListWalletPaymentPointersResponse, error) {
-	pp, err := ops.ListWalletPaymentPointers(ctx, g.b, req.WalletID)
+func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) (*pb.ListWalletPaymentPointersResponse, error) {
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	pp, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

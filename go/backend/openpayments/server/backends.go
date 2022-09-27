@@ -3,6 +3,8 @@ package server
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/user"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 )
@@ -10,11 +12,16 @@ import (
 type Backends interface {
 	DB() *sqlx.DB
 	Validator() *validator.Validate
+	Users() user.Client
 }
 
 type testBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate
+}
+
+func (t testBackends) Users() user.Client {
+	return nil
 }
 
 func (t testBackends) Validator() *validator.Validate {

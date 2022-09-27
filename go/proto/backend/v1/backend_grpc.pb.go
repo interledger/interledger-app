@@ -106,9 +106,9 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OpenPaymentServiceClient interface {
-	CreatePaymentPointer(ctx context.Context, in *PaymentPointer, opts ...grpc.CallOption) (*Empty, error)
+	CreatePaymentPointer(ctx context.Context, in *CreatePaymentPointerRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error)
-	ListWalletPaymentPointers(ctx context.Context, in *ListWalletPaymentPointersRequest, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
+	ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
 }
 
 type openPaymentServiceClient struct {
@@ -119,7 +119,7 @@ func NewOpenPaymentServiceClient(cc grpc.ClientConnInterface) OpenPaymentService
 	return &openPaymentServiceClient{cc}
 }
 
-func (c *openPaymentServiceClient) CreatePaymentPointer(ctx context.Context, in *PaymentPointer, opts ...grpc.CallOption) (*Empty, error) {
+func (c *openPaymentServiceClient) CreatePaymentPointer(ctx context.Context, in *CreatePaymentPointerRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CreatePaymentPointer", in, out, opts...)
 	if err != nil {
@@ -137,7 +137,7 @@ func (c *openPaymentServiceClient) GetPaymentPointer(ctx context.Context, in *Ge
 	return out, nil
 }
 
-func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context, in *ListWalletPaymentPointersRequest, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error) {
+func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error) {
 	out := new(ListWalletPaymentPointersResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListWalletPaymentPointers", in, out, opts...)
 	if err != nil {
@@ -150,22 +150,22 @@ func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context
 // All implementations should embed UnimplementedOpenPaymentServiceServer
 // for forward compatibility
 type OpenPaymentServiceServer interface {
-	CreatePaymentPointer(context.Context, *PaymentPointer) (*Empty, error)
+	CreatePaymentPointer(context.Context, *CreatePaymentPointerRequest) (*Empty, error)
 	GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error)
-	ListWalletPaymentPointers(context.Context, *ListWalletPaymentPointersRequest) (*ListWalletPaymentPointersResponse, error)
+	ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error)
 }
 
 // UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedOpenPaymentServiceServer struct {
 }
 
-func (UnimplementedOpenPaymentServiceServer) CreatePaymentPointer(context.Context, *PaymentPointer) (*Empty, error) {
+func (UnimplementedOpenPaymentServiceServer) CreatePaymentPointer(context.Context, *CreatePaymentPointerRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentPointer not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentPointer not implemented")
 }
-func (UnimplementedOpenPaymentServiceServer) ListWalletPaymentPointers(context.Context, *ListWalletPaymentPointersRequest) (*ListWalletPaymentPointersResponse, error) {
+func (UnimplementedOpenPaymentServiceServer) ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListWalletPaymentPointers not implemented")
 }
 
@@ -181,7 +181,7 @@ func RegisterOpenPaymentServiceServer(s grpc.ServiceRegistrar, srv OpenPaymentSe
 }
 
 func _OpenPaymentService_CreatePaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaymentPointer)
+	in := new(CreatePaymentPointerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func _OpenPaymentService_CreatePaymentPointer_Handler(srv interface{}, ctx conte
 		FullMethod: "/backend.v1.OpenPaymentService/CreatePaymentPointer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CreatePaymentPointer(ctx, req.(*PaymentPointer))
+		return srv.(OpenPaymentServiceServer).CreatePaymentPointer(ctx, req.(*CreatePaymentPointerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -217,7 +217,7 @@ func _OpenPaymentService_GetPaymentPointer_Handler(srv interface{}, ctx context.
 }
 
 func _OpenPaymentService_ListWalletPaymentPointers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListWalletPaymentPointersRequest)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func _OpenPaymentService_ListWalletPaymentPointers_Handler(srv interface{}, ctx 
 		FullMethod: "/backend.v1.OpenPaymentService/ListWalletPaymentPointers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).ListWalletPaymentPointers(ctx, req.(*ListWalletPaymentPointersRequest))
+		return srv.(OpenPaymentServiceServer).ListWalletPaymentPointers(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

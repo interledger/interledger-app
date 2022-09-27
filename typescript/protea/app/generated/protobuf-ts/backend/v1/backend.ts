@@ -60,15 +60,6 @@ export interface GetPaymentPointerRequest {
     url: string;
 }
 /**
- * @generated from protobuf message backend.v1.ListWalletPaymentPointersRequest
- */
-export interface ListWalletPaymentPointersRequest {
-    /**
-     * @generated from protobuf field: string walletID = 1;
-     */
-    walletID: string;
-}
-/**
  * @generated from protobuf message backend.v1.ListWalletPaymentPointersResponse
  */
 export interface ListWalletPaymentPointersResponse {
@@ -76,6 +67,27 @@ export interface ListWalletPaymentPointersResponse {
      * @generated from protobuf field: repeated backend.v1.PaymentPointer pointers = 1;
      */
     pointers: PaymentPointer[];
+}
+/**
+ * @generated from protobuf message backend.v1.CreatePaymentPointerRequest
+ */
+export interface CreatePaymentPointerRequest {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+    /**
+     * @generated from protobuf field: string asset = 2;
+     */
+    asset: string;
+    /**
+     * @generated from protobuf field: int32 assetScale = 3;
+     */
+    assetScale: number;
+    /**
+     * @generated from protobuf field: string alias = 4;
+     */
+    alias: string;
 }
 /**
  * @generated from protobuf message backend.v1.PaymentPointer
@@ -686,53 +698,6 @@ class GetPaymentPointerRequest$Type extends MessageType<GetPaymentPointerRequest
  */
 export const GetPaymentPointerRequest = new GetPaymentPointerRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListWalletPaymentPointersRequest$Type extends MessageType<ListWalletPaymentPointersRequest> {
-    constructor() {
-        super("backend.v1.ListWalletPaymentPointersRequest", [
-            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<ListWalletPaymentPointersRequest>): ListWalletPaymentPointersRequest {
-        const message = { walletID: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<ListWalletPaymentPointersRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListWalletPaymentPointersRequest): ListWalletPaymentPointersRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string walletID */ 1:
-                    message.walletID = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: ListWalletPaymentPointersRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string walletID = 1; */
-        if (message.walletID !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.ListWalletPaymentPointersRequest
- */
-export const ListWalletPaymentPointersRequest = new ListWalletPaymentPointersRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class ListWalletPaymentPointersResponse$Type extends MessageType<ListWalletPaymentPointersResponse> {
     constructor() {
         super("backend.v1.ListWalletPaymentPointersResponse", [
@@ -779,6 +744,74 @@ class ListWalletPaymentPointersResponse$Type extends MessageType<ListWalletPayme
  * @generated MessageType for protobuf message backend.v1.ListWalletPaymentPointersResponse
  */
 export const ListWalletPaymentPointersResponse = new ListWalletPaymentPointersResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreatePaymentPointerRequest$Type extends MessageType<CreatePaymentPointerRequest> {
+    constructor() {
+        super("backend.v1.CreatePaymentPointerRequest", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "alias", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePaymentPointerRequest>): CreatePaymentPointerRequest {
+        const message = { url: "", asset: "", assetScale: 0, alias: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePaymentPointerRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePaymentPointerRequest): CreatePaymentPointerRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                case /* string asset */ 2:
+                    message.asset = reader.string();
+                    break;
+                case /* int32 assetScale */ 3:
+                    message.assetScale = reader.int32();
+                    break;
+                case /* string alias */ 4:
+                    message.alias = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePaymentPointerRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        /* string asset = 2; */
+        if (message.asset !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.asset);
+        /* int32 assetScale = 3; */
+        if (message.assetScale !== 0)
+            writer.tag(3, WireType.Varint).int32(message.assetScale);
+        /* string alias = 4; */
+        if (message.alias !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.alias);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePaymentPointerRequest
+ */
+export const CreatePaymentPointerRequest = new CreatePaymentPointerRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PaymentPointer$Type extends MessageType<PaymentPointer> {
     constructor() {
@@ -2503,9 +2536,9 @@ export const BackendAdminService = new ServiceType("backend.v1.BackendAdminServi
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
 export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService", [
-    { name: "CreatePaymentPointer", options: {}, I: PaymentPointer, O: Empty },
+    { name: "CreatePaymentPointer", options: {}, I: CreatePaymentPointerRequest, O: Empty },
     { name: "GetPaymentPointer", options: {}, I: GetPaymentPointerRequest, O: PaymentPointer },
-    { name: "ListWalletPaymentPointers", options: {}, I: ListWalletPaymentPointersRequest, O: ListWalletPaymentPointersResponse }
+    { name: "ListWalletPaymentPointers", options: {}, I: Empty, O: ListWalletPaymentPointersResponse }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService

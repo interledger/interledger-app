@@ -27,21 +27,24 @@ message Account {
 
 
 service OpenPaymentService {
-  rpc CreatePaymentPointer(PaymentPointer) returns (Empty);
+  rpc CreatePaymentPointer(CreatePaymentPointerRequest) returns (Empty);
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
-  rpc ListWalletPaymentPointers(ListWalletPaymentPointersRequest) returns (ListWalletPaymentPointersResponse);
+  rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
 }
 
 message GetPaymentPointerRequest {
   string url = 1;
 }
 
-message ListWalletPaymentPointersRequest {
-  string walletID = 1;
-}
-
 message ListWalletPaymentPointersResponse {
   repeated PaymentPointer pointers = 1;
+}
+
+message CreatePaymentPointerRequest {
+  string url = 1;
+  string asset = 2;
+  int32 assetScale = 3;
+  string alias = 4;
 }
 
 message PaymentPointer {

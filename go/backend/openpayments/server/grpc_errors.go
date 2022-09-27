@@ -102,3 +102,7 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 func NotFoundError(message string) error {
 	return status.Error(codes.NotFound, "Not found: "+message)
 }
+
+func ForbiddenError(message string) error {
+	return status.Error(codes.PermissionDenied, "Forbidden: "+message)
+}

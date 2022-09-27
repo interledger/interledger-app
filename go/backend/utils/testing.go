@@ -59,7 +59,7 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
 		t.Fatal(err)
 	}
 
-	/*t.Cleanup(func() {
+	t.Cleanup(func() {
 		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
 		_, err := db.ExecContext(ctx, cleanupQuery)
 		if err != nil {
@@ -69,7 +69,7 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
 		if err = db.Close(); err != nil {
 			t.Fatal(err)
 		}
-	})*/
+	})
 
 	return db
 }
