@@ -1,21 +1,17 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Checkbox, Router, TextField } from '~/components'
-import { exitFlow, getCurrentFlow } from '~/lib/flows.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { httpMapping } from '~/lib/proto.server'
-import { grpcClient, StatusError, isGrpcError } from '~/lib/proto.server'
+import { Button, Checkbox, Router, Shape, TextField } from '~/components'
+import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
-  KRATOS_URL,
   getCsrfTokenFromFlow,
-  handleFlowError
+  handleFlowError,
+  KRATOS_URL
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
 
-export async function loader({ request, params }: LoaderArgs) {
-  const flow = await getCurrentFlow(request, params)
+export async function loader({ request }: LoaderArgs) {
+  const flow = await getCurrentFlow(request, flowType.Signup)
   const cookie = String(request.headers.get('cookie'))
 
   const url = new URL(request.url)
@@ -43,12 +39,9 @@ export async function loader({ request, params }: LoaderArgs) {
     )
     kratosFlow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(kratosFlow, 'signup')
-    return redirect(
-      `/flows/${flow?.id}/signup/password?flow=${kratosFlow.id}`,
-      {
-        headers: flowRes.headers
-      }
-    )
+    return redirect(`/signup/${flow?.id}/password?flow=${kratosFlow.id}`, {
+      headers: flowRes.headers
+    })
   }
   return json({
     flow,
@@ -62,16 +55,31 @@ export default function Page() {
   const { flow, kratosFlowId, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <>
-      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-display text-2xl font-medium'>
-          Create a password
-        </span>
+    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
+      <div className='col-span-full flex flex-col space-y-4 pb-8 sm:col-span-6 sm:col-start-2 sm:space-y-6'>
+        <div className='flex justify-between'>
+          <span className='font-display text-2xl font-medium'>
+            Create a password
+          </span>
+          <div className='hidden sm:flex'>
+            <Shape
+              width={'w-8'}
+              radius={'rounded-bl-full'}
+              color={'bg-rose-400'}
+            />
+            <Shape
+              width={'w-8'}
+              radius={'rounded-tl-full'}
+              color={'bg-yellow-300'}
+            />
+          </div>
+        </div>
         <span>You will need your password to log in to your account.</span>
       </div>
+
       <Form
         id='signup-password'
-        action={`/flows/${flow.id}/signup/password?flow=${kratosFlowId}`}
+        action={`/signup/${flow.id}/password?flow=${kratosFlowId}`}
         method='post'
         className='hidden'
       />
@@ -81,7 +89,7 @@ export default function Page() {
         name='password'
         form='signup-password'
         type='password'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
         aria-invalid={Boolean(actionData?.errors.password) || undefined}
         aria-describedby={
           actionData?.errors.password ? 'password-error' : undefined
@@ -94,7 +102,7 @@ export default function Page() {
         id='service-agreement'
         name='service-agreement'
         form='signup-password'
-        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2'
         aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
         aria-describedby={
           actionData?.errors.serviceAgreement
@@ -127,28 +135,16 @@ export default function Page() {
         form='signup-password'
         type='hidden'
       />
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2'>
         <Button form='signup-password' type='submit'>
           Confirm
         </Button>
       </div>
-    </>
+    </div>
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'ServiceAgreement'
-
-function mapper(field: fieldErrorsMap): 'serviceAgreement' | null {
-  switch (field) {
-    case 'ServiceAgreement':
-      return 'serviceAgreement'
-    default:
-      return null
-  }
-}
-
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request }: ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow') as string
 
@@ -174,7 +170,7 @@ export async function action({ request, params }: ActionArgs) {
     )
   }
 
-  const flow = await getCurrentFlow(request, params)
+  const flow = await getCurrentFlow(request, flowType.Signup)
 
   const email = flow?.data.email
 
@@ -210,11 +206,11 @@ export async function action({ request, params }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  const headers = await exitFlow(request)
+  const headers = await exitFlow(request, flowType.Signup)
   const flowSettings = headers.get('Set-Cookie') as string
 
   res.headers.append('Set-Cookie', flowSettings)
-  return redirect(route('/onboarding/unit'), {
+  return redirect(route('/'), {
     headers: res.headers
   })
 }
