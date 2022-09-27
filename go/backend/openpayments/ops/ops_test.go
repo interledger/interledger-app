@@ -109,3 +109,64 @@ func TestCreatePaymentPointer(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractPaymentPointer(t *testing.T) {
+	cases := []struct {
+		name            string
+		url             string
+		expectedPointer string
+		expectedSuffix  string
+		err             error
+	}{
+		{
+			name:            "no_suffix",
+			url:             "http://fybos.me/asdf",
+			expectedPointer: "http://fybos.me/asdf",
+			expectedSuffix:  "",
+			err:             nil,
+		},
+		{
+			name:            "no_suffix_trailing_slash",
+			url:             "http://fybos.me/asdf/",
+			expectedPointer: "http://fybos.me/asdf",
+			expectedSuffix:  "",
+			err:             nil,
+		},
+		{
+			name:            "incoming_payments_suffix",
+			url:             "http://fybos.me/asdf/incoming-payments",
+			expectedPointer: "http://fybos.me/asdf",
+			expectedSuffix:  "incoming-payments",
+			err:             nil,
+		},
+		{
+			name:            "outgoing_payments_suffix",
+			url:             "http://fybos.me/asdf/outgoing-payments",
+			expectedPointer: "http://fybos.me/asdf",
+			expectedSuffix:  "outgoing-payments",
+			err:             nil,
+		},
+		{
+			name: "invalid_url",
+			url:  "ladida-blah",
+			err:  openpayments.ErrInvalidPointerURL,
+		},
+		{
+			name: "double_suffix",
+			url:  "http://fybos.me/asdf/incoming-payments/outgoing-payments",
+			err:  openpayments.ErrInvalidPointerURL,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			pp, suffix, err := ops.ExtractPaymentPointer(tc.url)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				return
+			}
+			assert.Equal(t, tc.expectedPointer, pp)
+			assert.Equal(t, tc.expectedSuffix, suffix)
+		})
+	}
+}

@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
-	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
+	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -58,7 +59,7 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
 		t.Fatal(err)
 	}
 
-	t.Cleanup(func() {
+	/*t.Cleanup(func() {
 		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
 		_, err := db.ExecContext(ctx, cleanupQuery)
 		if err != nil {
@@ -68,7 +69,7 @@ func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
 		if err = db.Close(); err != nil {
 			t.Fatal(err)
 		}
-	})
+	})*/
 
 	return db
 }

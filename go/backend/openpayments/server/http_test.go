@@ -15,7 +15,7 @@ import (
 	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
-func TestGetPaymentPointer(t *testing.T) {
+func TestGetHandler(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
@@ -61,7 +61,7 @@ func TestGetPaymentPointer(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := getPaymentPointer(b)
+		handler := catchAllHandler(b)
 		handler.ServeHTTP(rr, req)
 
 		require.Equal(t, tc.statusCode, rr.Code)
@@ -80,5 +80,4 @@ func TestGetPaymentPointer(t *testing.T) {
 		assert.Equal(t, tc.pointer.AssetScale, pp.AssetScale)
 		assert.Equal(t, req.URL.String(), pp.URL)
 	}
-
 }
