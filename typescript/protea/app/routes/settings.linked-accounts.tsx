@@ -86,9 +86,7 @@ export default function Page() {
             </div>
           ))}
         <Router
-          to={route('/flows/:flowId/linked-account/type', {
-            flowId: 'init'
-          })}
+          to={route('/')}
           className='col-span-full mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'
         >
           <span>Add linked account</span>
