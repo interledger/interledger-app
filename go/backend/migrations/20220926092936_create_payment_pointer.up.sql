@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS payment_pointers (
   updated_at  TIMESTAMP NOT NULL DEFAULT now(),
   CONSTRAINT fk_payment_pointer_wallets
     FOREIGN KEY(wallet_id) REFERENCES wallets(id),
-  CONSTRAINT  payment_pointers_url UNIQUE (url)
+  CONSTRAINT  payment_pointers_url UNIQUE (url),
+  INDEX wallet_id_ind(wallet_id)
 );

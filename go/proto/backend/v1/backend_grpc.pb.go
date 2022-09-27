@@ -108,6 +108,7 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 type OpenPaymentServiceClient interface {
 	CreatePaymentPointer(ctx context.Context, in *PaymentPointer, opts ...grpc.CallOption) (*Empty, error)
 	GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error)
+	ListWalletPaymentPointers(ctx context.Context, in *ListWalletPaymentPointersRequest, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
 }
 
 type openPaymentServiceClient struct {
@@ -136,12 +137,22 @@ func (c *openPaymentServiceClient) GetPaymentPointer(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context, in *ListWalletPaymentPointersRequest, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error) {
+	out := new(ListWalletPaymentPointersResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListWalletPaymentPointers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OpenPaymentServiceServer is the server API for OpenPaymentService service.
 // All implementations should embed UnimplementedOpenPaymentServiceServer
 // for forward compatibility
 type OpenPaymentServiceServer interface {
 	CreatePaymentPointer(context.Context, *PaymentPointer) (*Empty, error)
 	GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error)
+	ListWalletPaymentPointers(context.Context, *ListWalletPaymentPointersRequest) (*ListWalletPaymentPointersResponse, error)
 }
 
 // UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
@@ -153,6 +164,9 @@ func (UnimplementedOpenPaymentServiceServer) CreatePaymentPointer(context.Contex
 }
 func (UnimplementedOpenPaymentServiceServer) GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentPointer not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) ListWalletPaymentPointers(context.Context, *ListWalletPaymentPointersRequest) (*ListWalletPaymentPointersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWalletPaymentPointers not implemented")
 }
 
 // UnsafeOpenPaymentServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -202,6 +216,24 @@ func _OpenPaymentService_GetPaymentPointer_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenPaymentService_ListWalletPaymentPointers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWalletPaymentPointersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).ListWalletPaymentPointers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/ListWalletPaymentPointers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).ListWalletPaymentPointers(ctx, req.(*ListWalletPaymentPointersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OpenPaymentService_ServiceDesc is the grpc.ServiceDesc for OpenPaymentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -216,6 +248,10 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPaymentPointer",
 			Handler:    _OpenPaymentService_GetPaymentPointer_Handler,
+		},
+		{
+			MethodName: "ListWalletPaymentPointers",
+			Handler:    _OpenPaymentService_ListWalletPaymentPointers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
