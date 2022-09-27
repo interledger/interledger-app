@@ -94,3 +94,16 @@ func ExtractPaymentPointer(rawURL string) (string, string, error) {
 	sanitized, err := sanitizePaymentPointer(rawURL)
 	return sanitized, "", err
 }
+
+func ListWalletPaymentPointers(ctx context.Context, b Backends, walletID string) ([]openpayments.PaymentPointer, error) {
+	var pp []openpayments.PaymentPointer
+	err := b.DB().SelectContext(ctx, &pp, "SELECT wallet_id, url, alias, asset, scale FROM payment_pointers WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w payment pointers fround for wallet(%s)", openpayments.ErrPaymentPointerNotFound, walletID)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return pp, nil
+}

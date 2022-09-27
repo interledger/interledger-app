@@ -55,3 +55,23 @@ func (g grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPoi
 		WalletID:   pp.WalletID,
 	}, nil
 }
+
+func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, req *pb.ListWalletPaymentPointersRequest) (*pb.ListWalletPaymentPointersResponse, error) {
+	pp, err := ops.ListWalletPaymentPointers(ctx, g.b, req.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := make([]*pb.PaymentPointer, len(pp))
+	for i, p := range pp {
+		resp[i] = &pb.PaymentPointer{
+			Url:        p.URL,
+			Asset:      p.Asset,
+			AssetScale: int32(p.AssetScale),
+			Alias:      p.Alias,
+			WalletID:   p.WalletID,
+		}
+	}
+
+	return &pb.ListWalletPaymentPointersResponse{Pointers: resp}, nil
+}

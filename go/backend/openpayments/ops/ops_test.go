@@ -170,3 +170,49 @@ func TestExtractPaymentPointer(t *testing.T) {
 		})
 	}
 }
+
+func TestListWalletPaymentPointers(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_client.New(b, "fakeURL")
+
+	wallet, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	require.NoError(t, err)
+
+	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		URL:        "http://fynbos.me/pp1",
+		WalletID:   wallet.ID,
+		Alias:      "Alias1",
+		Asset:      "USD",
+		AssetScale: 2,
+	})
+	require.NoError(t, err)
+	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		URL:        "http://fynbos.me/pp2",
+		WalletID:   wallet.ID,
+		Alias:      "Alias2",
+		Asset:      "ZAR",
+		AssetScale: 2,
+	})
+	require.NoError(t, err)
+
+	// List and validate
+	pp, err := ops.ListWalletPaymentPointers(ctx, b, wallet.ID)
+	require.NoError(t, err)
+	require.Len(t, pp, 2)
+	for _, p := range pp {
+		if p.URL == "http://fynbos.me/pp1" {
+			assert.Equal(t, "Alias1", p.Alias)
+			assert.Equal(t, "USD", p.Asset)
+			assert.Equal(t, 2, p.AssetScale)
+		} else {
+			assert.Equal(t, "Alias2", p.Alias)
+			assert.Equal(t, "ZAR", p.Asset)
+			assert.Equal(t, 2, p.AssetScale)
+		}
+	}
+}

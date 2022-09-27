@@ -44,7 +44,7 @@ func getFullURL(req *http.Request) string {
 	if req.TLS == nil {
 		return fmt.Sprintf("http://%s", url)
 	}
-	return fmt.Sprintf("https://%s")
+	return fmt.Sprintf("https://%s", url)
 }
 
 // postHandler handles all incoming POST requests and routes them according to the URL contents and suffixing.

@@ -27,6 +27,8 @@ import type { AddBankAccountRequest } from "./backend";
 import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
 import { OpenPaymentService } from "./backend";
+import type { ListWalletPaymentPointersResponse } from "./backend";
+import type { ListWalletPaymentPointersRequest } from "./backend";
 import type { GetPaymentPointerRequest } from "./backend";
 import type { Empty } from "./backend";
 import type { PaymentPointer } from "./backend";
@@ -76,6 +78,10 @@ export interface IOpenPaymentServiceClient {
      * @generated from protobuf rpc: GetPaymentPointer(backend.v1.GetPaymentPointerRequest) returns (backend.v1.PaymentPointer);
      */
     getPaymentPointer(input: GetPaymentPointerRequest, options?: RpcOptions): UnaryCall<GetPaymentPointerRequest, PaymentPointer>;
+    /**
+     * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.ListWalletPaymentPointersRequest) returns (backend.v1.ListWalletPaymentPointersResponse);
+     */
+    listWalletPaymentPointers(input: ListWalletPaymentPointersRequest, options?: RpcOptions): UnaryCall<ListWalletPaymentPointersRequest, ListWalletPaymentPointersResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.OpenPaymentService
@@ -99,6 +105,13 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
     getPaymentPointer(input: GetPaymentPointerRequest, options?: RpcOptions): UnaryCall<GetPaymentPointerRequest, PaymentPointer> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPaymentPointerRequest, PaymentPointer>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.ListWalletPaymentPointersRequest) returns (backend.v1.ListWalletPaymentPointersResponse);
+     */
+    listWalletPaymentPointers(input: ListWalletPaymentPointersRequest, options?: RpcOptions): UnaryCall<ListWalletPaymentPointersRequest, ListWalletPaymentPointersResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListWalletPaymentPointersRequest, ListWalletPaymentPointersResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**

@@ -29,10 +29,19 @@ message Account {
 service OpenPaymentService {
   rpc CreatePaymentPointer(PaymentPointer) returns (Empty);
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
+  rpc ListWalletPaymentPointers(ListWalletPaymentPointersRequest) returns (ListWalletPaymentPointersResponse);
 }
 
 message GetPaymentPointerRequest {
   string url = 1;
+}
+
+message ListWalletPaymentPointersRequest {
+  string walletID = 1;
+}
+
+message ListWalletPaymentPointersResponse {
+  repeated PaymentPointer pointers = 1;
 }
 
 message PaymentPointer {
