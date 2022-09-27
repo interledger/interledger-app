@@ -4,18 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
-	"fmt"
-	"reflect"
 	"strings"
-
-	"gitlab.com/fynbos/log"
-
-	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
 
 	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
-	"github.com/google/uuid"
 	"gitlab.com/fynbos/pacioli"
 )
 
@@ -87,40 +80,40 @@ func ConfigureAccounts(
 	}
 
 	// Insert successfully created accounts into tigerbeetle as a best effort,.
-	var toCreate []tb_types.Account
-	for i, arg := range args {
-		var errFound bool
-		for _, resCode := range res {
-			if resCode.Index == uint32(i) {
-				// The  account failed to create in TigerRoach, don;t try to replicate it in Tigerbeetle
-				errFound = true
-				break
-			}
-		}
-		if errFound {
-			continue
-		}
+	// var toCreate []tb_types.Account
+	// for i, arg := range args {
+	// 	var errFound bool
+	// 	for _, resCode := range res {
+	// 		if resCode.Index == uint32(i) {
+	// 			// The  account failed to create in TigerRoach, don;t try to replicate it in Tigerbeetle
+	// 			errFound = true
+	// 			break
+	// 		}
+	// 	}
+	// 	if errFound {
+	// 		continue
+	// 	}
 
-		tbAccID, err := UuidToU128(arg.ID)
-		if err != nil {
-			log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
-			continue
-		}
-		toCreate = append(toCreate, tb_types.Account{
-			ID:     *tbAccID,
-			Code:   arg.Code,
-			Flags:  arg.Flags.ToUint16(),
-			Ledger: arg.LedgerID,
-		})
-	}
+	// 	tbAccID, err := UuidToU128(arg.ID)
+	// 	if err != nil {
+	// 		log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
+	// 		continue
+	// 	}
+	// 	toCreate = append(toCreate, tb_types.Account{
+	// 		ID:     *tbAccID,
+	// 		Code:   arg.Code,
+	// 		Flags:  arg.Flags.ToUint16(),
+	// 		Ledger: arg.LedgerID,
+	// 	})
+	// }
 
-	tbEventErrors, err := b.TigerBeetle().CreateAccounts(toCreate)
-	// this error will be due to connection / io buffer issues
-	if err != nil {
-		log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
-	} else if len(tbEventErrors) > 0 {
-		log.Warn("failed to sync accounts to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
-	}
+	// tbEventErrors, err := b.TigerBeetle().CreateAccounts(toCreate)
+	// // this error will be due to connection / io buffer issues
+	// if err != nil {
+	// 	log.Warn("failed to sync accounts to tigerbeetle", zap.Error(err))
+	// } else if len(tbEventErrors) > 0 {
+	// 	log.Warn("failed to sync accounts to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
+	// }
 
 	return res, nil
 }
@@ -130,19 +123,19 @@ func GetAccounts(
 	b Backends,
 	accountIDs []string,
 ) ([]pacioli.Account, error) {
-	tbAccIDs := []tb_types.Uint128{}
-	for _, id := range accountIDs {
-		_, err := uuid.Parse(id)
-		if err != nil {
-			return nil, fmt.Errorf("Account ID must be a uuid. %w", pacioli.ErrInvalidArg)
-		}
-		accID, err := UuidToU128(id)
-		if err != nil {
-			return nil, err
-		}
+	// tbAccIDs := []tb_types.Uint128{}
+	// for _, id := range accountIDs {
+	// 	_, err := uuid.Parse(id)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("Account ID must be a uuid. %w", pacioli.ErrInvalidArg)
+	// 	}
+	// 	accID, err := UuidToU128(id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		tbAccIDs = append(tbAccIDs, *accID)
-	}
+	// 	tbAccIDs = append(tbAccIDs, *accID)
+	// }
 
 	trAccs, err := tigerroach.ListAccounts(ctx, b, accountIDs)
 	if err != nil {
@@ -150,41 +143,41 @@ func GetAccounts(
 	}
 
 	// Do sanity check to ensure all accounts have counterparts in tigerbeetle
-	tbAccsRaw, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
-	if err != nil {
-		log.Warn("failed to load accounts from tigerbeetle", zap.Error(err))
-		return trAccs, nil
-	}
+	// tbAccsRaw, err := b.TigerBeetle().LookupAccounts(tbAccIDs)
+	// if err != nil {
+	// 	log.Warn("failed to load accounts from tigerbeetle", zap.Error(err))
+	// 	return trAccs, nil
+	// }
 
-	tbAccs := make([]pacioli.Account, len(tbAccsRaw))
-	for i, tbAcc := range tbAccsRaw {
-		tbAccs[i] = pacioli.Account{
-			ID:             U128ToUuid(tbAcc.ID),
-			LedgerID:       tbAcc.Ledger,
-			Code:           tbAcc.Code,
-			DebitsPending:  tbAcc.DebitsPending,
-			DebitsPosted:   tbAcc.DebitsPosted,
-			CreditsPending: tbAcc.CreditsPending,
-			CreditsPosted:  tbAcc.CreditsPosted,
-			Flags:          pacioli.ToAccountFlags(tbAcc.Flags),
-		}
-	}
+	// tbAccs := make([]pacioli.Account, len(tbAccsRaw))
+	// for i, tbAcc := range tbAccsRaw {
+	// 	tbAccs[i] = pacioli.Account{
+	// 		ID:             U128ToUuid(tbAcc.ID),
+	// 		LedgerID:       tbAcc.Ledger,
+	// 		Code:           tbAcc.Code,
+	// 		DebitsPending:  tbAcc.DebitsPending,
+	// 		DebitsPosted:   tbAcc.DebitsPosted,
+	// 		CreditsPending: tbAcc.CreditsPending,
+	// 		CreditsPosted:  tbAcc.CreditsPosted,
+	// 		Flags:          pacioli.ToAccountFlags(tbAcc.Flags),
+	// 	}
+	// }
 
-	for _, trAcc := range trAccs {
-		var found pacioli.Account
-		for _, tbAcc := range tbAccs {
-			if tbAcc.ID == trAcc.ID {
-				found = tbAcc
-				break
-			}
-		}
+	// for _, trAcc := range trAccs {
+	// 	var found pacioli.Account
+	// 	for _, tbAcc := range tbAccs {
+	// 		if tbAcc.ID == trAcc.ID {
+	// 			found = tbAcc
+	// 			break
+	// 		}
+	// 	}
 
-		if found.ID == "" {
-			log.Warn("account exists in tigerroach but not in tigerbeetle", zap.String("account_id", trAcc.ID))
-		} else if !reflect.DeepEqual(found, trAcc) {
-			log.Warn("account mismatch between tigerroach and tigerbeetle ", zap.Any("tigerroach_acc", trAcc), zap.Any("tigerbeetle_acc", found))
-		}
-	}
+	// 	if found.ID == "" {
+	// 		log.Warn("account exists in tigerroach but not in tigerbeetle", zap.String("account_id", trAcc.ID))
+	// 	} else if !reflect.DeepEqual(found, trAcc) {
+	// 		log.Warn("account mismatch between tigerroach and tigerbeetle ", zap.Any("tigerroach_acc", trAcc), zap.Any("tigerbeetle_acc", found))
+	// 	}
+	// }
 
 	// TODO: ACL on accounts
 
@@ -203,44 +196,44 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 	}
 
 	// Insert into tigerbeetle as a best effort
-	tbTransfers := make([]tb_types.Transfer, len(args))
-	for i, transfer := range args {
-		transferID, err := UuidToU128(transfer.ID)
-		if err != nil {
-			log.Warn("failed to convert transfer id", zap.String("transerfer_id", transfer.ID), zap.Error(err))
-			continue
-		}
+	// tbTransfers := make([]tb_types.Transfer, len(args))
+	// for i, transfer := range args {
+	// 	transferID, err := UuidToU128(transfer.ID)
+	// 	if err != nil {
+	// 		log.Warn("failed to convert transfer id", zap.String("transerfer_id", transfer.ID), zap.Error(err))
+	// 		continue
+	// 	}
 
-		debitAccountID, err := UuidToU128(transfer.DebitAccountID)
-		if err != nil {
-			log.Warn("failed to convert transfer debit account id", zap.String("debit_acc_id", transfer.DebitAccountID), zap.Error(err))
-			continue
-		}
+	// 	debitAccountID, err := UuidToU128(transfer.DebitAccountID)
+	// 	if err != nil {
+	// 		log.Warn("failed to convert transfer debit account id", zap.String("debit_acc_id", transfer.DebitAccountID), zap.Error(err))
+	// 		continue
+	// 	}
 
-		creditAccountID, err := UuidToU128(transfer.CreditAccountID)
-		if err != nil {
-			log.Warn("failed to convert transfer credit account id", zap.String("credit_acc_id", transfer.CreditAccountID), zap.Error(err))
-			continue
-		}
+	// 	creditAccountID, err := UuidToU128(transfer.CreditAccountID)
+	// 	if err != nil {
+	// 		log.Warn("failed to convert transfer credit account id", zap.String("credit_acc_id", transfer.CreditAccountID), zap.Error(err))
+	// 		continue
+	// 	}
 
-		tbTransfers[i] = tb_types.Transfer{
-			ID:              *transferID,
-			DebitAccountID:  *debitAccountID,
-			CreditAccountID: *creditAccountID,
-			Amount:          transfer.Amount,
-			Code:            transfer.Code,
-			Flags:           transfer.Flags.ToUint16(),
-			Timeout:         transfer.Timeout,
-			Ledger:          transfer.Ledger,
-		}
-	}
+	// 	tbTransfers[i] = tb_types.Transfer{
+	// 		ID:              *transferID,
+	// 		DebitAccountID:  *debitAccountID,
+	// 		CreditAccountID: *creditAccountID,
+	// 		Amount:          transfer.Amount,
+	// 		Code:            transfer.Code,
+	// 		Flags:           transfer.Flags.ToUint16(),
+	// 		Timeout:         transfer.Timeout,
+	// 		Ledger:          transfer.Ledger,
+	// 	}
+	// }
 
-	eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
-	if err != nil {
-		log.Warn("failed to sync transfers into tigetbeetle", zap.Error(err))
-	} else if len(eventErrors) > 0 {
-		log.Warn("failed to sync transfers to tigerbeetle with error codes", zap.Any("error_codes", eventErrors))
-	}
+	// eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	// if err != nil {
+	// 	log.Warn("failed to sync transfers into tigetbeetle", zap.Error(err))
+	// } else if len(eventErrors) > 0 {
+	// 	log.Warn("failed to sync transfers to tigerbeetle with error codes", zap.Any("error_codes", eventErrors))
+	// }
 
 	return trRes, nil
 }
@@ -248,19 +241,19 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.Transfer, error) {
 	// TODO: ACL on ledgers involved
 
-	tbTransferIDs := make([]tb_types.Uint128, len(transferIDs))
-	for i, id := range transferIDs {
-		_, err := uuid.Parse(id)
-		if err != nil {
-			return nil, fmt.Errorf("transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
-		}
-		transferID, err := UuidToU128(id)
-		if err != nil {
-			return nil, err
-		}
+	// tbTransferIDs := make([]tb_types.Uint128, len(transferIDs))
+	// for i, id := range transferIDs {
+	// 	_, err := uuid.Parse(id)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
+	// 	}
+	// 	transferID, err := UuidToU128(id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		tbTransferIDs[i] = *transferID
-	}
+	// 	tbTransferIDs[i] = *transferID
+	// }
 
 	trTransfers, err := tigerroach.ListTransfers(ctx, b, transferIDs)
 	if err != nil {
@@ -268,62 +261,62 @@ func GetTransfers(ctx context.Context, b Backends, transferIDs []string) ([]paci
 	}
 
 	// Do sanity check to ensure all transfers have counterparts in tigerbeetle
-	tbTransfersRaw, err := b.TigerBeetle().LookupTransfers(tbTransferIDs)
-	if err != nil {
-		log.Warn("failed to load transfers from tigerbeetle", zap.Error(err))
-		return trTransfers, nil
-	}
+	// tbTransfersRaw, err := b.TigerBeetle().LookupTransfers(tbTransferIDs)
+	// if err != nil {
+	// 	log.Warn("failed to load transfers from tigerbeetle", zap.Error(err))
+	// 	return trTransfers, nil
+	// }
 
-	tbTransfers := make([]pacioli.Transfer, len(tbTransfersRaw))
-	for i, transfer := range tbTransfersRaw {
-		tbTransfers[i] = pacioli.Transfer{
-			ID:              U128ToUuid(transfer.ID),
-			PendingID:       U128ToUuid(transfer.PendingID),
-			DebitAccountID:  U128ToUuid(transfer.DebitAccountID),
-			CreditAccountID: U128ToUuid(transfer.CreditAccountID),
-			Amount:          transfer.Amount,
-			Code:            transfer.Code,
-			Flags: pacioli.TransferFlags{
-				Linked:              transfer.Flags&(1<<0) == 1,
-				Pending:             transfer.Flags&(1<<1) == 2,
-				PostPendingTransfer: transfer.Flags&(1<<2) == 4,
-				VoidPendingTransfer: transfer.Flags&(1<<3) == 8,
-			},
-		}
-	}
+	// tbTransfers := make([]pacioli.Transfer, len(tbTransfersRaw))
+	// for i, transfer := range tbTransfersRaw {
+	// 	tbTransfers[i] = pacioli.Transfer{
+	// 		ID:              U128ToUuid(transfer.ID),
+	// 		PendingID:       U128ToUuid(transfer.PendingID),
+	// 		DebitAccountID:  U128ToUuid(transfer.DebitAccountID),
+	// 		CreditAccountID: U128ToUuid(transfer.CreditAccountID),
+	// 		Amount:          transfer.Amount,
+	// 		Code:            transfer.Code,
+	// 		Flags: pacioli.TransferFlags{
+	// 			Linked:              transfer.Flags&(1<<0) == 1,
+	// 			Pending:             transfer.Flags&(1<<1) == 2,
+	// 			PostPendingTransfer: transfer.Flags&(1<<2) == 4,
+	// 			VoidPendingTransfer: transfer.Flags&(1<<3) == 8,
+	// 		},
+	// 	}
+	// }
 
-	for _, trTransfer := range trTransfers {
-		var found pacioli.Transfer
-		for _, tbTransfer := range tbTransfers {
-			if tbTransfer.ID == trTransfer.ID {
-				found = tbTransfer
-				break
-			}
-		}
+	// for _, trTransfer := range trTransfers {
+	// 	var found pacioli.Transfer
+	// 	for _, tbTransfer := range tbTransfers {
+	// 		if tbTransfer.ID == trTransfer.ID {
+	// 			found = tbTransfer
+	// 			break
+	// 		}
+	// 	}
 
-		if found.ID == "" {
-			log.Warn("transfer exists in tigerroach but not in tigerbeetle", zap.String("transfer_id", trTransfer.ID))
-		} else if !reflect.DeepEqual(found, trTransfer) {
-			log.Warn("transfer mismatch between tigerroach and tigerbeetle", zap.Any("tigerroach", trTransfer), zap.Any("tigerbeetle", found))
-		}
-	}
+	// 	if found.ID == "" {
+	// 		log.Warn("transfer exists in tigerroach but not in tigerbeetle", zap.String("transfer_id", trTransfer.ID))
+	// 	} else if !reflect.DeepEqual(found, trTransfer) {
+	// 		log.Warn("transfer mismatch between tigerroach and tigerbeetle", zap.Any("tigerroach", trTransfer), zap.Any("tigerbeetle", found))
+	// 	}
+	// }
 
 	return trTransfers, nil
 }
 
 func PostTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.TransferResult, error) {
-	var tbTransfers []tb_types.Transfer
+	// var tbTransfers []tb_types.Transfer
 
-	for _, id := range transferIDs {
-		_, err := uuid.Parse(id)
-		if err != nil {
-			return nil, fmt.Errorf("transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
-		}
-		_, err = UuidToU128(id)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// for _, id := range transferIDs {
+	// 	_, err := uuid.Parse(id)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
+	// 	}
+	// 	_, err = UuidToU128(id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	trNewIDs, trResults, err := tigerroach.PostTransfers(ctx, b, transferIDs)
 	if err != nil {
@@ -334,82 +327,82 @@ func PostTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 		return trResults, nil
 	}
 
-	for trOldID, trNewID := range trNewIDs {
-		newID, err := UuidToU128(trNewID)
-		if err != nil {
-			log.Warn("failed to convert new transfer ID", zap.Error(err))
-			continue
-		}
-		oldID, err := UuidToU128(trOldID)
-		if err != nil {
-			log.Warn("failed to convert old transfer ID", zap.Error(err))
-			continue
-		}
+	// for trOldID, trNewID := range trNewIDs {
+	// 	newID, err := UuidToU128(trNewID)
+	// 	if err != nil {
+	// 		log.Warn("failed to convert new transfer ID", zap.Error(err))
+	// 		continue
+	// 	}
+	// 	oldID, err := UuidToU128(trOldID)
+	// 	if err != nil {
+	// 		log.Warn("failed to convert old transfer ID", zap.Error(err))
+	// 		continue
+	// 	}
 
-		tbTransfers = append(tbTransfers, tb_types.Transfer{
-			ID:        *newID,
-			PendingID: *oldID,
-			Flags: pacioli.TransferFlags{
-				PostPendingTransfer: true,
-			}.ToUint16(),
-		})
-	}
+	// 	tbTransfers = append(tbTransfers, tb_types.Transfer{
+	// 		ID:        *newID,
+	// 		PendingID: *oldID,
+	// 		Flags: pacioli.TransferFlags{
+	// 			PostPendingTransfer: true,
+	// 		}.ToUint16(),
+	// 	})
+	// }
 
-	tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
-	if err != nil {
-		log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
-	} else if len(tbEventErrors) > 0 {
-		log.Warn("failed to sync posted transfers to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
-	}
+	// tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	// if err != nil {
+	// 	log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
+	// } else if len(tbEventErrors) > 0 {
+	// 	log.Warn("failed to sync posted transfers to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
+	// }
 
 	return trResults, nil
 }
 
 func VoidTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pacioli.TransferResult, error) {
-	tbTransfers := make([]tb_types.Transfer, len(transferIDs))
-	tbTransferIDs := make([]tb_types.Uint128, len(transferIDs))
+	// tbTransfers := make([]tb_types.Transfer, len(transferIDs))
+	// tbTransferIDs := make([]tb_types.Uint128, len(transferIDs))
 
-	for i, id := range transferIDs {
-		_, err := uuid.Parse(id)
-		if err != nil {
-			return nil, fmt.Errorf("Transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
-		}
-		transferID, err := UuidToU128(id)
-		if err != nil {
-			return nil, err
-		}
+	// for i, id := range transferIDs {
+	// 	_, err := uuid.Parse(id)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("Transfer ID must be a uuid. %w", pacioli.ErrInvalidArg)
+	// 	}
+	// 	transferID, err := UuidToU128(id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		tbTransferIDs[i] = *transferID
-	}
+	// 	tbTransferIDs[i] = *transferID
+	// }
 
 	trResults, err := tigerroach.VoidTransfers(ctx, b, transferIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	for i, tid := range tbTransferIDs {
+	// for i, tid := range tbTransferIDs {
 
-		newID, err := UuidToU128(uuid.NewString())
-		if err != nil {
-			log.Warn("failed to convert new transfer ID", zap.Error(err))
-			continue
-		}
+	// 	newID, err := UuidToU128(uuid.NewString())
+	// 	if err != nil {
+	// 		log.Warn("failed to convert new transfer ID", zap.Error(err))
+	// 		continue
+	// 	}
 
-		tbTransfers[i] = tb_types.Transfer{
-			ID:        *newID,
-			PendingID: tid,
-			Flags: pacioli.TransferFlags{
-				VoidPendingTransfer: true,
-			}.ToUint16(),
-		}
-	}
+	// 	tbTransfers[i] = tb_types.Transfer{
+	// 		ID:        *newID,
+	// 		PendingID: tid,
+	// 		Flags: pacioli.TransferFlags{
+	// 			VoidPendingTransfer: true,
+	// 		}.ToUint16(),
+	// 	}
+	// }
 
-	tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
-	if err != nil {
-		log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
-	} else if len(tbEventErrors) > 0 {
-		log.Warn("failed to sync posted transfers to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
-	}
+	// tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	// if err != nil {
+	// 	log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
+	// } else if len(tbEventErrors) > 0 {
+	// 	log.Warn("failed to sync posted transfers to tigerbeetle with error codes", zap.Any("error_codes", tbEventErrors))
+	// }
 
 	return trResults, nil
 }

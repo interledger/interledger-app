@@ -146,7 +146,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 }
 
 func (c *TestContainer) Cleanup() error {
-	c.b.TigerBeetle().Close()
+	// c.b.TigerBeetle().Close()
 
 	return nil
 }
