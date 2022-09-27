@@ -16,7 +16,7 @@ func (s *rpcService) GetCountries(
 
 	ret := make([]*backendv1.Country, len(countries))
 	for i, country := range countries {
-		ret[i] = &backendv1.Country{Id: country.ID, Name: country.Name}
+		ret[i] = &backendv1.Country{Id: country.Alpha_2, Name: country.Name}
 	}
 
 	return &backendv1.GetCountriesResponse{
