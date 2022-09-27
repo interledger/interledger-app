@@ -4,29 +4,18 @@ declare module "routes-gen" {
     "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/linked-accounts": Record<string, never>;
-    "/confirmation/:flowId": { "flowId": string };
-    "/confirmation/:flowId/linked-account": { "flowId": string };
-    "/confirmation/:flowId/withdraw": { "flowId": string };
-    "/confirmation/:flowId/deposit": { "flowId": string };
-    "/confirmation/:flowId/send": { "flowId": string };
+    "/signup/:flowId/password": { "flowId": string };
     "/legal/privacy-policy": Record<string, never>;
+    "/signup/:flowId/about": { "flowId": string };
+    "/signup/:flowId/phone": { "flowId": string };
     "/legal/terms-of-use": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/waitlist/success": Record<string, never>;
-    "/activity/filter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
-    "/onboarding/unit": Record<string, never>;
-    "/flows/:flowId": { "flowId": string };
-    "/flows/:flowId/linked-account/details": { "flowId": string };
-    "/flows/:flowId/linked-account/review": { "flowId": string };
-    "/flows/:flowId/linked-account/type": { "flowId": string };
-    "/flows/:flowId/signup/password": { "flowId": string };
-    "/flows/:flowId/signup/about": { "flowId": string };
-    "/flows/:flowId/signup/phone": { "flowId": string };
-    "/flows/:flowId/signup/sms": { "flowId": string };
+    "/api/sendOtp": Record<string, never>;
     "/disclosures": Record<string, never>;
     "/activity": Record<string, never>;
     "/recovery": Record<string, never>;
@@ -44,6 +33,7 @@ declare module "routes-gen" {
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
+    "/pay": Record<string, never>;
   };
 
   export function route<
@@ -52,29 +42,18 @@ declare module "routes-gen" {
       | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/linked-accounts"]
-      | ["/confirmation/:flowId", RouteParams["/confirmation/:flowId"]]
-      | ["/confirmation/:flowId/linked-account", RouteParams["/confirmation/:flowId/linked-account"]]
-      | ["/confirmation/:flowId/withdraw", RouteParams["/confirmation/:flowId/withdraw"]]
-      | ["/confirmation/:flowId/deposit", RouteParams["/confirmation/:flowId/deposit"]]
-      | ["/confirmation/:flowId/send", RouteParams["/confirmation/:flowId/send"]]
+      | ["/signup/:flowId/password", RouteParams["/signup/:flowId/password"]]
       | ["/legal/privacy-policy"]
+      | ["/signup/:flowId/about", RouteParams["/signup/:flowId/about"]]
+      | ["/signup/:flowId/phone", RouteParams["/signup/:flowId/phone"]]
       | ["/legal/terms-of-use"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
       | ["/waitlist/success"]
-      | ["/activity/filter"]
       | ["/contact/success"]
       | ["/login/challenge"]
-      | ["/onboarding/unit"]
-      | ["/flows/:flowId", RouteParams["/flows/:flowId"]]
-      | ["/flows/:flowId/linked-account/details", RouteParams["/flows/:flowId/linked-account/details"]]
-      | ["/flows/:flowId/linked-account/review", RouteParams["/flows/:flowId/linked-account/review"]]
-      | ["/flows/:flowId/linked-account/type", RouteParams["/flows/:flowId/linked-account/type"]]
-      | ["/flows/:flowId/signup/password", RouteParams["/flows/:flowId/signup/password"]]
-      | ["/flows/:flowId/signup/about", RouteParams["/flows/:flowId/signup/about"]]
-      | ["/flows/:flowId/signup/phone", RouteParams["/flows/:flowId/signup/phone"]]
-      | ["/flows/:flowId/signup/sms", RouteParams["/flows/:flowId/signup/sms"]]
+      | ["/api/sendOtp"]
       | ["/disclosures"]
       | ["/activity"]
       | ["/recovery"]
@@ -92,5 +71,6 @@ declare module "routes-gen" {
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
+      | ["/pay"]
   >(...args: T): typeof args[0];
 }
