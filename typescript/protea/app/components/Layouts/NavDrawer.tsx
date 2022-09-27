@@ -1,6 +1,6 @@
 import { Transition, Dialog } from '@headlessui/react'
 import { NavLink, useLocation } from '@remix-run/react'
-import type { FC } from 'react'
+import type { Dispatch, FC, SetStateAction } from 'react'
 import { Fragment, useEffect } from 'react'
 
 type ListItemProps = {
@@ -48,7 +48,7 @@ NavDrawerRoot.displayName = 'NavDrawerRoot'
 
 type ModalProps = {
   open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setOpen: Dispatch<SetStateAction<boolean>>
 }
 
 const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
