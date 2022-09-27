@@ -1,20 +1,14 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
-import { DateTime } from 'luxon'
-import type { FC } from 'react'
-import { Fragment } from 'react'
 import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
-import type { HomeQuery, HomeQueryVariables } from '~/generated/types'
-import { HomeDocument, TransactionType } from '~/generated/types'
-import { apolloClient } from '~/lib/apollo.server'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
 
 type Activity = {
   id: string
   amount: string
-  transactionType: TransactionType
+  // transactionType: TransactionType
   title: string
   description: string
   status: string
@@ -37,47 +31,6 @@ export async function loader({ request }: LoaderArgs) {
 
   if (isUser) {
     await requireUserSession(request)
-    const cookie = request.headers.get('cookie')
-
-    const account = await apolloClient
-      .query<HomeQuery, HomeQueryVariables>({
-        query: HomeDocument,
-        context: {
-          headers: {
-            cookie: cookie
-          }
-        }
-      })
-      .then((val) => val.data.account)
-
-    data.balance = account?.balance as string
-
-    if (typeof account?.recentTransactions !== 'undefined')
-      for (let trx of account?.recentTransactions) {
-        const activity = {
-          id: trx.id,
-          amount: trx.amount,
-          transactionType: trx.type,
-          title: activityTitle(trx.type),
-          description: trx.description,
-          status: trx.status
-        }
-        if (activity.status == 'pending') {
-          data.pendingTransactions.push(activity)
-          continue
-        }
-        const date = DateTime.fromISO(trx.timestamp).toFormat('dd LLLL yyyy')
-        const indexToPush = data.recentActivities.findIndex(
-          (val) => val.date == date
-        )
-        if (indexToPush >= 0)
-          data.recentActivities[indexToPush].activities.push(activity)
-        else
-          data.recentActivities.push({
-            date: date,
-            activities: [activity]
-          })
-      }
   }
   return json(data)
 }
@@ -382,8 +335,7 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { balance, recentActivities, pendingTransactions } =
-    useLoaderData<typeof loader>()
+  const { balance, recentActivities } = useLoaderData<typeof loader>()
   return (
     <div className='w-full'>
       {/* Header */}
@@ -404,28 +356,7 @@ function AppPage() {
           <span>Balance</span>
           <span className='font-display text-4xl'>{balance}</span>
         </div>
-        <div className='col-span-full flex justify-center space-x-3 py-4 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <Router
-            className='rounded-full'
-            to={route('/flows/:flowId/deposit/linked-account', {
-              flowId: 'init'
-            })}
-          >
-            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
-              Deposit
-            </div>
-          </Router>
-          <Router
-            className='rounded-full'
-            to={route('/flows/:flowId/withdraw/linked-account', {
-              flowId: 'init'
-            })}
-          >
-            <div className='flex h-10 w-36 cursor-pointer items-center justify-center rounded-full bg-container-primary font-display text-sm font-medium text-medium hover:bg-container-primary-hover active:bg-container-primary-active'>
-              Withdraw
-            </div>
-          </Router>
-        </div>
+
         {recentActivities.length > 0 && (
           <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <span className='font-display text-lg font-medium'>
@@ -439,83 +370,7 @@ function AppPage() {
             </Router>
           </div>
         )}
-        {/* Activity items */}
-        {recentActivities.map((activities) => (
-          <Fragment key={activities.date}>
-            <span className='col-span-full ml-4 mt-2 font-display text-xs sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-              {activities.date}
-            </span>
-            {activities.activities.map((activity) => (
-              <ActivityCard key={activity.id} activity={activity} />
-            ))}
-          </Fragment>
-        ))}
-        {pendingTransactions.length > 0 && (
-          <div className='col-span-full flex justify-start pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <span className='font-display text-lg font-medium'>Pending</span>
-          </div>
-        )}
-        {pendingTransactions.map((activity) => (
-          <ActivityCard key={activity.id} activity={activity} />
-        ))}
       </div>
     </div>
-  )
-}
-
-// TODO: Replace with implementation in the backend.
-const activityIcon = (type: TransactionType, status: string) => {
-  switch (status) {
-    case 'pending':
-      return 'hourglass_empty'
-    default:
-      break
-  }
-  switch (type) {
-    // case TransactionType.Received:
-    //   return <ReceivedIcon />
-    case TransactionType.Outgoingpayment:
-      return 'north_east'
-    case TransactionType.Deposit:
-      return 'account_balance'
-    case TransactionType.Withdrawal:
-      return 'account_balance'
-    default:
-      return null
-  }
-}
-
-const activityTitle = (type: TransactionType): string => {
-  switch (type) {
-    // case TransactionType.Received:
-    //   return <ReceivedIcon />
-    case TransactionType.Outgoingpayment:
-      return 'Sent'
-    case TransactionType.Deposit:
-      return 'Deposit'
-    case TransactionType.Withdrawal:
-      return 'Withdrawal'
-    default:
-      return ''
-  }
-}
-
-const ActivityCard: FC<{ activity: Activity }> = ({ activity }) => {
-  return (
-    <Router
-      to={route('/activity/transaction/:id', {
-        id: activity.id
-      })}
-      className='col-span-full flex items-center justify-between rounded-xl bg-container py-2 px-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-    >
-      <div className='flex items-center justify-between space-x-3'>
-        <Icon>{activityIcon(activity.transactionType, activity.status)}</Icon>
-        <div className='flex flex-col'>
-          <span className='font-display font-medium'>{activity.title}</span>
-          <span className='text-xs'>{activity.description}</span>
-        </div>
-      </div>
-      <span className='text-lg'>{activity.amount}</span>
-    </Router>
   )
 }
