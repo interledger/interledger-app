@@ -8,13 +8,7 @@ import {
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
-import type {
-  InitiateOnboardingMutation,
-  InitiateOnboardingMutationVariables
-} from '~/generated/types'
-import { InitiateOnboardingDocument } from '~/generated/types'
 import type { Session } from '@ory/kratos-client'
-import { apolloClient } from '~/lib/apollo.server'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -37,25 +31,11 @@ export async function loader({ request }: LoaderArgs) {
   const userSession: Session = await session.json()
   if (session.status >= 400) handleFlowError(session, 'verify')
 
-  const onboarding = await apolloClient
-    .mutate<InitiateOnboardingMutation, InitiateOnboardingMutationVariables>({
-      mutation: InitiateOnboardingDocument,
-      context: {
-        headers: {
-          cookie: cookie
-        }
-      }
-    })
-    .then((val) => val.data?.initiateOnboarding)
-  console.log(onboarding)
-
   // Check the user has at least one verifiable address.
   if (!userSession.identity.verifiable_addresses)
     return redirect(route('/signup'))
   // We currently only allow one email per user.
   if (userSession.identity.verifiable_addresses[0].verified) {
-    if (onboarding?.success)
-      return redirect(onboarding?.providerOnboarding.formUrl)
     return redirect(route('/'))
   }
 

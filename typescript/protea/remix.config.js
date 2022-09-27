@@ -7,6 +7,6 @@ module.exports = {
   assetsBuildDirectory: 'public/build',
   publicPath: '/build/',
   devServerPort: 8002,
-  ignoredRouteFiles: ['.*', '**/*.draft.mdx', '**/*.graphql'],
+  ignoredRouteFiles: ['.*', '**/*.draft.mdx'],
   sourcemap: true
 }
