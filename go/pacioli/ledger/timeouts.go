@@ -8,10 +8,6 @@ import (
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
-	"github.com/google/uuid"
-
-	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
 )
 
@@ -59,47 +55,47 @@ func timeoutTransfers(ctx context.Context, b Backends) error {
 	}
 
 	// Now attempt to do the same for tigerbeetle
-	var tbTranfers []tb_types.Transfer
-	for _, id := range successIDs {
-		newID, err := UuidToU128(uuid.NewString())
-		if err != nil {
-			log.Error("failed to convert uuid for tigerbeetle", zap.Error(err))
-			continue
-		}
+	// var tbTranfers []tb_types.Transfer
+	// for _, id := range successIDs {
+	// 	newID, err := UuidToU128(uuid.NewString())
+	// 	if err != nil {
+	// 		log.Error("failed to convert uuid for tigerbeetle", zap.Error(err))
+	// 		continue
+	// 	}
 
-		pendingID, err := UuidToU128(id)
-		if err != nil {
-			log.Error("failed to convert uuid for tigerbeetle", zap.Error(err))
-			continue
-		}
-		tbTranfers = append(tbTranfers, tb_types.Transfer{
-			ID:        *newID,
-			PendingID: *pendingID,
-			Flags: pacioli.TransferFlags{
-				VoidPendingTransfer: true,
-			}.ToUint16(),
-		})
-	}
-	tbErrors, err := b.TigerBeetle().CreateTransfers(tbTranfers)
-	if err != nil {
-		return err
-	}
+	// 	pendingID, err := UuidToU128(id)
+	// 	if err != nil {
+	// 		log.Error("failed to convert uuid for tigerbeetle", zap.Error(err))
+	// 		continue
+	// 	}
+	// 	tbTranfers = append(tbTranfers, tb_types.Transfer{
+	// 		ID:        *newID,
+	// 		PendingID: *pendingID,
+	// 		Flags: pacioli.TransferFlags{
+	// 			VoidPendingTransfer: true,
+	// 		}.ToUint16(),
+	// 	})
+	// }
+	// tbErrors, err := b.TigerBeetle().CreateTransfers(tbTranfers)
+	// if err != nil {
+	// 	return err
+	// }
 
-	var tbActualErrors []tb_types.TransferEventResult
-	for _, tbErr := range tbErrors {
-		switch tbErr.Code {
-		case tb_types.TransferPendingTransferAlreadyVoided,
-			tb_types.TransferPendingTransferExpired:
-			continue
-		}
+	// var tbActualErrors []tb_types.TransferEventResult
+	// for _, tbErr := range tbErrors {
+	// 	switch tbErr.Code {
+	// 	case tb_types.TransferPendingTransferAlreadyVoided,
+	// 		tb_types.TransferPendingTransferExpired:
+	// 		continue
+	// 	}
 
-		tbActualErrors = append(tbActualErrors, tbErr)
-	}
+	// 	tbActualErrors = append(tbActualErrors, tbErr)
+	// }
 
-	if len(tbActualErrors) > 0 {
-		log.Warn("failed to sync timedout transfers to tigerbeetle with error codes",
-			zap.Any("error_codes", tbActualErrors))
-	}
+	// if len(tbActualErrors) > 0 {
+	// 	log.Warn("failed to sync timedout transfers to tigerbeetle with error codes",
+	// 		zap.Any("error_codes", tbActualErrors))
+	// }
 
 	return nil
 }
