@@ -37,6 +37,7 @@ func TestLinkedAccounts(s *testing.T) {
 
 		assert.NotNil(t, linkedAccount)
 		assert.Equal(t, linkedAccount.Provider, "mx")
+		assert.Equal(t, linkedAccount.ProviderID, "")
 		assert.Equal(t, linkedAccount.Type, "bank")
 		assert.Equal(t, linkedAccount.WalletId, wallet.ID)
 	})
@@ -48,11 +49,12 @@ func TestLinkedAccounts(s *testing.T) {
 			t.Fatal(err)
 		}
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-			WalletID: wallet.ID,
-			Name:     "Test",
-			Mask:     "1234",
-			Provider: "mx",
-			Type:     "bank",
+			WalletID:   wallet.ID,
+			Name:       "Test",
+			Mask:       "1234",
+			Provider:   "mx",
+			ProviderID: "123",
+			Type:       "bank",
 		})
 		require.NoError(t, err)
 
@@ -62,6 +64,7 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.NotNil(t, fs)
 		assert.Equal(t, fs.ID, linkedAccount.ID)
 		assert.Equal(t, fs.WalletId, wallet.ID)
+		assert.Equal(t, "123", fs.ProviderID)
 	})
 
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {
