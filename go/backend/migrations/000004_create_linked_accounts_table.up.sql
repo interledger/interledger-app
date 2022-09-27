@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS linked_accounts (
 	name 						TEXT NOT NULL,
 	mask						TEXT NOT NULL,
 	provider			            TEXT NOT NULL,
+	provider_id			            TEXT NOT NULL,
 	type                     TEXT NOT NULL,
 	created_at                  TIMESTAMP NOT NULL DEFAULT now(),
     updated_at                  TIMESTAMP NOT NULL DEFAULT now()

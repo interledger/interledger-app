@@ -29,16 +29,17 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		&linkedAccount,
 		`
 			INSERT INTO linked_accounts (
-				id, wallet_id, name, mask, provider, type
+				id, wallet_id, name, mask, provider, provider_id, type
 			)
-			VALUES ($1, $2, $3, $4, $5, $6)
-			RETURNING *;
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			RETURNING id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at;
 		`,
 		linkedAccountID,
 		args.WalletID,
 		args.Name,
 		args.Mask,
 		args.Provider,
+		args.ProviderID,
 		args.Type,
 	)
 	if err != nil {
@@ -54,7 +55,12 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	}
 
 	var linkedAccount linkedaccounts.LinkedAccount
-	err := b.DB().GetContext(ctx, &linkedAccount, "SELECT * FROM linked_accounts where id=$1 LIMIT 1;", id)
+	err := b.DB().GetContext(
+		ctx,
+		&linkedAccount,
+		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts where id=$1 LIMIT 1;",
+		id,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, linkedaccounts.ErrNotFound
@@ -69,7 +75,12 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkedaccounts.LinkedAccount, error) {
 
 	linkedAccounts := []linkedaccounts.LinkedAccount{}
-	err := b.DB().SelectContext(ctx, &linkedAccounts, "SELECT * FROM linked_accounts WHERE wallet_id=$1;", walletId)
+	err := b.DB().SelectContext(
+		ctx,
+		&linkedAccounts,
+		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE wallet_id=$1;",
+		walletId,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, linkedaccounts.ErrNotFound
