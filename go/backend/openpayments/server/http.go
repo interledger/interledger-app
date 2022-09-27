@@ -40,11 +40,7 @@ func catchAllHandler(b Backends) http.HandlerFunc {
 }
 
 func getFullURL(req *http.Request) string {
-	url := path.Join(req.Host, req.URL.String())
-	if req.TLS == nil {
-		return fmt.Sprintf("http://%s", url)
-	}
-	return fmt.Sprintf("https://%s", url)
+	return fmt.Sprintf("https://%s", path.Join(req.Host, req.URL.String()))
 }
 
 // postHandler handles all incoming POST requests and routes them according to the URL contents and suffixing.

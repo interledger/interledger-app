@@ -28,10 +28,10 @@ import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
 import { OpenPaymentService } from "./backend";
 import type { ListWalletPaymentPointersResponse } from "./backend";
-import type { ListWalletPaymentPointersRequest } from "./backend";
+import type { PaymentPointer } from "./backend";
 import type { GetPaymentPointerRequest } from "./backend";
 import type { Empty } from "./backend";
-import type { PaymentPointer } from "./backend";
+import type { CreatePaymentPointerRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendAdminService } from "./backend";
@@ -71,17 +71,17 @@ export class BackendAdminServiceClient implements IBackendAdminServiceClient, Se
  */
 export interface IOpenPaymentServiceClient {
     /**
-     * @generated from protobuf rpc: CreatePaymentPointer(backend.v1.PaymentPointer) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreatePaymentPointer(backend.v1.CreatePaymentPointerRequest) returns (backend.v1.Empty);
      */
-    createPaymentPointer(input: PaymentPointer, options?: RpcOptions): UnaryCall<PaymentPointer, Empty>;
+    createPaymentPointer(input: CreatePaymentPointerRequest, options?: RpcOptions): UnaryCall<CreatePaymentPointerRequest, Empty>;
     /**
      * @generated from protobuf rpc: GetPaymentPointer(backend.v1.GetPaymentPointerRequest) returns (backend.v1.PaymentPointer);
      */
     getPaymentPointer(input: GetPaymentPointerRequest, options?: RpcOptions): UnaryCall<GetPaymentPointerRequest, PaymentPointer>;
     /**
-     * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.ListWalletPaymentPointersRequest) returns (backend.v1.ListWalletPaymentPointersResponse);
+     * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.Empty) returns (backend.v1.ListWalletPaymentPointersResponse);
      */
-    listWalletPaymentPointers(input: ListWalletPaymentPointersRequest, options?: RpcOptions): UnaryCall<ListWalletPaymentPointersRequest, ListWalletPaymentPointersResponse>;
+    listWalletPaymentPointers(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListWalletPaymentPointersResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.OpenPaymentService
@@ -93,11 +93,11 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * @generated from protobuf rpc: CreatePaymentPointer(backend.v1.PaymentPointer) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreatePaymentPointer(backend.v1.CreatePaymentPointerRequest) returns (backend.v1.Empty);
      */
-    createPaymentPointer(input: PaymentPointer, options?: RpcOptions): UnaryCall<PaymentPointer, Empty> {
+    createPaymentPointer(input: CreatePaymentPointerRequest, options?: RpcOptions): UnaryCall<CreatePaymentPointerRequest, Empty> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaymentPointer, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<CreatePaymentPointerRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetPaymentPointer(backend.v1.GetPaymentPointerRequest) returns (backend.v1.PaymentPointer);
@@ -107,11 +107,11 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<GetPaymentPointerRequest, PaymentPointer>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.ListWalletPaymentPointersRequest) returns (backend.v1.ListWalletPaymentPointersResponse);
+     * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.Empty) returns (backend.v1.ListWalletPaymentPointersResponse);
      */
-    listWalletPaymentPointers(input: ListWalletPaymentPointersRequest, options?: RpcOptions): UnaryCall<ListWalletPaymentPointersRequest, ListWalletPaymentPointersResponse> {
+    listWalletPaymentPointers(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListWalletPaymentPointersResponse> {
         const method = this.methods[2], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ListWalletPaymentPointersRequest, ListWalletPaymentPointersResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<Empty, ListWalletPaymentPointersResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**
