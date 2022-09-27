@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Logo, Router, TextField } from '~/components'
+import { Button, Router, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -45,74 +45,105 @@ export async function loader({ request }: LoaderArgs) {
   return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
+const shapes = [
+  [
+    'bg-slate-600 rounded-tl-full',
+    'bg-transparent',
+    'bg-yellow-400 rounded-tr-full',
+    'bg-rose-300 rounded-tl-full',
+    'bg-lime-400 rounded-full',
+    'bg-transparent',
+    'bg-rose-500 rounded-full',
+    'bg-lime-300 rounded-tr-full',
+    'bg-transparent',
+    'bg-transparent'
+  ],
+  [
+    'bg-transparent',
+    'bg-rose-400 rounded-full',
+    'bg-lime-500 rounded-bl-full',
+    'bg-transparent',
+    'bg-slate-300 rounded-tl-full',
+    'bg-yellow-200 rounded-tl-full',
+    'bg-slate-500 rounded-br-full',
+    'bg-transparent',
+    'bg-rose-100 rounded-full',
+    'bg-rose-300 rounded-bl-full'
+  ]
+]
+
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken } = useLoaderData<typeof loader>()
   return (
-    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/')}>
-          <Logo className='h-8' />
-        </Router>
+    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
+      <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'>
+        {shapes.map((shapeRow) => (
+          <div className='flex' key={shapeRow.toString()}>
+            {shapeRow.map((shape, index) => (
+              <div
+                key={shape + index}
+                className={`aspect-square w-full ${shape}`}
+              />
+            ))}
+          </div>
+        ))}
       </div>
-      <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal'>
-          Sign in to your account
-        </h1>
-      </div>
-      <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>
-          Or{' '}
-          <Router to={route('/signup')}>
-            <span className='text-primary'>create a new account.</span>
+      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2'>
+        <span className='font-display text-2xl font-medium'>Log in</span>
+        <span className='text-medium'>
+          New to Fynbos?{' '}
+          <Router className='text-primary' to={route('/signup')}>
+            Sign up
           </Router>
-        </p>
+        </span>
       </div>
-      {/* Form */}
       <Form
+        id='login'
         action={`/login?flow=${flow.id}`}
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-      >
-        <TextField
-          id='email'
-          label='Email'
-          name='email'
-          type='email'
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.email}
-        />
-        <TextField
-          id='password'
-          label='Password'
-          name='password'
-          type='password'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
+        className='hidden'
+      />
+      <TextField
+        id='email'
+        label='Email'
+        name='email'
+        type='email'
+        form='login'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+        aria-describedby={actionData?.errors?.email ? 'email-error' : undefined}
+        required
+        errorMessage={actionData?.errors?.email}
+      />
+      <TextField
+        id='password'
+        label='Password'
+        name='password'
+        type='password'
+        form='login'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+        aria-describedby={
+          actionData?.errors?.password ? 'password-error' : undefined
+        }
+        required
+        errorMessage={actionData?.errors?.password}
+      />
 
-        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
+      <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
 
-        <div className='flex min-w-full items-center justify-between pt-4'>
-          {/* TODO add ?email= 
-          - Could try get the email from the form
-          - Could use <button name='recovery' type='submit'>?
-          */}
-          <Router to={route('/recovery')} aria-label='Forgot password?'>
-            <span className='text-primary'>Forgot password?</span>
-          </Router>
-          <Button type='submit'>Login</Button>
-        </div>
-      </Form>
-    </main>
+      <div className='col-span-full sm:col-span-6 sm:col-start-2'>
+        <Button form='login' type='submit'>
+          Login
+        </Button>
+      </div>
+      <div className='col-span-full flex justify-end sm:col-span-6 sm:col-start-2'>
+        <Router to={route('/recovery')} aria-label='Forgot password?'>
+          <span className='text-primary'>Forgot password?</span>
+        </Router>
+      </div>
+    </div>
   )
 }
 
