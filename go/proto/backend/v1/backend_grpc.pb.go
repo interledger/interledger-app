@@ -282,6 +282,7 @@ type BackendServiceClient interface {
 	GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
+	LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 }
 
 type backendServiceClient struct {
@@ -436,6 +437,15 @@ func (c *backendServiceClient) GetCountries(ctx context.Context, in *Empty, opts
 	return out, nil
 }
 
+func (c *backendServiceClient) LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/LinkCashAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -460,6 +470,7 @@ type BackendServiceServer interface {
 	GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
+	LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -513,6 +524,9 @@ func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *C
 }
 func (UnimplementedBackendServiceServer) GetCountries(context.Context, *Empty) (*GetCountriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCountries not implemented")
+}
+func (UnimplementedBackendServiceServer) LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LinkCashAccount not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -814,6 +828,24 @@ func _BackendService_GetCountries_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_LinkCashAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LinkCashAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).LinkCashAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/LinkCashAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).LinkCashAccount(ctx, req.(*LinkCashAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -884,6 +916,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCountries",
 			Handler:    _BackendService_GetCountries_Handler,
+		},
+		{
+			MethodName: "LinkCashAccount",
+			Handler:    _BackendService_LinkCashAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
