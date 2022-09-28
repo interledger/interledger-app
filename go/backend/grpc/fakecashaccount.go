@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/fakecash"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -21,13 +22,19 @@ func (s *rpcService) LinkCashAccount(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
+	fakecashAccount, err := s.b.FakeCash().Create(ctx, fakecash.CreateArgs{})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	linkedAccount, err := s.b.LinkedAccounts().Create(
 		ctx,
 		&linkedaccounts.CreateArgs{
-			WalletID: wallet.ID,
-			Name:     req.GetName(),
-			Provider: "fakecash",
-			Type:     "fakecash",
+			WalletID:   wallet.ID,
+			Name:       req.GetName(),
+			Provider:   "fakecash",
+			ProviderID: fakecashAccount.ID,
+			Type:       "fakecash",
 		},
 	)
 	if err != nil {

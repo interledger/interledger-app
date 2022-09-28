@@ -30,6 +30,7 @@ import (
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/migrations"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
@@ -336,6 +337,7 @@ type backends struct {
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	countries      country.Client
+	fakecash       fakecash.Client
 	linkedaccounts linkedaccounts.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
@@ -362,6 +364,10 @@ func (b backends) AdminAuth() auth.Service {
 
 func (b backends) Agreements() agreements.Client {
 	return b.agreements
+}
+
+func (b backends) FakeCash() fakecash.Client {
+	return b.fakecash
 }
 
 func (b backends) Rafiki() rafiki.Service {

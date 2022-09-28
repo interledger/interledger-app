@@ -27,6 +27,8 @@ import (
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/fakecash"
+	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
@@ -48,6 +50,7 @@ type TestContainer struct {
 	Ctrl            *gomock.Controller
 	Db              *sqlx.DB
 	linkedAccounts  linkedaccounts.Client
+	fakeCash        *fakecash_mock.MockClient
 	Hs              healthcheck.Service
 	Si              signup.Client
 	Oso             *oso.Oso
@@ -78,6 +81,10 @@ func (c *TestContainer) Agreements() agreements.Client {
 
 func (c *TestContainer) LinkedAccounts() linkedaccounts.Client {
 	return c.linkedAccounts
+}
+
+func (c *TestContainer) FakeCash() fakecash.Client {
+	return c.fakeCash
 }
 
 func (c *TestContainer) HealthCheck() healthcheck.Service {

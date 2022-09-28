@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -22,6 +23,7 @@ type Backends interface {
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
 	Countries() country.Client
+	FakeCash() fakecash.Client
 	LinkedAccounts() linkedaccounts.Client
 	HealthCheck() healthcheck.Service
 	Signup() signup.Client
