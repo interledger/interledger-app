@@ -3,6 +3,9 @@ package external
 const (
 	StatusVerified   = "VERIFIED"
 	StatusUnverified = "UNVERIFIED"
+
+	SendUser    = "SEND"
+	ReceiveUser = "RECEIVE"
 )
 
 type User struct {
@@ -24,6 +27,7 @@ type User struct {
 	Type              string             `json:"type,omitempty"`
 	PhysicalDocuments []PhysicalDocument `json:"physical_documents,omitempty"`
 	Status            string             `json:"status,omitempty"`
+	SendUserID        string             `json:"send_user_id,omitempty"`
 	Business          bool               `json:"business,omitempty"`
 	BusinessType      string             `json:"business_type,omitempty"`
 }

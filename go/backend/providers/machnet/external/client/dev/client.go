@@ -2,6 +2,7 @@ package dev
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/google/uuid"
@@ -11,17 +12,36 @@ import (
 var _ external.Client = Client{}
 
 func New() *Client {
-	return &Client{users: map[string]external.User{}}
+	return &Client{
+		users:               map[string]external.User{},
+		userHasReceiveUsers: map[string][]string{},
+	}
 }
 
 type Client struct {
-	users map[string]external.User
+	users               map[string]external.User
+	userHasReceiveUsers map[string][]string
 }
 
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
+	if user.Type != external.SendUser && user.Type != external.ReceiveUser {
+		return nil, fmt.Errorf("%w Type must be SEND/RECEIVE", external.ErrInvalidArgument)
+	}
+	if user.Type == external.ReceiveUser && user.SendUserID == "" {
+		return nil, fmt.Errorf("%w SendUserID is required for a RECEIVE user.", external.ErrInvalidArgument)
+	}
+
 	ret := user
 	ret.ID = uuid.NewString()
 	ret.Status = external.StatusUnverified
+	if user.Type == external.ReceiveUser {
+		sendUser, err := c.GetUserByID(ctx, user.SendUserID)
+		if err != nil {
+			return nil, fmt.Errorf("%w Send user not found.", external.ErrInternal)
+		}
+
+		c.userHasReceiveUsers[sendUser.ID] = append(c.userHasReceiveUsers[sendUser.ID], ret.ID)
+	}
 	c.users[ret.ID] = ret
 
 	return &ret, nil
@@ -31,6 +51,12 @@ func (c Client) UpdateUser(ctx context.Context, id string, newValues external.Us
 	user, found := c.users[id]
 	if !found {
 		return nil, external.ErrNotFound
+	}
+	if newValues.Type != "" {
+		return nil, fmt.Errorf("%w Cannot change user type.", external.ErrInvalidArgument)
+	}
+	if newValues.SendUserID != "" {
+		return nil, fmt.Errorf("%w Cannot change SendUserID.", external.ErrInvalidArgument)
 	}
 
 	v := reflect.ValueOf(newValues)
@@ -90,4 +116,18 @@ func (c Client) GetVerificationStatus(
 			AddressLine1: user.Status,
 		},
 	}, nil
+}
+
+func (c Client) GetReceiveUserList(ctx context.Context, userID string) ([]external.User, error) {
+	user, found := c.users[userID]
+	if !found {
+		return nil, external.ErrNotFound
+	}
+	receiveUsers := c.userHasReceiveUsers[user.ID]
+	ret := make([]external.User, len(receiveUsers))
+	for i, id := range receiveUsers {
+		ret[i] = c.users[id]
+	}
+
+	return ret, nil
 }

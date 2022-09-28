@@ -19,6 +19,7 @@ func TestDevClient(t *testing.T) {
 		Gender:       "male",
 		AddressLine1: "Netflix",
 		Email:        "its@pickle.rick",
+		Type:         "SEND",
 	})
 	require.NoError(t, err)
 	require.Equal(t, "Pickle", user.FirstName)
@@ -57,4 +58,19 @@ func TestDevClient(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, external.StatusVerified, kycStatus.KycStatus)
 	require.Equal(t, external.StatusVerified, kycStatus.CipInfo.FirstName)
+
+	// receive users
+	receiveUser, err := client.RegisterUser(context.Background(), external.User{
+		FirstName:  "James",
+		Type:       "RECEIVE",
+		SendUserID: user.ID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, user.ID, receiveUser.SendUserID)
+	require.Equal(t, "RECEIVE", receiveUser.Type)
+
+	receiveUsers, err := client.GetReceiveUserList(context.Background(), user.ID)
+	require.NoError(t, err)
+	require.Len(t, receiveUsers, 1)
+	require.Equal(t, receiveUser.ID, receiveUsers[0].ID)
 }
