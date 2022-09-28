@@ -11,6 +11,8 @@ const (
 
 	TypeCard = "CARD"
 	TypeBank = "Bank"
+
+	DeliveryStatusNone = "NONE"
 )
 
 type User struct {
@@ -67,21 +69,36 @@ type CipInfo struct {
 type VerificationStatus struct {
 	CipInfo   CipInfo `json:"cip_info,omitempty"`
 	KycStatus string  `json:"kyc_status,omitempty"`
-	UserID    string  `json:"user_id"`
+	UserID    string  `json:"user_id,omitempty"`
 }
 
 type WidgetTokenResponse struct {
-	ExpiryMinutes int    `json:"expiry_minutes"`
-	UserID        string `json:"user_id"`
-	Token         string `json:"token"`
+	ExpiryMinutes int    `json:"expiry_minutes,omitempty"`
+	UserID        string `json:"user_id,omitempty"`
+	Token         string `json:"token,omitempty"`
 }
 
 type FundingSource struct {
-	ID                 string `json:"id"`
-	UserID             string `json:"user_id"`
-	FundingsourceName  string `json:"funding_source_name"`
-	FundingsourceType  string `json:"funding_source_type"`
-	AccountNumber      string `json:"account_number"`
-	InstitutionName    string `json:"institution_name"`
-	VerificationStatus string `json:"verification_status"`
+	ID                 string `json:"id,omitempty"`
+	UserID             string `json:"user_id,omitempty"`
+	FundingsourceName  string `json:"funding_source_name,omitempty"`
+	FundingsourceType  string `json:"funding_source_type,omitempty"`
+	AccountNumber      string `json:"account_number,omitempty"`
+	InstitutionName    string `json:"institution_name,omitempty"`
+	VerificationStatus string `json:"verification_status,omitempty"`
+}
+
+type Transaction struct {
+	ID                string  `json:"id,omitempty"`
+	UserID            string  `json:"user_id,omitempty"`
+	FromAmount        float64 `json:"from_amount,omitempty"`
+	FromCurrency      string  `json:"from_currency,omitempty"`
+	ToAmount          float64 `json:"to_amount,omitempty"`
+	ToCurrency        string  `json:"to_currency,omitempty"`
+	FeeAmount         float64 `json:"fee_amount,omitempty"`
+	ExchangeRate      float64 `json:"exchange_rate,omitempty"`
+	FromFundID        string  `json:"from_fund_id,omitempty"`
+	FundingsourceType string  `json:"funding_source_type,omitempty"`
+	DeliveryStatus    string  `json:"delivery_status,omitempty"`
+	// TODO: to field
 }
