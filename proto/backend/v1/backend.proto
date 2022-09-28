@@ -79,6 +79,7 @@ service BackendService {
   rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
+  rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
 }
 
 message GetStatementsResponse {
@@ -230,4 +231,8 @@ message Country {
 
 message GetCountriesResponse {
   repeated Country countries = 1;
+}
+
+message LinkCashAccountRequest {
+  string name = 1;
 }
