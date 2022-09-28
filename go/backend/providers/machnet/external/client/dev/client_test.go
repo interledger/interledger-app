@@ -12,6 +12,7 @@ import (
 func TestDevClient(t *testing.T) {
 	client := dev.New()
 
+	// crud
 	user, err := client.RegisterUser(context.Background(), external.User{
 		FirstName:    "Pickle",
 		LastName:     "Rick",
@@ -43,4 +44,17 @@ func TestDevClient(t *testing.T) {
 	require.Equal(t, "Netflix", freshUser.AddressLine1)
 	require.Equal(t, "its@morty.rick", freshUser.Email)
 	require.Equal(t, external.StatusUnverified, freshUser.Status)
+
+	// kyc
+	kycStatus, err := client.GetVerificationStatus(context.Background(), user.ID)
+	require.NoError(t, err)
+	require.Equal(t, external.StatusUnverified, kycStatus.KycStatus)
+
+	err = client.InitiateKyc(context.Background(), user.ID)
+	require.NoError(t, err)
+
+	kycStatus, err = client.GetVerificationStatus(context.Background(), user.ID)
+	require.NoError(t, err)
+	require.Equal(t, external.StatusVerified, kycStatus.KycStatus)
+	require.Equal(t, external.StatusVerified, kycStatus.CipInfo.FirstName)
 }
