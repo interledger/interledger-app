@@ -8,4 +8,5 @@ type Client interface {
 	GetUserByID(ctx context.Context, id string) (*User, error)
 	InitiateKyc(ctx context.Context, userID string) error
 	GetVerificationStatus(ctx context.Context, userID string) (*VerificationStatus, error)
+	GetReceiveUserList(ctx context.Context, userID string) ([]User, error)
 }
