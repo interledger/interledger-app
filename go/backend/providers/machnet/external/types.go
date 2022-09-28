@@ -12,7 +12,8 @@ const (
 	TypeCard = "CARD"
 	TypeBank = "Bank"
 
-	DeliveryStatusNone = "NONE"
+	DeliveryStatusNone      = "NONE"
+	DeliveryStatusRequested = "DELIVERY_REQUESTED"
 )
 
 type User struct {
@@ -101,4 +102,10 @@ type Transaction struct {
 	FundingsourceType string  `json:"funding_source_type,omitempty"`
 	DeliveryStatus    string  `json:"delivery_status,omitempty"`
 	// TODO: to field
+}
+
+type DeliveryRequest struct {
+	Status        string `json:"status"`
+	TransactionID string `json:"transaction_id"`
+	UserID        string `json:"user_id"`
 }

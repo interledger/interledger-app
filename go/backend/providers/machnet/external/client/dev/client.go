@@ -204,3 +204,15 @@ func (c Client) CreateTransaction(
 
 	return &trx, nil
 }
+
+func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.DeliveryRequest) error {
+	trx, found := c.transactions[request.TransactionID]
+	if !found {
+		return fmt.Errorf("%w Transaction not found.", external.ErrNotFound)
+	}
+
+	trx.DeliveryStatus = request.Status
+	c.transactions[trx.ID] = trx
+
+	return nil
+}
