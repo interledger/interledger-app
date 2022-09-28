@@ -3,9 +3,14 @@ package external
 const (
 	StatusVerified   = "VERIFIED"
 	StatusUnverified = "UNVERIFIED"
+	StatusFailed     = "FAILED"
+	StatusPending    = "PENDING"
 
 	SendUser    = "SEND"
 	ReceiveUser = "RECEIVE"
+
+	TypeCard = "CARD"
+	TypeBank = "Bank"
 )
 
 type User struct {
@@ -63,4 +68,20 @@ type VerificationStatus struct {
 	CipInfo   CipInfo `json:"cip_info,omitempty"`
 	KycStatus string  `json:"kyc_status,omitempty"`
 	UserID    string  `json:"user_id"`
+}
+
+type WidgetTokenResponse struct {
+	ExpiryMinutes int    `json:"expiry_minutes"`
+	UserID        string `json:"user_id"`
+	Token         string `json:"token"`
+}
+
+type FundingSource struct {
+	ID                 string `json:"id"`
+	UserID             string `json:"user_id"`
+	FundingsourceName  string `json:"funding_source_name"`
+	FundingsourceType  string `json:"funding_source_type"`
+	AccountNumber      string `json:"account_number"`
+	InstitutionName    string `json:"institution_name"`
+	VerificationStatus string `json:"verification_status"`
 }

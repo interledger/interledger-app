@@ -15,12 +15,14 @@ func New() *Client {
 	return &Client{
 		users:               map[string]external.User{},
 		userHasReceiveUsers: map[string][]string{},
+		fundingsources:      map[string]external.FundingSource{},
 	}
 }
 
 type Client struct {
 	users               map[string]external.User
 	userHasReceiveUsers map[string][]string
+	fundingsources      map[string]external.FundingSource
 }
 
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
@@ -123,11 +125,62 @@ func (c Client) GetReceiveUserList(ctx context.Context, userID string) ([]extern
 	if !found {
 		return nil, external.ErrNotFound
 	}
-	receiveUsers := c.userHasReceiveUsers[user.ID]
+	receiveUsers, found := c.userHasReceiveUsers[user.ID]
+	if !found {
+		return nil, nil
+	}
+
 	ret := make([]external.User, len(receiveUsers))
 	for i, id := range receiveUsers {
 		ret[i] = c.users[id]
 	}
 
 	return ret, nil
+}
+
+func (c Client) GetFundingAccountWidgetToken(
+	ctx context.Context, userID string,
+) (*external.WidgetTokenResponse, error) {
+	user, found := c.users[userID]
+	if !found {
+		return nil, external.ErrNotFound
+	}
+
+	// automatically add a funding source
+	fs := external.FundingSource{
+		ID:                 uuid.NewString(),
+		UserID:             user.ID,
+		FundingsourceName:  "VISA-1234",
+		FundingsourceType:  external.TypeCard,
+		InstitutionName:    "VISA",
+		VerificationStatus: external.StatusVerified,
+	}
+	c.fundingsources[fs.ID] = fs
+
+	// TODO: send user_card_added event to our webhook
+
+	return &external.WidgetTokenResponse{
+		ExpiryMinutes: 15,
+		UserID:        user.ID,
+		Token:         "machnet-widget-token",
+	}, nil
+}
+
+func (c Client) GetUserFundingsource(
+	ctx context.Context, userID, fundingsourceID string,
+) (*external.FundingSource, error) {
+	user, err := c.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	fs, found := c.fundingsources[fundingsourceID]
+	if !found {
+		return nil, external.ErrNotFound
+	}
+	if user.ID != fs.UserID {
+		return nil, external.ErrNotFound
+	}
+
+	return &fs, nil
 }
