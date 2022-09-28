@@ -1,3 +1,0 @@
-name: clusters-local
-runtime: go
-description: Local kubernetes cluster
