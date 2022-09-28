@@ -12,12 +12,12 @@ import (
 )
 
 type MigrationArgs struct {
-	ConnectionString string
-	PacioliUrl       string
-	UsdLedgerID      uint32
-	KratosUrl        string
-	LogLevel         string
-	LogOutputPath    string
+	ConnectionString          string
+	PacioliDbConnectionString string
+	UsdLedgerID               uint32
+	KratosUrl                 string
+	LogLevel                  string
+	LogOutputPath             string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -49,9 +49,16 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		logOutputPath = "stderr"
 	}
 
-	pacioliUrl := os.Getenv("PACIOLI_URL")
-	if pacioliUrl == "" {
-		pacioliUrl = "pacioli:443"
+	pacioliConnectionString := strings.Replace(baseDbUrl, "backend", "pacioli", -1)             // change user and database to pacioli
+	pacioliConnectionString = strings.Replace(pacioliConnectionString, "pacioli", "backend", 1) // change user back to backend
+	pacioliConnectionString, err = migrations.InlineSslCreds(
+		strings.Replace(pacioliConnectionString, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
+		"/cockroach-certs/client.backend.key",
+		"/cockroach-certs/client.backend.crt",
+		"/cockroach-certs/ca.crt",
+	)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
@@ -69,34 +76,34 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	}
 
 	return &MigrationArgs{
-		ConnectionString: connString,
-		PacioliUrl:       pacioliUrl,
-		UsdLedgerID:      uint32(usdLedgerID),
-		KratosUrl:        kratosUrl,
-		LogLevel:         logLevel,
-		LogOutputPath:    logOutputPath,
+		ConnectionString:          connString,
+		PacioliDbConnectionString: pacioliConnectionString,
+		UsdLedgerID:               uint32(usdLedgerID),
+		KratosUrl:                 kratosUrl,
+		LogLevel:                  logLevel,
+		LogOutputPath:             logOutputPath,
 	}, nil
 }
 
 type StartArgs struct {
-	Port                 string
-	OpenPaymentsPort     string
-	DbConnectionString   string
-	KratosUrl            string
-	PacioliUrl           string
-	UsdLedgerID          uint32
-	LogLevel             string
-	LogOutputPath        string
-	GoogleOauth2ClientID string
-	MxClientID           string
-	MxApiKey             string
-	RafikiGraphqlUrl     string
-	TemporalUrl          string
-	TwilioSid            string
-	TwilioSecret         string
-	TwilioServiceSid     string
-	ZendeskUser          string
-	ZendeskToken         string
+	Port                      string
+	OpenPaymentsPort          string
+	DbConnectionString        string
+	KratosUrl                 string
+	PacioliDbConnectionString string
+	UsdLedgerID               uint32
+	LogLevel                  string
+	LogOutputPath             string
+	GoogleOauth2ClientID      string
+	MxClientID                string
+	MxApiKey                  string
+	RafikiGraphqlUrl          string
+	TemporalUrl               string
+	TwilioSid                 string
+	TwilioSecret              string
+	TwilioServiceSid          string
+	ZendeskUser               string
+	ZendeskToken              string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -133,10 +140,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	if logOutputPath == "" {
 		logOutputPath = "stderr"
 	}
-	pacioliUrl := os.Getenv("PACIOLI_URL")
-	if pacioliUrl == "" {
-		pacioliUrl = "pacioli:443"
-	}
 	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
 	if usdLedgerIDString == "" {
 		return nil, errors.New("USD ledger code not specified.")
@@ -154,6 +157,18 @@ func ParseStartArgs() (*StartArgs, error) {
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	pacioliConnectionString := strings.Replace(baseDbUrl, "backend", "pacioli", -1)             // change user and database to pacioli
+	pacioliConnectionString = strings.Replace(pacioliConnectionString, "pacioli", "backend", 1) // change user back to backend
+	pacioliConnectionString, err = migrations.InlineSslCreds(
+		strings.Replace(pacioliConnectionString, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
+		"/cockroach-certs/client.backend.key",
+		"/cockroach-certs/client.backend.crt",
+		"/cockroach-certs/ca.crt",
+	)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	googleOauth2ClientID := os.Getenv("GOOGLE_OUATH2_CLIENT_ID")
@@ -207,23 +222,23 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	return &StartArgs{
-		Port:                 port,
-		OpenPaymentsPort:     openPaymentsPort,
-		DbConnectionString:   connString,
-		KratosUrl:            kratosUrl,
-		PacioliUrl:           pacioliUrl,
-		UsdLedgerID:          uint32(usdLedgerID),
-		LogLevel:             logLevel,
-		LogOutputPath:        logOutputPath,
-		GoogleOauth2ClientID: googleOauth2ClientID,
-		MxClientID:           mxClientID,
-		MxApiKey:             mxApiKey,
-		RafikiGraphqlUrl:     rafikiGraphqlUrl,
-		TemporalUrl:          temporalUrl,
-		TwilioSid:            TwilioSid,
-		TwilioSecret:         TwilioSecret,
-		TwilioServiceSid:     twilioServiceSid,
-		ZendeskToken:         zendeskToken,
-		ZendeskUser:          zendeskUser,
+		Port:                      port,
+		OpenPaymentsPort:          openPaymentsPort,
+		DbConnectionString:        connString,
+		KratosUrl:                 kratosUrl,
+		PacioliDbConnectionString: pacioliConnectionString,
+		UsdLedgerID:               uint32(usdLedgerID),
+		LogLevel:                  logLevel,
+		LogOutputPath:             logOutputPath,
+		GoogleOauth2ClientID:      googleOauth2ClientID,
+		MxClientID:                mxClientID,
+		MxApiKey:                  mxApiKey,
+		RafikiGraphqlUrl:          rafikiGraphqlUrl,
+		TemporalUrl:               temporalUrl,
+		TwilioSid:                 TwilioSid,
+		TwilioSecret:              TwilioSecret,
+		TwilioServiceSid:          twilioServiceSid,
+		ZendeskToken:              zendeskToken,
+		ZendeskUser:               zendeskUser,
 	}, nil
 }
