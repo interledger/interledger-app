@@ -56,3 +56,38 @@ func (c Client) GetUserByID(ctx context.Context, id string) (*external.User, err
 
 	return &user, nil
 }
+
+func (c Client) InitiateKyc(ctx context.Context, userID string) error {
+	user, found := c.users[userID]
+	if !found {
+		return external.ErrNotFound
+	}
+
+	user.Status = external.StatusVerified
+	c.users[userID] = user
+
+	return nil
+}
+
+func (c Client) GetVerificationStatus(
+	ctx context.Context, userID string,
+) (*external.VerificationStatus, error) {
+	user, found := c.users[userID]
+	if !found {
+		return nil, external.ErrNotFound
+	}
+	return &external.VerificationStatus{
+		UserID:    userID,
+		KycStatus: user.Status,
+		CipInfo: external.CipInfo{
+			Gender:       user.Status,
+			Country:      user.Status,
+			FirstName:    user.Status,
+			LastName:     user.Status,
+			Email:        user.Status,
+			City:         user.Status,
+			State:        user.Status,
+			AddressLine1: user.Status,
+		},
+	}, nil
+}
