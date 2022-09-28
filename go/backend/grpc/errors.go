@@ -28,6 +28,8 @@ func validationDesc(fe validator.FieldError) string {
 		return "This field is Required."
 	case "uuid":
 		return "Incorrect format, please provide a UUID."
+	case "len":
+		return "Invalid length."
 	case "iso3166_1_alpha2":
 		return "Provide a valid country code."
 	case "email":

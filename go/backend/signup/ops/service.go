@@ -83,8 +83,15 @@ func SetUserData(ctx context.Context, b Backends, args signup.UserDataArgs) (str
 	if id == "" {
 		id = uuid.NewString()
 	}
+
+	existing, err := Get(ctx, b, id)
+	if errors.Is(err, signup.ErrNotFound) {
+	} else if err != nil {
+		return "", err
+	}
+
 	var r sql.Result
-	if args.ID == "" {
+	if existing == nil {
 		r, err = b.DB().ExecContext(ctx, "INSERT INTO signups (id, first_name, last_name, country_code, email) "+
 			"VALUES ($1, $2, $3, $4, $5)", id, args.FirstName, args.LastName, args.CountryCode, args.Email)
 	} else {

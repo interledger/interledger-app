@@ -1,9 +1,6 @@
 import { Autocomplete, Button, TextField } from '~/components'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { apolloClient } from '~/lib/apollo.server'
-import type { SignupQuery, SignupQueryVariables } from '~/generated/types'
-import { SignupDocument } from '~/generated/types'
 import type { GrpcError } from '~/lib/proto.server'
 import { httpMapping } from '~/lib/proto.server'
 import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
@@ -16,25 +13,26 @@ type Country = {
   name: string
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
-  const countries = await apolloClient
-    .query<SignupQuery, SignupQueryVariables>({
-      query: SignupDocument,
-      context: {
-        headers: request.headers
-      }
-    })
-    .then((val) => val.data.countries as Country[])
+  let response = await grpcClient
+    .getCountries({})
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
 
   const url = new URL(request.url)
   const countryCode = url.searchParams.get('country')
   const email = url.searchParams.get('email')
+  const fullName = url.searchParams.get('fullName')
 
   return json({
     countryCode,
-    countries,
-    email
+    countries: response.response.countries,
+    email,
+    fullName
   })
 }
 
@@ -67,7 +65,8 @@ const shapes = [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { countryCode, countries, email } = useLoaderData<typeof loader>()
+  const { countryCode, countries, email, fullName } =
+    useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
     countries.find((country: Country) => country.id == countryCode) as Country
@@ -97,92 +96,89 @@ export default function Page() {
   }, [query, countries])
 
   return (
-    <div className='w-full'>
-      <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto px-8 pt-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          {shapes.map((shapeRow) => (
-            <div className='flex' key={shapeRow.toString()}>
-              {shapeRow.map((shape, index) => (
-                <div
-                  key={shape + index}
-                  className={`aspect-square w-full ${shape}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-display text-2xl font-medium'>
-            Join the waitlist
-          </span>
-          <span className='text-medium'>
-            Leave your details below and we will notify you as soon as
-            enrollment opens.
-          </span>
-        </div>
+    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
+      <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'>
+        {shapes.map((shapeRow) => (
+          <div className='flex' key={shapeRow.toString()}>
+            {shapeRow.map((shape, index) => (
+              <div
+                key={shape + index}
+                className={`aspect-square w-full ${shape}`}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2'>
+        <span className='font-display text-2xl font-medium'>
+          Join the waitlist
+        </span>
+        <span className='text-medium'>
+          Leave your details below and we will notify you as soon as enrollment
+          opens.
+        </span>
+      </div>
 
-        <Form
-          id='join-waitlist'
-          action={`/waitlist`}
-          method='post'
-          className='hidden'
-        />
+      <Form
+        id='join-waitlist'
+        action='/waitlist'
+        method='post'
+        className='hidden'
+      />
 
-        <TextField
-          id='fullName'
-          form='join-waitlist'
-          label='Full name'
-          name='fullName'
-          type='text'
-          className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-          aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
-          aria-describedby={
-            actionData?.errors.fullName ? 'lastName-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.fullName}
-        />
-        <TextField
-          id='email'
-          form='join-waitlist'
-          label='Email address'
-          name='email'
-          defaultValue={email as string}
-          type='text'
-          className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-          aria-invalid={Boolean(actionData?.errors.email) || undefined}
-          aria-describedby={
-            actionData?.errors.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.email}
-        />
-        <Autocomplete
-          id='country'
-          value={country}
-          onChange={setCountry}
-          onQuery={setQuery}
-          options={filteredCountries}
-          label='Country of residence'
-          className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-          aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
-          aria-describedby={
-            actionData?.errors.countryCode ? 'country-error' : undefined
-          }
-          errorMessage={actionData?.errors.countryCode}
-        />
-        <input
-          id='country'
-          form='join-waitlist'
-          value={String(country?.id)}
-          name='country'
-          type='hidden'
-        />
-        <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <Button form='join-waitlist' type='submit'>
-            Join now
-          </Button>
-        </div>
+      <TextField
+        id='fullName'
+        form='join-waitlist'
+        label='Full name'
+        name='fullName'
+        type='text'
+        defaultValue={fullName as string}
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
+        aria-describedby={
+          actionData?.errors.fullName ? 'lastName-error' : undefined
+        }
+        required
+        errorMessage={actionData?.errors.fullName}
+      />
+      <TextField
+        id='email'
+        form='join-waitlist'
+        label='Email address'
+        name='email'
+        defaultValue={email as string}
+        type='text'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        aria-invalid={Boolean(actionData?.errors.email) || undefined}
+        aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
+        required
+        errorMessage={actionData?.errors.email}
+      />
+      <Autocomplete
+        id='country'
+        value={country}
+        onChange={setCountry}
+        onQuery={setQuery}
+        options={filteredCountries}
+        label='Country of residence'
+        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
+        aria-describedby={
+          actionData?.errors.countryCode ? 'country-error' : undefined
+        }
+        errorMessage={actionData?.errors.countryCode}
+      />
+      <input
+        id='country'
+        form='join-waitlist'
+        value={String(country?.id)}
+        name='country'
+        type='hidden'
+      />
+      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2'>
+        <Button form='join-waitlist' type='submit'>
+          Join now
+        </Button>
       </div>
     </div>
   )
