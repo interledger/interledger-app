@@ -39,6 +39,7 @@ func TestDevClient(t *testing.T) {
 	require.Equal(t, external.StatusUnverified, updatedUser.Status)
 
 	freshUser, err := client.GetUserByID(context.Background(), updatedUser.ID)
+	require.NoError(t, err)
 	require.Equal(t, "Morty", freshUser.FirstName)
 	require.Equal(t, "Rick", freshUser.LastName)
 	require.Equal(t, "male", freshUser.Gender)

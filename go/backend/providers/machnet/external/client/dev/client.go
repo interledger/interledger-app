@@ -16,6 +16,7 @@ func New() *Client {
 		users:               map[string]external.User{},
 		userHasReceiveUsers: map[string][]string{},
 		fundingsources:      map[string]external.FundingSource{},
+		transactions:        map[string]external.Transaction{},
 	}
 }
 
@@ -23,6 +24,7 @@ type Client struct {
 	users               map[string]external.User
 	userHasReceiveUsers map[string][]string
 	fundingsources      map[string]external.FundingSource
+	transactions        map[string]external.Transaction
 }
 
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
@@ -183,4 +185,22 @@ func (c Client) GetUserFundingsource(
 	}
 
 	return &fs, nil
+}
+
+func (c Client) CreateTransaction(
+	ctx context.Context, transaction external.Transaction,
+) (*external.Transaction, error) {
+	_, err := c.GetUserByID(ctx, transaction.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w User not found.", external.ErrInternal)
+	}
+
+	trx := transaction
+	trx.ID = uuid.NewString()
+	trx.DeliveryStatus = external.DeliveryStatusNone
+	c.transactions[trx.ID] = trx
+
+	// TODO: send transaction status event to our webhook
+
+	return &trx, nil
 }
