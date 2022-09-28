@@ -9,4 +9,6 @@ type Client interface {
 	InitiateKyc(ctx context.Context, userID string) error
 	GetVerificationStatus(ctx context.Context, userID string) (*VerificationStatus, error)
 	GetReceiveUserList(ctx context.Context, userID string) ([]User, error)
+	GetFundingAccountWidgetToken(ctx context.Context, userID string) (*WidgetTokenResponse, error)
+	GetUserFundingsource(ctx context.Context, userID, fundingsourceID string) (*FundingSource, error)
 }
