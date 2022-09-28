@@ -44,6 +44,8 @@ import (
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	pacioli_migrations "gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -143,11 +145,16 @@ func start(args *cli.StartArgs) {
 
 	b.countries = country_client.New(b)
 
-	//pClient, err := pacioli_client.New(args.PacioliUrl)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//b.pacioli = pClient
+	pacioliDb, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("pacioli"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		if err := pacioliDb.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
+	b.pacioli = newLocalPacioliClient(pacioliDb)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -238,6 +245,11 @@ func migrate(args *cli.MigrationArgs) {
 	}()
 
 	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), db)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = pacioli_migrations.Migrate(args.PacioliDbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -416,4 +428,13 @@ func (b backends) Twilio() _twilio.Service {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
+}
+
+func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {
+	b := backends{
+		db:  db,
+		val: validator.New(),
+	}
+
+	return pacioli_client.NewLocal(b)
 }

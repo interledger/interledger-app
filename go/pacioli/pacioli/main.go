@@ -59,7 +59,7 @@ func main() {
 
 func runInit(args *cli.InitArgs) {
 	// run migrations
-	err := migrations.Migrate()
+	err := migrations.Migrate(args.DbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
