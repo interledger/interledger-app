@@ -9,6 +9,7 @@ import {
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -39,7 +40,7 @@ export async function loader({ request }: LoaderArgs) {
     flow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(flow, 'login')
     return redirect(`/login?flow=${flow.id}`, {
-      headers: flowRes.headers
+      headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
@@ -131,7 +132,12 @@ export default function Page() {
         errorMessage={actionData?.errors?.password}
       />
 
-      <input form='login' defaultValue={csrfToken} name='csrf_token' type='hidden' />
+      <input
+        form='login'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
 
       <div className='col-span-full sm:col-span-6 sm:col-start-2'>
         <Button form='login' type='submit'>
@@ -187,12 +193,16 @@ export async function action({ request }: ActionArgs) {
     }
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
+
+  // Remove all headers besides set-cookie
+  const headers = trimHeaders(res.headers, ['set-cookie'])
+
   if (returnTo) {
     return redirect(returnTo, {
-      headers: res.headers
+      headers: headers
     })
   }
   return redirect(route('/'), {
-    headers: res.headers
+    headers: headers
   })
 }

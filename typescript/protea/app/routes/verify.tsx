@@ -9,6 +9,7 @@ import {
   handleFlowError
 } from '~/lib/kratos.server'
 import type { Session } from '@ory/kratos-client'
+import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -65,7 +66,7 @@ export async function loader({ request }: LoaderArgs) {
     flow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(flow, 'verify')
     return redirect(`/verify?flow=${flow.id}`, {
-      headers: flowRes.headers
+      headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({
@@ -143,6 +144,6 @@ export async function action({ request }: ActionArgs) {
     )
   }
   return redirect(route('/verify'), {
-    headers: res.headers
+    headers: trimHeaders(res.headers, ['set-cookie'])
   })
 }

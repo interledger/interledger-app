@@ -10,6 +10,7 @@ import {
   requireUserSession
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
+import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -51,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
     flow = await flowRes.json()
     flowRes.headers.append('Set-Cookie', await commitSession(userSettings))
     return redirect(`/login/challenge?flow=${flow.id}`, {
-      headers: flowRes.headers
+      headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({
@@ -159,13 +160,14 @@ export async function action({ request }: ActionArgs) {
     }
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
+  const headers = trimHeaders(res.headers, ['set-cookie'])
   if (userSettings.has('challenge-flow')) {
     const { returnTo } = userSettings.get('challenge-flow')
     return redirect(returnTo, {
-      headers: res.headers
+      headers: headers
     })
   }
   return redirect(route('/'), {
-    headers: res.headers
+    headers: headers
   })
 }
