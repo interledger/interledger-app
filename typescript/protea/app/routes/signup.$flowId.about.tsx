@@ -75,11 +75,12 @@ export default function Page() {
   }, [query, countries])
 
   return (
-    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
-      <div className='col-span-full flex justify-between pb-4 sm:col-span-6 sm:col-start-2'>
-        <span className='font-display text-2xl font-medium'>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <div className='flex justify-between'>
+        <h1 className='font-display text-2xl font-medium'>
           Your personal details
-        </span>
+        </h1>
+
         <div className='hidden sm:flex'>
           <Shape
             width={'w-8'}
@@ -93,6 +94,8 @@ export default function Page() {
           />
         </div>
       </div>
+      <p className='mt-6 text-medium'>Please provide your personal details.</p>
+
       <Form
         id='signup-about-details'
         action={`/signup/${flow.id}/about`}
@@ -107,7 +110,7 @@ export default function Page() {
         name='firstName'
         defaultValue={flow?.data.firstName}
         type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-6'
         aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
         aria-describedby={
           actionData?.errors.firstName ? 'firstName-error' : undefined
@@ -123,7 +126,7 @@ export default function Page() {
         name='lastName'
         defaultValue={flow?.data.lastName}
         type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-1'
         aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
         aria-describedby={
           actionData?.errors.lastName ? 'lastName-error' : undefined
@@ -139,7 +142,7 @@ export default function Page() {
         name='email'
         defaultValue={flow?.data.email}
         type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-1'
         aria-invalid={Boolean(actionData?.errors.email) || undefined}
         aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
         required
@@ -153,7 +156,7 @@ export default function Page() {
         onQuery={setQuery}
         options={filteredCountries}
         label='Country of residence'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-1'
         aria-invalid={Boolean(actionData?.errors.country) || undefined}
         aria-describedby={
           actionData?.errors.country ? 'country-error' : undefined
@@ -167,11 +170,9 @@ export default function Page() {
         type='hidden'
       />
 
-      <div className='col-span-full flex items-center justify-end pt-4 sm:col-span-6 sm:col-start-2'>
-        <Button form='signup-about-details' type='submit'>
-          Continue
-        </Button>
-      </div>
+      <Button className='mt-12' form='signup-about-details' type='submit'>
+        Continue
+      </Button>
     </div>
   )
 }

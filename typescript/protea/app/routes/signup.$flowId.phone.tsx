@@ -77,8 +77,8 @@ export default function Page() {
   }, [otpFetcher?.data, otpFetcher.state, showDialog])
 
   return (
-    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
-      <div className='col-span-full flex flex-col space-y-4 pb-8 sm:col-span-6 sm:col-start-2 sm:space-y-6'>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium'>
             Phone number
@@ -96,10 +96,8 @@ export default function Page() {
             />
           </div>
         </div>
-        {hasVerified && <span>Your mobile phone number is verified.</span>}
-        {!hasVerified && (
-          <span>We require you to verify a mobile phone number.</span>
-        )}
+        {hasVerified && <p>Your mobile phone number is verified.</p>}
+        {!hasVerified && <p>We require you to verify a mobile phone number.</p>}
       </div>
       <otpFetcher.Form
         id='signup-phone-otp'
@@ -109,7 +107,7 @@ export default function Page() {
       />
 
       {hasVerified && (
-        <div className='col-span-full flex space-x-2 rounded-xl bg-container p-3 text-medium  sm:col-span-6 sm:col-start-2'>
+        <div className='mt-6 flex space-x-2 rounded-xl bg-container p-3 text-medium'>
           <Icon>call</Icon>
           <span>{flow?.data?.phone}</span>
         </div>
@@ -123,7 +121,7 @@ export default function Page() {
           defaultCountry={flow?.data.country}
           options={countries as PhoneAutocompleteOptions[]}
           label='Mobile number'
-          className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+          className='mt-6'
           aria-invalid={Boolean(otpFetcher.data?.errors?.phone) || undefined}
           aria-describedby={
             otpFetcher.data?.errors?.phone ? 'phone-error' : undefined
@@ -132,7 +130,7 @@ export default function Page() {
         />
       )}
 
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2'>
+      <div className='mt-12'>
         {hasVerified && (
           <Router
             to={route('/signup/:flowId/password', { flowId: flow.id })}
@@ -182,28 +180,21 @@ export default function Page() {
           required
           errorMessage={actionData?.errors.otp}
         />
-        <button
-          className='flex items-start p-4 text-sm font-medium text-primary focus-visible:outline-none'
-          type='submit'
-          form='signup-phone-otp'
-        >
-          Resend code
-        </button>
+
         <div className='flex w-full justify-end space-x-6'>
           <button
-            className='flex items-start text-sm font-medium text-medium focus-visible:outline-none'
-            type='button'
-            onClick={() => setShowDialog(false)}
+            className='text-sm font-medium text-primary focus-visible:outline-none'
+            type='submit'
             form='signup-phone-otp'
           >
-            Cancel
+            Resend code
           </button>
           <button
-            className='flex items-start  text-sm font-medium text-primary focus-visible:outline-none'
+            className='text-sm font-medium text-primary focus-visible:outline-none'
             type='submit'
             form='signup-phone-otp-validation'
           >
-            OK
+            Verify
           </button>
         </div>
       </Dialog>

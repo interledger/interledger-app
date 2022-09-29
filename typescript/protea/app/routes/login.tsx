@@ -77,8 +77,8 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken } = useLoaderData<typeof loader>()
   return (
-    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
-      <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <div className='mt-2 flex flex-col'>
         {shapes.map((shapeRow) => (
           <div className='flex' key={shapeRow.toString()}>
             {shapeRow.map((shape, index) => (
@@ -90,15 +90,13 @@ export default function Page() {
           </div>
         ))}
       </div>
-      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2'>
-        <span className='font-display text-2xl font-medium'>Log in</span>
-        <span className='text-medium'>
-          New to Fynbos?{' '}
-          <Router className='text-primary' to={route('/signup')}>
-            Sign up
-          </Router>
-        </span>
-      </div>
+      <h1 className='mt-6 font-display text-2xl font-medium'>Log in</h1>
+      <p className='mt-6 text-medium'>
+        New to Fynbos?{' '}
+        <Router className='text-primary' to={route('/signup')}>
+          Sign up
+        </Router>
+      </p>
       <Form
         id='login'
         action={`/login?flow=${flow.id}`}
@@ -111,7 +109,7 @@ export default function Page() {
         name='email'
         type='email'
         form='login'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-6'
         aria-invalid={Boolean(actionData?.errors?.email) || undefined}
         aria-describedby={actionData?.errors?.email ? 'email-error' : undefined}
         required
@@ -123,7 +121,7 @@ export default function Page() {
         name='password'
         type='password'
         form='login'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-1'
         aria-invalid={Boolean(actionData?.errors?.password) || undefined}
         aria-describedby={
           actionData?.errors?.password ? 'password-error' : undefined
@@ -139,12 +137,10 @@ export default function Page() {
         type='hidden'
       />
 
-      <div className='col-span-full sm:col-span-6 sm:col-start-2'>
-        <Button form='login' type='submit'>
-          Login
-        </Button>
-      </div>
-      <div className='col-span-full flex justify-end sm:col-span-6 sm:col-start-2'>
+      <Button className='mt-12' form='login' type='submit'>
+        Login
+      </Button>
+      <div className='mt-4 flex justify-end'>
         <Router to={route('/recovery')} aria-label='Forgot password?'>
           <span className='text-primary'>Forgot password?</span>
         </Router>
