@@ -1,11 +1,11 @@
 import type {
-  Session,
-  UiNodeInputAttributes,
   SelfServiceLoginFlow,
-  SelfServiceVerificationFlow,
-  SelfServiceSettingsFlow,
   SelfServiceRecoveryFlow,
-  SelfServiceRegistrationFlow
+  SelfServiceRegistrationFlow,
+  SelfServiceSettingsFlow,
+  SelfServiceVerificationFlow,
+  Session,
+  UiNodeInputAttributes
 } from '@ory/kratos-client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
@@ -62,12 +62,10 @@ export async function requireUserSession(request: Request): Promise<Session> {
       throw redirect(route('/login') + '?aal=aal2')
   }
 
-  const userSession: Session = await session.json()
-
   //TODO: check if has provider account
   // if not call onboarding and redirect to form
 
-  return userSession
+  return session.json()
 }
 
 /**
@@ -108,7 +106,7 @@ export function handleFlowError(
   flowId?: string
 ): void {
   let redirectRoute =
-    flowType == 'signup' ? `/flows/${flowId}/signup/password` : `/${flowType}`
+    flowType == 'signup' ? `/signup/${flowId}/password` : `/${flowType}`
 
   switch (flow.error.id) {
     case 'session_inactive':
