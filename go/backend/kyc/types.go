@@ -22,12 +22,14 @@ type UserDetails struct {
 }
 
 type Address struct {
-	Line1       string `json:"line_1,omitempty"`
-	Line2       string `json:"line_2,omitempty"`
-	Building    string `json:"building,omitempty"`
-	Apartment   string `json:"apartment,omitempty"`
-	City        string `json:"city,omitempty"`
-	State       string `json:"state,omitempty"`
-	ZipCode     string `json:"zip_code,omitempty"`
-	CountryCode string `json:"country_code,omitempty" validate:"omitempty,iso3166_1_alpha2"`
+	Line1            string `json:"line_1,omitempty"`
+	Line2            string `json:"line_2,omitempty"`
+	Building         string `json:"building,omitempty"`
+	Apartment        string `json:"apartment,omitempty"`
+	City             string `json:"city,omitempty"`
+	State            string `json:"state,omitempty"`
+	ZipCode          string `json:"zip_code,omitempty"`
+	CountryCode      string `json:"country_code,omitempty" validate:"omitempty,iso3166_1_alpha2"`
+	FormattedAddress string `json:"formatted_address,omitempty"`
+	PlaceID          string `json:"place_id,omitempty"`
 }

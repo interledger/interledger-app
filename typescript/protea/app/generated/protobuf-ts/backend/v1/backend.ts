@@ -226,7 +226,7 @@ export interface UpdateUserKYCRequest {
     /**
      * @generated from protobuf field: optional int32 gender = 4;
      */
-    gender?: number; // 0 Unknown, 1 Male, 2 Female
+    gender?: number; // 0 Unknown, 1 Male, 2 Female, 3 Other
     /**
      * @generated from protobuf field: optional google.protobuf.Timestamp dateOfBirth = 5;
      */
@@ -272,6 +272,14 @@ export interface UpdateUserKYCRequest_Address {
      * @generated from protobuf field: optional string countryCode = 8;
      */
     countryCode?: string;
+    /**
+     * @generated from protobuf field: optional string placeID = 9;
+     */
+    placeID?: string;
+    /**
+     * @generated from protobuf field: optional string formattedAddress = 10;
+     */
+    formattedAddress?: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetBankAccountWidgetRequest
@@ -1480,7 +1488,9 @@ class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest
             { no: 5, name: "city", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "state", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "zipCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "countryCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "countryCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "placeID", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "formattedAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<UpdateUserKYCRequest_Address>): UpdateUserKYCRequest_Address {
@@ -1519,6 +1529,12 @@ class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest
                 case /* optional string countryCode */ 8:
                     message.countryCode = reader.string();
                     break;
+                case /* optional string placeID */ 9:
+                    message.placeID = reader.string();
+                    break;
+                case /* optional string formattedAddress */ 10:
+                    message.formattedAddress = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -1555,6 +1571,12 @@ class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest
         /* optional string countryCode = 8; */
         if (message.countryCode !== undefined)
             writer.tag(8, WireType.LengthDelimited).string(message.countryCode);
+        /* optional string placeID = 9; */
+        if (message.placeID !== undefined)
+            writer.tag(9, WireType.LengthDelimited).string(message.placeID);
+        /* optional string formattedAddress = 10; */
+        if (message.formattedAddress !== undefined)
+            writer.tag(10, WireType.LengthDelimited).string(message.formattedAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
