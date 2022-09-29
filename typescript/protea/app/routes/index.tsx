@@ -4,6 +4,12 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Router } from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
+import {
+  httpMapping,
+  isGrpcError,
+  openPaymentsClient,
+  StatusError
+} from '~/lib/proto.server'
 
 type Activity = {
   id: string
@@ -24,13 +30,29 @@ export async function loader({ request }: LoaderArgs) {
 
   let data = {
     isUser: isUser,
-    balance: '0',
+    paymentPointer: '0',
     recentActivities: [] as Activities[],
     pendingTransactions: [] as Activity[]
   }
 
   if (isUser) {
+    const cookie = String(request.headers.get('cookie'))
     await requireUserSession(request)
+    let response = await openPaymentsClient
+      .listWalletPaymentPointers(
+        {},
+        {
+          meta: {
+            cookies: cookie || ''
+          }
+        }
+      )
+      .then((v) => v)
+      .catch(StatusError)
+    if (isGrpcError(response)) {
+      throw json({}, httpMapping(response.code))
+    }
+    data.paymentPointer = response.response.pointers[0].url
   }
   return json(data)
 }
@@ -335,7 +357,7 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { balance, recentActivities } = useLoaderData<typeof loader>()
+  const { paymentPointer, recentActivities } = useLoaderData<typeof loader>()
   return (
     <div className='w-full'>
       {/* Header */}
@@ -353,8 +375,7 @@ function AppPage() {
       <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         {/* HOME */}
         <div className='col-span-full flex flex-col items-center px-3 pt-4 pb-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span>Balance</span>
-          <span className='font-display text-4xl'>{balance}</span>
+          <span className='font-display text-4xl'>{paymentPointer}</span>
         </div>
 
         {recentActivities.length > 0 && (

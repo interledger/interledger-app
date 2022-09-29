@@ -96,10 +96,11 @@ export default function Page() {
   let isFocussed =
     location.pathname.startsWith('/signup') ||
     location.pathname.startsWith('/waitlist') ||
-    location.pathname.startsWith('/login')
+    location.pathname.startsWith('/login') ||
+    location.pathname.startsWith('/payment-pointer')
+
   return (
     <Document>
-      {/*TODO Resolve layouts once Just has had a chance to look at the */}
       {isFocussed && <FocusLayout />}
       {!isFocussed && isUser && <WalletLayout />}
       {!isFocussed && !isUser && <LandingLayout />}
