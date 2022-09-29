@@ -302,6 +302,7 @@ type BackendServiceClient interface {
 	AddBankAccount(ctx context.Context, in *AddBankAccountRequest, opts ...grpc.CallOption) (*AddBankAccountResponse, error)
 	GetBankAccountDetails(ctx context.Context, in *GetBankAccountDetailsRequest, opts ...grpc.CallOption) (*BankAccountDetails, error)
 	ContinueAddingBankAccount(ctx context.Context, in *ContinueAddingBankAccountRequest, opts ...grpc.CallOption) (*ContinueAddingBankAccountResponse, error)
+	UpdateUserKYC(ctx context.Context, in *UpdateUserKYCRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetSignupUserData(ctx context.Context, in *SetSignupUserDataRequest, opts ...grpc.CallOption) (*SetSignupUserDataResponse, error)
 	SetSignupMobileNumber(ctx context.Context, in *SetSignupMobileNumberRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Returns the current signup flow.
@@ -360,6 +361,15 @@ func (c *backendServiceClient) GetBankAccountDetails(ctx context.Context, in *Ge
 func (c *backendServiceClient) ContinueAddingBankAccount(ctx context.Context, in *ContinueAddingBankAccountRequest, opts ...grpc.CallOption) (*ContinueAddingBankAccountResponse, error) {
 	out := new(ContinueAddingBankAccountResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ContinueAddingBankAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UpdateUserKYC(ctx context.Context, in *UpdateUserKYCRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdateUserKYC", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -500,6 +510,7 @@ type BackendServiceServer interface {
 	AddBankAccount(context.Context, *AddBankAccountRequest) (*AddBankAccountResponse, error)
 	GetBankAccountDetails(context.Context, *GetBankAccountDetailsRequest) (*BankAccountDetails, error)
 	ContinueAddingBankAccount(context.Context, *ContinueAddingBankAccountRequest) (*ContinueAddingBankAccountResponse, error)
+	UpdateUserKYC(context.Context, *UpdateUserKYCRequest) (*Empty, error)
 	SetSignupUserData(context.Context, *SetSignupUserDataRequest) (*SetSignupUserDataResponse, error)
 	SetSignupMobileNumber(context.Context, *SetSignupMobileNumberRequest) (*Empty, error)
 	// Returns the current signup flow.
@@ -535,6 +546,9 @@ func (UnimplementedBackendServiceServer) GetBankAccountDetails(context.Context, 
 }
 func (UnimplementedBackendServiceServer) ContinueAddingBankAccount(context.Context, *ContinueAddingBankAccountRequest) (*ContinueAddingBankAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ContinueAddingBankAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) UpdateUserKYC(context.Context, *UpdateUserKYCRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserKYC not implemented")
 }
 func (UnimplementedBackendServiceServer) SetSignupUserData(context.Context, *SetSignupUserDataRequest) (*SetSignupUserDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSignupUserData not implemented")
@@ -658,6 +672,24 @@ func _BackendService_ContinueAddingBankAccount_Handler(srv interface{}, ctx cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).ContinueAddingBankAccount(ctx, req.(*ContinueAddingBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UpdateUserKYC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserKYCRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UpdateUserKYC(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/UpdateUserKYC",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UpdateUserKYC(ctx, req.(*UpdateUserKYCRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -936,6 +968,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ContinueAddingBankAccount",
 			Handler:    _BackendService_ContinueAddingBankAccount_Handler,
+		},
+		{
+			MethodName: "UpdateUserKYC",
+			Handler:    _BackendService_UpdateUserKYC_Handler,
 		},
 		{
 			MethodName: "SetSignupUserData",

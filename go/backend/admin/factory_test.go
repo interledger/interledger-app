@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/kyc"
+
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 
 	"gitlab.com/fynbos/backend/signup"
@@ -69,6 +71,10 @@ type TestContainer struct {
 	UsersImpl       user.Client
 	WaitlistImpl    *waitlist_mock.MockClient
 	TwilioImpl      *twilio.MockService
+}
+
+func (c *TestContainer) KYC() kyc.Client {
+	return nil
 }
 
 func (c *TestContainer) AdminAuth() auth.Service {

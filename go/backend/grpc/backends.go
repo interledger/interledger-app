@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/rafiki"
@@ -34,4 +35,5 @@ type Backends interface {
 	Users() user.Client
 	Validator() *validator.Validate
 	Waitlist() waitlist.Client
+	KYC() kyc.Client
 }

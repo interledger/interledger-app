@@ -5,6 +5,7 @@ package backend.v1;
 import "google/rpc/code.proto";
 import "google/rpc/error_details.proto";
 import "google/rpc/status.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "./backend/v1;backend";
 
@@ -72,6 +73,7 @@ service BackendService {
   rpc GetBankAccountDetails(GetBankAccountDetailsRequest) returns (BankAccountDetails);
   rpc ContinueAddingBankAccount(ContinueAddingBankAccountRequest) returns (ContinueAddingBankAccountResponse);
 
+  rpc UpdateUserKYC(UpdateUserKYCRequest) returns (Empty);
   rpc SetSignupUserData(SetSignupUserDataRequest) returns (SetSignupUserDataResponse);
   rpc SetSignupMobileNumber(SetSignupMobileNumberRequest) returns (Empty);
   // Returns the current signup flow.
@@ -116,6 +118,26 @@ message CreateSupportTicketRequest {
   string firstName = 2;
   string lastName = 3;
   string email = 4;
+}
+
+message UpdateUserKYCRequest {
+  optional string firstName = 1;
+  optional string lastName = 2;
+  optional string countryCode = 3;
+  optional int32 gender = 4; // 0 Unknown, 1 Male, 2 Female
+  optional google.protobuf.Timestamp dateOfBirth = 5;
+  optional Address address = 6;
+
+  message Address {
+    optional string line1 = 1;
+    optional string line2 = 2;
+    optional string building = 3;
+    optional string apartment = 4;
+    optional string city = 5;
+    optional string state = 6;
+    optional string zipCode= 7;
+    optional string countryCode =8;
+  }
 }
 
 message GetBankAccountWidgetRequest {}

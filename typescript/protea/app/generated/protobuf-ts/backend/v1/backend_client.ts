@@ -21,6 +21,7 @@ import type { GetSignupRequest } from "./backend";
 import type { SetSignupMobileNumberRequest } from "./backend";
 import type { SetSignupUserDataResponse } from "./backend";
 import type { SetSignupUserDataRequest } from "./backend";
+import type { UpdateUserKYCRequest } from "./backend";
 import type { ContinueAddingBankAccountResponse } from "./backend";
 import type { ContinueAddingBankAccountRequest } from "./backend";
 import type { BankAccountDetails } from "./backend";
@@ -151,6 +152,10 @@ export interface IBackendServiceClient {
      */
     continueAddingBankAccount(input: ContinueAddingBankAccountRequest, options?: RpcOptions): UnaryCall<ContinueAddingBankAccountRequest, ContinueAddingBankAccountResponse>;
     /**
+     * @generated from protobuf rpc: UpdateUserKYC(backend.v1.UpdateUserKYCRequest) returns (backend.v1.Empty);
+     */
+    updateUserKYC(input: UpdateUserKYCRequest, options?: RpcOptions): UnaryCall<UpdateUserKYCRequest, Empty>;
+    /**
      * @generated from protobuf rpc: SetSignupUserData(backend.v1.SetSignupUserDataRequest) returns (backend.v1.SetSignupUserDataResponse);
      */
     setSignupUserData(input: SetSignupUserDataRequest, options?: RpcOptions): UnaryCall<SetSignupUserDataRequest, SetSignupUserDataResponse>;
@@ -253,17 +258,24 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<ContinueAddingBankAccountRequest, ContinueAddingBankAccountResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: UpdateUserKYC(backend.v1.UpdateUserKYCRequest) returns (backend.v1.Empty);
+     */
+    updateUserKYC(input: UpdateUserKYCRequest, options?: RpcOptions): UnaryCall<UpdateUserKYCRequest, Empty> {
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateUserKYCRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: SetSignupUserData(backend.v1.SetSignupUserDataRequest) returns (backend.v1.SetSignupUserDataResponse);
      */
     setSignupUserData(input: SetSignupUserDataRequest, options?: RpcOptions): UnaryCall<SetSignupUserDataRequest, SetSignupUserDataResponse> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetSignupUserDataRequest, SetSignupUserDataResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetSignupMobileNumber(backend.v1.SetSignupMobileNumberRequest) returns (backend.v1.Empty);
      */
     setSignupMobileNumber(input: SetSignupMobileNumberRequest, options?: RpcOptions): UnaryCall<SetSignupMobileNumberRequest, Empty> {
-        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        const method = this.methods[6], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetSignupMobileNumberRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -272,7 +284,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetSignup(backend.v1.GetSignupRequest) returns (backend.v1.Signup);
      */
     getSignup(input: GetSignupRequest, options?: RpcOptions): UnaryCall<GetSignupRequest, Signup> {
-        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetSignupRequest, Signup>("unary", this._transport, method, opt, input);
     }
     /**
@@ -281,7 +293,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CompleteSignup(backend.v1.CompleteSignupRequest) returns (backend.v1.Empty);
      */
     completeSignup(input: CompleteSignupRequest, options?: RpcOptions): UnaryCall<CompleteSignupRequest, Empty> {
-        const method = this.methods[7], opt = this._transport.mergeOptions(options);
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
         return stackIntercept<CompleteSignupRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
