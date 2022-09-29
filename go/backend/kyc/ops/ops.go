@@ -16,39 +16,27 @@ func mergeIdentities(old dbUserDetails, new kyc.UserDetails) (dbUserDetails, boo
 	merged.UserID = new.UserID
 
 	merged.FirstName = old.FirstName
-	if new.FirstName != "" && new.FirstName != old.FirstName.String {
+	if new.FirstName != "" && new.FirstName != old.FirstName {
 		noop = false
-		merged.FirstName = sql.NullString{
-			String: new.FirstName,
-			Valid:  true,
-		}
+		merged.FirstName = new.FirstName
 	}
 
 	merged.LastName = old.LastName
-	if new.LastName != "" && new.LastName != old.LastName.String {
+	if new.LastName != "" && new.LastName != old.LastName {
 		noop = false
-		merged.LastName = sql.NullString{
-			String: new.LastName,
-			Valid:  true,
-		}
+		merged.LastName = new.LastName
 	}
 
 	merged.CountryCode = old.CountryCode
-	if new.CountryCode != "" && new.CountryCode != old.CountryCode.String {
+	if new.CountryCode != "" && new.CountryCode != old.CountryCode {
 		noop = false
-		merged.CountryCode = sql.NullString{
-			String: new.CountryCode,
-			Valid:  true,
-		}
+		merged.CountryCode = new.CountryCode
 	}
 
 	merged.Gender = old.Gender
-	if new.Gender != kyc.GenderUnknown && new.Gender != kyc.Gender(old.Gender.Int32) {
+	if new.Gender != kyc.GenderUnknown && new.Gender != old.Gender {
 		noop = false
-		merged.Gender = sql.NullInt32{
-			Int32: int32(new.Gender),
-			Valid: true,
-		}
+		merged.Gender = new.Gender
 	}
 
 	merged.DateOfBirth = old.DateOfBirth
@@ -79,12 +67,8 @@ func mergeIdentities(old dbUserDetails, new kyc.UserDetails) (dbUserDetails, boo
 }
 
 type dbUserDetails struct {
-	UserID      string         `db:"user_id"`
+	kyc.UserDetails
 	Revision    int            `db:"revision"`
-	FirstName   sql.NullString `db:"first_name"`
-	LastName    sql.NullString `db:"last_name"`
-	CountryCode sql.NullString `db:"country_code"`
-	Gender      sql.NullInt32  `db:"gender"`
 	DateOfBirth sql.NullTime   `db:"date_of_birth"`
 	Address     sql.NullString `db:"address"`
 }
@@ -151,10 +135,10 @@ func UpdateUserDetails(ctx context.Context, b Backends, ident kyc.UserDetails) (
 func convertDBDetails(details dbUserDetails) (*kyc.UserDetails, error) {
 	resp := &kyc.UserDetails{
 		UserID:      details.UserID,
-		FirstName:   details.FirstName.String,
-		LastName:    details.LastName.String,
-		CountryCode: details.CountryCode.String,
-		Gender:      kyc.Gender(details.Gender.Int32),
+		FirstName:   details.FirstName,
+		LastName:    details.LastName,
+		CountryCode: details.CountryCode,
+		Gender:      details.Gender,
 		DateOfBirth: details.DateOfBirth.Time,
 	}
 
