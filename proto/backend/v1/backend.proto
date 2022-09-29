@@ -124,7 +124,7 @@ message UpdateUserKYCRequest {
   optional string firstName = 1;
   optional string lastName = 2;
   optional string countryCode = 3;
-  optional int32 gender = 4; // 0 Unknown, 1 Male, 2 Female
+  optional int32 gender = 4; // 0 Unknown, 1 Male, 2 Female, 3 Other
   optional google.protobuf.Timestamp dateOfBirth = 5;
   optional Address address = 6;
 

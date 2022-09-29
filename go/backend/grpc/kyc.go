@@ -16,10 +16,10 @@ func (s *rpcService) UpdateUserKYC(ctx context.Context, req *pb.UpdateUserKYCReq
 
 	update := kyc.UserDetails{
 		UserID:      u.ID,
-		FirstName:   *req.FirstName,
-		LastName:    *req.LastName,
-		CountryCode: *req.CountryCode,
-		Gender:      kyc.Gender(*req.Gender),
+		FirstName:   req.GetFirstName(),
+		LastName:    req.GetLastName(),
+		CountryCode: req.GetCountryCode(),
+		Gender:      kyc.Gender(req.GetGender()),
 	}
 	if req.DateOfBirth.IsValid() {
 		update.DateOfBirth = req.DateOfBirth.AsTime()
@@ -31,14 +31,14 @@ func (s *rpcService) UpdateUserKYC(ctx context.Context, req *pb.UpdateUserKYCReq
 
 	if req.Address != nil {
 		update.Address = &kyc.Address{
-			Line1:       *req.Address.Line1,
-			Line2:       *req.Address.Line2,
-			Building:    *req.Address.Building,
-			Apartment:   *req.Address.Apartment,
-			City:        *req.Address.City,
-			State:       *req.Address.State,
-			ZipCode:     *req.Address.ZipCode,
-			CountryCode: *req.Address.CountryCode,
+			Line1:       req.Address.GetLine1(),
+			Line2:       req.Address.GetLine2(),
+			Building:    req.Address.GetBuilding(),
+			Apartment:   req.Address.GetApartment(),
+			City:        req.Address.GetCity(),
+			State:       req.Address.GetState(),
+			ZipCode:     req.Address.GetZipCode(),
+			CountryCode: req.Address.GetCountryCode(),
 		}
 		// Validate struct doesn't validate sub structs individually, so we do it manually
 		err = s.b.Validator().Struct(update.Address)

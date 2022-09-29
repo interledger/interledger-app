@@ -8,14 +8,15 @@ const (
 	GenderUnknown Gender = 0
 	GenderMale    Gender = 1
 	GenderFemale  Gender = 2
+	GenderOther   Gender = 3
 )
 
 type UserDetails struct {
-	UserID      string `validate:"required,uuid"`
-	FirstName   string
-	LastName    string
-	CountryCode string `validate:"omitempty,iso3166_1_alpha2"`
-	Gender      Gender `validate:"omitempty,gte=0,lt=3"`
+	UserID      string `db:"user_id" validate:"required,uuid"`
+	FirstName   string `db:"first_name"`
+	LastName    string `db:"last_name"`
+	CountryCode string `db:"country_code" validate:"omitempty,iso3166_1_alpha2"`
+	Gender      Gender `db:"gender" validate:"omitempty,gt=0,lt=4"`
 	DateOfBirth time.Time
 	Address     *Address
 }
