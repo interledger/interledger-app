@@ -20,7 +20,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	b := ops.NewTestBackends(t, db)
 	userID := uuid.NewString()
 
-	id, err := ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
+	ud, err := ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
 		UserID:      userID,
 		FirstName:   "InitFirst",
 		CountryCode: "ZA",
@@ -28,12 +28,12 @@ func TestUpdateUserDetails(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, kyc.GenderMale, id.Gender)
-	assert.Equal(t, "ZA", id.CountryCode)
-	assert.Equal(t, "InitFirst", id.FirstName)
-	assert.Empty(t, id.LastName)
-	assert.True(t, id.DateOfBirth.IsZero())
-	assert.Nil(t, id.Address)
+	assert.Equal(t, kyc.GenderMale, ud.Gender)
+	assert.Equal(t, "ZA", ud.CountryCode)
+	assert.Equal(t, "InitFirst", ud.FirstName)
+	assert.Empty(t, ud.LastName)
+	assert.True(t, ud.DateOfBirth.IsZero())
+	assert.Nil(t, ud.Address)
 
 	var revisionCnt int
 	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
@@ -41,48 +41,48 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, 1, revisionCnt)
 
 	// Now look it up
-	id, err = ops.GetUserDetails(ctx, b, userID)
+	ud, err = ops.GetUserDetails(ctx, b, userID)
 	require.NoError(t, err)
 
-	assert.Equal(t, kyc.GenderMale, id.Gender)
-	assert.Equal(t, "ZA", id.CountryCode)
-	assert.Equal(t, "InitFirst", id.FirstName)
-	assert.Empty(t, id.LastName)
-	assert.True(t, id.DateOfBirth.IsZero())
-	assert.Nil(t, id.Address)
+	assert.Equal(t, kyc.GenderMale, ud.Gender)
+	assert.Equal(t, "ZA", ud.CountryCode)
+	assert.Equal(t, "InitFirst", ud.FirstName)
+	assert.Empty(t, ud.LastName)
+	assert.True(t, ud.DateOfBirth.IsZero())
+	assert.Nil(t, ud.Address)
 
 	// Update
-	id, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
+	ud, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
 		UserID:    userID,
 		FirstName: "Updated",
 		LastName:  "New",
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, kyc.GenderMale, id.Gender)
-	assert.Equal(t, "ZA", id.CountryCode)
-	assert.Equal(t, "Updated", id.FirstName)
-	assert.Equal(t, "New", id.LastName)
-	assert.True(t, id.DateOfBirth.IsZero())
-	assert.Nil(t, id.Address)
+	assert.Equal(t, kyc.GenderMale, ud.Gender)
+	assert.Equal(t, "ZA", ud.CountryCode)
+	assert.Equal(t, "Updated", ud.FirstName)
+	assert.Equal(t, "New", ud.LastName)
+	assert.True(t, ud.DateOfBirth.IsZero())
+	assert.Nil(t, ud.Address)
 
 	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
 	require.NoError(t, err)
 	assert.Equal(t, 2, revisionCnt)
 
 	// Now look it up
-	id, err = ops.GetUserDetails(ctx, b, userID)
+	ud, err = ops.GetUserDetails(ctx, b, userID)
 	require.NoError(t, err)
 
-	assert.Equal(t, kyc.GenderMale, id.Gender)
-	assert.Equal(t, "ZA", id.CountryCode)
-	assert.Equal(t, "Updated", id.FirstName)
-	assert.Equal(t, "New", id.LastName)
-	assert.True(t, id.DateOfBirth.IsZero())
-	assert.Nil(t, id.Address)
+	assert.Equal(t, kyc.GenderMale, ud.Gender)
+	assert.Equal(t, "ZA", ud.CountryCode)
+	assert.Equal(t, "Updated", ud.FirstName)
+	assert.Equal(t, "New", ud.LastName)
+	assert.True(t, ud.DateOfBirth.IsZero())
+	assert.Nil(t, ud.Address)
 
 	// Add an address
-	id, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
+	ud, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
 		UserID: userID,
 		Address: &kyc.Address{
 			Line1:       "Line1",
@@ -97,46 +97,46 @@ func TestUpdateUserDetails(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, kyc.GenderMale, id.Gender)
-	assert.Equal(t, "ZA", id.CountryCode)
-	assert.Equal(t, "Updated", id.FirstName)
-	assert.Equal(t, "New", id.LastName)
-	assert.True(t, id.DateOfBirth.IsZero())
-	require.NotNil(t, id.Address)
-	assert.Equal(t, "Line1", id.Address.Line1)
-	assert.Equal(t, "Line2", id.Address.Line2)
-	assert.Equal(t, "Building", id.Address.Building)
-	assert.Equal(t, "Apartment", id.Address.Apartment)
-	assert.Equal(t, "Cape Town", id.Address.City)
-	assert.Equal(t, "Western Cape", id.Address.State)
-	assert.Equal(t, "8001", id.Address.ZipCode)
-	assert.Equal(t, "ZA", id.Address.CountryCode)
+	assert.Equal(t, kyc.GenderMale, ud.Gender)
+	assert.Equal(t, "ZA", ud.CountryCode)
+	assert.Equal(t, "Updated", ud.FirstName)
+	assert.Equal(t, "New", ud.LastName)
+	assert.True(t, ud.DateOfBirth.IsZero())
+	require.NotNil(t, ud.Address)
+	assert.Equal(t, "Line1", ud.Address.Line1)
+	assert.Equal(t, "Line2", ud.Address.Line2)
+	assert.Equal(t, "Building", ud.Address.Building)
+	assert.Equal(t, "Apartment", ud.Address.Apartment)
+	assert.Equal(t, "Cape Town", ud.Address.City)
+	assert.Equal(t, "Western Cape", ud.Address.State)
+	assert.Equal(t, "8001", ud.Address.ZipCode)
+	assert.Equal(t, "ZA", ud.Address.CountryCode)
 
 	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
 	require.NoError(t, err)
 	assert.Equal(t, 3, revisionCnt)
 
 	// Now look it up
-	id, err = ops.GetUserDetails(ctx, b, userID)
+	ud, err = ops.GetUserDetails(ctx, b, userID)
 	require.NoError(t, err)
 
-	assert.Equal(t, kyc.GenderMale, id.Gender)
-	assert.Equal(t, "ZA", id.CountryCode)
-	assert.Equal(t, "Updated", id.FirstName)
-	assert.Equal(t, "New", id.LastName)
-	assert.True(t, id.DateOfBirth.IsZero())
-	require.NotNil(t, id.Address)
-	assert.Equal(t, "Line1", id.Address.Line1)
-	assert.Equal(t, "Line2", id.Address.Line2)
-	assert.Equal(t, "Building", id.Address.Building)
-	assert.Equal(t, "Apartment", id.Address.Apartment)
-	assert.Equal(t, "Cape Town", id.Address.City)
-	assert.Equal(t, "Western Cape", id.Address.State)
-	assert.Equal(t, "8001", id.Address.ZipCode)
-	assert.Equal(t, "ZA", id.Address.CountryCode)
+	assert.Equal(t, kyc.GenderMale, ud.Gender)
+	assert.Equal(t, "ZA", ud.CountryCode)
+	assert.Equal(t, "Updated", ud.FirstName)
+	assert.Equal(t, "New", ud.LastName)
+	assert.True(t, ud.DateOfBirth.IsZero())
+	require.NotNil(t, ud.Address)
+	assert.Equal(t, "Line1", ud.Address.Line1)
+	assert.Equal(t, "Line2", ud.Address.Line2)
+	assert.Equal(t, "Building", ud.Address.Building)
+	assert.Equal(t, "Apartment", ud.Address.Apartment)
+	assert.Equal(t, "Cape Town", ud.Address.City)
+	assert.Equal(t, "Western Cape", ud.Address.State)
+	assert.Equal(t, "8001", ud.Address.ZipCode)
+	assert.Equal(t, "ZA", ud.Address.CountryCode)
 
 	// Noop Update
-	id, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
+	_, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
 		UserID:      userID,
 		FirstName:   "Updated",
 		LastName:    "New",

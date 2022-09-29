@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/kyc"
+
 	"github.com/jmoiron/sqlx"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -22,6 +24,7 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	country_mock "gitlab.com/fynbos/backend/country/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
+	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
@@ -53,6 +56,11 @@ type TestContainer struct {
 	WaitlistClient    *waitlist_mock.MockClient
 	TemporalImpl      *mocks.Client
 	TicketClient      *support_mock.MockClient
+	KYCClient         *kyc_mock.MockClient
+}
+
+func (t TestContainer) KYC() kyc.Client {
+	return t.KYCClient
 }
 
 func (t TestContainer) DB() *sqlx.DB {
@@ -139,6 +147,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		WaitlistClient:    waitlist_mock.NewMockClient(ctrl),
 		TicketClient:      support_mock.NewMockClient(ctrl),
 		TemporalImpl:      &mocks.Client{},
+		KYCClient:         kyc_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

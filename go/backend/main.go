@@ -9,6 +9,8 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/backend/kyc"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -26,6 +28,7 @@ import (
 	country_client "gitlab.com/fynbos/backend/country/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
+	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/migrations"
@@ -213,6 +216,8 @@ func start(args *cli.StartArgs) {
 
 	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
+	b.kyc = kyc_client.New(b)
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -360,6 +365,11 @@ type backends struct {
 	twilio         _twilio.Service
 	users          user.Client
 	waitlist       waitlist.Client
+	kyc            kyc.Client
+}
+
+func (b backends) KYC() kyc.Client {
+	return b.kyc
 }
 
 func (b backends) HealthCheck() healthcheck.Service {

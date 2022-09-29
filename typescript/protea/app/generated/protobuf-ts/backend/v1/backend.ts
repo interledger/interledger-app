@@ -12,6 +12,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Timestamp } from "../../google/protobuf/timestamp";
 /**
  * @generated from protobuf message backend.v1.GetUserAccountByEmailRequest
  */
@@ -205,6 +206,72 @@ export interface CreateSupportTicketRequest {
      * @generated from protobuf field: string email = 4;
      */
     email: string;
+}
+/**
+ * @generated from protobuf message backend.v1.UpdateUserKYCRequest
+ */
+export interface UpdateUserKYCRequest {
+    /**
+     * @generated from protobuf field: optional string firstName = 1;
+     */
+    firstName?: string;
+    /**
+     * @generated from protobuf field: optional string lastName = 2;
+     */
+    lastName?: string;
+    /**
+     * @generated from protobuf field: optional string countryCode = 3;
+     */
+    countryCode?: string;
+    /**
+     * @generated from protobuf field: optional int32 gender = 4;
+     */
+    gender?: number; // 0 Unknown, 1 Male, 2 Female
+    /**
+     * @generated from protobuf field: optional google.protobuf.Timestamp dateOfBirth = 5;
+     */
+    dateOfBirth?: Timestamp;
+    /**
+     * @generated from protobuf field: optional backend.v1.UpdateUserKYCRequest.Address address = 6;
+     */
+    address?: UpdateUserKYCRequest_Address;
+}
+/**
+ * @generated from protobuf message backend.v1.UpdateUserKYCRequest.Address
+ */
+export interface UpdateUserKYCRequest_Address {
+    /**
+     * @generated from protobuf field: optional string line1 = 1;
+     */
+    line1?: string;
+    /**
+     * @generated from protobuf field: optional string line2 = 2;
+     */
+    line2?: string;
+    /**
+     * @generated from protobuf field: optional string building = 3;
+     */
+    building?: string;
+    /**
+     * @generated from protobuf field: optional string apartment = 4;
+     */
+    apartment?: string;
+    /**
+     * @generated from protobuf field: optional string city = 5;
+     */
+    city?: string;
+    /**
+     * @generated from protobuf field: optional string state = 6;
+     */
+    state?: string;
+    /**
+     * @generated from protobuf field: optional string zipCode = 7;
+     */
+    zipCode?: string;
+    /**
+     * @generated from protobuf field: optional string countryCode = 8;
+     */
+    countryCode?: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetBankAccountWidgetRequest
@@ -1320,6 +1387,184 @@ class CreateSupportTicketRequest$Type extends MessageType<CreateSupportTicketReq
  * @generated MessageType for protobuf message backend.v1.CreateSupportTicketRequest
  */
 export const CreateSupportTicketRequest = new CreateSupportTicketRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateUserKYCRequest$Type extends MessageType<UpdateUserKYCRequest> {
+    constructor() {
+        super("backend.v1.UpdateUserKYCRequest", [
+            { no: 1, name: "firstName", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "lastName", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "countryCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "gender", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
+            { no: 5, name: "dateOfBirth", kind: "message", T: () => Timestamp },
+            { no: 6, name: "address", kind: "message", T: () => UpdateUserKYCRequest_Address }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateUserKYCRequest>): UpdateUserKYCRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateUserKYCRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserKYCRequest): UpdateUserKYCRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* optional string firstName */ 1:
+                    message.firstName = reader.string();
+                    break;
+                case /* optional string lastName */ 2:
+                    message.lastName = reader.string();
+                    break;
+                case /* optional string countryCode */ 3:
+                    message.countryCode = reader.string();
+                    break;
+                case /* optional int32 gender */ 4:
+                    message.gender = reader.int32();
+                    break;
+                case /* optional google.protobuf.Timestamp dateOfBirth */ 5:
+                    message.dateOfBirth = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.dateOfBirth);
+                    break;
+                case /* optional backend.v1.UpdateUserKYCRequest.Address address */ 6:
+                    message.address = UpdateUserKYCRequest_Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateUserKYCRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* optional string firstName = 1; */
+        if (message.firstName !== undefined)
+            writer.tag(1, WireType.LengthDelimited).string(message.firstName);
+        /* optional string lastName = 2; */
+        if (message.lastName !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.lastName);
+        /* optional string countryCode = 3; */
+        if (message.countryCode !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.countryCode);
+        /* optional int32 gender = 4; */
+        if (message.gender !== undefined)
+            writer.tag(4, WireType.Varint).int32(message.gender);
+        /* optional google.protobuf.Timestamp dateOfBirth = 5; */
+        if (message.dateOfBirth)
+            Timestamp.internalBinaryWrite(message.dateOfBirth, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* optional backend.v1.UpdateUserKYCRequest.Address address = 6; */
+        if (message.address)
+            UpdateUserKYCRequest_Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdateUserKYCRequest
+ */
+export const UpdateUserKYCRequest = new UpdateUserKYCRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest_Address> {
+    constructor() {
+        super("backend.v1.UpdateUserKYCRequest.Address", [
+            { no: 1, name: "line1", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "line2", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "building", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "apartment", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "city", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "state", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "zipCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "countryCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateUserKYCRequest_Address>): UpdateUserKYCRequest_Address {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateUserKYCRequest_Address>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserKYCRequest_Address): UpdateUserKYCRequest_Address {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* optional string line1 */ 1:
+                    message.line1 = reader.string();
+                    break;
+                case /* optional string line2 */ 2:
+                    message.line2 = reader.string();
+                    break;
+                case /* optional string building */ 3:
+                    message.building = reader.string();
+                    break;
+                case /* optional string apartment */ 4:
+                    message.apartment = reader.string();
+                    break;
+                case /* optional string city */ 5:
+                    message.city = reader.string();
+                    break;
+                case /* optional string state */ 6:
+                    message.state = reader.string();
+                    break;
+                case /* optional string zipCode */ 7:
+                    message.zipCode = reader.string();
+                    break;
+                case /* optional string countryCode */ 8:
+                    message.countryCode = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateUserKYCRequest_Address, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* optional string line1 = 1; */
+        if (message.line1 !== undefined)
+            writer.tag(1, WireType.LengthDelimited).string(message.line1);
+        /* optional string line2 = 2; */
+        if (message.line2 !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.line2);
+        /* optional string building = 3; */
+        if (message.building !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.building);
+        /* optional string apartment = 4; */
+        if (message.apartment !== undefined)
+            writer.tag(4, WireType.LengthDelimited).string(message.apartment);
+        /* optional string city = 5; */
+        if (message.city !== undefined)
+            writer.tag(5, WireType.LengthDelimited).string(message.city);
+        /* optional string state = 6; */
+        if (message.state !== undefined)
+            writer.tag(6, WireType.LengthDelimited).string(message.state);
+        /* optional string zipCode = 7; */
+        if (message.zipCode !== undefined)
+            writer.tag(7, WireType.LengthDelimited).string(message.zipCode);
+        /* optional string countryCode = 8; */
+        if (message.countryCode !== undefined)
+            writer.tag(8, WireType.LengthDelimited).string(message.countryCode);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdateUserKYCRequest.Address
+ */
+export const UpdateUserKYCRequest_Address = new UpdateUserKYCRequest_Address$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountWidgetRequest$Type extends MessageType<GetBankAccountWidgetRequest> {
     constructor() {
@@ -2773,6 +3018,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AddBankAccount", options: {}, I: AddBankAccountRequest, O: AddBankAccountResponse },
     { name: "GetBankAccountDetails", options: {}, I: GetBankAccountDetailsRequest, O: BankAccountDetails },
     { name: "ContinueAddingBankAccount", options: {}, I: ContinueAddingBankAccountRequest, O: ContinueAddingBankAccountResponse },
+    { name: "UpdateUserKYC", options: {}, I: UpdateUserKYCRequest, O: Empty },
     { name: "SetSignupUserData", options: {}, I: SetSignupUserDataRequest, O: SetSignupUserDataResponse },
     { name: "SetSignupMobileNumber", options: {}, I: SetSignupMobileNumberRequest, O: Empty },
     { name: "GetSignup", options: {}, I: GetSignupRequest, O: Signup },
