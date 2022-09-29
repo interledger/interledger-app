@@ -96,8 +96,8 @@ export default function Page() {
   }, [query, countries])
 
   return (
-    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
-      <div className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <div className='mt-2 flex flex-col'>
         {shapes.map((shapeRow) => (
           <div className='flex' key={shapeRow.toString()}>
             {shapeRow.map((shape, index) => (
@@ -109,15 +109,13 @@ export default function Page() {
           </div>
         ))}
       </div>
-      <div className='col-span-full flex flex-col space-y-2 pt-4 pb-8 sm:col-span-6 sm:col-start-2'>
-        <span className='font-display text-2xl font-medium'>
-          Join the waitlist
-        </span>
-        <span className='text-medium'>
-          Leave your details below and we will notify you as soon as enrollment
-          opens.
-        </span>
-      </div>
+      <span className='mt-6 font-display text-2xl font-medium'>
+        Join the waitlist
+      </span>
+      <span className='mt-6 text-medium'>
+        Leave your details below and we will notify you as soon as enrollment
+        opens.
+      </span>
 
       <Form
         id='join-waitlist'
@@ -133,7 +131,7 @@ export default function Page() {
         name='fullName'
         type='text'
         defaultValue={fullName as string}
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-6'
         aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
         aria-describedby={
           actionData?.errors.fullName ? 'lastName-error' : undefined
@@ -148,7 +146,7 @@ export default function Page() {
         name='email'
         defaultValue={email as string}
         type='text'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-1'
         aria-invalid={Boolean(actionData?.errors.email) || undefined}
         aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
         required
@@ -161,7 +159,7 @@ export default function Page() {
         onQuery={setQuery}
         options={filteredCountries}
         label='Country of residence'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-1'
         aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
         aria-describedby={
           actionData?.errors.countryCode ? 'country-error' : undefined
@@ -175,11 +173,9 @@ export default function Page() {
         name='country'
         type='hidden'
       />
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2'>
-        <Button form='join-waitlist' type='submit'>
-          Join now
-        </Button>
-      </div>
+      <Button className='mt-12' form='join-waitlist' type='submit'>
+        Join now
+      </Button>
     </div>
   )
 }

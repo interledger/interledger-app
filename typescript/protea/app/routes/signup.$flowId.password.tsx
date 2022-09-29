@@ -58,12 +58,12 @@ export default function Page() {
   const { flow, kratosFlowId, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
-      <div className='col-span-full flex flex-col space-y-4 pb-8 sm:col-span-6 sm:col-start-2 sm:space-y-6'>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
-          <span className='font-display text-2xl font-medium'>
+          <h1 className='font-display text-2xl font-medium'>
             Create a password
-          </span>
+          </h1>
           <div className='hidden sm:flex'>
             <Shape
               width={'w-8'}
@@ -77,7 +77,7 @@ export default function Page() {
             />
           </div>
         </div>
-        <span>You will need your password to log in to your account.</span>
+        <p>You will need your password to log in to your account.</p>
       </div>
 
       <Form
@@ -92,7 +92,7 @@ export default function Page() {
         name='password'
         form='signup-password'
         type='password'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2'
+        className='mt-6'
         aria-invalid={Boolean(actionData?.errors.password) || undefined}
         aria-describedby={
           actionData?.errors.password ? 'password-error' : undefined
@@ -105,7 +105,7 @@ export default function Page() {
         id='service-agreement'
         name='service-agreement'
         form='signup-password'
-        className='col-span-full mt-4 flex sm:col-span-6 sm:col-start-2'
+        className='mt-4 flex'
         aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
         aria-describedby={
           actionData?.errors.serviceAgreement
@@ -138,11 +138,9 @@ export default function Page() {
         form='signup-password'
         type='hidden'
       />
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2'>
-        <Button form='signup-password' type='submit'>
-          Confirm
-        </Button>
-      </div>
+      <Button className='mt-12' form='signup-password' type='submit'>
+        Confirm
+      </Button>
     </div>
   )
 }

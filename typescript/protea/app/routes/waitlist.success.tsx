@@ -27,8 +27,8 @@ const shapes = [
 
 export default function Page() {
   return (
-    <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto rounded-2xl bg-page px-4 pb-16 pt-6 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:pt-12 xl:max-w-4xl'>
-      <div className='col-span-full flex flex-col pt-5 sm:col-span-6 sm:col-start-2'>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <div className='mt-2 flex flex-col'>
         {shapes.map((shapeRow, outerIndex, outerArray) => (
           <div className='flex w-full justify-center' key={shapeRow.toString()}>
             {shapeRow.map((shape, index, array) => (
@@ -45,17 +45,16 @@ export default function Page() {
           </div>
         ))}
       </div>
-      <div className='col-span-full flex flex-col space-y-2 pt-11 pb-8 sm:col-span-6 sm:col-start-2'>
-        <span className='font-display text-2xl font-medium'>Thank you</span>
-        <span className='text-medium'>
-          You have successfully joined the waitlist.
-        </span>
-        <span className='text-medium'>
-          We will let you know via email once you are able to transact.
-        </span>
-      </div>
 
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2'>
+      <span className='mt-6 font-display text-2xl font-medium'>Thank you</span>
+      <span className='mt-6 text-medium'>
+        You have successfully joined the waitlist.
+      </span>
+      <span className='mt-2 text-medium'>
+        We will let you know via email once you are able to transact.
+      </span>
+
+      <div className='flex justify-end pt-12'>
         <Router
           to={route('/')}
           className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10'
