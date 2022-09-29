@@ -10,6 +10,7 @@ import {
   requireUserSession
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
+import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -39,7 +40,9 @@ export async function loader({ request }: LoaderArgs) {
     )
     flow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
-    return redirect(`/recovery/password?flow=${flow.id}`)
+    return redirect(`/recovery/password?flow=${flow.id}`, {
+      headers: trimHeaders(flowRes.headers, ['set-cookie'])
+    })
   }
   return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }

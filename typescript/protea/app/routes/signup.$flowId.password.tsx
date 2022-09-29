@@ -9,6 +9,7 @@ import {
   KRATOS_URL
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
+import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await getCurrentFlow(request, flowType.Signup)
@@ -40,7 +41,7 @@ export async function loader({ request }: LoaderArgs) {
     kratosFlow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(kratosFlow, 'signup')
     return redirect(`/signup/${flow?.id}/password?flow=${kratosFlow.id}`, {
-      headers: flowRes.headers
+      headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({
@@ -185,7 +186,7 @@ export async function action({ request }: ActionArgs) {
           phone: flow?.data.phone,
           firstName: flow?.data.firstName,
           lastName: flow?.data.lastName,
-          countryCode: flow?.data.country,
+          countryCode: flow?.data.country
         },
         password: password,
         csrf_token: csrfToken
@@ -213,20 +214,15 @@ export async function action({ request }: ActionArgs) {
   const headers = await exitFlow(request, flowType.Signup)
 
   // Delete all the values from the header instead of set-cookie
-  const resHeaders = res.headers
-  resHeaders.forEach((value,key) => {
-    if(key.toLowerCase() !== 'set-cookie') {
-      resHeaders.delete(key)
-    }
-  })
+  const resHeaders = trimHeaders(res.headers, ['set-cookie'])
 
   // Append the exitFlow set-cookie
   const flowSetCookie = headers.get('set-cookie')
-  if(flowSetCookie) {
+  if (flowSetCookie) {
     resHeaders.append('set-cookie', flowSetCookie)
   }
 
   return redirect(route('/'), {
-    headers: resHeaders,
+    headers: resHeaders
   })
 }
