@@ -31,14 +31,16 @@ func (s *rpcService) UpdateUserKYC(ctx context.Context, req *pb.UpdateUserKYCReq
 
 	if req.Address != nil {
 		update.Address = &kyc.Address{
-			Line1:       req.Address.GetLine1(),
-			Line2:       req.Address.GetLine2(),
-			Building:    req.Address.GetBuilding(),
-			Apartment:   req.Address.GetApartment(),
-			City:        req.Address.GetCity(),
-			State:       req.Address.GetState(),
-			ZipCode:     req.Address.GetZipCode(),
-			CountryCode: req.Address.GetCountryCode(),
+			Line1:            req.Address.GetLine1(),
+			Line2:            req.Address.GetLine2(),
+			Building:         req.Address.GetBuilding(),
+			Apartment:        req.Address.GetApartment(),
+			City:             req.Address.GetCity(),
+			State:            req.Address.GetState(),
+			ZipCode:          req.Address.GetZipCode(),
+			CountryCode:      req.Address.GetCountryCode(),
+			FormattedAddress: req.Address.GetFormattedAddress(),
+			PlaceID:          req.Address.GetPlaceID(),
 		}
 		// Validate struct doesn't validate sub structs individually, so we do it manually
 		err = s.b.Validator().Struct(update.Address)

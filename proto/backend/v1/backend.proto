@@ -136,7 +136,9 @@ message UpdateUserKYCRequest {
     optional string city = 5;
     optional string state = 6;
     optional string zipCode= 7;
-    optional string countryCode =8;
+    optional string countryCode = 8;
+    optional string placeID = 9;
+    optional string formattedAddress = 10;
   }
 }
 
