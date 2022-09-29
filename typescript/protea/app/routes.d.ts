@@ -15,6 +15,7 @@ declare module "routes-gen" {
     "/waitlist/success": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
+    "/payment-pointer": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/disclosures": Record<string, never>;
     "/activity": Record<string, never>;
@@ -53,6 +54,7 @@ declare module "routes-gen" {
       | ["/waitlist/success"]
       | ["/contact/success"]
       | ["/login/challenge"]
+      | ["/payment-pointer"]
       | ["/api/sendOtp"]
       | ["/disclosures"]
       | ["/activity"]

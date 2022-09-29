@@ -233,7 +233,7 @@ export async function action({ request }: ActionArgs) {
     resHeaders.append('set-cookie', flowSetCookie)
   }
 
-  return redirect(route('/'), {
+  return redirect(route('/payment-pointer'), {
     headers: resHeaders
   })
 }
