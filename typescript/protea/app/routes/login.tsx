@@ -131,7 +131,7 @@ export default function Page() {
         errorMessage={actionData?.errors?.password}
       />
 
-      <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
+      <input form='login' defaultValue={csrfToken} name='csrf_token' type='hidden' />
 
       <div className='col-span-full sm:col-span-6 sm:col-start-2'>
         <Button form='login' type='submit'>
