@@ -181,7 +181,11 @@ export async function action({ request }: ActionArgs) {
       body: JSON.stringify({
         method: 'password',
         traits: {
-          email: email
+          email: email,
+          phone: flow?.data.phone,
+          firstName: flow?.data.firstName,
+          lastName: flow?.data.lastName,
+          countryCode: flow?.data.country,
         },
         password: password,
         csrf_token: csrfToken
@@ -207,10 +211,22 @@ export async function action({ request }: ActionArgs) {
   }
 
   const headers = await exitFlow(request, flowType.Signup)
-  const flowSettings = headers.get('Set-Cookie') as string
 
-  res.headers.append('Set-Cookie', flowSettings)
+  // Delete all the values from the header instead of set-cookie
+  const resHeaders = res.headers
+  resHeaders.forEach((value,key) => {
+    if(key.toLowerCase() !== 'set-cookie') {
+      resHeaders.delete(key)
+    }
+  })
+
+  // Append the exitFlow set-cookie
+  const flowSetCookie = headers.get('set-cookie')
+  if(flowSetCookie) {
+    resHeaders.append('set-cookie', flowSetCookie)
+  }
+
   return redirect(route('/'), {
-    headers: res.headers
+    headers: resHeaders,
   })
 }
