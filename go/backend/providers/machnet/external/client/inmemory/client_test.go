@@ -1,4 +1,4 @@
-package dev_test
+package inmemory_test
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
-	"gitlab.com/fynbos/backend/providers/machnet/external/client/dev"
+	"gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 )
 
-func TestDevClient(t *testing.T) {
-	client := dev.New()
+func TestInMemoryClient(t *testing.T) {
+	client := inmemory.New()
 
 	// crud
 	user, err := client.RegisterUser(context.Background(), external.User{
