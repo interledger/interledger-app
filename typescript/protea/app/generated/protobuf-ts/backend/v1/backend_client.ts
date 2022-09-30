@@ -30,6 +30,8 @@ import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
 import { OpenPaymentService } from "./backend";
 import type { ListWalletPaymentPointersResponse } from "./backend";
+import type { PaymentPointerExistsResponse } from "./backend";
+import type { PaymentPointerExistsRequest } from "./backend";
 import type { PaymentPointer } from "./backend";
 import type { GetPaymentPointerRequest } from "./backend";
 import type { Empty } from "./backend";
@@ -81,6 +83,10 @@ export interface IOpenPaymentServiceClient {
      */
     getPaymentPointer(input: GetPaymentPointerRequest, options?: RpcOptions): UnaryCall<GetPaymentPointerRequest, PaymentPointer>;
     /**
+     * @generated from protobuf rpc: PaymentPointerExists(backend.v1.PaymentPointerExistsRequest) returns (backend.v1.PaymentPointerExistsResponse);
+     */
+    paymentPointerExists(input: PaymentPointerExistsRequest, options?: RpcOptions): UnaryCall<PaymentPointerExistsRequest, PaymentPointerExistsResponse>;
+    /**
      * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.Empty) returns (backend.v1.ListWalletPaymentPointersResponse);
      */
     listWalletPaymentPointers(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListWalletPaymentPointersResponse>;
@@ -109,10 +115,17 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<GetPaymentPointerRequest, PaymentPointer>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: PaymentPointerExists(backend.v1.PaymentPointerExistsRequest) returns (backend.v1.PaymentPointerExistsResponse);
+     */
+    paymentPointerExists(input: PaymentPointerExistsRequest, options?: RpcOptions): UnaryCall<PaymentPointerExistsRequest, PaymentPointerExistsResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaymentPointerExistsRequest, PaymentPointerExistsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: ListWalletPaymentPointers(backend.v1.Empty) returns (backend.v1.ListWalletPaymentPointersResponse);
      */
     listWalletPaymentPointers(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListWalletPaymentPointersResponse> {
-        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListWalletPaymentPointersResponse>("unary", this._transport, method, opt, input);
     }
 }

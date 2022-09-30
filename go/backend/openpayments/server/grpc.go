@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -93,4 +94,15 @@ func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) 
 	}
 
 	return &pb.ListWalletPaymentPointersResponse{Pointers: resp}, nil
+}
+
+func (g grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPointerExistsRequest) (*pb.PaymentPointerExistsResponse, error) {
+	pp, err := ops.GetPaymentPointer(ctx, g.b, req.Url)
+	if err != nil && !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.PaymentPointerExistsResponse{
+		Exists: pp != nil,
+	}, nil
 }

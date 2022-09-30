@@ -29,7 +29,16 @@ message Account {
 service OpenPaymentService {
   rpc CreatePaymentPointer(CreatePaymentPointerRequest) returns (Empty);
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
+  rpc PaymentPointerExists(PaymentPointerExistsRequest) returns (PaymentPointerExistsResponse);
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
+}
+
+message PaymentPointerExistsRequest {
+  string url = 1;
+}
+
+message PaymentPointerExistsResponse {
+  bool exists = 1;
 }
 
 message GetPaymentPointerRequest {
