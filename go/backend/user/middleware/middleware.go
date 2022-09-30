@@ -69,9 +69,22 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 		newCtx := context.WithValue(ctx, userCtxKey, u)
 
 		wallets, err := client.ListWallets(newCtx, u.ID)
-		if err != nil || len(wallets) <= 0 {
-			// Do nothing for now. No wallet errors will redirect the user to create a wallet
+		if err != nil {
+			// Do nothing for now.
 			return handler(newCtx, req)
+		}
+
+		// Create a default wallet for the user if they don't already have one
+		if len(wallets) == 0 {
+			_, err = client.CreateNewWallet(ctx, u.ID, "")
+			if err != nil && !errors.Is(err, user.ErrDuplicateWallet) {
+				log.Warn("failed to create default wallet for user", zap.Error(err), zap.String("user_id", u.ID))
+			}
+			wallets, err = client.ListWallets(newCtx, u.ID)
+			if err != nil || len(wallets) <= 0 {
+				// Do nothing for now. We tried and the next request will try again
+				return handler(newCtx, req)
+			}
 		}
 
 		if len(wallets) > 1 {

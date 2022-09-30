@@ -17,7 +17,8 @@ import (
 var errorStatus = map[error]error{
 	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
 	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP: NewValidationError("OTP", "Could not validate OTP"),
+	twilio.ErrInvalidOTP:    NewValidationError("OTP", "Could not validate OTP"),
+	user.ErrDuplicateWallet: status.Error(codes.AlreadyExists, "Wallet already exists"),
 }
 
 func validationDesc(fe validator.FieldError) string {

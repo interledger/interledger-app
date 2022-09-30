@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -68,15 +69,34 @@ func CreateWallet(ctx context.Context, b Backends, userID, name string) (*user.W
 
 	walletID := uuid.NewString()
 	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-
-		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
+		// Lock on the signup. This is a bit hacky, but it does ensure that the user has finished signup before we create a wallet
+		var signupID string
+		err := tx.GetContext(ctx, &signupID, "SELECT id FROM signups WHERE user_id = $1 FOR UPDATE", userID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w signup incomplete fo user id(%s)", user.ErrNoUserFound, userID)
+		}
 		if err != nil {
-			return err
+			return fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
+		if err != nil {
+			return fmt.Errorf("%w %s", user.ErrInternal, err)
 		}
 
 		_, err = tx.ExecContext(ctx, "INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2)", userID, walletID)
 		if err != nil {
-			return err
+			return fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+
+		// Check that only 1 wallet exists for the user with that name.
+		var exists user.Wallet
+		err = tx.GetContext(ctx, &exists, "SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1 and w.name=$2 AND w.id <> $3", userID, name, walletID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w duplicate wallet name (%s) for user (%s)", user.ErrDuplicateWallet, name, userID)
 		}
 
 		return nil
