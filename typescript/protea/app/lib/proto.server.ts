@@ -2,7 +2,10 @@ import { ChannelCredentials } from '@grpc/grpc-js'
 import { GrpcTransport } from '@protobuf-ts/grpc-transport'
 import { base64decode } from '@protobuf-ts/runtime'
 import type { RpcError } from '@protobuf-ts/runtime-rpc'
-import { BackendServiceClient } from '~/generated/protobuf-ts/backend/v1/backend_client'
+import {
+  BackendServiceClient,
+  OpenPaymentServiceClient
+} from '~/generated/protobuf-ts/backend/v1/backend_client'
 import { Any } from '~/generated/protobuf-ts/google/protobuf/any'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import {
@@ -27,9 +30,11 @@ const transport = new GrpcTransport({
 })
 
 let grpcClient: BackendServiceClient
+let openPaymentsClient: OpenPaymentServiceClient
 
 declare global {
   var __grpcClient: BackendServiceClient | undefined
+  var __openPaymentsClient: OpenPaymentServiceClient | undefined
 }
 
 // this is needed because in development we don't want to restart
@@ -44,7 +49,16 @@ if (process.env.NODE_ENV === 'production') {
   grpcClient = global.__grpcClient
 }
 
-export { grpcClient, StatusError, httpMapping, isGrpcError }
+if (process.env.NODE_ENV === 'production') {
+  openPaymentsClient = new OpenPaymentServiceClient(transport)
+} else {
+  if (!global.__openPaymentsClient) {
+    global.__openPaymentsClient = new OpenPaymentServiceClient(transport)
+  }
+  openPaymentsClient = global.__openPaymentsClient
+}
+
+export { grpcClient, openPaymentsClient, StatusError, httpMapping, isGrpcError }
 export type { GrpcError }
 
 interface GrpcError extends Status {
