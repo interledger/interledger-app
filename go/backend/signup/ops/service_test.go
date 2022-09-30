@@ -178,3 +178,83 @@ func TestComplete(t *testing.T) {
 	assert.Equal(t, userID, su.UserID)
 	assert.True(t, su.Completed)
 }
+
+func TestCompleteIdempotent(t *testing.T) {
+	ctx := context.Background()
+
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	tw := twilio.NewMockService(gomock.NewController(t))
+	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
+	b := &backends{
+		validator: validator.New(),
+		db:        db,
+		twilio:    tw,
+	}
+
+	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
+		FirstName:   "FirstName",
+		LastName:    "LastName",
+		Email:       "test@fynbos.dev",
+		CountryCode: "ZA",
+	})
+	require.NoError(t, err)
+
+	mobile := faker.E164PhoneNumber()
+	err = ops.SetMobileNumber(ctx, b, signup.MobileNumberArgs{
+		ID:           id,
+		MobileNumber: mobile,
+		OTP:          "123456",
+	})
+	require.NoError(t, err)
+
+	userID := uuid.NewString()
+	err = ops.Complete(ctx, b, id, userID)
+	require.NoError(t, err)
+
+	err = ops.Complete(ctx, b, id, userID)
+	require.NoError(t, err)
+}
+
+func TestCompleteFailsAnotherUser(t *testing.T) {
+	ctx := context.Background()
+
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	tw := twilio.NewMockService(gomock.NewController(t))
+	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
+	b := &backends{
+		validator: validator.New(),
+		db:        db,
+		twilio:    tw,
+	}
+
+	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
+		FirstName:   "FirstName",
+		LastName:    "LastName",
+		Email:       "test@fynbos.dev",
+		CountryCode: "ZA",
+	})
+	require.NoError(t, err)
+
+	mobile := faker.E164PhoneNumber()
+	err = ops.SetMobileNumber(ctx, b, signup.MobileNumberArgs{
+		ID:           id,
+		MobileNumber: mobile,
+		OTP:          "123456",
+	})
+	require.NoError(t, err)
+
+	userID := uuid.NewString()
+	err = ops.Complete(ctx, b, id, userID)
+	require.NoError(t, err)
+
+	anotherUserID := uuid.NewString()
+	err = ops.Complete(ctx, b, id, anotherUserID)
+	require.Error(t, err)
+
+	su, err := ops.GetForUser(ctx, b, userID)
+	require.NoError(t, err)
+	assert.Equal(t, userID, su.UserID)
+	assert.True(t, su.Completed)
+}

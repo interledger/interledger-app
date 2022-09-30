@@ -159,22 +159,18 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
 		return err
 	}
 
+	if current.UserID != "" && current.UserID != userID {
+		return fmt.Errorf("%w tried to complete an already complete signup", signup.ErrInternal)
+	}
+
 	if current.MobileNumber == "" {
 		return fmt.Errorf("%w signup does not have mobile number and cannot be complete", signup.ErrInvalidArgument)
 	}
 
-	r, err := b.DB().ExecContext(ctx, "UPDATE signups SET user_id=$1, updated_at=now() WHERE id=$2",
+	_, err = b.DB().ExecContext(ctx, "UPDATE signups SET user_id=$1, updated_at=now() WHERE id=$2 and user_id is null",
 		userID, id)
 	if err != nil {
 		return fmt.Errorf("%w %s", signup.ErrInternal, err)
-	}
-
-	affected, err := r.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("%w %s", signup.ErrInternal, err)
-	}
-	if affected != 1 {
-		return fmt.Errorf("%w incorrect number of rows updated (%d)", signup.ErrInternal, affected)
 	}
 
 	return nil
