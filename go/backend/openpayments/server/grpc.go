@@ -101,12 +101,15 @@ func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) 
 }
 
 func (g grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPointerExistsRequest) (*pb.PaymentPointerExistsResponse, error) {
-	pp, err := ops.GetPaymentPointer(ctx, g.b, req.Url)
-	if err != nil && !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+	exists, err := ops.PaymentPointerExists(ctx, g.b, req.Url)
+	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
+		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
+	}
+	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &pb.PaymentPointerExistsResponse{
-		Exists: pp != nil,
+		Exists: exists,
 	}, nil
 }
