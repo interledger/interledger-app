@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -44,6 +45,9 @@ func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaym
 	}
 
 	err = ops.CreatePaymentPointer(ctx, g.b, pp)
+	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
+		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -31,10 +32,11 @@ func TestCreatePaymentPointer(t *testing.T) {
 		scale     int
 		duplicate bool
 		err       error
+		errMsg    string
 	}{
 		{
 			name:      "success",
-			url:       "http://fynbos.me/1",
+			url:       "http://fynbos.me/abcd1",
 			alias:     "Alias",
 			assetCode: "USD",
 			scale:     2,
@@ -46,11 +48,11 @@ func TestCreatePaymentPointer(t *testing.T) {
 			alias:     "",
 			assetCode: "USD",
 			scale:     2,
-			err:       openpayments.ErrInvalidArgument,
+			err:       openpayments.ErrInvalidPointerURL,
 		},
 		{
 			name:      "invalid_asset",
-			url:       "http://fynbos.me/2",
+			url:       "http://fynbos.me/abcd2",
 			alias:     "",
 			assetCode: "FUzzY",
 			scale:     2,
@@ -58,12 +60,48 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "duplicate",
-			url:       "http://fynbos.me/3",
+			url:       "http://fynbos.me/abcd3",
 			alias:     "",
 			assetCode: "ZAR",
 			scale:     2,
 			duplicate: true,
 			err:       openpayments.ErrPaymentPointerExists,
+		},
+		{
+			name:      "regex_first_4_not_alpha",
+			url:       "http://fynbos.me/1234PayMe",
+			alias:     "",
+			assetCode: "ZAR",
+			scale:     2,
+			err:       openpayments.ErrInvalidPointerPath,
+			errMsg:    "Your first 4 characters must be letters",
+		},
+		{
+			name:      "regex_contains_slash",
+			url:       "http://fynbos.me/PayMe/1234",
+			alias:     "",
+			assetCode: "ZAR",
+			scale:     2,
+			err:       openpayments.ErrInvalidPointerPath,
+			errMsg:    "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:      "regex_too_short",
+			url:       "http://fynbos.me/Pay",
+			alias:     "",
+			assetCode: "ZAR",
+			scale:     2,
+			err:       openpayments.ErrInvalidPointerPath,
+			errMsg:    "Your payment pointer must be longer than 4 characters",
+		},
+		{
+			name:      "regex_too_long",
+			url:       "http://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
+			alias:     "",
+			assetCode: "ZAR",
+			scale:     2,
+			err:       openpayments.ErrInvalidPointerPath,
+			errMsg:    "Your payment pointer must be shorter than 30 characters",
 		},
 	}
 
@@ -93,6 +131,8 @@ func TestCreatePaymentPointer(t *testing.T) {
 
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
+				assert.True(t, strings.HasSuffix(err.Error(), tc.errMsg))
+				assert.True(t, strings.HasPrefix(err.Error(), tc.err.Error()))
 				return
 			}
 
@@ -184,7 +224,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	require.NoError(t, err)
 
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-		URL:        "http://fynbos.me/pp1",
+		URL:        "http://fynbos.me/payp1",
 		WalletID:   wallet.ID,
 		Alias:      "Alias1",
 		Asset:      "USD",
@@ -192,7 +232,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	})
 	require.NoError(t, err)
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-		URL:        "http://fynbos.me/pp2",
+		URL:        "http://fynbos.me/payp2",
 		WalletID:   wallet.ID,
 		Alias:      "Alias2",
 		Asset:      "ZAR",
@@ -205,7 +245,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, pp, 2)
 	for _, p := range pp {
-		if p.URL == "http://fynbos.me/pp1" {
+		if p.URL == "http://fynbos.me/payp1" {
 			assert.Equal(t, "Alias1", p.Alias)
 			assert.Equal(t, "USD", p.Asset)
 			assert.Equal(t, 2, p.AssetScale)

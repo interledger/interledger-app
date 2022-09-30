@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"gitlab.com/fynbos/backend/db"
@@ -18,7 +19,7 @@ func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.
 		return fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
 	}
 
-	ppURL, err := sanitizePaymentPointer(pointer.URL)
+	ppURL, err := validatePaymentPointer(pointer.URL)
 	if err != nil {
 		return err
 	}
@@ -59,8 +60,12 @@ var reservedURLParts = []string{"outgoing-payments", "incoming-payments", "quote
 
 // sanitizePaymentPointer takes a full URL and checks for any reserved words and invalid formatting
 func sanitizePaymentPointer(rawURL string) (string, error) {
-	pointerURL, err := url.ParseRequestURI(rawURL)
+	pointerURL, err := url.Parse(rawURL)
 	if err != nil {
+		return "", openpayments.ErrInvalidPointerURL
+	}
+
+	if pointerURL.Scheme == "" || pointerURL.Host == "" {
 		return "", openpayments.ErrInvalidPointerURL
 	}
 
@@ -74,6 +79,47 @@ func sanitizePaymentPointer(rawURL string) (string, error) {
 	}
 
 	return strings.TrimSuffix(pointerURL.String(), "/"), nil
+}
+
+var pointerRegex = regexp.MustCompile(`^[A-Za-z]{4}[a-zA-z0\d_]{0,26}$`)
+var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{4}$`)
+
+// validatePaymentPointer returns the sanitized url or an error if the payment pointer is not in the format https://{base}/{variable}
+// {variable} has the following conditions:
+//- Between 4 and 42 characters
+//- Only AlphaNumeric characters and underscore
+//- The first 4 characters can only be alpha
+// Assumption: {base} does not contain any slashes
+func validatePaymentPointer(rawURL string) (string, error) {
+	ppURL, err := sanitizePaymentPointer(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	pointerURL, err := url.Parse(ppURL)
+	if err != nil {
+		// Shouldn't happen
+		return "", openpayments.ErrInvalidPointerURL
+	}
+
+	path := strings.TrimPrefix(pointerURL.Path, "/")
+
+	if len(path) < 4 {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be longer than 4 characters")
+	}
+	if len(path) > 30 {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be shorter than 30 characters")
+	}
+
+	if !pointerPrefixRegex.MatchString(path[:4]) {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your first 4 characters must be letters")
+	}
+
+	if !pointerRegex.MatchString(path) {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
+	}
+
+	return ppURL, nil
 }
 
 // ExtractPaymentPointer takes a full URL and removes the known suffix and what is left is the original Payment pointer
