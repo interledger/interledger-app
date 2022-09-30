@@ -34,6 +34,8 @@ import (
 	"gitlab.com/fynbos/backend/migrations"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/fakecash"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
@@ -192,6 +194,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
+	router.Handle("/webhooks/machnet", machnet_webhook.New(b))
 
 	open_server.StartOpenPaymentsHTTP(b, args.OpenPaymentsPort)
 
@@ -356,6 +359,7 @@ type backends struct {
 	countries      country.Client
 	fakecash       fakecash.Client
 	linkedaccounts linkedaccounts.Client
+	machnet        machnet.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
 	pacioli        pacioli.Client
@@ -438,6 +442,10 @@ func (b backends) Twilio() _twilio.Service {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
+}
+
+func (b backends) Machnet() machnet.Client {
+	return b.machnet
 }
 
 func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {
