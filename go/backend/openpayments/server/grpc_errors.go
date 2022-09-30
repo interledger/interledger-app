@@ -16,6 +16,7 @@ import (
 
 var errorStatus = map[error]error{
 	openpayments.ErrPaymentPointerNotFound: NotFoundError("payment pointer not found"),
+	openpayments.ErrPaymentPointerExists:   NewValidationError("url", "That payment pointer has been taken. Please choose another"),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -96,6 +97,26 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 
 	// Default to Internal error if not validation error.
 	return status.Error(codes.Internal, "Internal server error")
+}
+
+func NewValidationError(field string, description string) error {
+	st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
+	br := &errdetails.BadRequest{}
+
+	v := &errdetails.BadRequest_FieldViolation{
+		Field:       field,
+		Description: description,
+	}
+	br.FieldViolations = append(br.FieldViolations, v)
+
+	st, err := st.WithDetails(br)
+	if err != nil {
+		// If this errored, it will always error
+		// here, so better panic so we can figure
+		// out why than have this silently passing.
+		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+	}
+	return st.Err()
 }
 
 // NotFoundError will build an immutable error representing the status of the response.
