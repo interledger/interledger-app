@@ -37,6 +37,20 @@ func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.
 	return nil
 }
 
+func PaymentPointerExists(ctx context.Context, b Backends, pointerURLRaw string) (bool, error) {
+	// Validate that this is a valid payment pointer
+	ppURL, err := validatePaymentPointer(pointerURLRaw)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = GetPaymentPointer(ctx, b, ppURL)
+	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+		return false, nil
+	}
+	return true, err
+}
+
 func GetPaymentPointer(ctx context.Context, b Backends, pointerURLRaw string) (*openpayments.PaymentPointer, error) {
 
 	ppURL, err := sanitizePaymentPointer(pointerURLRaw)
