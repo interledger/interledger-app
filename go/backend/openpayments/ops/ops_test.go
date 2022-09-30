@@ -108,7 +108,12 @@ func TestCreatePaymentPointer(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			wallet, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+			userID := uuid.NewString()
+			// Create Signup
+			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+			require.NoError(t, err)
+			// Create Wallet
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
@@ -220,7 +225,12 @@ func TestListWalletPaymentPointers(t *testing.T) {
 
 	userClient := users_client.New(b, "fakeURL")
 
-	wallet, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+
+	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 	require.NoError(t, err)
 
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{

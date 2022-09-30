@@ -308,6 +308,7 @@ type BackendServiceClient interface {
 	GetSignup(ctx context.Context, in *GetSignupRequest, opts ...grpc.CallOption) (*Signup, error)
 	// Called after the user is created on Kratos with the new userID.
 	CompleteSignup(ctx context.Context, in *CompleteSignupRequest, opts ...grpc.CallOption) (*Empty, error)
+	CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -395,6 +396,15 @@ func (c *backendServiceClient) GetSignup(ctx context.Context, in *GetSignupReque
 func (c *backendServiceClient) CompleteSignup(ctx context.Context, in *CompleteSignupRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CompleteSignup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateUserDefaultWallet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -496,6 +506,7 @@ type BackendServiceServer interface {
 	GetSignup(context.Context, *GetSignupRequest) (*Signup, error)
 	// Called after the user is created on Kratos with the new userID.
 	CompleteSignup(context.Context, *CompleteSignupRequest) (*Empty, error)
+	CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error)
 	SendOTP(context.Context, *Empty) (*Empty, error)
@@ -536,6 +547,9 @@ func (UnimplementedBackendServiceServer) GetSignup(context.Context, *GetSignupRe
 }
 func (UnimplementedBackendServiceServer) CompleteSignup(context.Context, *CompleteSignupRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CompleteSignup not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUserDefaultWallet not implemented")
 }
 func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
@@ -716,6 +730,24 @@ func _BackendService_CompleteSignup_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CompleteSignup(ctx, req.(*CompleteSignupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CreateUserDefaultWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserDefaultWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateUserDefaultWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateUserDefaultWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateUserDefaultWallet(ctx, req.(*CreateUserDefaultWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -920,6 +952,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CompleteSignup",
 			Handler:    _BackendService_CompleteSignup_Handler,
+		},
+		{
+			MethodName: "CreateUserDefaultWallet",
+			Handler:    _BackendService_CreateUserDefaultWallet_Handler,
 		},
 		{
 			MethodName: "SendPhoneVerification",

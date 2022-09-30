@@ -78,6 +78,7 @@ service BackendService {
   rpc GetSignup(GetSignupRequest) returns (Signup);
   // Called after the user is created on Kratos with the new userID.
   rpc CompleteSignup(CompleteSignupRequest) returns (Empty);
+  rpc CreateUserDefaultWallet(CreateUserDefaultWalletRequest) returns (Empty);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
   rpc SendOTP(Empty) returns (Empty);
@@ -175,6 +176,10 @@ message Signup {
 message CompleteSignupRequest {
   string id = 1;
   string userId = 2;
+}
+
+message CreateUserDefaultWalletRequest {
+  string userID = 1;
 }
 
 message SendPhoneVerificationRequest {
