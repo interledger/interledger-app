@@ -108,6 +108,7 @@ var BackendAdminService_ServiceDesc = grpc.ServiceDesc{
 type OpenPaymentServiceClient interface {
 	CreatePaymentPointer(ctx context.Context, in *CreatePaymentPointerRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error)
+	PaymentPointerExists(ctx context.Context, in *PaymentPointerExistsRequest, opts ...grpc.CallOption) (*PaymentPointerExistsResponse, error)
 	ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
 }
 
@@ -137,6 +138,15 @@ func (c *openPaymentServiceClient) GetPaymentPointer(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) PaymentPointerExists(ctx context.Context, in *PaymentPointerExistsRequest, opts ...grpc.CallOption) (*PaymentPointerExistsResponse, error) {
+	out := new(PaymentPointerExistsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/PaymentPointerExists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error) {
 	out := new(ListWalletPaymentPointersResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListWalletPaymentPointers", in, out, opts...)
@@ -152,6 +162,7 @@ func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context
 type OpenPaymentServiceServer interface {
 	CreatePaymentPointer(context.Context, *CreatePaymentPointerRequest) (*Empty, error)
 	GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error)
+	PaymentPointerExists(context.Context, *PaymentPointerExistsRequest) (*PaymentPointerExistsResponse, error)
 	ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error)
 }
 
@@ -164,6 +175,9 @@ func (UnimplementedOpenPaymentServiceServer) CreatePaymentPointer(context.Contex
 }
 func (UnimplementedOpenPaymentServiceServer) GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentPointer not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) PaymentPointerExists(context.Context, *PaymentPointerExistsRequest) (*PaymentPointerExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PaymentPointerExists not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListWalletPaymentPointers not implemented")
@@ -216,6 +230,24 @@ func _OpenPaymentService_GetPaymentPointer_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenPaymentService_PaymentPointerExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaymentPointerExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).PaymentPointerExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/PaymentPointerExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).PaymentPointerExists(ctx, req.(*PaymentPointerExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OpenPaymentService_ListWalletPaymentPointers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -248,6 +280,10 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPaymentPointer",
 			Handler:    _OpenPaymentService_GetPaymentPointer_Handler,
+		},
+		{
+			MethodName: "PaymentPointerExists",
+			Handler:    _OpenPaymentService_PaymentPointerExists_Handler,
 		},
 		{
 			MethodName: "ListWalletPaymentPointers",
