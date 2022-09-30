@@ -10,6 +10,8 @@ import {
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
 import { trimHeaders } from '~/lib/headers.server'
+import { grpcClient } from '~/lib/proto.server'
+import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await getCurrentFlow(request, flowType.Signup)
@@ -210,6 +212,17 @@ export async function action({ request }: ActionArgs) {
     }
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
+
+  // The SuccessfulSelfServiceRegistrationWithoutBrowser is correct here. The OpenAPI spec for kratos
+  // has some weird naming for types....
+  const successData = data as SuccessfulSelfServiceRegistrationWithoutBrowser
+
+  // Mark signup complete
+  // TODO: also handle via kratos webhook, add retry here and error handling
+  await grpcClient.completeSignup({
+    id: flow.id,
+    userId: successData.identity.id
+  })
 
   const headers = await exitFlow(request, flowType.Signup)
 
