@@ -2174,12 +2174,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ory/kratos-client@npm:0.8.2-alpha.1":
-  version: 0.8.2-alpha.1
-  resolution: "@ory/kratos-client@npm:0.8.2-alpha.1"
+"@ory/kratos-client@npm:v0.10.1":
+  version: 0.10.1
+  resolution: "@ory/kratos-client@npm:0.10.1"
   dependencies:
-    axios: ^0.21.1
-  checksum: d103ffdf08f76e565622abda8e748b5d17f9829c727e37a74e50b87b6d86431499b2e2f191ad2b6571202c1dea0455840585734c09b8ed923843aa7ca84f107a
+    axios: ^0.21.4
+  checksum: 1c2283629904be0a8ab91a9b7e6c91c277e10f892bbe47a39eb9cbf6940b344477473f16dc93f7b12b265727b8fa033fd8a64bfd1f560179497c4b6ea1146b8d
   languageName: node
   linkType: hard
 
@@ -3429,7 +3429,7 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.21.1":
+"axios@npm:^0.21.4":
   version: 0.21.4
   resolution: "axios@npm:0.21.4"
   dependencies:
@@ -9093,7 +9093,7 @@ postcss@latest:
     "@headlessui/react": ^1.6.6
     "@mapbox/rehype-prism": ^0.7.0
     "@mxenabled/web-widget-sdk": ^0.0.8
-    "@ory/kratos-client": 0.8.2-alpha.1
+    "@ory/kratos-client": v0.10.1
     "@playwright/test": ^1.23.3
     "@protobuf-ts/grpc-transport": ^2.6.0
     "@protobuf-ts/runtime": ^2.6.0
