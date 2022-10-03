@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
@@ -20,27 +20,44 @@ import { requireUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
-  console.log(session.identity.traits.firstName)
-  return json({ username: session.identity.traits.firstName })
+  let usernameIsValid = false
+  let attempts = 0
+  let username = session.identity.traits.firstName
+
+  while (!usernameIsValid && attempts < 5) {
+    let response = await openPaymentsClient
+      .paymentPointerExists({
+        url: 'https://fynbos.me/' + username
+      })
+      .then((v) => v)
+      .catch(StatusError)
+    if (isGrpcError(response) || response.response.exists) {
+      attempts++
+      username = session.identity.traits.firstName
+      if (username.length < 4) username += session.identity.traits.lastName
+
+      if (attempts > 1)
+        username += String(Math.floor(Math.random() * 10000)).padStart(4, '0')
+
+      if (attempts == 5) username = ''
+    } else {
+      usernameIsValid = true
+    }
+  }
+
+  return json({ username })
 }
 
 export default function Page() {
-  /**
-   * When a form needs to open a dialog to complete the process, the initial form can use a fetcher.Form - because the submission of this form doesn't cause navigation.
-   */
   const fetcher = useFetcher()
-  const actionData = useActionData<typeof action>()
   const { username } = useLoaderData<typeof loader>()
-  console.log('actionData', actionData)
 
   const _onChangeInput = useCallback(
     (event) => {
       const username = event.target.value
-      console.log('EVENT', username)
       if (username?.length >= 3) {
         fetcher.submit({ username }, { method: 'post' })
       }
-      // actionData = {}
     },
     [fetcher]
   )
@@ -67,7 +84,7 @@ export default function Page() {
         </div>
         <p>Create your unique, memorable payment pointer.</p>
       </div>
-      <Form
+      <fetcher.Form
         id='payment-pointer'
         action='/payment-pointer'
         method='post'
@@ -81,7 +98,9 @@ export default function Page() {
         name='username'
         prefix='$fynbos.me/'
         appendIcon={
-          fetcher.data?.errors.username || actionData?.errors.username ? (
+          username == '' &&
+          typeof fetcher.data == 'undefined' ? undefined : fetcher.data?.errors
+              .username ? (
             <Icon className='text-error'>error</Icon>
           ) : (
             <Icon className='text-success'>check</Icon>
@@ -91,24 +110,13 @@ export default function Page() {
         onChange={_onChangeInput}
         type='text'
         className='mt-6'
-        aria-invalid={
-          Boolean(fetcher.data?.errors.username) ||
-          Boolean(actionData?.errors.username) ||
-          undefined
-        }
+        aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
         aria-describedby={
-          fetcher.data?.errors.username || actionData?.errors.username
-            ? 'username-error'
-            : undefined
+          fetcher.data?.errors.username ? 'username-error' : undefined
         }
-        required
-        errorMessage={
-          fetcher.data?.errors.username ||
-          actionData?.errors.username ||
-          undefined
-        }
+        errorMessage={fetcher.data?.errors.username || undefined}
         successMessage={
-          fetcher.data?.errors.username || actionData?.errors.username
+          fetcher.data?.errors.username || username == ''
             ? undefined
             : 'This payment pointer is available.'
         }
@@ -128,11 +136,11 @@ export default function Page() {
 }
 
 // The field names given by the backend for field violations
-type fieldErrorsMap = 'Url'
+type fieldErrorsMap = 'url'
 
 function mapper(field: fieldErrorsMap): 'username' | null {
   switch (field) {
-    case 'Url':
+    case 'url':
       return 'username'
     default:
       return null
@@ -142,27 +150,16 @@ function mapper(field: fieldErrorsMap): 'username' | null {
 export async function action({ request }: ActionArgs) {
   const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
-  const prefix = 'https://fynbos.me/'
   const username = form.get('username') as string
   const canSubmit = Boolean(form.get('canSubmit') as string)
-
-  console.log('PP: ', prefix + username)
-  console.log('canSubmit: ', canSubmit)
-
-  // TODO: check username is valid
-  // Should just return whether it's valid or not, unless the form is submitted with a redirect flag, in which case it can create payment pointer and continue.
 
   const fieldErrors = {
     username: ''
   }
-  // if (username.length < 4) {
-  //   fieldErrors.username = 'Too short.'
-  // }
-  console.log('username', username)
 
   let response = await openPaymentsClient
     .paymentPointerExists({
-      url: prefix + username
+      url: 'https://fynbos.me/' + username
     })
     .then((v) => v)
     .catch(StatusError)
@@ -173,10 +170,11 @@ export async function action({ request }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
+
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))
   }
-  // TODO: Ensure that the validation checks if it exists
+
   if (response.response.exists) {
     return json(
       {
@@ -190,11 +188,10 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (canSubmit) {
-    console.log('here')
     let response = await openPaymentsClient
       .createPaymentPointer(
         {
-          url: prefix + username,
+          url: 'https://fynbos.me/' + username,
           asset: 'USD',
           assetScale: 2,
           alias: 'default'
