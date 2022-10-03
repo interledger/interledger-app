@@ -59,7 +59,8 @@ func GetPaymentPointer(ctx context.Context, b Backends, pointerURLRaw string) (*
 	}
 
 	var pp openpayments.PaymentPointer
-	err = b.DB().GetContext(ctx, &pp, "SELECT wallet_id, url, alias, asset, scale FROM payment_pointers WHERE url=$1", ppURL)
+	err = b.DB().GetContext(ctx, &pp, "SELECT wallet_id, url, alias, asset, scale FROM payment_pointers WHERE lower(url) = lower($1)",
+		ppURL)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w unkown payment pointer url(%s)", openpayments.ErrPaymentPointerNotFound, ppURL)
 	}
@@ -106,15 +107,9 @@ var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{4}$`)
 // Assumption: {base} does not contain any slashes
 func validatePaymentPointer(rawURL string) (string, error) {
 
-	urlParts := strings.Split(rawURL, "/")
-	// Currently we do not support multiple path parts.
-	if len(urlParts) != 4 {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
-	}
-
 	unescaped, err := url.PathUnescape(rawURL)
 	if err != nil || unescaped != rawURL {
-		// Who know what invalid chars they added here
+		// Some URL escapes where added or invalid URL escapes are present
 		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
 	}
 
@@ -127,7 +122,8 @@ func validatePaymentPointer(rawURL string) (string, error) {
 		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer needs to contain a host and a http scheme")
 	}
 
-	// Fragments are after a '#' character in the url. Still a valid URL, but we don't want it
+	// Fragments are after a '#' character in the url.
+	// Payment pointers do not contain queries.
 	if pointerURL.Fragment != "" || pointerURL.RawQuery != "" {
 		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
 	}
