@@ -1,12 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import { Button, Icon, Shape, TextField } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -16,10 +11,13 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  const hasSession = await hasUserSession(request)
+  if (!hasSession) return redirect('/signup')
+
+  const session = await getUserSession(request)
   let usernameIsValid = false
   let attempts = 0
   let username = session.identity.traits.firstName
