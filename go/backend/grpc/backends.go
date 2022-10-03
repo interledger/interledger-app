@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/fakecash"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -26,6 +27,7 @@ type Backends interface {
 	Countries() country.Client
 	FakeCash() fakecash.Client
 	LinkedAccounts() linkedaccounts.Client
+	Machnet() machnet.Client
 	HealthCheck() healthcheck.Service
 	Signup() signup.Client
 	Rafiki() rafiki.Service

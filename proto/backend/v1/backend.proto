@@ -92,6 +92,7 @@ service BackendService {
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
+  rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
 }
 
 message GetStatementsResponse {
@@ -273,4 +274,9 @@ message GetCountriesResponse {
 
 message LinkCashAccountRequest {
   string name = 1;
+}
+
+message MachnetWidgetToken {
+  string value = 1;
+  int64 expiresInMinutes = 2;
 }
