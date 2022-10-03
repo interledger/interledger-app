@@ -31,7 +31,8 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		if !strings.Contains(info.FullMethod, "BackendService") {
+		// Exclusion, services that do not require user/wallet auth.
+		if strings.Contains(info.FullMethod, "BackendAdminService") {
 			return handler(ctx, req)
 		}
 
