@@ -7,8 +7,14 @@ import type {
   Session,
   UiNodeInputAttributes
 } from '@ory/kratos-client'
-import { redirect } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
+import {
+  httpMapping,
+  isGrpcError,
+  openPaymentsClient,
+  StatusError
+} from '~/lib/proto.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -29,6 +35,20 @@ export const getCsrfTokenFromFlow = (
   return node ? (node.attributes as UiNodeInputAttributes).value : ''
 }
 
+/**
+ * getUserSession allows fetching a user session.
+ * Should only be used where requireUserSession can not be.
+ * requireUserSession should be preferred where gating is required.
+ * @param request Request received in a loader function.
+ * @returns boolean - if the user has a session.
+ */
+export async function getUserSession(request: Request): Promise<Session> {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+    headers: request.headers
+  })
+
+  return session.json()
+}
 /**
  * hasUserSession allows determining whether there is a user, but not gate them.
  * requireUserSession should be preferred where gating is required.
@@ -62,8 +82,22 @@ export async function requireUserSession(request: Request): Promise<Session> {
       throw redirect(route('/login') + '?aal=aal2')
   }
 
-  //TODO: check if has provider account
-  // if not call onboarding and redirect to form
+  let response = await openPaymentsClient
+    .listWalletPaymentPointers(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  } else if (response.response.pointers.length == 0) {
+    throw redirect(route('/payment-pointer'))
+  }
 
   return session.json()
 }
