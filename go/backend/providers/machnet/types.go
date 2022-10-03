@@ -9,3 +9,7 @@ type CreateArgs struct {
 	ExternalID string
 }
 
+type WidgetToken struct {
+	Value            string
+	ExpiresInMinutes int
+}
