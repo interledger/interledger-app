@@ -16,14 +16,13 @@ import (
 
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 
-	agreements_client "gitlab.com/fynbos/backend/agreements/client"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/osohq/go-oso"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
+	agreements_client "gitlab.com/fynbos/backend/agreements/client"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
@@ -31,6 +30,8 @@ import (
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
@@ -53,6 +54,7 @@ type TestContainer struct {
 	Db              *sqlx.DB
 	linkedAccounts  linkedaccounts.Client
 	fakeCash        *fakecash_mock.MockClient
+	machnet         *machnet_mock.MockClient
 	Hs              healthcheck.Service
 	Si              signup.Client
 	Oso             *oso.Oso
@@ -87,6 +89,10 @@ func (c *TestContainer) Agreements() agreements.Client {
 
 func (c *TestContainer) LinkedAccounts() linkedaccounts.Client {
 	return c.linkedAccounts
+}
+
+func (c *TestContainer) Machnet() machnet.Client {
+	return c.machnet
 }
 
 func (c *TestContainer) FakeCash() fakecash.Client {
