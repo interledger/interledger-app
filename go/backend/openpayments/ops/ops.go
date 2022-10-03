@@ -105,15 +105,31 @@ var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{4}$`)
 //- The first 4 characters can only be alpha
 // Assumption: {base} does not contain any slashes
 func validatePaymentPointer(rawURL string) (string, error) {
-	ppURL, err := sanitizePaymentPointer(rawURL)
-	if err != nil {
-		return "", err
+
+	urlParts := strings.Split(rawURL, "/")
+	// Currently we do not support multiple path parts.
+	if len(urlParts) != 4 {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
 	}
 
-	pointerURL, err := url.Parse(ppURL)
+	unescaped, err := url.PathUnescape(rawURL)
+	if err != nil || unescaped != rawURL {
+		// Who know what invalid chars they added here
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
+	}
+
+	pointerURL, err := url.Parse(rawURL)
 	if err != nil {
-		// Shouldn't happen
 		return "", openpayments.ErrInvalidPointerURL
+	}
+
+	if pointerURL.Scheme == "" || pointerURL.Host == "" {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer needs to contain a host and a http scheme")
+	}
+
+	// Fragments are after a '#' character in the url. Still a valid URL, but we don't want it
+	if pointerURL.Fragment != "" || pointerURL.RawQuery != "" {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
 	}
 
 	path := strings.TrimPrefix(pointerURL.Path, "/")
@@ -130,6 +146,16 @@ func validatePaymentPointer(rawURL string) (string, error) {
 	}
 
 	if !pointerRegex.MatchString(path) {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
+	}
+
+	ppURL, err := sanitizePaymentPointer(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	// Some characters where removed from the URL, error
+	if !strings.EqualFold(ppURL, rawURL) {
 		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
 	}
 

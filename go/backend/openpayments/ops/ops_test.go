@@ -266,3 +266,111 @@ func TestListWalletPaymentPointers(t *testing.T) {
 		}
 	}
 }
+
+func TestValidatePaymentPointer(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db)
+
+	cases := []struct {
+		name   string
+		url    string
+		err    error
+		errMsg string
+		exists bool
+	}{
+		{
+			name: "success",
+			url:  "http://fynbos.me/abcd1",
+			err:  nil,
+		},
+		{
+			name: "invalid_url",
+			url:  "fynbos.me/creature",
+			err:  openpayments.ErrInvalidPointerPath,
+		},
+		{
+			name:   "regex_first_4_not_alpha",
+			url:    "http://fynbos.me/1234PayMe",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your first 4 characters must be letters",
+		},
+		{
+			name:   "regex_contains_slash",
+			url:    "http://fynbos.me/PayMe/1234",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "regex_too_short",
+			url:    "http://fynbos.me/Pay",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer must be longer than 4 characters",
+		},
+		{
+			name:   "regex_too_long",
+			url:    "http://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer must be shorter than 30 characters",
+		},
+		{
+			name:   "contains_hash",
+			url:    "http://fynbos.me/asdfn#asdf",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "contains_url_escape_space",
+			url:    "http://fynbos.me/asdfn%20asdf",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "contains_url_escape_<",
+			url:    "http://fynbos.me/asdfn%3Casdf",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "trailing_slash",
+			url:    "http://fynbos.me/asdfn/",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "query_params",
+			url:    "http://fynbos.me/asdfn?asdf3e=34334",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "invalid_escapes",
+			url:    "http://fynbos.me/asdfn%2",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "invalid_dots",
+			url:    "http://fynbos.me/abcdef..sasd",
+			err:    openpayments.ErrInvalidPointerPath,
+			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			exists, err := ops.PaymentPointerExists(ctx, b, tc.url)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				assert.True(t, strings.HasSuffix(err.Error(), tc.errMsg))
+				assert.True(t, strings.HasPrefix(err.Error(), tc.err.Error()))
+				return
+			}
+
+			require.Equal(t, tc.exists, exists)
+		})
+	}
+}
