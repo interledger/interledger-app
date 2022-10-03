@@ -48,7 +48,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 			alias:     "",
 			assetCode: "USD",
 			scale:     2,
-			err:       openpayments.ErrInvalidPointerURL,
+			err:       openpayments.ErrInvalidPointerPath,
 		},
 		{
 			name:      "invalid_asset",
@@ -373,4 +373,53 @@ func TestValidatePaymentPointer(t *testing.T) {
 			require.Equal(t, tc.exists, exists)
 		})
 	}
+}
+
+func TestPaymentPointerCaseSensitive(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db)
+	userClient := users_client.New(b, "fakeURL")
+
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+	// Create Wallet
+	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	require.NoError(t, err)
+
+	exists, err := ops.PaymentPointerExists(ctx, b, "https://fynbos.me/ValidPaymentPointer")
+	require.NoError(t, err)
+	assert.False(t, exists)
+
+	// Create payment pointer
+	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		URL:        "https://fynbos.me/ValidPaymentPointer",
+		WalletID:   wallet.ID,
+		Asset:      "ZAR",
+		AssetScale: 2,
+	})
+	require.NoError(t, err)
+
+	// Lookup with different case
+	pp, err := ops.GetPaymentPointer(ctx, b, "https://fynBos.Me/validpaymentPointeR")
+	require.NoError(t, err)
+	assert.Equal(t, "https://fynbos.me/ValidPaymentPointer", pp.URL)
+
+	// Exists with different case
+	exists, err = ops.PaymentPointerExists(ctx, b, "https://fynbos.me/VALIDPAYMENTPOINTER")
+	require.NoError(t, err)
+	require.True(t, exists)
+
+	// Create with different casing
+	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		URL:        "https://fynbos.me/VaLidPaymenTPoinTer",
+		WalletID:   wallet.ID,
+		Asset:      "ZAR",
+		AssetScale: 2,
+	})
+	require.ErrorIs(t, err, openpayments.ErrPaymentPointerExists)
 }
