@@ -51,7 +51,8 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 		var kratosCookie string
 		for _, c := range cookies {
 			k, v, _ := strings.Cut(c, "=")
-			if k == "ory_kratos_session" {
+			trimmed := strings.Trim(k, " ")
+			if trimmed == "ory_kratos_session" {
 				kratosCookie = v
 			}
 		}
