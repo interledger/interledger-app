@@ -52,3 +52,20 @@ func GetUser(ctx context.Context, b Backends, walletID string) (*machnet.User, e
 		ID: user.ID,
 	}, nil
 }
+
+func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.WidgetToken, error) {
+	user, err := GetUser(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := b.External().GetFundingAccountWidgetToken(ctx, user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &machnet.WidgetToken{
+		Value:            token.Token,
+		ExpiresInMinutes: token.ExpiryMinutes,
+	}, nil
+}
