@@ -132,6 +132,10 @@ export interface PaymentPointer {
      * @generated from protobuf field: string walletID = 5;
      */
     walletID: string;
+    /**
+     * @generated from protobuf field: string formatted = 6;
+     */
+    formatted: string;
 }
 /**
  * @generated from protobuf message backend.v1.Empty
@@ -1038,11 +1042,12 @@ class PaymentPointer$Type extends MessageType<PaymentPointer> {
             { no: 2, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 4, name: "alias", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "formatted", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PaymentPointer>): PaymentPointer {
-        const message = { url: "", asset: "", assetScale: 0, alias: "", walletID: "" };
+        const message = { url: "", asset: "", assetScale: 0, alias: "", walletID: "", formatted: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PaymentPointer>(this, message, value);
@@ -1067,6 +1072,9 @@ class PaymentPointer$Type extends MessageType<PaymentPointer> {
                     break;
                 case /* string walletID */ 5:
                     message.walletID = reader.string();
+                    break;
+                case /* string formatted */ 6:
+                    message.formatted = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1095,6 +1103,9 @@ class PaymentPointer$Type extends MessageType<PaymentPointer> {
         /* string walletID = 5; */
         if (message.walletID !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.walletID);
+        /* string formatted = 6; */
+        if (message.formatted !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.formatted);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

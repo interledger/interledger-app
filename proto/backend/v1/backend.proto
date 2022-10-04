@@ -63,6 +63,7 @@ message PaymentPointer {
   int32 assetScale = 3;
   string alias = 4;
   string walletID = 5;
+  string formatted = 6;
 }
 
 message Empty {}

@@ -423,3 +423,36 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	})
 	require.ErrorIs(t, err, openpayments.ErrPaymentPointerExists)
 }
+
+func TestFormattedPaymentPointer(t *testing.T) {
+	cases := []struct {
+		name              string
+		url               string
+		expectedFormatted string
+		err               error
+	}{
+		{
+			name:              "http",
+			url:               "http://fybos.me/asdf",
+			expectedFormatted: "$fybos.me/asdf",
+			err:               nil,
+		},
+		{
+			name:              "https",
+			url:               "https://fybos.me/asdf",
+			expectedFormatted: "$fybos.me/asdf",
+			err:               nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			formatted, err := ops.FormattedPaymentPointer(tc.url)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				return
+			}
+			assert.Equal(t, tc.expectedFormatted, formatted)
+		})
+	}
+}
