@@ -36,6 +36,7 @@ func TestUpdateUserKYC(t *testing.T) {
 		LastName:    "LastName",
 		CountryCode: "ZA",
 		Gender:      kyc.GenderMale,
+		IPAddress:   "41.71.7.130",
 	}
 	genderMale := int32(kyc.GenderMale)
 
@@ -47,6 +48,7 @@ func TestUpdateUserKYC(t *testing.T) {
 		LastName:    &ud.LastName,
 		CountryCode: &ud.CountryCode,
 		Gender:      &genderMale,
+		IpAddress:   ud.IPAddress,
 	})
 	require.NoError(t, err)
 
@@ -57,6 +59,7 @@ func TestUpdateUserKYC(t *testing.T) {
 		LastName:    "LastName2",
 		CountryCode: "US",
 		Gender:      kyc.GenderFemale,
+		IPAddress:   "41.71.7.130",
 		DateOfBirth: time.Date(2000, time.April, 4, 0, 0, 0, 0, time.UTC),
 		Address: &kyc.Address{
 			Line1:       "Line1",
@@ -78,6 +81,7 @@ func TestUpdateUserKYC(t *testing.T) {
 		LastName:    &ud.LastName,
 		CountryCode: &ud.CountryCode,
 		Gender:      &genderFemale,
+		IpAddress:   "41.71.7.130",
 		DateOfBirth: timestamppb.New(ud.DateOfBirth),
 		Address: &pb.UpdateIndividualKYCRequest_Address{
 			Line1:       &ud.Address.Line1,

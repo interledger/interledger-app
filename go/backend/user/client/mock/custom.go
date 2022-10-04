@@ -20,6 +20,22 @@ type mockClient struct {
 	walletUser map[string]string
 }
 
+func (mc mockClient) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
+	wallet := mc.wallets[walletID]
+	if wallet == nil {
+		return nil, user.ErrNoWalletFound
+	}
+	walletUser := mc.walletUser[wallet.ID]
+
+	return []user.User{
+		{
+			ID:          walletUser,
+			Email:       "info@fynbos.com",
+			PhoneNumber: "+27836321959",
+		},
+	}, nil
+}
+
 func (mc mockClient) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
 	wallet := mc.wallets[id]
 	if wallet == nil {

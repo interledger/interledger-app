@@ -19,6 +19,7 @@ type IndividualDetails struct {
 	Gender      Gender `db:"gender" validate:"omitempty,gt=0,lt=4"`
 	DateOfBirth time.Time
 	Address     *Address
+	IPAddress   string `db:"ip_address" validate:"required,ip_addr"`
 }
 
 type Address struct {
