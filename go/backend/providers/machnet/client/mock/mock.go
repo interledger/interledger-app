@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	machnet "gitlab.com/fynbos/backend/providers/machnet"
+	external "gitlab.com/fynbos/backend/providers/machnet/external"
 )
 
 // MockClient is a mock of Client interface.
@@ -78,4 +79,18 @@ func (m *MockClient) GetWidgetToken(ctx context.Context, walletID string) (*mach
 func (mr *MockClientMockRecorder) GetWidgetToken(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetToken", reflect.TypeOf((*MockClient)(nil).GetWidgetToken), ctx, walletID)
+}
+
+// HandleEvent mocks base method.
+func (m *MockClient) HandleEvent(ctx context.Context, event external.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HandleEvent", ctx, event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// HandleEvent indicates an expected call of HandleEvent.
+func (mr *MockClientMockRecorder) HandleEvent(ctx, event interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockClient)(nil).HandleEvent), ctx, event)
 }

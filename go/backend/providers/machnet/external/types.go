@@ -1,5 +1,7 @@
 package external
 
+import "encoding/json"
+
 const (
 	StatusVerified   = "VERIFIED"
 	StatusUnverified = "UNVERIFIED"
@@ -109,3 +111,23 @@ type DeliveryRequest struct {
 	TransactionID string `json:"transaction_id"`
 	UserID        string `json:"user_id"`
 }
+
+type (
+	Event struct {
+		ID             string          `json:"id"`
+		EventName      string          `json:"event_name"`
+		ResourceID     string          `json:"resource_id"`
+		UserID         string          `json:"user_id"`
+		Payload        json.RawMessage `json:"payload"` // TODO: find out what payload looks like
+		SubscriptionID string          `json:"subscription_id"`
+		Timestamp      string          `json:"timestamp"`
+	}
+)
+
+const (
+	UserCardAdded              = "user_card_added"
+	UserCardRemoved            = "user_card_removed"
+	UserBankAdded              = "user_bank_added"
+	UserBankRemoved            = "user_bank_removed"
+	UserBankVerificationFailed = "user_bank_verification_failed"
+)

@@ -58,3 +58,7 @@ func (c client) CreateUser(ctx context.Context, args machnet.CreateArgs) (*machn
 func (c client) GetWidgetToken(ctx context.Context, walletID string) (*machnet.WidgetToken, error) {
 	return ops.GetWidgetToken(ctx, c.b, walletID)
 }
+
+func (c client) HandleEvent(ctx context.Context, event external.Event) error {
+	panic("TODO")
+}
