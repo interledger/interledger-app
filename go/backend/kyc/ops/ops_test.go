@@ -37,12 +37,14 @@ func TestUpdateUserDetails(t *testing.T) {
 		FirstName:   "InitFirst",
 		CountryCode: "ZA",
 		Gender:      kyc.GenderMale,
+		IPAddress:   "198.16.0.1",
 	})
 	require.NoError(t, err)
 
 	assert.Equal(t, kyc.GenderMale, ud.Gender)
 	assert.Equal(t, "ZA", ud.CountryCode)
 	assert.Equal(t, "InitFirst", ud.FirstName)
+	assert.Equal(t, "198.16.0.1", ud.IPAddress)
 	assert.Empty(t, ud.LastName)
 	assert.True(t, ud.DateOfBirth.IsZero())
 	assert.Nil(t, ud.Address)
@@ -59,6 +61,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, kyc.GenderMale, ud.Gender)
 	assert.Equal(t, "ZA", ud.CountryCode)
 	assert.Equal(t, "InitFirst", ud.FirstName)
+	assert.Equal(t, "198.16.0.1", ud.IPAddress)
 	assert.Empty(t, ud.LastName)
 	assert.True(t, ud.DateOfBirth.IsZero())
 	assert.Nil(t, ud.Address)
@@ -68,6 +71,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		WalletID:  walletID,
 		FirstName: "Updated",
 		LastName:  "New",
+		IPAddress: "198.16.0.2",
 	})
 	require.NoError(t, err)
 
@@ -75,6 +79,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, "ZA", ud.CountryCode)
 	assert.Equal(t, "Updated", ud.FirstName)
 	assert.Equal(t, "New", ud.LastName)
+	assert.Equal(t, "198.16.0.2", ud.IPAddress)
 	assert.True(t, ud.DateOfBirth.IsZero())
 	assert.Nil(t, ud.Address)
 
@@ -90,12 +95,14 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, "ZA", ud.CountryCode)
 	assert.Equal(t, "Updated", ud.FirstName)
 	assert.Equal(t, "New", ud.LastName)
+	assert.Equal(t, "198.16.0.2", ud.IPAddress)
 	assert.True(t, ud.DateOfBirth.IsZero())
 	assert.Nil(t, ud.Address)
 
 	// Add an address
 	ud, err = ops.UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
-		WalletID: walletID,
+		WalletID:  walletID,
+		IPAddress: "198.16.0.3",
 		Address: &kyc.Address{
 			Line1:       "Line1",
 			Line2:       "Line2",
@@ -113,6 +120,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, "ZA", ud.CountryCode)
 	assert.Equal(t, "Updated", ud.FirstName)
 	assert.Equal(t, "New", ud.LastName)
+	assert.Equal(t, "198.16.0.3", ud.IPAddress)
 	assert.True(t, ud.DateOfBirth.IsZero())
 	require.NotNil(t, ud.Address)
 	assert.Equal(t, "Line1", ud.Address.Line1)
@@ -136,6 +144,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, "ZA", ud.CountryCode)
 	assert.Equal(t, "Updated", ud.FirstName)
 	assert.Equal(t, "New", ud.LastName)
+	assert.Equal(t, "198.16.0.3", ud.IPAddress)
 	assert.True(t, ud.DateOfBirth.IsZero())
 	require.NotNil(t, ud.Address)
 	assert.Equal(t, "Line1", ud.Address.Line1)
@@ -153,6 +162,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		FirstName:   "Updated",
 		LastName:    "New",
 		CountryCode: "ZA",
+		IPAddress:   "198.16.0.3",
 		Gender:      kyc.GenderMale,
 	})
 	require.NoError(t, err)

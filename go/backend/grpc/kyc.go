@@ -25,6 +25,7 @@ func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndi
 		LastName:    req.GetLastName(),
 		CountryCode: req.GetCountryCode(),
 		Gender:      kyc.Gender(req.GetGender()),
+		IPAddress:   req.GetIpAddress(),
 	}
 	if req.DateOfBirth.IsValid() {
 		update.DateOfBirth = req.DateOfBirth.AsTime()

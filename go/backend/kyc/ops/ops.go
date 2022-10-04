@@ -14,6 +14,7 @@ func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndi
 	var merged dbIndividualDetails
 	noop := true
 	merged.WalletID = new.WalletID
+	merged.IPAddress = new.IPAddress
 
 	merged.FirstName = old.FirstName
 	if new.FirstName != "" && new.FirstName != old.FirstName {
@@ -76,7 +77,7 @@ type dbIndividualDetails struct {
 func getIndividualDetails(ctx context.Context, b Backends, walletID string) (*dbIndividualDetails, error) {
 	var id dbIndividualDetails
 	err := b.DB().GetContext(ctx, &id,
-		"SELECT wallet_id, revision, country_code, first_name, last_name, gender, date_of_birth, address FROM individual_kyc_details WHERE wallet_id=$1 ORDER BY revision DESC LIMIT 1",
+		"SELECT wallet_id, revision, country_code, first_name, last_name, gender, date_of_birth, address, ip_address FROM individual_kyc_details WHERE wallet_id=$1 ORDER BY revision DESC LIMIT 1",
 		walletID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, kyc.ErrNoKYCInfo
@@ -122,9 +123,9 @@ func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.Individu
 		return convertDBDetails(merged)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO individual_kyc_details (revision, wallet_id, country_code, first_name, last_name, gender, date_of_birth, address)"+
-		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		merged.Revision, merged.WalletID, merged.CountryCode, merged.FirstName, merged.LastName, merged.Gender, merged.DateOfBirth, merged.Address)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO individual_kyc_details (revision, wallet_id, country_code, first_name, last_name, gender, date_of_birth, address, ip_address)"+
+		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+		merged.Revision, merged.WalletID, merged.CountryCode, merged.FirstName, merged.LastName, merged.Gender, merged.DateOfBirth, merged.Address, merged.IPAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
@@ -140,6 +141,7 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 		CountryCode: details.CountryCode,
 		Gender:      details.Gender,
 		DateOfBirth: details.DateOfBirth.Time,
+		IPAddress:   details.IPAddress,
 	}
 
 	if !details.Address.Valid {
