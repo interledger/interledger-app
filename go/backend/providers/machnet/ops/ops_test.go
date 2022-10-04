@@ -56,13 +56,14 @@ func TestGetWidgetToken(t *testing.T) {
 	t.Parallel()
 	b := NewTestBackends(t)
 	walletID := NewWallet(t, b)
-	_ = NewMachnetUser(t, b, walletID)
+	user := NewMachnetUser(t, b, walletID)
 
 	token, err := ops.GetWidgetToken(context.Background(), b, walletID)
 	require.NoError(t, err)
 
 	assert.Equal(t, "machnet-widget-token", token.Value)
 	assert.Equal(t, int(15), token.ExpiresInMinutes)
+	assert.Equal(t, user.ID, token.UserID)
 
 	// non-existent user
 	token, err = ops.GetWidgetToken(context.Background(), b, uuid.NewString())

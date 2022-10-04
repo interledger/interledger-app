@@ -78,6 +78,7 @@ func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.
 	return &machnet.WidgetToken{
 		Value:            token.Token,
 		ExpiresInMinutes: token.ExpiryMinutes,
+		UserID:           token.UserID,
 	}, nil
 }
 

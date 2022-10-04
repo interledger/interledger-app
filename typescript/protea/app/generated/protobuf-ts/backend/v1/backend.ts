@@ -648,6 +648,10 @@ export interface MachnetWidgetToken {
      * @generated from protobuf field: int64 expiresInMinutes = 2;
      */
     expiresInMinutes: string;
+    /**
+     * @generated from protobuf field: string userId = 3;
+     */
+    userId: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
@@ -3046,11 +3050,12 @@ class MachnetWidgetToken$Type extends MessageType<MachnetWidgetToken> {
     constructor() {
         super("backend.v1.MachnetWidgetToken", [
             { no: 1, name: "value", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "expiresInMinutes", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+            { no: 2, name: "expiresInMinutes", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 3, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<MachnetWidgetToken>): MachnetWidgetToken {
-        const message = { value: "", expiresInMinutes: "0" };
+        const message = { value: "", expiresInMinutes: "0", userId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<MachnetWidgetToken>(this, message, value);
@@ -3066,6 +3071,9 @@ class MachnetWidgetToken$Type extends MessageType<MachnetWidgetToken> {
                     break;
                 case /* int64 expiresInMinutes */ 2:
                     message.expiresInMinutes = reader.int64().toString();
+                    break;
+                case /* string userId */ 3:
+                    message.userId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3085,6 +3093,9 @@ class MachnetWidgetToken$Type extends MessageType<MachnetWidgetToken> {
         /* int64 expiresInMinutes = 2; */
         if (message.expiresInMinutes !== "0")
             writer.tag(2, WireType.Varint).int64(message.expiresInMinutes);
+        /* string userId = 3; */
+        if (message.userId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.userId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

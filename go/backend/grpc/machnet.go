@@ -27,5 +27,6 @@ func (r rpcService) GetMachnetWidgetToken(
 	return &backendv1.MachnetWidgetToken{
 		Value:            token.Value,
 		ExpiresInMinutes: int64(token.ExpiresInMinutes),
+		UserId:           token.UserID,
 	}, nil
 }

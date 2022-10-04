@@ -17,4 +17,5 @@ type CreateArgs struct {
 type WidgetToken struct {
 	Value            string
 	ExpiresInMinutes int
+	UserID           string
 }
