@@ -66,5 +66,5 @@ func (c client) GetWidgetToken(ctx context.Context, walletID string) (*machnet.W
 }
 
 func (c client) HandleEvent(ctx context.Context, event external.Event) error {
-	panic("TODO")
+	return ops.HandleEvent(ctx, c.b, event)
 }

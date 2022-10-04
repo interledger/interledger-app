@@ -110,7 +110,7 @@ func TestHandleUserCardAddedEvent(t *testing.T) {
 		nil,
 	).Times(1)
 
-	err = ops.HandleUserCardAddedEvent(context.Background(), b, userCardAddedEvent)
+	err = ops.HandleEvent(context.Background(), b, userCardAddedEvent)
 	require.NoError(t, err)
 }
 

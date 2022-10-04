@@ -8,6 +8,8 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*machnet.User, error) {
@@ -77,6 +79,27 @@ func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.
 		Value:            token.Token,
 		ExpiresInMinutes: token.ExpiryMinutes,
 	}, nil
+}
+
+func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
+	// TODO: validate payload
+	var err error
+	switch event.EventName {
+	case external.UserCardAdded:
+		err = HandleUserCardAddedEvent(ctx, b, event)
+	default:
+		log.Warn(
+			"Unhandled machnet event",
+			zap.String("eventName", event.EventName),
+			zap.String("externalUserID", event.UserID),
+			zap.String("externalResourceID", event.ResourceID),
+		)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func HandleUserCardAddedEvent(ctx context.Context, b Backends, event external.Event) error {
