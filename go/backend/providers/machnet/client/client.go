@@ -47,8 +47,12 @@ type client struct {
 	b ops.Backends
 }
 
-func (c client) GetUser(ctx context.Context, walletID string) (*machnet.User, error) {
-	return ops.GetUser(ctx, c.b, walletID)
+func (c client) GetUserByWalletID(ctx context.Context, walletID string) (*machnet.User, error) {
+	return ops.GetUserByWalletID(ctx, c.b, walletID)
+}
+
+func (c client) GetUserByID(ctx context.Context, id string) (*machnet.User, error) {
+	return ops.GetUserByID(ctx, c.b, id)
 }
 
 func (c client) CreateUser(ctx context.Context, args machnet.CreateArgs) (*machnet.User, error) {

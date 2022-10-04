@@ -7,7 +7,8 @@ import (
 )
 
 type Client interface {
-	GetUser(ctx context.Context, walletID string) (*User, error)
+	GetUserByWalletID(ctx context.Context, walletID string) (*User, error)
+	GetUserByID(ctx context.Context, id string) (*User, error)
 	CreateUser(ctx context.Context, args CreateArgs) (*User, error)
 	GetWidgetToken(ctx context.Context, walletID string) (*WidgetToken, error)
 	HandleEvent(ctx context.Context, event external.Event) error
