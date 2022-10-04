@@ -35,32 +35,32 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// GetUserDetails mocks base method.
-func (m *MockClient) GetUserDetails(ctx context.Context, userID string) (*kyc.UserDetails, error) {
+// GetIndividualDetails mocks base method.
+func (m *MockClient) GetIndividualDetails(ctx context.Context, userID string) (*kyc.IndividualDetails, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserDetails", ctx, userID)
-	ret0, _ := ret[0].(*kyc.UserDetails)
+	ret := m.ctrl.Call(m, "GetIndividualDetails", ctx, userID)
+	ret0, _ := ret[0].(*kyc.IndividualDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserDetails indicates an expected call of GetUserDetails.
-func (mr *MockClientMockRecorder) GetUserDetails(ctx, userID interface{}) *gomock.Call {
+// GetIndividualDetails indicates an expected call of GetIndividualDetails.
+func (mr *MockClientMockRecorder) GetIndividualDetails(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserDetails", reflect.TypeOf((*MockClient)(nil).GetUserDetails), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndividualDetails", reflect.TypeOf((*MockClient)(nil).GetIndividualDetails), ctx, userID)
 }
 
-// UpdateUserDetails mocks base method.
-func (m *MockClient) UpdateUserDetails(ctx context.Context, args kyc.UserDetails) (*kyc.UserDetails, error) {
+// UpdateIndividualDetails mocks base method.
+func (m *MockClient) UpdateIndividualDetails(ctx context.Context, args kyc.IndividualDetails) (*kyc.IndividualDetails, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserDetails", ctx, args)
-	ret0, _ := ret[0].(*kyc.UserDetails)
+	ret := m.ctrl.Call(m, "UpdateIndividualDetails", ctx, args)
+	ret0, _ := ret[0].(*kyc.IndividualDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateUserDetails indicates an expected call of UpdateUserDetails.
-func (mr *MockClientMockRecorder) UpdateUserDetails(ctx, args interface{}) *gomock.Call {
+// UpdateIndividualDetails indicates an expected call of UpdateIndividualDetails.
+func (mr *MockClientMockRecorder) UpdateIndividualDetails(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserDetails", reflect.TypeOf((*MockClient)(nil).UpdateUserDetails), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIndividualDetails", reflect.TypeOf((*MockClient)(nil).UpdateIndividualDetails), ctx, args)
 }

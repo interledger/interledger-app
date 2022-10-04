@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	user_client "gitlab.com/fynbos/backend/user/client"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,10 +20,20 @@ func TestUpdateUserDetails(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db)
-	userID := uuid.NewString()
 
-	ud, err := ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
-		UserID:      userID,
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+
+	users := user_client.New(b, "testing")
+	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
+	require.NoError(t, err)
+
+	walletID := wallet.ID
+
+	ud, err := ops.UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
+		WalletID:    walletID,
 		FirstName:   "InitFirst",
 		CountryCode: "ZA",
 		Gender:      kyc.GenderMale,
@@ -36,12 +48,12 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Nil(t, ud.Address)
 
 	var revisionCnt int
-	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
+	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 1, revisionCnt)
 
 	// Now look it up
-	ud, err = ops.GetUserDetails(ctx, b, userID)
+	ud, err = ops.GetIndividualDetails(ctx, b, walletID)
 	require.NoError(t, err)
 
 	assert.Equal(t, kyc.GenderMale, ud.Gender)
@@ -52,8 +64,8 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Nil(t, ud.Address)
 
 	// Update
-	ud, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
-		UserID:    userID,
+	ud, err = ops.UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
+		WalletID:  walletID,
 		FirstName: "Updated",
 		LastName:  "New",
 	})
@@ -66,12 +78,12 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.True(t, ud.DateOfBirth.IsZero())
 	assert.Nil(t, ud.Address)
 
-	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
+	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 2, revisionCnt)
 
 	// Now look it up
-	ud, err = ops.GetUserDetails(ctx, b, userID)
+	ud, err = ops.GetIndividualDetails(ctx, b, walletID)
 	require.NoError(t, err)
 
 	assert.Equal(t, kyc.GenderMale, ud.Gender)
@@ -82,15 +94,15 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Nil(t, ud.Address)
 
 	// Add an address
-	ud, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
-		UserID: userID,
+	ud, err = ops.UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
+		WalletID: walletID,
 		Address: &kyc.Address{
 			Line1:       "Line1",
 			Line2:       "Line2",
 			Building:    "Building",
 			Apartment:   "Apartment",
 			City:        "Cape Town",
-			State:       "Western Cape",
+			State:       "ZA-WC",
 			ZipCode:     "8001",
 			CountryCode: "ZA",
 		},
@@ -108,16 +120,16 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, "Building", ud.Address.Building)
 	assert.Equal(t, "Apartment", ud.Address.Apartment)
 	assert.Equal(t, "Cape Town", ud.Address.City)
-	assert.Equal(t, "Western Cape", ud.Address.State)
+	assert.Equal(t, "ZA-WC", ud.Address.State)
 	assert.Equal(t, "8001", ud.Address.ZipCode)
 	assert.Equal(t, "ZA", ud.Address.CountryCode)
 
-	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
+	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 3, revisionCnt)
 
 	// Now look it up
-	ud, err = ops.GetUserDetails(ctx, b, userID)
+	ud, err = ops.GetIndividualDetails(ctx, b, walletID)
 	require.NoError(t, err)
 
 	assert.Equal(t, kyc.GenderMale, ud.Gender)
@@ -131,13 +143,13 @@ func TestUpdateUserDetails(t *testing.T) {
 	assert.Equal(t, "Building", ud.Address.Building)
 	assert.Equal(t, "Apartment", ud.Address.Apartment)
 	assert.Equal(t, "Cape Town", ud.Address.City)
-	assert.Equal(t, "Western Cape", ud.Address.State)
+	assert.Equal(t, "ZA-WC", ud.Address.State)
 	assert.Equal(t, "8001", ud.Address.ZipCode)
 	assert.Equal(t, "ZA", ud.Address.CountryCode)
 
 	// Noop Update
-	_, err = ops.UpdateUserDetails(ctx, b, kyc.UserDetails{
-		UserID:      userID,
+	_, err = ops.UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
+		WalletID:    walletID,
 		FirstName:   "Updated",
 		LastName:    "New",
 		CountryCode: "ZA",
@@ -145,7 +157,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = db.GetContext(ctx, &revisionCnt, "select count(*) from user_kyc_details where user_id=$1", userID)
+	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 3, revisionCnt)
 }

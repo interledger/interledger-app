@@ -22,7 +22,7 @@ import type { GetSignupRequest } from "./backend";
 import type { SetSignupMobileNumberRequest } from "./backend";
 import type { SetSignupUserDataResponse } from "./backend";
 import type { SetSignupUserDataRequest } from "./backend";
-import type { UpdateUserKYCRequest } from "./backend";
+import type { UpdateIndividualKYCRequest } from "./backend";
 import type { ContinueAddingBankAccountResponse } from "./backend";
 import type { ContinueAddingBankAccountRequest } from "./backend";
 import type { BankAccountDetails } from "./backend";
@@ -153,9 +153,9 @@ export interface IBackendServiceClient {
      */
     continueAddingBankAccount(input: ContinueAddingBankAccountRequest, options?: RpcOptions): UnaryCall<ContinueAddingBankAccountRequest, ContinueAddingBankAccountResponse>;
     /**
-     * @generated from protobuf rpc: UpdateUserKYC(backend.v1.UpdateUserKYCRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: UpdateIndividualKYC(backend.v1.UpdateIndividualKYCRequest) returns (backend.v1.Empty);
      */
-    updateUserKYC(input: UpdateUserKYCRequest, options?: RpcOptions): UnaryCall<UpdateUserKYCRequest, Empty>;
+    updateIndividualKYC(input: UpdateIndividualKYCRequest, options?: RpcOptions): UnaryCall<UpdateIndividualKYCRequest, Empty>;
     /**
      * @generated from protobuf rpc: SetSignupUserData(backend.v1.SetSignupUserDataRequest) returns (backend.v1.SetSignupUserDataResponse);
      */
@@ -263,11 +263,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<ContinueAddingBankAccountRequest, ContinueAddingBankAccountResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: UpdateUserKYC(backend.v1.UpdateUserKYCRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: UpdateIndividualKYC(backend.v1.UpdateIndividualKYCRequest) returns (backend.v1.Empty);
      */
-    updateUserKYC(input: UpdateUserKYCRequest, options?: RpcOptions): UnaryCall<UpdateUserKYCRequest, Empty> {
+    updateIndividualKYC(input: UpdateIndividualKYCRequest, options?: RpcOptions): UnaryCall<UpdateIndividualKYCRequest, Empty> {
         const method = this.methods[4], opt = this._transport.mergeOptions(options);
-        return stackIntercept<UpdateUserKYCRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<UpdateIndividualKYCRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetSignupUserData(backend.v1.SetSignupUserDataRequest) returns (backend.v1.SetSignupUserDataResponse);

@@ -27,9 +27,11 @@ func TestUpdateUserKYC(t *testing.T) {
 	user := &user.User{
 		ID: uuid.NewString(),
 	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.ID, "default")
+	require.NoError(t, err)
 
-	ud := kyc.UserDetails{
-		UserID:      user.ID,
+	ud := kyc.IndividualDetails{
+		WalletID:    wallet.ID,
 		FirstName:   "FirstName",
 		LastName:    "LastName",
 		CountryCode: "ZA",
@@ -37,10 +39,10 @@ func TestUpdateUserKYC(t *testing.T) {
 	}
 	genderMale := int32(kyc.GenderMale)
 
-	c.KYCClient.EXPECT().UpdateUserDetails(gomock.Any(), ud)
+	c.KYCClient.EXPECT().UpdateIndividualDetails(gomock.Any(), ud)
 
 	// Create KYC data
-	_, err := client.UpdateUserKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateUserKYCRequest{
+	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateIndividualKYCRequest{
 		FirstName:   &ud.FirstName,
 		LastName:    &ud.LastName,
 		CountryCode: &ud.CountryCode,
@@ -49,8 +51,8 @@ func TestUpdateUserKYC(t *testing.T) {
 	require.NoError(t, err)
 
 	// Update KYC
-	ud = kyc.UserDetails{
-		UserID:      user.ID,
+	ud = kyc.IndividualDetails{
+		WalletID:    wallet.ID,
 		FirstName:   "FirstName1",
 		LastName:    "LastName2",
 		CountryCode: "US",
@@ -62,22 +64,22 @@ func TestUpdateUserKYC(t *testing.T) {
 			Building:    "Building",
 			Apartment:   "Apartment",
 			City:        "City",
-			State:       "State",
+			State:       "US-CA",
 			ZipCode:     "ZipCode",
 			CountryCode: "US",
 		},
 	}
 	genderFemale := int32(kyc.GenderFemale)
 
-	c.KYCClient.EXPECT().UpdateUserDetails(gomock.Any(), ud)
+	c.KYCClient.EXPECT().UpdateIndividualDetails(gomock.Any(), ud)
 
-	_, err = client.UpdateUserKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateUserKYCRequest{
+	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateIndividualKYCRequest{
 		FirstName:   &ud.FirstName,
 		LastName:    &ud.LastName,
 		CountryCode: &ud.CountryCode,
 		Gender:      &genderFemale,
 		DateOfBirth: timestamppb.New(ud.DateOfBirth),
-		Address: &pb.UpdateUserKYCRequest_Address{
+		Address: &pb.UpdateIndividualKYCRequest_Address{
 			Line1:       &ud.Address.Line1,
 			Line2:       &ud.Address.Line2,
 			Building:    &ud.Address.Building,
