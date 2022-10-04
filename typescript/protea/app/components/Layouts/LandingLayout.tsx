@@ -197,7 +197,7 @@ export function LandingLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative mb-8 flex items-center'>
+            <div className='relative ml-1 mb-8 flex items-center'>
               <button
                 className='-m-3 flex p-3'
                 onClick={() => setOpenNavModal(!openNavModal)}

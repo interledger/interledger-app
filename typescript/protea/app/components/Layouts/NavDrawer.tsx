@@ -38,7 +38,7 @@ List.displayName = 'List'
 
 const NavDrawerRoot: FC = ({ children }) => {
   return (
-    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-app p-4 lg:h-screen lg:bg-slate-50'>
+    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-app py-4 px-3 lg:h-screen lg:bg-app'>
       {children}
     </ul>
   )
