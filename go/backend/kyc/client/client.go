@@ -19,10 +19,10 @@ func New(b ops.Backends) kyc.Client {
 	}
 }
 
-func (c client) GetUserDetails(ctx context.Context, userID string) (*kyc.UserDetails, error) {
-	return ops.GetUserDetails(ctx, c.b, userID)
+func (c client) GetIndividualDetails(ctx context.Context, userID string) (*kyc.IndividualDetails, error) {
+	return ops.GetIndividualDetails(ctx, c.b, userID)
 }
 
-func (c client) UpdateUserDetails(ctx context.Context, args kyc.UserDetails) (*kyc.UserDetails, error) {
-	return ops.UpdateUserDetails(ctx, c.b, args)
+func (c client) UpdateIndividualDetails(ctx context.Context, args kyc.IndividualDetails) (*kyc.IndividualDetails, error) {
+	return ops.UpdateIndividualDetails(ctx, c.b, args)
 }

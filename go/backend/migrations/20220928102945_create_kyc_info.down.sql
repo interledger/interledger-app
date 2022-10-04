@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS user_kyc_details;
+DROP TABLE IF EXISTS individual_kyc_details;

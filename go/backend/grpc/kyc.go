@@ -8,14 +8,19 @@ import (
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (s *rpcService) UpdateUserKYC(ctx context.Context, req *pb.UpdateUserKYCRequest) (*pb.Empty, error) {
-	u, err := s.b.Users().UserForContext(ctx)
+func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndividualKYCRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	update := kyc.UserDetails{
-		UserID:      u.ID,
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	update := kyc.IndividualDetails{
+		WalletID:    wallet.ID,
 		FirstName:   req.GetFirstName(),
 		LastName:    req.GetLastName(),
 		CountryCode: req.GetCountryCode(),
@@ -49,7 +54,7 @@ func (s *rpcService) UpdateUserKYC(ctx context.Context, req *pb.UpdateUserKYCReq
 		}
 	}
 
-	_, err = s.b.KYC().UpdateUserDetails(ctx, update)
+	_, err = s.b.KYC().UpdateIndividualDetails(ctx, update)
 
 	return &pb.Empty{}, err
 }

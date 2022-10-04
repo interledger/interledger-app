@@ -11,8 +11,8 @@ const (
 	GenderOther   Gender = 3
 )
 
-type UserDetails struct {
-	UserID      string `db:"user_id" validate:"required,uuid"`
+type IndividualDetails struct {
+	WalletID    string `db:"wallet_id" validate:"required,uuid"`
 	FirstName   string `db:"first_name"`
 	LastName    string `db:"last_name"`
 	CountryCode string `db:"country_code" validate:"omitempty,iso3166_1_alpha2"`
@@ -27,7 +27,7 @@ type Address struct {
 	Building         string `json:"building,omitempty"`
 	Apartment        string `json:"apartment,omitempty"`
 	City             string `json:"city,omitempty"`
-	State            string `json:"state,omitempty"`
+	State            string `json:"state,omitempty" validate:"omitempty,iso3166_2"`
 	ZipCode          string `json:"zip_code,omitempty"`
 	CountryCode      string `json:"country_code,omitempty" validate:"omitempty,iso3166_1_alpha2"`
 	FormattedAddress string `json:"formatted_address,omitempty"`

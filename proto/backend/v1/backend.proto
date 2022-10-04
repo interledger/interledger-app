@@ -74,7 +74,7 @@ service BackendService {
   rpc GetBankAccountDetails(GetBankAccountDetailsRequest) returns (BankAccountDetails);
   rpc ContinueAddingBankAccount(ContinueAddingBankAccountRequest) returns (ContinueAddingBankAccountResponse);
 
-  rpc UpdateUserKYC(UpdateUserKYCRequest) returns (Empty);
+  rpc UpdateIndividualKYC(UpdateIndividualKYCRequest) returns (Empty);
   rpc SetSignupUserData(SetSignupUserDataRequest) returns (SetSignupUserDataResponse);
   rpc SetSignupMobileNumber(SetSignupMobileNumberRequest) returns (Empty);
   // Returns the current signup flow.
@@ -122,7 +122,7 @@ message CreateSupportTicketRequest {
   string email = 4;
 }
 
-message UpdateUserKYCRequest {
+message UpdateIndividualKYCRequest {
   optional string firstName = 1;
   optional string lastName = 2;
   optional string countryCode = 3;

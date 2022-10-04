@@ -10,10 +10,10 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 )
 
-func mergeIdentities(old dbUserDetails, new kyc.UserDetails) (dbUserDetails, bool, error) {
-	var merged dbUserDetails
+func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndividualDetails, bool, error) {
+	var merged dbIndividualDetails
 	noop := true
-	merged.UserID = new.UserID
+	merged.WalletID = new.WalletID
 
 	merged.FirstName = old.FirstName
 	if new.FirstName != "" && new.FirstName != old.FirstName {
@@ -66,18 +66,18 @@ func mergeIdentities(old dbUserDetails, new kyc.UserDetails) (dbUserDetails, boo
 	return merged, noop, nil
 }
 
-type dbUserDetails struct {
-	kyc.UserDetails
+type dbIndividualDetails struct {
+	kyc.IndividualDetails
 	Revision    int            `db:"revision"`
 	DateOfBirth sql.NullTime   `db:"date_of_birth"`
 	Address     sql.NullString `db:"address"`
 }
 
-func getUserDetails(ctx context.Context, b Backends, userID string) (*dbUserDetails, error) {
-	var id dbUserDetails
+func getIndividualDetails(ctx context.Context, b Backends, walletID string) (*dbIndividualDetails, error) {
+	var id dbIndividualDetails
 	err := b.DB().GetContext(ctx, &id,
-		"SELECT user_id, revision, country_code, first_name, last_name, gender, date_of_birth, address FROM user_kyc_details WHERE user_id=$1 ORDER BY revision DESC LIMIT 1",
-		userID)
+		"SELECT wallet_id, revision, country_code, first_name, last_name, gender, date_of_birth, address FROM individual_kyc_details WHERE wallet_id=$1 ORDER BY revision DESC LIMIT 1",
+		walletID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, kyc.ErrNoKYCInfo
 	}
@@ -88,8 +88,8 @@ func getUserDetails(ctx context.Context, b Backends, userID string) (*dbUserDeta
 	return &id, nil
 }
 
-func GetUserDetails(ctx context.Context, b Backends, userID string) (*kyc.UserDetails, error) {
-	db, err := getUserDetails(ctx, b, userID)
+func GetIndividualDetails(ctx context.Context, b Backends, walletID string) (*kyc.IndividualDetails, error) {
+	db, err := getIndividualDetails(ctx, b, walletID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,20 +97,20 @@ func GetUserDetails(ctx context.Context, b Backends, userID string) (*kyc.UserDe
 	return convertDBDetails(*db)
 }
 
-func UpdateUserDetails(ctx context.Context, b Backends, ident kyc.UserDetails) (*kyc.UserDetails, error) {
+func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.IndividualDetails) (*kyc.IndividualDetails, error) {
 	err := b.Validator().Struct(ident)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	old, err := getUserDetails(ctx, b, ident.UserID)
+	old, err := getIndividualDetails(ctx, b, ident.WalletID)
 	if err != nil && !errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, err
 	}
 
 	// If this is the first insert we can compare with blank identity
 	if old == nil {
-		old = &dbUserDetails{}
+		old = &dbIndividualDetails{}
 	}
 	merged, noop, err := mergeIdentities(*old, ident)
 	if err != nil {
@@ -122,9 +122,9 @@ func UpdateUserDetails(ctx context.Context, b Backends, ident kyc.UserDetails) (
 		return convertDBDetails(merged)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO user_kyc_details (revision, user_id, country_code, first_name, last_name, gender, date_of_birth, address)"+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO individual_kyc_details (revision, wallet_id, country_code, first_name, last_name, gender, date_of_birth, address)"+
 		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		merged.Revision, merged.UserID, merged.CountryCode, merged.FirstName, merged.LastName, merged.Gender, merged.DateOfBirth, merged.Address)
+		merged.Revision, merged.WalletID, merged.CountryCode, merged.FirstName, merged.LastName, merged.Gender, merged.DateOfBirth, merged.Address)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
@@ -132,9 +132,9 @@ func UpdateUserDetails(ctx context.Context, b Backends, ident kyc.UserDetails) (
 	return convertDBDetails(merged)
 }
 
-func convertDBDetails(details dbUserDetails) (*kyc.UserDetails, error) {
-	resp := &kyc.UserDetails{
-		UserID:      details.UserID,
+func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, error) {
+	resp := &kyc.IndividualDetails{
+		WalletID:    details.WalletID,
 		FirstName:   details.FirstName,
 		LastName:    details.LastName,
 		CountryCode: details.CountryCode,
