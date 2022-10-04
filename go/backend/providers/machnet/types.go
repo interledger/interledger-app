@@ -1,7 +1,10 @@
 package machnet
 
 type User struct {
-	ID string
+	ID        string `db:"id"`
+	WalletID  string `db:"wallet_id"`
+	CreatedAt string `db:"created_at"`
+	UpdatedAt string `db:"updated_at"`
 }
 
 type CreateArgs struct {

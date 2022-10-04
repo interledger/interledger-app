@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -67,18 +68,16 @@ func TestGetWidgetToken(t *testing.T) {
 		ExternalID: externalUser.ID,
 	})
 	require.NoError(t, err)
-	require.Equal(t, externalUser.ID, user.ID)
 
-	token, err := ops.GetWidgetToken(context.Background(), b, walletID)
-	require.NoError(t, err)
+	return user
+}
 
-	assert.Equal(t, "machnet-widget-token", token.Value)
-	assert.Equal(t, int(15), token.ExpiresInMinutes)
-
-	// non-existent user
-	token, err = ops.GetWidgetToken(context.Background(), b, uuid.NewString())
-	require.Nil(t, token)
-	assert.ErrorIs(t, err, machnet.ErrNotFound)
+func NewTestBackends(t *testing.T) backends {
+	ctrl := gomock.NewController(t)
+	return backends{
+		db:       test_utils.MigrateCockroachDB(t, context.Background()),
+		external: external_client.New(),
+	}
 }
 
 type backends struct {

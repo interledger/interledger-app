@@ -51,19 +51,34 @@ func (mr *MockClientMockRecorder) CreateUser(ctx, args interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockClient)(nil).CreateUser), ctx, args)
 }
 
-// GetUser mocks base method.
-func (m *MockClient) GetUser(ctx context.Context, walletID string) (*machnet.User, error) {
+// GetUserByID mocks base method.
+func (m *MockClient) GetUserByID(ctx context.Context, id string) (*machnet.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", ctx, walletID)
+	ret := m.ctrl.Call(m, "GetUserByID", ctx, id)
 	ret0, _ := ret[0].(*machnet.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUser indicates an expected call of GetUser.
-func (mr *MockClientMockRecorder) GetUser(ctx, walletID interface{}) *gomock.Call {
+// GetUserByID indicates an expected call of GetUserByID.
+func (mr *MockClientMockRecorder) GetUserByID(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockClient)(nil).GetUser), ctx, walletID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockClient)(nil).GetUserByID), ctx, id)
+}
+
+// GetUserByWalletID mocks base method.
+func (m *MockClient) GetUserByWalletID(ctx context.Context, walletID string) (*machnet.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByWalletID", ctx, walletID)
+	ret0, _ := ret[0].(*machnet.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByWalletID indicates an expected call of GetUserByWalletID.
+func (mr *MockClientMockRecorder) GetUserByWalletID(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByWalletID", reflect.TypeOf((*MockClient)(nil).GetUserByWalletID), ctx, walletID)
 }
 
 // GetWidgetToken mocks base method.

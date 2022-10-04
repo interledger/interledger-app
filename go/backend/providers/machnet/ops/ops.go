@@ -8,15 +8,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 )
 
-type user struct {
-	ID        string `db:"id"`
-	WalletID  string `db:"wallet_id"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
-}
-
 func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*machnet.User, error) {
-	var user user
+	var user machnet.User
 	err := b.DB().GetContext(
 		ctx,
 		&user,
@@ -28,13 +21,11 @@ func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*mach
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
-	return &machnet.User{
-		ID: user.ID,
-	}, nil
+	return &user, nil
 }
 
-func GetUser(ctx context.Context, b Backends, walletID string) (*machnet.User, error) {
-	var user user
+func GetUserByWalletID(ctx context.Context, b Backends, walletID string) (*machnet.User, error) {
+	var user machnet.User
 	err := b.DB().GetContext(
 		ctx,
 		&user,
@@ -48,13 +39,29 @@ func GetUser(ctx context.Context, b Backends, walletID string) (*machnet.User, e
 		return nil, fmt.Errorf("%w, %s", machnet.ErrInternal, err)
 	}
 
-	return &machnet.User{
-		ID: user.ID,
-	}, nil
+	return &user, nil
+}
+
+func GetUserByID(ctx context.Context, b Backends, id string) (*machnet.User, error) {
+	var user machnet.User
+	err := b.DB().GetContext(
+		ctx,
+		&user,
+		"SELECT id, wallet_id, created_at, updated_at from machnet_users WHERE id = $1;",
+		id,
+	)
+	if err == sql.ErrNoRows {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w, %s", machnet.ErrInternal, err)
+	}
+
+	return &user, nil
 }
 
 func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.WidgetToken, error) {
-	user, err := GetUser(ctx, b, walletID)
+	user, err := GetUserByWalletID(ctx, b, walletID)
 	if err != nil {
 		return nil, err
 	}
