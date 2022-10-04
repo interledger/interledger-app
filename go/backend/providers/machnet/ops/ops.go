@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/backend/providers/machnet/external"
 )
 
 func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*machnet.User, error) {
@@ -75,4 +77,31 @@ func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.
 		Value:            token.Token,
 		ExpiresInMinutes: token.ExpiryMinutes,
 	}, nil
+}
+
+func HandleUserCardAddedEvent(ctx context.Context, b Backends, event external.Event) error {
+	user, err := GetUserByID(ctx, b, event.UserID)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	// TODO: find out if these details are in the event payload
+	card, err := b.External().GetUserFundingsource(ctx, user.ID, event.ResourceID)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	_, err = b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   user.WalletID,
+		Name:       card.FundingsourceName,
+		Mask:       card.AccountNumber,
+		Provider:   machnet.ProviderName,
+		ProviderID: card.ID,
+		Type:       external.TypeCard,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
 }

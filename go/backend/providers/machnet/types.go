@@ -1,5 +1,7 @@
 package machnet
 
+const ProviderName = "machnet"
+
 type User struct {
 	ID        string `db:"id"`
 	WalletID  string `db:"wallet_id"`
