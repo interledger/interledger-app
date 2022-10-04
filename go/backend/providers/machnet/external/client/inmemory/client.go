@@ -216,3 +216,17 @@ func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.Deli
 
 	return nil
 }
+
+func (c Client) CreateUserFundingsource(ctx context.Context, fs external.FundingSource) (*external.FundingSource, error) {
+	_, err := c.GetUserByID(ctx, fs.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w User not found.", external.ErrInternal)
+	}
+	if fs.ID == "" {
+		return nil, fmt.Errorf("%w ID is required.", external.ErrInvalidArgument)
+	}
+
+	c.fundingsources[fs.ID] = fs
+	ret := c.fundingsources[fs.ID]
+	return &ret, nil
+}

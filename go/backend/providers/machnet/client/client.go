@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	inmemory_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
@@ -17,6 +18,7 @@ import (
 
 type Backends interface {
 	DB() *sqlx.DB
+	LinkedAccounts() linkedaccounts.Client
 }
 
 type opsBackends struct {
