@@ -40,9 +40,11 @@ func TestGetMachnetWidgetToken(t *testing.T) {
 	})
 
 	t.Run("returns token", func(st *testing.T) {
+		machnetUserID := uuid.NewString()
 		c.machnet.EXPECT().GetWidgetToken(gomock.Any(), wallet.ID).Return(&machnet.WidgetToken{
 			Value:            "machnet-widget-token",
 			ExpiresInMinutes: 15,
+			UserID:           machnetUserID,
 		}, nil).Times(1)
 
 		rpc, err := client.GetMachnetWidgetToken(
@@ -52,5 +54,6 @@ func TestGetMachnetWidgetToken(t *testing.T) {
 		require.NoError(st, err)
 		assert.Equal(st, "machnet-widget-token", rpc.GetValue())
 		assert.Equal(st, int64(15), rpc.GetExpiresInMinutes())
+		assert.Equal(st, machnetUserID, rpc.GetUserId())
 	})
 }

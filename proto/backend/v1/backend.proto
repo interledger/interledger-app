@@ -280,4 +280,5 @@ message LinkCashAccountRequest {
 message MachnetWidgetToken {
   string value = 1;
   int64 expiresInMinutes = 2;
+  string userId = 3;
 }
