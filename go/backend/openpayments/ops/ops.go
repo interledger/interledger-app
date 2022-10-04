@@ -158,6 +158,17 @@ func validatePaymentPointer(rawURL string) (string, error) {
 	return ppURL, nil
 }
 
+func FormattedPaymentPointer(rawURL string) (string, error) {
+	parsedUrl, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	formatted := fmt.Sprintf("$%s%s", parsedUrl.Host, parsedUrl.Path)
+
+	return formatted, nil
+}
+
 // ExtractPaymentPointer takes a full URL and removes the known suffix and what is left is the original Payment pointer
 // returns the payment pointer as well as the matching suffix
 func ExtractPaymentPointer(rawURL string) (string, string, error) {

@@ -61,12 +61,18 @@ func (g grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPoi
 		return nil, toGRPCError(err)
 	}
 
+	formattedPP, err := ops.FormattedPaymentPointer(pp.URL)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	return &pb.PaymentPointer{
 		Url:        pp.URL,
 		Asset:      pp.Asset,
 		AssetScale: int32(pp.AssetScale),
 		Alias:      pp.Alias,
 		WalletID:   pp.WalletID,
+		Formatted:  formattedPP,
 	}, nil
 }
 
