@@ -37,6 +37,8 @@ module.exports = {
           'rgba(var(--bg-container-primary-hover), <alpha-value>)',
         'container-primary-active':
           'rgba(var(--bg-container-primary-active), <alpha-value>)',
+        'container-secondary':
+          'rgba(var(--bg-container-secondary), <alpha-value>)',
         scrim: 'rgba(var(--bg-scrim), <alpha-value>)',
         snackbar: 'rgba(var(--bg-snackbar), <alpha-value>)',
         footer: 'rgba(var(--bg-footer), <alpha-value>)'
