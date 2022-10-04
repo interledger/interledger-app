@@ -165,29 +165,29 @@ func TestExtractPaymentPointer(t *testing.T) {
 	}{
 		{
 			name:            "no_suffix",
-			url:             "http://fybos.me/asdf",
-			expectedPointer: "http://fybos.me/asdf",
+			url:             "http://fynbos.me/asdf",
+			expectedPointer: "http://fynbos.me/asdf",
 			expectedSuffix:  "",
 			err:             nil,
 		},
 		{
 			name:            "no_suffix_trailing_slash",
-			url:             "http://fybos.me/asdf/",
-			expectedPointer: "http://fybos.me/asdf",
+			url:             "http://fynbos.me/asdf/",
+			expectedPointer: "http://fynbos.me/asdf",
 			expectedSuffix:  "",
 			err:             nil,
 		},
 		{
 			name:            "incoming_payments_suffix",
-			url:             "http://fybos.me/asdf/incoming-payments",
-			expectedPointer: "http://fybos.me/asdf",
+			url:             "http://fynbos.me/asdf/incoming-payments",
+			expectedPointer: "http://fynbos.me/asdf",
 			expectedSuffix:  "incoming-payments",
 			err:             nil,
 		},
 		{
 			name:            "outgoing_payments_suffix",
-			url:             "http://fybos.me/asdf/outgoing-payments",
-			expectedPointer: "http://fybos.me/asdf",
+			url:             "http://fynbos.me/asdf/outgoing-payments",
+			expectedPointer: "http://fynbos.me/asdf",
 			expectedSuffix:  "outgoing-payments",
 			err:             nil,
 		},
@@ -198,7 +198,7 @@ func TestExtractPaymentPointer(t *testing.T) {
 		},
 		{
 			name: "double_suffix",
-			url:  "http://fybos.me/asdf/incoming-payments/outgoing-payments",
+			url:  "http://fynbos.me/asdf/incoming-payments/outgoing-payments",
 			err:  openpayments.ErrInvalidPointerURL,
 		},
 	}
@@ -433,14 +433,14 @@ func TestFormattedPaymentPointer(t *testing.T) {
 	}{
 		{
 			name:              "http",
-			url:               "http://fybos.me/asdf",
-			expectedFormatted: "$fybos.me/asdf",
+			url:               "http://fynbos.me/asdf",
+			expectedFormatted: "$fynbos.me/asdf",
 			err:               nil,
 		},
 		{
 			name:              "https",
-			url:               "https://fybos.me/asdf",
-			expectedFormatted: "$fybos.me/asdf",
+			url:               "https://fynbos.me/asdf",
+			expectedFormatted: "$fynbos.me/asdf",
 			err:               nil,
 		},
 	}
