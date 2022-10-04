@@ -139,3 +139,32 @@ func GetWallet(ctx context.Context, b Backends, userID, walletID string) (*user.
 
 	return &wallet, nil
 }
+
+func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	var userIDs []string
+	err := b.DB().SelectContext(ctx, &userIDs, "SELECT user_id FROM user_wallets WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, user.ErrNoWalletFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var resp []user.User
+	for _, userID := range userIDs {
+		id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, userID).Execute()
+		if err != nil {
+			return nil, err
+		}
+		traits := id.Traits.(map[string]interface{})
+		resp = append(resp, user.User{
+			ID:    id.Id,
+			Email: traits["email"].(string),
+		})
+	}
+
+	return resp, nil
+}

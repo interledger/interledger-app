@@ -61,6 +61,10 @@ func (c client) UserForContext(ctx context.Context) (usr *user.User, err error) 
 	return ops.UserForContext(ctx)
 }
 
+func (c client) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
+	return ops.ListUsers(ctx, c.b, walletID)
+}
+
 func (c client) WalletForContext(ctx context.Context) (uw *user.Wallet, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
