@@ -53,7 +53,7 @@ func GetUserByID(ctx context.Context, b Backends, id string) (*machnet.User, err
 	err := b.DB().GetContext(
 		ctx,
 		&user,
-		"SELECT id, wallet_id, created_at, updated_at from machnet_users WHERE id = $1;",
+		"SELECT id, wallet_id, kyc_status, created_at, updated_at from machnet_users WHERE id = $1;",
 		id,
 	)
 	if err == sql.ErrNoRows {
