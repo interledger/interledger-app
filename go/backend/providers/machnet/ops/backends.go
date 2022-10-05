@@ -2,8 +2,8 @@ package ops
 
 import (
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/user"
 )

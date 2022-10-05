@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/user"
 )
@@ -13,6 +14,7 @@ type Backends interface {
 	DB() *sqlx.DB
 	Users() user.Client
 	KYC() kyc.Client
+	LinkedAccounts() linkedaccounts.Client
 }
 
 type opsBackends struct {
@@ -28,6 +30,10 @@ type testBackends struct {
 	db      *sqlx.DB
 	users   user.Client
 	kycImpl *kyc_mock.MockClient
+}
+
+func (b testBackends) LinkedAccounts() linkedaccounts.Client {
+	return nil
 }
 
 func (b testBackends) Users() user.Client {

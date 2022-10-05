@@ -92,7 +92,7 @@ func TestActivity_CreateUser(t *testing.T) {
 	_, err = env.ExecuteActivity(a.CreateUser, wallet.ID, externalUserID)
 	require.NoError(t, err)
 
-	u, err := ops.GetUser(ctx, a.b, wallet.ID)
+	u, err := ops.GetUserByWalletID(ctx, a.b, wallet.ID)
 	require.NoError(t, err)
 
 	assert.Equal(t, u.ID, externalUserID)
