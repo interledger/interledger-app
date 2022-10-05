@@ -1,8 +1,8 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { Link, useLoaderData } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Icon, Router } from '~/components'
+import { HomeShapes, Icon, Router, WalletGrid } from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
 import {
   httpMapping,
@@ -30,14 +30,23 @@ export async function loader({ request }: LoaderArgs) {
 
   let data = {
     isUser: isUser,
-    paymentPointer: '0',
+    firstName: '',
+    paymentPointer: {
+      url: '',
+      asset: 'USD',
+      assetScale: 2,
+      alias: 'default',
+      walletID: '',
+      formatted: ''
+    },
     recentActivities: [] as Activities[],
     pendingTransactions: [] as Activity[]
   }
 
   if (isUser) {
     const cookie = String(request.headers.get('cookie'))
-    await requireUserSession(request)
+    const session = await requireUserSession(request)
+    data.firstName = session.identity.traits.firstName
     let response = await openPaymentsClient
       .listWalletPaymentPointers(
         {},
@@ -52,7 +61,7 @@ export async function loader({ request }: LoaderArgs) {
     if (isGrpcError(response)) {
       throw json({}, httpMapping(response.code))
     }
-    data.paymentPointer = response.response.pointers[0].url
+    data.paymentPointer = response.response.pointers[0]
   }
   return json(data)
 }
@@ -357,41 +366,77 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { paymentPointer, recentActivities } = useLoaderData<typeof loader>()
+  const { firstName, paymentPointer, recentActivities } =
+    useLoaderData<typeof loader>()
   return (
-    <div className='w-full'>
-      {/* Header */}
-      <header className='sticky top-0 flex h-16 min-w-full select-none items-center justify-between bg-app p-4 text-medium'>
-        <div className='flex items-center justify-start font-display text-2xl font-medium'>
-          Home
+    <WalletGrid>
+      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='mt-2'>
+          <HomeShapes />
         </div>
-        <Link className='sm:hidden' to={route('/settings')}>
-          <div className='-mr-3 p-3 text-medium'>
-            <Icon>settings</Icon>
-          </div>
-        </Link>
-      </header>
-      {/* Body */}
-      <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
-        {/* HOME */}
-        <div className='col-span-full flex flex-col items-center px-3 pt-4 pb-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-display text-4xl'>{paymentPointer}</span>
+        <h1 className='mt-6 font-display text-2xl'>Welcome {firstName}</h1>
+        <p className='mt-6'>
+          Your payment pointer has been set up successfully.
+        </p>
+        <div className='mt-4 flex justify-between rounded-xl bg-container p-4'>
+          <span className='font-medium text-medium'>
+            {paymentPointer.formatted}
+          </span>
+          <Icon className='text-success'>check</Icon>
         </div>
+      </div>
 
-        {recentActivities.length > 0 && (
-          <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <span className='font-display text-lg font-medium'>
-              Recent activity
-            </span>
-            <Router to={route('/activity')}>
-              <div className='flex items-center space-x-1 font-display text-sm font-medium text-primary'>
-                <span>See all</span>
-                <Icon>read_more</Icon>
-              </div>
+      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <h1 className='font-display text-lg font-medium'>What to do next</h1>
+        <div className='flex items-center justify-between space-x-3 rounded-xl bg-container-secondary p-4 text-medium'>
+          <Icon>tips_and_updates</Icon>
+          <p className='text-sm'>
+            You need to add a send or receive account before you can transact.
+          </p>
+        </div>
+        <div className='flex items-start space-x-4 p-4'>
+          <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <Icon>send</Icon>
+          </div>
+          <div className='flex flex-col space-y-2'>
+            <h1 className='font-medium text-medium'>Send</h1>
+            <p className='text-sm text-medium'>
+              Easily send money to an individual or a business.
+            </p>
+            <Router className='text-sm font-medium text-primary' to={'/TODO'}>
+              Add a send account now
             </Router>
           </div>
-        )}
+        </div>
+        <div className='flex items-start space-x-4 p-4'>
+          <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <Icon>qr_code</Icon>
+          </div>
+          <div className='flex flex-col space-y-2'>
+            <h1 className='font-medium text-medium'>Receive</h1>
+            <p className='text-sm text-medium'>
+              Receive money into an account of your choice.
+            </p>
+            <Router className='text-sm font-medium text-primary' to={'/TODO'}>
+              Add a receive account now
+            </Router>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {recentActivities.length > 0 && (
+        <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <span className='font-display text-lg font-medium'>
+            Recent activity
+          </span>
+          <Router to={route('/activity')}>
+            <div className='flex items-center space-x-1 font-display text-sm font-medium text-primary'>
+              <span>See all</span>
+              <Icon>read_more</Icon>
+            </div>
+          </Router>
+        </div>
+      )}
+    </WalletGrid>
   )
 }
