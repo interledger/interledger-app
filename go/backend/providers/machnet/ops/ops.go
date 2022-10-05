@@ -90,6 +90,8 @@ func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	switch event.EventName {
 	case external.UserCardAdded:
 		err = HandleUserCardAddedEvent(ctx, b, event)
+	case external.UserKYCInProgress, external.UserKYCSuspended, external.UserKYCRetry, external.UserKYCVerified, external.UserKYCReviewPending:
+		err = HandleUserKYCEvent(ctx, b, event)
 	default:
 		log.Warn(
 			"Unhandled machnet event",
@@ -100,6 +102,34 @@ func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	}
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func HandleUserKYCEvent(ctx context.Context, b Backends, event external.Event) error {
+	_, err := GetUserByID(ctx, b, event.UserID)
+	if err != nil {
+		return err
+	}
+
+	var newStatus machnet.KYCStatus
+	switch event.EventName {
+	case external.UserKYCInProgress:
+		newStatus = machnet.KYCStatusInProgress
+	case external.UserKYCSuspended:
+		newStatus = machnet.KYCStatusSuspended
+	case external.UserKYCRetry:
+		newStatus = machnet.KYCStatusRetry
+	case external.UserKYCVerified:
+		newStatus = machnet.KYCStatusVerified
+	case external.UserKYCReviewPending:
+		newStatus = machnet.KYCStatusReviewPending
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2", newStatus, event.UserID)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
 	return nil
