@@ -6,6 +6,9 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/user"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -153,6 +156,16 @@ type backends struct {
 	db             *sqlx.DB
 	external       *external_client.Client
 	linkedaccounts *linkedaccounts_mock.MockClient
+	users    user.Client
+	kycImpl  kyc.Client
+}
+
+func (b backends) Users() user.Client {
+	return b.users
+}
+
+func (b backends) KYC() kyc.Client {
+	return b.kycImpl
 }
 
 func (b backends) DB() *sqlx.DB {

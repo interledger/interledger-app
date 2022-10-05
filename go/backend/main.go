@@ -303,39 +303,17 @@ func startWorker(args *cli.StartArgs) {
 	}
 	log.Setup(logger)
 
-	b.countries = country_client.New(b)
-
-	//pClient, err := pacioli_client.New(args.PacioliUrl)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//b.pacioli = pClient
-
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.temporal = tp
 
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.TwilioSid,
-		AccountToken: args.TwilioSecret,
-		ServiceSid:   args.TwilioServiceSid,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.twilio = twilioService
-
-	//mxImpl := mx_client.New(b, args.MxClientID, args.MxApiKey)
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//b.mxProvider = mxImpl
-
-	b.linkedaccounts = linked_account_client.New(b, logger)
-
 	b.signup = signup_client.New(b)
+
+	b.users = user_client.New(b, args.KratosUrl)
+
+	b.kyc = kyc_client.New(b)
 
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
