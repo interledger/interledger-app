@@ -11,10 +11,15 @@ export function WalletLayout() {
       <div className='fixed top-0 hidden lg:flex'>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='ml-4 mb-8'>
+            <div className='ml-4'>
               <Router to={route('/')} aria-label='Fynbos logo'>
                 <Logo className='h-8' />
               </Router>
+            </div>
+            {/*TODO FAB*/}
+            <div className='mt-10 mb-2 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'>
+              <Icon>attach_money</Icon>
+              <span className='font-display font-medium'>Pay</span>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/activity')}>
