@@ -130,4 +130,10 @@ const (
 	UserBankAdded              = "user_bank_added"
 	UserBankRemoved            = "user_bank_removed"
 	UserBankVerificationFailed = "user_bank_verification_failed"
+
+	UserKYCInProgress    = "user_kyc_in_progress"
+	UserKYCVerified      = "user_kyc_verified"
+	UserKYCRetry         = "user_kyc_retry"
+	UserKYCSuspended     = "user_kyc_suspended"
+	UserKYCReviewPending = "user_kyc_review_pending"
 )
