@@ -212,9 +212,9 @@ export interface CreateSupportTicketRequest {
     email: string;
 }
 /**
- * @generated from protobuf message backend.v1.UpdateUserKYCRequest
+ * @generated from protobuf message backend.v1.UpdateIndividualKYCRequest
  */
-export interface UpdateUserKYCRequest {
+export interface UpdateIndividualKYCRequest {
     /**
      * @generated from protobuf field: optional string firstName = 1;
      */
@@ -236,14 +236,18 @@ export interface UpdateUserKYCRequest {
      */
     dateOfBirth?: Timestamp;
     /**
-     * @generated from protobuf field: optional backend.v1.UpdateUserKYCRequest.Address address = 6;
+     * @generated from protobuf field: optional backend.v1.UpdateIndividualKYCRequest.Address address = 6;
      */
-    address?: UpdateUserKYCRequest_Address;
+    address?: UpdateIndividualKYCRequest_Address;
+    /**
+     * @generated from protobuf field: string ipAddress = 7;
+     */
+    ipAddress: string;
 }
 /**
- * @generated from protobuf message backend.v1.UpdateUserKYCRequest.Address
+ * @generated from protobuf message backend.v1.UpdateIndividualKYCRequest.Address
  */
-export interface UpdateUserKYCRequest_Address {
+export interface UpdateIndividualKYCRequest_Address {
     /**
      * @generated from protobuf field: optional string line1 = 1;
      */
@@ -1424,25 +1428,26 @@ class CreateSupportTicketRequest$Type extends MessageType<CreateSupportTicketReq
  */
 export const CreateSupportTicketRequest = new CreateSupportTicketRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateUserKYCRequest$Type extends MessageType<UpdateUserKYCRequest> {
+class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCRequest> {
     constructor() {
-        super("backend.v1.UpdateUserKYCRequest", [
+        super("backend.v1.UpdateIndividualKYCRequest", [
             { no: 1, name: "firstName", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "lastName", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "countryCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "gender", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 5, name: "dateOfBirth", kind: "message", T: () => Timestamp },
-            { no: 6, name: "address", kind: "message", T: () => UpdateUserKYCRequest_Address }
+            { no: 6, name: "address", kind: "message", T: () => UpdateIndividualKYCRequest_Address },
+            { no: 7, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<UpdateUserKYCRequest>): UpdateUserKYCRequest {
-        const message = {};
+    create(value?: PartialMessage<UpdateIndividualKYCRequest>): UpdateIndividualKYCRequest {
+        const message = { ipAddress: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateUserKYCRequest>(this, message, value);
+            reflectionMergePartial<UpdateIndividualKYCRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserKYCRequest): UpdateUserKYCRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateIndividualKYCRequest): UpdateIndividualKYCRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1462,8 +1467,11 @@ class UpdateUserKYCRequest$Type extends MessageType<UpdateUserKYCRequest> {
                 case /* optional google.protobuf.Timestamp dateOfBirth */ 5:
                     message.dateOfBirth = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.dateOfBirth);
                     break;
-                case /* optional backend.v1.UpdateUserKYCRequest.Address address */ 6:
-                    message.address = UpdateUserKYCRequest_Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
+                case /* optional backend.v1.UpdateIndividualKYCRequest.Address address */ 6:
+                    message.address = UpdateIndividualKYCRequest_Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
+                    break;
+                case /* string ipAddress */ 7:
+                    message.ipAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1476,7 +1484,7 @@ class UpdateUserKYCRequest$Type extends MessageType<UpdateUserKYCRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: UpdateUserKYCRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpdateIndividualKYCRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* optional string firstName = 1; */
         if (message.firstName !== undefined)
             writer.tag(1, WireType.LengthDelimited).string(message.firstName);
@@ -1492,9 +1500,12 @@ class UpdateUserKYCRequest$Type extends MessageType<UpdateUserKYCRequest> {
         /* optional google.protobuf.Timestamp dateOfBirth = 5; */
         if (message.dateOfBirth)
             Timestamp.internalBinaryWrite(message.dateOfBirth, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
-        /* optional backend.v1.UpdateUserKYCRequest.Address address = 6; */
+        /* optional backend.v1.UpdateIndividualKYCRequest.Address address = 6; */
         if (message.address)
-            UpdateUserKYCRequest_Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+            UpdateIndividualKYCRequest_Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* string ipAddress = 7; */
+        if (message.ipAddress !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1502,13 +1513,13 @@ class UpdateUserKYCRequest$Type extends MessageType<UpdateUserKYCRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.UpdateUserKYCRequest
+ * @generated MessageType for protobuf message backend.v1.UpdateIndividualKYCRequest
  */
-export const UpdateUserKYCRequest = new UpdateUserKYCRequest$Type();
+export const UpdateIndividualKYCRequest = new UpdateIndividualKYCRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest_Address> {
+class UpdateIndividualKYCRequest_Address$Type extends MessageType<UpdateIndividualKYCRequest_Address> {
     constructor() {
-        super("backend.v1.UpdateUserKYCRequest.Address", [
+        super("backend.v1.UpdateIndividualKYCRequest.Address", [
             { no: 1, name: "line1", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "line2", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "building", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
@@ -1521,14 +1532,14 @@ class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest
             { no: 10, name: "formattedAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<UpdateUserKYCRequest_Address>): UpdateUserKYCRequest_Address {
+    create(value?: PartialMessage<UpdateIndividualKYCRequest_Address>): UpdateIndividualKYCRequest_Address {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateUserKYCRequest_Address>(this, message, value);
+            reflectionMergePartial<UpdateIndividualKYCRequest_Address>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateUserKYCRequest_Address): UpdateUserKYCRequest_Address {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateIndividualKYCRequest_Address): UpdateIndividualKYCRequest_Address {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1574,7 +1585,7 @@ class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest
         }
         return message;
     }
-    internalBinaryWrite(message: UpdateUserKYCRequest_Address, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpdateIndividualKYCRequest_Address, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* optional string line1 = 1; */
         if (message.line1 !== undefined)
             writer.tag(1, WireType.LengthDelimited).string(message.line1);
@@ -1612,9 +1623,9 @@ class UpdateUserKYCRequest_Address$Type extends MessageType<UpdateUserKYCRequest
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.UpdateUserKYCRequest.Address
+ * @generated MessageType for protobuf message backend.v1.UpdateIndividualKYCRequest.Address
  */
-export const UpdateUserKYCRequest_Address = new UpdateUserKYCRequest_Address$Type();
+export const UpdateIndividualKYCRequest_Address = new UpdateIndividualKYCRequest_Address$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountWidgetRequest$Type extends MessageType<GetBankAccountWidgetRequest> {
     constructor() {
@@ -3129,7 +3140,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AddBankAccount", options: {}, I: AddBankAccountRequest, O: AddBankAccountResponse },
     { name: "GetBankAccountDetails", options: {}, I: GetBankAccountDetailsRequest, O: BankAccountDetails },
     { name: "ContinueAddingBankAccount", options: {}, I: ContinueAddingBankAccountRequest, O: ContinueAddingBankAccountResponse },
-    { name: "UpdateUserKYC", options: {}, I: UpdateUserKYCRequest, O: Empty },
+    { name: "UpdateIndividualKYC", options: {}, I: UpdateIndividualKYCRequest, O: Empty },
     { name: "SetSignupUserData", options: {}, I: SetSignupUserDataRequest, O: SetSignupUserDataResponse },
     { name: "SetSignupMobileNumber", options: {}, I: SetSignupMobileNumberRequest, O: Empty },
     { name: "GetSignup", options: {}, I: GetSignupRequest, O: Signup },
