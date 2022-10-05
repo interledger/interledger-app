@@ -143,6 +143,59 @@ func NewMachnetUser(t *testing.T, b backends, walletID string) *machnet.User {
 	return user
 }
 
+func TestHandleUserKYCEvent(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+	mu := NewMachnetUser(t, b, walletID)
+
+	kycEvent := external.Event{
+		ID:             uuid.NewString(),
+		EventName:      external.UserKYCInProgress,
+		UserID:         mu.ID,
+		SubscriptionID: uuid.NewString(),
+		Timestamp:      time.Now().UTC().Format(time.RFC3339),
+		Payload:        []byte("{}"),
+	}
+
+	err := ops.HandleUserKYCEvent(context.Background(), b, kycEvent)
+	require.NoError(t, err)
+
+	u, err := ops.GetUserByID(context.Background(), b, mu.ID)
+	require.NoError(t, err)
+	assert.Equal(t, machnet.KYCStatusInProgress, u.KYCStatus)
+
+	// User Not Found
+	kycEvent = external.Event{
+		ID:             uuid.NewString(),
+		EventName:      external.UserKYCInProgress,
+		UserID:         uuid.NewString(),
+		SubscriptionID: uuid.NewString(),
+		Timestamp:      time.Now().UTC().Format(time.RFC3339),
+		Payload:        []byte("{}"),
+	}
+
+	err = ops.HandleUserKYCEvent(context.Background(), b, kycEvent)
+	require.ErrorIs(t, err, machnet.ErrNotFound)
+
+	// User Verified
+	kycEvent = external.Event{
+		ID:             uuid.NewString(),
+		EventName:      external.UserKYCVerified,
+		UserID:         mu.ID,
+		SubscriptionID: uuid.NewString(),
+		Timestamp:      time.Now().UTC().Format(time.RFC3339),
+		Payload:        []byte("{}"),
+	}
+
+	err = ops.HandleUserKYCEvent(context.Background(), b, kycEvent)
+	require.NoError(t, err)
+
+	u, err = ops.GetUserByID(context.Background(), b, mu.ID)
+	require.NoError(t, err)
+	assert.Equal(t, machnet.KYCStatusVerified, u.KYCStatus)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
