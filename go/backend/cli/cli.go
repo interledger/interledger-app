@@ -95,6 +95,8 @@ type StartArgs struct {
 	LogLevel                  string
 	LogOutputPath             string
 	GoogleOauth2ClientID      string
+	MachnetClientID           string
+	MachnetClientSecret       string
 	MxClientID                string
 	MxApiKey                  string
 	RafikiGraphqlUrl          string
@@ -231,6 +233,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		LogLevel:                  logLevel,
 		LogOutputPath:             logOutputPath,
 		GoogleOauth2ClientID:      googleOauth2ClientID,
+		MachnetClientID:           os.Getenv("MACHNET_CLIENT_ID"),
+		MachnetClientSecret:       os.Getenv("MACHNET_CLIENT_SECRET"),
 		MxClientID:                mxClientID,
 		MxApiKey:                  mxApiKey,
 		RafikiGraphqlUrl:          rafikiGraphqlUrl,
