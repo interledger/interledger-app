@@ -6,7 +6,7 @@ type Client interface {
 	RegisterUser(ctx context.Context, user User) (*User, error)
 	UpdateUser(ctx context.Context, id string, newValues User) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
-	InitiateKYC(ctx context.Context, userID string) error
+	InitiateKYC(ctx context.Context, userID string) (*InitiateKycResponse, error)
 	GetVerificationStatus(ctx context.Context, userID string) (*VerificationStatus, error)
 	GetReceiveUserList(ctx context.Context, userID string) ([]User, error)
 	GetFundingAccountWidgetToken(ctx context.Context, userID string) (*WidgetTokenResponse, error)

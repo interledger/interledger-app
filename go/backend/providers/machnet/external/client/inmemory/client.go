@@ -87,16 +87,19 @@ func (c Client) GetUserByID(ctx context.Context, id string) (*external.User, err
 	return &user, nil
 }
 
-func (c Client) InitiateKYC(ctx context.Context, userID string) error {
+func (c Client) InitiateKYC(ctx context.Context, userID string) (*external.InitiateKycResponse, error) {
 	user, found := c.users[userID]
 	if !found {
-		return external.ErrNotFound
+		return nil, external.ErrNotFound
 	}
 
 	user.Status = external.StatusVerified
 	c.users[userID] = user
 
-	return nil
+	return &external.InitiateKycResponse{
+		Success: true,
+		Status:  external.StatusVerified,
+	}, nil
 }
 
 func (c Client) GetVerificationStatus(

@@ -127,27 +127,24 @@ func (c Client) GetUserByID(ctx context.Context, id string) (*external.User, err
 	return &user, nil
 }
 
-func (c Client) InitiateKYC(ctx context.Context, userID string) error {
+func (c Client) InitiateKYC(ctx context.Context, userID string) (*external.InitiateKycResponse, error) {
 	resp, err := c.api.Post(fmt.Sprintf("%s/users/%s/kyc", c.baseUrl, userID), "application/json", nil)
 	if err != nil {
-		return fmt.Errorf("%w %s", external.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
 	body, err := parseResponse(resp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var kyc external.InitiateKycResponse
 	err = json.Unmarshal(body, &kyc)
 	if err != nil {
-		return fmt.Errorf("%w %s", external.ErrInternal, err)
-	}
-	if !kyc.Success {
-		return fmt.Errorf("%w Failed to initiate kyc. status: %s", external.ErrInternal, kyc.Status)
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	return nil
+	return &kyc, nil
 }
 
 func (c Client) GetVerificationStatus(ctx context.Context, userID string) (*external.VerificationStatus, error) {

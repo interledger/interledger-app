@@ -52,7 +52,7 @@ func TestMachnetClientIntegration(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = client.InitiateKYC(context.Background(), user.ID)
+	_, err = client.InitiateKYC(context.Background(), user.ID)
 	require.NoError(t, err)
 
 	verificationStatus, err := client.GetVerificationStatus(context.Background(), user.ID)
