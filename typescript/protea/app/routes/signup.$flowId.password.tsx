@@ -160,7 +160,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (serviceAgreement == null) {
-    fieldErrors.serviceAgreement = 'You are required to accept this to proceed.'
+    fieldErrors.serviceAgreement = 'You are required to agree to continue.'
     return json(
       {
         errors: {
