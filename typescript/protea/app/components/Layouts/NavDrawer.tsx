@@ -11,17 +11,17 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
   return (
     <NavLink
       end
-      // prefetch='render'
-      className='w-full rounded-xl focus-visible:outline-2 focus-visible:outline-focus'
+      prefetch='intent'
+      className='mt-4 w-full rounded-xl focus-visible:outline-2 focus-visible:outline-focus'
       to={to}
     >
       {({ isActive }) => (
         <li
-          className={`flex w-56 items-center rounded-xl py-3 px-4 text-sm font-medium ${
-            isActive ? 'bg-container-primary' : 'hover:bg-container-hover'
+          className={`flex w-56 items-center rounded-xl p-4 ${
+            isActive ? 'bg-container-hover' : 'hover:bg-container'
           }`}
         >
-          <div>{children}</div>
+          <span className='font-display'>{children}</span>
         </li>
       )}
     </NavLink>
@@ -31,7 +31,7 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
 ListItem.displayName = 'ListItem'
 
 const List: FC = ({ children }) => {
-  return <ul className='flex w-full flex-col space-y-1'>{children}</ul>
+  return <ul className='flex w-full flex-col'>{children}</ul>
 }
 
 List.displayName = 'List'
