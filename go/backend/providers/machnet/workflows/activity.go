@@ -132,5 +132,7 @@ func (a *Activity) StartExternalKYC(ctx context.Context, externalID string) erro
 		return nil
 	}
 
-	return a.b.External().InitiateKYC(ctx, externalID)
+	_, err = a.b.External().InitiateKYC(ctx, externalID)
+
+	return err
 }
