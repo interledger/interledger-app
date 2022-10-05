@@ -94,12 +94,17 @@ func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) 
 
 	resp := make([]*pb.PaymentPointer, len(pp))
 	for i, p := range pp {
+		formattedPP, err := ops.FormattedPaymentPointer(p.URL)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
 		resp[i] = &pb.PaymentPointer{
 			Url:        p.URL,
 			Asset:      p.Asset,
 			AssetScale: int32(p.AssetScale),
 			Alias:      p.Alias,
 			WalletID:   p.WalletID,
+			Formatted:  formattedPP,
 		}
 	}
 
