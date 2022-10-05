@@ -36,18 +36,18 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // GetIndividualDetails mocks base method.
-func (m *MockClient) GetIndividualDetails(ctx context.Context, userID string) (*kyc.IndividualDetails, error) {
+func (m *MockClient) GetIndividualDetails(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIndividualDetails", ctx, userID)
+	ret := m.ctrl.Call(m, "GetIndividualDetails", ctx, walletID)
 	ret0, _ := ret[0].(*kyc.IndividualDetails)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetIndividualDetails indicates an expected call of GetIndividualDetails.
-func (mr *MockClientMockRecorder) GetIndividualDetails(ctx, userID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetIndividualDetails(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndividualDetails", reflect.TypeOf((*MockClient)(nil).GetIndividualDetails), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndividualDetails", reflect.TypeOf((*MockClient)(nil).GetIndividualDetails), ctx, walletID)
 }
 
 // UpdateIndividualDetails mocks base method.

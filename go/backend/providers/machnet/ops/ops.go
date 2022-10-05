@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -17,9 +18,10 @@ func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*mach
 	err := b.DB().GetContext(
 		ctx,
 		&user,
-		"INSERT INTO machnet_users (id, wallet_id) VALUES ($1, $2) RETURNING id, wallet_id, created_at, updated_at;",
+		"INSERT INTO machnet_users (id, wallet_id, kyc_status) VALUES ($1, $2, $3) RETURNING id, wallet_id, kyc_status, created_at, updated_at;",
 		args.ExternalID,
 		args.WalletID,
+		machnet.KYCStatusUnknown,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -33,10 +35,10 @@ func GetUserByWalletID(ctx context.Context, b Backends, walletID string) (*machn
 	err := b.DB().GetContext(
 		ctx,
 		&user,
-		"SELECT id, wallet_id, created_at, updated_at from machnet_users WHERE wallet_id = $1;",
+		"SELECT id, wallet_id, kyc_status, created_at, updated_at from machnet_users WHERE wallet_id = $1;",
 		walletID,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, machnet.ErrNotFound
 	}
 	if err != nil {
