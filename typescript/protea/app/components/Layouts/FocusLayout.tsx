@@ -22,7 +22,7 @@ export function FocusLayout() {
       <footer className='col-span-full flex space-x-3 self-end overflow-hidden px-4 pb-6 sm:px-0 lg:col-span-6 lg:col-start-4'>
         <span>&copy;Fynbos</span>
         <Router className='text-primary' to={route('/legal')}>
-          Privacy & Terms
+          Privacy &amp; Terms
         </Router>
       </footer>
     </div>
