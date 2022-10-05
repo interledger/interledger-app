@@ -17,6 +17,23 @@ export async function loader({ request }: LoaderArgs) {
   const hasSession = await hasUserSession(request)
   if (!hasSession) return redirect('/signup')
 
+  let response = await openPaymentsClient
+    .listWalletPaymentPointers(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  } else if (response.response.pointers.length > 0) {
+    throw redirect(route('/'))
+  }
+
   const session = await getUserSession(request)
   let usernameIsValid = false
   let attempts = 0
