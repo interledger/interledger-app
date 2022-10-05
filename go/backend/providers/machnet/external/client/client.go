@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 )
 
 const (
@@ -27,6 +28,13 @@ type Client struct {
 }
 
 func New(clientID, clientSecret string) *Client {
+	if clientID == "" || clientSecret == "" {
+		log.Error("Machnet credentials not set.")
+		if env.IsProd() || env.IsSandbox() {
+			panic("Machnet credentials not set.")
+		}
+	}
+
 	baseUrl := sandboxUrl
 	if env.IsProd() {
 		baseUrl = prodUrl

@@ -35,6 +35,7 @@ import (
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
@@ -187,6 +188,8 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	b.rafiki = rafikiProvider
+
+	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
 	router := chi.NewRouter()
 	router.Routes()

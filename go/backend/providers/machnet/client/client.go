@@ -8,10 +8,12 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
 	inmemory_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -33,12 +35,13 @@ func (b opsBackends) External() external.Client {
 	return b.external
 }
 
-func New(b Backends) machnet.Client {
-	// TODO: http client
-
+func New(b Backends, clientID, clientSecret string) machnet.Client {
 	opsBackends := opsBackends{
 		Backends: b,
 		external: inmemory_external_client.New(),
+	}
+	if env.IsProd() || env.IsSandbox() {
+		opsBackends.external = external_client.New(clientID, clientSecret)
 	}
 
 	return &client{b: opsBackends, t: b.Temporal()}
