@@ -30,7 +30,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 	logger := activity.GetLogger(ctx)
 	logger.Info("CreateExternalSendUser_Activity", "walletID", walletID)
 
-	mu, err := ops.GetUser(ctx, a.b, walletID)
+	mu, err := ops.GetUserByWalletID(ctx, a.b, walletID)
 	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
 		return "", err
 	}
@@ -95,7 +95,7 @@ func (a *Activity) CreateUser(ctx context.Context, walletID, externalID string) 
 	logger := activity.GetLogger(ctx)
 	logger.Info("CreateUser_Activity", "walletID", walletID, "externalID", externalID)
 
-	mu, err := ops.GetUser(ctx, a.b, walletID)
+	mu, err := ops.GetUserByWalletID(ctx, a.b, walletID)
 	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
 		return "", err
 	}

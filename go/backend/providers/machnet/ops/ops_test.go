@@ -156,8 +156,8 @@ type backends struct {
 	db             *sqlx.DB
 	external       *external_client.Client
 	linkedaccounts *linkedaccounts_mock.MockClient
-	users    user.Client
-	kycImpl  kyc.Client
+	users          user.Client
+	kycImpl        kyc.Client
 }
 
 func (b backends) Users() user.Client {

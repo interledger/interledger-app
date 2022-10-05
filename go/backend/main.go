@@ -315,6 +315,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.kyc = kyc_client.New(b)
 
+	b.linkedaccounts = linked_account_client.New(b, logger)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
