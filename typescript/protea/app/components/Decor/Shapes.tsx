@@ -1,4 +1,4 @@
-import type { FC, Key } from 'react'
+import type { FC } from 'react'
 import clsx from 'clsx'
 
 type Radius =
