@@ -40,7 +40,7 @@ export function WalletLayout() {
               className='text-xs font-medium text-primary'
               to={route('/legal')}
             >
-              Privacy & Terms
+              Privacy &amp; Terms
             </Router>
           </footer>
         </NavDrawer>
@@ -98,7 +98,7 @@ export function WalletLayout() {
               className='text-xs font-medium text-primary'
               to={route('/legal')}
             >
-              Privacy & Terms
+              Privacy &amp; Terms
             </Router>
           </footer>
         </NavDrawer>
