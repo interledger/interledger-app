@@ -38,7 +38,7 @@ type User struct {
 	PhysicalDocuments []PhysicalDocument `json:"physical_documents,omitempty"`
 	Status            string             `json:"status,omitempty"`
 	SendUserID        string             `json:"send_user_id,omitempty"`
-	Business          bool               `json:"business,omitempty"`
+	Business          bool               `json:"business"`
 	BusinessType      string             `json:"business_type,omitempty"`
 }
 
@@ -73,6 +73,11 @@ type VerificationStatus struct {
 	CipInfo   CipInfo `json:"cip_info,omitempty"`
 	KycStatus string  `json:"kyc_status,omitempty"`
 	UserID    string  `json:"user_id,omitempty"`
+}
+
+type InitiateKycResponse struct {
+	Success bool   `json:"success,omitempty"`
+	Status  string `json:"status,omitempty"`
 }
 
 type WidgetTokenResponse struct {

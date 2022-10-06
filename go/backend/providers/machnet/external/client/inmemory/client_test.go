@@ -52,7 +52,7 @@ func TestInMemoryClient(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, external.StatusUnverified, kycStatus.KycStatus)
 
-	err = client.InitiateKyc(context.Background(), user.ID)
+	err = client.InitiateKYC(context.Background(), user.ID)
 	require.NoError(t, err)
 
 	kycStatus, err = client.GetVerificationStatus(context.Background(), user.ID)
