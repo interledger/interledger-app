@@ -1,5 +1,5 @@
 import { NodeSDK } from '@opentelemetry/sdk-node'
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+// import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto'
 import { RemixInstrumentation } from 'opentelemetry-instrumentation-remix'
 import { GrpcInstrumentation } from '@opentelemetry/instrumentation-grpc'
@@ -11,7 +11,7 @@ const traceExporter = new OTLPTraceExporter()
 export const sdk = new NodeSDK({
   traceExporter,
   instrumentations: [
-    getNodeAutoInstrumentations(),
+    // getNodeAutoInstrumentations(),
     new RemixInstrumentation(),
     new GrpcInstrumentation()
   ]
