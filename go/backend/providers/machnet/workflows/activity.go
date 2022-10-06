@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"go.temporal.io/sdk/temporal"
+
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -43,7 +45,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		return "", err
 	}
 	if len(users) != 1 {
-		return "", fmt.Errorf("%w wallet(%s) has multiple users (%d) not an individual account", machnet.ErrInternal, walletID, len(users))
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet(%s) has multiple users (%d) not an individual account", walletID, len(users)), "machnet.ErrInternal", machnet.ErrInternal)
 	}
 
 	userData := users[0]
@@ -54,7 +56,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 	}
 
 	if kycData.DateOfBirth.IsZero() || kycData.Address == nil {
-		return "", fmt.Errorf("%w wallet(%s) does not have required KYC information", machnet.ErrIncompleteKYC, walletID)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet(%s) does not have required KYC information", walletID), "machnet.ErrIncompleteKYC", machnet.ErrIncompleteKYC)
 	}
 
 	var gender string
@@ -119,6 +121,9 @@ func (a *Activity) StartExternalKYC(ctx context.Context, externalID string) erro
 	logger.Info("StartExternalKYC_Activity", "externalID", externalID)
 
 	mu, err := a.b.External().GetUserByID(ctx, externalID)
+	if errors.Is(err, external.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", externalID), "ErrNotFound", err)
+	}
 	if err != nil {
 		return err
 	}

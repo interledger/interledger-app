@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -38,12 +39,20 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 		}
 		return nil, err
 	}
-	traits := session.Identity.Traits.(map[string]interface{})
-	u := user.User{
-		ID:    session.Identity.Id,
-		Email: traits["email"].(string),
-	}
+
+	u := convertTraits(session.Identity.Id, session.Identity.Traits)
 	return &u, nil
+}
+
+func convertTraits(userID string, traits interface{}) user.User {
+	traitsMap := traits.(map[string]interface{})
+	u := user.User{
+		ID:          userID,
+		Email:       traitsMap["email"].(string),
+		PhoneNumber: traitsMap["phone"].(string),
+	}
+	// All trait values:  "email", "phone", "firstName", "lastName", "countryCode"
+	return u
 }
 
 func UserForContext(ctx context.Context) (*user.User, error) {
@@ -153,17 +162,31 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 		return nil, err
 	}
 
+	var wg sync.WaitGroup
+	var mx sync.Mutex
+
 	var resp []user.User
+	var anyErr error
 	for _, userID := range userIDs {
-		id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, userID).Execute()
-		if err != nil {
-			return nil, err
-		}
-		traits := id.Traits.(map[string]interface{})
-		resp = append(resp, user.User{
-			ID:    id.Id,
-			Email: traits["email"].(string),
-		})
+		wg.Add(1)
+		go func(uID string) {
+			defer wg.Done()
+			id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, uID).Execute()
+			if err != nil {
+				anyErr = err
+				return
+			}
+
+			// lock
+			mx.Lock()
+			defer mx.Unlock()
+			resp = append(resp, convertTraits(id.Id, id.Traits))
+		}(userID)
+	}
+
+	wg.Wait()
+	if anyErr != nil {
+		return nil, anyErr
 	}
 
 	return resp, nil

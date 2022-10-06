@@ -9,8 +9,7 @@ import (
 func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout:    10 * time.Second,
-		ScheduleToCloseTimeout: 15 * time.Second,
+		StartToCloseTimeout: 10 * time.Second,
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
