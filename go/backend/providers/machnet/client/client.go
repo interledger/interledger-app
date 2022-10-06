@@ -16,11 +16,6 @@ import (
 	temporal "go.temporal.io/sdk/client"
 )
 
-// const (
-// 	sandboxUrl = "https://v4sandbox.machpay.com/v4"
-// 	prodUrl    = "https://machpay.com"
-// )
-
 type Backends interface {
 	DB() *sqlx.DB
 	Users() user.Client

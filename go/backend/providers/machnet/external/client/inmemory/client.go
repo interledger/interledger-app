@@ -87,7 +87,7 @@ func (c Client) GetUserByID(ctx context.Context, id string) (*external.User, err
 	return &user, nil
 }
 
-func (c Client) InitiateKyc(ctx context.Context, userID string) error {
+func (c Client) InitiateKYC(ctx context.Context, userID string) error {
 	user, found := c.users[userID]
 	if !found {
 		return external.ErrNotFound
