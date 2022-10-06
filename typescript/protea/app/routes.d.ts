@@ -1,5 +1,6 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/linked-account/:provider/card": { "provider": string };
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
@@ -39,6 +40,7 @@ declare module "routes-gen" {
 
   export function route<
     T extends
+      | ["/linked-account/:provider/card", RouteParams["/linked-account/:provider/card"]]
       | ["/api/maps/placesAutocomplete"]
       | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
