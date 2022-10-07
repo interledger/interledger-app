@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
-	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -74,12 +73,35 @@ func (c client) HandleEvent(ctx context.Context, event external.Event) error {
 
 func (c client) CreateSendUser(ctx context.Context, walletID string) error {
 	workflowOptions := temporal.StartWorkflowOptions{
-		ID:                    "machnet_create_send_user_" + walletID,
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		ID:        "machnet_create_send_user_" + walletID,
+		TaskQueue: "backend",
 	}
 
-	_, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateSendUserWorkflow, c.b, walletID)
+	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateSendUserWorkflow, walletID)
+	if err != nil {
+		return err
+	}
+
+	// Wait for the Workflow to complete.
+	var externalUserID string
+	err = wf.Get(ctx, &externalUserID)
+	return err
+}
+
+func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) error {
+	workflowOptions := temporal.StartWorkflowOptions{
+		ID:        "machnet_create_transaction_" + args.FromWalletID,
+		TaskQueue: "backend",
+	}
+
+	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateTransactionWorkflow, args)
+	if err != nil {
+		return err
+	}
+
+	// Wait for the Workflow to complete.
+	var trxID string
+	err = wf.Get(ctx, &trxID)
 	return err
 }
 

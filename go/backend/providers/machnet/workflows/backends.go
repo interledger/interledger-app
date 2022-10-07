@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/user"
 )
@@ -30,10 +31,11 @@ type testBackends struct {
 	db      *sqlx.DB
 	users   user.Client
 	kycImpl *kyc_mock.MockClient
+	linked  *linkedaccounts_mock.MockClient
 }
 
 func (b testBackends) LinkedAccounts() linkedaccounts.Client {
-	return nil
+	return b.linked
 }
 
 func (b testBackends) Users() user.Client {
