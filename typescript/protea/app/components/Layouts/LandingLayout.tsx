@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { route } from 'routes-gen'
 import { Icon } from '../icons'
 import { Logo } from '../Logo'
-import { Router } from '../Routes'
+import { AnchorRouter, ButtonRouter, Router } from '../Router'
 import { NavDrawer } from './NavDrawer'
+import { IconButton } from '~/components'
 
 type HeaderLinkProps = {
   title: string
@@ -41,15 +42,18 @@ export function LandingLayout() {
       <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
         <div className='mx-auto flex w-full justify-between px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-4xl'>
           <div className='flex items-center'>
-            <button
-              className='-m-3 flex p-3 lg:hidden'
+            <IconButton
+              className='lg:hidden'
               onClick={() => setOpenNavModal(true)}
+              aria-label='Open menu'
             >
-              <Icon>menu</Icon>
-            </button>
-            <Router to={route('/')} aria-label='Fynbos logo'>
-              <Logo className='ml-4 h-8 lg:ml-0' />
-            </Router>
+              menu
+            </IconButton>
+            <div className='ml-4 lg:ml-0'>
+              <Router to={route('/')} aria-label='Fynbos logo'>
+                <Logo className='h-8' />
+              </Router>
+            </div>
             <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
               {/* <HeaderLink
                     to={route('/what-is-a-payment-pointer')}
@@ -111,17 +115,17 @@ export function LandingLayout() {
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-7'>
             <span className='text-sm font-medium text-white'>Ecosystem</span>
-            <Router.a to='https://interledger.org/'>
+            <AnchorRouter to='https://interledger.org/'>
               <span className='pt-1.5 text-sm text-white'>
                 Interledger Foundation
               </span>
-            </Router.a>
-            <Router.a to='https://webmonetization.org/'>
+            </AnchorRouter>
+            <AnchorRouter to='https://webmonetization.org/'>
               <span className='text-sm text-white'>Web monetization</span>
-            </Router.a>
-            <Router.a to='https://docs.openpayments.guide/'>
+            </AnchorRouter>
+            <AnchorRouter to='https://docs.openpayments.guide/'>
               <span className='text-sm text-white'>Open Payments</span>
-            </Router.a>
+            </AnchorRouter>
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-10'>
             <span className='text-sm font-medium text-white'>Resources</span>
@@ -141,7 +145,7 @@ export function LandingLayout() {
             </span>
           </div>
           <div className='col-span-full mt-8 flex space-x-4 lg:col-span-3 lg:col-start-10'>
-            <Router.a to='https://mobile.twitter.com/fynbosdev'>
+            <AnchorRouter to='https://mobile.twitter.com/fynbosdev'>
               <svg
                 width='22'
                 height='19'
@@ -154,9 +158,9 @@ export function LandingLayout() {
                   fill='white'
                 />
               </svg>
-            </Router.a>
+            </AnchorRouter>
 
-            <Router.a to='https://www.linkedin.com/company/fynbos'>
+            <AnchorRouter to='https://www.linkedin.com/company/fynbos'>
               <svg
                 width='20'
                 height='18'
@@ -181,7 +185,7 @@ export function LandingLayout() {
                   </clipPath>
                 </defs>
               </svg>
-            </Router.a>
+            </AnchorRouter>
           </div>
           <div className='col-span-full mt-3 mb-20 flex flex-col lg:col-span-full lg:col-start-4 lg:mb-52'>
             <span className='text-sm text-slate-300'>
@@ -197,16 +201,18 @@ export function LandingLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative ml-1 mb-8 flex items-center'>
-              <button
-                className='-m-3 flex p-3'
+            <div className='relative ml-1 mb-8 flex items-center space-x-4'>
+              <IconButton
                 onClick={() => setOpenNavModal(!openNavModal)}
+                aria-label='Close menu'
               >
-                <Icon>menu_open</Icon>
-              </button>
-              <Router to={route('/')} aria-label='Fynbos logo'>
-                <Logo className='ml-4 h-8' />
-              </Router>
+                menu_open
+              </IconButton>
+              <div className='ml-4 lg:ml-0'>
+                <Router to={route('/')} aria-label='Fynbos logo'>
+                  <Logo className='h-8' />
+                </Router>
+              </div>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             {/* <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
@@ -220,11 +226,9 @@ export function LandingLayout() {
           </NavDrawer.List>
           <NavDrawer.List>
             <div className='flex flex-col space-y-2'>
-              <Router className='h-11' to={route('/waitlist')}>
-                <div className='flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-display font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled sm:max-w-max'>
-                  <span className=''>Join the waitlist</span>
-                </div>
-              </Router>
+              <ButtonRouter className='h-11' to={route('/waitlist')}>
+                Join the waitlist
+              </ButtonRouter>
             </div>
           </NavDrawer.List>
         </NavDrawer>

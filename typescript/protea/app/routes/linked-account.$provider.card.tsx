@@ -1,4 +1,5 @@
-import { json, LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node';
+import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { useScript } from '~/lib/useScript'
@@ -17,8 +18,8 @@ export async function loader({ request }: LoaderArgs) {
   let widgetScriptUrl = 'https://widget.v4sandbox.machpay.com/widget/widget.js'
   return json({
     widgetScriptUrl,
-    widgetUserId: "", //rpc.response.userId,
-    widgetToken: "", //rpc.response.value
+    widgetUserId: '', //rpc.response.userId,
+    widgetToken: '' //rpc.response.value
   })
 }
 
@@ -38,13 +39,16 @@ export default function Page() {
       })
       widget.init()
 
-      window.addEventListener("message", (event) => {
+      window.addEventListener('message', (event) => {
         console.log(event)
-      });
+      })
     }
   }, [scriptStatus])
 
   return (
-    <div id='widget' className='flex h-screen w-full items-center justify-center font-display text-5xl font-medium text-medium' />
+    <div
+      id='widget'
+      className='flex h-screen w-full items-center justify-center font-display text-5xl font-medium text-medium'
+    />
   )
 }

@@ -15,6 +15,7 @@ import {
   PhoneTextField,
   Router,
   Shape,
+  TextButton,
   TextField
 } from '~/components'
 import {
@@ -182,20 +183,12 @@ export default function Page() {
         />
 
         <div className='flex w-full justify-end space-x-6'>
-          <button
-            className='text-sm font-medium text-primary focus-visible:outline-none'
-            type='submit'
-            form='signup-phone-otp'
-          >
+          <TextButton type='submit' form='signup-phone-otp'>
             Resend code
-          </button>
-          <button
-            className='text-sm font-medium text-primary focus-visible:outline-none'
-            type='submit'
-            form='signup-phone-otp-validation'
-          >
+          </TextButton>
+          <TextButton type='submit' form='signup-phone-otp-validation'>
             Verify
-          </button>
+          </TextButton>
         </div>
       </Dialog>
     </div>

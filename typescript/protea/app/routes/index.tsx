@@ -2,7 +2,13 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { HomeShapes, Icon, Router, WalletGrid } from '~/components'
+import {
+  ButtonRouter,
+  HomeShapes,
+  Icon,
+  Router,
+  WalletGrid
+} from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
 import {
   httpMapping,
@@ -97,14 +103,9 @@ function MarketingPage() {
           </span>
         </div>
         <div className='col-span-full mt-10 flex flex-col items-center justify-center space-y-4 lg:mt-5 lg:flex-row lg:space-y-0 lg:space-x-4'>
-          <Router
-            to={route('/waitlist')}
-            className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10 sm:max-w-fit'
-          >
-            <span className='font-display font-medium text-white'>
-              Join the waitlist
-            </span>
-          </Router>
+          <ButtonRouter shrink to={route('/waitlist')}>
+            Join the waitlist
+          </ButtonRouter>
         </div>
         <div className='relative col-span-full h-48 lg:h-56'>
           <div className='absolute -left-[calc(100vw)] bottom-20 hidden h-20 w-screen bg-slate-700 lg:block' />
@@ -339,15 +340,10 @@ function MarketingPage() {
               Ready to get started?
             </span>
           </div>
-          <div className='col-span-full mb-12 mt-6 lg:col-span-3 lg:col-start-9 lg:my-20'>
-            <Router
-              to={route('/waitlist')}
-              className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary'
-            >
-              <span className='font-display font-medium text-white'>
-                Join the waitlist
-              </span>
-            </Router>
+          <div className='col-span-full mb-12 mt-6 lg:col-span-4 lg:col-start-8 lg:my-20'>
+            <ButtonRouter shrink to={route('/waitlist')}>
+              Join the waitlist
+            </ButtonRouter>
           </div>
           {/*<div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>*/}
           {/*<Router*/}

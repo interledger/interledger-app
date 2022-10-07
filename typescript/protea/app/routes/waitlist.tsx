@@ -7,6 +7,8 @@ import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
+import { commitSession, getSession } from '~/sessions'
 
 type Country = {
   id: string
@@ -226,6 +228,5 @@ export async function action({ request, params }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  // Redirect to joined waitlist
-  return redirect('/waitlist/success')
+  return redirect(route('/waitlist/success'))
 }

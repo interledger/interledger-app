@@ -1,4 +1,4 @@
-import { Icon, Router } from '~/components'
+import { ButtonRouter, Icon, Router } from '~/components'
 import { route } from 'routes-gen'
 
 const shapes = [
@@ -55,12 +55,7 @@ export default function Page() {
       </span>
 
       <div className='flex justify-end pt-12'>
-        <Router
-          to={route('/')}
-          className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10'
-        >
-          <span className='font-display font-medium text-white'>Close</span>
-        </Router>
+        <ButtonRouter to={route('/')}>Close</ButtonRouter>
       </div>
     </div>
   )
