@@ -1,0 +1,1 @@
+export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE

@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { route } from 'routes-gen'
 import { Logo } from './Logo'
-import { Router } from './Routes'
+import { Router } from './Router'
 
 export const Footer: FC = () => {
   return (
@@ -26,10 +26,10 @@ export const Footer: FC = () => {
       </div>
       <div className='flex flex-col space-y-2 sm:h-40'>
         <span className='mb-3 font-display font-medium'>Resources</span>
-        <Router to={route('/blog')} aria-label='Contact us'>
+        <Router to={route('/blog')} aria-label='Blog'>
           Blog
         </Router>
-        <Router to={'mailto:hello@fynbos.dev'} aria-label='Contact us'>
+        <Router to={route('/contact')} aria-label='Contact us'>
           Contact us
         </Router>
       </div>
