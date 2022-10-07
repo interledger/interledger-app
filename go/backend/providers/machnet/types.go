@@ -59,6 +59,22 @@ type (
 	}
 )
 
+type (
+	ReceiveUserAccount struct {
+		ID               string `db:"id"`
+		ReceiveUserID    string `db:"receive_user_id"`
+		ReceiveAccountID string `db:"receive_account_id"`
+		CreatedAt        string `db:"created_at"`
+		UpdatedAt        string `db:"updated_at"`
+	}
+
+	CreateReceiveUserAccountArgs struct {
+		ExternalID       string
+		ReceiveUserID    string
+		ReceiveAccountID string
+	}
+)
+
 type KYCStatus int
 
 const (

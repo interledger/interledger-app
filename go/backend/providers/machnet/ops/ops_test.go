@@ -267,6 +267,61 @@ func TestCreateReceiveUser(t *testing.T) {
 	assert.Equal(t, receiveWalletID, freshRu.ReceiveWalletID)
 }
 
+func TestCreateReceiveUserAccount(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+	receiveWalletID := NewWallet(t, b)
+
+	ra, err := ops.CreateReceiveAccount(context.Background(), b, machnet.CreateReceiveAccountArgs{
+		WalletID:      receiveWalletID,
+		AccountNumber: "1234",
+		Type:          external.TypeBank,
+		BankID:        1,
+		BranchID:      2,
+	})
+	require.NoError(t, err)
+
+	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: uuid.NewString(),
+	})
+	require.NoError(t, err)
+
+	ru, err := ops.CreateReceiveUser(context.Background(), b, machnet.CreateReceiveUserArgs{
+		ExternalID:      uuid.NewString(),
+		SendUserID:      sendUser.ID,
+		ReceiveWalletID: receiveWalletID,
+	})
+	require.NoError(t, err)
+
+	externalID := uuid.NewString()
+	rua, err := ops.CreateReceiveUserAccount(context.Background(), b, machnet.CreateReceiveUserAccountArgs{
+		ExternalID:       externalID,
+		ReceiveUserID:    ru.ID,
+		ReceiveAccountID: ra.ID,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, externalID, rua.ID)
+	assert.Equal(t, ru.ID, rua.ReceiveUserID)
+	assert.Equal(t, ra.ID, rua.ReceiveAccountID)
+
+	// can only add a receive account once to a receive user
+	rua, err = ops.CreateReceiveUserAccount(context.Background(), b, machnet.CreateReceiveUserAccountArgs{
+		ExternalID:       uuid.NewString(),
+		ReceiveUserID:    ru.ID,
+		ReceiveAccountID: ra.ID,
+	})
+	require.Error(t, err)
+	require.Nil(t, rua)
+
+	freshRua, err := ops.GetReceiveUserAccountByReceiveAccountID(context.Background(), b, ra.ID)
+	require.NoError(t, err)
+	assert.Equal(t, externalID, freshRua.ID)
+	assert.Equal(t, ru.ID, freshRua.ReceiveUserID)
+	assert.Equal(t, ra.ID, freshRua.ReceiveAccountID)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{

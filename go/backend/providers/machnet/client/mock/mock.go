@@ -66,6 +66,21 @@ func (mr *MockClientMockRecorder) CreateReceiveUser(ctx, args interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveUser", reflect.TypeOf((*MockClient)(nil).CreateReceiveUser), ctx, args)
 }
 
+// CreateReceiveUserAccount mocks base method.
+func (m *MockClient) CreateReceiveUserAccount(ctx context.Context, args machnet.CreateReceiveUserAccountArgs) (*machnet.ReceiveUserAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateReceiveUserAccount", ctx, args)
+	ret0, _ := ret[0].(*machnet.ReceiveUserAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateReceiveUserAccount indicates an expected call of CreateReceiveUserAccount.
+func (mr *MockClientMockRecorder) CreateReceiveUserAccount(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveUserAccount", reflect.TypeOf((*MockClient)(nil).CreateReceiveUserAccount), ctx, args)
+}
+
 // CreateUser mocks base method.
 func (m *MockClient) CreateUser(ctx context.Context, args machnet.CreateArgs) (*machnet.User, error) {
 	m.ctrl.T.Helper()
@@ -94,6 +109,21 @@ func (m *MockClient) GetReceiveAccount(ctx context.Context, id string) (*machnet
 func (mr *MockClientMockRecorder) GetReceiveAccount(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReceiveAccount", reflect.TypeOf((*MockClient)(nil).GetReceiveAccount), ctx, id)
+}
+
+// GetReceiveUserAccountByReceiveAccountID mocks base method.
+func (m *MockClient) GetReceiveUserAccountByReceiveAccountID(ctx context.Context, receiveAccountID string) (*machnet.ReceiveUserAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReceiveUserAccountByReceiveAccountID", ctx, receiveAccountID)
+	ret0, _ := ret[0].(*machnet.ReceiveUserAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReceiveUserAccountByReceiveAccountID indicates an expected call of GetReceiveUserAccountByReceiveAccountID.
+func (mr *MockClientMockRecorder) GetReceiveUserAccountByReceiveAccountID(ctx, receiveAccountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReceiveUserAccountByReceiveAccountID", reflect.TypeOf((*MockClient)(nil).GetReceiveUserAccountByReceiveAccountID), ctx, receiveAccountID)
 }
 
 // GetReceiveUserByReceiveWalletID mocks base method.
