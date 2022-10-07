@@ -114,7 +114,7 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 	env.RegisterActivity(a.StartExternalKYC)
 
 	mu, err := a.b.External().RegisterUser(ctx, external.User{
-		Type: external.SendUser,
+		Type: external.TypeSendUser,
 	})
 	require.NoError(t, err)
 	_, err = env.ExecuteActivity(a.StartExternalKYC, mu.ID)

@@ -8,8 +8,10 @@ const (
 	StatusFailed     = "FAILED"
 	StatusPending    = "PENDING"
 
-	SendUser    = "SEND"
-	ReceiveUser = "RECEIVE"
+	TypeSendUser    = "SEND"
+	TypeReceiveUser = "RECEIVE"
+
+	TypeBankDeposit = "BANK_DEPOSIT"
 
 	TypeCard = "CARD"
 	TypeBank = "BANK"
@@ -109,6 +111,16 @@ type Transaction struct {
 	FundingsourceType string  `json:"funding_source_type,omitempty"`
 	DeliveryStatus    string  `json:"delivery_status,omitempty"`
 	// TODO: to field
+}
+
+type ReceiveUserAccount struct {
+	ID            string `json:"id,omitempty"`
+	UserID        string `json:"user_id,omitempty"`
+	AccountNumber string `json:"account_number,omitempty"`
+	AccountType   string `json:"account_type"`
+	BankID        int    `json:"bank_id"`
+	BranchID      int    `json:"branch_id"`
+	PayoutMethod  string `json:"payout_method"`
 }
 
 type DeliveryRequest struct {

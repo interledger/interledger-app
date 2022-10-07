@@ -36,7 +36,7 @@ func TestMachnetClientIntegration(t *testing.T) {
 		Country:      "US",
 		IPAddress:    "73.85.79.9",
 		Business:     false,
-		Type:         external.SendUser,
+		Type:         external.TypeSendUser,
 	})
 	require.NoError(t, err)
 
