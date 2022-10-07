@@ -1,4 +1,12 @@
-import { Container, Footer, Header, Icon, Logo, Router } from '~/components'
+import {
+  AnchorRouter,
+  Container,
+  Footer,
+  Header,
+  Icon,
+  Logo,
+  Router
+} from '~/components'
 import type { FC } from 'react'
 import { json } from '@remix-run/node'
 
@@ -146,12 +154,12 @@ const AuthorBlock: FC<Author> = ({ name, avatar, twitterHandle }) => {
       </div>
       <div className='ml-3 flex flex-grow flex-col'>
         <div className='font-medium'>{name}</div>
-        <Router.a
+        <AnchorRouter
           to={'https://twitter.com/' + twitterHandle}
           aria-label='Author twitter'
         >
           <span className='text-primary'>@{twitterHandle}</span>
-        </Router.a>
+        </AnchorRouter>
       </div>
     </div>
   )

@@ -19,6 +19,7 @@ declare module "routes-gen" {
     "/payment-pointer": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/disclosures": Record<string, never>;
+    "/pay/amount": Record<string, never>;
     "/activity": Record<string, never>;
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
@@ -59,6 +60,7 @@ declare module "routes-gen" {
       | ["/payment-pointer"]
       | ["/api/sendOtp"]
       | ["/disclosures"]
+      | ["/pay/amount"]
       | ["/activity"]
       | ["/recovery"]
       | ["/settings"]
