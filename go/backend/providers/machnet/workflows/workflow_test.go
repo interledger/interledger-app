@@ -4,10 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/machnet"
+
 	"github.com/stretchr/testify/mock"
 
 	"github.com/google/uuid"
 
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	user_client "gitlab.com/fynbos/backend/user/client"
 
 	"github.com/golang/mock/gomock"
@@ -50,4 +53,43 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 	var result string
 	require.NoError(t, env.GetWorkflowResult(&result))
 	require.Equal(t, externalUserID, result)
+}
+
+func TestCreateTransactionWorkflow(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	b := testBackends{
+		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+	}
+	b.users = user_client.New(b, "Testing")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
+	require.NoError(t, err)
+
+	a := NewActivity(b)
+
+	env.OnActivity(a.CreateTransaction, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.DeliverTransaction, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
+		FromWalletID:        wallet.ID,
+		FromLinkedAccountID: uuid.NewString(),
+		Amount:              200,
+		Currency:            "USD",
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result string
+	require.NoError(t, env.GetWorkflowResult(&result))
+	require.NotEmpty(t, result)
 }

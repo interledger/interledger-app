@@ -3,6 +3,10 @@ package workflows
 import (
 	"time"
 
+	"github.com/google/uuid"
+
+	"gitlab.com/fynbos/backend/providers/machnet"
+
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -38,4 +42,42 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 	logger.Info("CreateSendUserWorkflow completed.", "external_user_id", externalUserID)
 
 	return externalUserID, nil
+}
+
+func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransactionArgs) (string, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("CreateTransactionWorkflow workflow started", "walletID", args.FromWalletID, "Amount", args.Amount)
+
+	trxIDEncoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	})
+
+	var trxID string
+	err := trxIDEncoded.Get(&trxID)
+	if err != nil {
+		logger.Error("CreateTransaction Activity failed.", "Error", err)
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, trxID, args).Get(ctx, nil)
+	if err != nil {
+		logger.Error("CreateTransaction Activity failed.", "Error", err)
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.DeliverTransaction, args.FromWalletID, trxID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("DeliverTransaction Activity failed.", "Error", err)
+		return "", err
+	}
+
+	logger.Info("CreateTransactionWorkflow completed.", "external_transaction_id", trxID)
+
+	return trxID, nil
 }

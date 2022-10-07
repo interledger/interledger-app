@@ -193,16 +193,29 @@ func (c Client) GetUserFundingsource(
 }
 
 func (c Client) CreateTransaction(
-	ctx context.Context, transaction external.Transaction,
+	ctx context.Context, args external.CreateTransactionArgs,
 ) (*external.Transaction, error) {
-	_, err := c.GetUserByID(ctx, transaction.UserID)
+	_, err := c.GetUserByID(ctx, args.FromUserID)
 	if err != nil {
 		return nil, fmt.Errorf("%w User not found.", external.ErrInternal)
 	}
 
-	trx := transaction
-	trx.ID = uuid.NewString()
-	trx.DeliveryStatus = external.DeliveryStatusNone
+	trx := external.Transaction{
+		ID:                args.ID,
+		UserID:            args.FromUserID,
+		FromAmount:        args.FromAmount,
+		FromCurrency:      args.FromCurrency,
+		ToCurrency:        args.ToCurrency,
+		FeeAmount:         args.FeeAmount,
+		ExchangeRate:      args.ExchangeRate,
+		FromFundID:        args.FromFundID,
+		FundingsourceType: args.FundingSourceType,
+		DeliveryStatus:    external.DeliveryStatusNone,
+	}
+	if trx.ID == "" {
+		trx.ID = uuid.NewString()
+	}
+
 	c.transactions[trx.ID] = trx
 
 	// TODO: send transaction status event to our webhook

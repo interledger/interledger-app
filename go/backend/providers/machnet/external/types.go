@@ -20,6 +20,50 @@ const (
 	DeliveryStatusRequested = "DELIVERY_REQUESTED"
 )
 
+type FundingSourceType string
+
+const (
+	FundingSourceTypeCard        FundingSourceType = "CARD"
+	FundingSourceTypeBankAccount FundingSourceType = "BANK_ACCOUNT"
+)
+
+type PayoutMethod string
+
+const (
+	PayoutMethodBankDeposit  PayoutMethod = "BANK_DEPOSIT"
+	PayoutMethodCashPickup   PayoutMethod = "CASH_PICKUP"
+	PayoutMethodWallet       PayoutMethod = "WALLET"
+	PayoutMethodHomeDelivery PayoutMethod = "HOME_DELIVERY"
+)
+
+type CalculationMode string
+
+const (
+	CalculationModeSenderAmount   CalculationMode = "SENDER_AMOUNT"
+	CalculationModeReceiverAmount CalculationMode = "RECEIVER_AMOUNT"
+)
+
+type Purpose string
+
+const (
+	PurposePersonalTransfer Purpose = "PERSONAL_TRANSFER"
+)
+
+type CreateTransactionArgs struct {
+	ID                string            `json:"id"`
+	FromUserID        string            `json:"user_id"`
+	FromFundID        string            `json:"from_fund_id"`
+	FundingSourceType FundingSourceType `json:"funding_source_type"`
+	ToPayoutMethod    PayoutMethod      `json:"to.payout_method"`
+	FromAmount        float64           `json:"from_amount"`
+	FromCurrency      string            `json:"from_currency"`
+	ToCurrency        string            `json:"to_currency"`
+	ExchangeRate      float64           `json:"exchange_rate"`
+	FeeAmount         float64           `json:"fee_amount"`
+	Purpose           Purpose           `json:"purpose"`
+	CalculationMode   CalculationMode   `json:"calculation_mode"`
+}
+
 type User struct {
 	ID                string             `json:"id,omitempty"`
 	FirstName         string             `json:"first_name,omitempty"`
@@ -99,17 +143,17 @@ type FundingSource struct {
 }
 
 type Transaction struct {
-	ID                string  `json:"id,omitempty"`
-	UserID            string  `json:"user_id,omitempty"`
-	FromAmount        float64 `json:"from_amount,omitempty"`
-	FromCurrency      string  `json:"from_currency,omitempty"`
-	ToAmount          float64 `json:"to_amount,omitempty"`
-	ToCurrency        string  `json:"to_currency,omitempty"`
-	FeeAmount         float64 `json:"fee_amount,omitempty"`
-	ExchangeRate      float64 `json:"exchange_rate,omitempty"`
-	FromFundID        string  `json:"from_fund_id,omitempty"`
-	FundingsourceType string  `json:"funding_source_type,omitempty"`
-	DeliveryStatus    string  `json:"delivery_status,omitempty"`
+	ID                string            `json:"id,omitempty"`
+	UserID            string            `json:"user_id,omitempty"`
+	FromAmount        float64           `json:"from_amount,omitempty"`
+	FromCurrency      string            `json:"from_currency,omitempty"`
+	ToAmount          float64           `json:"to_amount,omitempty"`
+	ToCurrency        string            `json:"to_currency,omitempty"`
+	FeeAmount         float64           `json:"fee_amount,omitempty"`
+	ExchangeRate      float64           `json:"exchange_rate,omitempty"`
+	FromFundID        string            `json:"from_fund_id,omitempty"`
+	FundingsourceType FundingSourceType `json:"funding_source_type,omitempty"`
+	DeliveryStatus    string            `json:"delivery_status,omitempty"`
 	// TODO: to field
 }
 

@@ -12,6 +12,8 @@ type Client interface {
 	CreateUser(ctx context.Context, args CreateArgs) (*User, error)
 	GetWidgetToken(ctx context.Context, walletID string) (*WidgetToken, error)
 	HandleEvent(ctx context.Context, event external.Event) error
+	CreateTransaction(ctx context.Context, args CreateTransactionArgs) error
+	CreateSendUser(ctx context.Context, walletID string) error
 	CreateReceiveBankAccount(ctx context.Context, args CreateReceiveBankAccountArgs) (*ReceiveBankAccount, error)
 	GetReceiveBankAccount(ctx context.Context, id string) (*ReceiveBankAccount, error)
 	CreateReceiveUser(ctx context.Context, args CreateReceiveUserArgs) (*ReceiveUser, error)

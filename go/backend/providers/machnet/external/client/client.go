@@ -221,7 +221,7 @@ func (c Client) GetUserFundingsource(ctx context.Context, userID, fundingsourceI
 	panic("no-op")
 }
 
-func (c Client) CreateTransaction(ctx context.Context, transaction external.Transaction) (*external.Transaction, error) {
+func (c Client) CreateTransaction(ctx context.Context, transaction external.CreateTransactionArgs) (*external.Transaction, error) {
 	panic("no-op")
 }
 

@@ -5,6 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -123,4 +127,112 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 	mu, err = a.b.External().GetUserByID(ctx, mu.ID)
 	require.NoError(t, err)
 	assert.Equal(t, mu.Status, external.StatusVerified)
+}
+
+func TestActivity_CreateTransaction(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	b := testBackends{
+		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+	}
+	b.users = user_client.New(b, "Testing")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	a := NewActivity(b)
+	env.RegisterActivity(a.CreateTransaction)
+
+	linkedAccID := uuid.NewString()
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+
+	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
+	require.NoError(t, err)
+
+	mu, err := a.b.External().RegisterUser(ctx, external.User{
+		Type: external.SendUser,
+	})
+	require.NoError(t, err)
+
+	_, err = ops.CreateUser(ctx, a.b, machnet.CreateArgs{
+		WalletID:   wallet.ID,
+		ExternalID: mu.ID,
+	})
+	require.NoError(t, err)
+
+	b.linked.EXPECT().Get(gomock.Any(), linkedAccID).Return(&linkedaccounts.LinkedAccount{
+		ID:         linkedAccID,
+		WalletId:   wallet.ID,
+		Provider:   machnet.ProviderName,
+		ProviderID: uuid.NewString(),
+	}, nil)
+
+	transactionID := uuid.NewString()
+	_, err = env.ExecuteActivity(a.CreateTransaction, transactionID, machnet.CreateTransactionArgs{
+		FromWalletID:        wallet.ID,
+		FromLinkedAccountID: linkedAccID,
+		Amount:              200,
+		Currency:            "USD",
+	})
+	require.NoError(t, err)
+}
+
+func TestActivity_CreateUserFundingsource(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	b := testBackends{
+		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+	}
+	b.users = user_client.New(b, "Testing")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	a := NewActivity(b)
+	env.RegisterActivity(a.CreateTransaction)
+	env.RegisterActivity(a.DeliverTransaction)
+
+	linkedAccID := uuid.NewString()
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+
+	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
+	require.NoError(t, err)
+
+	mu, err := a.b.External().RegisterUser(ctx, external.User{
+		Type: external.SendUser,
+	})
+	require.NoError(t, err)
+
+	_, err = ops.CreateUser(ctx, a.b, machnet.CreateArgs{
+		WalletID:   wallet.ID,
+		ExternalID: mu.ID,
+	})
+	require.NoError(t, err)
+
+	b.linked.EXPECT().Get(gomock.Any(), linkedAccID).Return(&linkedaccounts.LinkedAccount{
+		ID:         linkedAccID,
+		WalletId:   wallet.ID,
+		Provider:   machnet.ProviderName,
+		ProviderID: uuid.NewString(),
+	}, nil)
+
+	transactionID := uuid.NewString()
+	_, err = env.ExecuteActivity(a.CreateTransaction, transactionID, machnet.CreateTransactionArgs{
+		FromWalletID:        wallet.ID,
+		FromLinkedAccountID: linkedAccID,
+		Amount:              200,
+		Currency:            "USD",
+	})
+	require.NoError(t, err)
+
+	_, err = env.ExecuteActivity(a.DeliverTransaction, wallet.ID, transactionID)
+	require.NoError(t, err)
 }

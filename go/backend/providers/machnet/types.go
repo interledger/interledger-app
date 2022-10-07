@@ -24,6 +24,13 @@ type WidgetToken struct {
 	UserID           string
 }
 
+type CreateTransactionArgs struct {
+	FromWalletID        string
+	FromLinkedAccountID string
+	Amount              float64
+	Currency            string
+}
+
 type (
 	// This will underpin a linked account and is used to create Machnet receive user accounts.
 	ReceiveBankAccount struct {

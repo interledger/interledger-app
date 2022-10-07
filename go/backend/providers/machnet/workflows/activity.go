@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -133,6 +135,76 @@ func (a *Activity) StartExternalKYC(ctx context.Context, externalID string) erro
 	}
 
 	_, err = a.b.External().InitiateKYC(ctx, externalID)
+
+	return err
+}
+
+func (a *Activity) CreateTransaction(ctx context.Context, trxID string, trx machnet.CreateTransactionArgs) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("CreateTransaction_Activity", "walletID", trx.FromWalletID)
+
+	mu, err := ops.GetUserByWalletID(ctx, a.b, trx.FromWalletID)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", trx.FromWalletID), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, trx.FromLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not found", trx.FromLinkedAccountID), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+	if la.Provider != machnet.ProviderName {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not a machnet account", trx.FromLinkedAccountID), "ErrInternal", machnet.ErrInternal)
+	}
+	if la.WalletId != trx.FromWalletID {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("Wallet id (%s) not associated with linked account (%s)", trx.FromWalletID, trx.FromLinkedAccountID), "ErrInternal", machnet.ErrInternal)
+	}
+
+	_, err = a.b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
+		ID:                trxID,
+		FromUserID:        mu.ID,
+		FromFundID:        la.ProviderID,
+		FundingSourceType: external.FundingSourceTypeCard,
+		ToPayoutMethod:    external.PayoutMethodBankDeposit,
+		FromAmount:        trx.Amount,
+		FromCurrency:      trx.Currency,
+		ToCurrency:        trx.Currency,
+		ExchangeRate:      1,
+		Purpose:           external.PurposePersonalTransfer,
+		CalculationMode:   external.CalculationModeSenderAmount,
+	})
+	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
+	}
+
+	return err
+}
+
+func (a *Activity) DeliverTransaction(ctx context.Context, walletID, transactionID string) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("DeliverTransaction_Activity", "wallet", walletID, "transactions_id", transactionID)
+
+	mu, err := ops.GetUserByWalletID(ctx, a.b, walletID)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", walletID), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	err = a.b.External().UpdateDeliveryRequest(ctx, external.DeliveryRequest{
+		Status:        "DELIVERY_REQUESTED",
+		TransactionID: transactionID,
+		UserID:        mu.ID,
+	})
+	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
+	}
 
 	return err
 }

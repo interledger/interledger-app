@@ -11,7 +11,7 @@ type Client interface {
 	GetReceiveUserList(ctx context.Context, userID string) ([]User, error)
 	GetFundingAccountWidgetToken(ctx context.Context, userID string) (*WidgetTokenResponse, error)
 	GetUserFundingsource(ctx context.Context, userID, fundingsourceID string) (*FundingSource, error)
-	CreateTransaction(ctx context.Context, transaction Transaction) (*Transaction, error)
+	CreateTransaction(ctx context.Context, transaction CreateTransactionArgs) (*Transaction, error)
 	UpdateDeliveryRequest(ctx context.Context, request DeliveryRequest) error
 	CreateReceiveUserBankAccount(ctx context.Context, sendUserID, receiveUserID string, acc ReceiveUserBankAccount) (*ReceiveUserBankAccount, error)
 	GetBanks(ctx context.Context, countryCode string) ([]Bank, error)
