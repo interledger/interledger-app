@@ -42,3 +42,43 @@ func (c client) Add(ctx context.Context, email, countryCode, fullName string) (e
 
 	return ops.AddSignup(ctx, c.b, email, countryCode, fullName)
 }
+
+func (c client) CanSignup(ctx context.Context, id string) (bool bool, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			c.logger.Error(
+				"Failed to check if id can signup",
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		c.logger.Debug(
+			" address added to waitlist",
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return ops.CanSignup(ctx, c.b, id)
+}
+
+func (c client) SetSignupComplete(ctx context.Context, id, userID string) (err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			c.logger.Error(
+				"Failed to set signup complete",
+				zap.Int64("took", time.Since(begin).Milliseconds()),
+				zap.String("msg", err.Error()),
+			)
+			return
+		}
+
+		c.logger.Debug(
+			"set signup as complete",
+			zap.Int64("took", time.Since(begin).Milliseconds()),
+		)
+	}(time.Now())
+
+	return ops.SetSignupComplete(ctx, c.b, id, userID)
+}

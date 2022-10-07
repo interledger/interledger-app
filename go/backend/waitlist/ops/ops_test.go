@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -79,6 +80,112 @@ func TestAddSignup(t *testing.T) {
 			}
 
 			assert.ErrorIs(t, err, tc.err)
+		})
+	}
+}
+
+func TestCanSignup(t *testing.T) {
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewBackends(t, db, validator.New())
+
+	cases := []struct {
+		name      string
+		email     string
+		country   string
+		fullName  string
+		canSignup bool
+		err       error
+	}{
+		{
+			name:      "allowed",
+			email:     "allowed@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Bob",
+			canSignup: true,
+		},
+		{
+			name:      "not allowed",
+			email:     "nowallowed@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Robert",
+			canSignup: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName)
+			if tc.err == nil {
+				assert.NoError(t, err)
+			}
+			signupId, err := ops.GetIdByEmailAndCountryCode(ctx, b, tc.email, tc.country)
+			assert.NoError(t, err)
+
+			if tc.canSignup == true {
+				err = ops.AllowSignupById(ctx, b, signupId)
+				assert.NoError(t, err)
+			}
+
+			canSignup, err := ops.CanSignup(ctx, b, signupId)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.canSignup, canSignup)
+			assert.ErrorIs(t, err, tc.err)
+		})
+	}
+}
+
+func TestSetSignupComplete(t *testing.T) {
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewBackends(t, db, validator.New())
+
+	cases := []struct {
+		name        string
+		email       string
+		country     string
+		fullName    string
+		canSignup   bool
+		setComplete bool
+		err         error
+	}{
+		{
+			name:        "complete signup",
+			email:       "allowed@fynbos.dev",
+			country:     "ZA",
+			fullName:    "Bob",
+			canSignup:   true,
+			setComplete: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName)
+			if tc.err == nil {
+				assert.NoError(t, err)
+			}
+			signupId, err := ops.GetIdByEmailAndCountryCode(ctx, b, tc.email, tc.country)
+			assert.NoError(t, err)
+
+			if tc.canSignup == true {
+				err = ops.AllowSignupById(ctx, b, signupId)
+				assert.NoError(t, err)
+			}
+
+			canSignup, err := ops.CanSignup(ctx, b, signupId)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.canSignup, canSignup)
+
+			userId := uuid.NewString()
+			err = ops.SetSignupComplete(ctx, b, signupId, userId)
+			assert.NoError(t, err)
+
+			canSignup, err = ops.CanSignup(ctx, b, signupId)
+			assert.NoError(t, err)
+			assert.Equal(t, false, canSignup)
 		})
 	}
 }
