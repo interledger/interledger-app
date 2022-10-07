@@ -131,7 +131,7 @@ func NewWallet(t *testing.T, b backends) string {
 }
 func NewMachnetUser(t *testing.T, b backends, walletID string) *machnet.User {
 	externalUser, err := b.External().RegisterUser(context.Background(), external.User{
-		Type: external.SendUser,
+		Type: external.TypeSendUser,
 	})
 	require.NoError(t, err)
 	user, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{

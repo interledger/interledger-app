@@ -17,6 +17,7 @@ func New() *Client {
 		userHasReceiveUsers: map[string][]string{},
 		fundingsources:      map[string]external.FundingSource{},
 		transactions:        map[string]external.Transaction{},
+		receiveUserAccounts: map[string]external.ReceiveUserAccount{},
 	}
 }
 
@@ -25,20 +26,21 @@ type Client struct {
 	userHasReceiveUsers map[string][]string
 	fundingsources      map[string]external.FundingSource
 	transactions        map[string]external.Transaction
+	receiveUserAccounts map[string]external.ReceiveUserAccount
 }
 
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
-	if user.Type != external.SendUser && user.Type != external.ReceiveUser {
+	if user.Type != external.TypeSendUser && user.Type != external.TypeReceiveUser {
 		return nil, fmt.Errorf("%w Type must be SEND/RECEIVE", external.ErrInvalidArgument)
 	}
-	if user.Type == external.ReceiveUser && user.SendUserID == "" {
+	if user.Type == external.TypeReceiveUser && user.SendUserID == "" {
 		return nil, fmt.Errorf("%w SendUserID is required for a RECEIVE user.", external.ErrInvalidArgument)
 	}
 
 	ret := user
 	ret.ID = uuid.NewString()
 	ret.Status = external.StatusUnverified
-	if user.Type == external.ReceiveUser {
+	if user.Type == external.TypeReceiveUser {
 		sendUser, err := c.GetUserByID(ctx, user.SendUserID)
 		if err != nil {
 			return nil, fmt.Errorf("%w Send user not found.", external.ErrInternal)
@@ -232,4 +234,32 @@ func (c Client) CreateUserFundingsource(ctx context.Context, fs external.Funding
 	c.fundingsources[fs.ID] = fs
 	ret := c.fundingsources[fs.ID]
 	return &ret, nil
+}
+
+func (c Client) CreateReceiveUserAccount(ctx context.Context, sendUserID, receiveUserID string, acc external.ReceiveUserAccount) (*external.ReceiveUserAccount, error) {
+	if acc.PayoutMethod != external.TypeBankDeposit {
+		return nil, fmt.Errorf("%w Can only create receive user bank accounts.", external.ErrInvalidArgument)
+	}
+
+	_, err := c.GetUserByID(ctx, sendUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Send user not found.", external.ErrNotFound)
+	}
+	receiveUser, err := c.GetUserByID(ctx, receiveUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Receive user not found.", external.ErrNotFound)
+	}
+
+	ra := external.ReceiveUserAccount{
+		ID:            uuid.NewString(),
+		UserID:        receiveUser.ID,
+		AccountNumber: acc.AccountNumber,
+		AccountType:   acc.AccountType,
+		BankID:        acc.BankID,
+		BranchID:      acc.BranchID,
+		PayoutMethod:  acc.PayoutMethod,
+	}
+	c.receiveUserAccounts[ra.ID] = ra
+
+	return &ra, nil
 }

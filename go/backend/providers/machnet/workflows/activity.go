@@ -83,7 +83,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		State:        kycData.Address.State,
 		Country:      kycData.Address.CountryCode,
 		IPAddress:    kycData.IPAddress,
-		Type:         external.SendUser,
+		Type:         external.TypeSendUser,
 	})
 
 	if err != nil {

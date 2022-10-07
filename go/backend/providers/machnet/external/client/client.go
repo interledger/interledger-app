@@ -74,6 +74,31 @@ func (c Client) RegisterUser(ctx context.Context, user external.User) (*external
 	return &externalUser, nil
 }
 
+func (c Client) CreateReceiveUserAccount(ctx context.Context, sendUserID, receiveUserID string, acc external.ReceiveUserAccount) (*external.ReceiveUserAccount, error) {
+	payload, err := json.Marshal(acc)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Post(fmt.Sprintf("%s/users/%s/receive-users/%s/accounts", c.baseUrl, sendUserID, receiveUserID), "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var externalAccount external.ReceiveUserAccount
+	err = json.Unmarshal(body, &externalAccount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &externalAccount, nil
+}
+
 func (c Client) UpdateUser(ctx context.Context, id string, newValues external.User) (*external.User, error) {
 	if newValues.ID != "" {
 		return nil, fmt.Errorf("%w Do not set ID on newValues.", external.ErrInvalidArgument)
