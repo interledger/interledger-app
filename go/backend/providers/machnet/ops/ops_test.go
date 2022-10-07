@@ -228,6 +228,45 @@ func TestCreateReceiveAccount(t *testing.T) {
 	assert.ErrorIs(t, err, machnet.ErrNotFound)
 }
 
+func TestCreateReceiveUser(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+	receiveWalletID := NewWallet(t, b)
+
+	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: uuid.NewString(),
+	})
+	require.NoError(t, err)
+
+	externalID := uuid.NewString()
+	ru, err := ops.CreateReceiveUser(context.Background(), b, machnet.CreateReceiveUserArgs{
+		ExternalID:      externalID,
+		SendUserID:      sendUser.ID,
+		ReceiveWalletID: receiveWalletID,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, sendUser.ID, ru.SendUserID)
+	assert.Equal(t, externalID, ru.ID)
+	assert.Equal(t, receiveWalletID, ru.ReceiveWalletID)
+
+	// can only add receive wallet to send user once
+	ru, err = ops.CreateReceiveUser(context.Background(), b, machnet.CreateReceiveUserArgs{
+		ExternalID:      uuid.NewString(),
+		SendUserID:      sendUser.ID,
+		ReceiveWalletID: receiveWalletID,
+	})
+	require.Error(t, err)
+	require.Nil(t, ru)
+
+	freshRu, err := ops.GetReceiveUserByReceiveWalletID(context.Background(), b, receiveWalletID)
+	require.NoError(t, err)
+	assert.Equal(t, sendUser.ID, freshRu.SendUserID)
+	assert.Equal(t, externalID, freshRu.ID)
+	assert.Equal(t, receiveWalletID, freshRu.ReceiveWalletID)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
