@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
   return json(
     {
       session,
-      snackbar: snackbar
+      snackbar
     },
     {
       headers: { 'Set-Cookie': await commitSession(userSettings) }

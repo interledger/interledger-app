@@ -1,8 +1,8 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Shape, TextField } from '~/components'
+import { Button, Icon, Shape, Snackbar, TextField } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   httpMapping,
@@ -12,10 +12,13 @@ import {
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { commitSession, getSession } from '~/sessions'
 
 export async function loader({ request }: LoaderArgs) {
   const hasSession = await hasUserSession(request)
   if (!hasSession) return redirect('/signup')
+
+  const userSettings = await getSession(request.headers.get('Cookie'))
 
   let response = await openPaymentsClient
     .listWalletPaymentPointers(
@@ -60,12 +63,24 @@ export async function loader({ request }: LoaderArgs) {
     }
   }
 
-  return json({ username })
+  const snackbar = {
+    // NOTE: userSettings.has must be called before userSettings.get
+    show: userSettings.has('snackbar'),
+    ...userSettings.get('snackbar')
+  }
+
+  return json(
+    { username, snackbar },
+    {
+      headers: { 'Set-Cookie': await commitSession(userSettings) }
+    }
+  )
 }
 
 export default function Page() {
   const fetcher = useFetcher()
-  const { username } = useLoaderData<typeof loader>()
+  const { username, snackbar } = useLoaderData<typeof loader>()
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
 
   const _onChangeInput = useCallback(
     (event) => {
@@ -146,6 +161,16 @@ export default function Page() {
       <Button className='mt-12' form='payment-pointer' type='submit'>
         Continue
       </Button>
+
+      <Snackbar
+        message={snackbar.message}
+        icon={snackbar.icon}
+        action={snackbar.action}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        onClose={() => setSnackbar(false)}
+        dismissAfter={3000}
+      />
     </div>
   )
 }
