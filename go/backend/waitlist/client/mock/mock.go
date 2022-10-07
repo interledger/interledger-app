@@ -47,3 +47,32 @@ func (mr *MockClientMockRecorder) Add(ctx, email, countryCode, fullName interfac
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, email, countryCode, fullName)
 }
+
+// CanSignup mocks base method.
+func (m *MockClient) CanSignup(ctx context.Context, id string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CanSignup", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CanSignup indicates an expected call of CanSignup.
+func (mr *MockClientMockRecorder) CanSignup(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanSignup", reflect.TypeOf((*MockClient)(nil).CanSignup), ctx, id)
+}
+
+// SetSignupComplete mocks base method.
+func (m *MockClient) SetSignupComplete(ctx context.Context, id, userSignupId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetSignupComplete", ctx, id, userSignupId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetSignupComplete indicates an expected call of SetSignupComplete.
+func (mr *MockClientMockRecorder) SetSignupComplete(ctx, id, userSignupId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSignupComplete", reflect.TypeOf((*MockClient)(nil).SetSignupComplete), ctx, id, userSignupId)
+}

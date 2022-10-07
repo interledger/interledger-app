@@ -7,5 +7,7 @@ CREATE TABLE IF NOT EXISTS waitlist_signups
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     notified_at TIMESTAMP,
     notified_count INT,
+    can_signup BOOLEAN NOT NULL default false,
+    user_id UUID,
     CONSTRAINT  email_country_code UNIQUE (email, country_code)
 );
