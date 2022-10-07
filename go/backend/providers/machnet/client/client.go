@@ -98,3 +98,11 @@ func (c client) CreateReceiveUser(ctx context.Context, args machnet.CreateReceiv
 func (c client) GetReceiveUserByReceiveWalletID(ctx context.Context, receiveWalletID string) (*machnet.ReceiveUser, error) {
 	return ops.GetReceiveUserByReceiveWalletID(ctx, c.b, receiveWalletID)
 }
+
+func (c client) CreateReceiveUserAccount(ctx context.Context, args machnet.CreateReceiveUserAccountArgs) (*machnet.ReceiveUserAccount, error) {
+	return ops.CreateReceiveUserAccount(ctx, c.b, args)
+}
+
+func (c client) GetReceiveUserAccountByReceiveAccountID(ctx context.Context, id string) (*machnet.ReceiveUserAccount, error) {
+	return ops.GetReceiveUserAccountByReceiveAccountID(ctx, c.b, id)
+}
