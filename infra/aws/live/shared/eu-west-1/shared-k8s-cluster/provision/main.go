@@ -345,7 +345,7 @@ func createGitlabRunnerNodeGroup(ctx *pulumi.Context, args CreateNodeGroupArgs) 
 	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-glrunner-template", &ec2.LaunchTemplateArgs{
 		BlockDeviceMappings: ec2.LaunchTemplateBlockDeviceMappingArray{
 			ec2.LaunchTemplateBlockDeviceMappingArgs{
-				DeviceName: pulumi.String("/dev/xvda"),
+				DeviceName: pulumi.String("/dev/xvdb"),
 				Ebs: &ec2.LaunchTemplateBlockDeviceMappingEbsArgs{
 					VolumeType: pulumi.String("gp3"),
 					VolumeSize: pulumi.Int(100),
