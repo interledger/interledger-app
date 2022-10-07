@@ -126,6 +126,45 @@ func GetReceiveAccount(ctx context.Context, b Backends, id string) (*machnet.Rec
 	return &ra, nil
 }
 
+func CreateReceiveUser(ctx context.Context, b Backends, args machnet.CreateReceiveUserArgs) (*machnet.ReceiveUser, error) {
+	insert := db.NewInsert("machnet_receive_users").
+		Value("id", args.ExternalID).
+		Value("send_user_id", args.SendUserID).
+		Value("receive_wallet_id", args.ReceiveWalletID).
+		Returning("id, send_user_id, receive_wallet_id, created_at, updated_at")
+
+	statement, values, err := insert.GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var ru machnet.ReceiveUser
+	err = b.DB().GetContext(ctx, &ru, statement, values...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ru, nil
+}
+
+func GetReceiveUserByReceiveWalletID(ctx context.Context, b Backends, receiveWalletID string) (*machnet.ReceiveUser, error) {
+	var ru machnet.ReceiveUser
+	err := b.DB().GetContext(
+		ctx,
+		&ru,
+		"SELECT id, send_user_id, receive_wallet_id, created_at, updated_at FROM machnet_receive_users WHERE receive_wallet_id=$1;",
+		receiveWalletID,
+	)
+	if err == sql.ErrNoRows {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ru, nil
+}
+
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	// TODO: validate payload
 	var err error

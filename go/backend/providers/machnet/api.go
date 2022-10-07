@@ -14,4 +14,6 @@ type Client interface {
 	HandleEvent(ctx context.Context, event external.Event) error
 	CreateReceiveAccount(ctx context.Context, args CreateReceiveAccountArgs) (*ReceiveAccount, error)
 	GetReceiveAccount(ctx context.Context, id string) (*ReceiveAccount, error)
+	CreateReceiveUser(ctx context.Context, args CreateReceiveUserArgs) (*ReceiveUser, error)
+	GetReceiveUserByReceiveWalletID(ctx context.Context, receiveWalletID string) (*ReceiveUser, error)
 }
