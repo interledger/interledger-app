@@ -82,3 +82,11 @@ func (c client) CreateSendUser(ctx context.Context, walletID string) error {
 	_, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateSendUserWorkflow, c.b, walletID)
 	return err
 }
+
+func (c client) CreateReceiveAccount(ctx context.Context, args machnet.CreateReceiveAccountArgs) (*machnet.ReceiveAccount, error) {
+	return ops.CreateReceiveAccount(ctx, c.b, args)
+}
+
+func (c client) GetReceiveAccount(ctx context.Context, id string) (*machnet.ReceiveAccount, error) {
+	return ops.GetReceiveAccount(ctx, c.b, id)
+}

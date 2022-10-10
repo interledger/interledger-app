@@ -36,6 +36,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateReceiveAccount mocks base method.
+func (m *MockClient) CreateReceiveAccount(ctx context.Context, args machnet.CreateReceiveAccountArgs) (*machnet.ReceiveAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateReceiveAccount", ctx, args)
+	ret0, _ := ret[0].(*machnet.ReceiveAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateReceiveAccount indicates an expected call of CreateReceiveAccount.
+func (mr *MockClientMockRecorder) CreateReceiveAccount(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveAccount", reflect.TypeOf((*MockClient)(nil).CreateReceiveAccount), ctx, args)
+}
+
 // CreateUser mocks base method.
 func (m *MockClient) CreateUser(ctx context.Context, args machnet.CreateArgs) (*machnet.User, error) {
 	m.ctrl.T.Helper()
@@ -49,6 +64,21 @@ func (m *MockClient) CreateUser(ctx context.Context, args machnet.CreateArgs) (*
 func (mr *MockClientMockRecorder) CreateUser(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockClient)(nil).CreateUser), ctx, args)
+}
+
+// GetReceiveAccount mocks base method.
+func (m *MockClient) GetReceiveAccount(ctx context.Context, id string) (*machnet.ReceiveAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReceiveAccount", ctx, id)
+	ret0, _ := ret[0].(*machnet.ReceiveAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReceiveAccount indicates an expected call of GetReceiveAccount.
+func (mr *MockClientMockRecorder) GetReceiveAccount(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReceiveAccount", reflect.TypeOf((*MockClient)(nil).GetReceiveAccount), ctx, id)
 }
 
 // GetUserByID mocks base method.

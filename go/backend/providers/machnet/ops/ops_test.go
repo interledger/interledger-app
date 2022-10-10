@@ -196,6 +196,38 @@ func TestHandleUserKYCEvent(t *testing.T) {
 	assert.Equal(t, machnet.KYCStatusVerified, u.KYCStatus)
 }
 
+func TestCreateReceiveAccount(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+
+	ra, err := ops.CreateReceiveAccount(context.Background(), b, machnet.CreateReceiveAccountArgs{
+		WalletID:      walletID,
+		AccountNumber: "1234",
+		Type:          external.TypeBank,
+		BankID:        1,
+		BranchID:      2,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, walletID, ra.WalletID)
+	assert.Equal(t, "1234", ra.AccountNumber)
+	assert.Equal(t, external.TypeBank, ra.Type)
+	assert.Equal(t, uint32(1), ra.BankID)
+	assert.Equal(t, uint32(2), ra.BranchID)
+
+	freshRa, err := ops.GetReceiveAccount(context.Background(), b, ra.ID)
+	require.NoError(t, err)
+	assert.Equal(t, walletID, freshRa.WalletID)
+	assert.Equal(t, "1234", freshRa.AccountNumber)
+	assert.Equal(t, external.TypeBank, freshRa.Type)
+	assert.Equal(t, uint32(1), freshRa.BankID)
+	assert.Equal(t, uint32(2), freshRa.BranchID)
+
+	noRa, err := ops.GetReceiveAccount(context.Background(), b, uuid.NewString())
+	assert.Nil(t, noRa)
+	assert.ErrorIs(t, err, machnet.ErrNotFound)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
