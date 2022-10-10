@@ -1,5 +1,6 @@
 import type { FC } from 'react'
 import clsx from 'clsx'
+import { Icon } from '~/components'
 
 type Radius =
   | 'rounded-none'
@@ -21,7 +22,14 @@ type ShapeProps = {
 
 export const Shape: FC<ShapeProps> = ({ children, width, radius, color }) => {
   return (
-    <div className={clsx('aspect-square', width || 'w-full', radius, color)}>
+    <div
+      className={clsx(
+        'flex aspect-square items-center justify-center',
+        width || 'w-full',
+        radius,
+        color
+      )}
+    >
       {children}
     </div>
   )
@@ -160,6 +168,108 @@ export function HomeShapes() {
         <div className='flex' key={`shapeRow${outerIndex}`}>
           {shapeRow.map((shape, index) => (
             <Shape key={`shape${outerIndex}${index}`} {...shape} />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function SuccessShapes() {
+  const shapes: ShapeProps[][] = [
+    [
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-tl-full',
+        color: 'bg-slate-100'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-br-full',
+        color: 'bg-green-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      }
+    ],
+    [
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-slate-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-green-200'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-green-500'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-tl-full',
+        color: 'bg-green-100'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-tr-full',
+        color: 'bg-slate-50'
+      }
+    ],
+    [
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-l-full',
+        color: 'bg-green-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-none',
+        color: 'bg-green-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-br-full',
+        color: 'bg-green-200'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      }
+    ]
+  ]
+  return (
+    <div>
+      {shapes.map((shapeRow, outerIndex, outerArray) => (
+        <div className='flex justify-center' key={`shapeRow${outerIndex}`}>
+          {shapeRow.map((shape, index, array) => (
+            <Shape key={`shape${outerIndex}${index}`} {...shape}>
+              {Math.floor(outerArray.length / 2) == outerIndex &&
+                Math.floor(array.length / 2) == index && (
+                  <Icon className='text-white'>check</Icon>
+                )}
+            </Shape>
           ))}
         </div>
       ))}
