@@ -154,7 +154,7 @@ func TestActivity_CreateTransaction(t *testing.T) {
 	require.NoError(t, err)
 
 	mu, err := a.b.External().RegisterUser(ctx, external.User{
-		Type: external.SendUser,
+		Type: external.TypeSendUser,
 	})
 	require.NoError(t, err)
 
@@ -210,7 +210,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 	require.NoError(t, err)
 
 	mu, err := a.b.External().RegisterUser(ctx, external.User{
-		Type: external.SendUser,
+		Type: external.TypeSendUser,
 	})
 	require.NoError(t, err)
 

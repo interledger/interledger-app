@@ -81,6 +81,36 @@ func (mr *MockClientMockRecorder) CreateReceiveUserBankAccount(ctx, args interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveUserBankAccount", reflect.TypeOf((*MockClient)(nil).CreateReceiveUserBankAccount), ctx, args)
 }
 
+// CreateSendUser mocks base method.
+func (m *MockClient) CreateSendUser(ctx context.Context, walletID string) (machnet.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSendUser", ctx, walletID)
+	ret0, _ := ret[0].(machnet.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSendUser indicates an expected call of CreateSendUser.
+func (mr *MockClientMockRecorder) CreateSendUser(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSendUser", reflect.TypeOf((*MockClient)(nil).CreateSendUser), ctx, walletID)
+}
+
+// CreateTransaction mocks base method.
+func (m *MockClient) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) (machnet.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTransaction", ctx, args)
+	ret0, _ := ret[0].(machnet.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTransaction indicates an expected call of CreateTransaction.
+func (mr *MockClientMockRecorder) CreateTransaction(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, args)
+}
+
 // CreateUser mocks base method.
 func (m *MockClient) CreateUser(ctx context.Context, args machnet.CreateArgs) (*machnet.User, error) {
 	m.ctrl.T.Helper()
