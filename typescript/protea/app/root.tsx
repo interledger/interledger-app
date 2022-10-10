@@ -96,6 +96,7 @@ export default function Page() {
   let isFocussed =
     location.pathname.startsWith('/signup') ||
     location.pathname.startsWith('/waitlist') ||
+    location.pathname.startsWith('/contact') ||
     location.pathname.startsWith('/login') ||
     location.pathname.startsWith('/payment-pointer')
 
