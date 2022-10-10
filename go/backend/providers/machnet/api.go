@@ -15,7 +15,7 @@ type Client interface {
 	CreateReceiveBankAccount(ctx context.Context, args CreateReceiveBankAccountArgs) (*ReceiveBankAccount, error)
 	GetReceiveBankAccount(ctx context.Context, id string) (*ReceiveBankAccount, error)
 	CreateReceiveUser(ctx context.Context, args CreateReceiveUserArgs) (*ReceiveUser, error)
-	GetReceiveUserByReceiveWalletID(ctx context.Context, receiveWalletID string) (*ReceiveUser, error)
+	GetReceiveUser(ctx context.Context, args GetReceiveUserArgs) (*ReceiveUser, error)
 	CreateReceiveUserBankAccount(ctx context.Context, args CreateReceiveUserBankAccountArgs) (*ReceiveUserBankAccount, error)
-	GetReceiveUserAccountByReceiveAccountID(ctx context.Context, receiveAccountID string) (*ReceiveUserBankAccount, error)
+	GetReceiveUserBankAccount(ctx context.Context, args GetReceiveUserBankAccountArgs) (*ReceiveUserBankAccount, error)
 }

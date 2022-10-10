@@ -257,7 +257,10 @@ func TestCreateReceiveUser(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, ru)
 
-	freshRu, err := ops.GetReceiveUserByReceiveWalletID(context.Background(), b, receiveWalletID)
+	freshRu, err := ops.GetReceiveUser(context.Background(), b, machnet.GetReceiveUserArgs{
+		ReceiveWalletID: receiveWalletID,
+		SendUserID:      sendUser.ID,
+	})
 	require.NoError(t, err)
 	assert.Equal(t, sendUser.ID, freshRu.SendUserID)
 	assert.Equal(t, externalID, freshRu.ID)
@@ -311,7 +314,10 @@ func TestCreateReceiveUserAccount(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, rua)
 
-	freshRua, err := ops.GetReceiveUserAccountByReceiveAccountID(context.Background(), b, ra.ID)
+	freshRua, err := ops.GetReceiveUserBankAccount(context.Background(), b, machnet.GetReceiveUserBankAccountArgs{
+		ReceiveUserID:        ru.ID,
+		ReceiveBankAccountID: ra.ID,
+	})
 	require.NoError(t, err)
 	assert.Equal(t, externalID, freshRua.ID)
 	assert.Equal(t, ru.ID, freshRua.ReceiveUserID)

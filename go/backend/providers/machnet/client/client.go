@@ -95,14 +95,14 @@ func (c client) CreateReceiveUser(ctx context.Context, args machnet.CreateReceiv
 	return ops.CreateReceiveUser(ctx, c.b, args)
 }
 
-func (c client) GetReceiveUserByReceiveWalletID(ctx context.Context, receiveWalletID string) (*machnet.ReceiveUser, error) {
-	return ops.GetReceiveUserByReceiveWalletID(ctx, c.b, receiveWalletID)
+func (c client) GetReceiveUser(ctx context.Context, args machnet.GetReceiveUserArgs) (*machnet.ReceiveUser, error) {
+	return ops.GetReceiveUser(ctx, c.b, args)
 }
 
 func (c client) CreateReceiveUserBankAccount(ctx context.Context, args machnet.CreateReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
 	return ops.CreateReceiveUserBankAccount(ctx, c.b, args)
 }
 
-func (c client) GetReceiveUserAccountByReceiveAccountID(ctx context.Context, id string) (*machnet.ReceiveUserBankAccount, error) {
-	return ops.GetReceiveUserAccountByReceiveAccountID(ctx, c.b, id)
+func (c client) GetReceiveUserBankAccount(ctx context.Context, args machnet.GetReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
+	return ops.GetReceiveUserBankAccount(ctx, c.b, args)
 }
