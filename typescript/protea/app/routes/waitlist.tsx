@@ -8,7 +8,6 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { commitSession, getSession } from '~/sessions'
 
 type Country = {
   id: string
@@ -37,33 +36,6 @@ export async function loader({ request }: LoaderArgs) {
     fullName
   })
 }
-
-const shapes = [
-  [
-    'bg-slate-600 rounded-tl-full',
-    'bg-transparent',
-    'bg-yellow-400 rounded-tr-full',
-    'bg-rose-300 rounded-tl-full',
-    'bg-lime-400 rounded-full',
-    'bg-transparent',
-    'bg-rose-500 rounded-full',
-    'bg-lime-300 rounded-tr-full',
-    'bg-transparent',
-    'bg-transparent'
-  ],
-  [
-    'bg-transparent',
-    'bg-rose-400 rounded-full',
-    'bg-lime-500 rounded-bl-full',
-    'bg-transparent',
-    'bg-slate-300 rounded-tl-full',
-    'bg-yellow-200 rounded-tl-full',
-    'bg-slate-500 rounded-br-full',
-    'bg-transparent',
-    'bg-rose-100 rounded-full',
-    'bg-rose-300 rounded-bl-full'
-  ]
-]
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
@@ -99,19 +71,7 @@ export default function Page() {
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-      <div className='mt-2 flex flex-col'>
-        {shapes.map((shapeRow) => (
-          <div className='flex' key={shapeRow.toString()}>
-            {shapeRow.map((shape, index) => (
-              <div
-                key={shape + index}
-                className={`aspect-square w-full ${shape}`}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-      <span className='mt-6 font-display text-2xl font-medium'>
+      <span className='font-display text-2xl font-medium'>
         Join the waitlist
       </span>
       <span className='mt-6 text-medium'>
