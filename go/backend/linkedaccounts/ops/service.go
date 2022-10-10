@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -62,7 +63,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 		id,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, linkedaccounts.ErrNotFound
 		}
 
@@ -82,7 +83,7 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 		walletId,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, linkedaccounts.ErrNotFound
 		}
 

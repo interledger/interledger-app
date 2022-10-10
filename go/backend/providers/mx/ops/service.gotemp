@@ -62,7 +62,7 @@ func CreateAccount(
 func GetAccount(ctx context.Context, b Backends, mxAccountGuid string) (*mx.Account, error) {
 	ret := &mx.Account{}
 	err := b.DB().GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE guid=$1", mxAccountGuid)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", mx.ErrNotFound, fmt.Sprintf("mxAccountGuid=%s", mxAccountGuid))
 	}
 	if err != nil {
@@ -75,7 +75,7 @@ func GetAccount(ctx context.Context, b Backends, mxAccountGuid string) (*mx.Acco
 func GetAccountByFundingsource(ctx context.Context, b Backends, fundingsourceID string) (*mx.Account, error) {
 	ret := &mx.Account{}
 	err := b.DB().GetContext(ctx, ret, "SELECT * FROM mx_accounts WHERE fundingsource_id=$1", fundingsourceID)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", mx.ErrNotFound, fmt.Sprintf("fundingsourceID=%s", fundingsourceID))
 	}
 	if err != nil {

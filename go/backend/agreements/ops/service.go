@@ -16,7 +16,7 @@ func Get(ctx context.Context, b Backends, id string) (*agreements.Agreement, err
 
 	err := b.DB().GetContext(ctx, &agreement, "SELECT * FROM agreements WHERE id = $1", id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%w %s", agreements.ErrNotFound, err.Error())
 		}
 		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
