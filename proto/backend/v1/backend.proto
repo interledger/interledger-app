@@ -93,6 +93,8 @@ service BackendService {
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
   rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
+  rpc ListBanks(Empty) returns (ListBanksResponse);
+  rpc CreateReceiveBankAccount(CreateReceiveBankAccountRequest) returns (LinkedAccount);
 
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
@@ -286,6 +288,30 @@ message MachnetWidgetToken {
   string value = 1;
   int64 expiresInMinutes = 2;
   string userId = 3;
+}
+
+message Branch {
+  uint32 id = 1;
+  string name = 2;
+}
+
+message Bank {
+  uint32 id = 1;
+  string name = 2;
+  repeated Branch branches = 3;
+}
+
+message ListBanksResponse {
+  repeated Bank banks = 1;
+}
+
+message CreateReceiveBankAccountRequest {
+  string name = 1;
+  uint32 bank_id = 2;
+  uint32 branch_id = 3;
+  string account_type = 4;
+  string account_number = 5;
+  string otp = 6;
 }
 
 message CanSignupRequest{
