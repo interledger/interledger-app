@@ -205,6 +205,34 @@ func GetReceiveUserBankAccount(ctx context.Context, b Backends, args machnet.Get
 	return &rua, nil
 }
 
+func GetBanks(ctx context.Context, b Backends, countryCode string) ([]machnet.Bank, error) {
+	externalList, err := b.External().GetBanks(ctx, countryCode)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	banks := make([]machnet.Bank, len(externalList))
+	for i, externalBank := range externalList {
+		branches := make([]machnet.Branch, len(externalBank.Branches))
+		for j, externalBranch := range externalBank.Branches {
+			branches[j] = machnet.Branch{
+				ID:   externalBranch.ID,
+				Name: externalBranch.Name,
+			}
+		}
+		banks[i] = machnet.Bank{
+			ID:                        externalBank.ID,
+			Name:                      externalBank.Name,
+			Branches:                  branches,
+			Country:                   externalBank.Country,
+			TransactionSupportedTypes: externalBank.TransactionSupportedTypes,
+			ReceivingCurrency:         externalBank.ReceivingCurrency,
+		}
+	}
+
+	return banks, nil
+}
+
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	// TODO: validate payload
 	var err error

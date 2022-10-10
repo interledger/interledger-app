@@ -324,6 +324,24 @@ func TestCreateReceiveUserAccount(t *testing.T) {
 	assert.Equal(t, ra.ID, freshRua.ReceiveBankAccountID)
 }
 
+func TestGetBanks(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	countryCode := "US"
+
+	banks, err := ops.GetBanks(context.Background(), b, countryCode)
+	require.NoError(t, err)
+
+	require.Len(t, banks, 1)
+	assert.Equal(t, uint32(1), banks[0].ID)
+	assert.Equal(t, "Test", banks[0].Name)
+	assert.ElementsMatch(t, []string{countryCode}, banks[0].ReceivingCurrency)
+	assert.ElementsMatch(t, []string{"C2C", "B2B", "B2C"}, banks[0].TransactionSupportedTypes)
+	require.Len(t, banks[0].Branches, 1)
+	assert.Equal(t, uint32(1), banks[0].Branches[0].ID)
+	assert.Equal(t, "Local", banks[0].Branches[0].Name)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{

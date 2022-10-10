@@ -263,3 +263,21 @@ func (c Client) CreateReceiveUserBankAccount(ctx context.Context, sendUserID, re
 
 	return &ra, nil
 }
+
+func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Bank, error) {
+	return []external.Bank{
+		{
+			ID:                        1,
+			Name:                      "Test",
+			Country:                   countryCode,
+			ReceivingCurrency:         []string{countryCode},
+			TransactionSupportedTypes: []string{"C2C", "B2B", "B2C"},
+			Branches: []external.Branch{
+				{
+					ID:   1,
+					Name: "Local",
+				},
+			},
+		},
+	}, nil
+}

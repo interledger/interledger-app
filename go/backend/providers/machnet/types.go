@@ -100,7 +100,10 @@ type Branch struct {
 }
 
 type Bank struct {
-	ID       uint32
-	Name     string
-	Branches []Branch
+	ID                        uint32
+	Name                      string
+	Branches                  []Branch
+	Country                   string
+	TransactionSupportedTypes []string
+	ReceivingCurrency         []string
 }

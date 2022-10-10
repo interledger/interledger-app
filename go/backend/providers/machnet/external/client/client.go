@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -226,6 +227,31 @@ func (c Client) CreateTransaction(ctx context.Context, transaction external.Tran
 
 func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.DeliveryRequest) error {
 	panic("no-op")
+}
+
+func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Bank, error) {
+	getBanksUrl, err := url.Parse(c.baseUrl + "/banks?country=" + countryCode)
+	if err != nil {
+		return nil, fmt.Errorf("%w Failed to get banks url.", external.ErrInternal)
+	}
+
+	resp, err := c.api.Get(getBanksUrl.String())
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var banks []external.Bank
+	err = json.Unmarshal(body, &banks)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return banks, nil
 }
 
 func parseResponse(resp *http.Response) ([]byte, error) {

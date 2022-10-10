@@ -106,3 +106,7 @@ func (c client) CreateReceiveUserBankAccount(ctx context.Context, args machnet.C
 func (c client) GetReceiveUserBankAccount(ctx context.Context, args machnet.GetReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
 	return ops.GetReceiveUserBankAccount(ctx, c.b, args)
 }
+
+func (c client) GetBanks(ctx context.Context, countryCode string) ([]machnet.Bank, error) {
+	return ops.GetBanks(ctx, c.b, countryCode)
+}
