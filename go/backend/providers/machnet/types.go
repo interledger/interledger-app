@@ -1,6 +1,9 @@
 package machnet
 
-const ProviderName = "machnet"
+const (
+	ProviderName           = "machnet"
+	TypeReceiveBankAccount = "receiveBankAccount"
+)
 
 type User struct {
 	ID        string    `db:"id"`
