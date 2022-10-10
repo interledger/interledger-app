@@ -146,13 +146,14 @@ func CreateReceiveUser(ctx context.Context, b Backends, args machnet.CreateRecei
 	return &ru, nil
 }
 
-func GetReceiveUserByReceiveWalletID(ctx context.Context, b Backends, receiveWalletID string) (*machnet.ReceiveUser, error) {
+func GetReceiveUser(ctx context.Context, b Backends, args machnet.GetReceiveUserArgs) (*machnet.ReceiveUser, error) {
 	var ru machnet.ReceiveUser
 	err := b.DB().GetContext(
 		ctx,
 		&ru,
-		"SELECT id, send_user_id, receive_wallet_id, created_at, updated_at FROM machnet_receive_users WHERE receive_wallet_id=$1;",
-		receiveWalletID,
+		"SELECT id, send_user_id, receive_wallet_id, created_at, updated_at FROM machnet_receive_users WHERE receive_wallet_id=$1 and send_user_id=$2;",
+		args.ReceiveWalletID,
+		args.SendUserID,
 	)
 	if err == sql.ErrNoRows {
 		return nil, machnet.ErrNotFound
@@ -185,15 +186,16 @@ func CreateReceiveUserBankAccount(ctx context.Context, b Backends, args machnet.
 	return &rua, nil
 }
 
-func GetReceiveUserAccountByReceiveAccountID(ctx context.Context, b Backends, receiveAccountID string) (*machnet.ReceiveUserBankAccount, error) {
+func GetReceiveUserBankAccount(ctx context.Context, b Backends, args machnet.GetReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
 	var rua machnet.ReceiveUserBankAccount
 	err := b.DB().GetContext(
 		ctx,
 		&rua,
-		"SELECT id, receive_user_id, receive_bank_account_id, created_at, updated_at FROM machnet_receive_user_bank_accounts WHERE receive_bank_account_id=$1;",
-		receiveAccountID,
+		"SELECT id, receive_user_id, receive_bank_account_id, created_at, updated_at FROM machnet_receive_user_bank_accounts WHERE receive_bank_account_id=$1 AND receive_user_id=$2;",
+		args.ReceiveBankAccountID,
+		args.ReceiveUserID,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, machnet.ErrNotFound
 	}
 	if err != nil {

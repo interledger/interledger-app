@@ -55,6 +55,11 @@ type (
 		SendUserID      string
 		ReceiveWalletID string
 	}
+
+	GetReceiveUserArgs struct {
+		ReceiveWalletID string
+		SendUserID      string
+	}
 )
 
 type (
@@ -68,6 +73,11 @@ type (
 
 	CreateReceiveUserBankAccountArgs struct {
 		ExternalID           string
+		ReceiveUserID        string
+		ReceiveBankAccountID string
+	}
+
+	GetReceiveUserBankAccountArgs struct {
 		ReceiveUserID        string
 		ReceiveBankAccountID string
 	}
