@@ -221,12 +221,56 @@ func (c Client) GetUserFundingsource(ctx context.Context, userID, fundingsourceI
 	panic("no-op")
 }
 
-func (c Client) CreateTransaction(ctx context.Context, transaction external.CreateTransactionArgs) (*external.Transaction, error) {
-	panic("no-op")
+func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransactionArgs) (*external.Transaction, error) {
+	payload, err := json.Marshal(trx)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/users/%s/transactions", c.baseUrl, trx.FromUserID), bytes.NewReader(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var res external.Transaction
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &res, err
 }
 
 func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.DeliveryRequest) error {
-	panic("no-op")
+	payload, err := json.Marshal(request)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch,
+		fmt.Sprintf("%s/users/%s/transactions/delivery-requests/%s", c.baseUrl, request.UserID, request.TransactionID),
+		bytes.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	_, err = parseResponse(resp)
+	return err
 }
 
 func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Bank, error) {

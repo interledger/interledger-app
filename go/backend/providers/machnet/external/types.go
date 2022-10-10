@@ -50,17 +50,17 @@ const (
 )
 
 type CreateTransactionArgs struct {
-	FromUserID        string            `json:"user_id"`
-	FromFundID        string            `json:"from_fund_id"`
-	FundingSourceType FundingSourceType `json:"funding_source_type"`
-	ToPayoutMethod    PayoutMethod      `json:"to.payout_method"`
-	FromAmount        float64           `json:"from_amount"`
-	FromCurrency      string            `json:"from_currency"`
-	ToCurrency        string            `json:"to_currency"`
-	ExchangeRate      float64           `json:"exchange_rate"`
+	FromUserID        string            `json:"-"`
+	FromFundID        string            `json:"from_fund_id,omitempty"`
+	FundingSourceType FundingSourceType `json:"funding_source_type,omitempty"`
+	FromAmount        float64           `json:"from_amount,omitempty"`
+	FromCurrency      string            `json:"from_currency,omitempty"`
+	ToCurrency        string            `json:"to_currency,omitempty"`
+	ExchangeRate      float64           `json:"exchange_rate,omitempty"`
 	FeeAmount         float64           `json:"fee_amount"`
 	Purpose           Purpose           `json:"purpose"`
-	CalculationMode   CalculationMode   `json:"calculation_mode"`
+	IPAddress         string            `json:"ip_address,omitempty"`
+	To                TransactionTo     `json:"to"`
 }
 
 type User struct {
@@ -153,7 +153,20 @@ type Transaction struct {
 	FromFundID        string            `json:"from_fund_id,omitempty"`
 	FundingsourceType FundingSourceType `json:"funding_source_type,omitempty"`
 	DeliveryStatus    string            `json:"delivery_status,omitempty"`
-	// TODO: to field
+	IPAddress         string            `json:"ip_address,omitempty"`
+	To                TransactionTo     `json:"to"`
+}
+
+type TransactionTo struct {
+	AddressLine1    string          `json:"address_line1,omitempty"`
+	CalculationMode CalculationMode `json:"calculation_mode,omitempty"`
+	Email           string          `json:"email,omitempty"`
+	FirstName       string          `json:"first_name,omitempty"`
+	FundID          string          `json:"fund_id,omitempty"`
+	ID              string          `json:"id,omitempty"`
+	LastName        string          `json:"last_name,omitempty"`
+	MobilePhone     string          `json:"mobile_phone,omitempty"`
+	PayoutMethod    PayoutMethod    `json:"payout_method,omitempty"`
 }
 
 type ReceiveUserBankAccount struct {
@@ -168,8 +181,8 @@ type ReceiveUserBankAccount struct {
 
 type DeliveryRequest struct {
 	Status        string `json:"status"`
-	TransactionID string `json:"transaction_id"`
-	UserID        string `json:"user_id"`
+	TransactionID string `json:"-"`
+	UserID        string `json:"-"`
 }
 
 type (

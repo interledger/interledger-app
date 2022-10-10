@@ -169,13 +169,15 @@ func (a *Activity) CreateTransaction(ctx context.Context, trx machnet.CreateTran
 		FromUserID:        mu.ID,
 		FromFundID:        la.ProviderID,
 		FundingSourceType: external.FundingSourceTypeCard,
-		ToPayoutMethod:    external.PayoutMethodBankDeposit,
 		FromAmount:        trx.Amount,
 		FromCurrency:      trx.Currency,
 		ToCurrency:        trx.Currency,
 		ExchangeRate:      1,
 		Purpose:           external.PurposePersonalTransfer,
-		CalculationMode:   external.CalculationModeSenderAmount,
+		To: external.TransactionTo{
+			CalculationMode: external.CalculationModeSenderAmount,
+			PayoutMethod:    external.PayoutMethodBankDeposit,
+		},
 	})
 	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
 		return "", temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
@@ -200,7 +202,7 @@ func (a *Activity) DeliverTransaction(ctx context.Context, walletID, transaction
 	}
 
 	err = a.b.External().UpdateDeliveryRequest(ctx, external.DeliveryRequest{
-		Status:        "DELIVERY_REQUESTED",
+		Status:        external.DeliveryStatusRequested,
 		TransactionID: transactionID,
 		UserID:        mu.ID,
 	})
