@@ -154,3 +154,17 @@ const (
 	UserKYCSuspended     = "user_kyc_suspended"
 	UserKYCReviewPending = "user_kyc_review_pending"
 )
+
+type Branch struct {
+	ID   uint32 `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+type Bank struct {
+	ID                        uint32   `json:"id,omitempty"`
+	Name                      string   `json:"name,omitempty"`
+	Branches                  []Branch `json:"branches,omitempty"`
+	Country                   string   `json:"country,omitempty"`
+	ReceivingCurrency         []string `json:"receiving_currency,omitempty"`
+	TransactionSupportedTypes []string `json:"txn_supported_types,omitempty"`
+}
