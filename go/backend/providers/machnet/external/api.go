@@ -13,5 +13,5 @@ type Client interface {
 	GetUserFundingsource(ctx context.Context, userID, fundingsourceID string) (*FundingSource, error)
 	CreateTransaction(ctx context.Context, transaction Transaction) (*Transaction, error)
 	UpdateDeliveryRequest(ctx context.Context, request DeliveryRequest) error
-	CreateReceiveUserAccount(ctx context.Context, sendUserID, receiveUserID string, acc ReceiveUserAccount) (*ReceiveUserAccount, error)
+	CreateReceiveUserBankAccount(ctx context.Context, sendUserID, receiveUserID string, acc ReceiveUserBankAccount) (*ReceiveUserBankAccount, error)
 }
