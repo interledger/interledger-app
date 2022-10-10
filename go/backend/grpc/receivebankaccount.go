@@ -3,6 +3,8 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -47,6 +49,50 @@ func (r rpcService) ListBanks(ctx context.Context, args *backendv1.Empty) (*back
 	}, nil
 }
 
-func (r rpcService) CreateReceiveBankAccount(ctx context.Context, args *backendv1.CreateReceiveBankAccountRequest) (*backendv1.LinkedAccount, error) {
-	panic("not implemented")
+func (r rpcService) CreateReceiveBankAccount(
+	ctx context.Context, req *backendv1.CreateReceiveBankAccountRequest,
+) (*backendv1.LinkedAccount, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+	wallet, err := r.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	bankaccount, err := r.b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{
+		WalletID:      wallet.ID,
+		AccountNumber: req.GetAccountNumber(),
+		BankID:        req.GetBankId(),
+		BranchID:      req.GetBranchId(),
+		//TODO: otp
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	mask := bankaccount.AccountNumber
+	if len(mask) > 4 {
+		mask = bankaccount.AccountNumber[len(mask)-4:]
+	}
+
+	linkedaccount, err := r.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   wallet.ID,
+		Name:       req.GetName(),
+		Mask:       mask,
+		Provider:   machnet.ProviderName,
+		ProviderID: bankaccount.ID,
+		Type:       machnet.TypeReceiveBankAccount,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.LinkedAccount{
+		Id:   linkedaccount.ID,
+		Type: machnet.TypeReceiveBankAccount,
+		Name: linkedaccount.Name,
+		Mask: linkedaccount.Mask,
+	}, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -77,4 +78,74 @@ func TestGetBanks(t *testing.T) {
 	require.Len(t, banks.GetBanks()[1].GetBranches(), 1)
 	assert.Equal(t, uint32(1), banks.GetBanks()[1].GetBranches()[0].Id)
 	assert.Equal(t, "Place", banks.GetBanks()[1].GetBranches()[0].Name)
+}
+
+func TestCreateReceiveBankAccount(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+	require.NoError(t, err)
+
+	requestArgs := backendv1.CreateReceiveBankAccountRequest{
+		Name:          "Test",
+		BankId:        1,
+		BranchId:      2,
+		AccountType:   "SAVINGS",
+		AccountNumber: "123456",
+	}
+	linkedAccountID := uuid.NewString()
+	receiveBankAccountID := uuid.NewString()
+	c.machnet.EXPECT().CreateReceiveBankAccount(gomock.Any(), machnet.CreateReceiveBankAccountArgs{
+		WalletID:      wallet.ID,
+		AccountNumber: requestArgs.AccountNumber,
+		BankID:        requestArgs.BankId,
+		BranchID:      requestArgs.BranchId,
+	}).Return(
+		&machnet.ReceiveBankAccount{
+			ID:            receiveBankAccountID,
+			WalletID:      wallet.ID,
+			AccountNumber: requestArgs.AccountNumber,
+			BankID:        requestArgs.BankId,
+			BranchID:      requestArgs.BranchId,
+		},
+		nil,
+	).Times(1)
+	c.linkedaccounts.EXPECT().Create(gomock.Any(), &linkedaccounts.CreateArgs{
+		WalletID:   wallet.ID,
+		Name:       requestArgs.Name,
+		Mask:       "3456",
+		Provider:   machnet.ProviderName,
+		ProviderID: receiveBankAccountID,
+		Type:       machnet.TypeReceiveBankAccount,
+	}).Return(
+		&linkedaccounts.LinkedAccount{
+			ID:         linkedAccountID,
+			WalletId:   wallet.ID,
+			Mask:       "3456",
+			Provider:   machnet.ProviderName,
+			ProviderID: receiveBankAccountID,
+			Type:       machnet.TypeReceiveBankAccount,
+			Name:       requestArgs.Name,
+		},
+		nil,
+	).Times(1)
+
+	linkedAccount, err := client.CreateReceiveBankAccount(
+		user_mock.ActingAsContext(t, context.Background(), user),
+		&requestArgs,
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, requestArgs.Name, linkedAccount.GetName())
+	assert.Equal(t, linkedAccountID, linkedAccount.GetId())
+	assert.Equal(t, "3456", linkedAccount.GetMask())
+	assert.Equal(t, machnet.TypeReceiveBankAccount, linkedAccount.GetType())
 }
