@@ -171,14 +171,17 @@ func TestActivity_CreateTransaction(t *testing.T) {
 		ProviderID: uuid.NewString(),
 	}, nil)
 
-	transactionID := uuid.NewString()
-	_, err = env.ExecuteActivity(a.CreateTransaction, transactionID, machnet.CreateTransactionArgs{
+	trxIDEnc, err := env.ExecuteActivity(a.CreateTransaction, machnet.CreateTransactionArgs{
 		FromWalletID:        wallet.ID,
 		FromLinkedAccountID: linkedAccID,
 		Amount:              200,
 		Currency:            "USD",
 	})
 	require.NoError(t, err)
+	var trxID string
+	err = trxIDEnc.Get(&trxID)
+	require.NoError(t, err)
+	require.NotEmpty(t, trxID)
 }
 
 func TestActivity_CreateUserFundingsource(t *testing.T) {
@@ -224,15 +227,18 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 		ProviderID: uuid.NewString(),
 	}, nil)
 
-	transactionID := uuid.NewString()
-	_, err = env.ExecuteActivity(a.CreateTransaction, transactionID, machnet.CreateTransactionArgs{
+	trxIDEnc, err := env.ExecuteActivity(a.CreateTransaction, machnet.CreateTransactionArgs{
 		FromWalletID:        wallet.ID,
 		FromLinkedAccountID: linkedAccID,
 		Amount:              200,
 		Currency:            "USD",
 	})
 	require.NoError(t, err)
+	var trxID string
+	err = trxIDEnc.Get(&trxID)
+	require.NoError(t, err)
+	require.NotEmpty(t, trxID)
 
-	_, err = env.ExecuteActivity(a.DeliverTransaction, wallet.ID, transactionID)
+	_, err = env.ExecuteActivity(a.DeliverTransaction, wallet.ID, trxID)
 	require.NoError(t, err)
 }

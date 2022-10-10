@@ -139,34 +139,33 @@ func (a *Activity) StartExternalKYC(ctx context.Context, externalID string) erro
 	return err
 }
 
-func (a *Activity) CreateTransaction(ctx context.Context, trxID string, trx machnet.CreateTransactionArgs) error {
+func (a *Activity) CreateTransaction(ctx context.Context, trx machnet.CreateTransactionArgs) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("CreateTransaction_Activity", "walletID", trx.FromWalletID)
 
 	mu, err := ops.GetUserByWalletID(ctx, a.b, trx.FromWalletID)
 	if errors.Is(err, machnet.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", trx.FromWalletID), "ErrNotFound", err)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", trx.FromWalletID), "ErrNotFound", err)
 	}
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	la, err := a.b.LinkedAccounts().Get(ctx, trx.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not found", trx.FromLinkedAccountID), "ErrNotFound", err)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not found", trx.FromLinkedAccountID), "ErrNotFound", err)
 	}
 	if err != nil {
-		return err
+		return "", err
 	}
 	if la.Provider != machnet.ProviderName {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not a machnet account", trx.FromLinkedAccountID), "ErrInternal", machnet.ErrInternal)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not a machnet account", trx.FromLinkedAccountID), "ErrInternal", machnet.ErrInternal)
 	}
 	if la.WalletId != trx.FromWalletID {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("Wallet id (%s) not associated with linked account (%s)", trx.FromWalletID, trx.FromLinkedAccountID), "ErrInternal", machnet.ErrInternal)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("Wallet id (%s) not associated with linked account (%s)", trx.FromWalletID, trx.FromLinkedAccountID), "ErrInternal", machnet.ErrInternal)
 	}
 
-	_, err = a.b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
-		ID:                trxID,
+	extTrx, err := a.b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
 		FromUserID:        mu.ID,
 		FromFundID:        la.ProviderID,
 		FundingSourceType: external.FundingSourceTypeCard,
@@ -179,10 +178,13 @@ func (a *Activity) CreateTransaction(ctx context.Context, trxID string, trx mach
 		CalculationMode:   external.CalculationModeSenderAmount,
 	})
 	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
+		return "", temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
+	}
+	if err != nil {
+		return "", err
 	}
 
-	return err
+	return extTrx.ID, nil
 }
 
 func (a *Activity) DeliverTransaction(ctx context.Context, walletID, transactionID string) error {

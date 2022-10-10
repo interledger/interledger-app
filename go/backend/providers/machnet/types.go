@@ -1,9 +1,13 @@
 package machnet
 
+import "context"
+
 const (
 	ProviderName           = "machnet"
 	TypeReceiveBankAccount = "receiveBankAccount"
 )
+
+type Await func(context.Context) error
 
 type User struct {
 	ID        string    `db:"id"`

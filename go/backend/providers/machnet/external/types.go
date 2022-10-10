@@ -50,7 +50,6 @@ const (
 )
 
 type CreateTransactionArgs struct {
-	ID                string            `json:"id"`
 	FromUserID        string            `json:"user_id"`
 	FromFundID        string            `json:"from_fund_id"`
 	FundingSourceType FundingSourceType `json:"funding_source_type"`
