@@ -321,6 +321,8 @@ type BackendServiceClient interface {
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 	LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetMachnetWidgetToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MachnetWidgetToken, error)
+	ListBanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListBanksResponse, error)
+	CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -506,6 +508,24 @@ func (c *backendServiceClient) GetMachnetWidgetToken(ctx context.Context, in *Em
 	return out, nil
 }
 
+func (c *backendServiceClient) ListBanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListBanksResponse, error) {
+	out := new(ListBanksResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListBanks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateReceiveBankAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -560,6 +580,8 @@ type BackendServiceServer interface {
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 	LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error)
 	GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error)
+	ListBanks(context.Context, *Empty) (*ListBanksResponse, error)
+	CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -626,6 +648,12 @@ func (UnimplementedBackendServiceServer) LinkCashAccount(context.Context, *LinkC
 }
 func (UnimplementedBackendServiceServer) GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMachnetWidgetToken not implemented")
+}
+func (UnimplementedBackendServiceServer) ListBanks(context.Context, *Empty) (*ListBanksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBanks not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateReceiveBankAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -990,6 +1018,42 @@ func _BackendService_GetMachnetWidgetToken_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListBanks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListBanks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListBanks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListBanks(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CreateReceiveBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReceiveBankAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateReceiveBankAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateReceiveBankAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateReceiveBankAccount(ctx, req.(*CreateReceiveBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1126,6 +1190,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMachnetWidgetToken",
 			Handler:    _BackendService_GetMachnetWidgetToken_Handler,
+		},
+		{
+			MethodName: "ListBanks",
+			Handler:    _BackendService_ListBanks_Handler,
+		},
+		{
+			MethodName: "CreateReceiveBankAccount",
+			Handler:    _BackendService_CreateReceiveBankAccount_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",
