@@ -17,7 +17,7 @@ func New() *Client {
 		userHasReceiveUsers: map[string][]string{},
 		fundingsources:      map[string]external.FundingSource{},
 		transactions:        map[string]external.Transaction{},
-		receiveUserAccounts: map[string]external.ReceiveUserAccount{},
+		receiveUserAccounts: map[string]external.ReceiveUserBankAccount{},
 	}
 }
 
@@ -26,7 +26,7 @@ type Client struct {
 	userHasReceiveUsers map[string][]string
 	fundingsources      map[string]external.FundingSource
 	transactions        map[string]external.Transaction
-	receiveUserAccounts map[string]external.ReceiveUserAccount
+	receiveUserAccounts map[string]external.ReceiveUserBankAccount
 }
 
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
@@ -236,7 +236,7 @@ func (c Client) CreateUserFundingsource(ctx context.Context, fs external.Funding
 	return &ret, nil
 }
 
-func (c Client) CreateReceiveUserAccount(ctx context.Context, sendUserID, receiveUserID string, acc external.ReceiveUserAccount) (*external.ReceiveUserAccount, error) {
+func (c Client) CreateReceiveUserBankAccount(ctx context.Context, sendUserID, receiveUserID string, acc external.ReceiveUserBankAccount) (*external.ReceiveUserBankAccount, error) {
 	if acc.PayoutMethod != external.TypeBankDeposit {
 		return nil, fmt.Errorf("%w Can only create receive user bank accounts.", external.ErrInvalidArgument)
 	}
@@ -250,7 +250,7 @@ func (c Client) CreateReceiveUserAccount(ctx context.Context, sendUserID, receiv
 		return nil, fmt.Errorf("%w Receive user not found.", external.ErrNotFound)
 	}
 
-	ra := external.ReceiveUserAccount{
+	ra := external.ReceiveUserBankAccount{
 		ID:            uuid.NewString(),
 		UserID:        receiveUser.ID,
 		AccountNumber: acc.AccountNumber,

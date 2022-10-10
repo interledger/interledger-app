@@ -113,7 +113,7 @@ type Transaction struct {
 	// TODO: to field
 }
 
-type ReceiveUserAccount struct {
+type ReceiveUserBankAccount struct {
 	ID            string `json:"id,omitempty"`
 	UserID        string `json:"user_id,omitempty"`
 	AccountNumber string `json:"account_number,omitempty"`

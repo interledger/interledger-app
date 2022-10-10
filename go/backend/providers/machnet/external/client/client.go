@@ -74,7 +74,7 @@ func (c Client) RegisterUser(ctx context.Context, user external.User) (*external
 	return &externalUser, nil
 }
 
-func (c Client) CreateReceiveUserAccount(ctx context.Context, sendUserID, receiveUserID string, acc external.ReceiveUserAccount) (*external.ReceiveUserAccount, error) {
+func (c Client) CreateReceiveUserBankAccount(ctx context.Context, sendUserID, receiveUserID string, acc external.ReceiveUserBankAccount) (*external.ReceiveUserBankAccount, error) {
 	payload, err := json.Marshal(acc)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -90,7 +90,7 @@ func (c Client) CreateReceiveUserAccount(ctx context.Context, sendUserID, receiv
 		return nil, err
 	}
 
-	var externalAccount external.ReceiveUserAccount
+	var externalAccount external.ReceiveUserBankAccount
 	err = json.Unmarshal(body, &externalAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
