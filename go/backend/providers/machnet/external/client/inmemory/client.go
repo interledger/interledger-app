@@ -201,7 +201,7 @@ func (c Client) CreateTransaction(
 	}
 
 	trx := external.Transaction{
-		ID:                args.ID,
+		ID:                uuid.NewString(),
 		UserID:            args.FromUserID,
 		FromAmount:        args.FromAmount,
 		FromCurrency:      args.FromCurrency,
@@ -211,9 +211,6 @@ func (c Client) CreateTransaction(
 		FromFundID:        args.FromFundID,
 		FundingsourceType: args.FundingSourceType,
 		DeliveryStatus:    external.DeliveryStatusNone,
-	}
-	if trx.ID == "" {
-		trx.ID = uuid.NewString()
 	}
 
 	c.transactions[trx.ID] = trx

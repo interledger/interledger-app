@@ -3,8 +3,6 @@ package workflows
 import (
 	"time"
 
-	"github.com/google/uuid"
-
 	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"go.temporal.io/sdk/workflow"
@@ -54,18 +52,8 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateTransactionWorkflow workflow started", "walletID", args.FromWalletID, "Amount", args.Amount)
 
-	trxIDEncoded := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	})
-
 	var trxID string
-	err := trxIDEncoded.Get(&trxID)
-	if err != nil {
-		logger.Error("CreateTransaction Activity failed.", "Error", err)
-		return "", err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, trxID, args).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CreateTransaction, args).Get(ctx, &trxID)
 	if err != nil {
 		logger.Error("CreateTransaction Activity failed.", "Error", err)
 		return "", err

@@ -71,7 +71,7 @@ func (c client) HandleEvent(ctx context.Context, event external.Event) error {
 	return ops.HandleEvent(ctx, c.b, event)
 }
 
-func (c client) CreateSendUser(ctx context.Context, walletID string) error {
+func (c client) CreateSendUser(ctx context.Context, walletID string) (machnet.Await, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
 		ID:        "machnet_create_send_user_" + walletID,
 		TaskQueue: "backend",
@@ -79,16 +79,17 @@ func (c client) CreateSendUser(ctx context.Context, walletID string) error {
 
 	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateSendUserWorkflow, walletID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Wait for the Workflow to complete.
-	var externalUserID string
-	err = wf.Get(ctx, &externalUserID)
-	return err
+	return func(ctx context.Context) error {
+		// Wait for the Workflow to complete.
+		var externalUserID string
+		return wf.Get(ctx, &externalUserID)
+	}, nil
 }
 
-func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) error {
+func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) (machnet.Await, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
 		ID:        "machnet_create_transaction_" + args.FromWalletID,
 		TaskQueue: "backend",
@@ -96,13 +97,14 @@ func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransa
 
 	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateTransactionWorkflow, args)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Wait for the Workflow to complete.
-	var trxID string
-	err = wf.Get(ctx, &trxID)
-	return err
+	return func(ctx context.Context) error {
+		// Wait for the Workflow to complete.
+		var trxID string
+		return wf.Get(ctx, &trxID)
+	}, nil
 }
 
 func (c client) CreateReceiveBankAccount(ctx context.Context, args machnet.CreateReceiveBankAccountArgs) (*machnet.ReceiveBankAccount, error) {
