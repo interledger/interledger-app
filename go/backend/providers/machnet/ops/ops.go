@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -82,6 +83,47 @@ func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.
 		ExpiresInMinutes: token.ExpiryMinutes,
 		UserID:           token.UserID,
 	}, nil
+}
+
+func CreateReceiveAccount(ctx context.Context, b Backends, args machnet.CreateReceiveAccountArgs) (*machnet.ReceiveAccount, error) {
+	insert := db.NewInsert("machnet_receive_accounts").
+		Value("wallet_id", args.WalletID).
+		Value("account_number", args.AccountNumber).
+		Value("type", args.Type).
+		Value("bank_id", args.BankID).
+		Value("branch_id", args.BranchID).
+		Returning("id, wallet_id, account_number, type, bank_id, branch_id, created_at, updated_at")
+
+	statement, values, err := insert.GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var ra machnet.ReceiveAccount
+	err = b.DB().GetContext(ctx, &ra, statement, values...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ra, nil
+}
+
+func GetReceiveAccount(ctx context.Context, b Backends, id string) (*machnet.ReceiveAccount, error) {
+	var ra machnet.ReceiveAccount
+	err := b.DB().GetContext(
+		ctx,
+		&ra,
+		"SELECT id, wallet_id, account_number, type, bank_id, branch_id, created_at, updated_at FROM machnet_receive_accounts WHERE id=$1;",
+		id,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ra, nil
 }
 
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {

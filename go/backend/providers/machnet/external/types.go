@@ -12,7 +12,7 @@ const (
 	ReceiveUser = "RECEIVE"
 
 	TypeCard = "CARD"
-	TypeBank = "Bank"
+	TypeBank = "BANK"
 
 	DeliveryStatusNone      = "NONE"
 	DeliveryStatusRequested = "DELIVERY_REQUESTED"

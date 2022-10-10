@@ -21,6 +21,28 @@ type WidgetToken struct {
 	UserID           string
 }
 
+type (
+	// This will underpin a linked account and is used to create Machnet receive user accounts.
+	ReceiveAccount struct {
+		ID            string `db:"id"`
+		WalletID      string `db:"wallet_id"`
+		AccountNumber string `db:"account_number"`
+		Type          string `db:"type"`
+		BankID        uint32 `db:"bank_id"`
+		BranchID      uint32 `db:"branch_id"`
+		CreatedAt     string `db:"created_at"`
+		UpdatedAt     string `db:"updated_at"`
+	}
+
+	CreateReceiveAccountArgs struct {
+		WalletID      string
+		AccountNumber string
+		Type          string
+		BankID        uint32
+		BranchID      uint32
+	}
+)
+
 type KYCStatus int
 
 const (
