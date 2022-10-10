@@ -96,6 +96,21 @@ func (mr *MockClientMockRecorder) CreateUser(ctx, args interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockClient)(nil).CreateUser), ctx, args)
 }
 
+// GetBanks mocks base method.
+func (m *MockClient) GetBanks(ctx context.Context, countryCode string) ([]machnet.Bank, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBanks", ctx, countryCode)
+	ret0, _ := ret[0].([]machnet.Bank)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBanks indicates an expected call of GetBanks.
+func (mr *MockClientMockRecorder) GetBanks(ctx, countryCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBanks", reflect.TypeOf((*MockClient)(nil).GetBanks), ctx, countryCode)
+}
+
 // GetReceiveBankAccount mocks base method.
 func (m *MockClient) GetReceiveBankAccount(ctx context.Context, id string) (*machnet.ReceiveBankAccount, error) {
 	m.ctrl.T.Helper()
