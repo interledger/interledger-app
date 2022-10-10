@@ -201,29 +201,26 @@ func TestCreateReceiveAccount(t *testing.T) {
 	b := NewTestBackends(t)
 	walletID := NewWallet(t, b)
 
-	ra, err := ops.CreateReceiveAccount(context.Background(), b, machnet.CreateReceiveAccountArgs{
+	ra, err := ops.CreateReceiveBankAccount(context.Background(), b, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      walletID,
 		AccountNumber: "1234",
-		Type:          external.TypeBank,
 		BankID:        1,
 		BranchID:      2,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, walletID, ra.WalletID)
 	assert.Equal(t, "1234", ra.AccountNumber)
-	assert.Equal(t, external.TypeBank, ra.Type)
 	assert.Equal(t, uint32(1), ra.BankID)
 	assert.Equal(t, uint32(2), ra.BranchID)
 
-	freshRa, err := ops.GetReceiveAccount(context.Background(), b, ra.ID)
+	freshRa, err := ops.GetReceiveBankAccount(context.Background(), b, ra.ID)
 	require.NoError(t, err)
 	assert.Equal(t, walletID, freshRa.WalletID)
 	assert.Equal(t, "1234", freshRa.AccountNumber)
-	assert.Equal(t, external.TypeBank, freshRa.Type)
 	assert.Equal(t, uint32(1), freshRa.BankID)
 	assert.Equal(t, uint32(2), freshRa.BranchID)
 
-	noRa, err := ops.GetReceiveAccount(context.Background(), b, uuid.NewString())
+	noRa, err := ops.GetReceiveBankAccount(context.Background(), b, uuid.NewString())
 	assert.Nil(t, noRa)
 	assert.ErrorIs(t, err, machnet.ErrNotFound)
 }
@@ -273,10 +270,9 @@ func TestCreateReceiveUserAccount(t *testing.T) {
 	walletID := NewWallet(t, b)
 	receiveWalletID := NewWallet(t, b)
 
-	ra, err := ops.CreateReceiveAccount(context.Background(), b, machnet.CreateReceiveAccountArgs{
+	ra, err := ops.CreateReceiveBankAccount(context.Background(), b, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      receiveWalletID,
 		AccountNumber: "1234",
-		Type:          external.TypeBank,
 		BankID:        1,
 		BranchID:      2,
 	})
@@ -296,21 +292,21 @@ func TestCreateReceiveUserAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	externalID := uuid.NewString()
-	rua, err := ops.CreateReceiveUserAccount(context.Background(), b, machnet.CreateReceiveUserAccountArgs{
-		ExternalID:       externalID,
-		ReceiveUserID:    ru.ID,
-		ReceiveAccountID: ra.ID,
+	rua, err := ops.CreateReceiveUserBankAccount(context.Background(), b, machnet.CreateReceiveUserBankAccountArgs{
+		ExternalID:           externalID,
+		ReceiveUserID:        ru.ID,
+		ReceiveBankAccountID: ra.ID,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, externalID, rua.ID)
 	assert.Equal(t, ru.ID, rua.ReceiveUserID)
-	assert.Equal(t, ra.ID, rua.ReceiveAccountID)
+	assert.Equal(t, ra.ID, rua.ReceiveBankAccountID)
 
 	// can only add a receive account once to a receive user
-	rua, err = ops.CreateReceiveUserAccount(context.Background(), b, machnet.CreateReceiveUserAccountArgs{
-		ExternalID:       uuid.NewString(),
-		ReceiveUserID:    ru.ID,
-		ReceiveAccountID: ra.ID,
+	rua, err = ops.CreateReceiveUserBankAccount(context.Background(), b, machnet.CreateReceiveUserBankAccountArgs{
+		ExternalID:           uuid.NewString(),
+		ReceiveUserID:        ru.ID,
+		ReceiveBankAccountID: ra.ID,
 	})
 	require.Error(t, err)
 	require.Nil(t, rua)
@@ -319,7 +315,7 @@ func TestCreateReceiveUserAccount(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, externalID, freshRua.ID)
 	assert.Equal(t, ru.ID, freshRua.ReceiveUserID)
-	assert.Equal(t, ra.ID, freshRua.ReceiveAccountID)
+	assert.Equal(t, ra.ID, freshRua.ReceiveBankAccountID)
 }
 
 func NewTestBackends(t *testing.T) backends {

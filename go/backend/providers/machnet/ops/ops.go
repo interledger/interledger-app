@@ -85,21 +85,20 @@ func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.
 	}, nil
 }
 
-func CreateReceiveAccount(ctx context.Context, b Backends, args machnet.CreateReceiveAccountArgs) (*machnet.ReceiveAccount, error) {
-	insert := db.NewInsert("machnet_receive_accounts").
+func CreateReceiveBankAccount(ctx context.Context, b Backends, args machnet.CreateReceiveBankAccountArgs) (*machnet.ReceiveBankAccount, error) {
+	insert := db.NewInsert("machnet_receive_bank_accounts").
 		Value("wallet_id", args.WalletID).
 		Value("account_number", args.AccountNumber).
-		Value("type", args.Type).
 		Value("bank_id", args.BankID).
 		Value("branch_id", args.BranchID).
-		Returning("id, wallet_id, account_number, type, bank_id, branch_id, created_at, updated_at")
+		Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
 
 	statement, values, err := insert.GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
-	var ra machnet.ReceiveAccount
+	var ra machnet.ReceiveBankAccount
 	err = b.DB().GetContext(ctx, &ra, statement, values...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -108,12 +107,12 @@ func CreateReceiveAccount(ctx context.Context, b Backends, args machnet.CreateRe
 	return &ra, nil
 }
 
-func GetReceiveAccount(ctx context.Context, b Backends, id string) (*machnet.ReceiveAccount, error) {
-	var ra machnet.ReceiveAccount
+func GetReceiveBankAccount(ctx context.Context, b Backends, id string) (*machnet.ReceiveBankAccount, error) {
+	var ra machnet.ReceiveBankAccount
 	err := b.DB().GetContext(
 		ctx,
 		&ra,
-		"SELECT id, wallet_id, account_number, type, bank_id, branch_id, created_at, updated_at FROM machnet_receive_accounts WHERE id=$1;",
+		"SELECT id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at FROM machnet_receive_bank_accounts WHERE id=$1;",
 		id,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -165,19 +164,19 @@ func GetReceiveUserByReceiveWalletID(ctx context.Context, b Backends, receiveWal
 	return &ru, nil
 }
 
-func CreateReceiveUserAccount(ctx context.Context, b Backends, args machnet.CreateReceiveUserAccountArgs) (*machnet.ReceiveUserAccount, error) {
-	insert := db.NewInsert("machnet_receive_user_accounts").
+func CreateReceiveUserBankAccount(ctx context.Context, b Backends, args machnet.CreateReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
+	insert := db.NewInsert("machnet_receive_user_bank_accounts").
 		Value("id", args.ExternalID).
 		Value("receive_user_id", args.ReceiveUserID).
-		Value("receive_account_id", args.ReceiveAccountID).
-		Returning("id, receive_user_id, receive_account_id, created_at, updated_at")
+		Value("receive_bank_account_id", args.ReceiveBankAccountID).
+		Returning("id, receive_user_id, receive_bank_account_id, created_at, updated_at")
 
 	statement, values, err := insert.GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
-	var rua machnet.ReceiveUserAccount
+	var rua machnet.ReceiveUserBankAccount
 	err = b.DB().GetContext(ctx, &rua, statement, values...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -186,12 +185,12 @@ func CreateReceiveUserAccount(ctx context.Context, b Backends, args machnet.Crea
 	return &rua, nil
 }
 
-func GetReceiveUserAccountByReceiveAccountID(ctx context.Context, b Backends, receiveAccountID string) (*machnet.ReceiveUserAccount, error) {
-	var rua machnet.ReceiveUserAccount
+func GetReceiveUserAccountByReceiveAccountID(ctx context.Context, b Backends, receiveAccountID string) (*machnet.ReceiveUserBankAccount, error) {
+	var rua machnet.ReceiveUserBankAccount
 	err := b.DB().GetContext(
 		ctx,
 		&rua,
-		"SELECT id, receive_user_id, receive_account_id, created_at, updated_at FROM machnet_receive_user_accounts WHERE receive_account_id=$1;",
+		"SELECT id, receive_user_id, receive_bank_account_id, created_at, updated_at FROM machnet_receive_user_bank_accounts WHERE receive_bank_account_id=$1;",
 		receiveAccountID,
 	)
 	if err == sql.ErrNoRows {

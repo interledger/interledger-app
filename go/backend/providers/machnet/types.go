@@ -23,21 +23,19 @@ type WidgetToken struct {
 
 type (
 	// This will underpin a linked account and is used to create Machnet receive user accounts.
-	ReceiveAccount struct {
+	ReceiveBankAccount struct {
 		ID            string `db:"id"`
 		WalletID      string `db:"wallet_id"`
 		AccountNumber string `db:"account_number"`
-		Type          string `db:"type"`
 		BankID        uint32 `db:"bank_id"`
 		BranchID      uint32 `db:"branch_id"`
 		CreatedAt     string `db:"created_at"`
 		UpdatedAt     string `db:"updated_at"`
 	}
 
-	CreateReceiveAccountArgs struct {
+	CreateReceiveBankAccountArgs struct {
 		WalletID      string
 		AccountNumber string
-		Type          string
 		BankID        uint32
 		BranchID      uint32
 	}
@@ -60,18 +58,18 @@ type (
 )
 
 type (
-	ReceiveUserAccount struct {
-		ID               string `db:"id"`
-		ReceiveUserID    string `db:"receive_user_id"`
-		ReceiveAccountID string `db:"receive_account_id"`
-		CreatedAt        string `db:"created_at"`
-		UpdatedAt        string `db:"updated_at"`
+	ReceiveUserBankAccount struct {
+		ID                   string `db:"id"`
+		ReceiveUserID        string `db:"receive_user_id"`
+		ReceiveBankAccountID string `db:"receive_bank_account_id"`
+		CreatedAt            string `db:"created_at"`
+		UpdatedAt            string `db:"updated_at"`
 	}
 
-	CreateReceiveUserAccountArgs struct {
-		ExternalID       string
-		ReceiveUserID    string
-		ReceiveAccountID string
+	CreateReceiveUserBankAccountArgs struct {
+		ExternalID           string
+		ReceiveUserID        string
+		ReceiveBankAccountID string
 	}
 )
 
