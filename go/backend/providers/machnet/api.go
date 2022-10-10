@@ -18,4 +18,5 @@ type Client interface {
 	GetReceiveUser(ctx context.Context, args GetReceiveUserArgs) (*ReceiveUser, error)
 	CreateReceiveUserBankAccount(ctx context.Context, args CreateReceiveUserBankAccountArgs) (*ReceiveUserBankAccount, error)
 	GetReceiveUserBankAccount(ctx context.Context, args GetReceiveUserBankAccountArgs) (*ReceiveUserBankAccount, error)
+	GetBanks(ctx context.Context, countryCode string) ([]Bank, error)
 }

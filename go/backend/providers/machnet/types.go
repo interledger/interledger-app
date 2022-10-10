@@ -93,3 +93,14 @@ const (
 	KYCStatusSuspended     KYCStatus = 4 // When a user's KYC is rejected during KYC process.
 	KYCStatusReviewPending KYCStatus = 5 // When a user’s KYC process is in review state.
 )
+
+type Branch struct {
+	ID   uint32
+	Name string
+}
+
+type Bank struct {
+	ID       uint32
+	Name     string
+	Branches []Branch
+}
