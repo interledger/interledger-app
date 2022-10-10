@@ -57,7 +57,7 @@ func GetUserByID(ctx context.Context, b Backends, id string) (*machnet.User, err
 		"SELECT id, wallet_id, kyc_status, created_at, updated_at from machnet_users WHERE id = $1;",
 		id,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, machnet.ErrNotFound
 	}
 	if err != nil {
@@ -155,7 +155,7 @@ func GetReceiveUser(ctx context.Context, b Backends, args machnet.GetReceiveUser
 		args.ReceiveWalletID,
 		args.SendUserID,
 	)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, machnet.ErrNotFound
 	}
 	if err != nil {

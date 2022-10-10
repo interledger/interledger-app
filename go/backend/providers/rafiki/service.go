@@ -138,7 +138,7 @@ func (s *service) GetIdentifier(ctx context.Context, id string) (*Identifier, er
 		id,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -161,7 +161,7 @@ func (s *service) GetIdentifierByAccountAndCurrency(
 		currencyCode,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)

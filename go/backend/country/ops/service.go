@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/country"
@@ -16,7 +17,7 @@ func Get(ctx context.Context, b Backends, id string) (*country.Country, error) {
 	var ret country.Country
 	err := b.DB().GetContext(ctx, &ret, "SELECT * FROM countries WHERE id=$1 LIMIT 1", id)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, country.ErrNotFound
 		}
 
@@ -34,7 +35,7 @@ func GetByAlpha2(ctx context.Context, b Backends, code string) (*country.Country
 	var ret country.Country
 	err := b.DB().GetContext(ctx, &ret, "SELECT * FROM countries WHERE alpha_2=$1 LIMIT 1", code)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, country.ErrNotFound
 		}
 
