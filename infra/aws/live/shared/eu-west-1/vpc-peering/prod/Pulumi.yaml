@@ -1,0 +1,4 @@
+name: aws-shared-euwest1-vpc-peering-prod
+runtime:
+  name: go
+description: Vpc peering with the dev vpc
