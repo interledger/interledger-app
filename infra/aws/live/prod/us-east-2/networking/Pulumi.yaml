@@ -1,0 +1,4 @@
+name: aws-prod-useast2-networking
+runtime:
+  name: go
+description: Networking for aws prod account in us-east-2
