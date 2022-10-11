@@ -1,0 +1,3 @@
+name: aws-prod-us-east-2-prod-k8s-config
+runtime: go
+description: Prod k8s cluster configuration
