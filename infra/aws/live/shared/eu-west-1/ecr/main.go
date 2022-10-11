@@ -13,6 +13,7 @@ func main() {
 		accountID := cfg.Require("accountID")
 		crossAccountIds := []string{
 			"634848879735",
+			"806897333161",
 		}
 
 		backendEcrRepo, err := ecr.NewPrivateRepository(ctx, "backend", accountID, crossAccountIds)
