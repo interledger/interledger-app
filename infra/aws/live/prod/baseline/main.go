@@ -49,7 +49,7 @@ func main() {
 			return err
 		}
 
-		ebsKey, err := secure_baseline.EbsBaseline(ctx, "dev-ebs", accountId, ebsKeyPolicy)
+		ebsKey, err := secure_baseline.EbsBaseline(ctx, "prod-ebs", accountId, ebsKeyPolicy)
 		if err != nil {
 			return err
 		}
