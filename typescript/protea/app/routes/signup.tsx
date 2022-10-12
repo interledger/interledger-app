@@ -5,8 +5,10 @@ import { flowType, getCurrentFlow, requireFlow } from '~/lib/flows.server'
 import { Button, Router, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { Form } from '@remix-run/react'
+import { canSignup } from '~/lib/signupCheck.server'
 
 export async function loader({ request }: LoaderArgs) {
+  await canSignup(request)
   await requireNoUserSession(request)
   const headers = await requireFlow(request, flowType.Signup)
   return json({}, { headers })

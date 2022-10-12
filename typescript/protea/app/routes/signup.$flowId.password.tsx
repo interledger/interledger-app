@@ -12,8 +12,10 @@ import { route } from 'routes-gen'
 import { trimHeaders } from '~/lib/headers.server'
 import { grpcClient } from '~/lib/proto.server'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
+import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
 
 export async function loader({ request }: LoaderArgs) {
+  await canSignup(request)
   const flow = await getCurrentFlow(request, flowType.Signup)
   const cookie = String(request.headers.get('cookie'))
 
@@ -216,11 +218,13 @@ export async function action({ request }: ActionArgs) {
   const successData = data as SuccessfulSelfServiceRegistrationWithoutBrowser
 
   // Mark signup complete
+  const userId = successData.identity.id
   // TODO: also handle via kratos webhook, add retry here and error handling
   await grpcClient.completeSignup({
     id: flow.id,
-    userId: successData.identity.id
+    userId: userId
   })
+  await setWaitlistSignupComplete(request, userId)
 
   const headers = await exitFlow(request, flowType.Signup)
 

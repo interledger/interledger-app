@@ -22,8 +22,10 @@ import type {
   Country,
   SetSignupUserDataResponse
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { canSignup } from '~/lib/signupCheck.server'
 
 export async function loader({ request, params }: LoaderArgs) {
+  await canSignup(request)
   await requireFlow(request, flowType.Signup, params)
   const flow = await getCurrentFlow(request, flowType.Signup)
 
