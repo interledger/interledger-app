@@ -37,7 +37,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
-	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -179,15 +178,6 @@ func start(args *cli.StartArgs) {
 	b.signup = signup_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, logger)
-
-	rafikiProvider, err := rafiki.NewService(&rafiki.ServiceArgs{
-		Db:  db,
-		Url: args.RafikiGraphqlUrl,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.rafiki = rafikiProvider
 
 	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
@@ -346,7 +336,6 @@ type backends struct {
 	healthcheck    healthcheck.Service
 	signup         signup.Client
 	pacioli        pacioli.Client
-	rafiki         rafiki.Service
 	supportTickets supporttickets.Client
 	temporal       client.Client
 	twilio         _twilio.Service
@@ -377,10 +366,6 @@ func (b backends) Agreements() agreements.Client {
 
 func (b backends) FakeCash() fakecash.Client {
 	return b.fakecash
-}
-
-func (b backends) Rafiki() rafiki.Service {
-	return b.rafiki
 }
 
 func (b backends) SupportTickets() supporttickets.Client {

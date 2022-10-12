@@ -30,7 +30,6 @@ import (
 	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
-	"gitlab.com/fynbos/backend/providers/rafiki"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
@@ -55,7 +54,6 @@ type TestContainer struct {
 	machnet           *machnet_mock.MockClient
 	TwilioService     *twilio.MockService
 	SignupService     *signup_mock.MockClient
-	RafikiProvider    *rafiki.MockService
 	WaitlistClient    *waitlist_mock.MockClient
 	TemporalImpl      *mocks.Client
 	TicketClient      *support_mock.MockClient
@@ -68,10 +66,6 @@ func (t TestContainer) KYC() kyc.Client {
 
 func (t TestContainer) DB() *sqlx.DB {
 	return nil
-}
-
-func (t TestContainer) Rafiki() rafiki.Service {
-	return t.RafikiProvider
 }
 
 func (t TestContainer) AdminAuth() auth.Service {
@@ -151,7 +145,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		machnet:           machnet_mock.NewMockClient(ctrl),
 		TwilioService:     twilio.NewMockService(ctrl),
 		SignupService:     signup_mock.NewMockClient(ctrl),
-		RafikiProvider:    rafiki.NewMockService(ctrl),
 		WaitlistClient:    waitlist_mock.NewMockClient(ctrl),
 		TicketClient:      support_mock.NewMockClient(ctrl),
 		TemporalImpl:      &mocks.Client{},
