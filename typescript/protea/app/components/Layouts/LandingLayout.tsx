@@ -77,7 +77,7 @@ export function LandingLayout() {
         <Outlet />
       </div>
 
-      <footer className='w-full flex-shrink-0 overflow-hidden bg-[#0B2045]'>
+      <footer className='z-10 w-full flex-shrink-0 overflow-hidden bg-[#0B2045]'>
         <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='relative col-span-full h-20'>
             <div className='absolute right-64 top-0 h-20 w-20 rounded-full bg-[#182C4F] lg:right-36' />
