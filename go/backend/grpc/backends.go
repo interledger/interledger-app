@@ -11,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/machnet"
-	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/twilio"
@@ -30,7 +29,6 @@ type Backends interface {
 	Machnet() machnet.Client
 	HealthCheck() healthcheck.Service
 	Signup() signup.Client
-	Rafiki() rafiki.Service
 	SupportTickets() supporttickets.Client
 	Temporal() temporal.Client
 	Twilio() twilio.Service

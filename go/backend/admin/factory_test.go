@@ -32,7 +32,6 @@ import (
 	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
-	"gitlab.com/fynbos/backend/providers/rafiki"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
@@ -60,7 +59,6 @@ type TestContainer struct {
 	Oso             *oso.Oso
 	Cs              country.Client
 	Tp              *mocks.Client
-	RafikiProvider  *rafiki.MockService
 	AdminConn       *grpc.ClientConn
 	AdminClient     backend.BackendAdminServiceClient
 	AdminServer     *grpc.Server
@@ -105,10 +103,6 @@ func (c *TestContainer) HealthCheck() healthcheck.Service {
 
 func (c *TestContainer) Signup() signup.Client {
 	return c.Si
-}
-
-func (c *TestContainer) Rafiki() rafiki.Service {
-	return c.RafikiProvider
 }
 
 func (c *TestContainer) SupportTickets() supporttickets.Client {
@@ -196,7 +190,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.AgreementsImpl = agreements_client.New(c)
 	c.Ctrl = gomock.NewController(t)
 	c.linkedAccounts = linked_account_mock.NewMockClient(c.Ctrl)
-	c.RafikiProvider = rafiki.NewMockService(c.Ctrl)
 	c.TwilioImpl = twilio.NewMockService(c.Ctrl)
 	c.UsersImpl = user_mock.NewMock()
 	c.WaitlistImpl = waitlist_mock.NewMockClient(c.Ctrl)
