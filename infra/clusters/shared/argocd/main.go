@@ -86,79 +86,31 @@ func main() {
 			return err
 		}
 
-		err = newCluster(ctx, clusterArgs{
-			Name:             "dev-eu1",
-			ClusterName:      "dev-eu-west-1-cluster",
-			Namespace:        namespace.Metadata.Name().Elem(),
-			ClusterStackName: "fynbos/aws-dev-eu-west-1-dev-k8s/main",
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = NewDevProject(ctx, namespace.Metadata.Name().Elem(),
-			pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newProteaApplicationSet(ctx, proteaApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newTigerbeetleApplicationSet(ctx, tigerbeetleApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newCockroachApplicationSet(ctx, cockroachApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newPacioliApplicationSet(ctx, pacioliApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newTemporaliteApplicationSet(ctx, temporaliteApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newBackendApplicationSet(ctx, backendApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		postgresApplicationSet, err := newPostgresApplicationSet(ctx, postgresApplicationSetArgs{
-			Namespace: namespace.Metadata.Name().Elem(),
-		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
-		if err != nil {
-			return err
-		}
-
-		err = newRetoolApplicationSet(
-			ctx,
-			retoolApplicationSetArgs{
-				Namespace: namespace.Metadata.Name().Elem(),
+		_, err = apiextensions.NewCustomResource(ctx, "root-application", &apiextensions.CustomResourceArgs{
+			ApiVersion: pulumi.String("argoproj.io/v1alpha1"),
+			Kind:       pulumi.String("Application"),
+			Metadata: metav1.ObjectMetaArgs{
+				Name:      pulumi.String("root-app"),
+				Namespace: namespace.Metadata.Name(),
 			},
-			pulumi.Provider(kubeProvider),
-			pulumi.DependsOn([]pulumi.Resource{argo, namespace, postgresApplicationSet}),
-		)
+			OtherFields: kubernetes.UntypedArgs{
+				"spec": pulumi.Map{
+					"source": pulumi.Map{
+						"repoURL":        pulumi.String("https://gitlab.com/fynbos/rooibos.git"),
+						"targetRevision": pulumi.String("main"),
+						"path":           pulumi.String("root-app"),
+					},
+					"syncPolicy": pulumi.Map{
+						"automated": pulumi.Map{},
+					},
+					"destination": pulumi.Map{
+						"server":    pulumi.String("https://kubernetes.default.svc"),
+						"namespace": namespace.Metadata.Name(),
+					},
+					"project": pulumi.String("default"),
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{argo, namespace}))
 		if err != nil {
 			return err
 		}
