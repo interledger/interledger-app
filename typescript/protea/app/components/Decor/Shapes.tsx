@@ -14,7 +14,7 @@ type Radius =
   | 'rounded-l-full'
   | 'rounded-r-full'
 
-type ShapeProps = {
+export type ShapeProps = {
   width?: string
   radius: Radius
   color: string
@@ -275,4 +275,121 @@ export function SuccessShapes() {
       ))}
     </div>
   )
+}
+
+export const BlogShapes: FC<{ slug: string; large?: boolean }> = ({
+  slug,
+  large
+}) => {
+  if (typeof blogShapes[slug] == 'undefined')
+    throw new Error(`Shapes for ${slug} blog post not found`)
+  const shapes: ShapeProps[][] = blogShapes[slug]
+  return (
+    <div>
+      {shapes.map((shapeRow, outerIndex) => (
+        <div className='flex' key={`shapeRow${outerIndex}`}>
+          {shapeRow.map((shape, index) => (
+            <Shape
+              key={`shape${outerIndex}${index}`}
+              width={clsx(large ? 'w-20' : 'w-10')}
+              {...shape}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const blogShapes: {
+  [key: string]: ShapeProps[][]
+} = {
+  'connecting-the-internet-economy': [
+    [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-rose-400'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-rose-600'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-200'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-100'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-orange-900'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-orange-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-600'
+      }
+    ]
+  ],
+  'card-payments-still-suck': [
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-slate-100'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-100'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-blue-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-orange-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-300'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-sky-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-blue-500'
+      }
+    ]
+  ]
 }
