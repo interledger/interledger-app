@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"errors"
-
 	"gitlab.com/fynbos/backend/waitlist"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -25,4 +24,24 @@ func (s *rpcService) JoinWaitlist(ctx context.Context, req *pb.JoinWaitlistReque
 	}
 
 	return &pb.JoinWaitlistResponse{}, nil
+}
+
+func (s *rpcService) CanSignup(ctx context.Context, req *pb.CanSignupRequest) (*pb.CanSignupResponse, error) {
+	canSignup, err := s.b.Waitlist().CanSignup(ctx, req.Id)
+	if err != nil {
+		return nil, InternalError("failed to query can signup.")
+	}
+
+	return &pb.CanSignupResponse{
+		CanSignup: canSignup,
+	}, nil
+}
+
+func (s *rpcService) SetSignupComplete(ctx context.Context, req *pb.SetSignupCompleteRequest) (*pb.Empty, error) {
+	err := s.b.Waitlist().SetSignupComplete(ctx, req.Id, req.UserId)
+	if err != nil {
+		return nil, InternalError("failed to query can signup.")
+	}
+
+	return &pb.Empty{}, nil
 }

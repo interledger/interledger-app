@@ -2,14 +2,17 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { SetSignupCompleteRequest } from "./backend";
+import type { CanSignupResponse } from "./backend";
+import type { CanSignupRequest } from "./backend";
+import type { JoinWaitlistResponse } from "./backend";
+import type { JoinWaitlistRequest } from "./backend";
 import type { MachnetWidgetToken } from "./backend";
 import type { LinkedAccount } from "./backend";
 import type { LinkCashAccountRequest } from "./backend";
 import type { GetCountriesResponse } from "./backend";
 import type { CreateSupportTicketRequest } from "./backend";
 import type { GetLinkedAccountsResponse } from "./backend";
-import type { JoinWaitlistResponse } from "./backend";
-import type { JoinWaitlistRequest } from "./backend";
 import type { SignAgreementsResponse } from "./backend";
 import type { SignAgreementsRequest } from "./backend";
 import type { Agreement } from "./backend";
@@ -201,10 +204,6 @@ export interface IBackendServiceClient {
      */
     signAgreements(input: SignAgreementsRequest, options?: RpcOptions): UnaryCall<SignAgreementsRequest, SignAgreementsResponse>;
     /**
-     * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
-     */
-    joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse>;
-    /**
      * @generated from protobuf rpc: GetLinkedAccounts(backend.v1.Empty) returns (backend.v1.GetLinkedAccountsResponse);
      */
     getLinkedAccounts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetLinkedAccountsResponse>;
@@ -224,6 +223,20 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetMachnetWidgetToken(backend.v1.Empty) returns (backend.v1.MachnetWidgetToken);
      */
     getMachnetWidgetToken(input: Empty, options?: RpcOptions): UnaryCall<Empty, MachnetWidgetToken>;
+    /**
+     * Waitlist
+     *
+     * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
+     */
+    joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse>;
+    /**
+     * @generated from protobuf rpc: CanSignup(backend.v1.CanSignupRequest) returns (backend.v1.CanSignupResponse);
+     */
+    canSignup(input: CanSignupRequest, options?: RpcOptions): UnaryCall<CanSignupRequest, CanSignupResponse>;
+    /**
+     * @generated from protobuf rpc: SetSignupComplete(backend.v1.SetSignupCompleteRequest) returns (backend.v1.Empty);
+     */
+    setSignupComplete(input: SetSignupCompleteRequest, options?: RpcOptions): UnaryCall<SetSignupCompleteRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -341,45 +354,61 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<SignAgreementsRequest, SignAgreementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
-     */
-    joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[14], opt = this._transport.mergeOptions(options);
-        return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
      * @generated from protobuf rpc: GetLinkedAccounts(backend.v1.Empty) returns (backend.v1.GetLinkedAccountsResponse);
      */
     getLinkedAccounts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetLinkedAccountsResponse> {
-        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetLinkedAccountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);
      */
     createSupportTicket(input: CreateSupportTicketRequest, options?: RpcOptions): UnaryCall<CreateSupportTicketRequest, Empty> {
-        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        const method = this.methods[15], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateSupportTicketRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetCountries(backend.v1.Empty) returns (backend.v1.GetCountriesResponse);
      */
     getCountries(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCountriesResponse> {
-        const method = this.methods[17], opt = this._transport.mergeOptions(options);
+        const method = this.methods[16], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetCountriesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: LinkCashAccount(backend.v1.LinkCashAccountRequest) returns (backend.v1.LinkedAccount);
      */
     linkCashAccount(input: LinkCashAccountRequest, options?: RpcOptions): UnaryCall<LinkCashAccountRequest, LinkedAccount> {
-        const method = this.methods[18], opt = this._transport.mergeOptions(options);
+        const method = this.methods[17], opt = this._transport.mergeOptions(options);
         return stackIntercept<LinkCashAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetMachnetWidgetToken(backend.v1.Empty) returns (backend.v1.MachnetWidgetToken);
      */
     getMachnetWidgetToken(input: Empty, options?: RpcOptions): UnaryCall<Empty, MachnetWidgetToken> {
-        const method = this.methods[19], opt = this._transport.mergeOptions(options);
+        const method = this.methods[18], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, MachnetWidgetToken>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Waitlist
+     *
+     * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
+     */
+    joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
+        const method = this.methods[19], opt = this._transport.mergeOptions(options);
+        return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CanSignup(backend.v1.CanSignupRequest) returns (backend.v1.CanSignupResponse);
+     */
+    canSignup(input: CanSignupRequest, options?: RpcOptions): UnaryCall<CanSignupRequest, CanSignupResponse> {
+        const method = this.methods[20], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CanSignupRequest, CanSignupResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetSignupComplete(backend.v1.SetSignupCompleteRequest) returns (backend.v1.Empty);
+     */
+    setSignupComplete(input: SetSignupCompleteRequest, options?: RpcOptions): UnaryCall<SetSignupCompleteRequest, Empty> {
+        const method = this.methods[21], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SetSignupCompleteRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

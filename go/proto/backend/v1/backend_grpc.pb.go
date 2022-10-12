@@ -316,12 +316,15 @@ type BackendServiceClient interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
-	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 	LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetMachnetWidgetToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MachnetWidgetToken, error)
+	//Waitlist
+	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
+	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
+	SetSignupComplete(ctx context.Context, in *SetSignupCompleteRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -458,15 +461,6 @@ func (c *backendServiceClient) SignAgreements(ctx context.Context, in *SignAgree
 	return out, nil
 }
 
-func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
-	out := new(JoinWaitlistResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error) {
 	out := new(GetLinkedAccountsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetLinkedAccounts", in, out, opts...)
@@ -512,6 +506,33 @@ func (c *backendServiceClient) GetMachnetWidgetToken(ctx context.Context, in *Em
 	return out, nil
 }
 
+func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
+	out := new(JoinWaitlistResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error) {
+	out := new(CanSignupResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CanSignup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SetSignupComplete(ctx context.Context, in *SetSignupCompleteRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetSignupComplete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -534,12 +555,15 @@ type BackendServiceServer interface {
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
-	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 	LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error)
 	GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error)
+	//Waitlist
+	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
+	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
+	SetSignupComplete(context.Context, *SetSignupCompleteRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -588,9 +612,6 @@ func (UnimplementedBackendServiceServer) GetAgreement(context.Context, *GetAgree
 func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignAgreements not implemented")
 }
-func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
-}
 func (UnimplementedBackendServiceServer) GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccounts not implemented")
 }
@@ -605,6 +626,15 @@ func (UnimplementedBackendServiceServer) LinkCashAccount(context.Context, *LinkC
 }
 func (UnimplementedBackendServiceServer) GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMachnetWidgetToken not implemented")
+}
+func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
+}
+func (UnimplementedBackendServiceServer) CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CanSignup not implemented")
+}
+func (UnimplementedBackendServiceServer) SetSignupComplete(context.Context, *SetSignupCompleteRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSignupComplete not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -870,24 +900,6 @@ func _BackendService_SignAgreements_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JoinWaitlistRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).JoinWaitlist(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/JoinWaitlist",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).JoinWaitlist(ctx, req.(*JoinWaitlistRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_GetLinkedAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -978,6 +990,60 @@ func _BackendService_GetMachnetWidgetToken_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinWaitlistRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).JoinWaitlist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/JoinWaitlist",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).JoinWaitlist(ctx, req.(*JoinWaitlistRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CanSignup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CanSignupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CanSignup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CanSignup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CanSignup(ctx, req.(*CanSignupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_SetSignupComplete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSignupCompleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SetSignupComplete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SetSignupComplete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SetSignupComplete(ctx, req.(*SetSignupCompleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1042,10 +1108,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_SignAgreements_Handler,
 		},
 		{
-			MethodName: "JoinWaitlist",
-			Handler:    _BackendService_JoinWaitlist_Handler,
-		},
-		{
 			MethodName: "GetLinkedAccounts",
 			Handler:    _BackendService_GetLinkedAccounts_Handler,
 		},
@@ -1064,6 +1126,18 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMachnetWidgetToken",
 			Handler:    _BackendService_GetMachnetWidgetToken_Handler,
+		},
+		{
+			MethodName: "JoinWaitlist",
+			Handler:    _BackendService_JoinWaitlist_Handler,
+		},
+		{
+			MethodName: "CanSignup",
+			Handler:    _BackendService_CanSignup_Handler,
+		},
+		{
+			MethodName: "SetSignupComplete",
+			Handler:    _BackendService_SetSignupComplete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
