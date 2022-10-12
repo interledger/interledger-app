@@ -88,12 +88,16 @@ service BackendService {
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
-  rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
   rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
+
+  //Waitlist
+  rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
+  rpc CanSignup(CanSignupRequest) returns(CanSignupResponse);
+  rpc SetSignupComplete(SetSignupCompleteRequest) returns(Empty);
 }
 
 message GetStatementsResponse {
@@ -138,7 +142,7 @@ message UpdateIndividualKYCRequest {
     optional string apartment = 4;
     optional string city = 5;
     optional string state = 6;
-    optional string zipCode= 7;
+    optional string zipCode = 7;
     optional string countryCode = 8;
     optional string placeID = 9;
     optional string formattedAddress = 10;
@@ -266,7 +270,7 @@ message ContinueAddingBankAccountResponse {
 }
 
 message Country {
-  string id =1;
+  string id = 1;
   string name = 2;
 }
 
@@ -282,4 +286,17 @@ message MachnetWidgetToken {
   string value = 1;
   int64 expiresInMinutes = 2;
   string userId = 3;
+}
+
+message CanSignupRequest{
+  string id = 1;
+}
+
+message CanSignupResponse{
+  bool canSignup = 1;
+}
+
+message SetSignupCompleteRequest{
+  string id = 1;
+  string userId = 2;
 }

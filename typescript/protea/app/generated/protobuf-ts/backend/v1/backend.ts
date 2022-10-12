@@ -657,6 +657,37 @@ export interface MachnetWidgetToken {
      */
     userId: string;
 }
+/**
+ * @generated from protobuf message backend.v1.CanSignupRequest
+ */
+export interface CanSignupRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CanSignupResponse
+ */
+export interface CanSignupResponse {
+    /**
+     * @generated from protobuf field: bool canSignup = 1;
+     */
+    canSignup: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.SetSignupCompleteRequest
+ */
+export interface SetSignupCompleteRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string userId = 2;
+     */
+    userId: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -3117,6 +3148,154 @@ class MachnetWidgetToken$Type extends MessageType<MachnetWidgetToken> {
  * @generated MessageType for protobuf message backend.v1.MachnetWidgetToken
  */
 export const MachnetWidgetToken = new MachnetWidgetToken$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CanSignupRequest$Type extends MessageType<CanSignupRequest> {
+    constructor() {
+        super("backend.v1.CanSignupRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CanSignupRequest>): CanSignupRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CanSignupRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CanSignupRequest): CanSignupRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CanSignupRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CanSignupRequest
+ */
+export const CanSignupRequest = new CanSignupRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CanSignupResponse$Type extends MessageType<CanSignupResponse> {
+    constructor() {
+        super("backend.v1.CanSignupResponse", [
+            { no: 1, name: "canSignup", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CanSignupResponse>): CanSignupResponse {
+        const message = { canSignup: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CanSignupResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CanSignupResponse): CanSignupResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool canSignup */ 1:
+                    message.canSignup = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CanSignupResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool canSignup = 1; */
+        if (message.canSignup !== false)
+            writer.tag(1, WireType.Varint).bool(message.canSignup);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CanSignupResponse
+ */
+export const CanSignupResponse = new CanSignupResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetSignupCompleteRequest$Type extends MessageType<SetSignupCompleteRequest> {
+    constructor() {
+        super("backend.v1.SetSignupCompleteRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetSignupCompleteRequest>): SetSignupCompleteRequest {
+        const message = { id: "", userId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetSignupCompleteRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetSignupCompleteRequest): SetSignupCompleteRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string userId */ 2:
+                    message.userId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetSignupCompleteRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string userId = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetSignupCompleteRequest
+ */
+export const SetSignupCompleteRequest = new SetSignupCompleteRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -3150,10 +3329,12 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SendOTP", options: {}, I: Empty, O: Empty },
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
-    { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "GetLinkedAccounts", options: {}, I: Empty, O: GetLinkedAccountsResponse },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
     { name: "GetCountries", options: {}, I: Empty, O: GetCountriesResponse },
     { name: "LinkCashAccount", options: {}, I: LinkCashAccountRequest, O: LinkedAccount },
-    { name: "GetMachnetWidgetToken", options: {}, I: Empty, O: MachnetWidgetToken }
+    { name: "GetMachnetWidgetToken", options: {}, I: Empty, O: MachnetWidgetToken },
+    { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
+    { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
+    { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }
 ]);
