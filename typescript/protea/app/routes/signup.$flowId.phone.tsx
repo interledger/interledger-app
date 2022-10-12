@@ -33,8 +33,10 @@ import {
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import styles from '~/styles/flags.css'
+import { requireNoUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request, params }: LoaderArgs) {
+  await requireNoUserSession(request)
   await requireFlow(request, flowType.Signup, params)
   const flow = await getCurrentFlow(request, flowType.Signup)
   let countries = await grpcClient

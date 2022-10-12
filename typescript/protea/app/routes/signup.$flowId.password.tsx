@@ -6,7 +6,8 @@ import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
   getCsrfTokenFromFlow,
   handleFlowError,
-  KRATOS_URL
+  KRATOS_URL,
+  requireNoUserSession
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
 import { trimHeaders } from '~/lib/headers.server'
@@ -15,6 +16,7 @@ import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/krato
 import { commitSession, getSession } from '~/sessions'
 
 export async function loader({ request }: LoaderArgs) {
+  await requireNoUserSession(request)
   const flow = await getCurrentFlow(request, flowType.Signup)
   const cookie = String(request.headers.get('cookie'))
 
