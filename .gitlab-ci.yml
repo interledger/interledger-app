@@ -44,8 +44,9 @@ trigger_deploy_dev_eu1:
   script:
     - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
     - cd rooibos
+    - git checkout -b gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
     - (cd backend/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
     - (cd protea/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
     - (cd pacioli/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA)
-    - git commit -am "Dev EU image update for ${CI_COMMIT_SHORT_SHA}"
-    - git push origin main
+    - git commit -am "Dev EU1 image update for ${CI_COMMIT_SHORT_SHA}"
+    - git push -o merge_request.create -o merge_request.target=main -o merge_request.title="Deploy dev-eu1 $CI_COMMIT_SHORT_SHA" -o merge_request.assign="$GITLAB_USER_ID" -o merge_request.remove_source_branch --set-upstream origin gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
