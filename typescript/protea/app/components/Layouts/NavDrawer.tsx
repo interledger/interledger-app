@@ -1,5 +1,5 @@
 import { Transition, Dialog } from '@headlessui/react'
-import { NavLink, useLocation } from '@remix-run/react'
+import { NavLink, useTransition } from '@remix-run/react'
 import type { Dispatch, FC, SetStateAction } from 'react'
 import { Fragment, useEffect } from 'react'
 
@@ -52,11 +52,12 @@ type ModalProps = {
 }
 
 const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
-  const location = useLocation()
+  const transition = useTransition()
 
   useEffect(() => {
-    setOpen(false)
-  }, [location.key, setOpen])
+    if (transition.state == 'loading' && transition.type == 'normalLoad')
+      setOpen(false)
+  }, [transition.type, setOpen, transition.state])
 
   return (
     <Transition.Root show={open} as={Fragment}>
