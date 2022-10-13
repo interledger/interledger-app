@@ -1,7 +1,7 @@
-import { Outlet, useLoaderData } from '@remix-run/react'
+import { Outlet } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { useEffect, useState } from 'react'
-import { Icon, IconButton, Logo, Router, Snackbar } from '~/components'
+import { useState } from 'react'
+import { Icon, IconButton, Logo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
 export function WalletLayout() {

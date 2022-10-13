@@ -68,7 +68,6 @@ export async function requireFlow(
     userSettings.set('flows', flows)
     headers.append('Set-Cookie', await commitSession(userSettings))
 
-    console.log('sets signup flow', flows)
     const url = new URL(request.url)
     if (url.pathname != currentFlow.startRoute)
       throw redirect(currentFlow.startRoute, {
@@ -90,7 +89,6 @@ export async function getCurrentFlow(
     linkAccount: null
   }
   let currentFlow = flows[type]
-  console.log(flows)
 
   if (currentFlow == null) {
     throw json(
