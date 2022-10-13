@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
-	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -57,13 +56,15 @@ func main() {
 			return nil
 		})
 
-		_, err = route53.NewVpcAssociationAuthorization(ctx, "dev-dns-association", &route53.VpcAssociationAuthorizationArgs{
-			VpcId:  peerVpcId,
-			ZoneId: vpcStack.GetStringOutput(pulumi.String("dnsZoneId")),
-		})
-		if err != nil {
-			return err
-		}
+		// Recommended to disable after association
+		// https://aws.amazon.com/premiumsupport/knowledge-center/route53-private-hosted-zone/
+		//_, err = route53.NewVpcAssociationAuthorization(ctx, "dev-dns-association", &route53.VpcAssociationAuthorizationArgs{
+		//	VpcId:  peerVpcId,
+		//	ZoneId: vpcStack.GetStringOutput(pulumi.String("dnsZoneId")),
+		//})
+		//if err != nil {
+		//	return err
+		//}
 
 		return nil
 	})
