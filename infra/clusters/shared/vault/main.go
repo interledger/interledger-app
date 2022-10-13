@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
@@ -264,8 +265,9 @@ func main() {
 				},
 				Type: pulumi.String("LoadBalancer"),
 				LoadBalancerSourceRanges: pulumi.StringArray{
-					pulumi.String("10.100.0.0/16"),
-					pulumi.String("10.10.0.0/16"),
+					pulumi.String("10.100.0.0/16"), // shared-euw1
+					pulumi.String("10.10.0.0/16"),  // dev-euw1
+					pulumi.String("10.30.0.0/16"),  // prod-use2
 				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{chart, namespace}))
