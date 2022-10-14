@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-vault/sdk/v5/go/vault"
@@ -30,7 +31,7 @@ func main() {
 		}
 
 		// the pulumiID value is {NAMESPACE/SECRET_NAME}. Manually lookup as its easier.
-		secret, err := v1.GetSecret(ctx, "secret", pulumi.ID("vault/vault-token-gx64t"), nil, pulumi.Provider(kubeProvider))
+		secret, err := v1.GetSecret(ctx, "secret", pulumi.ID("vault/vault-token-2z5m4"), nil, pulumi.Provider(kubeProvider))
 		if err != nil {
 			return err
 		}
