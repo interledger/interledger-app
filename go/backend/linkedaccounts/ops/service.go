@@ -73,6 +73,31 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	return &linkedAccount, nil
 }
 
+func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByProviderIDArgs) (*linkedaccounts.LinkedAccount, error) {
+	var linkedAccount linkedaccounts.LinkedAccount
+	err := b.DB().GetContext(
+		ctx,
+		&linkedAccount,
+		`
+			SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts 
+			WHERE provider=$1 AND provider_id=$2 AND type=$3 AND wallet_id=$4;
+		`,
+		args.Provider,
+		args.ProviderID,
+		args.Type,
+		args.WalletID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, linkedaccounts.ErrNotFound
+		}
+
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	return &linkedAccount, nil
+}
+
 func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkedaccounts.LinkedAccount, error) {
 
 	linkedAccounts := []linkedaccounts.LinkedAccount{}
