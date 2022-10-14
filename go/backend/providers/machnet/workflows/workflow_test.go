@@ -56,7 +56,6 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 }
 
 func TestCreateTransactionWorkflow(t *testing.T) {
-	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
@@ -68,20 +67,19 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	userID := uuid.NewString()
-	// Create Signup
-	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
-	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
-	require.NoError(t, err)
-
+	trxID := uuid.NewString()
+	to := TransactionTo{
+		ReceiveUserID: uuid.NewString(),
+		ReceiveFundID: uuid.NewString(),
+	}
 	a := NewActivity(b)
 
-	env.OnActivity(a.CreateTransaction, mock.Anything, mock.Anything, mock.Anything).Return(uuid.NewString(), nil)
+	env.OnActivity(a.GetOrCreateReceiveUser, mock.Anything, mock.Anything).Return(&to, nil)
+	env.OnActivity(a.CreateTransaction, mock.Anything, mock.Anything, to).Return(trxID, nil)
 	env.OnActivity(a.DeliverTransaction, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
-		FromWalletID:        wallet.ID,
+		ToLinkedAccountID:   uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		Amount:              200,
 		Currency:            "USD",
@@ -91,5 +89,5 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result string
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.NotEmpty(t, result)
+	require.Equal(t, result, trxID)
 }

@@ -29,8 +29,8 @@ type WidgetToken struct {
 }
 
 type CreateTransactionArgs struct {
-	FromWalletID        string
 	FromLinkedAccountID string
+	ToLinkedAccountID   string
 	Amount              float64
 	Currency            string
 }
