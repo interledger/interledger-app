@@ -21,7 +21,7 @@ export function FocusLayout() {
         <span className='text-xs font-medium text-medium'>&copy;Fynbos</span>
         <Router
           className='text-xs font-medium text-primary'
-          to={route('/legal')}
+          to={route('/legal/privacy-policy')}
         >
           Privacy &amp; Terms
         </Router>
