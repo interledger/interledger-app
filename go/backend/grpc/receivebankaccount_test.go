@@ -108,6 +108,7 @@ func TestCreateReceiveBankAccount(t *testing.T) {
 		AccountNumber: requestArgs.AccountNumber,
 		BankID:        requestArgs.BankId,
 		BranchID:      requestArgs.BranchId,
+		Name:          "Test",
 	}).Return(
 		&machnet.ReceiveBankAccount{
 			ID:            receiveBankAccountID,
@@ -118,10 +119,7 @@ func TestCreateReceiveBankAccount(t *testing.T) {
 		},
 		nil,
 	).Times(1)
-	c.linkedaccounts.EXPECT().Create(gomock.Any(), &linkedaccounts.CreateArgs{
-		WalletID:   wallet.ID,
-		Name:       requestArgs.Name,
-		Mask:       "3456",
+	c.linkedaccounts.EXPECT().GetByProviderID(gomock.Any(), linkedaccounts.GetByProviderIDArgs{
 		Provider:   machnet.ProviderName,
 		ProviderID: receiveBankAccountID,
 		Type:       machnet.TypeReceiveBankAccount,

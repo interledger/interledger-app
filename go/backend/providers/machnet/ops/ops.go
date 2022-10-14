@@ -86,22 +86,72 @@ func GetWidgetToken(ctx context.Context, b Backends, walletID string) (*machnet.
 }
 
 func CreateReceiveBankAccount(ctx context.Context, b Backends, args machnet.CreateReceiveBankAccountArgs) (*machnet.ReceiveBankAccount, error) {
-	insert := db.NewInsert("machnet_receive_bank_accounts").
-		Value("wallet_id", args.WalletID).
-		Value("account_number", args.AccountNumber).
-		Value("bank_id", args.BankID).
-		Value("branch_id", args.BranchID).
-		Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
-
-	statement, values, err := insert.GetStatement()
-	if err != nil {
+	// check if this account exists
+	var ra machnet.ReceiveBankAccount
+	err := b.DB().GetContext(
+		ctx,
+		&ra,
+		`
+		 	SELECT id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at FROM machnet_receive_bank_accounts WHERE
+		 	wallet_id=$1 AND account_number=$2 AND bank_id=$3 AND branch_id=$4;
+		`,
+		args.WalletID,
+		args.AccountNumber,
+		args.BankID,
+		args.BranchID,
+	)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
-	var ra machnet.ReceiveBankAccount
-	err = b.DB().GetContext(ctx, &ra, statement, values...)
-	if err != nil {
+	// it didn't exist so create it
+	if errors.Is(err, sql.ErrNoRows) {
+		insert := db.NewInsert("machnet_receive_bank_accounts").
+			Value("wallet_id", args.WalletID).
+			Value("account_number", args.AccountNumber).
+			Value("bank_id", args.BankID).
+			Value("branch_id", args.BranchID).
+			Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
+
+		statement, values, err := insert.GetStatement()
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+		}
+
+		err = b.DB().GetContext(ctx, &ra, statement, values...)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+		}
+	}
+
+	// now check if linked account exists
+	_, err = b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
+		Provider:   machnet.ProviderName,
+		ProviderID: ra.ID,
+		Type:       machnet.TypeReceiveBankAccount,
+		WalletID:   args.WalletID,
+	})
+	if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	// nope, didn't exist so create it
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		mask := ra.AccountNumber
+		if len(mask) > 4 {
+			mask = mask[len(mask)-4:]
+		}
+		_, err = b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+			WalletID:   args.WalletID,
+			Name:       args.Name,
+			Mask:       mask,
+			Provider:   machnet.ProviderName,
+			ProviderID: ra.ID,
+			Type:       machnet.TypeReceiveBankAccount,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+		}
 	}
 
 	return &ra, nil
