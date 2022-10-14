@@ -93,11 +93,11 @@ func main() {
 		}
 
 		_, err = cloudflare.NewRecord(ctx, "dev-support", &cloudflare.RecordArgs{
-			ZoneId:  zone.ID().ToStringOutput(),
-			Name:    pulumi.String("support.fynbos.dev"),
-			Value:   pulumi.String("fynbos.zendesk.com"),
-			Type:    pulumi.String("CNAME"),
-			Ttl:     pulumi.Int(1),
+			ZoneId: zone.ID().ToStringOutput(),
+			Name:   pulumi.String("support.fynbos.dev"),
+			Value:  pulumi.String("fynbos.zendesk.com"),
+			Type:   pulumi.String("CNAME"),
+			Ttl:    pulumi.Int(1),
 		})
 		if err != nil {
 			return err
@@ -261,7 +261,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "eu1-dev-cluster", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
 			Name:    pulumi.String("eu1.fynbos.dev"),
-			Value:   pulumi.String("k8s-emissary-emissary-ffb342d685-679be1c9b02820eb.elb.eu-west-1.amazonaws.com"),
+			Value:   pulumi.String("k8s-emissary-emissary-7be6ccefa6-ef78c501a78a76be.elb.eu-west-1.amazonaws.com"),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
@@ -273,7 +273,7 @@ func main() {
 		_, err = cloudflare.NewRecord(ctx, "eu1-dev-cluster-wild", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
 			Name:    pulumi.String("*.eu1.fynbos.dev"),
-			Value:   pulumi.String("k8s-emissary-emissary-ffb342d685-679be1c9b02820eb.elb.eu-west-1.amazonaws.com"),
+			Value:   pulumi.String("k8s-emissary-emissary-7be6ccefa6-ef78c501a78a76be.elb.eu-west-1.amazonaws.com"),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
 			Proxied: pulumi.Bool(true),
