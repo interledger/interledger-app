@@ -1,0 +1,1 @@
+ALTER TABLE linked_accounts DROP CONSTRAINT IF EXISTS wallet_id_provider_provider_id_uniq;

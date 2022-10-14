@@ -21,3 +21,10 @@ type CreateArgs struct {
 	ProviderID string
 	Type       string `validate:"required"`
 }
+
+type GetByProviderIDArgs struct {
+	Provider   string
+	ProviderID string
+	Type       string
+	WalletID   string
+}

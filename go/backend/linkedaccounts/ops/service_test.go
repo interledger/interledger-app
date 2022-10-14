@@ -73,6 +73,16 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, fs.ID, linkedAccount.ID)
 		assert.Equal(t, fs.WalletId, wallet.ID)
 		assert.Equal(t, "123", fs.ProviderID)
+
+		laByProviderID, err := c.LinkedAccounts.GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
+			Provider:   "mx",
+			ProviderID: "123",
+			Type:       "bank",
+			WalletID:   wallet.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, linkedAccount.ID, laByProviderID.ID)
+		assert.Equal(t, wallet.ID, laByProviderID.WalletId)
 	})
 
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {

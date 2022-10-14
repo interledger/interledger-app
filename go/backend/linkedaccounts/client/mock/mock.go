@@ -65,6 +65,21 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
 }
 
+// GetByProviderID mocks base method.
+func (m *MockClient) GetByProviderID(ctx context.Context, args linkedaccounts.GetByProviderIDArgs) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByProviderID", ctx, args)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByProviderID indicates an expected call of GetByProviderID.
+func (mr *MockClientMockRecorder) GetByProviderID(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderID", reflect.TypeOf((*MockClient)(nil).GetByProviderID), ctx, args)
+}
+
 // ListByWalletId mocks base method.
 func (m *MockClient) ListByWalletId(ctx context.Context, walletId string) ([]linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
