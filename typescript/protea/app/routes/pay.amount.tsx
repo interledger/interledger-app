@@ -20,6 +20,7 @@ export default function Page() {
 
   const [amount, setAmount] = useState<string>(flow?.data.amount || '')
 
+  // TODO Refactor to a useCallback
   const changeHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
     const newVal = e.target.value
     if (newVal.split('.')[1] && newVal.split('.')[1].length > 2) {

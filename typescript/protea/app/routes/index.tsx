@@ -2,7 +2,14 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { HomeShapes, Icon, Router, WalletGrid } from '~/components'
+import {
+  ButtonRouter,
+  HomeShapes,
+  Icon,
+  Router,
+  Shape,
+  WalletGrid
+} from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
 import {
   httpMapping,
@@ -76,35 +83,30 @@ export default function Page() {
 function MarketingPage() {
   return (
     <main className='w-full overflow-hidden'>
-      <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+      <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20 lg:h-48'>
-          <div className='absolute -right-40 top-0 hidden h-20 w-20 rounded-br-full bg-rose-300 lg:block' />
+          <div className='absolute -right-20 top-0 hidden h-20 w-20 rounded-br-full bg-rose-300 lg:block' />
           <div className='absolute right-0 top-20 hidden h-20 w-20 rounded-br-full bg-slate-300 lg:block' />
           <div className='absolute top-0 left-0 hidden h-20 w-20 rounded-bl-full bg-lime-300 lg:block' />
           <div className='absolute top-20 -left-20 hidden h-20 w-20 rounded-br-full bg-slate-100 lg:block' />
           {/* Mobile */}
-          <div className='absolute top-0 -left-8 block h-20 w-20 rounded-br-full bg-slate-100 lg:hidden' />
+          <div className='absolute top-0 -left-4 block h-20 w-20 rounded-br-full bg-slate-100 lg:hidden' />
         </div>
         <div className='col-span-full'>
-          <span className='flex justify-center font-display text-3xl font-medium lg:text-6xl'>
-            The better way to pay
+          <span className='flex justify-center text-center font-display text-3xl font-medium lg:text-6xl'>
+            Building the better way to pay
           </span>
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2 lg:mt-7'>
           <span className='flex text-center lg:text-2xl'>
-            With a payment pointer from Fynbos you get a connected account that
-            is simple, secure and programmable.
+            A payment pointer from Fynbos is a secure, programmable wallet,
+            which connects to all your accounts.
           </span>
         </div>
         <div className='col-span-full mt-10 flex flex-col items-center justify-center space-y-4 lg:mt-5 lg:flex-row lg:space-y-0 lg:space-x-4'>
-          <Router
-            to={route('/waitlist')}
-            className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10 sm:max-w-fit'
-          >
-            <span className='font-display font-medium text-white'>
-              Join the waitlist
-            </span>
-          </Router>
+          <ButtonRouter shrink to={route('/waitlist')}>
+            Join the waitlist
+          </ButtonRouter>
         </div>
         <div className='relative col-span-full h-48 lg:h-56'>
           <div className='absolute -left-[calc(100vw)] bottom-20 hidden h-20 w-screen bg-slate-700 lg:block' />
@@ -115,14 +117,14 @@ function MarketingPage() {
           <div className='absolute right-20 bottom-0 hidden h-20 w-20 rounded-full bg-rose-500 lg:block' />
           <div className='absolute -right-[calc(100vw-5rem)] bottom-0 hidden h-20 w-screen rounded-bl-full bg-yellow-200 lg:block' />
           {/* Mobile */}
-          <div className='absolute right-12 bottom-20 block h-20 w-20 rounded-tl-full bg-lime-300 lg:hidden' />
-          <div className='absolute -right-8 bottom-20 block h-20 w-20 rounded-tr-full bg-lime-500 lg:hidden' />
-          <div className='absolute right-12 bottom-0 block h-20 w-20 rounded-full bg-rose-500 lg:hidden' />
-          <div className='absolute -right-8 bottom-0 block h-20 w-20 rounded-bl-full bg-yellow-200 lg:hidden' />
+          <div className='absolute -right-4 bottom-0 block h-20 w-20 rounded-br-full bg-lime-300 lg:hidden' />
+          <div className='absolute right-16 bottom-0 block h-20 w-20 rounded-bl-full bg-lime-500 lg:hidden' />
+          <div className='absolute -right-4 bottom-20 block h-20 w-20 rounded-full bg-rose-500 lg:hidden' />
+          <div className='absolute right-16 bottom-20 block h-20 w-20 rounded-tr-full bg-yellow-200 lg:hidden' />
         </div>
       </section>
       <div className='w-full bg-slate-50'>
-        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='order-1 col-span-full pt-20 lg:col-span-10 lg:col-start-2'>
             <span className='font-display text-2xl lg:text-4xl lg:leading-[2.75rem]'>
               Simplicity, security and programmability built on web-native
@@ -138,8 +140,8 @@ function MarketingPage() {
           <div className='order-3 col-span-full mt-8 flex flex-col space-y-4 lg:col-span-6 lg:col-start-6 lg:mt-36 lg:space-y-7'>
             <span className='font-display text-xl font-medium'>Simple</span>
             <span>
-              Everything you need and nothing you don't. A clean and simple user
-              interface for managing your connected account. Make deposits and
+              Everything you need and nothing you don’t. A clean and simple user
+              interface for managing your connected accounts. Make deposits and
               withdrawals, send and receive payments using payment pointers, and
               configure connected applications.
             </span>
@@ -147,9 +149,9 @@ function MarketingPage() {
           <div className='order-5 col-span-full mt-8 flex flex-col space-y-4 lg:order-4 lg:col-span-6 lg:col-start-2 lg:mt-36 lg:space-y-7'>
             <span className='font-display text-xl font-medium'>Secure</span>
             <span>
-              A FDIC-insured direct deposit account backed by Piermont Bank,
-              giving you the freedom to build in the knowledge that your money
-              is safe.
+              Never share your card number or bank account details again.
+              Securely load them into your wallet and share your payment pointer
+              instead.
             </span>
           </div>
           <div className='relative order-4 col-span-full mt-16 h-28 lg:order-5 lg:col-span-4 lg:col-start-9 lg:mt-36'>
@@ -169,8 +171,8 @@ function MarketingPage() {
             </span>
             <span>
               Open Payments APIs allow any third-party to build applications
-              that tightly integrate your account for both sending and receiving
-              payments via the Interledger protocol.
+              that tightly integrate with your wallet for both sending and
+              receiving payments.
             </span>
           </div>
           <div className='order-9 col-span-full mt-8 mb-40 flex flex-col space-y-4 lg:order-8 lg:col-span-6 lg:col-start-2 lg:mt-36 lg:space-y-7'>
@@ -194,73 +196,67 @@ function MarketingPage() {
           </div>
         </section>
       </div>
-      <section className='relative mx-auto  grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+      <section className='relative mx-auto  grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
-          <div className='absolute top-0 -left-8 h-20 w-20 rounded-full bg-slate-50 lg:-left-40' />
-          <div className='absolute top-0 left-12 h-20 w-20 rounded-br-full bg-slate-50 lg:-left-20' />
+          <div className='absolute top-0 -left-4 h-20 w-20 rounded-full bg-slate-50 lg:-left-40' />
+          <div className='absolute top-0 left-16 h-20 w-20 rounded-br-full bg-slate-50 lg:-left-20' />
         </div>
         <div className='col-span-full mt-14'>
           <span className='font-display text-2xl lg:text-4xl'>
             The future of digital payments
           </span>
         </div>
-        <div className='relative order-1 col-span-full h-28 lg:col-span-3'>
-          <div className='absolute left-0 bottom-0 h-10 w-10 rounded-bl-full bg-slate-300' />
-          <div className='absolute left-10 bottom-0 h-10 w-10 rounded-br-full bg-slate-300' />
-          <div className='absolute left-8 bottom-4 h-12 w-12 rounded-full bg-rose-600' />
-        </div>
-        <div className='relative order-3 col-span-full h-28 lg:order-2 lg:col-span-3 lg:col-start-4'>
-          <div className='absolute left-8 bottom-0 h-12 w-12 rounded-full bg-rose-600' />
-          <div className='absolute left-0 bottom-0 h-12 w-12 rounded-full bg-slate-300' />
-        </div>
-        <div className='relative order-5 col-span-full h-28 lg:order-3 lg:col-span-3 lg:col-start-7'>
-          <div className='absolute left-6 bottom-2 h-10 w-10 rotate-45 bg-rose-600' />
-          <div className='absolute left-0 bottom-2 h-10 w-10 rotate-45 bg-slate-300' />
-        </div>
-        <div className='relative order-7 col-span-full h-28 lg:order-4 lg:col-span-3 lg:col-start-10'>
-          <div className='absolute left-12 bottom-0 h-12 w-12 rounded-bl-full bg-rose-600' />
-          <div className='absolute left-0 bottom-0 h-12 w-12 rounded-bl-full bg-slate-300' />
-        </div>
-        <div className='relative order-2 col-span-full mt-8 flex flex-col lg:order-5 lg:col-span-3'>
+        <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3'>
+          <div className='flex'>
+            <Shape radius='rounded-bl-full' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-full' color='bg-rose-600' width='w-10' />
+          </div>
           <span className='font-display font-medium'>Payment pointers</span>
-          <span className='mt-6 text-sm'>
+          <span className='text-sm'>
             Step into the future with a payment pointer from Fynbos. Better than
             a credit/debit card or a private key, a payment pointer is a URL, a
-            native building block of the Web. Use it to send and receive
-            payments online or connect your account to applications that add new
-            features or services to your account.
+            native building block of the Web.
           </span>
         </div>
-        <div className='relative order-4 col-span-full mt-8 flex flex-col lg:order-6 lg:col-span-3 lg:col-start-4'>
-          <span className='font-display font-medium'>Connect Securely</span>
-          <span className='mt-6 text-sm'>
-            Your payment pointer connects third-party applications to your
-            account. We use GNAP, the successor to OAuth 2.0 and OIDC being
-            developed at IETF, to manage delegating access to your account to
-            3rd party applications. This gives you fine-grained control over the
-            connection to your account.
-          </span>
-        </div>
-        <div className='relative order-6 col-span-full mt-8 flex flex-col lg:order-7 lg:col-span-3 lg:col-start-7'>
-          <span className='font-display font-medium'>Withdraw and Spend</span>
-          <span className='mt-6 text-sm'>
-            Make deposits into your account using a linked debit card or bank
-            account with the funds available immediately to send and spend.
-          </span>
-        </div>
-        <div className='relative order-8 col-span-full mt-8 flex flex-col items-start lg:order-8 lg:col-span-3 lg:col-start-10'>
-          <span className='font-display font-medium'>
-            Access Deposits Instantly
-          </span>
-          <span className='mt-6 text-sm'>
-            Use ACH to withdraw funds from your account or use your virtual
-            credit card to spend where payment pointers aren't yet accepted.
-          </span>
-          <div className='mt-8 flex rounded-lg bg-container px-3 py-1.5'>
-            <span className='text-sm text-medium'>Coming soon</span>
+        <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3 lg:col-start-4'>
+          <div className='flex'>
+            <Shape radius='rounded-full' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-full' color='bg-rose-600' width='w-10' />
           </div>
+          <span className='font-display font-medium'>Connect Securely</span>
+          <span className='text-sm'>
+            Your payment pointer connects third-party applications to your
+            wallet. We use GNAP, the successor to OAuth 2.0 and OIDC being
+            developed at IETF, to manage delegating access to your accounts to
+            3rd party applications. This gives you fine-grained control over the
+            connections to your wallet.
+          </span>
         </div>
-        <div className='relative order-9 col-span-full h-20'>
+        <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3 lg:col-start-7'>
+          <div className='flex'>
+            <Shape radius='rounded-none' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-tl-full' color='bg-rose-600' width='w-10' />
+          </div>
+          <span className='font-display font-medium'>Link accounts</span>
+          <span className='text-sm'>
+            Link your bank account or debit card to your Fynbos wallet, with
+            support for more account types coming soon. Connect your wallet to
+            applications that add new features and services to your accounts.
+          </span>
+        </div>
+        <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3 lg:col-start-10'>
+          <div className='flex'>
+            <Shape radius='rounded-full' color='bg-rose-600' width='w-10' />
+            <Shape radius='rounded-br-full' color='bg-slate-300' width='w-10' />
+          </div>
+          <span className='font-display font-medium'>
+            Open wallet ecosystem
+          </span>
+          <span className='text-sm'>
+            Use your wallet to send and receive payments online.
+          </span>
+        </div>
+        <div className='relative order-9 col-span-full mt-20 h-20'>
           <div className='absolute top-0 right-12 h-20 w-20 rounded-bl-full bg-slate-50 lg:right-20' />
           <div className='absolute top-0 -right-8 h-20 w-20 rounded-tr-full bg-slate-50 lg:right-0' />
           <div className='absolute top-0 -right-20 hidden h-20 w-20 rounded-br-full bg-slate-50 lg:block' />
@@ -268,13 +264,13 @@ function MarketingPage() {
         </div>
       </section>
       <div className='w-full bg-slate-50'>
-        {/*  <section className='mx-auto grid w-full grid-cols-4 content-start  gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>*/}
+        {/*  <section className='mx-auto grid w-full grid-cols-4 content-start  gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>*/}
         {/*    <div className='col-span-full mt-20'>*/}
         {/*      <span className='font-display text-2xl lg:text-4xl'>*/}
         {/*        Frequently asked questions*/}
         {/*      </span>*/}
         {/*    </div>*/}
-        {/*    <div className='col-span-full mt-6 mb-20 rounded-xl border border-slate-200 bg-white px-8'>*/}
+        {/*    <div className='col-span-full mt-6 mb-20 rounded-xl border border-slate-200 bg-white px-4'>*/}
         {/*      <Disclosure>*/}
         {/*        {({ open }) => (*/}
         {/*          <>*/}
@@ -333,21 +329,16 @@ function MarketingPage() {
         {/*    </div>*/}
         {/*  </section>*/}
         {/*</div>*/}
-        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='col-span-full mt-12 flex items-center justify-center lg:col-span-6 lg:col-start-2 lg:my-20 lg:justify-start'>
             <span className='font-display text-3xl font-medium'>
               Ready to get started?
             </span>
           </div>
-          <div className='col-span-full mb-12 mt-6 lg:col-span-3 lg:col-start-9 lg:my-20'>
-            <Router
-              to={route('/waitlist')}
-              className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary'
-            >
-              <span className='font-display font-medium text-white'>
-                Join the waitlist
-              </span>
-            </Router>
+          <div className='col-span-full mb-12 mt-6 lg:col-span-4 lg:col-start-8 lg:my-20'>
+            <ButtonRouter shrink to={route('/waitlist')}>
+              Join the waitlist
+            </ButtonRouter>
           </div>
           {/*<div className='col-span-full mb-12 mt-2 lg:col-span-2 lg:col-start-10 lg:my-20'>*/}
           {/*<Router*/}

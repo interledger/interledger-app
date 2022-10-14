@@ -15,6 +15,7 @@ import {
   PhoneTextField,
   Router,
   Shape,
+  TextButton,
   TextField
 } from '~/components'
 import {
@@ -32,8 +33,10 @@ import {
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import styles from '~/styles/flags.css'
+import { requireNoUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request, params }: LoaderArgs) {
+  await requireNoUserSession(request)
   await requireFlow(request, flowType.Signup, params)
   const flow = await getCurrentFlow(request, flowType.Signup)
   let countries = await grpcClient
@@ -182,20 +185,12 @@ export default function Page() {
         />
 
         <div className='flex w-full justify-end space-x-6'>
-          <button
-            className='text-sm font-medium text-primary focus-visible:outline-none'
-            type='submit'
-            form='signup-phone-otp'
-          >
+          <TextButton type='submit' form='signup-phone-otp'>
             Resend code
-          </button>
-          <button
-            className='text-sm font-medium text-primary focus-visible:outline-none'
-            type='submit'
-            form='signup-phone-otp-validation'
-          >
+          </TextButton>
+          <TextButton type='submit' form='signup-phone-otp-validation'>
             Verify
-          </button>
+          </TextButton>
         </div>
       </Dialog>
     </div>

@@ -1,7 +1,7 @@
 import { Outlet } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { useState } from 'react'
-import { Icon, Logo, Router } from '~/components'
+import { Icon, IconButton, Logo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
 export function WalletLayout() {
@@ -46,18 +46,17 @@ export function WalletLayout() {
         </NavDrawer>
       </div>
       <div className='w-full'>
-        <header className='fixed top-0 z-50 flex h-16 w-full select-none items-center justify-start bg-app p-4 sm:min-w-full lg:hidden'>
-          <button
-            className='-m-3 flex p-3'
+        <header className='fixed top-0 z-50 flex h-16 w-full select-none items-center justify-start space-x-4 bg-app p-4 sm:min-w-full lg:hidden'>
+          <IconButton
+            className='lg:hidden'
             onClick={() => setOpenNavModal(true)}
+            aria-label='Open menu'
           >
-            <Icon>menu</Icon>
-          </button>
-          <div className='ml-4 lg:ml-0'>
-            <Router to={route('/')} aria-label='Fynbos logo'>
-              <Logo className='h-8' />
-            </Router>
-          </div>
+            menu
+          </IconButton>
+          <Router to={route('/')} aria-label='Fynbos logo'>
+            <Logo className='h-8' />
+          </Router>
         </header>
         <div className='my-16 lg:my-[5.5rem] lg:ml-64'>
           <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
@@ -68,15 +67,15 @@ export function WalletLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative ml-1 mb-8 flex items-center'>
-              <button
-                className='-m-3 flex p-3'
+            <div className='relative ml-1 mb-8 flex items-center space-x-4'>
+              <IconButton
                 onClick={() => setOpenNavModal(!openNavModal)}
+                aria-label='Close menu'
               >
-                <Icon>menu_open</Icon>
-              </button>
+                menu_open
+              </IconButton>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <Logo className='ml-4 h-8' />
+                <Logo className='h-8' />
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>

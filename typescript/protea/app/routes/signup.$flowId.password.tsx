@@ -6,14 +6,17 @@ import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
   getCsrfTokenFromFlow,
   handleFlowError,
-  KRATOS_URL
+  KRATOS_URL,
+  requireNoUserSession
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
 import { trimHeaders } from '~/lib/headers.server'
 import { grpcClient } from '~/lib/proto.server'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
+import { commitSession, getSession } from '~/sessions'
 
 export async function loader({ request }: LoaderArgs) {
+  await requireNoUserSession(request)
   const flow = await getCurrentFlow(request, flowType.Signup)
   const cookie = String(request.headers.get('cookie'))
 
@@ -146,6 +149,8 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
+  const cookie = request.headers.get('Cookie')
+  const userSettings = await getSession(cookie)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow') as string
 
@@ -232,6 +237,12 @@ export async function action({ request }: ActionArgs) {
   if (flowSetCookie) {
     resHeaders.append('set-cookie', flowSetCookie)
   }
+
+  userSettings.flash('snackbar', {
+    message: 'Your account was created successfully.',
+    icon: 'close'
+  })
+  resHeaders.append('set-cookie', await commitSession(userSettings))
 
   return redirect(route('/payment-pointer'), {
     headers: resHeaders

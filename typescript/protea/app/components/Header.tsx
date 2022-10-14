@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { route } from 'routes-gen'
 import { Logo } from './Logo'
-import { Router } from './Routes'
+import { Router } from './Router'
 
 export const Header: FC = () => {
   return (
