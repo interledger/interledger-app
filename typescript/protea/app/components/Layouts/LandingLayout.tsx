@@ -2,7 +2,6 @@ import { NavLink, Outlet } from '@remix-run/react'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
-import { Icon } from '../icons'
 import { Logo } from '../Logo'
 import { AnchorRouter, ButtonRouter, Router } from '../Router'
 import { NavDrawer } from './NavDrawer'
@@ -40,7 +39,7 @@ export function LandingLayout() {
   return (
     <div className='relative flex min-h-screen w-full flex-col bg-white'>
       <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
-        <div className='mx-auto flex w-full justify-between px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-4xl'>
+        <div className='mx-auto flex w-full justify-between px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-[59rem]'>
           <div className='flex items-center'>
             <IconButton
               className='lg:hidden'
@@ -55,12 +54,11 @@ export function LandingLayout() {
               </Router>
             </div>
             <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
-              {/* <HeaderLink
-                    to={route('/what-is-a-payment-pointer')}
-                    title='What is a payment pointer?'
-                  />
-                  <HeaderLink to={route('/about')} title='About' /> */}
-              <HeaderLink to={route('/legal')} title='Legal' />
+              <HeaderLink
+                to={route('/what-is-a-payment-pointer')}
+                title='What is a payment pointer?'
+              />
+              {/*<HeaderLink to={route('/about')} title='About' />*/}
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
           </div>
@@ -80,45 +78,42 @@ export function LandingLayout() {
       </div>
 
       <footer className='w-full flex-shrink-0 overflow-hidden bg-[#0B2045]'>
-        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+        <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='relative col-span-full h-20'>
-            <div className='absolute right-64 top-0 h-20 w-20 rounded-full bg-slate-600 lg:right-36' />
-            <div className='absolute right-32 top-0 h-20 w-20 rounded-bl-full bg-slate-600 lg:-right-4' />
-            <div className='absolute right-12 top-0 h-20 w-20 rounded-tr-full bg-slate-600 lg:-right-24' />
-            <div className='absolute -right-8  top-0 h-20 w-20 rounded-tr-full bg-slate-600 lg:-right-44' />
+            <div className='absolute right-64 top-0 h-20 w-20 rounded-full bg-[#182C4F] lg:right-36' />
+            <div className='absolute right-32 top-0 h-20 w-20 rounded-bl-full bg-[#182C4F] lg:-right-4' />
+            <div className='absolute right-12 top-0 h-20 w-20 rounded-tr-full bg-[#182C4F] lg:-right-24' />
+            <div className='absolute -right-8  top-0 h-20 w-20 rounded-tr-full bg-[#182C4F] lg:-right-44' />
           </div>
           <div className='relative col-span-full mt-10 h-20 lg:col-span-3'>
-            <div className='absolute top-0 left-0 h-5 w-5 rounded-full bg-rose-200' />
-            <div className='absolute top-0 left-5 h-5 w-5 rounded-tl-full bg-lime-300' />
-            <div className='absolute top-0 left-10 h-5 w-5 rounded-full bg-rose-400' />
-            <div className='absolute top-0 left-[3.75rem] h-5 w-5 rounded-bl-full bg-green-500' />
-            <div className='absolute top-0 left-20 h-5 w-5 rounded-br-full bg-lime-300' />
-            <div className='absolute top-0 left-[6.25rem] h-5 w-5 rounded-br-full bg-yellow-100' />
+            <div className='absolute top-0 left-0 h-5 w-5 rounded-full bg-rose-500' />
+            <div className='absolute top-0 left-5 h-5 w-5 rounded-tl-full bg-yellow-400' />
+            <div className='absolute top-0 left-10 h-5 w-5 rounded-full bg-slate-500' />
+            <div className='absolute top-0 left-[3.75rem] h-5 w-5 rounded-bl-full bg-lime-500' />
+            <div className='absolute top-0 left-20 h-5 w-5 rounded-br-full bg-slate-300' />
+            <div className='absolute top-0 left-[6.25rem] h-5 w-5 rounded-tr-full bg-slate-700' />
             <Logo className='absolute top-8 h-8 text-white' />
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-4'>
-            <span className='text-sm font-medium text-white'>Menu</span>
-            {/* <Router to={route('/what-is-a-payment-pointer')}>
-                <span className='pt-1.5 text-sm text-white'>
-                  What is a payment pointer?
-                </span>
-              </Router>
-              <Router to={route('/about')}>
-                <span className='text-sm text-white'>About</span>
-              </Router> */}
-            <Router to={route('/legal')}>
-              <span className='text-sm text-white'>Legal</span>
+            <span className='pb-2 text-sm font-medium text-white'>Menu</span>
+            <Router to={route('/what-is-a-payment-pointer')}>
+              <span className='text-sm text-white'>
+                What is a payment pointer?
+              </span>
             </Router>
+            {/*<Router to={route('/about')}>*/}
+            {/*  <span className='text-sm text-white'>About</span>*/}
+            {/*</Router>*/}
             <Router to={route('/contact')}>
               <span className='text-sm text-white'>Contact</span>
             </Router>
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-7'>
-            <span className='text-sm font-medium text-white'>Ecosystem</span>
+            <span className='pb-2 text-sm font-medium text-white'>
+              Ecosystem
+            </span>
             <AnchorRouter to='https://interledger.org/'>
-              <span className='pt-1.5 text-sm text-white'>
-                Interledger Foundation
-              </span>
+              <span className='text-sm text-white'>Interledger Foundation</span>
             </AnchorRouter>
             <AnchorRouter to='https://webmonetization.org/'>
               <span className='text-sm text-white'>Web monetization</span>
@@ -128,9 +123,11 @@ export function LandingLayout() {
             </AnchorRouter>
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-10'>
-            <span className='text-sm font-medium text-white'>Resources</span>
+            <span className='pb-2 text-sm font-medium text-white'>
+              Resources
+            </span>
             <Router to={route('/blog')}>
-              <span className='pt-1.5 text-sm text-white'>Blog</span>
+              <span className='text-sm text-white'>Blog</span>
             </Router>
             <Router to={route('/legal/privacy-policy')}>
               <span className='text-sm text-white'>Privacy policy</span>
@@ -139,12 +136,7 @@ export function LandingLayout() {
               <span className='text-sm text-white'>Terms of use</span>
             </Router>
           </div>
-          <div className='col-span-full mt-8 flex flex-col lg:col-span-6 lg:col-start-4'>
-            <span className='text-sm text-slate-300'>
-              &copy; 2022 Fynbos Technologies Ltd.
-            </span>
-          </div>
-          <div className='col-span-full mt-8 flex space-x-4 lg:col-span-3 lg:col-start-10'>
+          <div className='col-span-full mt-8 flex space-x-4 lg:col-span-3 lg:col-start-4'>
             <AnchorRouter to='https://mobile.twitter.com/fynbosdev'>
               <svg
                 width='22'
@@ -187,13 +179,9 @@ export function LandingLayout() {
               </svg>
             </AnchorRouter>
           </div>
-          <div className='col-span-full mt-3 mb-20 flex flex-col lg:col-span-full lg:col-start-4 lg:mb-52'>
+          <div className='col-span-full mt-8 mb-20 flex flex-col lg:col-span-6 lg:col-start-4'>
             <span className='text-sm text-slate-300'>
-              Fynbos is a financial technology company and is not a bank.
-              Banking services provided by Piermont Bank; Member FDIC. The
-              Fynbos Visa&reg; Debit Card is issued by Piermont Bank pursuant to
-              a license from Visa U.S.A. Inc. and may be used everywhere Visa
-              debit cards are accepted.
+              &copy; 2022 Fynbos Technologies Ltd.
             </span>
           </div>
         </section>
@@ -215,11 +203,10 @@ export function LandingLayout() {
               </div>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            {/* <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
+            <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
               What is a payment pointer?
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem> */}
-            <NavDrawer.ListItem to={route('/legal')}>Legal</NavDrawer.ListItem>
+            {/*<NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem> */}
             <NavDrawer.ListItem to={route('/contact')}>
               Contact
             </NavDrawer.ListItem>

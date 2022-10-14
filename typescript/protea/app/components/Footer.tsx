@@ -5,7 +5,7 @@ import { Router } from './Router'
 
 export const Footer: FC = () => {
   return (
-    <footer className='mx-auto mb-12 mt-60 grid grid-cols-2 items-start justify-start gap-8 p-4 sm:max-w-lg sm:grid-cols-4 sm:p-8 lg:max-w-3xl xl:max-w-4xl 2xl:mt-80'>
+    <footer className='mx-auto mb-12 mt-60 grid grid-cols-2 items-start justify-start gap-8 p-4 sm:max-w-lg sm:grid-cols-4 sm:p-8 lg:max-w-3xl xl:max-w-[59rem] 2xl:mt-80'>
       <div className='col-span-2 flex h-20 flex-col sm:h-40 sm:justify-between'>
         <Router to={route('/')} aria-label='Fynbos logo'>
           <Logo className='mb-2 h-6 sm:h-8' />
