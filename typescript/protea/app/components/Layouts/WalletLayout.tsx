@@ -38,7 +38,7 @@ export function WalletLayout() {
             </span>
             <Router
               className='text-xs font-medium text-primary'
-              to={route('/legal')}
+              to={route('/legal/privacy-policy')}
             >
               Privacy &amp; Terms
             </Router>
@@ -95,7 +95,7 @@ export function WalletLayout() {
             </span>
             <Router
               className='text-xs font-medium text-primary'
-              to={route('/legal')}
+              to={route('/legal/privacy-policy')}
             >
               Privacy &amp; Terms
             </Router>
