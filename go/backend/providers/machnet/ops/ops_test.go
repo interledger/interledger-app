@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/user"
 
@@ -200,12 +201,29 @@ func TestCreateReceiveAccount(t *testing.T) {
 	t.Parallel()
 	b := NewTestBackends(t)
 	walletID := NewWallet(t, b)
+	b.linkedaccounts.EXPECT().GetByProviderID(gomock.Any(), gomock.Any()).Return(
+		nil,
+		linkedaccounts.ErrNotFound,
+	).Times(1)
+	b.linkedaccounts.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
+			require.Equal(t, "1234", args.Mask)
+			require.Equal(t, machnet.ProviderName, args.Provider)
+			require.Equal(t, machnet.TypeReceiveBankAccount, args.Type)
+			require.Equal(t, "test", args.Name)
+			require.Equal(t, walletID, args.WalletID)
+
+			return &linkedaccounts.LinkedAccount{
+				ID: uuid.NewString(),
+			}, nil
+		}).Times(1)
 
 	ra, err := ops.CreateReceiveBankAccount(context.Background(), b, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      walletID,
 		AccountNumber: "1234",
 		BankID:        1,
 		BranchID:      2,
+		Name:          "test",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, walletID, ra.WalletID)
@@ -220,9 +238,53 @@ func TestCreateReceiveAccount(t *testing.T) {
 	assert.Equal(t, uint32(1), freshRa.BankID)
 	assert.Equal(t, uint32(2), freshRa.BranchID)
 
+	// returns not found error
 	noRa, err := ops.GetReceiveBankAccount(context.Background(), b, uuid.NewString())
 	assert.Nil(t, noRa)
 	assert.ErrorIs(t, err, machnet.ErrNotFound)
+}
+
+func TestCreateReceiveAccountIsIdempotent(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+	var existingRA machnet.ReceiveBankAccount
+	insert := db.NewInsert("machnet_receive_bank_accounts").
+		Value("wallet_id", walletID).
+		Value("account_number", "1234").
+		Value("bank_id", 1).
+		Value("branch_id", 1).
+		Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
+
+	statement, values, err := insert.GetStatement()
+	require.NoError(t, err)
+	err = b.DB().GetContext(context.Background(), &existingRA, statement, values...)
+	require.NoError(t, err)
+	b.linkedaccounts.EXPECT().GetByProviderID(gomock.Any(), linkedaccounts.GetByProviderIDArgs{
+		Provider:   machnet.ProviderName,
+		ProviderID: existingRA.ID,
+		Type:       machnet.TypeReceiveBankAccount,
+		WalletID:   walletID,
+	}).Return(
+		&linkedaccounts.LinkedAccount{
+			ID: uuid.NewString(),
+		},
+		nil,
+	).Times(1)
+	b.linkedaccounts.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
+
+	ra, err := ops.CreateReceiveBankAccount(context.Background(), b, machnet.CreateReceiveBankAccountArgs{
+		WalletID:      walletID,
+		AccountNumber: "1234",
+		BankID:        1,
+		BranchID:      1,
+		Name:          "test",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, walletID, ra.WalletID)
+	assert.Equal(t, "1234", ra.AccountNumber)
+	assert.Equal(t, uint32(1), ra.BankID)
+	assert.Equal(t, uint32(1), ra.BranchID)
 }
 
 func TestCreateReceiveUser(t *testing.T) {
@@ -273,12 +335,17 @@ func TestCreateReceiveUserAccount(t *testing.T) {
 	walletID := NewWallet(t, b)
 	receiveWalletID := NewWallet(t, b)
 
-	ra, err := ops.CreateReceiveBankAccount(context.Background(), b, machnet.CreateReceiveBankAccountArgs{
-		WalletID:      receiveWalletID,
-		AccountNumber: "1234",
-		BankID:        1,
-		BranchID:      2,
-	})
+	var ra machnet.ReceiveBankAccount
+	insert := db.NewInsert("machnet_receive_bank_accounts").
+		Value("wallet_id", walletID).
+		Value("account_number", "1234").
+		Value("bank_id", 1).
+		Value("branch_id", 1).
+		Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
+
+	statement, values, err := insert.GetStatement()
+	require.NoError(t, err)
+	err = b.DB().GetContext(context.Background(), &ra, statement, values...)
 	require.NoError(t, err)
 
 	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{

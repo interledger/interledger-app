@@ -66,21 +66,14 @@ func (r rpcService) CreateReceiveBankAccount(
 		AccountNumber: req.GetAccountNumber(),
 		BankID:        req.GetBankId(),
 		BranchID:      req.GetBranchId(),
+		Name:          req.GetName(),
 		//TODO: otp
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	mask := bankaccount.AccountNumber
-	if len(mask) > 4 {
-		mask = bankaccount.AccountNumber[len(mask)-4:]
-	}
-
-	linkedaccount, err := r.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID:   wallet.ID,
-		Name:       req.GetName(),
-		Mask:       mask,
+	linkedaccount, err := r.b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
 		Provider:   machnet.ProviderName,
 		ProviderID: bankaccount.ID,
 		Type:       machnet.TypeReceiveBankAccount,

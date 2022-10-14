@@ -41,6 +41,7 @@ type (
 		AccountNumber string
 		BankID        uint32
 		BranchID      uint32
+		Name          string
 	}
 )
 
