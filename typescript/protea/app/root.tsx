@@ -46,7 +46,7 @@ export const meta: MetaFunction = () => {
 export const links: LinksFunction = () => {
   return [
     { rel: 'stylesheet', href: styles },
-    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico?v=2' },
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     {
       rel: 'stylesheet',
@@ -96,6 +96,7 @@ export default function Page() {
   let isFocussed =
     location.pathname.startsWith('/signup') ||
     location.pathname.startsWith('/waitlist') ||
+    location.pathname.startsWith('/contact') ||
     location.pathname.startsWith('/login') ||
     location.pathname.startsWith('/payment-pointer')
 

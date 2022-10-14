@@ -70,57 +70,8 @@ module.exports = {
         hover: 'rgba(var(--border-hover), <alpha-value>)',
         active: 'rgba(var(--border-active), <alpha-value>)',
         error: 'rgba(var(--border-error), <alpha-value>)'
-      },
+      }
       // End token colours
-      typography: (theme) => ({
-        DEFAULT: {
-          css: [
-            {
-              h1: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium')
-              },
-              h2: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium')
-              },
-              h3: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium')
-              },
-              h4: {
-                fontFamily: theme('fontFamily.display'),
-                fontWeight: theme('fontWeight.medium')
-              },
-              color: theme('colors.black'),
-              pre: {
-                backgroundColor: theme('colors.gray.50'),
-                borderRadius: 0,
-                color: theme('colors.black'),
-                padding: '2rem'
-              },
-              code: {
-                fontWeight: '500'
-              },
-              'a code': {
-                color: theme('colors.primary')
-              },
-              a: {
-                color: theme('colors.primary')
-              },
-              blockquote: {
-                fontWeight: 400
-              },
-              'blockquote p:first-of-type::before': {
-                content: ''
-              },
-              'blockquote p:first-of-type::after': {
-                content: ''
-              }
-            }
-          ]
-        }
-      })
     }
   },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]

@@ -1,5 +1,6 @@
 import type { FC } from 'react'
 import clsx from 'clsx'
+import { Icon } from '~/components'
 
 type Radius =
   | 'rounded-none'
@@ -13,7 +14,7 @@ type Radius =
   | 'rounded-l-full'
   | 'rounded-r-full'
 
-type ShapeProps = {
+export type ShapeProps = {
   width?: string
   radius: Radius
   color: string
@@ -21,7 +22,14 @@ type ShapeProps = {
 
 export const Shape: FC<ShapeProps> = ({ children, width, radius, color }) => {
   return (
-    <div className={clsx('aspect-square', width || 'w-full', radius, color)}>
+    <div
+      className={clsx(
+        'flex aspect-square items-center justify-center',
+        width || 'w-full',
+        radius,
+        color
+      )}
+    >
       {children}
     </div>
   )
@@ -165,4 +173,223 @@ export function HomeShapes() {
       ))}
     </div>
   )
+}
+
+export function SuccessShapes() {
+  const shapes: ShapeProps[][] = [
+    [
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-tl-full',
+        color: 'bg-slate-100'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-br-full',
+        color: 'bg-green-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      }
+    ],
+    [
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-slate-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-green-200'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-green-500'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-tl-full',
+        color: 'bg-green-100'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-tr-full',
+        color: 'bg-slate-50'
+      }
+    ],
+    [
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-l-full',
+        color: 'bg-green-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-none',
+        color: 'bg-green-50'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-br-full',
+        color: 'bg-green-200'
+      },
+      {
+        width: 'w-14',
+        radius: 'rounded-full',
+        color: 'bg-transparent'
+      }
+    ]
+  ]
+  return (
+    <div>
+      {shapes.map((shapeRow, outerIndex, outerArray) => (
+        <div className='flex justify-center' key={`shapeRow${outerIndex}`}>
+          {shapeRow.map((shape, index, array) => (
+            <Shape key={`shape${outerIndex}${index}`} {...shape}>
+              {Math.floor(outerArray.length / 2) == outerIndex &&
+                Math.floor(array.length / 2) == index && (
+                  <Icon className='text-white'>check</Icon>
+                )}
+            </Shape>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export const BlogShapes: FC<{ slug: string; large?: boolean }> = ({
+  slug,
+  large
+}) => {
+  if (typeof blogShapes[slug] == 'undefined')
+    throw new Error(`Shapes for ${slug} blog post not found`)
+  const shapes: ShapeProps[][] = blogShapes[slug]
+  return (
+    <div>
+      {shapes.map((shapeRow, outerIndex) => (
+        <div className='flex' key={`shapeRow${outerIndex}`}>
+          {shapeRow.map((shape, index) => (
+            <Shape
+              key={`shape${outerIndex}${index}`}
+              width={clsx(large ? 'w-20' : 'w-10')}
+              {...shape}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const blogShapes: {
+  [key: string]: ShapeProps[][]
+} = {
+  'connecting-the-internet-economy': [
+    [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-rose-400'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-rose-600'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-200'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-100'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-orange-900'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-orange-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-600'
+      }
+    ]
+  ],
+  'card-payments-still-suck': [
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-slate-100'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-100'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-blue-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-yellow-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-orange-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-300'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-sky-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-blue-500'
+      }
+    ]
+  ]
 }

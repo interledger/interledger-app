@@ -16,7 +16,7 @@ type ErrorProps = {
 export const Error: FC<ErrorProps> = ({ status, statusText, data }) => {
   return (
     <main className='w-full overflow-hidden'>
-      <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+      <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full -mx-8 h-44 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:mx-0'>
           <div className='absolute right-[10.5rem] top-0 h-14 w-14 rounded-bl-full bg-slate-700' />
           <div className='absolute right-28 top-0 h-14 w-14 rounded-tr-full bg-slate-400' />

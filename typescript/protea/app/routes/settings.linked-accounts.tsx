@@ -48,6 +48,7 @@ export default function Page() {
     <div className='w-full'>
       {/* Header */}
       <header className='sticky top-0 mx-auto flex h-16 w-full select-none items-center justify-start bg-app p-4 text-medium sm:max-w-lg lg:max-w-3xl xl:max-w-4xl'>
+        {/*TODO Create IconRouter*/}
         <Link to={route('/settings')}>
           <div className='-ml-3 p-3 text-medium'>
             <Icon>arrow_back</Icon>
@@ -58,7 +59,7 @@ export default function Page() {
         </div>
       </header>
       {/* Body */}
-      <div className='mx-auto grid min-h-[calc(100vh-9rem)] w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
+      <div className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-4xl'>
         {linkedAccounts && linkedAccounts.length == 0 && (
           <div className='col-span-full flex items-center justify-between space-x-3 rounded-xl bg-container p-3 text-medium sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <Icon>tips_and_updates</Icon>
