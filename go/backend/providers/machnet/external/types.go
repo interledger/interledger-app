@@ -49,6 +49,13 @@ const (
 	PurposePersonalTransfer Purpose = "PERSONAL_TRANSFER"
 )
 
+type AccountType string
+
+const (
+	AccountTypeCheque  AccountType = "CHEQUE"
+	AccountTypeSavings AccountType = "SAVINGS"
+)
+
 type CreateTransactionArgs struct {
 	FromUserID        string            `json:"-"`
 	FromFundID        string            `json:"from_fund_id,omitempty"`
@@ -170,13 +177,13 @@ type TransactionTo struct {
 }
 
 type ReceiveUserBankAccount struct {
-	ID            string `json:"id,omitempty"`
-	UserID        string `json:"user_id,omitempty"`
-	AccountNumber string `json:"account_number,omitempty"`
-	AccountType   string `json:"account_type"`
-	BankID        int    `json:"bank_id"`
-	BranchID      int    `json:"branch_id"`
-	PayoutMethod  string `json:"payout_method"`
+	ID            string      `json:"id,omitempty"`
+	UserID        string      `json:"user_id,omitempty"`
+	AccountNumber string      `json:"account_number,omitempty"`
+	AccountType   AccountType `json:"account_type"`
+	BankID        int         `json:"bank_id"`
+	BranchID      int         `json:"branch_id"`
+	PayoutMethod  string      `json:"payout_method"`
 }
 
 type DeliveryRequest struct {

@@ -50,16 +50,23 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("CreateTransactionWorkflow workflow started", "walletID", args.FromWalletID, "Amount", args.Amount)
+	logger.Info("CreateTransactionWorkflow workflow started", "From", args.FromLinkedAccountID, "To", args.ToLinkedAccountID, "Amount", args.Amount)
+
+	var to TransactionTo
+	err := workflow.ExecuteActivity(ctx, a.GetOrCreateReceiveUser, args).Get(ctx, &to)
+	if err != nil {
+		logger.Error("GetOrCreateReceiveUser Activity failed.", "Error", err)
+		return "", err
+	}
 
 	var trxID string
-	err := workflow.ExecuteActivity(ctx, a.CreateTransaction, args).Get(ctx, &trxID)
+	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, args, to).Get(ctx, &trxID)
 	if err != nil {
 		logger.Error("CreateTransaction Activity failed.", "Error", err)
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.DeliverTransaction, args.FromWalletID, trxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.DeliverTransaction, args.FromLinkedAccountID, trxID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("DeliverTransaction Activity failed.", "Error", err)
 		return "", err

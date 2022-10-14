@@ -91,7 +91,7 @@ func (c client) CreateSendUser(ctx context.Context, walletID string) (machnet.Aw
 
 func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) (machnet.Await, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
-		ID:        "machnet_create_transaction_" + args.FromWalletID,
+		ID:        "machnet_create_transaction_" + args.FromLinkedAccountID + "_" + args.ToLinkedAccountID,
 		TaskQueue: "backend",
 	}
 

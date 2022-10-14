@@ -15,4 +15,5 @@ type Client interface {
 	UpdateDeliveryRequest(ctx context.Context, request DeliveryRequest) error
 	CreateReceiveUserBankAccount(ctx context.Context, sendUserID, receiveUserID string, acc ReceiveUserBankAccount) (*ReceiveUserBankAccount, error)
 	GetBanks(ctx context.Context, countryCode string) ([]Bank, error)
+	ListReceiveUserBankAccounts(ctx context.Context, sendUserID, receiveUserID string) ([]ReceiveUserBankAccount, error)
 }

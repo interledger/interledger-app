@@ -274,6 +274,28 @@ func (c Client) CreateReceiveUserBankAccount(ctx context.Context, sendUserID, re
 	return &ra, nil
 }
 
+func (c Client) ListReceiveUserBankAccounts(ctx context.Context, sendUserID, receiveUserID string) ([]external.ReceiveUserBankAccount, error) {
+	_, err := c.GetUserByID(ctx, sendUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Send user not found.", external.ErrNotFound)
+	}
+	_, err = c.GetUserByID(ctx, receiveUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Receive user not found.", external.ErrNotFound)
+	}
+
+	var resp []external.ReceiveUserBankAccount
+	for _, ra := range c.receiveUserAccounts {
+		if ra.UserID != receiveUserID {
+			continue
+		}
+
+		resp = append(resp, ra)
+	}
+
+	return resp, nil
+}
+
 func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Bank, error) {
 	return []external.Bank{
 		{

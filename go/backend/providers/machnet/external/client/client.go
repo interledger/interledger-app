@@ -273,6 +273,33 @@ func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.Deli
 	return err
 }
 
+func (c Client) ListReceiveUserBankAccounts(ctx context.Context, sendUserID, receiveUserID string) ([]external.ReceiveUserBankAccount, error) {
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
+		fmt.Sprintf("%s/users/%s/receive-users/%s/accounts", c.baseUrl, sendUserID, receiveUserID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []external.ReceiveUserBankAccount
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return res, err
+}
+
 func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Bank, error) {
 	getBanksUrl, err := url.Parse(c.baseUrl + "/banks?country=" + countryCode)
 	if err != nil {
