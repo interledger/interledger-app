@@ -222,6 +222,7 @@ func TestCreateReceiveAccount(t *testing.T) {
 	ra, err := ops.CreateReceiveBankAccount(context.Background(), b, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      walletID,
 		AccountNumber: "1234",
+		AccountType:   machnet.BankAccountTypeCheque,
 		BankID:        1,
 		BranchID:      2,
 		Name:          "test",
@@ -230,6 +231,7 @@ func TestCreateReceiveAccount(t *testing.T) {
 	assert.Equal(t, walletID, ra.WalletID)
 	assert.Equal(t, "1234", ra.AccountNumber)
 	assert.Equal(t, uint32(1), ra.BankID)
+	assert.Equal(t, machnet.BankAccountTypeCheque, ra.AccountType)
 	assert.Equal(t, uint32(2), ra.BranchID)
 
 	freshRa, err := ops.GetReceiveBankAccount(context.Background(), b, ra.ID)
