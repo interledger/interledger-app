@@ -5,14 +5,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
+	"net/http/httputil"
 )
 
 const baseURL = "https://fynbos.zendesk.com/api/v2"
 
 func NewClient(username, apiToken string) Client {
-	return &client{apiToken: apiToken, userName: username}
+
+	httpClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+
+	return &client{apiToken: apiToken, userName: username, httpClient: httpClient}
 }
 
 type client struct {
@@ -45,6 +52,11 @@ func (c client) CreateTicket(ctx context.Context, email, name, description strin
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(c.userName+"/token", c.apiToken)
+
+	requestDump, err := httputil.DumpRequest(req, false)
+	if err == nil {
+		log.Info("zendesk request", zap.String("req", string(requestDump)))
+	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
