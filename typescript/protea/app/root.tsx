@@ -17,26 +17,26 @@ import { hasUserSession } from './lib/kratos.server'
 
 const metaContent = {
   title: 'Fynbos',
-  description: 'Connecting the Internet economy.'
+  description: 'Building the better way to pay.'
 }
 
 export const meta: MetaFunction = () => {
   return {
     title: metaContent.title,
-    'theme-color': '#FDE2E6',
+    'theme-color': '#FFE4E6',
     description: metaContent.description,
     viewport: 'width=device-width,initial-scale=1',
 
     // Open Graph / Facebook
     'og:title': metaContent.title,
     'og:type': 'website',
-    'og:url': 'https://fynbos.dev/',
+    'og:url': 'https://fynbos.app/',
     'og:description': metaContent.description,
     'og:image': '/fynbos.png',
 
     // Twitter
     'twitter:card': 'summary_large_image',
-    'twitter:url': 'https://fynbos.dev/',
+    'twitter:url': 'https://fynbos.app/',
     'twitter:title': metaContent.title,
     'twitter:description': metaContent.description,
     'twitter:image': '/fynbos_SEO.png'
