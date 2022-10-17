@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"io"
 	"net/http"
 )
@@ -12,7 +13,10 @@ import (
 const baseURL = "https://fynbos.zendesk.com/api/v2"
 
 func NewClient(username, apiToken string) Client {
-	return &client{apiToken: apiToken, userName: username}
+
+	httpClient := http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+
+	return &client{apiToken: apiToken, userName: username, httpClient: httpClient}
 }
 
 type client struct {

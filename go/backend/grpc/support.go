@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/supporttickets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -16,6 +18,7 @@ func (s *rpcService) CreateSupportTicket(ctx context.Context, req *pb.CreateSupp
 	})
 
 	if err != nil {
+		log.Error("Error creating support ticket", zap.Error(err))
 		return nil, toGRPCError(err)
 	}
 
