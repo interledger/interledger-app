@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
-
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/supporttickets/ops"
 	"gitlab.com/fynbos/backend/supporttickets/zendesk"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 var _ supporttickets.Client = client{}
@@ -17,6 +18,7 @@ type client struct {
 
 func NewClient(b ops.Backends, zendeskUser, zendeskToken string) supporttickets.Client {
 	// Inject the zendesk client that the rest of the backends services don't need or use.
+	log.Info("Zendesk creds", zap.String("zendeskUser", zendeskUser), zap.String("zendeskToken", zendeskToken))
 	return client{b: b, zc: zendesk.NewClient(zendeskUser, zendeskToken)}
 }
 
