@@ -92,13 +92,14 @@ func CreateReceiveBankAccount(ctx context.Context, b Backends, args machnet.Crea
 		ctx,
 		&ra,
 		`
-		 	SELECT id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at FROM machnet_receive_bank_accounts WHERE
-		 	wallet_id=$1 AND account_number=$2 AND bank_id=$3 AND branch_id=$4;
+		 	SELECT id, wallet_id, account_number, account_type, bank_id, branch_id, created_at, updated_at FROM machnet_receive_bank_accounts WHERE
+		 	wallet_id=$1 AND account_number=$2 AND bank_id=$3 AND branch_id=$4 AND account_type=$5;
 		`,
 		args.WalletID,
 		args.AccountNumber,
 		args.BankID,
 		args.BranchID,
+		args.AccountType,
 	)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -109,6 +110,7 @@ func CreateReceiveBankAccount(ctx context.Context, b Backends, args machnet.Crea
 		insert := db.NewInsert("machnet_receive_bank_accounts").
 			Value("wallet_id", args.WalletID).
 			Value("account_number", args.AccountNumber).
+			Value("account_type", args.AccountType).
 			Value("bank_id", args.BankID).
 			Value("branch_id", args.BranchID).
 			Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
@@ -162,7 +164,7 @@ func GetReceiveBankAccount(ctx context.Context, b Backends, id string) (*machnet
 	err := b.DB().GetContext(
 		ctx,
 		&ra,
-		"SELECT id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at FROM machnet_receive_bank_accounts WHERE id=$1;",
+		"SELECT id, wallet_id, account_number, account_type, bank_id, branch_id, created_at, updated_at FROM machnet_receive_bank_accounts WHERE id=$1;",
 		id,
 	)
 	if errors.Is(err, sql.ErrNoRows) {

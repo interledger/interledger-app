@@ -38,22 +38,32 @@ type CreateTransactionArgs struct {
 type (
 	// This will underpin a linked account and is used to create Machnet receive user accounts.
 	ReceiveBankAccount struct {
-		ID            string `db:"id"`
-		WalletID      string `db:"wallet_id"`
-		AccountNumber string `db:"account_number"`
-		BankID        uint32 `db:"bank_id"`
-		BranchID      uint32 `db:"branch_id"`
-		CreatedAt     string `db:"created_at"`
-		UpdatedAt     string `db:"updated_at"`
+		ID            string          `db:"id"`
+		WalletID      string          `db:"wallet_id"`
+		AccountNumber string          `db:"account_number"`
+		AccountType   BankAccountType `db:"account_type"`
+		BankID        uint32          `db:"bank_id"`
+		BranchID      uint32          `db:"branch_id"`
+		CreatedAt     string          `db:"created_at"`
+		UpdatedAt     string          `db:"updated_at"`
 	}
 
 	CreateReceiveBankAccountArgs struct {
 		WalletID      string
 		AccountNumber string
+		AccountType   BankAccountType
 		BankID        uint32
 		BranchID      uint32
 		Name          string
 	}
+)
+
+type BankAccountType int
+
+const (
+	BankAccountTypeUnknown BankAccountType = 0
+	BankAccountTypeSavings BankAccountType = 1
+	BankAccountTypeCheque  BankAccountType = 2
 )
 
 type (

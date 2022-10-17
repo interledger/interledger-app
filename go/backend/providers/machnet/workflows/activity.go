@@ -290,9 +290,15 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 }
 
 func addReceiveUserBankAccount(ctx context.Context, b ops.Backends, extSendUserID, extRecvUserID string, bankAccount *machnet.ReceiveBankAccount) (string, error) {
+
+	accType := external.AccountTypeCheque
+	if bankAccount.AccountType == machnet.BankAccountTypeSavings {
+		accType = external.AccountTypeSavings
+	}
+
 	ba, err := b.External().CreateReceiveUserBankAccount(ctx, extSendUserID, extRecvUserID, external.ReceiveUserBankAccount{
 		AccountNumber: bankAccount.AccountNumber,
-		AccountType:   external.AccountTypeCheque, // FECK
+		AccountType:   accType,
 		BankID:        int(bankAccount.BankID),
 		BranchID:      int(bankAccount.BranchID),
 		PayoutMethod:  external.TypeBankDeposit,

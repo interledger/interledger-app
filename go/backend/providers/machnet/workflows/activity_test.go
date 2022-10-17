@@ -149,10 +149,6 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	fromUserID := uuid.NewString()
 	toUserID := uuid.NewString()
 
-	// Create Signups
-	/*_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), fromUserID, uuid.NewString(), toUserID)
-	require.NoError(t, err)
-	*/
 	fromWallet, err := b.users.CreateNewWallet(ctx, fromUserID, "TestWallet")
 	require.NoError(t, err)
 
@@ -160,8 +156,10 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	require.NoError(t, err)
 
 	// Neeed to create wallets in the DB because of referenctial integrity and we are using a mock
-	b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", fromWallet.ID, "TestWallet")
-	b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", toWallet.ID, "TestWallet")
+	_, err = b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", fromWallet.ID, "TestWallet")
+	require.NoError(t, err)
+	_, err = b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", toWallet.ID, "TestWallet")
+	require.NoError(t, err)
 
 	sendUser, err := a.b.External().RegisterUser(ctx, external.User{
 		Type: external.TypeSendUser,
@@ -177,6 +175,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	bankAcc, err := ops.CreateReceiveBankAccount(ctx, a.b, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      toWallet.ID,
 		AccountNumber: "234",
+		AccountType:   machnet.BankAccountTypeCheque,
 		BankID:        1,
 		BranchID:      1,
 	})
@@ -261,7 +260,8 @@ func TestActivity_CreateTransaction(t *testing.T) {
 	require.NoError(t, err)
 
 	// Neeed to create wallets in the DB because of referenctial integrity and we are using a mock
-	b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", wallet.ID, "TestWallet")
+	_, err = b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", wallet.ID, "TestWallet")
+	require.NoError(t, err)
 
 	mu, err := a.b.External().RegisterUser(ctx, external.User{
 		Type: external.TypeSendUser,
