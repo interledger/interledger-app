@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -34,21 +35,27 @@ func (b opsBackends) External() external.Client {
 	return b.external
 }
 
-func New(b Backends, clientID, clientSecret string) machnet.Client {
+func New(b Backends, clientID, clientSecret, webhookSecret string) machnet.Client {
 	opsBackends := opsBackends{
 		Backends: b,
 		external: inmemory_external_client.New(),
 	}
 	if env.IsProd() || env.IsSandbox() {
 		opsBackends.external = external_client.New(clientID, clientSecret)
+
+		if webhookSecret == "" {
+			log.Error("machnet webhook secret not set")
+			panic("machnet webhook secret not set")
+		}
 	}
 
-	return &client{b: opsBackends, t: b.Temporal()}
+	return &client{b: opsBackends, t: b.Temporal(), webhookSecret: webhookSecret}
 }
 
 type client struct {
-	b ops.Backends
-	t temporal.Client
+	b             ops.Backends
+	t             temporal.Client
+	webhookSecret string
 }
 
 func (c client) GetUserByWalletID(ctx context.Context, walletID string) (*machnet.User, error) {
@@ -69,6 +76,10 @@ func (c client) GetWidgetToken(ctx context.Context, walletID string) (*machnet.W
 
 func (c client) HandleEvent(ctx context.Context, event external.Event) error {
 	return ops.HandleEvent(ctx, c.b, event)
+}
+
+func (c client) ValidateWebhook(ctx context.Context, payload []byte, base64Signature string) error {
+	return ops.ValidateWebhook(ctx, c.b, payload, c.webhookSecret, base64Signature)
 }
 
 func (c client) CreateSendUser(ctx context.Context, walletID string) (machnet.Await, error) {

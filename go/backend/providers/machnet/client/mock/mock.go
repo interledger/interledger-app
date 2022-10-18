@@ -244,3 +244,17 @@ func (mr *MockClientMockRecorder) HandleEvent(ctx, event interface{}) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockClient)(nil).HandleEvent), ctx, event)
 }
+
+// ValidateWebhook mocks base method.
+func (m *MockClient) ValidateWebhook(ctx context.Context, payload []byte, signature string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateWebhook", ctx, payload, signature)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateWebhook indicates an expected call of ValidateWebhook.
+func (mr *MockClientMockRecorder) ValidateWebhook(ctx, payload, signature interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), ctx, payload, signature)
+}
