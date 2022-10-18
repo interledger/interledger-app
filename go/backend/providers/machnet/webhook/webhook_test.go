@@ -2,6 +2,9 @@ package webhook_test
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -35,14 +38,34 @@ func TestWebhook(t *testing.T) {
 	}
 	payload, err := json.Marshal(userCardAddedEvent)
 	require.NoError(t, err)
+	webhookSignature := sign(t, payload, "succeed")
 
+	b.machnet.EXPECT().ValidateWebhook(gomock.Any(), payload, webhookSignature).Return(nil).Times(1)
 	b.machnet.EXPECT().HandleEvent(gomock.Any(), userCardAddedEvent).Return(nil).Times(1)
 	req := httptest.NewRequest("POST", "/", bytes.NewBuffer(payload))
+	req.Header.Set(webhook.SignatureHeader, webhookSignature)
 	response := httptest.NewRecorder()
 
 	wh(response, req)
-
 	assert.Equal(t, http.StatusOK, response.Code)
+
+	b.machnet.EXPECT().ValidateWebhook(gomock.Any(), payload, "fail").Return(machnet.ErrInvalidSignature).Times(1)
+	badRequest := httptest.NewRequest("POST", "/", bytes.NewBuffer(payload))
+	badRequest.Header.Set(webhook.SignatureHeader, "fail")
+	response = httptest.NewRecorder()
+
+	wh(response, badRequest)
+	assert.Equal(t, http.StatusBadRequest, response.Code)
+}
+
+func sign(t *testing.T, payload []byte, secret string) string {
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, err := mac.Write(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
 type backends struct {
