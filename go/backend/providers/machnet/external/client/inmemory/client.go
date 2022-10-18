@@ -211,6 +211,7 @@ func (c Client) CreateTransaction(
 		FromFundID:        args.FromFundID,
 		FundingsourceType: args.FundingSourceType,
 		DeliveryStatus:    external.DeliveryStatusNone,
+		To:                args.To,
 	}
 
 	c.transactions[trx.ID] = trx
