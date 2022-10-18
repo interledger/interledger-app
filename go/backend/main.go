@@ -179,7 +179,7 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
+	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret, args.MachnetWebhookSecret)
 
 	router := chi.NewRouter()
 	router.Routes()
