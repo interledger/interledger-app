@@ -97,6 +97,7 @@ type StartArgs struct {
 	GoogleOauth2ClientID      string
 	MachnetClientID           string
 	MachnetClientSecret       string
+	MachnetWebhookSecret      string
 	MxClientID                string
 	MxApiKey                  string
 	RafikiGraphqlUrl          string
@@ -235,6 +236,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		GoogleOauth2ClientID:      googleOauth2ClientID,
 		MachnetClientID:           os.Getenv("MACHNET_CLIENT_ID"),
 		MachnetClientSecret:       os.Getenv("MACHNET_CLIENT_SECRET"),
+		MachnetWebhookSecret:      os.Getenv("MACHNET_WEBHOOK_SECRET"),
 		MxClientID:                mxClientID,
 		MxApiKey:                  mxApiKey,
 		RafikiGraphqlUrl:          rafikiGraphqlUrl,
