@@ -2,7 +2,10 @@ package ops
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -286,7 +289,6 @@ func GetBanks(ctx context.Context, b Backends, countryCode string) ([]machnet.Ba
 }
 
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
-	// TODO: validate payload
 	var err error
 	switch event.EventName {
 	case external.UserCardAdded:
@@ -303,6 +305,25 @@ func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	}
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func ValidateWebhook(ctx context.Context, b Backends, payload []byte, secret, base64Signature string) error {
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, err := mac.Write(payload)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	signature, err := base64.StdEncoding.DecodeString(base64Signature)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	if !hmac.Equal(mac.Sum(nil), signature) {
+		return machnet.ErrInvalidSignature
 	}
 
 	return nil
