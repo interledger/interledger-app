@@ -4,7 +4,12 @@ current_dir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 kindup:
 	@echo "Bringing Cluster Online"
 	./dev/kind/run.sh
-	@echo "Cluster online"
+	@echo "Cluster online. Deploying..."
+	./dev/kind/deploy.sh
+
+kinddeploy:
+	@echo "Deploying..."
+	./dev/kind/deploy.sh
 
 kinddown:
 	@echo "Deleting Cluster"
