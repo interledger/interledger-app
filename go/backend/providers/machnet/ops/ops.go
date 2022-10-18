@@ -113,7 +113,7 @@ func CreateReceiveBankAccount(ctx context.Context, b Backends, args machnet.Crea
 			Value("account_type", args.AccountType).
 			Value("bank_id", args.BankID).
 			Value("branch_id", args.BranchID).
-			Returning("id, wallet_id, account_number, bank_id, branch_id, created_at, updated_at")
+			Returning("id, wallet_id, account_number, account_type, bank_id, branch_id, created_at, updated_at")
 
 		statement, values, err := insert.GetStatement()
 		if err != nil {

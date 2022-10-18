@@ -172,6 +172,9 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	b.linked.EXPECT().GetByProviderID(gomock.Any(), gomock.Any()).Return(nil, linkedaccounts.ErrNotFound).Times(1)
+	b.linked.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil, nil).Times(1)
+
 	bankAcc, err := ops.CreateReceiveBankAccount(ctx, a.b, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      toWallet.ID,
 		AccountNumber: "234",
