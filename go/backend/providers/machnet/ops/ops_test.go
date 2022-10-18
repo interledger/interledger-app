@@ -2,6 +2,9 @@ package ops_test
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"testing"
 	"time"
 
@@ -410,6 +413,24 @@ func TestGetBanks(t *testing.T) {
 	require.Len(t, banks[0].Branches, 1)
 	assert.Equal(t, uint32(1), banks[0].Branches[0].ID)
 	assert.Equal(t, "Local", banks[0].Branches[0].Name)
+}
+
+func TestValidateWebhook(t *testing.T) {
+	t.Parallel()
+
+	payload := []byte("hello world!")
+	mac := hmac.New(sha256.New, []byte("test"))
+	_, err := mac.Write(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signature := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+
+	err = ops.ValidateWebhook(context.Background(), backends{}, payload, "test", signature)
+	require.NoError(t, err)
+
+	err = ops.ValidateWebhook(context.Background(), backends{}, payload, "fail", signature)
+	assert.ErrorIs(t, err, machnet.ErrInvalidSignature)
 }
 
 func NewTestBackends(t *testing.T) backends {
