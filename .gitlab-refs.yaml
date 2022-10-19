@@ -34,3 +34,8 @@
   environment:
     name: Dev EU1
     url: https://eu1.fynbos.dev
+
+.prod_use2_environment:
+  environment:
+    name: Prod USE2
+    url: https://fynbos.app
