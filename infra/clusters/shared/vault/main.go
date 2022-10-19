@@ -235,6 +235,10 @@ func main() {
 						},
 					},
 				},
+				"injector": pulumi.Map{
+					"port":        pulumi.Int(10285),
+					"hostNetwork": pulumi.Bool(true),
+				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, serviceAccount, key, cert, remoteCert}))
 
