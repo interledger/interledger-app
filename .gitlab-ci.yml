@@ -50,3 +50,34 @@ trigger_deploy_dev_eu1:
     - (cd pacioli/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli=823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli:$CI_COMMIT_SHORT_SHA)
     - git commit -am "Dev EU1 image update for ${CI_COMMIT_SHORT_SHA}"
     - git push -o merge_request.create -o merge_request.target=main -o merge_request.title="Deploy dev-eu1 $CI_COMMIT_SHORT_SHA" -o merge_request.assign="$GITLAB_USER_ID" -o merge_request.remove_source_branch --set-upstream origin gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
+
+
+trigger_deploy_prod_use2:
+  tags:
+    - k8s
+  environment: !reference [ .prod_use2_environment, environment ]
+  only:
+    - main
+  needs:
+    - build_backend
+    - build_protea
+    - build_pacioli
+  when: manual
+  variables:
+    GIT_STRATEGY: none
+  image: alpine:3.8
+  before_script:
+    - apk add --no-cache git
+    - wget -qO- https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.5/kustomize_v4.5.5_linux_amd64.tar.gz | tar xvz -C /usr/local/bin/
+    - mkdir rooibos
+    - git clone --single-branch --branch main https://$CI_USERNAME:$CI_PUSH_TOKEN@gitlab.com/fynbos/rooibos.git rooibos
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+  script:
+    - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
+    - cd rooibos
+    - git checkout -b gitlabcd/deploy-prod-use2-$CI_COMMIT_SHORT_SHA
+    - (cd backend/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
+    - (cd protea/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
+    - git commit -am "Prod USE2 image update for ${CI_COMMIT_SHORT_SHA}"
+    - git push -o merge_request.create -o merge_request.target=main -o merge_request.title="Deploy prod-use2 $CI_COMMIT_SHORT_SHA" -o merge_request.assign="$GITLAB_USER_ID" -o merge_request.remove_source_branch --set-upstream origin gitlabcd/deploy-prod-use2-$CI_COMMIT_SHORT_SHA
