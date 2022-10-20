@@ -118,3 +118,34 @@ export const AnchorRouter = forwardRef<any, RouterProps>(
 )
 
 AnchorRouter.displayName = 'AnchorRouter'
+
+/**
+ * Exposes a headless button that will route to `to`,
+ * and can be wrapped around a styled button for accessibility.
+ *
+ * @param children The children of the button.
+ * @param href - Routes or Routes object with params
+ * @param rest The props passed through to the anchor tag.
+ */
+export const AnchorButtonRouter = forwardRef<any, ButtonRouterProps>(
+  ({ className, children, to, shrink, ...rest }, ref) => {
+    return (
+      <a
+        ref={ref}
+        href={to}
+        target='_blank'
+        rel='noreferrer'
+        className={clsx(
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-display font-medium text-white hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500',
+          shrink ? 'sm:max-w-fit' : '',
+          className
+        )}
+        {...rest}
+      >
+        {children}
+      </a>
+    )
+  }
+)
+
+AnchorButtonRouter.displayName = 'AnchorButtonRouter'
