@@ -92,9 +92,13 @@ service BackendService {
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
+
+  //Machnet
   rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
   rpc ListBanks(Empty) returns (ListBanksResponse);
   rpc CreateReceiveBankAccount(CreateReceiveBankAccountRequest) returns (LinkedAccount);
+  rpc CreateSendUser(Empty) returns(Empty);
+  rpc HasSendUser(Empty) returns (HasSendUserResponse);
 
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
@@ -325,4 +329,8 @@ message CanSignupResponse{
 message SetSignupCompleteRequest{
   string id = 1;
   string userId = 2;
+}
+
+message HasSendUserResponse{
+  bool hasSendUser = 1;
 }
