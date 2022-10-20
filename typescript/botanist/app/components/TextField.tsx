@@ -1,0 +1,77 @@
+import type { InputHTMLAttributes } from 'react'
+import { forwardRef } from 'react'
+
+interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
+  className?: string
+  // The label value.
+  label?: string
+  // The message from errors produced by form validation.
+  errorMessage?: string
+  // Any success messages produced by form validation.
+  successMessage?: string
+
+  // Prefix text to show in front of the input.
+  prefix?: string
+  prefixIcon?: JSX.Element
+  appendIcon?: JSX.Element
+}
+
+export const TextField = forwardRef<any, TextFieldProps>(
+  (
+    {
+      className,
+      label,
+      errorMessage,
+      successMessage,
+      prefix,
+      prefixIcon,
+      appendIcon,
+      ...inputProps
+    },
+    ref
+  ) => {
+    return (
+      <div className={className || 'min-w-full'}>
+        <label
+          htmlFor={inputProps.id}
+          className='ml-2 block text-sm font-medium text-medium'
+        >
+          {label}
+        </label>
+        <div className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+          <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
+            {prefixIcon && (
+              <div className='-mr-4 flex h-full items-center px-4'>
+                {prefixIcon}
+              </div>
+            )}
+            {prefix && (
+              <span className='z-10 ml-4 -mr-[0.9375rem] text-disabled'>
+                {prefix}
+              </span>
+            )}
+            <input
+              ref={ref}
+              {...inputProps}
+              className='z-0 h-full w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'
+            />
+            {appendIcon && (
+              <div className='-ml-4 flex h-full items-center px-4'>
+                {appendIcon}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className='h-7 pt-2 pl-2'>
+          {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
+          {successMessage && !errorMessage && (
+            <p className='text-sm text-success'>{successMessage}</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+)
+
+TextField.displayName = 'TextField'
