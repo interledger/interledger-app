@@ -756,6 +756,15 @@ export interface SetSignupCompleteRequest {
      */
     userId: string;
 }
+/**
+ * @generated from protobuf message backend.v1.HasSendUserResponse
+ */
+export interface HasSendUserResponse {
+    /**
+     * @generated from protobuf field: bool hasSendUser = 1;
+     */
+    hasSendUser: boolean;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
     constructor() {
@@ -3608,6 +3617,53 @@ class SetSignupCompleteRequest$Type extends MessageType<SetSignupCompleteRequest
  * @generated MessageType for protobuf message backend.v1.SetSignupCompleteRequest
  */
 export const SetSignupCompleteRequest = new SetSignupCompleteRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class HasSendUserResponse$Type extends MessageType<HasSendUserResponse> {
+    constructor() {
+        super("backend.v1.HasSendUserResponse", [
+            { no: 1, name: "hasSendUser", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<HasSendUserResponse>): HasSendUserResponse {
+        const message = { hasSendUser: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<HasSendUserResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HasSendUserResponse): HasSendUserResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool hasSendUser */ 1:
+                    message.hasSendUser = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: HasSendUserResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool hasSendUser = 1; */
+        if (message.hasSendUser !== false)
+            writer.tag(1, WireType.Varint).bool(message.hasSendUser);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.HasSendUserResponse
+ */
+export const HasSendUserResponse = new HasSendUserResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendAdminService
  */
@@ -3648,6 +3704,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetMachnetWidgetToken", options: {}, I: Empty, O: MachnetWidgetToken },
     { name: "ListBanks", options: {}, I: Empty, O: ListBanksResponse },
     { name: "CreateReceiveBankAccount", options: {}, I: CreateReceiveBankAccountRequest, O: LinkedAccount },
+    { name: "CreateSendUser", options: {}, I: Empty, O: Empty },
+    { name: "HasSendUser", options: {}, I: Empty, O: HasSendUserResponse },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }

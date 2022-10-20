@@ -320,9 +320,12 @@ type BackendServiceClient interface {
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 	LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	//Machnet
 	GetMachnetWidgetToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MachnetWidgetToken, error)
 	ListBanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListBanksResponse, error)
 	CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	CreateSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -526,6 +529,24 @@ func (c *backendServiceClient) CreateReceiveBankAccount(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateSendUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error) {
+	out := new(HasSendUserResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/HasSendUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -579,9 +600,12 @@ type BackendServiceServer interface {
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 	LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error)
+	//Machnet
 	GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error)
 	ListBanks(context.Context, *Empty) (*ListBanksResponse, error)
 	CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error)
+	CreateSendUser(context.Context, *Empty) (*Empty, error)
+	HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -654,6 +678,12 @@ func (UnimplementedBackendServiceServer) ListBanks(context.Context, *Empty) (*Li
 }
 func (UnimplementedBackendServiceServer) CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateReceiveBankAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateSendUser(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSendUser not implemented")
+}
+func (UnimplementedBackendServiceServer) HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasSendUser not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -1054,6 +1084,42 @@ func _BackendService_CreateReceiveBankAccount_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateSendUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateSendUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateSendUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateSendUser(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_HasSendUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).HasSendUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/HasSendUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).HasSendUser(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1198,6 +1264,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateReceiveBankAccount",
 			Handler:    _BackendService_CreateReceiveBankAccount_Handler,
+		},
+		{
+			MethodName: "CreateSendUser",
+			Handler:    _BackendService_CreateSendUser_Handler,
+		},
+		{
+			MethodName: "HasSendUser",
+			Handler:    _BackendService_HasSendUser_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",
