@@ -16,6 +16,7 @@ type CreateQuoteArgs struct {
 	ReceivePaymentPointer string `validate:"url"`
 	ExpiresAt             time.Time
 	SendAmount            Amount
+	Reference             string
 }
 
 type Amount struct {
@@ -25,11 +26,38 @@ type Amount struct {
 }
 
 type Quote struct {
+	ID              string    `json:"id"`
+	PaymentPointer  string    `json:"paymentPointer"`
+	IncomingPayment string    `json:"receiver"`
+	ReceiveAmount   Amount    `json:"receiveAmount"`
+	SendAmount      Amount    `json:"sendAmount"`
+	ExpiresAt       time.Time `json:"expiresAt"`
+	CreatedAt       time.Time `json:"createdAt"`
+}
+
+type ILPConnection struct {
+	ID           string `json:"id"`
+	Address      string `json:"ilpAddress"`
+	SharedSecret string `json:"sharedSecret"`
+	AssetCode    string `json:"assetCode"`
+	AssetScale   int    `json:"assetScale"`
+}
+
+type CreateIncomingPaymentArgs struct {
+	PaymentPointer string
+	IncomingAmount Amount
+	ExternalRef    string
+	ExpiresAt      time.Time
+}
+
+type IncomingPayment struct {
 	ID             string    `json:"id"`
 	PaymentPointer string    `json:"paymentPointer"`
-	Receiver       string    `json:"receiver"`
-	ReceiveAmount  Amount    `json:"receiveAmount"`
-	SendAmount     Amount    `json:"sendAmount"`
+	IncomingAmount Amount    `json:"incomingAmount"`
+	ReceivedAmount Amount    `json:"receivedAmount"`
+	Completed      bool      `json:"completed"`
+	ExternalRef    string    `json:"externalRef"`
 	ExpiresAt      time.Time `json:"expiresAt"`
 	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
 }
