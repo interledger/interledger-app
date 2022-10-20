@@ -98,6 +98,8 @@ export default function Page() {
     location.pathname.startsWith('/waitlist') ||
     location.pathname.startsWith('/contact') ||
     location.pathname.startsWith('/login') ||
+    location.pathname.startsWith('/linked-account') ||
+    location.pathname.startsWith('/logout') ||
     location.pathname.startsWith('/payment-pointer')
 
   return (
