@@ -1,0 +1,176 @@
+import type { InputHTMLAttributes } from 'react'
+import { forwardRef, Fragment, useCallback, useRef, useState } from 'react'
+import { Listbox, Transition } from '@headlessui/react'
+import { AsYouType, getCountryCallingCode } from 'libphonenumber-js'
+import type { CountryCode } from 'libphonenumber-js'
+import clsx from 'clsx'
+
+interface PhoneFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
+  className?: string
+  // The label value.
+  label?: string
+  // The message from errors produced by form validation.
+  errorMessage?: string
+
+  defaultCountry: string
+  options: PhoneAutocompleteOptions[]
+}
+
+export type PhoneAutocompleteOptions = {
+  id: CountryCode
+  name: string
+}
+
+/**
+ * Phone text field component with country select.
+ * Includes two input fields linked to the form specified in the props.
+ *
+ * References:
+ * https://headlessui.dev/react/Listbox
+ * https://gitlab.com/catamphetamine/react-phone-number-input
+ */
+export const PhoneTextField = forwardRef<
+  HTMLInputElement | undefined,
+  PhoneFieldProps
+>(
+  (
+    { className, label, errorMessage, defaultCountry, options, ...inputProps },
+    ref
+  ) => {
+    // @ts-ignore
+    const inputRef = useRef<HTMLInputElement>(ref)
+
+    const [country, setCountry] = useState<PhoneAutocompleteOptions>(
+      options.find(
+        (country: PhoneAutocompleteOptions) => country.id == defaultCountry
+      ) as PhoneAutocompleteOptions
+    )
+
+    const _onChangeInput = useCallback(
+      (event) => {
+        const formatter = new AsYouType(country.id)
+        formatter.input(event.target.value)
+
+        if (
+          typeof formatter.country !== 'undefined' &&
+          country.id != formatter.country
+        ) {
+          setCountry(
+            options.find(
+              (country: PhoneAutocompleteOptions) =>
+                country.id == formatter.country
+            ) as PhoneAutocompleteOptions
+          )
+        }
+      },
+      [country.id, options]
+    )
+
+    const _onChangeCountry = useCallback(
+      (newCountry) => {
+        const currentNumber = inputRef.current.value
+
+        if (currentNumber.startsWith('+')) {
+          inputRef.current.value = currentNumber.replace(
+            `+${getCountryCallingCode(country.id)}`,
+            `+${getCountryCallingCode(newCountry.id)}`
+          )
+        } else {
+          inputRef.current.value = `+${getCountryCallingCode(
+            newCountry.id
+          )}${currentNumber}`
+        }
+
+        setCountry(newCountry)
+      },
+      [country]
+    )
+
+    return (
+      <div className={className || 'min-w-full'}>
+        <label
+          htmlFor={inputProps.id}
+          className='ml-2 block text-sm font-medium text-medium'
+        >
+          {label}
+        </label>
+        <input
+          form={inputProps.form}
+          value={String(country?.id)}
+          name='country'
+          type='hidden'
+        />
+        <Listbox value={country} onChange={_onChangeCountry}>
+          <div className='relative'>
+            <div className='mt-1 h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+              <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
+                <Listbox.Button className='flex h-full items-center bg-container px-4 text-medium focus-visible:bg-container-primary focus-visible:outline-none'>
+                  <div className={`flag:${country?.id}`} />
+                </Listbox.Button>
+                <input
+                  ref={inputRef}
+                  {...inputProps}
+                  defaultValue={`+${getCountryCallingCode(
+                    defaultCountry as CountryCode
+                  )}`}
+                  type='tel'
+                  onChange={_onChangeInput}
+                  className='w-full overflow-hidden border-none focus:ring-0'
+                />
+              </div>
+            </div>
+            <Transition
+              as={Fragment}
+              leave='transition ease-in duration-100'
+              leaveFrom='opacity-100'
+              leaveTo='opacity-0'
+              afterLeave={() => {
+                // Ensure the input is put in focus
+                inputRef.current.focus()
+                // Ensure that the cursor is sent to the end of the input
+                inputRef.current.selectionStart = inputRef.current.value.length
+                inputRef.current.selectionEnd = inputRef.current.value.length
+              }}
+            >
+              <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 shadow-lg focus:outline-none sm:text-sm'>
+                {options.length > 0 &&
+                  options.map((option, index) => (
+                    <Listbox.Option
+                      key={index}
+                      className={({ active, selected }) =>
+                        clsx(
+                          'relative flex h-12 cursor-pointer select-none items-center justify-start space-x-2 pl-4 pr-3',
+                          selected
+                            ? active
+                              ? 'bg-container-primary-hover'
+                              : 'bg-container-primary text-medium'
+                            : active
+                            ? 'bg-container-hover'
+                            : 'bg-container text-medium'
+                        )
+                      }
+                      value={option}
+                    >
+                      <div className={`flag:${option.id}`} />
+                      <span className='block truncate'>{option.name}</span>
+                    </Listbox.Option>
+                  ))}
+                {options.length === 0 && (
+                  <div className='relative flex h-12 select-none items-center justify-between pl-4 pr-3 text-medium'>
+                    Nothing found.
+                  </div>
+                )}
+              </Listbox.Options>
+            </Transition>
+          </div>
+        </Listbox>
+        <div className='h-7 pt-2 pl-2'>
+          {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
+        </div>
+      </div>
+    )
+  }
+)
+
+PhoneTextField.displayName = 'PhoneTextField'
