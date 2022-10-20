@@ -308,3 +308,82 @@ func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, 
 	}, nil
 
 }
+
+type dbIncomingPayment struct {
+	ID               string         `db:"id"`
+	PaymentPointerID string         `db:"payment_pointer_id"`
+	AssetCode        string         `db:"asset_code"`
+	AssetScale       int            `db:"asset_scale"`
+	IncomingAmount   uint64         `db:"incoming_amount"`
+	ReceivedAmount   uint64         `db:"received_amount"`
+	Completed        bool           `db:"completed"`
+	ExternalRef      sql.NullString `db:"external_ref"`
+	ILPStream        sql.NullString `db:"ilp_stream_id"`
+	ILPAddress       sql.NullString `db:"ilp_address"`
+	ILPSecret        sql.NullString `db:"ilp_shared_secret"`
+	ExpiresAt        time.Time      `db:"expires_at"`
+	CreatedAt        time.Time      `db:"created_at"`
+	UpdatedAt        time.Time      `db:"updated_at"`
+}
+
+func GetIncomingPayment(ctx context.Context, b Backends, id string) (*openpayments.IncomingPayment, error) {
+	var payment dbIncomingPayment
+	err := b.DB().GetContext(ctx, &payment,
+		"SELECT id, payment_pointer_id, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at FROM openpayments_incoming_payment WHERE id=$1",
+		id)
+	if errors.Is(err, sql.ErrNoRows) {
+		// TODO: Correct error
+		return nil, fmt.Errorf("%w %s", openpayments.ErrPaymentPointerNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return &openpayments.IncomingPayment{
+		ID:             payment.ID,
+		PaymentPointer: payment.PaymentPointerID, // TODO: lookup
+		IncomingAmount: openpayments.Amount{
+			Value:      payment.IncomingAmount,
+			AssetCode:  payment.AssetCode,
+			AssetScale: payment.AssetScale,
+		},
+		ReceivedAmount: openpayments.Amount{
+			Value:      payment.ReceivedAmount,
+			AssetCode:  payment.AssetCode,
+			AssetScale: payment.AssetScale,
+		},
+		Completed:   payment.Completed,
+		ExternalRef: payment.ExternalRef.String,
+		ExpiresAt:   payment.ExpiresAt,
+		CreatedAt:   payment.CreatedAt,
+		UpdatedAt:   payment.UpdatedAt,
+	}, nil
+}
+
+func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments.IncomingPayment) (*openpayments.IncomingPayment, error) {
+	err := b.Validator().Struct(payment)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
+	}
+	id := uuid.NewString()
+	stmt, args, err := db.NewInsert("openpayments_incoming_payment").
+		Value("id", id).
+		Value("payment_pointer_id", payment.PaymentPointer). // TODO: lookup ID
+		Value("asset_code", payment.IncomingAmount.AssetCode).
+		Value("asset_scale", payment.IncomingAmount.AssetScale).
+		Value("incoming_amount", payment.IncomingAmount.Value).
+		Value("received_amount", 0).
+		Value("completed", payment.Completed).
+		Value("expires_at", payment.ExpiresAt).
+		Value("external_ref", payment.ExternalRef).GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, stmt, args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return GetIncomingPayment(ctx, b, id)
+}
