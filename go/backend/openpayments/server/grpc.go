@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -122,5 +124,78 @@ func (g grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPoi
 
 	return &pb.PaymentPointerExistsResponse{
 		Exists: exists,
+	}, nil
+}
+
+func (g grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest) (*pb.Quote, error) {
+	args := openpayments.CreateQuoteArgs{
+		SendPaymentPointer:    req.SendPaymentPointer,
+		ReceivePaymentPointer: req.ReceivePaymentPointer,
+		ExpiresAt:             req.ExpiresAt.AsTime(),
+		SendAmount: openpayments.Amount{
+			Value:      req.Amount.Amount,
+			Asset:      req.Amount.Asset,
+			AssetScale: int(req.Amount.AssetScale),
+		},
+	}
+
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	ppl, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var found bool
+	for _, pp := range ppl {
+		if strings.EqualFold(pp.URL, args.SendPaymentPointer) {
+			found = true
+		}
+	}
+	if !found {
+		// Signed in user doesn't own the payment pointer it's trying to send from
+		return nil, ForbiddenError("Unauthenticated")
+	}
+
+	err = g.b.Validator().Struct(args)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	err = g.b.Validator().Struct(args.SendAmount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	q, err := ops.CreateQuote(ctx, g.b, args)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	sendAmt := &pb.Amount{
+		Amount:     q.SendAmount.Value,
+		Asset:      q.SendAmount.Asset,
+		AssetScale: int32(q.SendAmount.AssetScale),
+	}
+	recvAmt := &pb.Amount{
+		Amount:     q.ReceiveAmount.Value,
+		Asset:      q.ReceiveAmount.Asset,
+		AssetScale: int32(q.ReceiveAmount.AssetScale),
+	}
+	return &pb.Quote{
+		ID:             q.ID,
+		PaymentPointer: q.PaymentPointer,
+		Receiver:       q.Receiver,
+		SendAmount:     sendAmt,
+		ReceiveAmount:  recvAmt,
+		ExpiresAt:      timestamppb.New(q.ExpiresAt),
+		CreatedAt:      timestamppb.New(q.CreatedAt),
 	}, nil
 }

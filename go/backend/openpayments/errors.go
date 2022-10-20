@@ -3,6 +3,7 @@ package openpayments
 import "errors"
 
 var (
+	ErrNotFound               = errors.New("open payments: not found")
 	ErrPaymentPointerExists   = errors.New("payment pointer: exists already")
 	ErrInvalidPointerURL      = errors.New("payment pointer: invalid URL format")
 	ErrInvalidPointerPath     = errors.New("payment pointer: invalid user  path")

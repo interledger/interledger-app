@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -453,6 +454,124 @@ func TestFormattedPaymentPointer(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tc.expectedFormatted, formatted)
+		})
+	}
+}
+
+func TestCreateQuote(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_client.New(b, "fakeURL")
+
+	cases := []struct {
+		name      string
+		args      openpayments.CreateQuoteArgs
+		recvAsset string
+		err       error
+	}{
+		{
+			name: "success",
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+			},
+		},
+		{
+			name:      "different assets",
+			recvAsset: "ZAR",
+			err:       openpayments.ErrInvalidArgument,
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend1",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv2",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+			},
+		},
+		{
+			name: "expiry in the past",
+			err:  openpayments.ErrInvalidArgument,
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend3",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv4",
+				ExpiresAt:             time.Now().Add(time.Hour * -1),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "ZAR",
+					AssetScale: 2,
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			sendUserID := uuid.NewString()
+			recvUserID := uuid.NewString()
+			// Create Signups
+			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), sendUserID, uuid.NewString(), recvUserID)
+			require.NoError(t, err)
+			// Create Wallets
+			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			require.NoError(t, err)
+			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			require.NoError(t, err)
+
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.args.SendPaymentPointer,
+				WalletID:   sendWallet.ID,
+				Alias:      "Alias",
+				Asset:      tc.args.SendAmount.Asset,
+				AssetScale: tc.args.SendAmount.AssetScale,
+			})
+			require.NoError(t, err)
+			recvAsset := tc.args.SendAmount.Asset
+			if tc.recvAsset != "" {
+				recvAsset = tc.recvAsset
+			}
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.args.ReceivePaymentPointer,
+				WalletID:   recvWallet.ID,
+				Alias:      "Alias",
+				Asset:      recvAsset,
+				AssetScale: tc.args.SendAmount.AssetScale,
+			})
+
+			q, err := ops.CreateQuote(ctx, b, tc.args)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+
+			assert.False(t, q.ExpiresAt.IsZero())
+			// We do this for clock drift
+			assert.Equal(t, tc.args.ExpiresAt.Year(), q.ExpiresAt.Year())
+			assert.Equal(t, tc.args.ExpiresAt.Month(), q.ExpiresAt.Month())
+			assert.Equal(t, tc.args.ExpiresAt.Day(), q.ExpiresAt.Day())
+			assert.Equal(t, tc.args.ExpiresAt.Hour(), q.ExpiresAt.Hour())
+			assert.Equal(t, tc.args.ExpiresAt.Minute(), q.ExpiresAt.Minute())
+			assert.Equal(t, tc.args.ExpiresAt.Second(), q.ExpiresAt.Second())
+			assert.Equal(t, tc.args.ReceivePaymentPointer, q.PaymentPointer)
+			assert.Equal(t, tc.args.SendAmount.Value, q.ReceiveAmount.Value)
+			assert.Equal(t, tc.args.SendAmount.Asset, q.ReceiveAmount.Asset)
+			assert.Equal(t, tc.args.SendAmount.AssetScale, q.ReceiveAmount.AssetScale)
+			assert.Equal(t, tc.args.SendAmount.Value, q.SendAmount.Value)
+			assert.Equal(t, tc.args.SendAmount.Asset, q.SendAmount.Asset)
+			assert.Equal(t, tc.args.SendAmount.AssetScale, q.SendAmount.AssetScale)
 		})
 	}
 }
