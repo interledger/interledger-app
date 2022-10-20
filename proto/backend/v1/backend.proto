@@ -14,6 +14,30 @@ service OpenPaymentService {
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
   rpc PaymentPointerExists(PaymentPointerExistsRequest) returns (PaymentPointerExistsResponse);
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
+  rpc CreateQuote(CreateQuoteRequest) returns (Quote);
+}
+
+message Amount {
+  uint64 amount = 1;
+  string asset = 2;
+  int32 assetScale = 3;
+}
+
+message CreateQuoteRequest {
+  string sendPaymentPointer = 1;
+  string receivePaymentPointer = 2;
+  Amount amount = 3;
+  google.protobuf.Timestamp expiresAt = 4;
+}
+
+message Quote {
+  string ID = 1;
+  string PaymentPointer = 2;
+  string Receiver = 3;
+  Amount SendAmount = 4;
+  Amount ReceiveAmount = 5;
+  google.protobuf.Timestamp expiresAt = 6;
+  google.protobuf.Timestamp createdAt = 7;
 }
 
 message PaymentPointerExistsRequest {

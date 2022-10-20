@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
@@ -40,14 +42,24 @@ func catchAllHandler(b Backends) http.HandlerFunc {
 }
 
 func getFullURL(req *http.Request) string {
-	return fmt.Sprintf("https://%s", path.Join(req.Host, req.URL.String()))
+	url := req.URL.String()
+	if req.URL.Scheme == "" && req.URL.Host == "" {
+		url = fmt.Sprintf("https://%s", path.Join(req.Host, req.URL.Path))
+	}
+
+	if strings.HasPrefix(url, "http://") {
+		url = strings.Replace(url, "http://", "https://", 1)
+	}
+
+	return url
 }
 
 // postHandler handles all incoming POST requests and routes them according to the URL contents and suffixing.
 func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
-	ppURL, suffix, err := ops.ExtractPaymentPointer(getFullURL(req))
+	fURL := getFullURL(req)
+	ppURL, suffix, err := ops.ExtractPaymentPointer(fURL)
 
 	if err != nil {
 		log.Error("error trying to parse post to payment pointer", zap.Error(err), zap.String("url", req.URL.String()))
@@ -55,7 +67,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = ops.GetPaymentPointer(ctx, b, ppURL)
+	pp, err := ops.GetPaymentPointer(ctx, b, ppURL)
 	if err != nil {
 		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -79,19 +91,65 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		// TODO: handle
 		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		return
-	case "quote":
-		// TODO: handle
-		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
+	case "quotes":
+		createQuote(b, w, req, pp)
 		return
 	default:
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 }
 
+func createQuote(b Backends, w http.ResponseWriter, req *http.Request, pp *openpayments.PaymentPointer) {
+	bodyData, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Error("failed to decode create quote body", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	var args openpayments.CreateQuoteArgs
+	err = json.Unmarshal(bodyData, &args)
+	if err != nil {
+		log.Error("failed to unmarshal create quote body", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	args.SendPaymentPointer = pp.URL
+
+	q, err := ops.CreateQuote(req.Context(), b, args)
+	if errors.Is(err, openpayments.ErrInvalidArgument) {
+		log.Error("invalid arguments to create quote", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	respBytes, err := json.Marshal(q)
+	if err != nil {
+		log.Error("failed to marshall create quote response", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(respBytes)
+	if err != nil {
+		log.Error("failed to write create quote response", zap.Error(err))
+	}
+}
+
 // getHandler handles all incoming GET requests and handles them as required
 func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	pp, err := ops.GetPaymentPointer(ctx, b, getFullURL(req))
+
+	ppURL, suffix, err := ops.ExtractPaymentPointer(getFullURL(req))
+	if errors.Is(err, openpayments.ErrInvalidPointerURL) {
+		http.Error(w, "Invalid Payment Pointer", http.StatusBadRequest)
+		return
+	}
+
+	pp, err := ops.GetPaymentPointer(ctx, b, ppURL)
 	if err != nil {
 		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -107,11 +165,41 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	switch suffix {
+	case "quotes":
+		getQuote(b, w, req, ppURL)
+		return
+	}
+
+	// Fallback to get payment pointer
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(pp)
 	if err != nil {
 		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
+	}
+}
+
+func getQuote(b Backends, w http.ResponseWriter, req *http.Request, pp string) {
+
+	qid := strings.Replace(strings.Replace(req.URL.Path, "quotes", "", 1), "/", "", 0)
+	q, err := ops.GetQuote(req.Context(), b, qid)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		log.Error("quote not found", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error("failed to get quote", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(q)
+	if err != nil {
+		log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 }

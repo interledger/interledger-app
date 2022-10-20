@@ -8,6 +8,9 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -59,7 +62,7 @@ func GetPaymentPointer(ctx context.Context, b Backends, pointerURLRaw string) (*
 	}
 
 	var pp openpayments.PaymentPointer
-	err = b.DB().GetContext(ctx, &pp, "SELECT wallet_id, url, alias, asset, scale FROM payment_pointers WHERE lower(url) = lower($1)",
+	err = b.DB().GetContext(ctx, &pp, "SELECT id, wallet_id, url, alias, asset, scale FROM payment_pointers WHERE lower(url) = lower($1)",
 		ppURL)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w unkown payment pointer url(%s)", openpayments.ErrPaymentPointerNotFound, ppURL)
@@ -199,4 +202,109 @@ func ListWalletPaymentPointers(ctx context.Context, b Backends, walletID string)
 	}
 
 	return pp, nil
+}
+
+func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteArgs) (*openpayments.Quote, error) {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
+	}
+	err = b.Validator().Struct(args.SendAmount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
+	}
+
+	if args.ExpiresAt.Before(time.Now()) {
+		return nil, fmt.Errorf("%w invalid expiry time", openpayments.ErrInvalidArgument)
+	}
+
+	recvPP, err := GetPaymentPointer(ctx, b, args.ReceivePaymentPointer)
+	if err != nil {
+		return nil, err
+	}
+
+	sendPP, err := GetPaymentPointer(ctx, b, args.SendPaymentPointer)
+	if err != nil {
+		return nil, err
+	}
+
+	if sendPP.Asset != recvPP.Asset || recvPP.Asset != args.SendAmount.Asset {
+		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
+	}
+
+	// TODO: Calculate the from/to conversion one day
+
+	id := uuid.NewString()
+	query, vals, err := db.NewInsert("openpayments_quoutes").
+		Value("id", id).
+		Value("send_payment_pointer_id", sendPP.ID).
+		Value("recv_payment_pointer_id", recvPP.ID).
+		Value("send_amount", args.SendAmount.Value).
+		Value("send_asset", args.SendAmount.Asset).
+		Value("send_scale", args.SendAmount.AssetScale).
+		Value("recv_amount", args.SendAmount.Value).
+		Value("recv_asset", args.SendAmount.Asset).
+		Value("recv_scale", args.SendAmount.AssetScale).
+		Value("expires_at", args.ExpiresAt).GetStatement()
+
+	_, err = b.DB().ExecContext(ctx, query, vals...)
+	if err != nil {
+		return nil, fmt.Errorf("%w insert failed (%s)", openpayments.ErrInternal, err)
+	}
+
+	return GetQuote(ctx, b, id)
+}
+
+type dbQuote struct {
+	ID                    string    `db:"id"`
+	SendPaymentPointer    string    `db:"send_payment_pointer_id"`
+	ReceivePaymentPointer string    `db:"recv_payment_pointer_id"`
+	SendAmount            uint64    `db:"send_amount"`
+	SendAsset             string    `db:"send_asset"`
+	SendAssetScale        int       `db:"send_scale"`
+	RecvAmount            uint64    `db:"recv_amount"`
+	RecvAsset             string    `db:"recv_asset"`
+	RecvAssetScale        int       `db:"recv_scale"`
+	ExpiresAt             time.Time `db:"expires_at"`
+	CreatedAt             time.Time `db:"created_at"`
+	UpdatedAt             time.Time `db:"updated_at"`
+}
+
+func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, error) {
+	var dbq dbQuote
+	err := b.DB().GetContext(ctx, &dbq,
+		"SELECT id, send_payment_pointer_id, recv_payment_pointer_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at FROM openpayments_quoutes WHERE id=$1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, openpayments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	var recvPP, sendPP string
+	err = b.DB().GetContext(ctx, &recvPP, "SELECT url FROM payment_pointers WHERE id=$1", dbq.ReceivePaymentPointer)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	err = b.DB().GetContext(ctx, &sendPP, "SELECT url FROM payment_pointers WHERE id=$1", dbq.SendPaymentPointer)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	amount := openpayments.Amount{
+		Value:      dbq.SendAmount,
+		Asset:      dbq.SendAsset,
+		AssetScale: dbq.SendAssetScale,
+	}
+	return &openpayments.Quote{
+		ID:             dbq.ID,
+		PaymentPointer: recvPP,
+		Receiver:       "TODO", // Build receiver URL
+		ReceiveAmount:  amount,
+		SendAmount:     amount,
+		ExpiresAt:      dbq.ExpiresAt,
+		CreatedAt:      dbq.CreatedAt,
+	}, nil
+
 }
