@@ -15,12 +15,42 @@ service OpenPaymentService {
   rpc PaymentPointerExists(PaymentPointerExistsRequest) returns (PaymentPointerExistsResponse);
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
   rpc CreateQuote(CreateQuoteRequest) returns (Quote);
+  rpc LookupQuote(LookupQuoteRequest) returns (Quote);
+  rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
+  rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
 }
 
 message Amount {
   uint64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
+}
+
+message LookupIncomingPaymentRequest {
+  string id = 1;
+}
+
+message CreateIncomingPaymentRequest {
+  string paymentPointer = 1;
+  Amount amount = 2;
+  string reference = 3;
+  google.protobuf.Timestamp expiresAt = 4;
+}
+
+message IncomingPayment{
+  string id = 1;
+  string paymentPointer = 2;
+  Amount incomingAmount = 3;
+  Amount receivedAmount = 4;
+  bool completed = 5;
+  string externalRef = 6;
+  google.protobuf.Timestamp expiresAt = 7;
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message LookupQuoteRequest {
+  string id = 1;
 }
 
 message CreateQuoteRequest {
@@ -31,11 +61,11 @@ message CreateQuoteRequest {
 }
 
 message Quote {
-  string ID = 1;
-  string PaymentPointer = 2;
-  string Receiver = 3;
-  Amount SendAmount = 4;
-  Amount ReceiveAmount = 5;
+  string id = 1;
+  string paymentPointer = 2;
+  string receiver = 3;
+  Amount sendAmount = 4;
+  Amount receiveAmount = 5;
   google.protobuf.Timestamp expiresAt = 6;
   google.protobuf.Timestamp createdAt = 7;
 }

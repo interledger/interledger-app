@@ -88,8 +88,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 		return
 	case "incoming-payments":
-		// TODO: handle
-		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
+		createIncomingPayment(b, w, req, pp)
 		return
 	case "quotes":
 		createQuote(b, w, req, pp)
@@ -123,6 +122,11 @@ func createQuote(b Backends, w http.ResponseWriter, req *http.Request, pp *openp
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+	if err != nil {
+		log.Error("failed to create quote", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	respBytes, err := json.Marshal(q)
 	if err != nil {
@@ -136,6 +140,51 @@ func createQuote(b Backends, w http.ResponseWriter, req *http.Request, pp *openp
 	_, err = w.Write(respBytes)
 	if err != nil {
 		log.Error("failed to write create quote response", zap.Error(err))
+	}
+}
+
+func createIncomingPayment(b Backends, w http.ResponseWriter, req *http.Request, pp *openpayments.PaymentPointer) {
+	bodyData, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Error("failed to decode create incoming payment body", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	var args openpayments.CreateIncomingPaymentArgs
+	err = json.Unmarshal(bodyData, &args)
+	if err != nil {
+		log.Error("failed to unmarshal create incoming payment body", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	args.PaymentPointer = pp.URL
+
+	q, err := ops.CreateIncomingPayment(req.Context(), b, args)
+	if errors.Is(err, openpayments.ErrInvalidArgument) {
+		log.Error("invalid arguments to create quote", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		log.Error("failed to create incoming payment", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	respBytes, err := json.Marshal(q)
+	if err != nil {
+		log.Error("failed to marshall create quote response", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(respBytes)
+	if err != nil {
+		log.Error("failed to write create incoming response", zap.Error(err))
 	}
 }
 
@@ -167,7 +216,10 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	switch suffix {
 	case "quotes":
-		getQuote(b, w, req, ppURL)
+		getQuote(b, w, req)
+		return
+	case "incoming-payments":
+		getIncomingPayment(b, w, req)
 		return
 	}
 
@@ -181,10 +233,8 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func getQuote(b Backends, w http.ResponseWriter, req *http.Request, pp string) {
-
-	qid := strings.Replace(strings.Replace(req.URL.Path, "quotes", "", 1), "/", "", 0)
-	q, err := ops.GetQuote(req.Context(), b, qid)
+func getQuote(b Backends, w http.ResponseWriter, req *http.Request) {
+	q, err := ops.GetQuote(req.Context(), b, getFullURL(req))
 	if errors.Is(err, openpayments.ErrNotFound) {
 		log.Error("quote not found", zap.Error(err), zap.String("url", getFullURL(req)))
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -197,7 +247,30 @@ func getQuote(b Backends, w http.ResponseWriter, req *http.Request, pp string) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(q)
+	if err != nil {
+		log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+}
+
+func getIncomingPayment(b Backends, w http.ResponseWriter, req *http.Request) {
+	ip, err := ops.GetIncomingPayment(req.Context(), b, getFullURL(req))
+	if errors.Is(err, openpayments.ErrNotFound) {
+		log.Error("incoming payment not found", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error("failed to get quote", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(ip)
 	if err != nil {
 		log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

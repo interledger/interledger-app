@@ -575,3 +575,100 @@ func TestCreateQuote(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateIncomingPayment(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_client.New(b, "fakeURL")
+
+	cases := []struct {
+		name    string
+		ppAsset string
+		args    openpayments.CreateIncomingPaymentArgs
+		err     error
+	}{
+		{
+			name: "success",
+			args: openpayments.CreateIncomingPaymentArgs{
+				PaymentPointer: "http://fynbos.me/moneyplease",
+				IncomingAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+				ExternalRef: "external",
+				ExpiresAt:   time.Now().Add(time.Hour),
+			},
+		},
+		{
+			name:    "different assets",
+			ppAsset: "ZAR",
+			err:     openpayments.ErrInvalidArgument,
+			args: openpayments.CreateIncomingPaymentArgs{
+				PaymentPointer: "http://fynbos.me/moneyplease2",
+				IncomingAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+				ExternalRef: "external",
+				ExpiresAt:   time.Now().Add(time.Hour),
+			},
+		},
+		{
+			name: "past expiry",
+			err:  openpayments.ErrInvalidArgument,
+			args: openpayments.CreateIncomingPaymentArgs{
+				PaymentPointer: "http://fynbos.me/moneyplease2",
+				IncomingAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+				ExternalRef: "external",
+				ExpiresAt:   time.Now().Add(time.Hour * -1),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			recvUserID := uuid.NewString()
+			// Create Signups
+			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), recvUserID)
+			require.NoError(t, err)
+			// Create Wallets
+			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			require.NoError(t, err)
+
+			asset := tc.args.IncomingAmount.Asset
+			if tc.ppAsset != "" {
+				asset = tc.ppAsset
+			}
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.args.PaymentPointer,
+				WalletID:   recvWallet.ID,
+				Alias:      "Alias",
+				Asset:      asset,
+				AssetScale: tc.args.IncomingAmount.AssetScale,
+			})
+
+			ip, err := ops.CreateIncomingPayment(ctx, b, tc.args)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
+			assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
+			assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
+			assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
+			assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
+		})
+	}
+}
