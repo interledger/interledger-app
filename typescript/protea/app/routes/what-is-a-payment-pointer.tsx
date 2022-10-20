@@ -831,7 +831,7 @@ export default function Page() {
               For a more detailed technical outline of how payment pointers
               work,
               <br className='hidden lg:block' /> please visit{' '}
-              <AnchorRouter className='text-primary' to='paymentpointers.org'>
+              <AnchorRouter className='text-primary' to='https://paymentpointers.org'>
                 paymentpointers.org
               </AnchorRouter>
             </span>
