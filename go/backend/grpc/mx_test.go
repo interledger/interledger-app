@@ -480,7 +480,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 func startTestServer(
 	t *testing.T,
 	c *TestContainer,
-) (*grpc.Server, backendv1.BackendAdminServiceClient, backendv1.BackendServiceClient) {
+) (*grpc.Server, backendv1.BackendServiceClient, backendv1.BackendServiceClient) {
 	server, err := NewServer(c)
 	if err != nil {
 		t.Fatal(err)
@@ -510,7 +510,6 @@ func startTestServer(
 	if err != nil {
 		t.Fatal(err)
 	}
-	adminClient := backendv1.NewBackendAdminServiceClient(conn)
 	backendClient := backendv1.NewBackendServiceClient(conn)
 
 	t.Cleanup(func() {
@@ -520,5 +519,5 @@ func startTestServer(
 		server.Stop()
 	})
 
-	return server, adminClient, backendClient
+	return server, backendClient, backendClient
 }
