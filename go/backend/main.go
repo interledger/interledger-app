@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"gitlab.com/fynbos/backend/admin"
 	"net"
 	"net/http"
 	"os"
@@ -224,6 +225,20 @@ func start(args *cli.StartArgs) {
 	}
 	log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", "8443"))
 	err = server.Serve(listener)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	adminServer, err := admin.NewServer(b)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	adminListener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", "8448"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Info(fmt.Sprintf("admin server: 0.0.0.0:%s", "8448"))
+	err = adminServer.Serve(adminListener)
 	if err != nil {
 		log.Fatalln(err)
 	}

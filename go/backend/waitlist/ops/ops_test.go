@@ -207,3 +207,46 @@ func TestSetSignupComplete(t *testing.T) {
 		})
 	}
 }
+
+func TestListSignups(t *testing.T) {
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewBackends(t, db, validator.New())
+
+	sups := []struct {
+		email     string
+		country   string
+		fullName  string
+		betaOptIn bool
+	}{
+		{
+			email:     "bob@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Bob",
+			betaOptIn: false,
+		},
+		{
+			email:     "alice@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Alice",
+			betaOptIn: false,
+		},
+		{
+			email:     "beta@fynbos.dev",
+			country:   "US",
+			fullName:  "Beta Max",
+			betaOptIn: true,
+		},
+	}
+
+	for _, signup := range sups {
+		err := ops.AddSignup(ctx, b, signup.email, signup.country, signup.fullName, false)
+		assert.NoError(t, err)
+	}
+
+	signups, err := ops.ListSignups(ctx, b)
+	assert.NoError(t, err)
+
+	assert.Len(t, signups, 3)
+}
