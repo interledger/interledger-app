@@ -218,7 +218,34 @@ func (c Client) GetFundingAccountWidgetToken(ctx context.Context, userID string)
 }
 
 func (c Client) GetUserFundingsource(ctx context.Context, userID, fundingsourceID string) (*external.FundingSource, error) {
-	panic("no-op")
+	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/funds", c.baseUrl, userID))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []external.FundingSource
+	err = json.Unmarshal(body, &list)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	var fs *external.FundingSource
+	for _, item := range list {
+		if item.ID == fundingsourceID {
+			fs = &item
+			break
+		}
+	}
+	if fs == nil {
+		return nil, external.ErrNotFound
+	}
+
+	return fs, nil
 }
 
 func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransactionArgs) (*external.Transaction, error) {
