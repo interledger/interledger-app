@@ -81,7 +81,7 @@ func MakeUser(b Backends) cli.ActionFunc {
 			return err
 		}
 
-		_, err = b.User().CreateNewWallet(cCtx.Context, userID, "default")
+		_, err = b.Users().CreateNewWallet(cCtx.Context, userID, "default")
 		if err != nil {
 			return err
 		}
