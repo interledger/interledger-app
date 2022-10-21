@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -50,7 +51,7 @@ func (r rpcService) CreateSendUser(
 		return nil, toGRPCError(err)
 	}
 
-	err = await(ctx)
+	err = await(ctx, nil)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

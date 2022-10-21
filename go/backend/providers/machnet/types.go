@@ -7,7 +7,7 @@ const (
 	TypeReceiveBankAccount = "receiveBankAccount"
 )
 
-type Await func(context.Context) error
+type Await func(context.Context, interface{}) error
 
 type User struct {
 	ID        string    `db:"id"`
