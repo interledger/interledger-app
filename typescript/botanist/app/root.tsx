@@ -22,7 +22,7 @@ export const meta: MetaFunction = () => {
     title: metaContent.title,
     'theme-color': '#FFE4E6',
     description: metaContent.description,
-    viewport: 'width=device-width,initial-scale=1',
+    viewport: 'width=device-width,initial-scale=1'
   }
 }
 
