@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -47,8 +48,22 @@ var MakeUserFlags = []cli.Flag{
 func MakeUser(b Backends) cli.ActionFunc {
 	return func(cCtx *cli.Context) error {
 		phone := 10_000_000 - rand.Int63n(999) // faker E164Phonenumber format is not accepted
+		buf := make([]byte, 32)
+		_, err := rand.Read(buf)
+		if err != nil {
+			return err
+		}
+		password := base64.StdEncoding.EncodeToString(buf)
+		activeState := kratos.IdentityState("active")
 		req := b.Kratos().V0alpha2Api.AdminCreateIdentity(cCtx.Context).
 			AdminCreateIdentityBody(kratos.AdminCreateIdentityBody{
+				Credentials: &kratos.AdminIdentityImportCredentials{
+					Password: &kratos.AdminCreateIdentityImportCredentialsPassword{
+						Config: &kratos.AdminCreateIdentityImportCredentialsPasswordConfig{
+							Password: &password,
+						},
+					},
+				},
 				Traits: map[string]interface{}{
 					"email":       cCtx.String("email"),
 					"firstName":   cCtx.String("firstName"),
@@ -56,6 +71,7 @@ func MakeUser(b Backends) cli.ActionFunc {
 					"countryCode": cCtx.String("country"),
 					"phone":       fmt.Sprintf("+2782%d", phone),
 				},
+				State: &activeState,
 			})
 		identity, response, err := req.Execute()
 		if err != nil {
@@ -94,7 +110,13 @@ func MakeUser(b Backends) cli.ActionFunc {
 			return err
 		}
 
-		log.Info("Created user", zap.String("userID", userID), zap.String("walletID", wallet.ID))
+		log.Info(
+			"Created user",
+			zap.String("userID", userID),
+			zap.String("walletID", wallet.ID),
+			zap.String("email", cCtx.String("email")),
+			zap.String("password", password),
+		)
 
 		if cCtx.Bool("kyc") {
 			log.Info("Updating user kyc details.")
