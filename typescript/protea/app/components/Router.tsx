@@ -103,8 +103,6 @@ export const AnchorRouter = forwardRef<any, RouterProps>(
       <a
         ref={ref}
         href={to}
-        target='_blank'
-        rel='noreferrer'
         className={clsx(
           'focus-visible:outline-2 focus-visible:outline-focus',
           className
@@ -133,8 +131,6 @@ export const AnchorButtonRouter = forwardRef<any, ButtonRouterProps>(
       <a
         ref={ref}
         href={to}
-        target='_blank'
-        rel='noreferrer'
         className={clsx(
           'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-display font-medium text-white hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500',
           shrink ? 'sm:max-w-fit' : '',
