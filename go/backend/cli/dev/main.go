@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/cli/actions"
@@ -34,6 +35,14 @@ import (
 )
 
 func main() {
+	envFile := os.Getenv("ENV_FILE")
+	if envFile != "" {
+		err := godotenv.Load(envFile)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
 	b := &backends{}
 	defer func() {
 		if b.db != nil {
@@ -42,6 +51,7 @@ func main() {
 			}
 		}
 	}()
+
 	app := &cli.App{
 		Name:  "fynbos",
 		Usage: "Interact with Fynbos application resources.",
@@ -56,6 +66,18 @@ func main() {
 						Usage:  "create a new Fynbos user",
 						Flags:  actions.MakeUserFlags,
 						Action: actions.MakeUser(b),
+					},
+					{
+						Name:   "machnet_send_user",
+						Usage:  "create a new Machnet send user",
+						Flags:  actions.MakeMachnetSendUserFlags,
+						Action: actions.MakeMachnetSendUser(b),
+					},
+					{
+						Name:   "receive_bank_account",
+						Usage:  "create a new receive bank account",
+						Flags:  actions.MakeReceiveBankAccountFlags,
+						Action: actions.MakeReceiveBankAccount(b),
 					},
 				},
 			},
@@ -183,7 +205,7 @@ func (b *backends) LinkedAccounts() linkedaccounts.Client {
 
 func (b backends) Temporal() temporal.Client {
 	if b.temporal == nil {
-		tm, err := temporal_client.NewTemporalClient("http://localhost:7233")
+		tm, err := temporal_client.NewTemporalClient("localhost:7233")
 		if err != nil {
 			log.Fatalln(err)
 		}
