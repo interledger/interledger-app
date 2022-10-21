@@ -10,7 +10,6 @@ type ListItemProps = {
 const ListItem: FC<ListItemProps> = ({ children, to }) => {
   return (
     <NavLink
-      end
       prefetch='intent'
       className='mt-4 w-full rounded-xl focus-visible:outline-2 focus-visible:outline-focus'
       to={to}
