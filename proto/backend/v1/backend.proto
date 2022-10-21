@@ -9,24 +9,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "./backend/v1;backend";
 
-service BackendAdminService {
-  rpc GetUserAccountByEmail(GetUserAccountByEmailRequest) returns (Account);
-}
-
-message GetUserAccountByEmailRequest {
-  string email = 1;
-}
-
-message Account {
-  string id = 1;
-  int64 balance = 2;
-  uint64 debitsReserved = 3;
-  uint64 debitsAccepted = 4;
-  uint64 creditsReserved = 5;
-  uint64 creditsAccepted = 6;
-}
-
-
 service OpenPaymentService {
   rpc CreatePaymentPointer(CreatePaymentPointerRequest) returns (Empty);
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);

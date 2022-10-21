@@ -113,7 +113,7 @@ func (s *service) MakeUnaryInterceptors() grpc.ServerOption {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		if !strings.Contains(info.FullMethod, "BackendAdminService") {
+		if !strings.Contains(info.FullMethod, "BackendService") {
 			return handler(ctx, req)
 		}
 
