@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	waitlist "gitlab.com/fynbos/backend/waitlist"
 )
 
 // MockClient is a mock of Client interface.
@@ -61,6 +62,21 @@ func (m *MockClient) CanSignup(ctx context.Context, id string) (bool, error) {
 func (mr *MockClientMockRecorder) CanSignup(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanSignup", reflect.TypeOf((*MockClient)(nil).CanSignup), ctx, id)
+}
+
+// ListSignups mocks base method.
+func (m *MockClient) ListSignups(ctx context.Context) ([]waitlist.Signup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSignups", ctx)
+	ret0, _ := ret[0].([]waitlist.Signup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSignups indicates an expected call of ListSignups.
+func (mr *MockClientMockRecorder) ListSignups(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSignups", reflect.TypeOf((*MockClient)(nil).ListSignups), ctx)
 }
 
 // SetSignupComplete mocks base method.
