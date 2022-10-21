@@ -5,7 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"database/sql"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -310,19 +310,13 @@ func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	return nil
 }
 
-func ValidateWebhook(ctx context.Context, b Backends, payload []byte, secret, base64Signature string) error {
+func ValidateWebhook(ctx context.Context, b Backends, payload []byte, secret, signature string) error {
 	mac := hmac.New(sha256.New, []byte(secret))
-	_, err := mac.Write(payload)
-	if err != nil {
+	if _, err := mac.Write(payload); err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
-	signature, err := base64.StdEncoding.DecodeString(base64Signature)
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	if !hmac.Equal(mac.Sum(nil), signature) {
+	if signature != hex.EncodeToString(mac.Sum(nil)) {
 		return machnet.ErrInvalidSignature
 	}
 

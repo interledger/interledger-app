@@ -2,9 +2,6 @@ package ops_test
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
 	"testing"
 	"time"
 
@@ -417,16 +414,11 @@ func TestGetBanks(t *testing.T) {
 
 func TestValidateWebhook(t *testing.T) {
 	t.Parallel()
+	// data from webhook received from Machnet sandbox
+	signature := "b9d26b2907effc7ef0babbe86fe89741b6a02add18894fb1fca4eddf8991528c"
+	payload := []byte(`{"event_name":"user_kyc_verified","persisted_object_id":"63f71c24-6ff7-46fa-98ef-2bd03a57647b","resource_id":"3995a94e-37dc-46f9-97d9-3ff7c55f5141","subscription_id":"ccbe409f-b6bc-4db3-b05e-fea1b02f956f","timestamp":"2022-10-21T08:39:37.447525","user_id":"3995a94e-37dc-46f9-97d9-3ff7c55f5141"}`)
 
-	payload := []byte("hello world!")
-	mac := hmac.New(sha256.New, []byte("test"))
-	_, err := mac.Write(payload)
-	if err != nil {
-		t.Fatal(err)
-	}
-	signature := base64.StdEncoding.EncodeToString(mac.Sum(nil))
-
-	err = ops.ValidateWebhook(context.Background(), backends{}, payload, "test", signature)
+	err := ops.ValidateWebhook(context.Background(), backends{}, payload, "test", signature)
 	require.NoError(t, err)
 
 	err = ops.ValidateWebhook(context.Background(), backends{}, payload, "fail", signature)
