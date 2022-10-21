@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -33,6 +35,12 @@ var MakeUserFlags = []cli.Flag{
 		Name:  "lastName",
 		Usage: "`<firstName>` of the user",
 		Value: faker.LastName(),
+	},
+	&cli.BoolFlag{
+		Name:    "kyc",
+		Aliases: []string{"k"},
+		Usage:   "adds dummy kyc data to user",
+		Value:   false,
 	},
 }
 
@@ -81,12 +89,33 @@ func MakeUser(b Backends) cli.ActionFunc {
 			return err
 		}
 
-		_, err = b.Users().CreateNewWallet(cCtx.Context, userID, "default")
+		wallet, err := b.Users().CreateNewWallet(cCtx.Context, userID, "default")
 		if err != nil {
 			return err
 		}
 
-		log.Info("Created user", zap.String("userID", userID))
+		log.Info("Created user", zap.String("userID", userID), zap.String("walletID", wallet.ID))
+
+		if cCtx.Bool("kyc") {
+			log.Info("Updating user kyc details.")
+			dob, err := time.Parse("2006-01-02", "2001-01-01")
+			if err != nil {
+				return err
+			}
+			_, err = b.KYC().UpdateIndividualDetails(cCtx.Context, kyc.IndividualDetails{
+				WalletID:    wallet.ID,
+				FirstName:   cCtx.String("firstName"),
+				LastName:    cCtx.String("lastName"),
+				CountryCode: cCtx.String("country"),
+				Gender:      0,
+				DateOfBirth: dob,
+				Address:     &kyc.Address{},
+				IPAddress:   "10.10.10.10",
+			})
+			if err != nil {
+				return err
+			}
+		}
 
 		return nil
 	}

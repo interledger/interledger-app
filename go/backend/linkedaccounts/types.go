@@ -17,7 +17,7 @@ type CreateArgs struct {
 	WalletID   string `validate:"required,uuid4"`
 	Name       string `validate:"required"`
 	Mask       string
-	Provider   string `validate:"oneof=mx fakecash"`
+	Provider   string `validate:"oneof=mx fakecash machnet"`
 	ProviderID string
 	Type       string `validate:"required"`
 }
