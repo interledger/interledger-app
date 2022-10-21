@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Logo, Router, TextField } from '~/components'
+import { Button, Logo, Router, Snackbar, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -13,10 +13,14 @@ import { commitSession, getSession } from '~/sessions'
 import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
+  // await requireUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
+
+  console.log('cookie', cookie)
+
+  console.log('flowId', flowId)
 
   let flow
   if (flowId) {
@@ -31,6 +35,8 @@ export async function loader({ request }: LoaderArgs) {
       }
     )
     flow = await flowRes.json()
+
+    console.log('Flow', flow)
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
   } else {
     // Otherwise we initialize it
@@ -39,6 +45,7 @@ export async function loader({ request }: LoaderArgs) {
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
+    console.log('Flow 2', flow)
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
     return redirect(`/recovery/password?flow=${flow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
@@ -52,50 +59,44 @@ export default function Page() {
   const { flow, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/')}>
-          <Logo className='h-8' />
-        </Router>
-      </div>
-      <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal'>
-          Set a new password
-        </h1>
-      </div>
-      <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>
-          You've successfully recovered your account.
-          <br />
-          Set a new password to continue.
-        </p>
-      </div>
-
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>Set password</h1>
+      <span>
+        You've successfully recovered your account. Set a new password to
+        continue.
+      </span>
       <Form
+        id='recovery-password'
         action={`/recovery/password?flow=${flow.id}`}
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-      >
-        <TextField
-          id='new-password'
-          label='New password'
-          name='new-password'
-          type='password'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
+        className='hidden'
+      />
+      <TextField
+        id='new-password'
+        form='recovery-password'
+        label='New password'
+        name='new-password'
+        type='password'
+        className='mt-6'
+        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+        aria-describedby={
+          actionData?.errors?.password ? 'password-error' : undefined
+        }
+        required
+        errorMessage={actionData?.errors?.password}
+      />
 
-        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
+      <input
+        form='recovery-password'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
 
-        <div className='pt-4'>
-          <Button type='submit'>Save password</Button>
-        </div>
-      </Form>
-    </main>
+      <Button className='mt-6' form='recovery-password' type='submit'>
+        Continue
+      </Button>
+    </div>
   )
 }
 
@@ -142,7 +143,7 @@ export async function action({ request }: ActionArgs) {
 
   userSettings.flash('snackbar', {
     message: 'New password successfully saved.',
-    action: 'done'
+    icon: 'close'
   })
   return redirect(route('/settings'), {
     headers: {

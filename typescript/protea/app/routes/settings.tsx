@@ -37,11 +37,10 @@ const shapes = [
 export async function loader({ request }: LoaderArgs) {
   const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
+
   const flowId = url.searchParams.get('flow')
-  if (flowId)
-    return redirect(`${route('/recovery/password')}?flow=${flowId}`, {
-      headers: request.headers
-    })
+  if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
+
   const session = await requireUserSession(request)
   const snackbar = {
     // NOTE: userSettings.has must be called before userSettings.get
@@ -68,8 +67,10 @@ export default function Page() {
       <Snackbar
         message={snackbar.message}
         action={snackbar.action}
+        icon={snackbar.icon}
         show={showSnackbar}
         id='cookie-snackbar'
+        dismissAfter={3000}
         onClose={() => setSnackbar(false)}
       />
       <div className='grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto py-4 px-4 sm:grid-cols-8 sm:px-0 lg:grid-cols-12'>
