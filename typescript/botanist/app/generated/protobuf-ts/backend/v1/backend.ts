@@ -14,44 +14,6 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../google/protobuf/timestamp";
 /**
- * @generated from protobuf message backend.v1.GetUserAccountByEmailRequest
- */
-export interface GetUserAccountByEmailRequest {
-    /**
-     * @generated from protobuf field: string email = 1;
-     */
-    email: string;
-}
-/**
- * @generated from protobuf message backend.v1.Account
- */
-export interface Account {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: int64 balance = 2;
-     */
-    balance: string;
-    /**
-     * @generated from protobuf field: uint64 debitsReserved = 3;
-     */
-    debitsReserved: string;
-    /**
-     * @generated from protobuf field: uint64 debitsAccepted = 4;
-     */
-    debitsAccepted: string;
-    /**
-     * @generated from protobuf field: uint64 creditsReserved = 5;
-     */
-    creditsReserved: string;
-    /**
-     * @generated from protobuf field: uint64 creditsAccepted = 6;
-     */
-    creditsAccepted: string;
-}
-/**
  * @generated from protobuf message backend.v1.PaymentPointerExistsRequest
  */
 export interface PaymentPointerExistsRequest {
@@ -534,6 +496,10 @@ export interface JoinWaitlistRequest {
      * @generated from protobuf field: string full_name = 3;
      */
     fullName: string;
+    /**
+     * @generated from protobuf field: bool beta_opt_in = 4;
+     */
+    betaOptIn: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.JoinWaitlistResponse
@@ -756,135 +722,15 @@ export interface SetSignupCompleteRequest {
      */
     userId: string;
 }
-// @generated message type with reflection information, may provide speed optimized methods
-class GetUserAccountByEmailRequest$Type extends MessageType<GetUserAccountByEmailRequest> {
-    constructor() {
-        super("backend.v1.GetUserAccountByEmailRequest", [
-            { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<GetUserAccountByEmailRequest>): GetUserAccountByEmailRequest {
-        const message = { email: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetUserAccountByEmailRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetUserAccountByEmailRequest): GetUserAccountByEmailRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string email */ 1:
-                    message.email = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetUserAccountByEmailRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string email = 1; */
-        if (message.email !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.email);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
 /**
- * @generated MessageType for protobuf message backend.v1.GetUserAccountByEmailRequest
+ * @generated from protobuf message backend.v1.HasSendUserResponse
  */
-export const GetUserAccountByEmailRequest = new GetUserAccountByEmailRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class Account$Type extends MessageType<Account> {
-    constructor() {
-        super("backend.v1.Account", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "balance", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 3, name: "debitsReserved", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
-            { no: 4, name: "debitsAccepted", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
-            { no: 5, name: "creditsReserved", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
-            { no: 6, name: "creditsAccepted", kind: "scalar", T: 4 /*ScalarType.UINT64*/ }
-        ]);
-    }
-    create(value?: PartialMessage<Account>): Account {
-        const message = { id: "", balance: "0", debitsReserved: "0", debitsAccepted: "0", creditsReserved: "0", creditsAccepted: "0" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<Account>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Account): Account {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* int64 balance */ 2:
-                    message.balance = reader.int64().toString();
-                    break;
-                case /* uint64 debitsReserved */ 3:
-                    message.debitsReserved = reader.uint64().toString();
-                    break;
-                case /* uint64 debitsAccepted */ 4:
-                    message.debitsAccepted = reader.uint64().toString();
-                    break;
-                case /* uint64 creditsReserved */ 5:
-                    message.creditsReserved = reader.uint64().toString();
-                    break;
-                case /* uint64 creditsAccepted */ 6:
-                    message.creditsAccepted = reader.uint64().toString();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: Account, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* int64 balance = 2; */
-        if (message.balance !== "0")
-            writer.tag(2, WireType.Varint).int64(message.balance);
-        /* uint64 debitsReserved = 3; */
-        if (message.debitsReserved !== "0")
-            writer.tag(3, WireType.Varint).uint64(message.debitsReserved);
-        /* uint64 debitsAccepted = 4; */
-        if (message.debitsAccepted !== "0")
-            writer.tag(4, WireType.Varint).uint64(message.debitsAccepted);
-        /* uint64 creditsReserved = 5; */
-        if (message.creditsReserved !== "0")
-            writer.tag(5, WireType.Varint).uint64(message.creditsReserved);
-        /* uint64 creditsAccepted = 6; */
-        if (message.creditsAccepted !== "0")
-            writer.tag(6, WireType.Varint).uint64(message.creditsAccepted);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
+export interface HasSendUserResponse {
+    /**
+     * @generated from protobuf field: bool hasSendUser = 1;
+     */
+    hasSendUser: boolean;
 }
-/**
- * @generated MessageType for protobuf message backend.v1.Account
- */
-export const Account = new Account$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PaymentPointerExistsRequest$Type extends MessageType<PaymentPointerExistsRequest> {
     constructor() {
@@ -2649,11 +2495,12 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
         super("backend.v1.JoinWaitlistRequest", [
             { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "country_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "full_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "full_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "beta_opt_in", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<JoinWaitlistRequest>): JoinWaitlistRequest {
-        const message = { email: "", countryCode: "", fullName: "" };
+        const message = { email: "", countryCode: "", fullName: "", betaOptIn: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinWaitlistRequest>(this, message, value);
@@ -2672,6 +2519,9 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
                     break;
                 case /* string full_name */ 3:
                     message.fullName = reader.string();
+                    break;
+                case /* bool beta_opt_in */ 4:
+                    message.betaOptIn = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2694,6 +2544,9 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
         /* string full_name = 3; */
         if (message.fullName !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.fullName);
+        /* bool beta_opt_in = 4; */
+        if (message.betaOptIn !== false)
+            writer.tag(4, WireType.Varint).bool(message.betaOptIn);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3608,12 +3461,53 @@ class SetSignupCompleteRequest$Type extends MessageType<SetSignupCompleteRequest
  * @generated MessageType for protobuf message backend.v1.SetSignupCompleteRequest
  */
 export const SetSignupCompleteRequest = new SetSignupCompleteRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class HasSendUserResponse$Type extends MessageType<HasSendUserResponse> {
+    constructor() {
+        super("backend.v1.HasSendUserResponse", [
+            { no: 1, name: "hasSendUser", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<HasSendUserResponse>): HasSendUserResponse {
+        const message = { hasSendUser: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<HasSendUserResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: HasSendUserResponse): HasSendUserResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool hasSendUser */ 1:
+                    message.hasSendUser = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: HasSendUserResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool hasSendUser = 1; */
+        if (message.hasSendUser !== false)
+            writer.tag(1, WireType.Varint).bool(message.hasSendUser);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
 /**
- * @generated ServiceType for protobuf service backend.v1.BackendAdminService
+ * @generated MessageType for protobuf message backend.v1.HasSendUserResponse
  */
-export const BackendAdminService = new ServiceType("backend.v1.BackendAdminService", [
-    { name: "GetUserAccountByEmail", options: {}, I: GetUserAccountByEmailRequest, O: Account }
-]);
+export const HasSendUserResponse = new HasSendUserResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -3648,6 +3542,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetMachnetWidgetToken", options: {}, I: Empty, O: MachnetWidgetToken },
     { name: "ListBanks", options: {}, I: Empty, O: ListBanksResponse },
     { name: "CreateReceiveBankAccount", options: {}, I: CreateReceiveBankAccountRequest, O: LinkedAccount },
+    { name: "CreateSendUser", options: {}, I: Empty, O: Empty },
+    { name: "HasSendUser", options: {}, I: Empty, O: HasSendUserResponse },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }

@@ -37,48 +37,19 @@ import type { AddBankAccountResponse } from "./backend";
 import type { AddBankAccountRequest } from "./backend";
 import type { GetBankAccountWidgetResponse } from "./backend";
 import type { GetBankAccountWidgetRequest } from "./backend";
+import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
+import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenPaymentService } from "./backend";
 import type { ListWalletPaymentPointersResponse } from "./backend";
 import type { PaymentPointerExistsResponse } from "./backend";
 import type { PaymentPointerExistsRequest } from "./backend";
 import type { PaymentPointer } from "./backend";
 import type { GetPaymentPointerRequest } from "./backend";
+import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { Empty } from "./backend";
 import type { CreatePaymentPointerRequest } from "./backend";
-import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
-import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
-import { BackendAdminService } from "./backend";
-import { stackIntercept } from "@protobuf-ts/runtime-rpc";
-import type { Account } from "./backend";
-import type { GetUserAccountByEmailRequest } from "./backend";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
-/**
- * @generated from protobuf service backend.v1.BackendAdminService
- */
-export interface IBackendAdminServiceClient {
-    /**
-     * @generated from protobuf rpc: GetUserAccountByEmail(backend.v1.GetUserAccountByEmailRequest) returns (backend.v1.Account);
-     */
-    getUserAccountByEmail(input: GetUserAccountByEmailRequest, options?: RpcOptions): UnaryCall<GetUserAccountByEmailRequest, Account>;
-}
-/**
- * @generated from protobuf service backend.v1.BackendAdminService
- */
-export class BackendAdminServiceClient implements IBackendAdminServiceClient, ServiceInfo {
-    typeName = BackendAdminService.typeName;
-    methods = BackendAdminService.methods;
-    options = BackendAdminService.options;
-    constructor(private readonly _transport: RpcTransport) {
-    }
-    /**
-     * @generated from protobuf rpc: GetUserAccountByEmail(backend.v1.GetUserAccountByEmailRequest) returns (backend.v1.Account);
-     */
-    getUserAccountByEmail(input: GetUserAccountByEmailRequest, options?: RpcOptions): UnaryCall<GetUserAccountByEmailRequest, Account> {
-        const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetUserAccountByEmailRequest, Account>("unary", this._transport, method, opt, input);
-    }
-}
 /**
  * @generated from protobuf service backend.v1.OpenPaymentService
  */
