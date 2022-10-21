@@ -534,6 +534,10 @@ export interface JoinWaitlistRequest {
      * @generated from protobuf field: string full_name = 3;
      */
     fullName: string;
+    /**
+     * @generated from protobuf field: bool beta_opt_in = 4;
+     */
+    betaOptIn: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.JoinWaitlistResponse
@@ -2658,11 +2662,12 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
         super("backend.v1.JoinWaitlistRequest", [
             { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "country_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "full_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "full_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "beta_opt_in", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<JoinWaitlistRequest>): JoinWaitlistRequest {
-        const message = { email: "", countryCode: "", fullName: "" };
+        const message = { email: "", countryCode: "", fullName: "", betaOptIn: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JoinWaitlistRequest>(this, message, value);
@@ -2681,6 +2686,9 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
                     break;
                 case /* string full_name */ 3:
                     message.fullName = reader.string();
+                    break;
+                case /* bool beta_opt_in */ 4:
+                    message.betaOptIn = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2703,6 +2711,9 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
         /* string full_name = 3; */
         if (message.fullName !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.fullName);
+        /* bool beta_opt_in = 4; */
+        if (message.betaOptIn !== false)
+            writer.tag(4, WireType.Varint).bool(message.betaOptIn);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *rpcService) JoinWaitlist(ctx context.Context, req *pb.JoinWaitlistRequest) (*pb.JoinWaitlistResponse, error) {
-	err := s.b.Waitlist().Add(ctx, req.Email, req.CountryCode, req.FullName)
+	err := s.b.Waitlist().Add(ctx, req.Email, req.CountryCode, req.FullName, req.BetaOptIn)
 	if errors.Is(err, waitlist.ErrInvalidEmail) {
 		return nil, NewValidationError("Email", "Invalid email address.")
 	}
