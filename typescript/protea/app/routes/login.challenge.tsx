@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Logo, Router, TextField } from '~/components'
+import { Button, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -67,56 +67,49 @@ export default function Page() {
   const { flow, csrfToken, email } = useLoaderData<typeof loader>()
 
   return (
-    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/')}>
-          <Logo className='h-8' />
-        </Router>
-      </div>
-      <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal'>
-          Confirm it's you
-        </h1>
-      </div>
-      <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>To continue, first verify it's you.</p>
-      </div>
-      {/* Form */}
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>
+        Confirm it's you
+      </h1>
+      <span>You are trying to edit sensitive account information.</span>
       <Form
+        id='login-challenge'
         action={`/login/challenge?flow=${flow.id}`}
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-      >
-        <div className='flex min-w-full items-center space-x-3 rounded-xl bg-container p-4'>
-          <div className='text-medium'>
-            <Icon>mail</Icon>
-          </div>
-          <span className='text-small text-medium'>{email}</span>
-        </div>
-        <TextField
-          id='password'
-          label='Password'
-          name='password'
-          type='password'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
+        className='hidden'
+      />
+      <TextField
+        id='password'
+        form='login-challenge'
+        label='Password'
+        name='password'
+        type='password'
+        className='mt-6'
+        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+        aria-describedby={
+          actionData?.errors?.password ? 'password-error' : undefined
+        }
+        required
+        errorMessage={actionData?.errors?.password}
+      />
 
-        <input defaultValue={email} name='email' type='hidden' />
-        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
+      <input
+        form='login-challenge'
+        defaultValue={email}
+        name='email'
+        type='hidden'
+      />
+      <input
+        form='login-challenge'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
 
-        <div className='flex min-w-full items-center justify-end pt-4'>
-          {/* <Router to={route('/recovery')} aria-label='Forgot password?'>
-            <span className='text-primary'>Forgot password?</span>
-          </Router> */}
-          <Button type='submit'>Continue</Button>
-        </div>
-      </Form>
-    </main>
+      <Button className='mt-6' form='login-challenge' type='submit'>
+        Continue
+      </Button>
+    </div>
   )
 }
 
@@ -139,18 +132,21 @@ export async function action({ request }: ActionArgs) {
     method: 'POST',
     body: JSON.stringify({
       method: 'password',
-      password_identifier: email,
+      identifier: email,
       password: password,
       csrf_token: csrfToken
     }),
     headers: {
       'Content-type': 'application/json',
-      cookie: String(request.headers.get('cookie'))
+      Accept: 'application/json',
+      Cookie: String(request.headers.get('cookie'))
     }
   })
 
   const data = await res.json()
-  if (res.status >= 400) {
+
+  // 4000001 is an error if the user already has a privileged session.
+  if (res.status >= 400 && data.ui.messages[0].id !== 4000001) {
     for (let node of data.ui.nodes) {
       if (node.messages.length > 0) {
         Object.assign(fieldErrors, {
@@ -160,6 +156,7 @@ export async function action({ request }: ActionArgs) {
     }
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
+
   const headers = trimHeaders(res.headers, ['set-cookie'])
   if (userSettings.has('challenge-flow')) {
     const { returnTo } = userSettings.get('challenge-flow')
