@@ -7,7 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/waitlist"
 )
 
-func AddSignup(ctx context.Context, b Backends, email, country, fullName string) error {
+func AddSignup(ctx context.Context, b Backends, email, country, fullName string, betaOptIn bool) error {
 	err := b.Validator().Var(email, "required,email")
 	if err != nil {
 		return fmt.Errorf("%w %s", waitlist.ErrInvalidEmail, err.Error())
@@ -24,8 +24,8 @@ func AddSignup(ctx context.Context, b Backends, email, country, fullName string)
 	}
 
 	_, err = b.DB().ExecContext(ctx,
-		"INSERT INTO waitlist_signups (email, country_code, full_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING ",
-		email, country, fullName)
+		"INSERT INTO waitlist_signups (email, country_code, full_name, beta_opt_in) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING ",
+		email, country, fullName, betaOptIn)
 	if err != nil {
 		return fmt.Errorf("%w %s", waitlist.ErrInternal, err.Error())
 	}

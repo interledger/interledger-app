@@ -245,6 +245,7 @@ message JoinWaitlistRequest {
   string email = 1;
   string country_code = 2;
   string full_name = 3;
+  bool  beta_opt_in = 4;
 }
 
 message JoinWaitlistResponse {}

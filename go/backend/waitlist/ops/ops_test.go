@@ -19,61 +19,76 @@ func TestAddSignup(t *testing.T) {
 	b := ops.NewBackends(t, db, validator.New())
 
 	cases := []struct {
-		name     string
-		email    string
-		country  string
-		fullName string
-		err      error
+		name      string
+		email     string
+		country   string
+		fullName  string
+		betaOptIn bool
+		err       error
 	}{
 		{
-			name:     "success",
-			email:    "signup@fynbos.dev",
-			country:  "ZA",
-			fullName: "Bob",
+			name:      "success",
+			email:     "signup@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Bob",
+			betaOptIn: false,
 		},
 		{
-			name:     "duplicate",
-			email:    "signup@fynbos.dev",
-			country:  "ZA",
-			fullName: "Bob",
+			name:      "duplicate",
+			email:     "signup@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Bob",
+			betaOptIn: false,
 		},
 		{
-			name:     "duplicate new country",
-			email:    "signup@fynbos.dev",
-			country:  "GB",
-			fullName: "Bob",
+			name:      "beta opt in",
+			email:     "signup@fynbos.dev",
+			country:   "ZA",
+			fullName:  "Bob",
+			betaOptIn: true,
 		},
 		{
-			name:     "invalid email",
-			email:    "blahblah",
-			country:  "GB",
-			fullName: "Bob",
-			err:      waitlist.ErrInvalidEmail,
+			name:      "duplicate new country",
+			email:     "signup@fynbos.dev",
+			country:   "GB",
+			fullName:  "Bob",
+			betaOptIn: false,
 		},
 		{
-			name:     "invalid country",
-			email:    "nocountry@fynbos.dev",
-			country:  "LALA",
-			fullName: "Bob",
-			err:      waitlist.ErrInvalidCountry,
+			name:      "invalid email",
+			email:     "blahblah",
+			country:   "GB",
+			fullName:  "Bob",
+			betaOptIn: false,
+			err:       waitlist.ErrInvalidEmail,
 		},
 		{
-			name:     "empty country",
-			email:    "nocountry@fynbos.dev",
-			fullName: "Bob",
-			err:      waitlist.ErrInvalidCountry,
+			name:      "invalid country",
+			email:     "nocountry@fynbos.dev",
+			country:   "LALA",
+			fullName:  "Bob",
+			betaOptIn: false,
+			err:       waitlist.ErrInvalidCountry,
 		},
 		{
-			name:    "empty name",
-			email:   "signup@fynbos.dev",
-			country: "ZA",
-			err:     waitlist.ErrInvalidName,
+			name:      "empty country",
+			email:     "nocountry@fynbos.dev",
+			fullName:  "Bob",
+			betaOptIn: false,
+			err:       waitlist.ErrInvalidCountry,
+		},
+		{
+			name:      "empty name",
+			email:     "signup@fynbos.dev",
+			country:   "ZA",
+			betaOptIn: false,
+			err:       waitlist.ErrInvalidName,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, tc.betaOptIn)
 			if tc.err == nil {
 				assert.NoError(t, err)
 				return
@@ -96,6 +111,7 @@ func TestCanSignup(t *testing.T) {
 		country   string
 		fullName  string
 		canSignup bool
+		betaOptIn bool
 		err       error
 	}{
 		{
@@ -103,6 +119,7 @@ func TestCanSignup(t *testing.T) {
 			email:     "allowed@fynbos.dev",
 			country:   "ZA",
 			fullName:  "Bob",
+			betaOptIn: false,
 			canSignup: true,
 		},
 		{
@@ -110,13 +127,14 @@ func TestCanSignup(t *testing.T) {
 			email:     "nowallowed@fynbos.dev",
 			country:   "ZA",
 			fullName:  "Robert",
+			betaOptIn: false,
 			canSignup: false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, tc.betaOptIn)
 			if tc.err == nil {
 				assert.NoError(t, err)
 			}
@@ -163,7 +181,7 @@ func TestSetSignupComplete(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, false)
 			if tc.err == nil {
 				assert.NoError(t, err)
 			}
