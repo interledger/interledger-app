@@ -121,7 +121,7 @@ func TestCreateSendUser(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("returns if workflow runs correctly", func(st *testing.T) {
-		await := func(ctx context.Context) error {
+		await := func(ctx context.Context, out interface{}) error {
 			return nil
 		}
 		c.machnet.EXPECT().CreateSendUser(gomock.Any(), wallet.ID).Return(await, nil).Times(1)
@@ -134,7 +134,7 @@ func TestCreateSendUser(t *testing.T) {
 	})
 
 	t.Run("returns error if workflow fails", func(st *testing.T) {
-		await := func(ctx context.Context) error {
+		await := func(ctx context.Context, out interface{}) error {
 			return machnet.ErrInternal
 		}
 		c.machnet.EXPECT().CreateSendUser(gomock.Any(), wallet.ID).Return(await, nil).Times(1)
