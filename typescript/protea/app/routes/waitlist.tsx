@@ -1,4 +1,4 @@
-import { Autocomplete, Button, TextField } from '~/components'
+import { Autocomplete, Button, Checkbox, TextField } from '~/components'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import type { GrpcError } from '~/lib/proto.server'
@@ -135,7 +135,22 @@ export default function Page() {
         name='country'
         type='hidden'
       />
-      <Button className='mt-12' form='join-waitlist' type='submit'>
+      <span className='mt-4 font-medium text-strong'>Beta testing</span>
+      <span className='mt-4 text-sm text-medium'>
+        We are looking for users to help us test new features before we make
+        them generally available. Beta testers will get access to pre-release
+        features and in exchange will need to complete some tests to help us
+        ensure they're ready for release.
+      </span>
+      <Checkbox
+        id='beta'
+        name='beta'
+        form='join-waitlist'
+        className='mt-6 flex'
+      >
+        <span className='text-medium'>Yes, sign me up for beta testing</span>
+      </Checkbox>
+      <Button className='mt-8' form='join-waitlist' type='submit'>
         Join now
       </Button>
     </div>
@@ -161,6 +176,7 @@ export async function action({ request, params }: ActionArgs) {
   const fullName = form.get('fullName') as string
   const email = form.get('email') as string
   const country = form.get('country') as string
+  const betaOptIn = form.get('beta') as string
 
   const fieldErrors = {
     fullName: '',
@@ -172,7 +188,8 @@ export async function action({ request, params }: ActionArgs) {
     .joinWaitlist({
       email,
       countryCode: country,
-      fullName
+      fullName,
+      betaOptIn: betaOptIn != null
     })
     .then((v) => v)
     .catch(StatusError)
