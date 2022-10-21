@@ -71,6 +71,7 @@ export default function Page() {
         show={showSnackbar}
         id='cookie-snackbar'
         dismissAfter={3000}
+        offset
         onClose={() => setSnackbar(false)}
       />
       <div className='grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto py-4 px-4 sm:grid-cols-8 sm:px-0 lg:grid-cols-12'>

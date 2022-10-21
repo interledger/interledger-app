@@ -52,45 +52,41 @@ export default function Page() {
   const { flow, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/')}>
-          <Logo className='h-8' />
-        </Router>
-      </div>
-      <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal'>
-          Set a new password
-        </h1>
-      </div>
-      <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>Set a new password to continue.</p>
-      </div>
-
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>Set password</h1>
+      <span>Set a new password to continue.</span>
       <Form
+        id='settings-password'
         action={`/settings/password?flow=${flow.id}`}
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-      >
-        <TextField
-          id='new-password'
-          label='New password'
-          name='new-password'
-          type='password'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
+        className='hidden'
+      />
+      <TextField
+        id='new-password'
+        form='settings-password'
+        label='New password'
+        name='new-password'
+        type='password'
+        className='mt-6'
+        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+        aria-describedby={
+          actionData?.errors?.password ? 'password-error' : undefined
+        }
+        required
+        errorMessage={actionData?.errors?.password}
+      />
 
-        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
-        <div className='pt-4'>
-          <Button type='submit'>Save password</Button>
-        </div>
-      </Form>
-    </main>
+      <input
+        form='settings-password'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
+
+      <Button className='mt-6' form='settings-password' type='submit'>
+        Continue
+      </Button>
+    </div>
   )
 }
 
@@ -138,7 +134,7 @@ export async function action({ request }: ActionArgs) {
   userSettings.unset('challenge-flow')
   userSettings.flash('snackbar', {
     message: 'New password successfully saved.',
-    action: 'done'
+    icon: 'close'
   })
   return redirect(route('/settings'), {
     headers: {
