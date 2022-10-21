@@ -101,6 +101,7 @@ export default function Page() {
     location.pathname.startsWith('/linked-account') ||
     location.pathname.startsWith('/logout') ||
     location.pathname.startsWith('/recovery') ||
+    location.pathname.startsWith('/settings/password') ||
     location.pathname.startsWith('/payment-pointer')
 
   return (
