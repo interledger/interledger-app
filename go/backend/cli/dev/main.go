@@ -15,47 +15,33 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/cli/actions"
+	"gitlab.com/fynbos/backend/kyc"
+	kyc_client "gitlab.com/fynbos/backend/kyc/client"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
+	machnet_external "gitlab.com/fynbos/backend/providers/machnet/external"
+	machnet_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
+	temporal_client "gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
+	temporal "go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 )
 
 func main() {
-	os.Setenv("FYNBOS_ENV", "dev")
-	db, err := sqlx.Connect("postgres", "postgres://roach:roach@localhost:26257/backend")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	b := &backends{}
 	defer func() {
-		if err := db.Close(); err != nil {
-			log.Fatalln(err)
+		if b.db != nil {
+			if err := b.db.Close(); err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}()
-	b := &backends{
-		db: db,
-		kratos: kratos.NewAPIClient(&kratos.Configuration{
-			Servers: kratos.ServerConfigurations{
-				{
-					URL:         "http://localhost:4434",
-					Description: "Dev Kratos",
-				},
-			},
-		}),
-		val: validator.New(),
-	}
-	b.user = user_client.New(b, "http://localhost:4434")
-	b.signup = signup_client.New(b)
-	b.twilio, err = twilio.NewService(&twilio.ServiceArgs{
-		AccountSid:   "dev",
-		AccountToken: "dev",
-		ServiceSid:   "dev",
-		ApiBaseUrl:   "http://localhost",
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
 	app := &cli.App{
 		Name:  "fynbos",
 		Usage: "Interact with Fynbos application resources.",
@@ -82,34 +68,126 @@ func main() {
 }
 
 type backends struct {
-	db     *sqlx.DB
-	kratos *kratos.APIClient
-	signup signup.Client
-	twilio twilio.Service
-	user   user.Client
-	val    *validator.Validate
+	db              *sqlx.DB
+	kratos          *kratos.APIClient
+	kyc             kyc.Client
+	linkedaccounts  linkedaccounts.Client
+	machnet         machnet.Client
+	machnetExternal machnet_external.Client
+	signup          signup.Client
+	temporal        temporal.Client
+	twilio          twilio.Service
+	user            user.Client
+	val             *validator.Validate
 }
 
 func (b backends) DB() *sqlx.DB {
+	if b.db == nil {
+		db, err := sqlx.Connect("postgres", "postgres://roach:roach@localhost:26257/backend")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		b.db = db
+	}
 	return b.db
 }
 
 func (b backends) Kratos() *kratos.APIClient {
+	if b.kratos == nil {
+		b.kratos = kratos.NewAPIClient(&kratos.Configuration{
+			Servers: kratos.ServerConfigurations{
+				{
+					URL:         "http://localhost:4434",
+					Description: "Dev Kratos",
+				},
+			},
+		})
+	}
 	return b.kratos
 }
 
 func (b backends) Validator() *validator.Validate {
+	if b.val == nil {
+		b.val = validator.New()
+	}
 	return b.val
 }
 
-func (b backends) User() user.Client {
+func (b *backends) Users() user.Client {
+	if b.user == nil {
+		b.user = user_client.New(b, "http://localhost:4434")
+	}
 	return b.user
 }
 
-func (b backends) Signup() signup.Client {
+func (b *backends) Signup() signup.Client {
+	if b.signup == nil {
+		b.signup = signup_client.New(b)
+	}
 	return b.signup
 }
 
 func (b backends) Twilio() twilio.Service {
+	if b.twilio == nil {
+		tw, err := twilio.NewService(&twilio.ServiceArgs{
+			AccountSid:   "dev",
+			AccountToken: "dev",
+			ServiceSid:   "dev",
+			ApiBaseUrl:   "http://localhost",
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.twilio = tw
+	}
 	return b.twilio
+}
+
+func (b *backends) Machnet() machnet.Client {
+	if b.machnet == nil {
+		b.machnet = machnet_client.New(
+			b,
+			os.Getenv("MACHNET_CLIENT_ID"),
+			os.Getenv("MACHNET_CLIENT_SECRET"),
+			os.Getenv("MACHNET_WEBHOOK_SECRET"),
+		)
+	}
+	return b.machnet
+}
+
+func (b backends) MachnetExternal() machnet_external.Client {
+	if b.machnetExternal == nil {
+		b.machnetExternal = machnet_external_client.New(os.Getenv("MACHNET_CLIENT_ID"), os.Getenv("MACHNET_CLIENT_SECRET"))
+	}
+	return b.machnetExternal
+}
+
+func (b *backends) KYC() kyc.Client {
+	if b.kyc == nil {
+		b.kyc = kyc_client.New(b)
+	}
+	return b.kyc
+}
+
+func (b *backends) LinkedAccounts() linkedaccounts.Client {
+	if b.linkedaccounts == nil {
+		logger, err := zap.NewDevelopment()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.linkedaccounts = linkedaccounts_client.New(b, logger)
+	}
+	return b.linkedaccounts
+}
+
+func (b backends) Temporal() temporal.Client {
+	if b.temporal == nil {
+		tm, err := temporal_client.NewTemporalClient("http://localhost:7233")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.temporal = tm
+	}
+	return b.temporal
 }
