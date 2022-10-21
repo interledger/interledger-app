@@ -10,6 +10,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	w.RegisterActivity(machnet_workflows.NewActivity(b))
 	w.RegisterWorkflow(machnet_workflows.CreateSendUserWorkflow)
+	w.RegisterWorkflow(machnet_workflows.CreateTransactionWorkflow)
 
 	return w, nil
 }

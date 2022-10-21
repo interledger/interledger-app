@@ -301,6 +301,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.linkedaccounts = linked_account_client.New(b, logger)
 
+	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret, args.MachnetWebhookSecret)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
