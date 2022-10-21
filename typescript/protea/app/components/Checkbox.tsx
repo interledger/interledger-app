@@ -12,7 +12,7 @@ export const Checkbox = forwardRef<any, CheckboxProps>(
   ({ className, errorMessage, children, ...inputProps }, ref) => {
     return (
       <div className={className || 'min-w-full'}>
-        <div className='ml-2 flex h-6 w-6 items-center'>
+        <div className='flex h-6 w-6 items-center justify-center'>
           <input
             ref={ref}
             {...inputProps}
@@ -20,7 +20,7 @@ export const Checkbox = forwardRef<any, CheckboxProps>(
             className='h-[1.125rem] w-[1.125rem] cursor-pointer rounded-sm border-2 border-base text-transparent focus:ring-transparent focus-visible:ring-focus'
           />
         </div>
-        <div className='ml-3 text-sm'>
+        <div className='ml-2 text-sm'>
           <label htmlFor={inputProps.id} className='cursor-pointer text-xs'>
             {children}
           </label>
