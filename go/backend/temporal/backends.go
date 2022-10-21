@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
 )
@@ -16,4 +17,5 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	Machnet() machnet.Client
 }

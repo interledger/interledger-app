@@ -49,13 +49,18 @@ func New(b Backends, clientID, clientSecret, webhookSecret string) machnet.Clien
 		}
 	}
 
-	return &client{b: opsBackends, t: b.Temporal(), webhookSecret: webhookSecret}
+	return &client{b: opsBackends, t: b.Temporal(), webhookSecret: webhookSecret, externalApi: opsBackends.external}
 }
 
 type client struct {
 	b             ops.Backends
 	t             temporal.Client
 	webhookSecret string
+	externalApi   external.Client
+}
+
+func (c client) External() external.Client {
+	return c.externalApi
 }
 
 func (c client) GetUserByWalletID(ctx context.Context, walletID string) (*machnet.User, error) {
@@ -93,10 +98,9 @@ func (c client) CreateSendUser(ctx context.Context, walletID string) (machnet.Aw
 		return nil, err
 	}
 
-	return func(ctx context.Context) error {
+	return func(ctx context.Context, out interface{}) error {
 		// Wait for the Workflow to complete.
-		var externalUserID string
-		return wf.Get(ctx, &externalUserID)
+		return wf.Get(ctx, &out)
 	}, nil
 }
 
@@ -111,10 +115,9 @@ func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransa
 		return nil, err
 	}
 
-	return func(ctx context.Context) error {
+	return func(ctx context.Context, out interface{}) error {
 		// Wait for the Workflow to complete.
-		var trxID string
-		return wf.Get(ctx, &trxID)
+		return wf.Get(ctx, &out)
 	}, nil
 }
 

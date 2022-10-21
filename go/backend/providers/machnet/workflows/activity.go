@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
-	inmemory_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"go.temporal.io/sdk/activity"
 )
@@ -27,7 +26,7 @@ type Activity struct {
 func NewActivity(b Backends) *Activity {
 	ob := opsBackends{
 		Backends: b,
-		external: inmemory_external_client.New(), // TODO: This will probably need to change
+		external: b.Machnet().External(),
 	}
 
 	return &Activity{b: ob}
@@ -228,7 +227,7 @@ func (a *Activity) GetOrCreateReceiveUser(ctx context.Context, trx machnet.Creat
 	}, nil
 }
 
-func getLinkedAccount(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAccount, error) {
+func getLinkedAccount(ctx context.Context, b ops.Backends, id string) (*linkedaccounts.LinkedAccount, error) {
 	la, err := b.LinkedAccounts().Get(ctx, id)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("linked account id (%s) not found", id), "ErrNotFound", err)

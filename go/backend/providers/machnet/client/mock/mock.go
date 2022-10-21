@@ -126,6 +126,20 @@ func (mr *MockClientMockRecorder) CreateUser(ctx, args interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockClient)(nil).CreateUser), ctx, args)
 }
 
+// External mocks base method.
+func (m *MockClient) External() external.Client {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "External")
+	ret0, _ := ret[0].(external.Client)
+	return ret0
+}
+
+// External indicates an expected call of External.
+func (mr *MockClientMockRecorder) External() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "External", reflect.TypeOf((*MockClient)(nil).External))
+}
+
 // GetBanks mocks base method.
 func (m *MockClient) GetBanks(ctx context.Context, countryCode string) ([]machnet.Bank, error) {
 	m.ctrl.T.Helper()
@@ -246,15 +260,15 @@ func (mr *MockClientMockRecorder) HandleEvent(ctx, event interface{}) *gomock.Ca
 }
 
 // ValidateWebhook mocks base method.
-func (m *MockClient) ValidateWebhook(ctx context.Context, payload []byte, signature string) error {
+func (m *MockClient) ValidateWebhook(ctx context.Context, payload []byte, base64Signature string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidateWebhook", ctx, payload, signature)
+	ret := m.ctrl.Call(m, "ValidateWebhook", ctx, payload, base64Signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ValidateWebhook indicates an expected call of ValidateWebhook.
-func (mr *MockClientMockRecorder) ValidateWebhook(ctx, payload, signature interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ValidateWebhook(ctx, payload, base64Signature interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), ctx, payload, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), ctx, payload, base64Signature)
 }
