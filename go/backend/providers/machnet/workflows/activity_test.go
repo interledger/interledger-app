@@ -16,7 +16,9 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_mock_client "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	machnet_external_inmem "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	user_client "gitlab.com/fynbos/backend/user/client"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -27,10 +29,13 @@ import (
 func TestActivity_CreateExternalSendUser(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		users:   user_mock.NewMock(),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
 	}
 
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -73,9 +78,12 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 func TestActivity_CreateUser(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -106,9 +114,12 @@ func TestActivity_CreateUser(t *testing.T) {
 func TestActivity_StartExternalKYC(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -132,11 +143,14 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := &testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		users:   user_mock.NewMock(),
+		machnet: mockMachnet,
 	}
 
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -215,7 +229,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 			ZipCode:     "7901",
 			CountryCode: "ZA",
 		},
-	}, nil)
+	}, nil).Times(2)
 
 	toEnc, err := env.ExecuteActivity(a.GetOrCreateReceiveUser, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
@@ -244,11 +258,14 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 func TestActivity_CreateTransaction(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		users:   user_mock.NewMock(),
+		machnet: mockMachnet,
 	}
 
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -302,10 +319,13 @@ func TestActivity_CreateTransaction(t *testing.T) {
 func TestActivity_CreateUserFundingsource(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 

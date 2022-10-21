@@ -7,6 +7,8 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/user"
 )
@@ -16,6 +18,7 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	Machnet() machnet.Client
 }
 
 type opsBackends struct {
@@ -32,6 +35,7 @@ type testBackends struct {
 	users   user.Client
 	kycImpl *kyc_mock.MockClient
 	linked  *linkedaccounts_mock.MockClient
+	machnet *machnet_mock.MockClient
 }
 
 func (b testBackends) LinkedAccounts() linkedaccounts.Client {
@@ -52,4 +56,8 @@ func (b testBackends) DB() *sqlx.DB {
 
 func (b testBackends) Validator() *validator.Validate {
 	return validator.New()
+}
+
+func (b testBackends) Machnet() machnet.Client {
+	return b.machnet
 }

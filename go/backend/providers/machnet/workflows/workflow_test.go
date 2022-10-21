@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_mock_client "gitlab.com/fynbos/backend/providers/machnet/client/mock"
+	machnet_external_inmem "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 
 	"github.com/stretchr/testify/mock"
 
@@ -23,9 +25,12 @@ import (
 func TestCreateSendUserWorkflow(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -57,10 +62,13 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 
 func TestCreateTransactionWorkflow(t *testing.T) {
 	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
