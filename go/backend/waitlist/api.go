@@ -6,4 +6,5 @@ type Client interface {
 	Add(ctx context.Context, email, countryCode, fullName string, betaOptIn bool) error
 	CanSignup(ctx context.Context, id string) (bool, error)
 	SetSignupComplete(ctx context.Context, id, userSignupId string) error
+	ListSignups(ctx context.Context) ([]Signup, error)
 }
