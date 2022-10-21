@@ -194,7 +194,23 @@ func (c Client) GetVerificationStatus(ctx context.Context, userID string) (*exte
 }
 
 func (c Client) GetReceiveUserList(ctx context.Context, userID string) ([]external.User, error) {
-	panic("no-op")
+	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/receive-users", c.baseUrl, userID))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var receiveUsers []external.User
+	err = json.Unmarshal(body, &receiveUsers)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return receiveUsers, nil
 }
 
 func (c Client) GetFundingAccountWidgetToken(ctx context.Context, userID string) (*external.WidgetTokenResponse, error) {
