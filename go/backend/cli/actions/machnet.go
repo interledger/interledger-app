@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/urfave/cli/v2"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_external "gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/log"
@@ -96,13 +97,23 @@ func MakeReceiveBankAccount(b Backends) cli.ActionFunc {
 	return func(cCtx *cli.Context) error {
 		ctx := cCtx.Context
 
-		la, err := b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{
+		ma, err := b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{
 			WalletID:      cCtx.String("walletID"),
 			AccountNumber: "316497",
 			AccountType:   machnet.BankAccountTypeCheque,
 			BankID:        37,
 			BranchID:      37,
 			Name:          cCtx.String("name"),
+		})
+		if err != nil {
+			return err
+		}
+
+		la, err := b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
+			Provider:   machnet.ProviderName,
+			ProviderID: ma.ID,
+			Type:       machnet.TypeReceiveBankAccount,
+			WalletID:   cCtx.String("walletID"),
 		})
 		if err != nil {
 			return err

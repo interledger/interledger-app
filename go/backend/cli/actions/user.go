@@ -131,8 +131,14 @@ func MakeUser(b Backends) cli.ActionFunc {
 				CountryCode: cCtx.String("country"),
 				Gender:      0,
 				DateOfBirth: dob,
-				Address:     &kyc.Address{},
-				IPAddress:   "10.10.10.10",
+				Address: &kyc.Address{
+					City:        "Santa Clara",
+					ZipCode:     "95053",
+					Line1:       "500 El Camino Real Santa Clara",
+					CountryCode: "GH",
+					State:       "CA",
+				},
+				IPAddress: "10.10.10.10",
 			})
 			if err != nil {
 				return err
