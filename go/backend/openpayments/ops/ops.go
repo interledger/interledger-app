@@ -257,6 +257,9 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("recv_asset", args.SendAmount.Asset).
 		Value("recv_scale", args.SendAmount.AssetScale).
 		Value("expires_at", args.ExpiresAt).GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
 
 	_, err = b.DB().ExecContext(ctx, query, vals...)
 	if err != nil {

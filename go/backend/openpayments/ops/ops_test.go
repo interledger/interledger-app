@@ -549,6 +549,7 @@ func TestCreateQuote(t *testing.T) {
 				Asset:      recvAsset,
 				AssetScale: tc.args.SendAmount.AssetScale,
 			})
+			require.NoError(t, err)
 
 			q, err := ops.CreateQuote(ctx, b, tc.args)
 			if tc.err != nil {
@@ -656,6 +657,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 				Asset:      asset,
 				AssetScale: tc.args.IncomingAmount.AssetScale,
 			})
+			require.NoError(t, err)
 
 			ip, err := ops.CreateIncomingPayment(ctx, b, tc.args)
 			if tc.err != nil {
