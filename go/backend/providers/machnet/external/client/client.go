@@ -294,6 +294,26 @@ func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransa
 	return &res, err
 }
 
+func (c Client) GetUserTransaction(ctx context.Context, userID, transactionID string) (*external.Transaction, error) {
+	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/transactions/%s", c.baseUrl, userID, transactionID))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var res external.Transaction
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &res, err
+}
+
 func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.DeliveryRequest) error {
 	payload, err := json.Marshal(request)
 	if err != nil {
