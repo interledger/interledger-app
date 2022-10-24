@@ -22,7 +22,7 @@ import {
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
 
-const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend-admin:443'
+const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend:443'
 
 const transport = new GrpcTransport({
   host: BACKEND_GRPC_URL,
