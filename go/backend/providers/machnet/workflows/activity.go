@@ -310,9 +310,9 @@ func addReceiveUserBankAccount(ctx context.Context, b ops.Backends, extSendUserI
 	return ba.ID, nil
 }
 
-func (a *Activity) CreateTransaction(ctx context.Context, trx machnet.CreateTransactionArgs, to TransactionTo) (string, error) {
+func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.CreateTransactionArgs, to TransactionTo) (string, error) {
 	logger := activity.GetLogger(ctx)
-	logger.Info("CreateTransaction_Activity", "from", trx.FromLinkedAccountID, "to", trx.ToLinkedAccountID)
+	logger.Info("CreateExternalTransaction_Activity", "from", trx.FromLinkedAccountID, "to", trx.ToLinkedAccountID)
 
 	la, err := getLinkedAccount(ctx, a.b, trx.FromLinkedAccountID)
 	if err != nil {

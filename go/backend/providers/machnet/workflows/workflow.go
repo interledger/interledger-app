@@ -60,7 +60,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	}
 
 	var trxID string
-	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, args, to).Get(ctx, &trxID)
+	err = workflow.ExecuteActivity(ctx, a.CreateExternalTransaction, args, to).Get(ctx, &trxID)
 	if err != nil {
 		logger.Error("CreateTransaction Activity failed.", "Error", err)
 		return "", err

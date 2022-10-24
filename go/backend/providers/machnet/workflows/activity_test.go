@@ -255,7 +255,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	assert.Equal(t, rbl[0].ID, to.ReceiveFundID)
 }
 
-func TestActivity_CreateTransaction(t *testing.T) {
+func TestActivity_CreateExternalTransaction(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -271,7 +271,7 @@ func TestActivity_CreateTransaction(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	a := NewActivity(b)
-	env.RegisterActivity(a.CreateTransaction)
+	env.RegisterActivity(a.CreateExternalTransaction)
 
 	linkedAccID := uuid.NewString()
 	userID := uuid.NewString()
@@ -301,7 +301,7 @@ func TestActivity_CreateTransaction(t *testing.T) {
 		ProviderID: uuid.NewString(),
 	}, nil)
 
-	trxIDEnc, err := env.ExecuteActivity(a.CreateTransaction, machnet.CreateTransactionArgs{
+	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		FromLinkedAccountID: linkedAccID,
 		Amount:              200,
 		Currency:            "USD",
@@ -332,7 +332,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	a := NewActivity(b)
-	env.RegisterActivity(a.CreateTransaction)
+	env.RegisterActivity(a.CreateExternalTransaction)
 	env.RegisterActivity(a.DeliverTransaction)
 
 	fromLinkedAccID := uuid.NewString()
@@ -364,7 +364,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 		ProviderID: uuid.NewString(),
 	}, nil).Times(2)
 
-	trxIDEnc, err := env.ExecuteActivity(a.CreateTransaction, machnet.CreateTransactionArgs{
+	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
 		FromLinkedAccountID: fromLinkedAccID,
 		Amount:              200,
