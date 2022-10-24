@@ -301,6 +301,26 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 		ProviderID: uuid.NewString(),
 	}, nil)
 
+	b.kycImpl.EXPECT().GetIndividualDetails(gomock.Any(), wallet.ID).Return(&kyc.IndividualDetails{
+		WalletID:    wallet.ID,
+		FirstName:   "FirstName",
+		LastName:    "LastName",
+		CountryCode: "ZA",
+		Gender:      kyc.GenderMale,
+		DateOfBirth: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "Leidenhalm 1",
+			Line2:       "",
+			Building:    "Bridge House",
+			Apartment:   "",
+			City:        "Newlands",
+			State:       "ZA-WC",
+			ZipCode:     "7901",
+			CountryCode: "ZA",
+		},
+		IPAddress: "10.10.10.10",
+	}, nil).Times(1)
+
 	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		FromLinkedAccountID: linkedAccID,
 		Amount:              200,
@@ -363,6 +383,26 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 		Provider:   machnet.ProviderName,
 		ProviderID: uuid.NewString(),
 	}, nil).Times(2)
+
+	b.kycImpl.EXPECT().GetIndividualDetails(gomock.Any(), fromWallet.ID).Return(&kyc.IndividualDetails{
+		WalletID:    fromWallet.ID,
+		FirstName:   "FirstName",
+		LastName:    "LastName",
+		CountryCode: "ZA",
+		Gender:      kyc.GenderMale,
+		DateOfBirth: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "Leidenhalm 1",
+			Line2:       "",
+			Building:    "Bridge House",
+			Apartment:   "",
+			City:        "Newlands",
+			State:       "ZA-WC",
+			ZipCode:     "7901",
+			CountryCode: "ZA",
+		},
+		IPAddress: "10.10.10.10",
+	}, nil).Times(1)
 
 	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
