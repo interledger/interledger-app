@@ -2,21 +2,20 @@ sync_app = sync('./app', '/app/app')
 sync_public = sync('./public', '/app/public')
 sync_generated = sync('./generated', '/app/generated')
 
-local_resource('tailwind watch', cmd = 'yarn build:css', deps=['./app'], ignore=['./app/styles'])
-local_resource('protea port forward', serve_cmd = 'kubectl port-forward --namespace protea deployment/protea 8002:8002', resource_deps = ['protea'])
-local_resource('protea port forward debugging', serve_cmd = 'kubectl port-forward --namespace protea deployment/protea 9229:9229', resource_deps = ['protea'])
+local_resource('botanist tailwind watch', cmd = 'pnpm build:css', deps=['./app'], ignore=['./app/styles'])
+local_resource('botanist port forward', serve_cmd = 'kubectl port-forward --namespace botanist deployment/botanist 8002:8002', resource_deps = ['botanist'])
 
-docker_build('protea', '.', target = "dev", live_update = [
+docker_build('botanist', '.', target = "dev", live_update = [
   sync_app, sync_public, sync_generated
 ], ignore = ["deploy/"])
 
 k8s_custom_deploy(
-  "protea",
+  "botanist",
   apply_cmd="""
-      kubectl -v=0 --namespace protea set image deployment/protea protea=$TILT_IMAGE_0 > /dev/null && \
-      kubectl get --namespace protea deployment/protea -o yaml
+      kubectl -v=0 --namespace botanist set image deployment/botanist botanist=$TILT_IMAGE_0 > /dev/null && \
+      kubectl get --namespace botanist deployment/botanist -o yaml
   """,
-  delete_cmd = "echo protea managed outside of Tilt",
-  image_deps = ["protea"],
+  delete_cmd = "echo botanist managed outside of Tilt",
+  image_deps = ["botanist"],
   deps = [],
 )

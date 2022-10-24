@@ -1,5 +1,5 @@
 
-IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea
+IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist
 IMAGE_HASH := latest
 
 test:

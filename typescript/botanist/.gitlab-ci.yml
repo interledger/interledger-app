@@ -10,17 +10,17 @@ include:
 #    - if: $CI_MERGE_REQUEST_ID
 
 variables:
-  PROJECT_PATH: $CI_PROJECT_DIR/typescript/botanist
-  PROTEA_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
+  BOTANIST_PROJECT_PATH: $CI_PROJECT_DIR/typescript/botanist
+  BOTANIST_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
 image: public.ecr.aws/docker/library/node:16-alpine3.11
 
 default:
   before_script:
-    - echo "changing directory to $PROJECT_PATH"
-    - cd $PROJECT_PATH
+    - echo "changing directory to $BOTANIST_PROJECT_PATH"
+    - cd $BOTANIST_PROJECT_PATH
 
-build_protea:
+build_botanist:
   interruptible: true
   tags:
     - k8s
@@ -33,8 +33,8 @@ build_protea:
       '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}"
       > /kaniko/.docker/config.json
     - >-
-      /kaniko/executor --context "${PROJECT_PATH}" --dockerfile
-      "${PROJECT_PATH}/Dockerfile" --destination
-      "823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:${PROTEA_IMAGE_HASH}"
+      /kaniko/executor --context "${BOTANIST_PROJECT_PATH}" --dockerfile
+      "${BOTANIST_PROJECT_PATH}/Dockerfile" --destination
+      "823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:${BOTANIST_IMAGE_HASH}"
       --cache=true --cache-repo="${CI_REGISTRY}/fynbos/fynbos/botanist-cache"
       --snapshotMode=redo --use-new-run=true
