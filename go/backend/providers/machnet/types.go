@@ -132,3 +132,19 @@ type Bank struct {
 	TransactionSupportedTypes []string
 	ReceivingCurrency         []string
 }
+
+type (
+	TransactionWorkflowRef struct {
+		ID            string
+		SendUserID    string `db:"send_user_id"`
+		WorkflowID    string `db:"workflow_id"`
+		WorkflowRunID string `db:"workflow_run_id"`
+	}
+
+	CreateTransactionWorkflowRefArgs struct {
+		ID            string
+		SendUserID    string
+		WorkflowID    string
+		WorkflowRunID string
+	}
+)

@@ -17,6 +17,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	TransactionEventsChannel         = "machnet_transaction_events"
+	TransactionDeliveryEventsChannel = "machnet_delivery_events"
+)
+
 func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*machnet.User, error) {
 	var user machnet.User
 	err := b.DB().GetContext(
@@ -288,6 +293,51 @@ func GetBanks(ctx context.Context, b Backends, countryCode string) ([]machnet.Ba
 	return banks, nil
 }
 
+func CreateTransactionWorkflowRef(ctx context.Context, b Backends, args machnet.CreateTransactionWorkflowRefArgs) (*machnet.TransactionWorkflowRef, error) {
+	insert := db.NewInsert("machnet_transactions_workflow_ref").
+		Value("id", args.ID).Returning("id").
+		Value("send_user_id", args.SendUserID).Returning("send_user_id").
+		Value("workflow_id", args.WorkflowID).Returning("workflow_id").
+		Value("workflow_run_id", args.WorkflowRunID).Returning("workflow_run_id")
+
+	statement, values, err := insert.GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var ref machnet.TransactionWorkflowRef
+	err = b.DB().GetContext(
+		ctx,
+		&ref,
+		statement,
+		values...,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ref, nil
+}
+
+func GetTransactionWorkflowRef(ctx context.Context, b Backends, userID string, transactionID string) (*machnet.TransactionWorkflowRef, error) {
+	var ref machnet.TransactionWorkflowRef
+	err := b.DB().GetContext(
+		ctx,
+		&ref,
+		"SELECT id, send_user_id, workflow_id, workflow_run_id FROM machnet_transactions_workflow_ref WHERE id=$1 AND send_user_id=$2;",
+		transactionID,
+		userID,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ref, nil
+}
+
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	var err error
 	switch event.EventName {
@@ -295,6 +345,14 @@ func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 		err = HandleUserCardAddedEvent(ctx, b, event)
 	case external.UserKYCInProgress, external.UserKYCSuspended, external.UserKYCRetry, external.UserKYCVerified, external.UserKYCReviewPending:
 		err = HandleUserKYCEvent(ctx, b, event)
+	case external.TransactionPendingEvent, external.TransactionProcessingEvent, external.TransactionHoldEvent,
+		external.TransactionProcessedEvent, external.TransactionCancelledEvent, external.TransactionFailedEvent,
+		external.TransactionReturnedEvent:
+		err = HandleTransactionEvent(ctx, b, event)
+	case external.TransactionDeliveryHoldEvent, external.TransactionDeliveryPendingEvent, external.TransactionDeliveryRequestedEvent,
+		external.TransactionDeliveredEvent, external.TransactionDeliveryFailedEvent, external.TransactionDeliveryAuthorizedEvent,
+		external.TransactionDeliveryPayoutReadyEvent:
+		err = HandleTransactionDeliveryEvent(ctx, b, event)
 	default:
 		log.Warn(
 			"Unhandled machnet event",
@@ -371,6 +429,34 @@ func HandleUserCardAddedEvent(ctx context.Context, b Backends, event external.Ev
 		ProviderID: card.ID,
 		Type:       external.TypeCard,
 	})
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func HandleTransactionEvent(ctx context.Context, b Backends, event external.Event) error {
+	trx, err := GetTransactionWorkflowRef(ctx, b, event.UserID, event.ResourceID)
+	if err != nil {
+		return err
+	}
+
+	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, TransactionEventsChannel, event)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func HandleTransactionDeliveryEvent(ctx context.Context, b Backends, event external.Event) error {
+	trx, err := GetTransactionWorkflowRef(ctx, b, event.UserID, event.ResourceID)
+	if err != nil {
+		return err
+	}
+
+	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, TransactionDeliveryEventsChannel, event)
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}

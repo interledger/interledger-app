@@ -6,13 +6,9 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/providers/machnet/ops"
 
 	"go.temporal.io/sdk/workflow"
-)
-
-const (
-	TransactionEventsChannel         = "machnet_transaction_events"
-	TransactionDeliveryEventsChannel = "machnet_delivery_events"
 )
 
 func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
@@ -73,7 +69,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
-	trxChan := workflow.GetSignalChannel(ctx, TransactionEventsChannel)
+	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
 	var transactionCreatedSuccessfully bool
 	for {
 		var transactionEvent external.Event
@@ -99,7 +95,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
-	deliveryChan := workflow.GetSignalChannel(ctx, TransactionDeliveryEventsChannel)
+	deliveryChan := workflow.GetSignalChannel(ctx, ops.TransactionDeliveryEventsChannel)
 	var deliverySuccessful bool
 	for {
 		var deliveryEvent external.Event
