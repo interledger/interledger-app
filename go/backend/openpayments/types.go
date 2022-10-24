@@ -61,3 +61,22 @@ type IncomingPayment struct {
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
+
+type CreateOutgoingPaymentArgs struct {
+	QuoteID     string `json:"quoteId"`
+	Description string `json:"description"`
+	ExternalRef string `json:"externalRef"`
+}
+
+type OutgoingPayment struct {
+	ID             string    `json:"id"`
+	PaymentPointer string    `json:"paymentPointer"`
+	Failed         bool      `json:"failed"`
+	Receiver       string    `json:"receiver"`
+	SendAmount     Amount    `json:"sendAmount"`
+	ReceiveAmount  Amount    `json:"receiveAmount"`
+	SentAmount     Amount    `json:"sentAmount"`
+	Description    string    `json:"description"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}

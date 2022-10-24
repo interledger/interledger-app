@@ -3,35 +3,57 @@ package workflows
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math"
 	"time"
 
+	temporal_client "go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/sdk/temporal"
+
 	"go.temporal.io/sdk/workflow"
+
+	"gitlab.com/fynbos/backend/openpayments/ops"
+
+	"gitlab.com/fynbos/backend/openpayments"
 )
 
-func StartOutgoingTransaction(ctx context.Context, b Backends, quoteID string) {
+func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (*openpayments.OutgoingPayment, error) {
+	id, err := ops.CreateOutgoingPayment(ctx, b, args)
+	if err != nil {
+		return nil, err
+	}
 
+	workflowOptions := temporal_client.StartWorkflowOptions{
+		ID:        "openpayments_execute_outgoing_payment_" + id,
+		TaskQueue: "backend",
+	}
+
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return ops.GetOutgoingPayment(ctx, b, id)
 }
 
 type Activity struct {
 	b Backends
 }
 
-func (a *Activity) GetProviderArgs(ctx context.Context, qID string) (*machnet.CreateTransactionArgs, error) {
-	q, err := ops.GetQuote(ctx, a.b, qID)
+func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*machnet.CreateTransactionArgs, error) {
+	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
 	if err != nil {
 		return nil, err
 	}
 
-	ops.ExtractPaymentPointer(q.IncomingPayment)
+	recvPPURL, _, err := ops.ExtractPaymentPointer(op.Receiver)
 
-	recvPP, err := ops.GetPaymentPointer(ctx, a.b, q.PaymentPointer) // TODO
+	recvPP, err := ops.GetPaymentPointer(ctx, a.b, recvPPURL)
 	if err != nil {
 		return nil, err
 	}
@@ -54,10 +76,10 @@ func (a *Activity) GetProviderArgs(ctx context.Context, qID string) (*machnet.Cr
 	}
 
 	if !found {
-		return nil, openpayments.ErrPaymentPointerNotFound // TODO
+		return nil, openpayments.ErrPaymentPointerNotFound // TODO: Non retry
 	}
 
-	sendPP, err := ops.GetPaymentPointer(ctx, a.b, q.PaymentPointer) // TODO
+	sendPP, err := ops.GetPaymentPointer(ctx, a.b, op.PaymentPointer) // TODO
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +102,20 @@ func (a *Activity) GetProviderArgs(ctx context.Context, qID string) (*machnet.Cr
 	}
 
 	if !found {
-		return nil, openpayments.ErrPaymentPointerNotFound // TODO
+		return nil, openpayments.ErrPaymentPointerNotFound // TODO: Non retry
+	}
+
+	// TODO: Check this in unit tests
+	amnt := float64(op.SendAmount.Value)
+	if op.SendAmount.AssetScale > 0 {
+		amnt /= math.Pow(10, float64(op.SendAmount.AssetScale))
 	}
 
 	return &machnet.CreateTransactionArgs{
 		FromLinkedAccountID: sendAcc.ID,
 		ToLinkedAccountID:   recvAcc.ID,
-		Amount:              200,   // TODO
-		Currency:            "USD", // TODO
+		Amount:              amnt,
+		Currency:            op.SendAmount.Asset,
 	}, nil
 }
 
