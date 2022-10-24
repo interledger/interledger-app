@@ -160,9 +160,31 @@ type Transaction struct {
 	FromFundID        string            `json:"from_fund_id,omitempty"`
 	FundingsourceType FundingSourceType `json:"funding_source_type,omitempty"`
 	DeliveryStatus    string            `json:"delivery_status,omitempty"`
+	Status            string            `json:"status,omitempty"`
 	IPAddress         string            `json:"ip_address,omitempty"`
 	To                TransactionTo     `json:"to"`
 }
+
+const (
+	TransactionInitiated  = "INITIATED"
+	TransactionPending    = "PENDING"
+	TransactionProcessing = "PROCESSING"
+	TransactionProcessed  = "PROCESSED"
+	TransactionCancelled  = "CANCELLED"
+	TransactionFailed     = "FAILED"
+	TransactionHold       = "HOLD"
+	TransactionRefunded   = "REFUNDED"
+	TransactionReturned   = "RETURNED"
+
+	TransactionDeliveryNone        = "NONE"
+	TransactionDeliveryHold        = "HOLD"
+	TransactionDeliveryPending     = "PENDING"
+	TransactionDeliveryRequested   = "DELIVERY_REQUESTED"
+	TransactionDeliveryDelivered   = "DELIVERED"
+	TransactionDeliveryFailed      = "DELIVERY_FAILED"
+	TransactionDeliveryAuthorized  = "DELIVERY_AUTHORIZED"
+	TransactionDeliveryPayoutReady = "DELIVERY_PAYOUT_READY"
+)
 
 type TransactionTo struct {
 	AddressLine1    string          `json:"address_line1,omitempty"`

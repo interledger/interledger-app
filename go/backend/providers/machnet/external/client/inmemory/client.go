@@ -221,6 +221,22 @@ func (c Client) CreateTransaction(
 	return &trx, nil
 }
 
+func (c Client) GetUserTransaction(
+	ctx context.Context, userID, transactionID string,
+) (*external.Transaction, error) {
+	_, err := c.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w User not found.", external.ErrInternal)
+	}
+
+	trx, exists := c.transactions[transactionID]
+	if !exists || trx.UserID != userID {
+		return nil, fmt.Errorf("%w Transaction not found.", external.ErrInternal)
+	}
+
+	return &trx, nil
+}
+
 func (c Client) UpdateDeliveryRequest(ctx context.Context, request external.DeliveryRequest) error {
 	trx, found := c.transactions[request.TransactionID]
 	if !found {
