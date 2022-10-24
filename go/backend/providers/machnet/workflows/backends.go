@@ -11,6 +11,8 @@ import (
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/user"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/mocks"
 )
 
 type Backends interface {
@@ -19,6 +21,7 @@ type Backends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
+	Temporal() client.Client
 }
 
 type opsBackends struct {
@@ -31,11 +34,12 @@ func (b opsBackends) External() external.Client {
 }
 
 type testBackends struct {
-	db      *sqlx.DB
-	users   user.Client
-	kycImpl *kyc_mock.MockClient
-	linked  *linkedaccounts_mock.MockClient
-	machnet *machnet_mock.MockClient
+	db       *sqlx.DB
+	users    user.Client
+	kycImpl  *kyc_mock.MockClient
+	linked   *linkedaccounts_mock.MockClient
+	machnet  *machnet_mock.MockClient
+	temporal *mocks.Client
 }
 
 func (b testBackends) LinkedAccounts() linkedaccounts.Client {
@@ -60,4 +64,8 @@ func (b testBackends) Validator() *validator.Validate {
 
 func (b testBackends) Machnet() machnet.Client {
 	return b.machnet
+}
+
+func (b testBackends) Temporal() client.Client {
+	return b.temporal
 }

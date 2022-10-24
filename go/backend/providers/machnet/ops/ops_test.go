@@ -9,6 +9,8 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/user"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/mocks"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -440,6 +442,7 @@ type backends struct {
 	linkedaccounts *linkedaccounts_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
+	temporal       *mocks.Client
 }
 
 func (b backends) Users() user.Client {
@@ -460,4 +463,8 @@ func (b backends) External() external.Client {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
+}
+
+func (b backends) Temporal() client.Client {
+	return b.temporal
 }
