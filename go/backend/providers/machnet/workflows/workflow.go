@@ -1,11 +1,18 @@
 package workflows
 
 import (
+	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/backend/providers/machnet/external"
 
 	"go.temporal.io/sdk/workflow"
+)
+
+const (
+	TransactionEventsChannel         = "machnet_transaction_events"
+	TransactionDeliveryEventsChannel = "machnet_delivery_events"
 )
 
 func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
@@ -66,10 +73,55 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
+	trxChan := workflow.GetSignalChannel(ctx, TransactionEventsChannel)
+	var transactionCreatedSuccessfully bool
+	for {
+		var transactionEvent external.Event
+		trxChan.Receive(ctx, &transactionEvent)
+		logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
+		if transactionEvent.ResourceID != trxID { // not for this transaction
+			logger.Error("Received notification for different transaction.")
+			continue
+		}
+
+		if external.TransactionProcessedEvent == transactionEvent.EventName {
+			transactionCreatedSuccessfully = true
+			break
+		}
+	}
+	if !transactionCreatedSuccessfully {
+		return "", fmt.Errorf("%w Transaction failed.", machnet.ErrInternal)
+	}
+
 	err = workflow.ExecuteActivity(ctx, a.DeliverTransaction, args.FromLinkedAccountID, trxID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("DeliverTransaction Activity failed.", "Error", err)
 		return "", err
+	}
+
+	deliveryChan := workflow.GetSignalChannel(ctx, TransactionDeliveryEventsChannel)
+	var deliverySuccessful bool
+	for {
+		var deliveryEvent external.Event
+		deliveryChan.Receive(ctx, &deliveryEvent)
+		logger.Info("delivery status event: transactionID=", deliveryEvent.ResourceID, "status=", deliveryEvent.EventName)
+		if deliveryEvent.ResourceID != trxID { // not for this transaction
+			logger.Error("Received delivery notification for different transaction.")
+			continue
+		}
+
+		if external.TransactionDeliveredEvent == deliveryEvent.EventName {
+			deliverySuccessful = true
+			break
+		}
+
+		if external.TransactionDeliveryFailed == deliveryEvent.EventName {
+			deliverySuccessful = false
+			break
+		}
+	}
+	if !deliverySuccessful {
+		return "", fmt.Errorf("%w Transaction delivery failed.", machnet.ErrInternal)
 	}
 
 	logger.Info("CreateTransactionWorkflow completed.", "external_transaction_id", trxID)

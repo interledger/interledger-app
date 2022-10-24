@@ -170,11 +170,19 @@ const (
 	TransactionPending    = "PENDING"
 	TransactionProcessing = "PROCESSING"
 	TransactionProcessed  = "PROCESSED"
-	TransactionCancelled  = "CANCELLED"
+	TransactionCancelled  = "CANCELED"
 	TransactionFailed     = "FAILED"
 	TransactionHold       = "HOLD"
 	TransactionRefunded   = "REFUNDED"
 	TransactionReturned   = "RETURNED"
+
+	TransactionPendingEvent    = "transaction_pending"
+	TransactionProcessingEvent = "transaction_processing"
+	TransactionProcessedEvent  = "transaction_processed"
+	TransactionCancelledEvent  = "transaction_canceled"
+	TransactionFailedEvent     = "transaction_failed"
+	TransactionHoldEvent       = "transaction_onhold"
+	TransactionReturnedEvent   = "transaction_returned"
 
 	TransactionDeliveryNone        = "NONE"
 	TransactionDeliveryHold        = "HOLD"
@@ -184,6 +192,14 @@ const (
 	TransactionDeliveryFailed      = "DELIVERY_FAILED"
 	TransactionDeliveryAuthorized  = "DELIVERY_AUTHORIZED"
 	TransactionDeliveryPayoutReady = "DELIVERY_PAYOUT_READY"
+
+	TransactionDeliveryHoldEvent        = "transaction_delivery_onhold"
+	TransactionDeliveryPendingEvent     = "transaction_delivery_pending"
+	TransactionDeliveryRequestedEvent   = "transaction_delivery_requested"
+	TransactionDeliveredEvent           = "transaction_delivered"
+	TransactionDeliveryFailedEvent      = "transaction_delivery_failed"
+	TransactionDeliveryAuthorizedEvent  = "transaction_delivery_authorized "
+	TransactionDeliveryPayoutReadyEvent = "transaction_delivery_payout_ready"
 )
 
 type TransactionTo struct {
