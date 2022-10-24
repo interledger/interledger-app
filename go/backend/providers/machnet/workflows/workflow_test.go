@@ -27,7 +27,7 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 	}
-	b.users = user_client.New(b, "Testing")
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -62,7 +62,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 	}
-	b.users = user_client.New(b, "Testing")
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()

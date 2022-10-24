@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	client "github.com/ory/kratos-client-go"
 	"net/http"
 	"sync"
 	"time"
@@ -164,6 +165,9 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 
 	var wg sync.WaitGroup
 	var mx sync.Mutex
+
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
 
 	var resp []user.User
 	var anyErr error

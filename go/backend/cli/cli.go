@@ -90,6 +90,7 @@ type StartArgs struct {
 	OpenPaymentsPort          string
 	DbConnectionString        string
 	KratosUrl                 string
+	KratosAdminUrl            string
 	PacioliDbConnectionString string
 	UsdLedgerID               uint32
 	LogLevel                  string
@@ -135,6 +136,11 @@ func ParseStartArgs() (*StartArgs, error) {
 	if kratosUrl == "" {
 		kratosUrl = "http://localhost:4433"
 	}
+	kratosAdminUrl := os.Getenv("KRATOS_ADMIN_URL")
+	if kratosAdminUrl == "" {
+		kratosAdminUrl = "http://localhost:4433"
+	}
+
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "" {
 		logLevel = "info"
@@ -229,6 +235,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		OpenPaymentsPort:          openPaymentsPort,
 		DbConnectionString:        connString,
 		KratosUrl:                 kratosUrl,
+		KratosAdminUrl:            kratosAdminUrl,
 		PacioliDbConnectionString: pacioliConnectionString,
 		UsdLedgerID:               uint32(usdLedgerID),
 		LogLevel:                  logLevel,
