@@ -427,12 +427,73 @@ func TestValidateWebhook(t *testing.T) {
 	assert.ErrorIs(t, err, machnet.ErrInvalidSignature)
 }
 
+func TestTransactionEventWebhook(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+	e := external.Event{
+		ID:         uuid.NewString(),
+		EventName:  external.TransactionProcessedEvent,
+		ResourceID: uuid.NewString(),
+		UserID:     uuid.NewString(),
+	}
+	workflowID := uuid.NewString()
+	worklflowRunID := uuid.NewString()
+	_, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: e.UserID,
+	})
+	require.NoError(t, err)
+	_, err = ops.CreateTransactionWorkflowRef(context.Background(), b, machnet.CreateTransactionWorkflowRefArgs{
+		ID:            e.ResourceID,
+		SendUserID:    e.UserID,
+		WorkflowID:    workflowID,
+		WorkflowRunID: worklflowRunID,
+	})
+	require.NoError(t, err)
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.TransactionEventsChannel, e).Return(nil)
+
+	err = ops.HandleEvent(context.Background(), b, e)
+	require.NoError(t, err)
+}
+
+func TestTransactionDeliveryEventWebhook(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+	e := external.Event{
+		ID:         uuid.NewString(),
+		EventName:  external.TransactionDeliveredEvent,
+		ResourceID: uuid.NewString(),
+		UserID:     uuid.NewString(),
+	}
+	workflowID := uuid.NewString()
+	worklflowRunID := uuid.NewString()
+	_, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: e.UserID,
+	})
+	require.NoError(t, err)
+	_, err = ops.CreateTransactionWorkflowRef(context.Background(), b, machnet.CreateTransactionWorkflowRefArgs{
+		ID:            e.ResourceID,
+		SendUserID:    e.UserID,
+		WorkflowID:    workflowID,
+		WorkflowRunID: worklflowRunID,
+	})
+	require.NoError(t, err)
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.TransactionDeliveryEventsChannel, e).Return(nil)
+
+	err = ops.HandleEvent(context.Background(), b, e)
+	require.NoError(t, err)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
 		db:             test_utils.MigrateCockroachDB(t, context.Background()),
 		external:       external_client.New(),
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
+		temporal:       &mocks.Client{},
 	}
 }
 

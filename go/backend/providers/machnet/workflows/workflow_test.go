@@ -9,6 +9,7 @@ import (
 	machnet_mock_client "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	machnet_external_inmem "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
+	"gitlab.com/fynbos/backend/providers/machnet/ops"
 
 	"github.com/stretchr/testify/mock"
 
@@ -87,7 +88,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.GetOrCreateReceiveUser, mock.Anything, mock.Anything).Return(&to, nil)
 	env.OnActivity(a.CreateExternalTransaction, mock.Anything, mock.Anything, to).Return(trxID, nil)
 	env.RegisterDelayedCallback(func() {
-		env.SignalWorkflow(TransactionEventsChannel, external.Event{
+		env.SignalWorkflow(ops.TransactionEventsChannel, external.Event{
 			ID:         uuid.NewString(),
 			EventName:  external.TransactionProcessedEvent,
 			ResourceID: trxID,
@@ -95,7 +96,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	}, time.Minute)
 	env.OnActivity(a.DeliverTransaction, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
-		env.SignalWorkflow(TransactionDeliveryEventsChannel, external.Event{
+		env.SignalWorkflow(ops.TransactionDeliveryEventsChannel, external.Event{
 			ID:         uuid.NewString(),
 			EventName:  external.TransactionDeliveredEvent,
 			ResourceID: trxID,
