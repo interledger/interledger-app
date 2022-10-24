@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
 
 import * as postA from '~/routes/blog/connecting-the-internet-economy.mdx'
-const modules = [postA]
+import * as postB from '~/routes/blog/card-payments-still-suck.mdx'
+const modules = [postA, postB]
 
 export type Author = {
   name: string
