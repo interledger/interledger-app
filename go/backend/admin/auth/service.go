@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/coreos/go-oidc/v3/oidc"
+	"gitlab.com/fynbos/env"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -113,20 +112,20 @@ func (s *service) MakeUnaryInterceptors() grpc.ServerOption {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		if !strings.Contains(info.FullMethod, "BackendService") {
-			return handler(ctx, req)
-		}
-
-		user, err := s.GetAdminUser(ctx)
-		if err != nil {
-			if !errors.Is(err, ErrNoUserFound) {
-				return nil, status.Error(codes.Internal, "error parsing id token.")
-			}
-		}
 
 		newCtx := ctx
-		if user != nil {
-			newCtx = context.WithValue(ctx, userCtxKey, user)
+		if env.IsProd() {
+			user, err := s.GetAdminUser(ctx)
+			if err != nil {
+				fmt.Println(err)
+				if !errors.Is(err, ErrNoUserFound) {
+					return nil, status.Error(codes.Internal, "error parsing id token.")
+				}
+			}
+
+			if user != nil {
+				newCtx = context.WithValue(ctx, userCtxKey, user)
+			}
 		}
 
 		return handler(newCtx, req)
