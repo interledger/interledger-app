@@ -15,7 +15,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	kratos "github.com/ory/kratos-client-go"
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
@@ -132,21 +131,13 @@ func start(args *cli.StartArgs) {
 	}
 	log.Setup(logger)
 
-	configuration := kratos.NewConfiguration()
-	configuration.Servers = kratos.ServerConfigurations{
-		{
-			URL:         args.KratosUrl,
-			Description: "Dev Kratos",
-		},
-	}
-
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.temporal = tp
 
-	b.users = user_client.New(b, args.KratosUrl)
+	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 
 	b.countries = country_client.New(b)
 
@@ -304,7 +295,7 @@ func startWorker(args *cli.StartArgs) {
 
 	b.signup = signup_client.New(b)
 
-	b.users = user_client.New(b, args.KratosUrl)
+	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 
 	b.kyc = kyc_client.New(b)
 

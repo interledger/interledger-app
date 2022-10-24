@@ -22,7 +22,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name      string
@@ -223,7 +223,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()
 	// Create Signup
@@ -381,7 +381,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db)
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()
 	// Create Signup

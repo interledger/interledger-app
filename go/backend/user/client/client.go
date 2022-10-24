@@ -19,13 +19,17 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends, kratosURL string) user.Client {
+func New(b Backends, kratosURL, kratosAdminURL string) user.Client {
 
 	configuration := kratos.NewConfiguration()
 	configuration.Servers = kratos.ServerConfigurations{
 		{
 			URL:         kratosURL,
-			Description: "Dev Kratos",
+			Description: "Public Kratos",
+		},
+		{
+			URL:         kratosAdminURL,
+			Description: "Admin Kratos",
 		},
 	}
 

@@ -26,7 +26,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
 	require.NoError(t, err)
 
-	users := user_client.New(b, "testing")
+	users := user_client.New(b, "kratosURL", "kratosAdminURL")
 	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
 	require.NoError(t, err)
 

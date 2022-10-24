@@ -77,7 +77,7 @@ func TestActivity_CreateUser(t *testing.T) {
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 	}
-	b.users = user_client.New(b, "Testing")
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
@@ -110,7 +110,7 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 		db:      test_utils.MigrateCockroachDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 	}
-	b.users = user_client.New(b, "Testing")
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
@@ -307,7 +307,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 	}
-	b.users = user_client.New(b, "Testing")
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
