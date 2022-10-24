@@ -1,6 +1,4 @@
-# Protea
+# Botanist
 
-Fynbos frontend.
+Fynbos admin dashboard.
 
-View the [Wiki page](https://gitlab.com/fynbos/fynbos/-/wikis/protea) for more
-details.
