@@ -38,7 +38,7 @@ format:
 
 lint:
 	@echo "Linting"
-	golangci-lint --go=1.17 run ./...
+	golangci-lint run ./...
 	@echo "Lint complete"
 
 build:
