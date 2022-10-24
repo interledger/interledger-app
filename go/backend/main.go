@@ -5,9 +5,13 @@ import (
 	"embed"
 	"fmt"
 	"gitlab.com/fynbos/backend/admin"
+	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -206,33 +210,50 @@ func start(args *cli.StartArgs) {
 
 	b.kyc = kyc_client.New(b)
 
+	wg := sync.WaitGroup{}
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", "8443"))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", "8443"))
-	err = server.Serve(listener)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	serverCh := make(chan os.Signal, 1)
+	signal.Notify(serverCh, syscall.SIGTERM, syscall.SIGINT)
+	serveGrpc("8443", server, &wg, serverCh)
 
 	adminServer, err := admin.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	adminListener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", "8448"))
+	adminCh := make(chan os.Signal, 1)
+	signal.Notify(adminCh, syscall.SIGTERM, syscall.SIGINT)
+	serveGrpc("8448", adminServer, &wg, adminCh)
+
+	log.Info("waiting for shutdown")
+	wg.Wait()
+	log.Info("clean shutdown")
+}
+
+func serveGrpc(port string, server *grpc.Server, wg *sync.WaitGroup, sigCh chan os.Signal) {
+	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Info(fmt.Sprintf("admin server: 0.0.0.0:%s", "8448"))
-	err = adminServer.Serve(adminListener)
-	if err != nil {
-		log.Fatalln(err)
-	}
+
+	wg.Add(1)
+	go func(sigCh chan os.Signal, wg *sync.WaitGroup) {
+		<-sigCh
+		log.Info(fmt.Sprintf("got signal attempting graceful shutdown: 0.0.0.0:%s", port))
+		server.GracefulStop()
+		wg.Done()
+	}(sigCh, wg)
+
+	go func() {
+		log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", port))
+		err = server.Serve(listener)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
 }
 
 func migrate(args *cli.MigrationArgs) {
