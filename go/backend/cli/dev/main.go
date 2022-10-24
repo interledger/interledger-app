@@ -79,6 +79,12 @@ func main() {
 						Flags:  actions.MakeReceiveBankAccountFlags,
 						Action: actions.MakeReceiveBankAccount(b),
 					},
+					{
+						Name:   "machnet_transaction",
+						Usage:  "create a transaction that uses machnet provider",
+						Flags:  actions.MakeMachnetTransactionFlags,
+						Action: actions.MakeMachnetTransaction(b),
+					},
 				},
 			},
 		},
