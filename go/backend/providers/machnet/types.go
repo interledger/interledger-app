@@ -5,6 +5,7 @@ import "context"
 const (
 	ProviderName           = "machnet"
 	TypeReceiveBankAccount = "receiveBankAccount"
+	TypeSendCard           = "sendCard"
 )
 
 type Await func(context.Context, interface{}) error

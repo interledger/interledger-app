@@ -142,6 +142,7 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 		require.NoError(t, err)
 
 		body, err := json.Marshal(tc.args)
+		require.NoError(t, err)
 		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/quotes", tc.args.SendPaymentPointer), bytes.NewReader(body))
 		require.NoError(t, err)
 
@@ -243,6 +244,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		body, err := json.Marshal(tc.args)
+		require.NoError(t, err)
 		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming-payments", tc.args.PaymentPointer), bytes.NewReader(body))
 		require.NoError(t, err)
 
