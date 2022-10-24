@@ -327,6 +327,17 @@ func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.Cr
 		return "", err
 	}
 
+	indvKYC, err := a.b.KYC().GetIndividualDetails(ctx, la.WalletId)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return "", temporal.NewNonRetryableApplicationError("no KYC information for sender", "KYC", err)
+	}
+	if err != nil {
+		return "", err
+	}
+	if indvKYC.IPAddress == "" {
+		return "", temporal.NewNonRetryableApplicationError("incomplete KYC information for sender. Require IPAddress.", "KYC", kyc.ErrNoKYCInfo)
+	}
+
 	extTrx, err := a.b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
 		FromUserID:        mu.ID,
 		FromFundID:        la.ProviderID,
@@ -342,7 +353,7 @@ func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.Cr
 			FundID:          to.ReceiveFundID,
 			PayoutMethod:    external.PayoutMethodBankDeposit,
 		},
-		IPAddress: "10.10.10.5", // TODO: what ip address to use here?
+		IPAddress: indvKYC.IPAddress,
 	})
 	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
 		return "", temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
