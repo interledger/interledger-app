@@ -83,7 +83,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	a := NewActivity(b)
 
 	env.OnActivity(a.GetOrCreateReceiveUser, mock.Anything, mock.Anything).Return(&to, nil)
-	env.OnActivity(a.CreateTransaction, mock.Anything, mock.Anything, to).Return(trxID, nil)
+	env.OnActivity(a.CreateExternalTransaction, mock.Anything, mock.Anything, to).Return(trxID, nil)
 	env.OnActivity(a.DeliverTransaction, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
