@@ -10,6 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/jmoiron/sqlx"
+
 	"github.com/google/uuid"
 
 	"gitlab.com/fynbos/backend/db"
@@ -258,9 +261,8 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("recv_scale", args.SendAmount.AssetScale).
 		Value("expires_at", args.ExpiresAt).GetStatement()
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		return nil, fmt.Errorf("%w insert sql create failed (%s)", openpayments.ErrInternal, err)
 	}
-
 	_, err = b.DB().ExecContext(ctx, query, vals...)
 	if err != nil {
 		return nil, fmt.Errorf("%w insert failed (%s)", openpayments.ErrInternal, err)
@@ -438,4 +440,102 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 	}
 
 	return GetIncomingPayment(ctx, b, id)
+}
+
+func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (string, error) {
+	q, err := GetQuote(ctx, b, args.QuoteID)
+	if err != nil {
+		return "", err
+	}
+
+	if q.ExpiresAt.Before(time.Now()) {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, "quote has expired")
+	}
+
+	id := uuid.NewString()
+
+	stmt, qargs, err := db.NewInsert("openpayments_outgoing_payment").
+		Value("id", id).
+		Value("quote_id", q.ID).
+		Value("failed", false).
+		Value("description", args.Description).
+		Value("sent_amount", 0).
+		Value("sent_asset", q.SendAmount.Asset).
+		Value("sent_scale", q.SendAmount.AssetScale).GetStatement()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, stmt, qargs...)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+
+		_, err = tx.ExecContext(ctx,
+			"UPDATE openpayments_incoming_payment SET external_ref=$1 WHERE id=$2",
+			args.ExternalRef,
+			q.IncomingPayment[strings.LastIndex(q.IncomingPayment, "/")+1:])
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+
+		return nil
+	})
+
+	return id, err
+}
+
+type dbOutgoingPayments struct {
+	ID          string    `db:"id"`
+	QuoteID     string    `db:"quote_id"`
+	Failed      bool      `db:"failed"`
+	Description string    `db:"description"`
+	AssetCode   string    `db:"sent_asset"`
+	AssetScale  int       `db:"sent_scale"`
+	SentAmount  uint64    `db:"sent_amount"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpayments.OutgoingPayment, error) {
+	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
+	idxSlash := strings.LastIndex(id, "/")
+	if idxSlash > 0 {
+		id = id[idxSlash+1:]
+	}
+
+	var op dbOutgoingPayments
+	err := b.DB().GetContext(ctx, &op,
+		"SELECT id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at FROM openpayments_outgoing_payment WHERE id=$1",
+		id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	q, err := GetQuote(ctx, b, op.QuoteID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &openpayments.OutgoingPayment{
+		ID:             fmt.Sprintf("%s/outgoing-payments/%s", q.PaymentPointer, op.ID),
+		PaymentPointer: q.PaymentPointer,
+		Failed:         op.Failed,
+		Receiver:       q.IncomingPayment,
+		SendAmount:     q.SendAmount,
+		ReceiveAmount:  q.ReceiveAmount,
+		SentAmount: openpayments.Amount{
+			Value:      op.SentAmount,
+			Asset:      op.AssetCode,
+			AssetScale: op.AssetScale,
+		},
+		Description: op.Description,
+		CreatedAt:   op.CreatedAt,
+		UpdatedAt:   op.UpdatedAt,
+	}, nil
+
 }
