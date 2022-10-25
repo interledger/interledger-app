@@ -66,11 +66,18 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 	var gender string
 	switch kycData.Gender {
 	case kyc.GenderMale:
-		gender = "Male"
+		gender = "male"
 	case kyc.GenderFemale:
-		gender = "Female"
+		gender = "female"
 	default:
-		gender = "Other"
+		gender = "other"
+	}
+
+	// we store state in iso3166-2 format which will fail Machnet validation.
+	state := kycData.Address.State
+	stateParts := strings.Split(state, "-")
+	if len(stateParts) > 1 {
+		state = strings.Trim(stateParts[1], " ")
 	}
 
 	emu, err := a.b.External().RegisterUser(ctx, external.User{
@@ -78,13 +85,13 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		LastName:     kycData.LastName,
 		Email:        userData.Email,
 		Gender:       gender,
-		DateOfBirth:  kycData.DateOfBirth.Format("yyyy-MM-dd"),
+		DateOfBirth:  kycData.DateOfBirth.Format("2006-01-02"),
 		AddressLine1: kycData.Address.Line1,
 		AddressLine2: kycData.Address.Line2,
 		MobilePhone:  userData.PhoneNumber,
 		City:         kycData.Address.City,
 		Zipcode:      kycData.Address.ZipCode,
-		State:        kycData.Address.State,
+		State:        state,
 		Country:      kycData.Address.CountryCode,
 		IPAddress:    kycData.IPAddress,
 		Type:         external.TypeSendUser,

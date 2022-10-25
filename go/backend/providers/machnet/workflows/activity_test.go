@@ -73,6 +73,11 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 	var res string
 	require.NoError(t, val.Get(&res))
 	require.NotEmpty(t, res)
+
+	// check that state was formatted correctly for Machnet
+	usr, err := b.machnet.External().GetUserByID(context.Background(), res)
+	require.NoError(t, err)
+	assert.Equal(t, "WC", usr.State)
 }
 
 func TestActivity_CreateUser(t *testing.T) {
