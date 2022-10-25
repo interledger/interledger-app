@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"math/rand"
@@ -55,7 +56,8 @@ func MakeUser(b Backends) cli.ActionFunc {
 		}
 		password := base64.StdEncoding.EncodeToString(buf)
 		activeState := kratos.IdentityState("active")
-		req := b.Kratos().V0alpha2Api.AdminCreateIdentity(cCtx.Context).
+		ctx := context.WithValue(cCtx.Context, kratos.ContextServerIndex, 1)
+		req := b.Kratos().V0alpha2Api.AdminCreateIdentity(ctx).
 			AdminCreateIdentityBody(kratos.AdminCreateIdentityBody{
 				Credentials: &kratos.AdminIdentityImportCredentials{
 					Password: &kratos.AdminCreateIdentityImportCredentialsPassword{
