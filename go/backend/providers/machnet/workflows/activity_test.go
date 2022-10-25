@@ -78,6 +78,7 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 	usr, err := b.machnet.External().GetUserByID(context.Background(), res)
 	require.NoError(t, err)
 	assert.Equal(t, "WC", usr.State)
+	assert.NotContains(t, usr.MobilePhone, "+")
 }
 
 func TestActivity_CreateUser(t *testing.T) {
