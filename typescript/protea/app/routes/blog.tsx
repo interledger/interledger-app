@@ -89,7 +89,7 @@ type BlogLayoutProps = {
 const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
   return (
     <main className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
-      <div className='fixed mx-auto -mt-4 hidden w-full flex-col content-start bg-page pb-20 sm:max-w-lg lg:flex lg:max-w-3xl xl:max-w-[59rem]'>
+      <div className='col-span-full -mt-4 hidden w-full flex-col content-start bg-page pb-20 lg:flex'>
         <Router
           className='hidden items-center p-4 text-primary lg:flex'
           to={route('/blog')}
@@ -110,7 +110,7 @@ const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
       <h1 className='col-span-full mb-4 font-display text-3xl font-medium text-medium sm:text-5xl lg:hidden'>
         {meta?.title}
       </h1>
-      <div className='relative col-span-full flex h-min flex-col justify-start border-t-2 border-black lg:fixed lg:top-[29.5rem] lg:col-span-3 lg:border-b-0'>
+      <div className='relative col-span-full flex h-min flex-col justify-start border-t-2 border-black lg:sticky lg:top-24 lg:col-span-3 lg:border-b-0'>
         <div className='mt-6 mb-2 lg:mb-6'>{meta?.date}</div>
         {meta?.authors.map((author, index) => (
           <AuthorBlock
@@ -121,7 +121,7 @@ const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
           />
         ))}
       </div>
-      <article className='col-span-full max-w-full lg:col-start-5 lg:mt-[22.5rem] lg:max-w-prose'>
+      <article className='col-span-full max-w-full lg:col-start-5 lg:max-w-prose'>
         <Prose>{children}</Prose>
       </article>
     </main>
