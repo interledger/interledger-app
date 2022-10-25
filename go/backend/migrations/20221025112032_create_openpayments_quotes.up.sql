@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS openpayments_incoming_payment
   updated_at          TIMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS openpayments_quoutes
+CREATE TABLE IF NOT EXISTS openpayments_quotes
 (
   id 				              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   send_payment_pointer_id UUID NOT NULL REFERENCES payment_pointers,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS openpayments_quoutes
 CREATE TABLE IF NOT EXISTS openpayments_outgoing_payment
 (
   id 				              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  quote_id                UUID NOT NULL REFERENCES openpayments_quoutes,
+  quote_id                UUID NOT NULL REFERENCES openpayments_quotes,
   failed                  BOOLEAN NOT NULL DEFAULT FALSE,
   description             TEXT NOT NULL,
   sent_amount             BIGINT NOT NULL,

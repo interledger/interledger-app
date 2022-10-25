@@ -248,7 +248,7 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 	// TODO: Calculate the from/to conversion one day
 
 	id := uuid.NewString()
-	query, vals, err := db.NewInsert("openpayments_quoutes").
+	query, vals, err := db.NewInsert("openpayments_quotes").
 		Value("id", id).
 		Value("send_payment_pointer_id", sendPP.ID).
 		Value("recv_payment_pointer_id", recvPP.ID).
@@ -296,7 +296,7 @@ func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, 
 
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at FROM openpayments_quoutes WHERE id=$1", id)
+		"SELECT id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at FROM openpayments_quotes WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -361,8 +361,7 @@ func GetIncomingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 		"SELECT id, payment_pointer_id, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at FROM openpayments_incoming_payment WHERE id=$1",
 		id)
 	if errors.Is(err, sql.ErrNoRows) {
-		// TODO: Correct error
-		return nil, fmt.Errorf("%w %s", openpayments.ErrPaymentPointerNotFound, err)
+		return nil, fmt.Errorf("%w %s", openpayments.ErrNotFound, err)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
