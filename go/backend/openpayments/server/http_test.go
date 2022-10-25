@@ -34,11 +34,12 @@ import (
 )
 
 func TestGetHandler(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	b := NewTestBackends(t, db, nil, nil)
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name       string
@@ -113,11 +114,12 @@ func TestGetHandler(t *testing.T) {
 }
 
 func TestHTTPCreateQuoteGet(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	b := NewTestBackends(t, db, nil, nil)
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name       string
@@ -218,11 +220,12 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 }
 
 func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
 	b := NewTestBackends(t, db, nil, nil)
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name       string
@@ -233,13 +236,22 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 			name: "success",
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer: "https://fynbos.me/moneyplease",
-				IncomingAmount: openpayments.Amount{
+				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
 					AssetScale: 2,
 				},
 				ExternalRef: "External",
 				ExpiresAt:   time.Now().Add(time.Hour),
+			},
+			statusCode: http.StatusCreated,
+		},
+		{
+			name: "success no amount",
+			args: openpayments.CreateIncomingPaymentArgs{
+				PaymentPointer: "https://fynbos.me/moneyplease2",
+				ExternalRef:    "External",
+				ExpiresAt:      time.Now().Add(time.Hour),
 			},
 			statusCode: http.StatusCreated,
 		},
@@ -262,12 +274,18 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		// Setup the payment pointers
+		asset := "USD"
+		assetScale := 2
+		if tc.args.IncomingAmount != nil {
+			asset = tc.args.IncomingAmount.Asset
+			assetScale = tc.args.IncomingAmount.AssetScale
+		}
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.PaymentPointer,
 			Alias:      "alias",
 			WalletID:   recvWallet.ID,
-			Asset:      tc.args.IncomingAmount.Asset,
-			AssetScale: tc.args.IncomingAmount.AssetScale,
+			Asset:      asset,
+			AssetScale: assetScale,
 		})
 		require.NoError(t, err)
 
@@ -285,9 +303,14 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
-		assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
-		assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
-		assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
+		if tc.args.IncomingAmount != nil {
+			assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
+			assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
+			assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
+		} else {
+			assert.Nil(t, ip.IncomingAmount)
+		}
+
 		assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
 
 		// Do a get and get the same values
@@ -307,14 +330,19 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, tc.args.PaymentPointer, lip.PaymentPointer)
-		assert.Equal(t, tc.args.IncomingAmount.Value, lip.IncomingAmount.Value)
-		assert.Equal(t, tc.args.IncomingAmount.Asset, lip.IncomingAmount.Asset)
-		assert.Equal(t, tc.args.IncomingAmount.AssetScale, lip.IncomingAmount.AssetScale)
+		if tc.args.IncomingAmount != nil {
+			assert.Equal(t, tc.args.IncomingAmount.Value, lip.IncomingAmount.Value)
+			assert.Equal(t, tc.args.IncomingAmount.Asset, lip.IncomingAmount.Asset)
+			assert.Equal(t, tc.args.IncomingAmount.AssetScale, lip.IncomingAmount.AssetScale)
+		} else {
+			assert.Nil(t, lip.IncomingAmount)
+		}
 		assert.Equal(t, tc.args.ExternalRef, lip.ExternalRef)
 	}
 }
 
 func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 	ctrl := gomock.NewController(t)
@@ -323,7 +351,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	tmp_mock := &mocks.Client{}
 
 	b := NewTestBackends(t, db, la_mock, tmp_mock)
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name       string

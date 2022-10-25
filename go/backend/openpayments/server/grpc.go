@@ -14,7 +14,7 @@ import (
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
-var _ pb.OpenPaymentServiceServer = grpcServer{}
+var _ pb.OpenPaymentServiceServer = &grpcServer{}
 
 type grpcServer struct {
 	b Backends
@@ -24,7 +24,10 @@ func NewGRPCServer(b Backends) pb.OpenPaymentServiceServer {
 	return &grpcServer{b: b}
 }
 
-func toAmountPB(amount openpayments.Amount) *pb.Amount {
+func toAmountPB(amount *openpayments.Amount) *pb.Amount {
+	if amount == nil {
+		return nil
+	}
 	return &pb.Amount{
 		Amount:     amount.Value,
 		Asset:      amount.Asset,
@@ -32,10 +35,10 @@ func toAmountPB(amount openpayments.Amount) *pb.Amount {
 	}
 }
 
-func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaymentPointerRequest) (*pb.Empty, error) {
+func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaymentPointerRequest) (*pb.Empty, error) {
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("no login found")
 	}
 
 	wallet, err := g.b.Users().WalletForContext(ctx)
@@ -67,7 +70,7 @@ func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaym
 	return &pb.Empty{}, nil
 }
 
-func (g grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPointerRequest) (*pb.PaymentPointer, error) {
+func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPointerRequest) (*pb.PaymentPointer, error) {
 	pp, err := ops.GetPaymentPointer(ctx, g.b, req.Url)
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -88,10 +91,10 @@ func (g grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPoi
 	}, nil
 }
 
-func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) (*pb.ListWalletPaymentPointersResponse, error) {
+func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) (*pb.ListWalletPaymentPointersResponse, error) {
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("no login found")
 	}
 
 	wallet, err := g.b.Users().WalletForContext(ctx)
@@ -123,7 +126,7 @@ func (g grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty) 
 	return &pb.ListWalletPaymentPointersResponse{Pointers: resp}, nil
 }
 
-func (g grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPointerExistsRequest) (*pb.PaymentPointerExistsResponse, error) {
+func (g *grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPointerExistsRequest) (*pb.PaymentPointerExistsResponse, error) {
 	exists, err := ops.PaymentPointerExists(ctx, g.b, req.Url)
 	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
 		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
@@ -137,7 +140,7 @@ func (g grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPoi
 	}, nil
 }
 
-func (g grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest) (*pb.Quote, error) {
+func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest) (*pb.Quote, error) {
 	args := openpayments.CreateQuoteArgs{
 		SendPaymentPointer:    req.SendPaymentPointer,
 		ReceivePaymentPointer: req.ReceivePaymentPointer,
@@ -151,7 +154,7 @@ func (g grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest)
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("no login found")
 	}
 
 	wallet, err := g.b.Users().WalletForContext(ctx)
@@ -206,10 +209,10 @@ func (g grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest)
 	}, nil
 }
 
-func (g grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest) (*pb.Quote, error) {
+func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest) (*pb.Quote, error) {
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("no login found")
 	}
 
 	_, err = g.b.Users().WalletForContext(ctx)
@@ -222,8 +225,8 @@ func (g grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest)
 		return nil, toGRPCError(err)
 	}
 
-	sendAmt := toAmountPB(q.SendAmount)
-	recvAmt := toAmountPB(q.ReceiveAmount)
+	sendAmt := toAmountPB(&q.SendAmount)
+	recvAmt := toAmountPB(&q.ReceiveAmount)
 	return &pb.Quote{
 		Id:             q.ID,
 		PaymentPointer: q.PaymentPointer,
@@ -235,21 +238,23 @@ func (g grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest)
 	}, nil
 }
 
-func (g grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIncomingPaymentRequest) (*pb.IncomingPayment, error) {
+func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIncomingPaymentRequest) (*pb.IncomingPayment, error) {
 	args := openpayments.CreateIncomingPaymentArgs{
 		PaymentPointer: req.PaymentPointer,
-		IncomingAmount: openpayments.Amount{
+		ExternalRef:    req.Reference,
+		ExpiresAt:      req.ExpiresAt.AsTime(),
+	}
+	if req.Amount != nil {
+		args.IncomingAmount = &openpayments.Amount{
 			Value:      req.Amount.Amount,
 			Asset:      req.Amount.Asset,
 			AssetScale: int(req.Amount.AssetScale),
-		},
-		ExternalRef: req.Reference,
-		ExpiresAt:   req.ExpiresAt.AsTime(),
+		}
 	}
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("no login found")
 	}
 
 	wallet, err := g.b.Users().WalletForContext(ctx)
@@ -300,10 +305,10 @@ func (g grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateInc
 	}, nil
 }
 
-func (g grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIncomingPaymentRequest) (*pb.IncomingPayment, error) {
+func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIncomingPaymentRequest) (*pb.IncomingPayment, error) {
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("no login found")
 	}
 
 	_, err = g.b.Users().WalletForContext(ctx)
@@ -331,7 +336,7 @@ func (g grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupInc
 	}, nil
 }
 
-func (g grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
+func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 	op, err := workflows.StartOutgoingPayment(ctx, g.b, openpayments.CreateOutgoingPaymentArgs{
 		QuoteID:     req.QuoteID,
 		Description: req.Description,
@@ -346,16 +351,16 @@ func (g grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOut
 		PaymentPointer: op.PaymentPointer,
 		Failed:         op.Failed,
 		Receiver:       op.Receiver,
-		SendAmount:     toAmountPB(op.SendAmount),
-		ReceiveAmount:  toAmountPB(op.ReceiveAmount),
-		SentAmount:     toAmountPB(op.SentAmount),
+		SendAmount:     toAmountPB(&op.SendAmount),
+		ReceiveAmount:  toAmountPB(&op.ReceiveAmount),
+		SentAmount:     toAmountPB(&op.SentAmount),
 		Description:    op.Description,
 		CreatedAt:      timestamppb.New(op.CreatedAt),
 		UpdatedAt:      timestamppb.New(op.UpdatedAt),
 	}, nil
 }
 
-func (g grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
+func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 	op, err := ops.GetOutgoingPayment(ctx, g.b, req.Id)
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -366,9 +371,9 @@ func (g grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOut
 		PaymentPointer: op.PaymentPointer,
 		Failed:         op.Failed,
 		Receiver:       op.Receiver,
-		SendAmount:     toAmountPB(op.SendAmount),
-		ReceiveAmount:  toAmountPB(op.ReceiveAmount),
-		SentAmount:     toAmountPB(op.SentAmount),
+		SendAmount:     toAmountPB(&op.SendAmount),
+		ReceiveAmount:  toAmountPB(&op.ReceiveAmount),
+		SentAmount:     toAmountPB(&op.SentAmount),
 		Description:    op.Description,
 		CreatedAt:      timestamppb.New(op.CreatedAt),
 		UpdatedAt:      timestamppb.New(op.UpdatedAt),

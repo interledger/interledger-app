@@ -57,7 +57,7 @@ message LookupIncomingPaymentRequest {
 
 message CreateIncomingPaymentRequest {
   string paymentPointer = 1;
-  Amount amount = 2;
+  optional Amount amount = 2;
   string reference = 3;
   google.protobuf.Timestamp expiresAt = 4;
 }
@@ -65,8 +65,8 @@ message CreateIncomingPaymentRequest {
 message IncomingPayment{
   string id = 1;
   string paymentPointer = 2;
-  Amount incomingAmount = 3;
-  Amount receivedAmount = 4;
+  optional Amount incomingAmount = 3;
+  optional Amount receivedAmount = 4;
   bool completed = 5;
   string externalRef = 6;
   google.protobuf.Timestamp expiresAt = 7;

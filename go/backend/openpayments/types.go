@@ -45,7 +45,7 @@ type ILPConnection struct {
 
 type CreateIncomingPaymentArgs struct {
 	PaymentPointer string
-	IncomingAmount Amount
+	IncomingAmount *Amount
 	ExternalRef    string
 	ExpiresAt      time.Time
 }
@@ -53,8 +53,8 @@ type CreateIncomingPaymentArgs struct {
 type IncomingPayment struct {
 	ID             string    `json:"id"`
 	PaymentPointer string    `json:"paymentPointer"`
-	IncomingAmount Amount    `json:"incomingAmount"`
-	ReceivedAmount Amount    `json:"receivedAmount"`
+	IncomingAmount *Amount   `json:"incomingAmount,omitempty"`
+	ReceivedAmount *Amount   `json:"receivedAmount,omitempty"`
 	Completed      bool      `json:"completed"`
 	ExternalRef    string    `json:"externalRef"`
 	ExpiresAt      time.Time `json:"expiresAt"`

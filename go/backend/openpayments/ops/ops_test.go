@@ -465,7 +465,7 @@ func TestCreateQuote(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name      string
@@ -584,7 +584,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name    string
@@ -596,7 +596,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 			name: "success",
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer: "http://fynbos.me/moneyplease",
-				IncomingAmount: openpayments.Amount{
+				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
 					AssetScale: 2,
@@ -606,12 +606,20 @@ func TestCreateIncomingPayment(t *testing.T) {
 			},
 		},
 		{
+			name: "success no incoming amount",
+			args: openpayments.CreateIncomingPaymentArgs{
+				PaymentPointer: "http://fynbos.me/moneyplease4",
+				ExternalRef:    "external",
+				ExpiresAt:      time.Now().Add(time.Hour),
+			},
+		},
+		{
 			name:    "different assets",
 			ppAsset: "ZAR",
 			err:     openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer: "http://fynbos.me/moneyplease2",
-				IncomingAmount: openpayments.Amount{
+				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
 					AssetScale: 2,
@@ -625,7 +633,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 			err:  openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer: "http://fynbos.me/moneyplease3",
-				IncomingAmount: openpayments.Amount{
+				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
 					AssetScale: 2,
@@ -646,7 +654,12 @@ func TestCreateIncomingPayment(t *testing.T) {
 			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
 			require.NoError(t, err)
 
-			asset := tc.args.IncomingAmount.Asset
+			asset := "USD"
+			assetScale := 2
+			if tc.args.IncomingAmount != nil {
+				asset = tc.args.IncomingAmount.Asset
+				assetScale = tc.args.IncomingAmount.AssetScale
+			}
 			if tc.ppAsset != "" {
 				asset = tc.ppAsset
 			}
@@ -655,7 +668,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 				WalletID:   recvWallet.ID,
 				Alias:      "Alias",
 				Asset:      asset,
-				AssetScale: tc.args.IncomingAmount.AssetScale,
+				AssetScale: assetScale,
 			})
 			require.NoError(t, err)
 
@@ -668,9 +681,11 @@ func TestCreateIncomingPayment(t *testing.T) {
 
 			assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
 			assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
-			assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
-			assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
-			assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
+			if tc.args.IncomingAmount != nil {
+				assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
+				assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
+				assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
+			}
 		})
 	}
 }
@@ -682,7 +697,7 @@ func TestCreateOutgoingPayment(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
 		name      string

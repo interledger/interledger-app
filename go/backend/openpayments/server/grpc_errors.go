@@ -128,3 +128,7 @@ func NotFoundError(message string) error {
 func ForbiddenError(message string) error {
 	return status.Error(codes.PermissionDenied, "Forbidden: "+message)
 }
+
+func UnauthenticatedError(message string) error {
+	return status.Error(codes.Unauthenticated, "Unauthenticated: "+message)
+}
