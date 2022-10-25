@@ -1,8 +1,3 @@
-//go:build !codeanalysis
-// +build !codeanalysis
-
-// github.com/urfave/cli/v2 fails linting so disabling it for now
-
 package main
 
 import (
@@ -126,8 +121,12 @@ func (b backends) Kratos() *kratos.APIClient {
 		b.kratos = kratos.NewAPIClient(&kratos.Configuration{
 			Servers: kratos.ServerConfigurations{
 				{
+					URL:         "http://localhost:4433",
+					Description: "Public Kratos",
+				},
+				{
 					URL:         "http://localhost:4434",
-					Description: "Dev Kratos",
+					Description: "Admin Kratos",
 				},
 			},
 		})
@@ -144,7 +143,7 @@ func (b backends) Validator() *validator.Validate {
 
 func (b *backends) Users() user.Client {
 	if b.user == nil {
-		b.user = user_client.New(b, "http://localhost:4434")
+		b.user = user_client.New(b, "http://localhost:4433", "http://localhost:4434")
 	}
 	return b.user
 }
