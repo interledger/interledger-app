@@ -13,6 +13,14 @@ import (
 	"go.temporal.io/sdk/temporal"
 )
 
+type Activity struct {
+	b Backends
+}
+
+func NewActivity(b Backends) *Activity {
+	return &Activity{b: b}
+}
+
 func getProviderLinkedAccount(ctx context.Context, b Backends, pointer, providerName, providerType string) (*linkedaccounts.LinkedAccount, error) {
 	pp, err := ops.GetPaymentPointer(ctx, b, pointer)
 	if err != nil {
