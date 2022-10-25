@@ -3,7 +3,7 @@ sync_public = sync('./public', '/app/public')
 sync_generated = sync('./generated', '/app/generated')
 
 local_resource('botanist tailwind watch', cmd = 'pnpm build:css', deps=['./app'], ignore=['./app/styles'])
-local_resource('botanist port forward', serve_cmd = 'kubectl port-forward --namespace botanist deployment/botanist 8002:8002', resource_deps = ['botanist'])
+local_resource('botanist port forward', serve_cmd = 'kubectl port-forward --namespace botanist deployment/botanist 8003:8003', resource_deps = ['botanist'])
 
 docker_build('botanist', '.', target = "dev", live_update = [
   sync_app, sync_public, sync_generated
