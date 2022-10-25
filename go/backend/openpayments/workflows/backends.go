@@ -25,11 +25,11 @@ type testBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate
 	t   temporal.Client
+	la  linkedaccounts.Client
 }
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {
-	//TODO implement me
-	panic("implement me")
+	return t.la
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -48,6 +48,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client) Backends {
-	return &testBackends{db: db, val: validator.New()}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), t: temp, la: la}
 }

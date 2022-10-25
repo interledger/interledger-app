@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS openpayments_quoutes
 CREATE TABLE IF NOT EXISTS openpayments_outgoing_payment
 (
   id 				              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  quote_id                UUID NOT NULL REFERENCES openpayments_incoming_payment,
+  quote_id                UUID NOT NULL REFERENCES openpayments_quoutes,
   failed                  BOOLEAN NOT NULL DEFAULT FALSE,
   description             TEXT NOT NULL,
   sent_amount             BIGINT NOT NULL,

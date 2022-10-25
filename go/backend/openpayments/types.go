@@ -80,3 +80,8 @@ type OutgoingPayment struct {
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
+
+type CompleteOutgoingPaymentArgs struct {
+	ID         string
+	SentAmount Amount
+}

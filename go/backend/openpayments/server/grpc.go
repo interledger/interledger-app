@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 
+	"gitlab.com/fynbos/backend/openpayments/workflows"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"gitlab.com/fynbos/backend/openpayments"
@@ -20,6 +22,14 @@ type grpcServer struct {
 
 func NewGRPCServer(b Backends) pb.OpenPaymentServiceServer {
 	return &grpcServer{b: b}
+}
+
+func toAmountPB(amount openpayments.Amount) *pb.Amount {
+	return &pb.Amount{
+		Amount:     amount.Value,
+		Asset:      amount.Asset,
+		AssetScale: int32(amount.AssetScale),
+	}
 }
 
 func (g grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaymentPointerRequest) (*pb.Empty, error) {
@@ -212,16 +222,8 @@ func (g grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest)
 		return nil, toGRPCError(err)
 	}
 
-	sendAmt := &pb.Amount{
-		Amount:     q.SendAmount.Value,
-		Asset:      q.SendAmount.Asset,
-		AssetScale: int32(q.SendAmount.AssetScale),
-	}
-	recvAmt := &pb.Amount{
-		Amount:     q.ReceiveAmount.Value,
-		Asset:      q.ReceiveAmount.Asset,
-		AssetScale: int32(q.ReceiveAmount.AssetScale),
-	}
+	sendAmt := toAmountPB(q.SendAmount)
+	recvAmt := toAmountPB(q.ReceiveAmount)
 	return &pb.Quote{
 		Id:             q.ID,
 		PaymentPointer: q.PaymentPointer,
@@ -283,16 +285,8 @@ func (g grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateInc
 		return nil, toGRPCError(err)
 	}
 
-	incomingAmt := &pb.Amount{
-		Amount:     ip.IncomingAmount.Value,
-		Asset:      ip.IncomingAmount.Asset,
-		AssetScale: int32(ip.IncomingAmount.AssetScale),
-	}
-	recvAmt := &pb.Amount{
-		Amount:     ip.ReceivedAmount.Value,
-		Asset:      ip.ReceivedAmount.Asset,
-		AssetScale: int32(ip.ReceivedAmount.AssetScale),
-	}
+	incomingAmt := toAmountPB(ip.IncomingAmount)
+	recvAmt := toAmountPB(ip.ReceivedAmount)
 	return &pb.IncomingPayment{
 		Id:             ip.ID,
 		PaymentPointer: ip.PaymentPointer,
@@ -322,16 +316,8 @@ func (g grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupInc
 		return nil, toGRPCError(err)
 	}
 
-	incomingAmt := &pb.Amount{
-		Amount:     ip.IncomingAmount.Value,
-		Asset:      ip.IncomingAmount.Asset,
-		AssetScale: int32(ip.IncomingAmount.AssetScale),
-	}
-	recvAmt := &pb.Amount{
-		Amount:     ip.ReceivedAmount.Value,
-		Asset:      ip.ReceivedAmount.Asset,
-		AssetScale: int32(ip.ReceivedAmount.AssetScale),
-	}
+	incomingAmt := toAmountPB(ip.IncomingAmount)
+	recvAmt := toAmountPB(ip.ReceivedAmount)
 	return &pb.IncomingPayment{
 		Id:             ip.ID,
 		PaymentPointer: ip.PaymentPointer,
@@ -342,5 +328,49 @@ func (g grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupInc
 		ExpiresAt:      timestamppb.New(ip.ExpiresAt),
 		CreatedAt:      timestamppb.New(ip.CreatedAt),
 		UpdatedAt:      timestamppb.New(ip.UpdatedAt),
+	}, nil
+}
+
+func (g grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
+	op, err := workflows.StartOutgoingPayment(ctx, g.b, openpayments.CreateOutgoingPaymentArgs{
+		QuoteID:     req.QuoteID,
+		Description: req.Description,
+		ExternalRef: req.ExternalRef,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.OutgoingPayment{
+		Id:             op.ID,
+		PaymentPointer: op.PaymentPointer,
+		Failed:         op.Failed,
+		Receiver:       op.Receiver,
+		SendAmount:     toAmountPB(op.SendAmount),
+		ReceiveAmount:  toAmountPB(op.ReceiveAmount),
+		SentAmount:     toAmountPB(op.SentAmount),
+		Description:    op.Description,
+		CreatedAt:      timestamppb.New(op.CreatedAt),
+		UpdatedAt:      timestamppb.New(op.UpdatedAt),
+	}, nil
+}
+
+func (g grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
+	op, err := ops.GetOutgoingPayment(ctx, g.b, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.OutgoingPayment{
+		Id:             op.ID,
+		PaymentPointer: op.PaymentPointer,
+		Failed:         op.Failed,
+		Receiver:       op.Receiver,
+		SendAmount:     toAmountPB(op.SendAmount),
+		ReceiveAmount:  toAmountPB(op.ReceiveAmount),
+		SentAmount:     toAmountPB(op.SentAmount),
+		Description:    op.Description,
+		CreatedAt:      timestamppb.New(op.CreatedAt),
+		UpdatedAt:      timestamppb.New(op.UpdatedAt),
 	}, nil
 }

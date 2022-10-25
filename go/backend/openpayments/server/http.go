@@ -9,6 +9,8 @@ import (
 	"path"
 	"strings"
 
+	"gitlab.com/fynbos/backend/openpayments/workflows"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
 	"go.uber.org/zap"
@@ -84,8 +86,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	switch suffix {
 	case "outgoing-payments":
-		// TODO: handle
-		http.Error(w, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
+		createOutgoingPayment(b, w, req)
 		return
 	case "incoming-payments":
 		createIncomingPayment(b, w, req, pp)
@@ -95,6 +96,49 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	default:
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	}
+}
+
+func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request) {
+	bodyData, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Error("failed to decode create outgoing payment body", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	var args openpayments.CreateOutgoingPaymentArgs
+	err = json.Unmarshal(bodyData, &args)
+	if err != nil {
+		log.Error("failed to unmarshal create outgoing payment body", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	op, err := workflows.StartOutgoingPayment(req.Context(), b, args)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		log.Error("failed to start outgoing payment, values not found", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error("failed to start outgoing payment", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	respBytes, err := json.Marshal(op)
+	if err != nil {
+		log.Error("failed to marshall create outgoing payment response", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(respBytes)
+	if err != nil {
+		log.Error("failed to write create quote response", zap.Error(err))
 	}
 }
 
@@ -221,6 +265,9 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	case "incoming-payments":
 		getIncomingPayment(b, w, req)
 		return
+	case "outgoing-payments":
+		getOutgoingPayment(b, w, req)
+		return
 	}
 
 	// Fallback to get payment pointer
@@ -249,6 +296,28 @@ func getQuote(b Backends, w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(q)
+	if err != nil {
+		log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+}
+
+func getOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request) {
+	op, err := ops.GetOutgoingPayment(req.Context(), b, getFullURL(req))
+	if errors.Is(err, openpayments.ErrNotFound) {
+		log.Error("outgoing payment not found", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error("failed to get outgoing payment", zap.Error(err), zap.String("url", getFullURL(req)))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(op)
 	if err != nil {
 		log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
