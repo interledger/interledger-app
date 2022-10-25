@@ -229,7 +229,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 			ZipCode:     "7901",
 			CountryCode: "ZA",
 		},
-	}, nil).Times(2)
+	}, nil).Times(1)
 
 	toEnc, err := env.ExecuteActivity(a.GetOrCreateReceiveUser, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,

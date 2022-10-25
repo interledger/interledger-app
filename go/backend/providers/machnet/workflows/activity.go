@@ -161,6 +161,9 @@ func (a *Activity) GetOrCreateReceiveUser(ctx context.Context, trx machnet.Creat
 	}
 
 	sendUser, err := ops.GetUserByWalletID(ctx, a.b, fromLinkedAcc.WalletId)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Machnet user not found for `fromLinkedAcc`", "ErrNotFound", err)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +190,6 @@ func (a *Activity) GetOrCreateReceiveUser(ctx context.Context, trx machnet.Creat
 			}
 		}
 	}
-
 	// We didn't find the user, register a new one.
 	if recvUserID == "" {
 		recvUserID, err = addReceiveUser(ctx, a.b, toLinkedAcc.WalletId, sendUser.ID, fynbosReceives[0])
@@ -258,11 +260,11 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 	var gender string
 	switch indvKYC.Gender {
 	case kyc.GenderMale:
-		gender = "Male"
+		gender = "male"
 	case kyc.GenderFemale:
-		gender = "Female"
+		gender = "female"
 	default:
-		gender = "Other"
+		gender = "other"
 	}
 
 	resp, err := b.External().RegisterUser(ctx, external.User{
@@ -270,10 +272,10 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 		LastName:     indvKYC.LastName,
 		Email:        recvUser.Email,
 		Gender:       gender,
-		DateOfBirth:  indvKYC.DateOfBirth.Format("yyyy-MM-dd"),
+		DateOfBirth:  indvKYC.DateOfBirth.Format("2006-01-02"),
 		AddressLine1: indvKYC.Address.Line1,
 		AddressLine2: indvKYC.Address.Line2,
-		MobilePhone:  recvUser.PhoneNumber,
+		MobilePhone:  strings.Trim(recvUser.PhoneNumber, "+"),
 		City:         indvKYC.Address.City,
 		State:        indvKYC.Address.State,
 		Zipcode:      indvKYC.Address.ZipCode,
@@ -289,7 +291,6 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 }
 
 func addReceiveUserBankAccount(ctx context.Context, b ops.Backends, extSendUserID, extRecvUserID string, bankAccount *machnet.ReceiveBankAccount) (string, error) {
-
 	accType := external.AccountTypeCheque
 	if bankAccount.AccountType == machnet.BankAccountTypeSavings {
 		accType = external.AccountTypeSavings
@@ -341,6 +342,7 @@ func (a *Activity) CreateTransaction(ctx context.Context, trx machnet.CreateTran
 			FundID:          to.ReceiveFundID,
 			PayoutMethod:    external.PayoutMethodBankDeposit,
 		},
+		IPAddress: "10.10.10.5", // TODO: what ip address to use here?
 	})
 	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
 		return "", temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
