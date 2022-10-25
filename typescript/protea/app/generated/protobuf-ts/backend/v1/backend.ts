@@ -119,7 +119,7 @@ export interface CreateIncomingPaymentRequest {
      */
     paymentPointer: string;
     /**
-     * @generated from protobuf field: backend.v1.Amount amount = 2;
+     * @generated from protobuf field: optional backend.v1.Amount amount = 2;
      */
     amount?: Amount;
     /**
@@ -144,11 +144,11 @@ export interface IncomingPayment {
      */
     paymentPointer: string;
     /**
-     * @generated from protobuf field: backend.v1.Amount incomingAmount = 3;
+     * @generated from protobuf field: optional backend.v1.Amount incomingAmount = 3;
      */
     incomingAmount?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.Amount receivedAmount = 4;
+     * @generated from protobuf field: optional backend.v1.Amount receivedAmount = 4;
      */
     receivedAmount?: Amount;
     /**
@@ -1304,7 +1304,7 @@ class CreateIncomingPaymentRequest$Type extends MessageType<CreateIncomingPaymen
                 case /* string paymentPointer */ 1:
                     message.paymentPointer = reader.string();
                     break;
-                case /* backend.v1.Amount amount */ 2:
+                case /* optional backend.v1.Amount amount */ 2:
                     message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
                     break;
                 case /* string reference */ 3:
@@ -1328,7 +1328,7 @@ class CreateIncomingPaymentRequest$Type extends MessageType<CreateIncomingPaymen
         /* string paymentPointer = 1; */
         if (message.paymentPointer !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.paymentPointer);
-        /* backend.v1.Amount amount = 2; */
+        /* optional backend.v1.Amount amount = 2; */
         if (message.amount)
             Amount.internalBinaryWrite(message.amount, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         /* string reference = 3; */
@@ -1380,10 +1380,10 @@ class IncomingPayment$Type extends MessageType<IncomingPayment> {
                 case /* string paymentPointer */ 2:
                     message.paymentPointer = reader.string();
                     break;
-                case /* backend.v1.Amount incomingAmount */ 3:
+                case /* optional backend.v1.Amount incomingAmount */ 3:
                     message.incomingAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.incomingAmount);
                     break;
-                case /* backend.v1.Amount receivedAmount */ 4:
+                case /* optional backend.v1.Amount receivedAmount */ 4:
                     message.receivedAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receivedAmount);
                     break;
                 case /* bool completed */ 5:
@@ -1419,10 +1419,10 @@ class IncomingPayment$Type extends MessageType<IncomingPayment> {
         /* string paymentPointer = 2; */
         if (message.paymentPointer !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.paymentPointer);
-        /* backend.v1.Amount incomingAmount = 3; */
+        /* optional backend.v1.Amount incomingAmount = 3; */
         if (message.incomingAmount)
             Amount.internalBinaryWrite(message.incomingAmount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount receivedAmount = 4; */
+        /* optional backend.v1.Amount receivedAmount = 4; */
         if (message.receivedAmount)
             Amount.internalBinaryWrite(message.receivedAmount, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         /* bool completed = 5; */

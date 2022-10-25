@@ -212,10 +212,6 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
 	}
-	err = b.Validator().Struct(args.SendAmount)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
-	}
 
 	if args.ExpiresAt.Before(time.Now()) {
 		return nil, fmt.Errorf("%w invalid expiry time", openpayments.ErrInvalidArgument)
@@ -238,7 +234,6 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 	// Create Incoming Payment
 	ip, err := CreateIncomingPayment(ctx, b, openpayments.CreateIncomingPaymentArgs{
 		PaymentPointer: recvPP.URL,
-		IncomingAmount: args.SendAmount,
 		ExternalRef:    args.Reference,
 	})
 	if err != nil {
@@ -335,8 +330,8 @@ func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, 
 type dbIncomingPayment struct {
 	ID               string         `db:"id"`
 	PaymentPointerID string         `db:"payment_pointer_id"`
-	AssetCode        string         `db:"asset_code"`
-	AssetScale       int            `db:"asset_scale"`
+	AssetCode        sql.NullString `db:"asset_code"`
+	AssetScale       sql.NullInt32  `db:"asset_scale"`
 	IncomingAmount   uint64         `db:"incoming_amount"`
 	ReceivedAmount   uint64         `db:"received_amount"`
 	Completed        bool           `db:"completed"`
@@ -373,25 +368,31 @@ func GetIncomingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	return &openpayments.IncomingPayment{
+	op := &openpayments.IncomingPayment{
 		ID:             fmt.Sprintf("%s/incoming-payments/%s", pp, payment.ID),
 		PaymentPointer: pp,
-		IncomingAmount: openpayments.Amount{
+		Completed:      payment.Completed,
+		ExternalRef:    payment.ExternalRef.String,
+		ExpiresAt:      payment.ExpiresAt.Time,
+		CreatedAt:      payment.CreatedAt,
+		UpdatedAt:      payment.UpdatedAt,
+	}
+	if payment.IncomingAmount > 0 {
+		op.IncomingAmount = &openpayments.Amount{
 			Value:      payment.IncomingAmount,
-			Asset:      payment.AssetCode,
-			AssetScale: payment.AssetScale,
-		},
-		ReceivedAmount: openpayments.Amount{
+			Asset:      payment.AssetCode.String,
+			AssetScale: int(payment.AssetScale.Int32),
+		}
+	}
+	if payment.ReceivedAmount > 0 {
+		op.ReceivedAmount = &openpayments.Amount{
 			Value:      payment.ReceivedAmount,
-			Asset:      payment.AssetCode,
-			AssetScale: payment.AssetScale,
-		},
-		Completed:   payment.Completed,
-		ExternalRef: payment.ExternalRef.String,
-		ExpiresAt:   payment.ExpiresAt.Time,
-		CreatedAt:   payment.CreatedAt,
-		UpdatedAt:   payment.UpdatedAt,
-	}, nil
+			Asset:      payment.AssetCode.String,
+			AssetScale: int(payment.AssetScale.Int32),
+		}
+	}
+
+	return op, nil
 }
 
 func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments.CreateIncomingPaymentArgs) (*openpayments.IncomingPayment, error) {
@@ -409,7 +410,7 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		return nil, err
 	}
 
-	if pp.Asset != payment.IncomingAmount.Asset {
+	if payment.IncomingAmount != nil && pp.Asset != payment.IncomingAmount.Asset {
 		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
 	}
 
@@ -417,10 +418,14 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 	ib := db.NewInsert("openpayments_incoming_payment").
 		Value("id", id).
 		Value("payment_pointer_id", pp.ID).
-		Value("asset_code", payment.IncomingAmount.Asset).
-		Value("asset_scale", payment.IncomingAmount.AssetScale).
-		Value("incoming_amount", payment.IncomingAmount.Value).
 		Value("received_amount", 0)
+	if payment.IncomingAmount != nil {
+		ib.Value("asset_code", payment.IncomingAmount.Asset).
+			Value("asset_scale", payment.IncomingAmount.AssetScale).
+			Value("incoming_amount", payment.IncomingAmount.Value)
+	} else {
+		ib.Value("incoming_amount", 0)
+	}
 	if !payment.ExpiresAt.IsZero() {
 		ib.Value("expires_at", payment.ExpiresAt)
 	}

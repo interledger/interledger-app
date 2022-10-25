@@ -2,8 +2,8 @@ CREATE TABLE IF NOT EXISTS openpayments_incoming_payment
 (
   id                  UUID PRIMARY KEY   DEFAULT gen_random_uuid(),
   payment_pointer_id  UUID REFERENCES payment_pointers,
-  asset_code          TEXT NOT NULL,
-  asset_scale         INT NOT NULL,
+  asset_code          TEXT,
+  asset_scale         INT,
   incoming_amount     BIGINT NOT NULL,
   received_amount     BIGINT NOT NULL,
   completed           BOOLEAN DEFAULT FALSE,

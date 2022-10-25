@@ -32,7 +32,7 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 	a := Activity{b: b}
 
-	userClient := users_client.New(b, "fakeURL")
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	env.RegisterActivity(a.GetProviderArgs)
 
