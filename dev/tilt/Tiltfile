@@ -3,3 +3,6 @@ include('./../../typescript/protea/Tiltfile')
 
 # Go services
 include('./../../go/backend/Tiltfile')
+
+# admin
+include('./../../typescript/botanist/Tiltfile')

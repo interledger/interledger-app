@@ -82,3 +82,7 @@ func (c client) SetSignupComplete(ctx context.Context, id, userID string) (err e
 
 	return ops.SetSignupComplete(ctx, c.b, id, userID)
 }
+
+func (c client) ListSignups(ctx context.Context) ([]waitlist.Signup, error) {
+	return ops.ListSignups(ctx, c.b)
+}
