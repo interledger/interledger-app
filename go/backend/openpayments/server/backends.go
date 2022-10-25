@@ -3,6 +3,9 @@ package server
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	temporal "go.temporal.io/sdk/client"
+
 	"gitlab.com/fynbos/backend/user"
 
 	"github.com/go-playground/validator/v10"
@@ -13,11 +16,23 @@ type Backends interface {
 	DB() *sqlx.DB
 	Validator() *validator.Validate
 	Users() user.Client
+	Temporal() temporal.Client
+	LinkedAccounts() linkedaccounts.Client
 }
 
 type testBackends struct {
-	db  *sqlx.DB
-	val *validator.Validate
+	db   *sqlx.DB
+	val  *validator.Validate
+	la   linkedaccounts.Client
+	temp temporal.Client
+}
+
+func (t testBackends) Temporal() temporal.Client {
+	return t.temp
+}
+
+func (t testBackends) LinkedAccounts() linkedaccounts.Client {
+	return t.la
 }
 
 func (t testBackends) Users() user.Client {
@@ -32,6 +47,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB) Backends {
-	return &testBackends{db: db, val: validator.New()}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp}
 }

@@ -2,27 +2,42 @@ package workflows
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"math"
 	"time"
 
-	temporal_client "go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/temporal"
-
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"go.temporal.io/api/enums/v1"
-
+	temporal_client "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/workflow"
-
-	"gitlab.com/fynbos/backend/openpayments/ops"
-
-	"gitlab.com/fynbos/backend/openpayments"
 )
 
 func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (*openpayments.OutgoingPayment, error) {
+	// Validate the incoming, outgoing provider accounts exist
+	q, err := ops.GetQuote(ctx, b, args.QuoteID)
+	if err != nil {
+		return nil, err
+	}
+
+	recvPPURL, _, err := ops.ExtractPaymentPointer(q.IncomingPayment)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check that the recv payment pointer can receive
+	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, machnet.ProviderName, machnet.TypeReceiveBankAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check that the sending payment pointer has the provider types
+	_, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
+	if err != nil {
+		return nil, err
+	}
+
 	id, err := ops.CreateOutgoingPayment(ctx, b, args)
 	if err != nil {
 		return nil, err
@@ -43,80 +58,6 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 
 type Activity struct {
 	b Backends
-}
-
-func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*machnet.CreateTransactionArgs, error) {
-	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
-	if err != nil {
-		return nil, err
-	}
-
-	recvPPURL, _, err := ops.ExtractPaymentPointer(op.Receiver)
-
-	recvPP, err := ops.GetPaymentPointer(ctx, a.b, recvPPURL)
-	if err != nil {
-		return nil, err
-	}
-
-	recvAccs, err := a.b.LinkedAccounts().ListByWalletId(ctx, recvPP.WalletID)
-	if err != nil {
-		return nil, err
-	}
-
-	var found bool
-	var recvAcc linkedaccounts.LinkedAccount
-	for _, ra := range recvAccs {
-		if ra.Provider != machnet.ProviderName ||
-			ra.Type != machnet.TypeReceiveBankAccount {
-			continue
-		}
-		found = true
-		recvAcc = ra
-		break
-	}
-
-	if !found {
-		return nil, openpayments.ErrPaymentPointerNotFound // TODO: Non retry
-	}
-
-	sendPP, err := ops.GetPaymentPointer(ctx, a.b, op.PaymentPointer) // TODO
-	if err != nil {
-		return nil, err
-	}
-
-	sendAccs, err := a.b.LinkedAccounts().ListByWalletId(ctx, sendPP.WalletID)
-	if err != nil {
-		return nil, err
-	}
-
-	found = false
-	var sendAcc linkedaccounts.LinkedAccount
-	for _, sa := range sendAccs {
-		if sa.Provider != machnet.ProviderName ||
-			sa.Type != machnet.TypeSendCard {
-			continue
-		}
-		found = true
-		sendAcc = sa
-		break
-	}
-
-	if !found {
-		return nil, openpayments.ErrPaymentPointerNotFound // TODO: Non retry
-	}
-
-	// TODO: Check this in unit tests
-	amnt := float64(op.SendAmount.Value)
-	if op.SendAmount.AssetScale > 0 {
-		amnt /= math.Pow(10, float64(op.SendAmount.AssetScale))
-	}
-
-	return &machnet.CreateTransactionArgs{
-		FromLinkedAccountID: sendAcc.ID,
-		ToLinkedAccountID:   recvAcc.ID,
-		Amount:              amnt,
-		Currency:            op.SendAmount.Asset,
-	}, nil
 }
 
 func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID string) (string, error) {
@@ -145,27 +86,22 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID string) (strin
 	var extID string
 	err = workflow.ExecuteChildWorkflow(ctx, machnet_workflows.CreateTransactionWorkflow, tArgs).Get(ctx, &extID)
 	if err != nil {
+		logger.Error("CreateTransactionWorkflow child workflow failed.", "Error", err)
 		if isNonRetryableError(err) {
-			// Update outgoing payment failed
+			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", err
+			}
 		}
 		return "", err
 	}
 
 	// Update Outgoing payment
-	return "resp", nil
-}
-
-func isNonRetryableError(err error) bool {
-	if err == nil {
-		return false
+	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, extID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("GetProviderArgs Activity failed.", "Error", err)
+		return "", err
 	}
 
-	if !temporal.IsApplicationError(err) {
-		return false
-	}
-
-	var applicationError *temporal.ApplicationError
-	errors.As(err, &applicationError)
-
-	return applicationError.NonRetryable()
+	return extID, nil
 }

@@ -566,7 +566,7 @@ func TestCreateQuote(t *testing.T) {
 			assert.Equal(t, tc.args.ExpiresAt.Hour(), q.ExpiresAt.Hour())
 			assert.Equal(t, tc.args.ExpiresAt.Minute(), q.ExpiresAt.Minute())
 			assert.Equal(t, tc.args.ExpiresAt.Second(), q.ExpiresAt.Second())
-			assert.Equal(t, tc.args.ReceivePaymentPointer, q.PaymentPointer)
+			assert.Equal(t, tc.args.SendPaymentPointer, q.PaymentPointer)
 			assert.Equal(t, tc.args.SendAmount.Value, q.ReceiveAmount.Value)
 			assert.Equal(t, tc.args.SendAmount.Asset, q.ReceiveAmount.Asset)
 			assert.Equal(t, tc.args.SendAmount.AssetScale, q.ReceiveAmount.AssetScale)
@@ -624,7 +624,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 			name: "past expiry",
 			err:  openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "http://fynbos.me/moneyplease2",
+				PaymentPointer: "http://fynbos.me/moneyplease3",
 				IncomingAmount: openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
@@ -671,6 +671,89 @@ func TestCreateIncomingPayment(t *testing.T) {
 			assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
 			assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
 			assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
+		})
+	}
+}
+
+func TestCreateOutgoingPayment(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_client.New(b, "fakeURL")
+
+	cases := []struct {
+		name      string
+		quoteArgs openpayments.CreateQuoteArgs
+		opArgs    openpayments.CreateOutgoingPaymentArgs
+		err       error
+	}{
+		{
+			name: "success",
+			quoteArgs: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+			},
+			opArgs: openpayments.CreateOutgoingPaymentArgs{
+				Description: "Description",
+				ExternalRef: "ExternalRef",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			sendUserID := uuid.NewString()
+			recvUserID := uuid.NewString()
+			// Create Signups
+			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), sendUserID, uuid.NewString(), recvUserID)
+			require.NoError(t, err)
+			// Create Wallets
+			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			require.NoError(t, err)
+			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			require.NoError(t, err)
+
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.quoteArgs.SendPaymentPointer,
+				WalletID:   sendWallet.ID,
+				Alias:      "Alias",
+				Asset:      tc.quoteArgs.SendAmount.Asset,
+				AssetScale: tc.quoteArgs.SendAmount.AssetScale,
+			})
+			require.NoError(t, err)
+
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.quoteArgs.ReceivePaymentPointer,
+				WalletID:   recvWallet.ID,
+				Alias:      "Alias",
+				Asset:      tc.quoteArgs.SendAmount.Asset,
+				AssetScale: tc.quoteArgs.SendAmount.AssetScale,
+			})
+			require.NoError(t, err)
+
+			q, err := ops.CreateQuote(ctx, b, tc.quoteArgs)
+			require.NoError(t, err)
+
+			tc.opArgs.QuoteID = q.ID
+			opID, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
+			require.NoError(t, err)
+
+			op, err := ops.GetOutgoingPayment(ctx, b, opID)
+			require.NoError(t, err)
+
+			assert.Equal(t, opID, op.ID)
+			assert.Equal(t, tc.quoteArgs.SendPaymentPointer, op.PaymentPointer)
+			assert.Equal(t, tc.opArgs.Description, op.Description)
+			assert.True(t, strings.HasPrefix(op.Receiver, tc.quoteArgs.ReceivePaymentPointer))
 		})
 	}
 }

@@ -18,12 +18,37 @@ service OpenPaymentService {
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
+  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
+  rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
 }
 
 message Amount {
   uint64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
+}
+
+message LookupOutgoingPaymentRequest {
+  string id = 1;
+}
+
+message OutgoingPayment {
+  string id = 1;
+  string paymentPointer = 2;
+  bool failed = 3;
+  string receiver = 4;
+  Amount sendAmount = 5;
+  Amount receiveAmount = 6;
+  Amount sentAmount = 7;
+  string description = 8;
+  google.protobuf.Timestamp createdAt = 9;
+  google.protobuf.Timestamp updatedAt = 10;
+}
+
+message CreateOutgoingPaymentRequest {
+  string quoteID = 1;
+  string description = 2;
+  string externalRef = 3;
 }
 
 message LookupIncomingPaymentRequest {

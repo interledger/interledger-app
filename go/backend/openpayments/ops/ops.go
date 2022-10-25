@@ -322,7 +322,7 @@ func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, 
 	}
 	return &openpayments.Quote{
 		ID:              fmt.Sprintf("%s/quotes/%s", sendPP, dbq.ID),
-		PaymentPointer:  recvPP,
+		PaymentPointer:  sendPP,
 		IncomingPayment: fmt.Sprintf("%s/incoming-payments/%s", recvPP, dbq.IncomingPaymentID),
 		ReceiveAmount:   amount,
 		SendAmount:      amount,
@@ -456,7 +456,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 
 	stmt, qargs, err := db.NewInsert("openpayments_outgoing_payment").
 		Value("id", id).
-		Value("quote_id", q.ID).
+		Value("quote_id", q.ID[strings.LastIndex(q.ID, "/")+1:]).
 		Value("failed", false).
 		Value("description", args.Description).
 		Value("sent_amount", 0).
@@ -483,7 +483,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		return nil
 	})
 
-	return id, err
+	return fmt.Sprintf("%s/outgoing-payments/%s", q.PaymentPointer, id), err
 }
 
 type dbOutgoingPayments struct {
@@ -537,5 +537,75 @@ func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 		CreatedAt:   op.CreatedAt,
 		UpdatedAt:   op.UpdatedAt,
 	}, nil
+}
 
+func FailOutgoingPayment(ctx context.Context, b Backends, id string) error {
+	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
+	idxSlash := strings.LastIndex(id, "/")
+	if idxSlash > 0 {
+		id = id[idxSlash+1:]
+	}
+
+	res, err := b.DB().ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET failed=true, updated_at=now() WHERE id=$1", id)
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+	if rowCnt != 1 {
+		return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, id)
+	}
+
+	return nil
+}
+
+func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.CompleteOutgoingPaymentArgs) error {
+	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
+	opID := args.ID
+	idxSlash := strings.LastIndex(args.ID, "/")
+	if idxSlash > 0 {
+		opID = opID[idxSlash+1:]
+	}
+
+	op, err := GetOutgoingPayment(ctx, b, opID)
+	if err != nil {
+		return err
+	}
+
+	ipID := op.Receiver
+	idxSlash = strings.LastIndex(ipID, "/")
+	if idxSlash > 0 {
+		ipID = ipID[idxSlash+1:]
+	}
+
+	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		res, err := tx.ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET failed=false, updated_at=now(), sent_amount=$1, sent_asset=$2, sent_scale=$3 WHERE id=$4",
+			args.SentAmount.Value, args.SentAmount.Asset, args.SentAmount.AssetScale, opID)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+		rowCnt, err := res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+		if rowCnt != 1 {
+			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, opID)
+		}
+
+		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET received_amount=$1 WHERE id=$2", args.SentAmount.Value, ipID)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+		rowCnt, err = res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+		if rowCnt != 1 {
+			return fmt.Errorf("%w incoming payment (%s) not found", openpayments.ErrNotFound, ipID)
+		}
+
+		return nil
+	})
 }
