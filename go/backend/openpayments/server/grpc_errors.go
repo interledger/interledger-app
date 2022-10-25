@@ -16,6 +16,7 @@ import (
 
 var errorStatus = map[error]error{
 	openpayments.ErrPaymentPointerNotFound: NotFoundError("payment pointer not found"),
+	openpayments.ErrNotFound:               NotFoundError("open payments not found"),
 	openpayments.ErrPaymentPointerExists:   NewValidationError("url", "That payment pointer has been taken. Please choose another"),
 }
 
@@ -37,7 +38,7 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid currency"
 	}
 
-	return ""
+	return "This field failed validation"
 }
 
 // toGRPCError converts a given error to its frontend friendly equivalent.
