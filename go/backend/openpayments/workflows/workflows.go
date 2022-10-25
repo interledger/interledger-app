@@ -56,10 +56,6 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	return ops.GetOutgoingPayment(ctx, b, id)
 }
 
-type Activity struct {
-	b Backends
-}
-
 func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
