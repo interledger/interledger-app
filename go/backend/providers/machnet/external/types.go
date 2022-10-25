@@ -52,7 +52,7 @@ const (
 type AccountType string
 
 const (
-	AccountTypeCheque  AccountType = "CHEQUE"
+	AccountTypeCheque  AccountType = "CHECKING"
 	AccountTypeSavings AccountType = "SAVINGS"
 )
 
