@@ -88,7 +88,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		DateOfBirth:  kycData.DateOfBirth.Format("2006-01-02"),
 		AddressLine1: kycData.Address.Line1,
 		AddressLine2: kycData.Address.Line2,
-		MobilePhone:  userData.PhoneNumber,
+		MobilePhone:  strings.Trim(userData.PhoneNumber, "+"),
 		City:         kycData.Address.City,
 		Zipcode:      kycData.Address.ZipCode,
 		State:        state,
