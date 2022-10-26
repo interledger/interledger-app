@@ -7,7 +7,9 @@ import { getSession, commitSession } from '~/sessions'
 export enum flowType {
   Pay = 'pay',
   Signup = 'signup',
-  LinkAccount = 'link-account'
+  LinkCardAccount = 'link-card',
+  LinkBankAccount = 'link-bank',
+  PersonalDetails = 'personal-details'
 }
 
 type Flow = {
@@ -20,7 +22,9 @@ type Flow = {
 type Flows = {
   [flowType.Pay]: Flow | null
   [flowType.Signup]: Flow | null
-  [flowType.LinkAccount]: Flow | null
+  [flowType.LinkCardAccount]: Flow | null
+  [flowType.LinkBankAccount]: Flow | null
+  [flowType.PersonalDetails]: Flow | null
 }
 
 /**
@@ -170,10 +174,10 @@ const flowTemplate = (id: string, type: flowType): Flow => {
         data: {},
         defaultExitTo: '/'
       }
-    case flowType.LinkAccount:
+    case flowType.LinkCardAccount:
       return {
         id,
-        startRoute: route('/'),
+        startRoute: route('/linked-account/:type', { type: 'card' }),
         data: {},
         defaultExitTo: route('/settings/linked-accounts')
       }
@@ -183,6 +187,13 @@ const flowTemplate = (id: string, type: flowType): Flow => {
         startRoute: route('/signup'),
         data: {},
         defaultExitTo: route('/')
+      }
+    case flowType.PersonalDetails:
+      return {
+        id,
+        startRoute: route('/'),
+        data: {},
+        defaultExitTo: route('/settings/linked-accounts')
       }
     default:
       throw json(
