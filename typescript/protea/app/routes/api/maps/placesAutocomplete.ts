@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderArgs) {
       }))
     })
     .catch((e) => {
-      console.log(e)
+      console.error(e)
       return e
     })
 
