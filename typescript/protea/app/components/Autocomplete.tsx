@@ -22,6 +22,11 @@ interface AutocompleteProps {
   options: AutocompleteOptions[]
   onChange(value: AutocompleteOptions): void
   onQuery(query: string): void
+
+  // Prefix text to show in front of the input.
+  prefix?: string
+  prefixIcon?: JSX.Element
+  appendIcon?: JSX.Element
 }
 
 /**
@@ -41,6 +46,9 @@ export const Autocomplete: FC<AutocompleteProps> = ({
   onChange,
   onQuery,
   options,
+  prefix,
+  prefixIcon,
+  appendIcon,
   disabled
 }) => {
   return (
@@ -55,6 +63,16 @@ export const Autocomplete: FC<AutocompleteProps> = ({
         <div className='relative'>
           <div className='mt-1 h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
             <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
+              {prefixIcon && (
+                <div className='-mr-4 flex h-full items-center px-4'>
+                  {prefixIcon}
+                </div>
+              )}
+              {prefix && (
+                <span className='z-10 ml-4 -mr-[0.9375rem] text-disabled'>
+                  {prefix}
+                </span>
+              )}
               <Combobox.Input
                 autoComplete='off'
                 type='text'
@@ -62,6 +80,11 @@ export const Autocomplete: FC<AutocompleteProps> = ({
                 displayValue={(value: AutocompleteOptions) => value?.name}
                 onChange={(event) => onQuery(event.target.value)}
               />
+              {appendIcon && (
+                <div className='-ml-4 flex h-full items-center px-4'>
+                  {appendIcon}
+                </div>
+              )}
               {button && (
                 <Combobox.Button className='flex h-full items-center bg-container px-4 text-medium'>
                   <Icon>unfold_more</Icon>
