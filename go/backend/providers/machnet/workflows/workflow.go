@@ -69,6 +69,17 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
+		FromLinkedAccountID:   args.FromLinkedAccountID,
+		ExternalTransactionID: trxID,
+		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("CreateTransactionWorkflowRef Activity failed.", "Error", err)
+		return "", err
+	}
+
 	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
 	var transactionCreatedSuccessfully bool
 	for {
@@ -111,7 +122,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			break
 		}
 
-		if external.TransactionDeliveryFailed == deliveryEvent.EventName {
+		if external.TransactionDeliveryFailedEvent == deliveryEvent.EventName {
 			deliverySuccessful = false
 			break
 		}

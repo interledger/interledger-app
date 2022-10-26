@@ -87,6 +87,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 
 	env.OnActivity(a.GetOrCreateReceiveUser, mock.Anything, mock.Anything).Return(&to, nil)
 	env.OnActivity(a.CreateExternalTransaction, mock.Anything, mock.Anything, to).Return(trxID, nil)
+	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Event{
 			ID:         uuid.NewString(),
