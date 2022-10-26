@@ -92,8 +92,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
   color: rgba(0, 0, 0, 0);
   opacity: 1;
   display: block;
-  margin-right: -14px;
-  background-image: url("data:image/svg+xml,%3Csvg width='56' height='48' viewBox='0 0 56 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='56' height='48' fill='%23F3F4F6'/%3E%3Cmask id='mask0_2082_4204' style='mask-type:alpha' maskUnits='userSpaceOnUse' x='16' y='12' width='24' height='24'%3E%3Crect x='16' y='12' width='24' height='24' fill='%23D9D9D9'/%3E%3C/mask%3E%3Cg mask='url(%23mask0_2082_4204)'%3E%3Cpath d='M21 34C20.45 34 19.979 33.8043 19.587 33.413C19.1957 33.021 19 32.55 19 32V18C19 17.45 19.1957 16.9793 19.587 16.588C19.979 16.196 20.45 16 21 16H22V14H24V16H32V14H34V16H35C35.55 16 36.021 16.196 36.413 16.588C36.8043 16.9793 37 17.45 37 18V32C37 32.55 36.8043 33.021 36.413 33.413C36.021 33.8043 35.55 34 35 34H21ZM21 32H35V22H21V32ZM21 20H35V18H21V20Z' fill='%23374151'/%3E%3C/g%3E%3C/svg%3E%0A");
+  margin-right: -20px;
+  background-image: url("data:image/svg+xml,%3Csvg width='56' height='48' viewBox='0 0 56 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='56' height='48' fill='%23F1F5F9'/%3E%3Cmask id='mask0_2082_4204' style='mask-type:alpha' maskUnits='userSpaceOnUse' x='16' y='12' width='24' height='24'%3E%3Crect x='16' y='12' width='24' height='24' fill='%23D9D9D9'/%3E%3C/mask%3E%3Cg mask='url(%23mask0_2082_4204)'%3E%3Cpath d='M21 34C20.45 34 19.979 33.8043 19.587 33.413C19.1957 33.021 19 32.55 19 32V18C19 17.45 19.1957 16.9793 19.587 16.588C19.979 16.196 20.45 16 21 16H22V14H24V16H32V14H34V16H35C35.55 16 36.021 16.196 36.413 16.588C36.8043 16.9793 37 17.45 37 18V32C37 32.55 36.8043 33.021 36.413 33.413C36.021 33.8043 35.55 34 35 34H21ZM21 32H35V22H21V32ZM21 20H35V18H21V20Z' fill='%23334155'/%3E%3C/g%3E%3C/svg%3E%0A");
   width: 56px;
   height: 48px;
   border-width: thin;
