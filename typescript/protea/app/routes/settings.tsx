@@ -4,7 +4,6 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { HomeShapes, Icon, Router, Snackbar, WalletGrid } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
 export async function loader({ request }: LoaderArgs) {
@@ -14,7 +13,6 @@ export async function loader({ request }: LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
-  const session = await requireUserSession(request)
   const snackbar = {
     // NOTE: userSettings.has must be called before userSettings.get
     show: userSettings.has('snackbar'),
@@ -23,7 +21,6 @@ export async function loader({ request }: LoaderArgs) {
 
   return json(
     {
-      traits: session.identity.traits,
       snackbar
     },
     {
@@ -33,7 +30,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function Page() {
-  const { traits, snackbar } = useLoaderData<typeof loader>()
+  const { snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
   return (
     <WalletGrid>

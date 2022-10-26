@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Logo, Router, Snackbar, TextField } from '~/components'
+import { Button, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -13,14 +13,10 @@ import { commitSession, getSession } from '~/sessions'
 import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
-  // await requireUserSession(request)
+  await requireUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
-
-  console.log('cookie', cookie)
-
-  console.log('flowId', flowId)
 
   let flow
   if (flowId) {
@@ -36,7 +32,6 @@ export async function loader({ request }: LoaderArgs) {
     )
     flow = await flowRes.json()
 
-    console.log('Flow', flow)
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
   } else {
     // Otherwise we initialize it
@@ -45,7 +40,6 @@ export async function loader({ request }: LoaderArgs) {
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
-    console.log('Flow 2', flow)
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
     return redirect(`/recovery/password?flow=${flow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
