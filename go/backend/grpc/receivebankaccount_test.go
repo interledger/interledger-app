@@ -123,6 +123,7 @@ func TestCreateReceiveBankAccount(t *testing.T) {
 		Provider:   machnet.ProviderName,
 		ProviderID: receiveBankAccountID,
 		Type:       machnet.TypeReceiveBankAccount,
+		WalletID:   wallet.ID,
 	}).Return(
 		&linkedaccounts.LinkedAccount{
 			ID:         linkedAccountID,
