@@ -146,9 +146,9 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		ReceivePaymentPointer: req.ReceivePaymentPointer,
 		ExpiresAt:             req.ExpiresAt.AsTime(),
 		SendAmount: openpayments.Amount{
-			Value:      req.Amount.Amount,
-			Asset:      req.Amount.Asset,
-			AssetScale: int(req.Amount.AssetScale),
+			Value:      req.GetAmount().GetAmount(),
+			Asset:      req.GetAmount().GetAsset(),
+			AssetScale: int(req.GetAmount().GetAssetScale()),
 		},
 	}
 
