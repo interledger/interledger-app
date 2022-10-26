@@ -73,8 +73,6 @@ func TestGetHandler(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, tc.getPath, nil)
 			require.NoError(t, err)
 
-			fmt.Println(req.URL.String())
-
 			// Setup the payment pointer
 			if tc.pointer != nil {
 				userID := uuid.NewString()

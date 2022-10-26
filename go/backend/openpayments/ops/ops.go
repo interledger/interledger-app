@@ -585,7 +585,7 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 	}
 
 	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		res, err := tx.ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET failed=false, updated_at=now(), sent_amount=$1, sent_asset=$2, sent_scale=$3 WHERE id=$4",
+		res, err := tx.ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET updated_at=now(), sent_amount=$1, sent_asset=$2, sent_scale=$3 WHERE id=$4 AND failed=false",
 			args.SentAmount.Value, args.SentAmount.Asset, args.SentAmount.AssetScale, opID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
@@ -598,7 +598,7 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, opID)
 		}
 
-		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET received_amount=$1 WHERE id=$2", args.SentAmount.Value, ipID)
+		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET received_amount=$1 WHERE id=$2 AND received_amount<=$1", args.SentAmount.Value, ipID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}

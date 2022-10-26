@@ -106,6 +106,7 @@ func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+	defer req.Body.Close()
 
 	var args openpayments.CreateOutgoingPaymentArgs
 	err = json.Unmarshal(bodyData, &args)
@@ -149,6 +150,7 @@ func createQuote(b Backends, w http.ResponseWriter, req *http.Request, pp *openp
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+	defer req.Body.Close()
 
 	var args openpayments.CreateQuoteArgs
 	err = json.Unmarshal(bodyData, &args)
@@ -194,6 +196,7 @@ func createIncomingPayment(b Backends, w http.ResponseWriter, req *http.Request,
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+	defer req.Body.Close()
 
 	var args openpayments.CreateIncomingPaymentArgs
 	err = json.Unmarshal(bodyData, &args)
