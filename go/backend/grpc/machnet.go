@@ -8,7 +8,7 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (r rpcService) GetMachnetWidgetToken(
+func (r *rpcService) GetMachnetWidgetToken(
 	ctx context.Context, req *backendv1.Empty,
 ) (*backendv1.MachnetWidgetToken, error) {
 	_, err := r.b.Users().UserForContext(ctx)
@@ -33,7 +33,7 @@ func (r rpcService) GetMachnetWidgetToken(
 	}, nil
 }
 
-func (r rpcService) CreateSendUser(
+func (r *rpcService) CreateSendUser(
 	ctx context.Context, req *backendv1.Empty,
 ) (*backendv1.Empty, error) {
 	_, err := r.b.Users().UserForContext(ctx)
@@ -59,7 +59,7 @@ func (r rpcService) CreateSendUser(
 	return &backendv1.Empty{}, nil
 }
 
-func (r rpcService) HasSendUser(
+func (r *rpcService) HasSendUser(
 	ctx context.Context, req *backendv1.Empty,
 ) (*backendv1.HasSendUserResponse, error) {
 	_, err := r.b.Users().UserForContext(ctx)
