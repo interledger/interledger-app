@@ -77,6 +77,7 @@ func (r rpcService) CreateReceiveBankAccount(
 		Provider:   machnet.ProviderName,
 		ProviderID: bankaccount.ID,
 		Type:       machnet.TypeReceiveBankAccount,
+		WalletID:   wallet.ID,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
