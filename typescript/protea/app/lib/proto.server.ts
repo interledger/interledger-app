@@ -113,7 +113,7 @@ function StatusError(err: RpcError): GrpcError {
 
   return {
     code: codeMapping(err.code),
-    message: 'Status without details',
+    message: status?.message || 'Status without details.',
     details: []
   }
 }

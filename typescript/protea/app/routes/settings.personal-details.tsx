@@ -3,7 +3,8 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { HomeShapes, Icon, Router, Snackbar, WalletGrid } from '~/components'
+import { Icon, Router, Snackbar, WalletGrid } from '~/components'
+import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
 export async function loader({ request }: LoaderArgs) {
@@ -13,6 +14,7 @@ export async function loader({ request }: LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
+  const session = await requireUserSession(request)
   const snackbar = {
     // NOTE: userSettings.has must be called before userSettings.get
     show: userSettings.has('snackbar'),
@@ -21,6 +23,7 @@ export async function loader({ request }: LoaderArgs) {
 
   return json(
     {
+      traits: session.identity.traits,
       snackbar
     },
     {
@@ -30,38 +33,45 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function Page() {
-  const { snackbar } = useLoaderData<typeof loader>()
+  const { traits, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='mt-2'>
-          <HomeShapes />
-        </div>
-        <h1 className='mt-6 font-display text-2xl font-medium'>Settings</h1>
-        <h2 className='mt-6 text-sm font-medium'>Profile</h2>
+        <h1 className='font-display text-2xl font-medium'>Personal details</h1>
         <Router
           to={route('/settings/personal-details')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-6 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
         >
           <div className='flex space-x-3'>
             <Icon>face</Icon>
-            <span>Personal details</span>
+            <span>
+              {traits.firstName} {traits.lastName}
+            </span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
-        <h2 className='mt-6 text-sm font-medium'>Account</h2>
         <Router
           to={route('/settings/linked-accounts')}
           className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
         >
           <div className='flex space-x-3'>
-            <Icon>add_card</Icon>
-            <span>Linked accounts</span>
+            <Icon>mail</Icon>
+            <span>{traits.email}</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
-        <h2 className='mt-6 text-sm font-medium'>Security</h2>
+        <Router
+          to={route('/settings/linked-accounts')}
+          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+        >
+          <div className='flex space-x-3'>
+            <Icon>call</Icon>
+            <span>{traits.phone}</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
+        <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
         <Router
           to='/login/challenge?challenge-flow=settings-password'
           className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
@@ -73,14 +83,11 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </Router>
         <Router
-          to={route('/legal/privacy-policy')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          to={route('/logout')}
+          className='mt-2 flex items-center space-x-3 rounded-xl p-3 text-primary'
         >
-          <div className='flex space-x-3'>
-            <Icon>policy</Icon>
-            <span>Legal &amp; privacy</span>
-          </div>
-          <Icon>navigate_next</Icon>
+          <Icon>logout</Icon>
+          <span>Log out</span>
         </Router>
       </div>
       <Snackbar

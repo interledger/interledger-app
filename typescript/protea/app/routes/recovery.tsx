@@ -1,17 +1,24 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Logo, Router, TextField } from '~/components'
-import { route } from 'routes-gen'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useTransition
+} from '@remix-run/react'
+import { Button, Snackbar, TextField } from '~/components'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { useEffect, useState } from 'react'
+import { commitSession, getSession } from '~/sessions'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
+  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -42,80 +49,87 @@ export async function loader({ request }: LoaderArgs) {
       headers: flowRes.headers
     })
   }
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+
+  const snackbar = {
+    // NOTE: userSettings.has must be called before userSettings.get
+    show: userSettings.has('snackbar'),
+    ...userSettings.get('snackbar')
+  }
+
+  return json(
+    { flow, snackbar, csrfToken: getCsrfTokenFromFlow(flow) },
+    {
+      headers: { 'Set-Cookie': await commitSession(userSettings) }
+    }
+  )
 }
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, snackbar, csrfToken } = useLoaderData<typeof loader>()
+
+  const transition = useTransition()
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
+
+  useEffect(() => {
+    if (transition.state == 'idle' && transition.type == 'idle') {
+      setSnackbar(snackbar.show)
+    }
+  }, [transition.type, transition.state, snackbar.show])
 
   return (
-    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/')}>
-          <Logo className='h-8' />
-        </Router>
-      </div>
-      {flow.state === 'sent_email' && (
-        <>
-          <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <h1 className='font-display text-4xl font-medium leading-normal'>
-              Email sent!
-            </h1>
-          </div>
-          <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <p className='text-medium'>
-              We've sent you an email to change your password. Please click on
-              the link in the email to continue.
-            </p>
-          </div>
-        </>
-      )}
-      {flow.state === 'choose_method' && (
-        <>
-          <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <h1 className='font-display text-4xl font-medium leading-normal'>
-              Recover your account
-            </h1>
-          </div>
-          <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <p className='text-medium'>
-              We'll send you an email to change your password.
-            </p>
-          </div>
-        </>
-      )}
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>
+        Recover account
+      </h1>
+      <span>
+        Enter your email address and we will email you a link to change your
+        password.
+      </span>
       <Form
+        id='recovery'
         action={`/recovery?flow=${flow.id}`}
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-      >
-        <TextField
-          id='email'
-          label='Email'
-          name='email'
-          type='email'
-          disabled={flow.state === 'sent_email'}
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.email}
-        />
+        className='hidden'
+      />
+      <TextField
+        id='email'
+        form='recovery'
+        label='Email'
+        name='email'
+        type='email'
+        className='mt-6'
+        aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+        aria-describedby={actionData?.errors?.email ? 'email-error' : undefined}
+        required
+        errorMessage={actionData?.errors?.email}
+      />
 
-        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
-        <div className='pt-4'>
-          <Button disabled={flow.state === 'sent_email'} type='submit'>
-            Recover account
-          </Button>
-        </div>
-      </Form>
-    </main>
+      <input
+        form='recovery'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
+
+      <Button className='mt-6' form='recovery' type='submit'>
+        Recover account
+      </Button>
+      <Snackbar
+        message={snackbar.message}
+        icon={snackbar.icon}
+        action={snackbar.action}
+        show={showSnackbar}
+        id='recovery-snackbar'
+        onClose={() => setSnackbar(false)}
+        dismissAfter={3000}
+      />
+    </div>
   )
 }
 
 export async function action({ request }: ActionArgs) {
+  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -152,5 +166,15 @@ export async function action({ request }: ActionArgs) {
     }
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
-  return json(data)
+
+  userSettings.flash('snackbar', {
+    message: 'Recovery email successfully sent.',
+    icon: 'close'
+  })
+
+  return redirect(`/recovery?flow=${flowId}`, {
+    headers: {
+      'Set-Cookie': await commitSession(userSettings)
+    }
+  })
 }
