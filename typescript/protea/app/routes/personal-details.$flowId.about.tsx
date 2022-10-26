@@ -1,16 +1,9 @@
-import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import type { PhoneAutocompleteOptions } from '~/components'
 import { Button, Select, Shape, TextField } from '~/components'
-import {
-  flowType,
-  getCurrentFlow,
-  requireFlow,
-  updateFlow
-} from '~/lib/flows.server'
+import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -18,32 +11,15 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import type { SetSignupUserDataResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { requireUserSession } from '~/lib/kratos.server'
 import { useCallback, useState } from 'react'
 import { DateTime } from 'luxon'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await requireUserSession(request)
-  // await requireFlow(request, flowType.PersonalDetails, params, {
-  //   id: params.flowId as string,
-  //   startRoute: route('/personal-details/:flowId/about', {
-  //     flowId: params.flowId as string
-  //   }),
-  //   data: {
-  //     firstName: '',
-  //     lastName: '',
-  //     dateOfBirth: '',
-  //     gender: '0'
-  //   },
-  //   defaultExitTo: route('/settings/linked-accounts')
-  // })
   const flow = await getCurrentFlow(request, flowType.PersonalDetails)
 
   const maxDate = `${DateTime.now().toFormat('yyyy-MM-dd')}`
-
-  // TODO: Pull whatever details we can from users current KYC data. (Should be set before flow data)
-  // TODO: Can redirect past this step if the KYC data is already stored.
 
   return json({
     traits: session.identity.traits,
@@ -61,8 +37,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { traits, flow, type, maxDate, genders } =
-    useLoaderData<typeof loader>()
+  const { traits, flow, maxDate, genders } = useLoaderData<typeof loader>()
 
   const [gender, setGender] = useState<{ id: string; name: string }>(
     genders.find((gender) => flow?.data.gender == gender.id) || {

@@ -3,7 +3,7 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { HomeShapes, Icon, Router, Snackbar, WalletGrid } from '~/components'
+import { Icon, Router, Snackbar, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 

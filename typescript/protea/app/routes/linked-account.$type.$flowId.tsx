@@ -30,8 +30,6 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(rpc.code))
   }
 
-  console.log(rpc.response.expiresInMinutes)
-
   let widgetScriptUrl = 'https://widget.v4sandbox.machpay.com/widget/widget.js'
   return json({
     widgetScriptUrl,
@@ -48,7 +46,6 @@ export default function Page() {
 
   const listener = useCallback(
     (event: any) => {
-      console.log('listener', event)
       if (event.data.type == 'CARD' && event.data.status == 'CARD_ADDED') {
         navigate(
           route('/linked-account/:type/:flowId/success', {

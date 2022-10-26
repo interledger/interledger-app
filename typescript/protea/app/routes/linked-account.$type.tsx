@@ -32,7 +32,6 @@ export async function loader({ request, params }: LoaderArgs) {
     )
     .then((v) => v)
     .catch(StatusError)
-  console.log(response)
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
@@ -142,8 +141,6 @@ function CardPage() {
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const hasSendUser = form.get('hasSendUser') as string
-
-  console.log(hasSendUser)
 
   let flow
   if (!hasSendUser) {
