@@ -391,5 +391,49 @@ const blogShapes: {
         color: 'bg-blue-500'
       }
     ]
+  ],
+  'our-fynbos-family-meet-don': [
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-slate-100'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-purple-200'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-orange-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-purple-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-500'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-orange-200'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-slate-200'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-purple-600'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-orange-500'
+      }
+    ]
   ]
 }

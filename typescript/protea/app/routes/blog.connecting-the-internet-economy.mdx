@@ -9,6 +9,18 @@ meta:
     I'd met through a W3C mailing list.
 ---
 
+import { BlogLayout } from '~/components'
+import { getCurrentPost } from '~/lib/blog.server'
+import { useLoaderData } from '@remix-run/react'
+import { json } from '@remix-run/node'
+export async function loader({ request }) {
+  return json({ post: await getCurrentPost(request, attributes.meta) })
+}
+export default ({ children }) => {
+  const { post } = useLoaderData()
+  return <BlogLayout meta={post}>{children}</BlogLayout>
+}
+
 In early 2015, I started an email conversation with a fellow engineer who I'd
 met through a W3C mailing list. That conversation turned out to be the start of
 an almost 7-year journey that has led to today, and the launch of a new company,
