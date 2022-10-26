@@ -1,6 +1,10 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/blog/connecting-the-internet-economy": Record<string, never>;
+    "/blog/our-fynbos-family-meet-don": Record<string, never>;
+    "/blog/card-payments-still-suck": Record<string, never>;
     "/linked-account/:provider/card": { "provider": string };
+    "/linked-account/:type/:flowId": { "type": string, "flowId": string };
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
@@ -35,13 +39,16 @@ declare module "routes-gen" {
     "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
-    "/blog/connecting-the-internet-economy": Record<string, never>;
     "/pay": Record<string, never>;
   };
 
   export function route<
     T extends
+      | ["/blog/connecting-the-internet-economy"]
+      | ["/blog/our-fynbos-family-meet-don"]
+      | ["/blog/card-payments-still-suck"]
       | ["/linked-account/:provider/card", RouteParams["/linked-account/:provider/card"]]
+      | ["/linked-account/:type/:flowId", RouteParams["/linked-account/:type/:flowId"]]
       | ["/api/maps/placesAutocomplete"]
       | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
@@ -76,7 +83,6 @@ declare module "routes-gen" {
       | ["/legal"]
       | ["/login"]
       | ["/blog"]
-      | ["/blog/connecting-the-internet-economy"]
       | ["/pay"]
   >(...args: T): typeof args[0];
 }

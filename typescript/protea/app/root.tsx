@@ -69,9 +69,6 @@ function Document({
   return (
     <html lang='en'>
       <head>
-        <title>{title}</title>
-        <meta charSet='utf-8' />
-        <meta name='viewport' content='' />
         <Meta />
         <Links />
       </head>
