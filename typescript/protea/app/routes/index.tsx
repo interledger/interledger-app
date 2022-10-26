@@ -377,39 +377,50 @@ function AppPage() {
         </div>
       </div>
 
-      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-lg font-medium'>What to do next</h1>
-        <div className='flex items-center justify-between space-x-3 rounded-xl bg-container-secondary p-4 text-medium'>
+        <p>You currently do not have any linked accounts.</p>
+        <div className='flex items-center space-x-3 rounded-xl bg-container-secondary p-4 text-medium'>
           <Icon>tips_and_updates</Icon>
           <p className='text-sm'>
-            You need to add a send or receive account before you can transact.
+            You need to enable sending or receiving before you can transact.
           </p>
         </div>
-        <div className='flex items-start space-x-4 p-4'>
+      </div>
+      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex items-start space-x-4'>
           <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
-            <Icon>send</Icon>
+            <Icon>credit_card</Icon>
           </div>
           <div className='flex flex-col space-y-2'>
-            <h1 className='font-medium text-medium'>Send</h1>
+            <h1 className='font-medium text-medium'>Send money</h1>
             <p className='text-sm text-medium'>
-              Easily send money to an individual or a business.
+              Easily send money from a debit card.
             </p>
-            <Router className='text-sm font-medium text-primary' to={'/TODO'}>
-              Add a send account now
+            <Router
+              className='text-sm font-medium text-primary'
+              to={route('/linked-account/:type', { type: 'card' })}
+            >
+              Enable sending
             </Router>
           </div>
         </div>
-        <div className='flex items-start space-x-4 p-4'>
+      </div>
+      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex items-start space-x-4'>
           <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
-            <Icon>qr_code</Icon>
+            <Icon>account_balance</Icon>
           </div>
           <div className='flex flex-col space-y-2'>
-            <h1 className='font-medium text-medium'>Receive</h1>
+            <h1 className='font-medium text-medium'>Receive money</h1>
             <p className='text-sm text-medium'>
-              Receive money into an account of your choice.
+              Receive money into your bank account securely.
             </p>
-            <Router className='text-sm font-medium text-primary' to={'/TODO'}>
-              Add a receive account now
+            <Router
+              className='text-sm font-medium text-primary'
+              to={route('/linked-account/:type', { type: 'bank' })}
+            >
+              Enable receiving
             </Router>
           </div>
         </div>
