@@ -44,6 +44,7 @@ export const Error: FC<ErrorProps> = ({ status, statusText, data }) => {
               {status}
             </p>
           )}
+          {!status && <div className='h-32' />}
           <div className='sm:mt-12'>
             <div>
               <h1 className='font-display text-4xl font-medium text-medium'>
