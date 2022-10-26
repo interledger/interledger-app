@@ -77,7 +77,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 	state := kycData.Address.State
 	stateParts := strings.Split(state, "-")
 	if len(stateParts) > 1 {
-		state = strings.Trim(stateParts[1], " ")
+		state = strings.TrimSpace(stateParts[1])
 	}
 
 	emu, err := a.b.External().RegisterUser(ctx, external.User{
@@ -274,6 +274,12 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 		gender = "other"
 	}
 
+	// we store state in iso3166-2 format which will fail Machnet validation.
+	state := indvKYC.Address.State
+	stateParts := strings.Split(state, "-")
+	if len(stateParts) > 1 {
+		state = strings.TrimSpace(stateParts[1])
+	}
 	resp, err := b.External().RegisterUser(ctx, external.User{
 		FirstName:    indvKYC.FirstName,
 		LastName:     indvKYC.LastName,
@@ -284,7 +290,7 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 		AddressLine2: indvKYC.Address.Line2,
 		MobilePhone:  strings.Trim(recvUser.PhoneNumber, "+"),
 		City:         indvKYC.Address.City,
-		State:        indvKYC.Address.State,
+		State:        state,
 		Zipcode:      indvKYC.Address.ZipCode,
 		Country:      indvKYC.CountryCode,
 		Type:         external.TypeReceiveUser,
