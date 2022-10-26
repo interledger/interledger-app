@@ -378,6 +378,43 @@ func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.Cr
 	return extTrx.ID, nil
 }
 
+type CreateTransactionWorkflowRefArgs struct {
+	ExternalTransactionID string
+	FromLinkedAccountID   string
+	WorkflowID            string
+	WorkflowRunID         string
+}
+
+func (a *Activity) CreateTransactionWorkflowRef(ctx context.Context, args CreateTransactionWorkflowRefArgs) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("CreateTransactionWorkflowRef_Activity", "external transactionID", args.ExternalTransactionID)
+
+	la, err := getLinkedAccount(ctx, a.b, args.FromLinkedAccountID)
+	if err != nil {
+		return err
+	}
+
+	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletId)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user not found for linked acc (%s) wallet id (%s)", args.FromLinkedAccountID, la.WalletId), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	_, err = ops.CreateTransactionWorkflowRef(ctx, a.b, machnet.CreateTransactionWorkflowRefArgs{
+		ID:            args.ExternalTransactionID,
+		WorkflowRunID: args.WorkflowRunID,
+		WorkflowID:    args.WorkflowID,
+		SendUserID:    mu.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Activity) DeliverTransaction(ctx context.Context, fromLinkedAccID, transactionID string) error {
 	logger := activity.GetLogger(ctx)
 	logger.Info("DeliverTransaction_Activity", "from", fromLinkedAccID, "transactions_id", transactionID)
