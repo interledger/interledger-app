@@ -1,20 +1,8 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
-import { route } from 'routes-gen'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { Autocomplete, Button, Icon, Shape, TextField } from '~/components'
-import {
-  flowType,
-  getCurrentFlow,
-  requireFlow,
-  updateFlow
-} from '~/lib/flows.server'
-import type { GrpcError } from '~/lib/proto.server'
+import { flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
   grpcClient,
   httpMapping,
@@ -22,14 +10,12 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { requireUserSession } from '~/lib/kratos.server'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import type { UpdateIndividualKYCRequest_Address } from '~/generated/protobuf-ts/backend/v1/backend'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
   let flow = await getCurrentFlow(request, flowType.PersonalDetails)
-
-  console.log(session.identity.traits.countryCode)
 
   return json({
     flow,
@@ -38,7 +24,6 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
   const { flow, country } = useLoaderData<typeof loader>()
 
   const placeAutocompleteFetcher = useFetcher()
@@ -107,11 +92,6 @@ export default function Page() {
         prefixIcon={<Icon>search</Icon>}
         button={false}
         className='mt-6'
-        // aria-invalid={Boolean(actionData?.errors.street) || undefined}
-        // aria-describedby={
-        //   actionData?.errors.street ? 'street-error' : undefined
-        // }
-        // errorMessage={actionData?.errors.street}
       />
       <input
         form='personal-details-address'
@@ -191,27 +171,7 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'FirstName' | 'LastName' | 'gender' | 'dateOfBirth'
-
-function mapper(
-  field: fieldErrorsMap
-): 'firstName' | 'lastName' | 'gender' | 'dateOfBirth' | null {
-  switch (field) {
-    case 'FirstName':
-      return 'firstName'
-    case 'LastName':
-      return 'lastName'
-    case 'gender':
-      return 'gender'
-    case 'dateOfBirth':
-      return 'dateOfBirth'
-    default:
-      return null
-  }
-}
-
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request }: ActionArgs) {
   const form = await request.formData()
 
   const line1 = form.get('line1') as string
@@ -236,16 +196,6 @@ export async function action({ request, params }: ActionArgs) {
     countryCode,
     placeID,
     formattedAddress
-  }
-
-  // TODO: Figure out how to nicely show errors on this page.
-  const fieldErrors = {
-    street: '',
-    apartment: '',
-    city: '',
-    state: '',
-    country: '',
-    zip: ''
   }
 
   const ipAddress = request.headers.get('x-forwarded-for') as string

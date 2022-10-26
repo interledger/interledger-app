@@ -72,7 +72,6 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
 
   useEffect(() => {
-    console.log('Transition', transition.state, transition.type)
     if (transition.state == 'idle' && transition.type == 'idle') {
       setSnackbar(snackbar.show)
     }
@@ -158,7 +157,6 @@ export async function action({ request }: ActionArgs) {
 
   const data = await res.json()
   if (res.status >= 400) {
-    console.log('data', data)
     for (let node of data.ui.nodes) {
       if (node.messages.length > 0) {
         Object.assign(fieldErrors, {

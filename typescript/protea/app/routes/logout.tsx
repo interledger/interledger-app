@@ -1,8 +1,7 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
-import { AnchorButtonRouter, Button, Logo, Router, Shape } from '~/components'
-import { route } from 'routes-gen'
+import { useLoaderData } from '@remix-run/react'
+import { AnchorButtonRouter } from '~/components'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {

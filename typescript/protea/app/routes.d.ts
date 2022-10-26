@@ -1,12 +1,17 @@
 declare module "routes-gen" {
   export type RouteParams = {
-    "/linked-account/:provider/card": { "provider": string };
+    "/linked-account/:type/:flowId/success": { "type": string, "flowId": string };
+    "/personal-details/:flowId/address": { "flowId": string };
+    "/personal-details/:flowId/about": { "flowId": string };
+    "/linked-account/:type/:flowId": { "type": string, "flowId": string };
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/settings/personal-details": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/activity/transaction/:id": { "id": string };
     "/settings/linked-accounts": Record<string, never>;
     "/signup/:flowId/password": { "flowId": string };
     "/legal/privacy-policy": Record<string, never>;
+    "/linked-account/:type": { "type": string };
     "/signup/:flowId/about": { "flowId": string };
     "/signup/:flowId/phone": { "flowId": string };
     "/legal/terms-of-use": Record<string, never>;
@@ -36,18 +41,24 @@ declare module "routes-gen" {
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
+    "/blog/card-payments-still-suck": Record<string, never>;
     "/pay": Record<string, never>;
   };
 
   export function route<
     T extends
-      | ["/linked-account/:provider/card", RouteParams["/linked-account/:provider/card"]]
+      | ["/linked-account/:type/:flowId/success", RouteParams["/linked-account/:type/:flowId/success"]]
+      | ["/personal-details/:flowId/address", RouteParams["/personal-details/:flowId/address"]]
+      | ["/personal-details/:flowId/about", RouteParams["/personal-details/:flowId/about"]]
+      | ["/linked-account/:type/:flowId", RouteParams["/linked-account/:type/:flowId"]]
       | ["/api/maps/placesAutocomplete"]
+      | ["/settings/personal-details"]
       | ["/what-is-a-payment-pointer"]
       | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/linked-accounts"]
       | ["/signup/:flowId/password", RouteParams["/signup/:flowId/password"]]
       | ["/legal/privacy-policy"]
+      | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/signup/:flowId/about", RouteParams["/signup/:flowId/about"]]
       | ["/signup/:flowId/phone", RouteParams["/signup/:flowId/phone"]]
       | ["/legal/terms-of-use"]
@@ -77,6 +88,7 @@ declare module "routes-gen" {
       | ["/login"]
       | ["/blog"]
       | ["/blog/connecting-the-internet-economy"]
+      | ["/blog/card-payments-still-suck"]
       | ["/pay"]
   >(...args: T): typeof args[0];
 }
