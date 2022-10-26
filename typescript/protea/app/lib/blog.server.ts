@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
 
-import * as postA from '~/routes/blog/connecting-the-internet-economy.mdx'
-import * as postB from '~/routes/blog/card-payments-still-suck.mdx'
-const modules = [postA, postB]
+import * as postA from '~/routes/blog.connecting-the-internet-economy.mdx'
+import * as postB from '~/routes/blog.card-payments-still-suck.mdx'
+import * as postC from '~/routes/blog.our-fynbos-family-meet-don.mdx'
+const modules = [postA, postB, postC]
 
 export type Author = {
   name: string
@@ -19,6 +20,11 @@ export type BlogMeta = {
 }
 
 const authors: any = {
+  fynbos: {
+    name: 'Fynbos',
+    twitterHandle: 'fynbosdev',
+    avatar: '/icon.png'
+  },
   cairin: {
     name: 'Cairin Michie',
     twitterHandle: 'cairinbruce',
@@ -31,6 +37,24 @@ const authors: any = {
   }
 }
 
+export async function getCurrentPost(
+  request: Request,
+  meta: any
+): Promise<BlogMeta> {
+  const url = new URL(request.url)
+  const slug = url.pathname.replace('/blog/', '')
+  return {
+    title: meta.title,
+    authors: meta.authors.map(
+      // TODO: handle random authors
+      (author: string) => authors[author]
+    ),
+    description: meta.description,
+    slug: slug,
+    date: DateTime.fromJSDate(meta.date).toFormat('dd LLLL yyyy')
+  }
+}
+
 export async function getAllPosts(): Promise<BlogMeta[]> {
   const posts = modules.sort(
     (mod1, mod2) =>
@@ -40,7 +64,7 @@ export async function getAllPosts(): Promise<BlogMeta[]> {
   return posts.map((mod) => {
     return {
       ...mod.attributes.meta,
-      slug: mod.filename.replace(/\.mdx?$/, ''),
+      slug: mod.filename.slice(5, -4),
       authors: mod.attributes.meta.authors.map(
         // TODO: handle random authors
         (author: string) => authors[author]

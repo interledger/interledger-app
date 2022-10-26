@@ -6,6 +6,18 @@ meta:
   date: 2021-11-08
 ---
 
+import { BlogLayout } from '~/components'
+import { getCurrentPost } from '~/lib/blog.server'
+import { useLoaderData } from '@remix-run/react'
+import { json } from '@remix-run/node'
+export async function loader({ request }) {
+  return json({ post: await getCurrentPost(request, attributes.meta) })
+}
+export default ({ children }) => {
+  const { post } = useLoaderData()
+  return <BlogLayout meta={post}>{children}</BlogLayout>
+}
+
 This won't deploy to the blog.
 
 I **love** using [Next.js](https://nextjs.org/)

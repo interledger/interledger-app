@@ -9,6 +9,18 @@ meta:
     look past it at any other options.
 ---
 
+import { BlogLayout } from '~/components'
+import { getCurrentPost } from '~/lib/blog.server'
+import { useLoaderData } from '@remix-run/react'
+import { json } from '@remix-run/node'
+export async function loader({ request }) {
+  return json({ post: await getCurrentPost(request, attributes.meta) })
+}
+export default ({ children }) => {
+  const { post } = useLoaderData()
+  return <BlogLayout meta={post}>{children}</BlogLayout>
+}
+
 We are suckers for convenience. When something “just works” it’s hard to look
 past it at any other options, and so we get drawn into habits and behaviours
 that exercise our muscle memory instead of our brains.
