@@ -2,24 +2,26 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
+import { requireUserSession } from '~/lib/kratos.server'
+import { grpcClient, httpMapping, isGrpcError, StatusError } from '~/lib/proto.server'
 import { useScript } from '~/lib/useScript'
 
 export async function loader({ request }: LoaderArgs) {
-  // await requireUserSession(request)
-  // let rpc = await grpcClient.getMachnetWidgetToken({}, {
-  //   meta: {
-  //     "cookies": request.headers.get("cookie") || ""
-  //   }
-  // }).then(v => v).catch(StatusError)
-  // if (isGrpcError(rpc)) {
-  //   throw json({}, httpMapping(rpc.code))
-  // }
+  await requireUserSession(request)
+  let rpc = await grpcClient.getMachnetWidgetToken({}, {
+    meta: {
+      "cookies": request.headers.get("cookie") || ""
+    }
+  }).then(v => v).catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
 
   let widgetScriptUrl = 'https://widget.v4sandbox.machpay.com/widget/widget.js'
   return json({
     widgetScriptUrl,
-    widgetUserId: '', //rpc.response.userId,
-    widgetToken: '' //rpc.response.value
+    widgetUserId: rpc.response.userId,
+    widgetToken: rpc.response.value
   })
 }
 
