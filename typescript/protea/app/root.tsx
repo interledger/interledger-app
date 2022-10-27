@@ -35,6 +35,7 @@ export const meta: MetaFunction = () => {
     'og:image': '/fynbos.png',
 
     // Twitter
+    'twitter:site': '@fynbosdev',
     'twitter:card': 'summary_large_image',
     'twitter:url': 'https://fynbos.app/',
     'twitter:title': metaContent.title,
