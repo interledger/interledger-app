@@ -138,7 +138,7 @@ func MakeUser(b Backends) cli.ActionFunc {
 					ZipCode:     "95053",
 					Line1:       "500 El Camino Real Santa Clara",
 					CountryCode: "GH",
-					State:       "CA",
+					State:       "US-CA",
 				},
 				IPAddress: "10.10.10.10",
 			})
