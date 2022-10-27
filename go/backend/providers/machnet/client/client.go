@@ -40,7 +40,7 @@ func New(b Backends, clientID, clientSecret, webhookSecret string) machnet.Clien
 		Backends: b,
 		external: inmemory_external_client.New(),
 	}
-	if env.IsProd() || env.IsSandbox() {
+	if !env.IsLocal() {
 		opsBackends.external = external_client.New(clientID, clientSecret)
 
 		if webhookSecret == "" {
