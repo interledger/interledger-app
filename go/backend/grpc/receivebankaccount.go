@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -49,6 +50,26 @@ func (r rpcService) ListBanks(ctx context.Context, args *backendv1.Empty) (*back
 	}, nil
 }
 
+type validateCreateReceiveBankAccount struct {
+	BankID        uint32
+	BranchID      uint32
+	AccountType   string `validate:"oneof=CHECKING SAVINGS"`
+	AccountNumber string `validate:"required"`
+	Name          string `validate:"required"`
+}
+
+func validateCreateReceiveBankAccountDescription(err validator.FieldError) string {
+	switch err.Field() {
+	case "AccountType":
+		return "Account type can only be CHECKING or SAVINGS"
+	case "AccountNumber":
+		return "Account number is required"
+	case "Name":
+		return "Name is required"
+	}
+	return ""
+}
+
 func (r rpcService) CreateReceiveBankAccount(
 	ctx context.Context, req *backendv1.CreateReceiveBankAccountRequest,
 ) (*backendv1.LinkedAccount, error) {
@@ -59,6 +80,16 @@ func (r rpcService) CreateReceiveBankAccount(
 	wallet, err := r.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	if err := r.b.Validator().Struct(validateCreateReceiveBankAccount{
+		BankID:        req.GetBankId(),
+		BranchID:      req.GetBranchId(),
+		AccountType:   req.GetAccountType(),
+		AccountNumber: req.GetAccountNumber(),
+		Name:          req.GetName(),
+	}); err != nil {
+		return nil, ValidationError(err, validateCreateReceiveBankAccountDescription)
 	}
 
 	bankaccount, err := r.b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{
