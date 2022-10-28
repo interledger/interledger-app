@@ -38,7 +38,7 @@ func main() {
 			},
 			Namespace: pulumi.String("kube-system"),
 			Chart:     pulumi.String("cilium"),
-			Version:   pulumi.String("1.11.5"),
+			Version:   pulumi.String("1.11.10"),
 			Values: pulumi.Map{
 				"egressMasqueradeInterfaces": pulumi.String("eth0"),
 			},
