@@ -30,6 +30,7 @@ func (s *rpcService) GetLinkedAccounts(
 			Id:   fs.ID,
 			Name: fs.Name,
 			Mask: fs.Mask,
+			Type: fs.Type,
 		}
 	}
 

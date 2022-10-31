@@ -4,8 +4,6 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"gitlab.com/fynbos/backend/admin"
-	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os"
@@ -14,8 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -23,6 +19,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	"gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
@@ -32,6 +29,7 @@ import (
 	country_client "gitlab.com/fynbos/backend/country/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
+	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
@@ -60,6 +58,7 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 //go:embed migrations/*.sql
@@ -130,7 +129,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build()
+	logger, err := cfg.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -317,7 +316,7 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build()
+	logger, err := cfg.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		log.Fatalln(err)
 	}

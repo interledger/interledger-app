@@ -37,15 +37,16 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(response.code))
   }
 
+  console.log(response.response.linkedAccounts)
   const linkedAccounts = response.response.linkedAccounts.map(
     (linkedAccount) => ({
       id: linkedAccount.id,
       name:
-        linkedAccount.type == 'CARD'
+        linkedAccount.type == 'sendCard'
           ? `Card ending ${linkedAccount.mask}`
           : 'Bank account',
-      type: linkedAccount.type == 'CARD' ? 'send' : 'receive',
-      icon: linkedAccount.type == 'CARD' ? 'credit_card' : 'account_balance'
+      type: linkedAccount.type == 'sendCard' ? 'send' : 'receive',
+      icon: linkedAccount.type == 'sendCard' ? 'credit_card' : 'account_balance'
     })
   )
 

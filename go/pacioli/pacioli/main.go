@@ -100,7 +100,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build()
+	logger, err := cfg.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		log.Fatalln(err)
 	}

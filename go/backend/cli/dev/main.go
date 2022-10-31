@@ -18,7 +18,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_external "gitlab.com/fynbos/backend/providers/machnet/external"
-	machnet_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	temporal_client "gitlab.com/fynbos/backend/temporal"
@@ -184,10 +183,7 @@ func (b *backends) Machnet() machnet.Client {
 }
 
 func (b backends) MachnetExternal() machnet_external.Client {
-	if b.machnetExternal == nil {
-		b.machnetExternal = machnet_external_client.New(os.Getenv("MACHNET_CLIENT_ID"), os.Getenv("MACHNET_CLIENT_SECRET"))
-	}
-	return b.machnetExternal
+	return b.Machnet().External()
 }
 
 func (b *backends) KYC() kyc.Client {

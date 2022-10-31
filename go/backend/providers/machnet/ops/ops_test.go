@@ -110,7 +110,7 @@ func TestHandleUserCardAddedEvent(t *testing.T) {
 		Name:       externalFundingsource.FundingsourceName,
 		Provider:   machnet.ProviderName,
 		ProviderID: externalFundingsource.ID,
-		Type:       external.TypeCard,
+		Type:       machnet.TypeSendCard,
 		Mask:       externalFundingsource.AccountNumber,
 	}).Return(
 		&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletId: walletID},

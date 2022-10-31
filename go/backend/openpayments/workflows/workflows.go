@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"go.temporal.io/sdk/temporal"
+
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -70,12 +72,21 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID string) (strin
 	var tArgs machnet.CreateTransactionArgs
 	err := workflow.ExecuteActivity(ctx, a.GetProviderArgs, outgoingID).Get(ctx, &tArgs)
 	if err != nil {
+		if isNonRetryableError(err) {
+			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", err
+			}
+		}
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
 
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 4,
+		},
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 
