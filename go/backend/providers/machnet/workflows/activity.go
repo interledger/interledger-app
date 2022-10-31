@@ -96,6 +96,9 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		IPAddress:    kycData.IPAddress,
 		Type:         external.TypeSendUser,
 	})
+	if errors.Is(err, external.ErrInvalidArgument) {
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid arguments to create send user wallet(%s) error (%s)", walletID, err), "external.ErrInvalidArgument", external.ErrInvalidArgument)
+	}
 
 	if err != nil {
 		return "", err
@@ -280,6 +283,10 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 	if len(stateParts) > 1 {
 		state = strings.TrimSpace(stateParts[1])
 	}
+	cc := indvKYC.CountryCode
+	if cc == "" {
+		cc = indvKYC.Address.CountryCode
+	}
 	resp, err := b.External().RegisterUser(ctx, external.User{
 		FirstName:    indvKYC.FirstName,
 		LastName:     indvKYC.LastName,
@@ -292,7 +299,7 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 		City:         indvKYC.Address.City,
 		State:        state,
 		Zipcode:      indvKYC.Address.ZipCode,
-		Country:      indvKYC.CountryCode,
+		Country:      cc,
 		Type:         external.TypeReceiveUser,
 		SendUserID:   extSendUserID,
 	})
@@ -316,6 +323,9 @@ func addReceiveUserBankAccount(ctx context.Context, b ops.Backends, extSendUserI
 		BranchID:      int(bankAccount.BranchID),
 		PayoutMethod:  external.TypeBankDeposit,
 	})
+	if errors.Is(err, external.ErrInvalidArgument) {
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid argument to create machnet receive account"), "ErrInvalidArgument", err)
+	}
 	if err != nil {
 		return "", err
 	}

@@ -7,7 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
-
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -49,6 +49,9 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Second,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 30,
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
@@ -123,6 +126,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		}
 
 		if external.TransactionDeliveryFailedEvent == deliveryEvent.EventName {
+			logger.Info("Machnet recv dump.", "body", string(deliveryEvent.Payload))
 			deliverySuccessful = false
 			break
 		}

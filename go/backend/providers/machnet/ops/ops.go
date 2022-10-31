@@ -176,7 +176,7 @@ func GetReceiveBankAccount(ctx context.Context, b Backends, id string) (*machnet
 		id,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, machnet.ErrNotFound
+		return nil, fmt.Errorf("%w failed to find receivebank account (%s)", machnet.ErrNotFound, id)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -359,6 +359,7 @@ func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 			zap.String("eventName", event.EventName),
 			zap.String("externalUserID", event.UserID),
 			zap.String("externalResourceID", event.ResourceID),
+			zap.String("body", string(event.Payload)),
 		)
 	}
 	if err != nil {
@@ -427,7 +428,7 @@ func HandleUserCardAddedEvent(ctx context.Context, b Backends, event external.Ev
 		Mask:       card.AccountNumber,
 		Provider:   machnet.ProviderName,
 		ProviderID: card.ID,
-		Type:       external.TypeCard,
+		Type:       machnet.TypeSendCard,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)

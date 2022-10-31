@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/backend/openpayments/workflows"
 
@@ -162,10 +163,20 @@ func createQuote(b Backends, w http.ResponseWriter, req *http.Request, pp *openp
 
 	args.SendPaymentPointer = pp.URL
 
+	if args.ExpiresAt.IsZero() {
+		// Default to a 10 minute time to create a quote
+		args.ExpiresAt = time.Now().Add(time.Minute * 10)
+	}
+
 	q, err := ops.CreateQuote(req.Context(), b, args)
 	if errors.Is(err, openpayments.ErrInvalidArgument) {
 		log.Error("invalid arguments to create quote", zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) || errors.Is(err, openpayments.ErrNotFound) {
+		log.Error("not found arguments to create quote", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 	if err != nil {

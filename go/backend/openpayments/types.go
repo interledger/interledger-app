@@ -13,9 +13,9 @@ type PaymentPointer struct {
 
 type CreateQuoteArgs struct {
 	SendPaymentPointer    string `validate:"url"`
-	ReceivePaymentPointer string `validate:"url"`
+	ReceivePaymentPointer string `json:"receiver" validate:"url"`
 	ExpiresAt             time.Time
-	SendAmount            Amount
+	SendAmount            Amount `json:"sendAmount"`
 	Reference             string
 }
 

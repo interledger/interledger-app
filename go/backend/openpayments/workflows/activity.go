@@ -68,7 +68,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		return nil, err
 	}
 
-	sendAcc, err := getProviderLinkedAccount(ctx, a.b, recvPPURL, machnet.ProviderName, machnet.TypeSendCard)
+	sendAcc, err := getProviderLinkedAccount(ctx, a.b, op.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}

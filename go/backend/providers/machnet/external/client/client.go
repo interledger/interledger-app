@@ -395,11 +395,11 @@ func parseResponse(resp *http.Response) ([]byte, error) {
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, external.ErrNotFound
+		return nil, fmt.Errorf("%w statusCode: %d, message: %s, body: %s", external.ErrNotFound, resp.StatusCode, resp.Status, string(body))
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, external.ErrUnauthorized
+		return nil, fmt.Errorf("%w statusCode: %d, message: %s, body: %s", external.ErrUnauthorized, resp.StatusCode, resp.Status, string(body))
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
