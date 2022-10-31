@@ -6,7 +6,7 @@ import {
   useLoaderData,
   useTransition
 } from '@remix-run/react'
-import { Button, Snackbar, TextField } from '~/components'
+import { Button, Layouts, Snackbar, TextField } from '~/components'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -62,6 +62,10 @@ export async function loader({ request }: LoaderArgs) {
       headers: { 'Set-Cookie': await commitSession(userSettings) }
     }
   )
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

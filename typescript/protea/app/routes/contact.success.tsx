@@ -1,5 +1,9 @@
-import { ButtonRouter, SuccessShapes } from '~/components'
+import { ButtonRouter, Layouts, SuccessShapes } from '~/components'
 import { route } from 'routes-gen'
+
+export const handle = {
+  layout: Layouts.FocusLayout
+}
 
 export default function Page() {
   return (

@@ -12,6 +12,7 @@ import {
   Button,
   Dialog,
   Icon,
+  Layouts,
   PhoneTextField,
   Router,
   Shape,
@@ -60,6 +61,10 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export function links() {
   return [{ rel: 'stylesheet', href: styles }]
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

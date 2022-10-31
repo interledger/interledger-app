@@ -3,7 +3,7 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Icon, Router, Snackbar, WalletGrid } from '~/components'
+import { Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSession, commitSession } from '~/sessions'
 
@@ -30,6 +30,10 @@ export async function loader({ request }: LoaderArgs) {
       headers: { 'Set-Cookie': await commitSession(userSettings) }
     }
   )
+}
+
+export const handle = {
+  layout: Layouts.WalletLayout
 }
 
 export default function Page() {

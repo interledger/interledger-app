@@ -2,7 +2,7 @@ import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { flowType, getCurrentFlow, requireFlow } from '~/lib/flows.server'
-import { Button, Router, Shape } from '~/components'
+import { Button, Layouts, Router, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { Form } from '@remix-run/react'
 import { canSignup } from '~/lib/signupCheck.server'
@@ -12,6 +12,10 @@ export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
   const headers = await requireFlow(request, flowType.Signup)
   return json({}, { headers })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

@@ -8,9 +8,15 @@ import {
   ScrollRestoration,
   useCatch,
   useLoaderData,
-  useLocation
+  useMatches
 } from '@remix-run/react'
-import { WalletLayout, LandingLayout, Error, FocusLayout } from '~/components'
+import {
+  WalletLayout,
+  LandingLayout,
+  Error,
+  FocusLayout,
+  Layouts
+} from '~/components'
 import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
@@ -90,26 +96,20 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function Page() {
   const { isUser } = useLoaderData<typeof loader>()
-  const location = useLocation()
-  let isFocussed =
-    location.pathname.startsWith('/signup') ||
-    location.pathname.startsWith('/waitlist') ||
-    location.pathname.startsWith('/contact') ||
-    location.pathname.startsWith('/login') ||
-    location.pathname.startsWith('/linked-account') ||
-    location.pathname.startsWith('/personal-details') ||
-    location.pathname.startsWith('/logout') ||
-    location.pathname.startsWith('/recovery') ||
-    location.pathname.startsWith('/settings/password') ||
-    location.pathname.startsWith('/payment-pointer')
+  const matches = useMatches()
 
-  return (
-    <Document>
-      {isFocussed && <FocusLayout />}
-      {!isFocussed && isUser && <WalletLayout />}
-      {!isFocussed && !isUser && <LandingLayout />}
-    </Document>
-  )
+  const layoutHandle = matches.at(-1)?.handle?.layout
+
+  let layout, layoutComponent
+
+  if (typeof layoutHandle === 'function') layout = layoutHandle(isUser)
+  else layout = layoutHandle
+
+  if (layout == Layouts.FocusLayout) layoutComponent = <FocusLayout />
+  else if (layout == Layouts.WalletLayout) layoutComponent = <WalletLayout />
+  else layoutComponent = <LandingLayout />
+
+  return <Document>{layoutComponent}</Document>
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {

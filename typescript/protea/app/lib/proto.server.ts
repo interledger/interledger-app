@@ -58,9 +58,6 @@ if (process.env.NODE_ENV === 'production') {
   openPaymentsClient = global.__openPaymentsClient
 }
 
-export { grpcClient, openPaymentsClient, StatusError, httpMapping, isGrpcError }
-export type { GrpcError }
-
 interface GrpcError extends Status {
   code: number
   message: string
@@ -203,3 +200,6 @@ function codeMapping(code: string): Code {
       return Code.OK
   }
 }
+
+export { grpcClient, openPaymentsClient, StatusError, httpMapping, isGrpcError }
+export type { GrpcError }

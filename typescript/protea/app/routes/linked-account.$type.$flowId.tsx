@@ -10,7 +10,7 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import { Shape } from '~/components'
+import { Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
@@ -36,6 +36,10 @@ export async function loader({ request }: LoaderArgs) {
     widgetUserId: rpc.response.userId,
     widgetToken: rpc.response.value
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

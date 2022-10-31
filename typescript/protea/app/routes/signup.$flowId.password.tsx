@@ -1,7 +1,14 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Checkbox, Router, Shape, TextField } from '~/components'
+import {
+  Button,
+  Checkbox,
+  Layouts,
+  Router,
+  Shape,
+  TextField
+} from '~/components'
 import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
   getCsrfTokenFromFlow,
@@ -56,6 +63,10 @@ export async function loader({ request }: LoaderArgs) {
     kratosFlowId,
     csrfToken: getCsrfTokenFromFlow(kratosFlow)
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

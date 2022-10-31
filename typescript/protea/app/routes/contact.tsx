@@ -1,7 +1,7 @@
 import type { ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
-import { Button, TextArea, TextField } from '~/components'
+import { Button, Layouts, TextArea, TextField } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -9,6 +9,10 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
+
+export const handle = {
+  layout: Layouts.FocusLayout
+}
 
 export default function Page() {
   const actionData = useActionData<typeof action>()

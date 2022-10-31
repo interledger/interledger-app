@@ -1,4 +1,4 @@
-import { Router, BlogShapes } from '~/components'
+import { Router, BlogShapes, Layouts } from '~/components'
 import { json } from '@remix-run/node'
 
 import { useLoaderData } from '@remix-run/react'
@@ -28,6 +28,10 @@ export async function loader() {
   return json({
     posts: await getAllPosts()
   })
+}
+
+export const handle = {
+  layout: Layouts.LandingLayout
 }
 
 export default function Page() {

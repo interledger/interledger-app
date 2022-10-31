@@ -1,7 +1,7 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { AnchorButtonRouter } from '~/components'
+import { AnchorButtonRouter, Layouts } from '~/components'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -16,6 +16,10 @@ export async function loader({ request }: LoaderArgs) {
   flow = await flowRes.json()
   if (flowRes.status >= 400) handleFlowError(flow, 'logout')
   return json({ logoutUrl: flow.logout_url })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

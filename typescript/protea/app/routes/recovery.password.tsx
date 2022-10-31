@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, TextField } from '~/components'
+import { Button, Layouts, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -11,6 +11,10 @@ import {
 } from '~/lib/kratos.server'
 import { commitSession, getSession } from '~/sessions'
 import { trimHeaders } from '~/lib/headers.server'
+
+export const handle = {
+  layout: Layouts.FocusLayout
+}
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)

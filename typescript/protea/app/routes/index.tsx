@@ -6,6 +6,7 @@ import {
   ButtonRouter,
   HomeShapes,
   Icon,
+  Layouts,
   Router,
   Shape,
   WalletGrid
@@ -71,6 +72,11 @@ export async function loader({ request }: LoaderArgs) {
     data.paymentPointer = response.response.pointers[0]
   }
   return json(data)
+}
+
+export const handle = {
+  layout: (isUser: boolean) =>
+    isUser ? Layouts.WalletLayout : Layouts.LandingLayout
 }
 
 export default function Page() {
@@ -357,8 +363,7 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { firstName, paymentPointer, recentActivities } =
-    useLoaderData<typeof loader>()
+  const { firstName, paymentPointer } = useLoaderData<typeof loader>()
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -425,20 +430,6 @@ function AppPage() {
           </div>
         </div>
       </div>
-
-      {recentActivities.length > 0 && (
-        <div className='col-span-full flex justify-between pt-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <span className='font-display text-lg font-medium'>
-            Recent activity
-          </span>
-          <Router to={route('/activity')}>
-            <div className='flex items-center space-x-1 font-display text-sm font-medium text-primary'>
-              <span>See all</span>
-              <Icon>read_more</Icon>
-            </div>
-          </Router>
-        </div>
-      )}
     </WalletGrid>
   )
 }

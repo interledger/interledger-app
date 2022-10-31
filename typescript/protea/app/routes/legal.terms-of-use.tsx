@@ -1,5 +1,6 @@
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { Layouts } from '~/components'
 
 export async function loader() {
   const policy = await fetch(
@@ -7,6 +8,10 @@ export async function loader() {
   )
   const content = (await policy.json()).content
   return json({ content })
+}
+
+export const handle = {
+  layout: Layouts.LandingLayout
 }
 
 export default function Page() {

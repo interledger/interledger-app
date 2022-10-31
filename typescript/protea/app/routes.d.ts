@@ -10,7 +10,6 @@ declare module "routes-gen" {
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/settings/personal-details": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
-    "/activity/transaction/:id": { "id": string };
     "/settings/linked-accounts": Record<string, never>;
     "/signup/:flowId/password": { "flowId": string };
     "/legal/privacy-policy": Record<string, never>;
@@ -26,21 +25,15 @@ declare module "routes-gen" {
     "/login/challenge": Record<string, never>;
     "/payment-pointer": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
-    "/disclosures": Record<string, never>;
     "/pay/amount": Record<string, never>;
-    "/activity": Record<string, never>;
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
-    "/connect": Record<string, never>;
     "/contact": Record<string, never>;
-    "/receive": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
-    "/about": Record<string, never>;
     "/": Record<string, never>;
-    "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/pay": Record<string, never>;
@@ -58,7 +51,6 @@ declare module "routes-gen" {
       | ["/api/maps/placesAutocomplete"]
       | ["/settings/personal-details"]
       | ["/what-is-a-payment-pointer"]
-      | ["/activity/transaction/:id", RouteParams["/activity/transaction/:id"]]
       | ["/settings/linked-accounts"]
       | ["/signup/:flowId/password", RouteParams["/signup/:flowId/password"]]
       | ["/legal/privacy-policy"]
@@ -74,21 +66,15 @@ declare module "routes-gen" {
       | ["/login/challenge"]
       | ["/payment-pointer"]
       | ["/api/sendOtp"]
-      | ["/disclosures"]
       | ["/pay/amount"]
-      | ["/activity"]
       | ["/recovery"]
       | ["/settings"]
       | ["/waitlist"]
-      | ["/connect"]
       | ["/contact"]
-      | ["/receive"]
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
-      | ["/about"]
       | ["/"]
-      | ["/legal"]
       | ["/login"]
       | ["/blog"]
       | ["/pay"]

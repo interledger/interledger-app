@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Shape, Snackbar, TextField } from '~/components'
+import { Button, Icon, Layouts, Shape, Snackbar, TextField } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   httpMapping,
@@ -75,6 +75,10 @@ export async function loader({ request }: LoaderArgs) {
       headers: { 'Set-Cookie': await commitSession(userSettings) }
     }
   )
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

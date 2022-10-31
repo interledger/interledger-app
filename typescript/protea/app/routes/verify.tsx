@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Logo, Router } from '~/components'
+import { Button, Layouts } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -76,39 +76,37 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
+export const handle = {
+  layout: Layouts.FocusLayout
+}
+
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <main className='mx-auto grid min-h-screen w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-y-auto p-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:content-center xl:max-w-4xl'>
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Router to={route('/')}>
-          <Logo className='h-8' />
-        </Router>
-      </div>
-      <div className='col-span-full pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-4xl font-medium leading-normal'>
-          Verify your email
-        </h1>
-      </div>
-      <div className='col-span-full pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <p className='text-medium'>
-          We've sent a verification link to your email:
-          <br /> {email}
-        </p>
-      </div>
-      {/* Form */}
+    <main className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>
+        Verify your email
+      </h1>
+      <span>
+        We've sent a verification link to your email: <br /> {email}
+      </span>
       <Form
+        id='verify'
         action={`/verify?flow=${flow.id}`}
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
-      >
-        <input defaultValue={csrfToken} name='csrf_token' type='hidden' />
-        <input defaultValue={email} name='email' type='hidden' />
-        <div className='pt-4'>
-          <Button type='submit'>Resend verification</Button>
-        </div>
-      </Form>
+        className='hidden'
+      />
+      <input
+        form='verify'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
+      <input form='verify' defaultValue={email} name='email' type='hidden' />
+      <Button className='mt-6' form='verify' type='submit'>
+        Resend verification
+      </Button>
     </main>
   )
 }

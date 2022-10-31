@@ -2,7 +2,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Button, Select, Shape, TextField } from '~/components'
+import { Button, Layouts, Select, Shape, TextField } from '~/components'
 import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -33,6 +33,10 @@ export async function loader({ request, params }: LoaderArgs) {
       { id: '3', name: 'Other' }
     ]
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {
