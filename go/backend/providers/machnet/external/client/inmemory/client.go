@@ -18,6 +18,7 @@ func New() *Client {
 		fundingsources:      map[string]external.FundingSource{},
 		transactions:        map[string]external.Transaction{},
 		receiveUserAccounts: map[string]external.ReceiveUserBankAccount{},
+		wallets:             map[string]external.Wallet{},
 	}
 }
 
@@ -27,6 +28,7 @@ type Client struct {
 	fundingsources      map[string]external.FundingSource
 	transactions        map[string]external.Transaction
 	receiveUserAccounts map[string]external.ReceiveUserBankAccount
+	wallets             map[string]external.Wallet
 }
 
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
@@ -329,4 +331,41 @@ func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Ba
 			},
 		},
 	}, nil
+}
+
+func (c Client) CreateUserWallet(ctx context.Context, userID, nickName string) (*external.Wallet, error) {
+	usr, err := c.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Send user not found.", external.ErrNotFound)
+	}
+
+	ret := external.Wallet{
+		ID:                 uuid.NewString(),
+		UserID:             usr.ID,
+		NickName:           nickName,
+		FundingSourceType:  external.TypeWallet,
+		VerificationStatus: external.StatusVerified,
+	}
+
+	c.wallets[ret.ID] = ret
+
+	return &ret, nil
+}
+
+func (c Client) GetUserWallet(ctx context.Context, userID, walletID string) (*external.Wallet, error) {
+	usr, err := c.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Send user not found.", external.ErrNotFound)
+	}
+
+	ret, exists := c.wallets[walletID]
+	if !exists {
+		return nil, fmt.Errorf("%w Wallet not found.", external.ErrNotFound)
+	}
+
+	if ret.UserID != usr.ID {
+		return nil, fmt.Errorf("%w Wallet not found.", external.ErrNotFound)
+	}
+
+	return &ret, nil
 }

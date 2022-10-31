@@ -13,8 +13,9 @@ const (
 
 	TypeBankDeposit = "BANK_DEPOSIT"
 
-	TypeCard = "CARD"
-	TypeBank = "BANK"
+	TypeCard   = "CARD"
+	TypeBank   = "BANK"
+	TypeWallet = "WALLET"
 
 	DeliveryStatusNone      = "NONE"
 	DeliveryStatusRequested = "DELIVERY_REQUESTED"
@@ -269,3 +270,19 @@ type Bank struct {
 	ReceivingCurrency         []string `json:"receiving_currency,omitempty"`
 	TransactionSupportedTypes []string `json:"txn_supported_types,omitempty"`
 }
+
+type (
+	Wallet struct {
+		ID                 string        `json:"id,omitempty"`
+		UserID             string        `json:"user_id,omitempty"`
+		NickName           string        `json:"nick_name,omitempty"`
+		FundingSourceType  string        `json:"funding_source_type,omitempty"`
+		VerificationStatus string        `json:"verification_status,omitempty"`
+		Balance            WalletBalance `json:"balance"`
+	}
+
+	WalletBalance struct {
+		AvailableBalance float64 `json:"available_balance"`
+		Balance          float64 `json:"balance"`
+	}
+)

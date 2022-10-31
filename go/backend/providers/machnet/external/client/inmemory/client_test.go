@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
@@ -76,4 +77,16 @@ func TestInMemoryClient(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, receiveUsers, 1)
 	require.Equal(t, receiveUser.ID, receiveUsers[0].ID)
+
+	// wallets
+	nickname := faker.Name()
+	wallet, err := client.CreateUserWallet(context.Background(), user.ID, nickname)
+	require.NoError(t, err)
+	require.Equal(t, nickname, wallet.NickName)
+	require.Equal(t, user.ID, wallet.UserID)
+
+	getWallet, err := client.GetUserWallet(context.Background(), user.ID, wallet.ID)
+	require.NoError(t, err)
+	require.Equal(t, nickname, getWallet.NickName)
+	require.Equal(t, user.ID, getWallet.UserID)
 }
