@@ -2,7 +2,7 @@ import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { requireUserSession } from '~/lib/kratos.server'
-import { Button, Shape } from '~/components'
+import { Button, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
 import {
   flowType,
@@ -48,6 +48,10 @@ export async function loader({ request, params }: LoaderArgs) {
     )
 
   return json({ hasSendUser, type: params.type }, { headers })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

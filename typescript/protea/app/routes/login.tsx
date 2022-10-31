@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, HomeShapes, Router, TextField } from '~/components'
+import { Button, HomeShapes, Layouts, Router, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -44,6 +44,10 @@ export async function loader({ request }: LoaderArgs) {
     })
   }
   return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

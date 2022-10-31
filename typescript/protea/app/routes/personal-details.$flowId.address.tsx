@@ -1,7 +1,14 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
-import { Autocomplete, Button, Icon, Shape, TextField } from '~/components'
+import {
+  Autocomplete,
+  Button,
+  Icon,
+  Layouts,
+  Shape,
+  TextField
+} from '~/components'
 import { flowType, getCurrentFlow } from '~/lib/flows.server'
 import {
   grpcClient,
@@ -21,6 +28,10 @@ export async function loader({ request }: LoaderArgs) {
     flow,
     country: { id: session.identity.traits.countryCode, name: '' }
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

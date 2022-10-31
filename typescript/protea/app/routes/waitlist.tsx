@@ -1,4 +1,10 @@
-import { Autocomplete, Button, Checkbox, TextField } from '~/components'
+import {
+  Autocomplete,
+  Button,
+  Checkbox,
+  Layouts,
+  TextField
+} from '~/components'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import type { GrpcError } from '~/lib/proto.server'
@@ -35,6 +41,10 @@ export async function loader({ request }: LoaderArgs) {
     email,
     fullName
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

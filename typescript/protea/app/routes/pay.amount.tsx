@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
-import { Button, TextField } from '~/components'
+import { Button, Layouts, TextField } from '~/components'
 import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 
@@ -12,6 +12,10 @@ export async function loader({ request }: LoaderArgs) {
   return json({
     flow
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

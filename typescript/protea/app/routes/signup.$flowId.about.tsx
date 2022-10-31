@@ -4,7 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { Autocomplete, Button, Shape, TextField } from '~/components'
+import { Autocomplete, Button, Layouts, Shape, TextField } from '~/components'
 import {
   flowType,
   getCurrentFlow,
@@ -43,6 +43,10 @@ export async function loader({ request, params }: LoaderArgs) {
     flow,
     countries: response.response.countries
   })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {

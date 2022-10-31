@@ -2,7 +2,14 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Chip, ChipColor, Icon, Router, WalletGrid } from '~/components'
+import {
+  Chip,
+  ChipColor,
+  Icon,
+  Layouts,
+  Router,
+  WalletGrid
+} from '~/components'
 import {
   grpcClient,
   httpMapping,
@@ -48,6 +55,10 @@ export async function loader({ request }: LoaderArgs) {
     hasReceive:
       linkedAccounts.filter(({ type }) => type == 'receive').length > 0
   })
+}
+
+export const handle = {
+  layout: Layouts.WalletLayout
 }
 
 export default function Page() {

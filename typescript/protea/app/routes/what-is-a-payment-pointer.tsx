@@ -1,5 +1,9 @@
-import { AnchorRouter, ButtonRouter, Shape } from '~/components'
+import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
+
+export const handle = {
+  layout: Layouts.LandingLayout
+}
 
 export default function Page() {
   return (
