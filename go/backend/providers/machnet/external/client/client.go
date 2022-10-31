@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -386,6 +387,62 @@ func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Ba
 	}
 
 	return banks, nil
+}
+
+func (c Client) CreateUserWallet(ctx context.Context, userID, nickName string) (*external.Wallet, error) {
+	url, err := url.Parse(path.Join("users", userID, "funds", "wallets"))
+	if err != nil {
+		return nil, fmt.Errorf("%w Failed to format url to create user wallet.", external.ErrInternal)
+	}
+
+	payload, err := json.Marshal(map[string]string{
+		"nick_name": nickName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	postUrl := fmt.Sprintf("%s/%s", c.baseUrl, url.String())
+	resp, err := c.api.Post(postUrl, "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var wallet external.Wallet
+	if err = json.Unmarshal(body, &wallet); err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &wallet, nil
+}
+
+func (c Client) GetUserWallet(ctx context.Context, userID, walletID string) (*external.Wallet, error) {
+	url, err := url.Parse(path.Join("users", userID, "funds", walletID))
+	if err != nil {
+		return nil, fmt.Errorf("%w Failed to format url to get user wallet.", external.ErrInternal)
+	}
+
+	resp, err := c.api.Get(fmt.Sprintf("%s/%s", c.baseUrl, url.String()))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var wallet external.Wallet
+	if err = json.Unmarshal(body, &wallet); err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &wallet, nil
 }
 
 func parseResponse(resp *http.Response) ([]byte, error) {

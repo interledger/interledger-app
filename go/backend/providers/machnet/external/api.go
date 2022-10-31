@@ -17,4 +17,6 @@ type Client interface {
 	CreateReceiveUserBankAccount(ctx context.Context, sendUserID, receiveUserID string, acc ReceiveUserBankAccount) (*ReceiveUserBankAccount, error)
 	GetBanks(ctx context.Context, countryCode string) ([]Bank, error)
 	ListReceiveUserBankAccounts(ctx context.Context, sendUserID, receiveUserID string) ([]ReceiveUserBankAccount, error)
+	CreateUserWallet(ctx context.Context, sendUserID, nickName string) (*Wallet, error)
+	GetUserWallet(ctx context.Context, sendUserID, walletID string) (*Wallet, error)
 }
