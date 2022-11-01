@@ -435,5 +435,49 @@ const blogShapes: {
         color: 'bg-orange-500'
       }
     ]
+  ],
+  'the-future-digital-wallets-and-payment-pointers': [
+    [
+      {
+        radius: 'rounded-full',
+        color: 'bg-yellow-300'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-green-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-green-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-orange-500'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-green-200'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-yellow-200'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-slate-200'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-green-500'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-orange-700'
+      }
+    ]
   ]
 }
