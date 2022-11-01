@@ -151,6 +151,125 @@ func (a *Activity) StartExternalKYC(ctx context.Context, externalID string) erro
 	return err
 }
 
+type FundWalletResponse struct {
+	FromWalletLinkedAcc string
+	FundTX              string
+}
+
+func (a *Activity) FundUserWalletFromCard(ctx context.Context, trx machnet.CreateTransactionArgs) (*FundWalletResponse, error) {
+	fromCard, err := getLinkedAccount(ctx, a.b, trx.FromLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to find linked account (%s)", trx.FromLinkedAccountID), "ErrInternal", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if fromCard.Type != machnet.TypeSendCard {
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("from linked account (%s) invalid type (%s)", trx.FromLinkedAccountID, fromCard.Type), "ErrInvalidArgument", machnet.ErrInvalidArgument)
+	}
+
+	accs, err := a.b.LinkedAccounts().ListByWalletId(ctx, fromCard.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	var found *linkedaccounts.LinkedAccount
+	for _, la := range accs {
+		if la.Provider != machnet.ProviderName || la.Type != machnet.TypeWallet {
+			continue
+		}
+		found = &la
+	}
+
+	if found == nil {
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("could not find linked account for type (%s) on walletID (%s)", machnet.TypeWallet, fromCard.WalletID), "ErrNotFound", machnet.ErrNotFound)
+	}
+
+	mu, err := ops.GetUserByWalletID(ctx, a.b, fromCard.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	ipAddress := trx.IPAddress
+	if ipAddress == "" {
+		id, err := a.b.KYC().GetIndividualDetails(ctx, fromCard.WalletID)
+		if err != nil {
+			return nil, err
+		}
+		ipAddress = id.IPAddress
+	}
+
+	fundResp, err := a.b.External().FundUserWallet(ctx, external.FundWalletArgs{
+		UserID:       mu.ID,
+		SourceFundID: fromCard.ProviderID,
+		WalletID:     found.ProviderID,
+		Amount:       trx.Amount,
+		Currency:     trx.Currency,
+		IPAddress:    ipAddress,
+	})
+	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to fund machnet user wallet (%s) from card (%s)", found.ProviderID, fromCard.ProviderID), "ErrInternal", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &FundWalletResponse{
+		FromWalletLinkedAcc: found.ID,
+		FundTX:              fundResp.ID,
+	}, nil
+}
+
+func (a *Activity) StartWalletTransfer(ctx context.Context, trx machnet.CreateTransactionArgs, fundTX FundWalletResponse) (string, error) {
+	sendLA, err := a.b.LinkedAccounts().Get(ctx, fundTX.FromWalletLinkedAcc)
+	if err != nil {
+		return "", err
+	}
+
+	recvLA, err := a.b.LinkedAccounts().Get(ctx, trx.ToLinkedAccountID)
+	if err != nil {
+		return "", err
+	}
+
+	ipAddress := trx.IPAddress
+	if ipAddress == "" {
+		id, err := a.b.KYC().GetIndividualDetails(ctx, sendLA.WalletID)
+		if err != nil {
+			return "", err
+		}
+		ipAddress = id.IPAddress
+	}
+
+	sendUser, err := ops.GetUserByWalletID(ctx, a.b, sendLA.WalletID)
+	if err != nil {
+		return "", err
+	}
+
+	recvUser, err := ops.GetUserByWalletID(ctx, a.b, recvLA.WalletID)
+	if err != nil {
+		return "", err
+	}
+
+	transfer, err := a.b.External().CreateWalletTransfer(ctx, external.WalletTransferArgs{
+		SendUserID: sendUser.ID,
+		SendFundID: sendLA.ProviderID,
+		RecvUserID: recvUser.ID,
+		RecvFundID: recvLA.ProviderID,
+		Amount:     trx.Amount,
+		Currency:   trx.Currency,
+		IPAddress:  ipAddress,
+	})
+	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
+		return "", temporal.NewNonRetryableApplicationError("failed to initiate machnet wallet transfer", "ErrInternal", err)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return transfer.ID, nil
+}
+
 type TransactionTo struct {
 	ReceiveUserID string
 	ReceiveFundID string
@@ -170,7 +289,7 @@ func (a *Activity) GetOrCreateReceiveUser(ctx context.Context, trx machnet.Creat
 		return nil, err
 	}
 
-	sendUser, err := ops.GetUserByWalletID(ctx, a.b, fromLinkedAcc.WalletId)
+	sendUser, err := ops.GetUserByWalletID(ctx, a.b, fromLinkedAcc.WalletID)
 	if errors.Is(err, machnet.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("Machnet user not found for `fromLinkedAcc`", "ErrNotFound", err)
 	}
@@ -183,12 +302,12 @@ func (a *Activity) GetOrCreateReceiveUser(ctx context.Context, trx machnet.Creat
 		return nil, err
 	}
 
-	fynbosReceives, err := a.b.Users().ListUsers(ctx, toLinkedAcc.WalletId)
+	fynbosReceives, err := a.b.Users().ListUsers(ctx, toLinkedAcc.WalletID)
 	if err != nil {
 		return nil, err
 	}
 	if len(fynbosReceives) != 1 {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet id (%s) has multiple accounts linked (%d)", toLinkedAcc.WalletId, len(fynbosReceives)), "ErrInternal", machnet.ErrInternal)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet id (%s) has multiple accounts linked (%d)", toLinkedAcc.WalletID, len(fynbosReceives)), "ErrInternal", machnet.ErrInternal)
 	}
 
 	var recvUserID string
@@ -202,7 +321,7 @@ func (a *Activity) GetOrCreateReceiveUser(ctx context.Context, trx machnet.Creat
 	}
 	// We didn't find the user, register a new one.
 	if recvUserID == "" {
-		recvUserID, err = addReceiveUser(ctx, a.b, toLinkedAcc.WalletId, sendUser.ID, fynbosReceives[0])
+		recvUserID, err = addReceiveUser(ctx, a.b, toLinkedAcc.WalletID, sendUser.ID, fynbosReceives[0])
 		if err != nil {
 			return nil, err
 		}
@@ -342,15 +461,15 @@ func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.Cr
 		return "", err
 	}
 
-	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletId)
+	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletID)
 	if errors.Is(err, machnet.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user not found for linked acc (%s) wallet id (%s)", trx.FromLinkedAccountID, la.WalletId), "ErrNotFound", err)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user not found for linked acc (%s) wallet id (%s)", trx.FromLinkedAccountID, la.WalletID), "ErrNotFound", err)
 	}
 	if err != nil {
 		return "", err
 	}
 
-	indvKYC, err := a.b.KYC().GetIndividualDetails(ctx, la.WalletId)
+	indvKYC, err := a.b.KYC().GetIndividualDetails(ctx, la.WalletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return "", temporal.NewNonRetryableApplicationError("no KYC information for sender", "KYC", err)
 	}
@@ -404,9 +523,9 @@ func (a *Activity) CreateTransactionWorkflowRef(ctx context.Context, args Create
 		return err
 	}
 
-	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletId)
+	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletID)
 	if errors.Is(err, machnet.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user not found for linked acc (%s) wallet id (%s)", args.FromLinkedAccountID, la.WalletId), "ErrNotFound", err)
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user not found for linked acc (%s) wallet id (%s)", args.FromLinkedAccountID, la.WalletID), "ErrNotFound", err)
 	}
 	if err != nil {
 		return err
@@ -434,9 +553,9 @@ func (a *Activity) DeliverTransaction(ctx context.Context, fromLinkedAccID, tran
 		return err
 	}
 
-	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletId)
+	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletID)
 	if errors.Is(err, machnet.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", la.WalletId), "ErrNotFound", err)
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", la.WalletID), "ErrNotFound", err)
 	}
 	if err != nil {
 		return err

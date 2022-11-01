@@ -127,7 +127,7 @@ func TestCreateReceiveBankAccount(t *testing.T) {
 	}).Return(
 		&linkedaccounts.LinkedAccount{
 			ID:         linkedAccountID,
-			WalletId:   wallet.ID,
+			WalletID:   wallet.ID,
 			Mask:       "3456",
 			Provider:   machnet.ProviderName,
 			ProviderID: receiveBankAccountID,

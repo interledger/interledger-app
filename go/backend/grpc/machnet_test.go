@@ -193,7 +193,7 @@ func TestCreateWallet(t *testing.T) {
 		}).Return(
 			&linkedaccounts.LinkedAccount{
 				ID:         linkedAccountID,
-				WalletId:   wallet.ID,
+				WalletID:   wallet.ID,
 				Name:       name,
 				Mask:       "Fynbos Cash",
 				Provider:   machnet.ProviderName,

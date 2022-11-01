@@ -37,6 +37,7 @@ type CreateTransactionArgs struct {
 	ToLinkedAccountID   string
 	Amount              float64
 	Currency            string
+	IPAddress           string
 }
 
 type (

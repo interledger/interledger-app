@@ -2,7 +2,7 @@ package linkedaccounts
 
 type LinkedAccount struct {
 	ID         string
-	WalletId   string `db:"wallet_id"`
+	WalletID   string `db:"wallet_id"`
 	Name       string
 	Mask       string
 	Provider   string
