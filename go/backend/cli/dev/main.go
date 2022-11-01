@@ -90,17 +90,16 @@ func main() {
 }
 
 type backends struct {
-	db              *sqlx.DB
-	kratos          *kratos.APIClient
-	kyc             kyc.Client
-	linkedaccounts  linkedaccounts.Client
-	machnet         machnet.Client
-	machnetExternal machnet_external.Client
-	signup          signup.Client
-	temporal        temporal.Client
-	twilio          twilio.Service
-	user            user.Client
-	val             *validator.Validate
+	db             *sqlx.DB
+	kratos         *kratos.APIClient
+	kyc            kyc.Client
+	linkedaccounts linkedaccounts.Client
+	machnet        machnet.Client
+	signup         signup.Client
+	temporal       temporal.Client
+	twilio         twilio.Service
+	user           user.Client
+	val            *validator.Validate
 }
 
 func (b backends) DB() *sqlx.DB {
