@@ -324,7 +324,7 @@ func addReceiveUserBankAccount(ctx context.Context, b ops.Backends, extSendUserI
 		PayoutMethod:  external.TypeBankDeposit,
 	})
 	if errors.Is(err, external.ErrInvalidArgument) {
-		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid argument to create machnet receive account"), "ErrInvalidArgument", err)
+		return "", temporal.NewNonRetryableApplicationError("invalid argument to create machnet receive account", "ErrInvalidArgument", err)
 	}
 	if err != nil {
 		return "", err
