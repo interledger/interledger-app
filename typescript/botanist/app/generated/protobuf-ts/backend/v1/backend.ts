@@ -953,6 +953,15 @@ export interface HasSendUserResponse {
      */
     hasSendUser: boolean;
 }
+/**
+ * @generated from protobuf message backend.v1.CreateWalletRequest
+ */
+export interface CreateWalletRequest {
+    /**
+     * @generated from protobuf field: string nickname = 1;
+     */
+    nickname: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class Amount$Type extends MessageType<Amount> {
     constructor() {
@@ -4431,6 +4440,53 @@ class HasSendUserResponse$Type extends MessageType<HasSendUserResponse> {
  * @generated MessageType for protobuf message backend.v1.HasSendUserResponse
  */
 export const HasSendUserResponse = new HasSendUserResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateWalletRequest$Type extends MessageType<CreateWalletRequest> {
+    constructor() {
+        super("backend.v1.CreateWalletRequest", [
+            { no: 1, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateWalletRequest>): CreateWalletRequest {
+        const message = { nickname: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateWalletRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateWalletRequest): CreateWalletRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string nickname */ 1:
+                    message.nickname = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateWalletRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string nickname = 1; */
+        if (message.nickname !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.nickname);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateWalletRequest
+ */
+export const CreateWalletRequest = new CreateWalletRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -4473,6 +4529,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateReceiveBankAccount", options: {}, I: CreateReceiveBankAccountRequest, O: LinkedAccount },
     { name: "CreateSendUser", options: {}, I: Empty, O: Empty },
     { name: "HasSendUser", options: {}, I: Empty, O: HasSendUserResponse },
+    { name: "CreateWallet", options: {}, I: CreateWalletRequest, O: LinkedAccount },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }
