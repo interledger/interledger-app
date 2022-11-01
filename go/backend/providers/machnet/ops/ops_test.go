@@ -414,6 +414,83 @@ func TestGetBanks(t *testing.T) {
 	assert.Equal(t, "Local", banks[0].Branches[0].Name)
 }
 
+func TestCreateAndGetWallet(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+
+	externalSendUser, err := b.External().RegisterUser(context.Background(), external.User{
+		ID:   uuid.NewString(),
+		Type: external.TypeSendUser,
+	})
+	require.NoError(t, err)
+
+	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: externalSendUser.ID,
+	})
+	require.NoError(t, err)
+
+	linkedAccountID := uuid.NewString()
+	var externalWalletID string
+	b.linkedaccounts.EXPECT().Create(context.Background(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
+			externalWalletID = args.ProviderID
+			return &linkedaccounts.LinkedAccount{
+				ID:         linkedAccountID,
+				WalletId:   walletID,
+				Name:       args.Name,
+				Mask:       args.Mask,
+				Provider:   args.Provider,
+				ProviderID: args.ProviderID,
+				Type:       args.Type,
+			}, nil
+		},
+	).Times(1)
+
+	linkedAccount, err := ops.CreateWallet(context.Background(), b, machnet.CreateWalletArgs{
+		Nickname:   "fynesse",
+		SendUserID: sendUser.ID,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Fynbos Cash", linkedAccount.Mask)
+	assert.Equal(t, machnet.ProviderName, linkedAccount.Provider)
+	assert.NotEqual(t, "", linkedAccount.ProviderID)
+	assert.Equal(t, "fynesse", linkedAccount.Name)
+	assert.Equal(t, walletID, linkedAccount.WalletId)
+
+	getWallet, err := ops.GetWallet(context.Background(), b, linkedAccount.ProviderID)
+	require.NoError(t, err)
+	assert.Equal(t, "fynesse", getWallet.Nickname)
+	assert.Equal(t, linkedAccount.ProviderID, getWallet.ID)
+	assert.Equal(t, sendUser.ID, getWallet.SendUserID)
+	assert.Equal(t, uint64(0), getWallet.AvailableBalance)
+	assert.Equal(t, uint64(0), getWallet.Balance)
+
+	// is idempotent
+	b.linkedaccounts.EXPECT().GetByProviderID(context.Background(), linkedaccounts.GetByProviderIDArgs{
+		Provider:   machnet.ProviderName,
+		ProviderID: externalWalletID,
+		Type:       machnet.TypeWallet,
+		WalletID:   walletID,
+	}).Return(
+		&linkedaccounts.LinkedAccount{ID: linkedAccountID}, nil,
+	).Times(1)
+	idempotentLa, err := ops.CreateWallet(context.Background(), b, machnet.CreateWalletArgs{
+		Nickname:   "fynesse",
+		SendUserID: sendUser.ID,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, linkedAccount.ID, idempotentLa.ID)
+
+	// can't create more than 1 wallet per send user
+	_, err = ops.CreateWallet(context.Background(), b, machnet.CreateWalletArgs{
+		Nickname:   "test",
+		SendUserID: sendUser.ID,
+	})
+	require.Error(t, err)
+}
+
 func TestValidateWebhook(t *testing.T) {
 	t.Parallel()
 	// data from webhook received from Machnet sandbox

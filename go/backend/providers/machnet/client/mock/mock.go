@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
 	machnet "gitlab.com/fynbos/backend/providers/machnet"
 	external "gitlab.com/fynbos/backend/providers/machnet/external"
 )
@@ -126,6 +127,21 @@ func (mr *MockClientMockRecorder) CreateUser(ctx, args interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockClient)(nil).CreateUser), ctx, args)
 }
 
+// CreateWallet mocks base method.
+func (m *MockClient) CreateWallet(ctx context.Context, args machnet.CreateWalletArgs) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWallet", ctx, args)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateWallet indicates an expected call of CreateWallet.
+func (mr *MockClientMockRecorder) CreateWallet(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockClient)(nil).CreateWallet), ctx, args)
+}
+
 // External mocks base method.
 func (m *MockClient) External() external.Client {
 	m.ctrl.T.Helper()
@@ -228,6 +244,21 @@ func (m *MockClient) GetUserByWalletID(ctx context.Context, walletID string) (*m
 func (mr *MockClientMockRecorder) GetUserByWalletID(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByWalletID", reflect.TypeOf((*MockClient)(nil).GetUserByWalletID), ctx, walletID)
+}
+
+// GetWallet mocks base method.
+func (m *MockClient) GetWallet(ctx context.Context, id string) (*machnet.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWallet", ctx, id)
+	ret0, _ := ret[0].(*machnet.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWallet indicates an expected call of GetWallet.
+func (mr *MockClientMockRecorder) GetWallet(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockClient)(nil).GetWallet), ctx, id)
 }
 
 // GetWidgetToken mocks base method.

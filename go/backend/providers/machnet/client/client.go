@@ -148,3 +148,11 @@ func (c client) GetReceiveUserBankAccount(ctx context.Context, args machnet.GetR
 func (c client) GetBanks(ctx context.Context, countryCode string) ([]machnet.Bank, error) {
 	return ops.GetBanks(ctx, c.b, countryCode)
 }
+
+func (c client) CreateWallet(ctx context.Context, args machnet.CreateWalletArgs) (*linkedaccounts.LinkedAccount, error) {
+	return ops.CreateWallet(ctx, c.b, args)
+}
+
+func (c client) GetWallet(ctx context.Context, id string) (*machnet.Wallet, error) {
+	return ops.GetWallet(ctx, c.b, id)
+}
