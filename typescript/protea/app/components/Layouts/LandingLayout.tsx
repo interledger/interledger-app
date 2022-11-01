@@ -59,6 +59,7 @@ export function LandingLayout() {
                 title='What is a payment pointer?'
               />
               {/*<HeaderLink to={route('/about')} title='About' />*/}
+              <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
           </div>
