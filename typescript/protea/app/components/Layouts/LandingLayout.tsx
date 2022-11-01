@@ -59,6 +59,7 @@ export function LandingLayout() {
                 title='What is a payment pointer?'
               />
               {/*<HeaderLink to={route('/about')} title='About' />*/}
+              <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
           </div>
@@ -207,6 +208,9 @@ export function LandingLayout() {
               What is a payment pointer?
             </NavDrawer.ListItem>
             {/*<NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem> */}
+            <NavDrawer.ListItem to={route('/blog')}>
+              Blog
+            </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/contact')}>
               Contact
             </NavDrawer.ListItem>
