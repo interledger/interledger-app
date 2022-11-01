@@ -33,13 +33,15 @@ func validationDesc(fe validator.FieldError) string {
 		return "Invalid length."
 	case "iso3166_1_alpha2":
 		return "Provide a valid country code."
+	case "iso3166_2":
+		return "Provide a valid state code."
 	case "email":
 		return "Provide a valid email address."
 	case "url":
 		return "Provide a valid URL"
 	case "iso4217":
 		return "Provide a valid currency"
-	case "ip_address":
+	case "ip_addr":
 		return "Provide a valid IP address"
 	}
 

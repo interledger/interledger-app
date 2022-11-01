@@ -5,8 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gogo/googleapis/google/rpc"
+	"github.com/gogo/status"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/user"
@@ -95,4 +98,35 @@ func TestUpdateUserKYC(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+
+	// validation errors
+	badState := "CA"
+	badCountryCode := "FF"
+	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateIndividualKYCRequest{
+		FirstName: &ud.FirstName,
+		LastName:  &ud.LastName,
+		// CountryCode: &badCountryCode,
+		Gender:      &genderFemale,
+		DateOfBirth: timestamppb.New(ud.DateOfBirth),
+		Address: &pb.UpdateIndividualKYCRequest_Address{
+			Line1:       &ud.Address.Line1,
+			Line2:       &ud.Address.Line2,
+			Building:    &ud.Address.Building,
+			Apartment:   &ud.Address.Apartment,
+			City:        &ud.Address.City,
+			State:       &badState,
+			ZipCode:     &ud.Address.ZipCode,
+			CountryCode: &badCountryCode,
+		},
+	})
+	require.Error(t, err)
+	grpcStatus, ok := status.FromError(err)
+	require.True(t, ok)
+	errorFields := []string{}
+	for _, detail := range grpcStatus.Details() {
+		for _, violation := range detail.(*rpc.BadRequest).FieldViolations {
+			errorFields = append(errorFields, violation.Field)
+		}
+	}
+	assert.EqualValues(t, errorFields, []string{"IpAddress", "AddressCountryCode", "AddressState"})
 }
