@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -48,7 +47,7 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransactionArgs) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 20 * time.Second,
+		StartToCloseTimeout: 20 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 30,
 		},
@@ -58,23 +57,16 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateTransactionWorkflow workflow started", "From", args.FromLinkedAccountID, "To", args.ToLinkedAccountID, "Amount", args.Amount)
 
-	var to TransactionTo
-	err := workflow.ExecuteActivity(ctx, a.GetOrCreateReceiveUser, args).Get(ctx, &to)
+	var fundWalletTX FundWalletResponse
+	err := workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, args).Get(ctx, &fundWalletTX)
 	if err != nil {
-		logger.Error("GetOrCreateReceiveUser Activity failed.", "Error", err)
-		return "", err
-	}
-
-	var trxID string
-	err = workflow.ExecuteActivity(ctx, a.CreateExternalTransaction, args, to).Get(ctx, &trxID)
-	if err != nil {
-		logger.Error("CreateTransaction Activity failed.", "Error", err)
+		logger.Error("FundUserWalletFromCard Activity failed.", "Error", err)
 		return "", err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
 		FromLinkedAccountID:   args.FromLinkedAccountID,
-		ExternalTransactionID: trxID,
+		ExternalTransactionID: fundWalletTX.FundTX,
 		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
 		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
 	}).Get(ctx, nil)
@@ -84,58 +76,64 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	}
 
 	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
-	var transactionCreatedSuccessfully bool
 	for {
 		var transactionEvent external.Event
 		trxChan.Receive(ctx, &transactionEvent)
 		logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
-		if transactionEvent.ResourceID != trxID { // not for this transaction
+		if transactionEvent.ResourceID != fundWalletTX.FundTX { // not for this transaction
 			logger.Error("Received notification for different transaction.")
 			continue
 		}
 
 		if external.TransactionProcessedEvent == transactionEvent.EventName {
-			transactionCreatedSuccessfully = true
 			break
 		}
-	}
-	if !transactionCreatedSuccessfully {
-		return "", fmt.Errorf("%w Transaction failed.", machnet.ErrInternal)
+
+		// TODO: Fail on more specific events?
+		if external.TransactionFailedEvent == transactionEvent.EventName {
+			return "", temporal.NewNonRetryableApplicationError("fund user wallet transaction failed", "ErrInternal", external.ErrInternal)
+		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.DeliverTransaction, args.FromLinkedAccountID, trxID).Get(ctx, nil)
+	var transferID string
+	err = workflow.ExecuteActivity(ctx, a.StartWalletTransfer, args, fundWalletTX).Get(ctx, &transferID)
 	if err != nil {
-		logger.Error("DeliverTransaction Activity failed.", "Error", err)
+		logger.Error("StartWalletTransfer Activity failed.", "Error", err)
 		return "", err
 	}
 
-	deliveryChan := workflow.GetSignalChannel(ctx, ops.TransactionDeliveryEventsChannel)
-	var deliverySuccessful bool
+	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
+		FromLinkedAccountID:   fundWalletTX.FromWalletLinkedAcc,
+		ExternalTransactionID: transferID,
+		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("CreateTransactionWorkflowRef Activity failed.", "Error", err)
+		return "", err
+	}
+
+	// Wait for webhook to say if transfer is successful
 	for {
-		var deliveryEvent external.Event
-		deliveryChan.Receive(ctx, &deliveryEvent)
-		logger.Info("delivery status event: transactionID=", deliveryEvent.ResourceID, "status=", deliveryEvent.EventName)
-		if deliveryEvent.ResourceID != trxID { // not for this transaction
-			logger.Error("Received delivery notification for different transaction.")
+		var transactionEvent external.Event
+		trxChan.Receive(ctx, &transactionEvent)
+		logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
+		if transactionEvent.ResourceID != transferID { // not for this transaction
+			logger.Error("Received notification for different transaction.")
 			continue
 		}
 
-		if external.TransactionDeliveredEvent == deliveryEvent.EventName {
-			deliverySuccessful = true
+		if external.TransactionProcessedEvent == transactionEvent.EventName {
 			break
 		}
 
-		if external.TransactionDeliveryFailedEvent == deliveryEvent.EventName {
-			logger.Info("Machnet recv dump.", "body", string(deliveryEvent.Payload))
-			deliverySuccessful = false
-			break
+		// TODO: Fail on more specific events?
+		if external.TransactionFailedEvent == transactionEvent.EventName {
+			return "", temporal.NewNonRetryableApplicationError("wallet transfer failed", "ErrInternal", external.ErrInternal)
 		}
 	}
-	if !deliverySuccessful {
-		return "", fmt.Errorf("%w Transaction delivery failed.", machnet.ErrInternal)
-	}
 
-	logger.Info("CreateTransactionWorkflow completed.", "external_transaction_id", trxID)
+	logger.Info("CreateTransactionWorkflow completed.", "fund_transfer_id", fundWalletTX.FundTX, "external_transfer_id", transferID)
 
-	return trxID, nil
+	return transferID, nil
 }

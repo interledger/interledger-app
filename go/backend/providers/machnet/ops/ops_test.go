@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -67,7 +68,7 @@ func TestGetWidgetToken(t *testing.T) {
 	token, err := ops.GetWidgetToken(context.Background(), b, walletID)
 	require.NoError(t, err)
 
-	assert.Equal(t, "machnet-widget-token", token.Value)
+	assert.True(t, strings.HasPrefix(token.Value, "machnet-widget-token|"))
 	assert.Equal(t, int(15), token.ExpiresInMinutes)
 	assert.Equal(t, user.ID, token.UserID)
 
@@ -113,7 +114,7 @@ func TestHandleUserCardAddedEvent(t *testing.T) {
 		Type:       machnet.TypeSendCard,
 		Mask:       externalFundingsource.AccountNumber,
 	}).Return(
-		&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletId: walletID},
+		&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletID: walletID},
 		nil,
 	).Times(1)
 
@@ -438,7 +439,7 @@ func TestCreateAndGetWallet(t *testing.T) {
 			externalWalletID = args.ProviderID
 			return &linkedaccounts.LinkedAccount{
 				ID:         linkedAccountID,
-				WalletId:   walletID,
+				WalletID:   walletID,
 				Name:       args.Name,
 				Mask:       args.Mask,
 				Provider:   args.Provider,
@@ -457,7 +458,7 @@ func TestCreateAndGetWallet(t *testing.T) {
 	assert.Equal(t, machnet.ProviderName, linkedAccount.Provider)
 	assert.NotEqual(t, "", linkedAccount.ProviderID)
 	assert.Equal(t, "fynesse", linkedAccount.Name)
-	assert.Equal(t, walletID, linkedAccount.WalletId)
+	assert.Equal(t, walletID, linkedAccount.WalletID)
 
 	getWallet, err := ops.GetWallet(context.Background(), b, linkedAccount.ProviderID)
 	require.NoError(t, err)

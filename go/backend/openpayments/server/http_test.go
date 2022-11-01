@@ -441,6 +441,10 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 			ID:       uuid.NewString(),
 			Provider: machnet.ProviderName,
 			Type:     machnet.TypeReceiveBankAccount,
+		}, {
+			ID:       uuid.NewString(),
+			Provider: machnet.ProviderName,
+			Type:     machnet.TypeWallet,
 		},
 		}, nil).Times(2)
 

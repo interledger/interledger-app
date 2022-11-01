@@ -171,7 +171,7 @@ func (c Client) GetFundingAccountWidgetToken(
 	return &external.WidgetTokenResponse{
 		ExpiryMinutes: 15,
 		UserID:        user.ID,
-		Token:         "machnet-widget-token",
+		Token:         "machnet-widget-token|" + fs.ID,
 	}, nil
 }
 
@@ -368,4 +368,70 @@ func (c Client) GetUserWallet(ctx context.Context, userID, walletID string) (*ex
 	}
 
 	return &ret, nil
+}
+
+func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs) (*external.FundWalletResponse, error) {
+	wallet, err := c.GetUserWallet(ctx, args.UserID, args.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	fs, err := c.GetUserFundingsource(ctx, args.UserID, args.SourceFundID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := external.FundWalletResponse{
+		ID:           uuid.NewString(),
+		UserID:       wallet.UserID,
+		SourceFundID: fs.ID,
+		Status:       external.TransactionProcessed,
+		Amount:       args.Amount,
+		Currency:     args.Currency,
+		IPAddress:    args.IPAddress,
+		Type:         "LOAD",
+	}
+
+	wallet.Balance.Balance += args.Amount
+	wallet.Balance.AvailableBalance += args.Amount
+	c.wallets[wallet.ID] = *wallet
+
+	return &resp, nil
+}
+
+func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTransferArgs) (*external.WalletTransfer, error) {
+	sendWallet, err := c.GetUserWallet(ctx, args.SendUserID, args.SendFundID)
+	if err != nil {
+		return nil, err
+	}
+
+	recvWallet, err := c.GetUserWallet(ctx, args.RecvUserID, args.RecvFundID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := external.WalletTransfer{
+		ID:         uuid.NewString(),
+		UserID:     sendWallet.UserID,
+		Amount:     args.Amount,
+		Currency:   args.Currency,
+		FromFundID: recvWallet.ID,
+		Status:     external.TransactionProcessed,
+		IPAddress:  args.IPAddress,
+		To: external.TransactionTo{
+			FundID: recvWallet.ID,
+			ID:     recvWallet.UserID,
+		},
+		Type: "TRANSFER",
+	}
+
+	recvWallet.Balance.AvailableBalance += args.Amount
+	recvWallet.Balance.Balance += args.Amount
+	c.wallets[recvWallet.ID] = *recvWallet
+
+	sendWallet.Balance.Balance -= args.Amount
+	sendWallet.Balance.AvailableBalance -= args.Amount
+	c.wallets[sendWallet.ID] = *sendWallet
+
+	return &resp, nil
 }

@@ -46,13 +46,13 @@ func TestGetLinkedAccounts(t *testing.T) {
 		expectedLinkedAccounts := []linkedaccounts.LinkedAccount{
 			{
 				ID:       uuid.NewString(),
-				WalletId: walletID,
+				WalletID: walletID,
 				Name:     "test1",
 				Mask:     "abc",
 			},
 			{
 				ID:       uuid.NewString(),
-				WalletId: walletID,
+				WalletID: walletID,
 				Name:     "test2",
 				Mask:     "cba",
 			},

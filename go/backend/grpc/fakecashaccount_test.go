@@ -56,7 +56,7 @@ func TestFakeCashAccount(t *testing.T) {
 		}).Return(
 			&linkedaccounts.LinkedAccount{
 				ID:         linkedAccountID,
-				WalletId:   wallet.ID,
+				WalletID:   wallet.ID,
 				Name:       "test",
 				Provider:   "fakecash",
 				ProviderID: faskcashAccountID,

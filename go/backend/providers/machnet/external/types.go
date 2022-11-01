@@ -285,4 +285,47 @@ type (
 		AvailableBalance float64 `json:"available_balance"`
 		Balance          float64 `json:"balance"`
 	}
+
+	WalletTransferArgs struct {
+		SendUserID string
+		SendFundID string
+		RecvUserID string
+		RecvFundID string
+		Amount     float64
+		Currency   string
+		IPAddress  string
+	}
+
+	WalletTransfer struct {
+		ID         string        `json:"id,omitempty"`
+		UserID     string        `json:"user_id,omitempty"`
+		Amount     float64       `json:"amount,omitempty"`
+		Currency   string        `json:"currency,omitempty"`
+		FeeAmount  float64       `json:"fee_amount,omitempty"`
+		FromFundID string        `json:"from_fund_id,omitempty"`
+		Status     string        `json:"status,omitempty"`
+		IPAddress  string        `json:"ip_address,omitempty"`
+		To         TransactionTo `json:"to"`
+		Type       string        `json:"type"`
+	}
+
+	FundWalletArgs struct {
+		UserID       string
+		SourceFundID string
+		WalletID     string
+		Amount       float64
+		Currency     string
+		IPAddress    string
+	}
+
+	FundWalletResponse struct {
+		ID           string  `json:"id"`
+		UserID       string  `json:"user_id"`
+		SourceFundID string  `json:"from_fund_id"`
+		Status       string  `json:"status"`
+		Amount       float64 `json:"amount"`
+		Currency     string  `json:"currency"`
+		IPAddress    string  `json:"ip_address"`
+		Type         string  `json:"type"`
+	}
 )

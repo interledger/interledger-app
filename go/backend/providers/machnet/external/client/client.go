@@ -445,6 +445,96 @@ func (c Client) GetUserWallet(ctx context.Context, userID, walletID string) (*ex
 	return &wallet, nil
 }
 
+func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs) (*external.FundWalletResponse, error) {
+	reqURL := path.Join(c.baseUrl, "users", args.UserID, "funds", args.WalletID, "transfers")
+
+	body := struct {
+		SourceFundID string  `json:"from_fund_id"`
+		Type         string  `json:"type"`
+		Amount       float64 `json:"amount"`
+		Currency     string  `json:"currency"`
+		IPAddress    string  `json:"IPAddress"`
+	}{
+		SourceFundID: args.SourceFundID,
+		Type:         "LOAD",
+		Amount:       args.Amount,
+		Currency:     args.Currency,
+		IPAddress:    args.IPAddress,
+	}
+
+	bb, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("%w failed to marshall fund wallet payload (%s)", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(bb))
+	if err != nil {
+		return nil, fmt.Errorf("%w failed to create fund wallet http req (%s)", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w failed to do fund wallet http req (%s)", external.ErrInternal, err)
+	}
+
+	respBody, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var res external.FundWalletResponse
+	err = json.Unmarshal(respBody, &res)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
+func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTransferArgs) (*external.WalletTransfer, error) {
+	reqURL := path.Join(c.baseUrl, "users", args.SendUserID, "funds", args.SendFundID, "transfers")
+
+	body := struct {
+		Type      string  `json:"type"`
+		Amount    float64 `json:"amount"`
+		Currency  string  `json:"currency"`
+		IPAddress string  `json:"IPAddress"`
+	}{
+		Type:      "TRANSFER",
+		Amount:    args.Amount,
+		Currency:  args.Currency,
+		IPAddress: args.IPAddress,
+	}
+
+	bb, err := json.Marshal(body)
+	if err != nil {
+		return nil, fmt.Errorf("%w failed to marshall wallet transfer payload (%s)", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(bb))
+	if err != nil {
+		return nil, fmt.Errorf("%w failed to create wallet transfer http req (%s)", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w failed to do wallet transfer http req (%s)", external.ErrInternal, err)
+	}
+
+	respBody, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var res external.WalletTransfer
+	err = json.Unmarshal(respBody, &res)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
 func parseResponse(resp *http.Response) ([]byte, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

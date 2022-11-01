@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -206,14 +207,14 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 
 	b.linked.EXPECT().Get(gomock.Any(), fromLinkedAccID).Return(&linkedaccounts.LinkedAccount{
 		ID:         fromLinkedAccID,
-		WalletId:   fromWallet.ID,
+		WalletID:   fromWallet.ID,
 		Provider:   machnet.ProviderName,
 		ProviderID: uuid.NewString(),
 	}, nil)
 
 	b.linked.EXPECT().Get(gomock.Any(), toLinkedAccID).Return(&linkedaccounts.LinkedAccount{
 		ID:         toLinkedAccID,
-		WalletId:   toWallet.ID,
+		WalletID:   toWallet.ID,
 		Provider:   machnet.ProviderName,
 		ProviderID: bankAcc.ID,
 	}, nil)
@@ -302,7 +303,7 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 
 	b.linked.EXPECT().Get(gomock.Any(), linkedAccID).Return(&linkedaccounts.LinkedAccount{
 		ID:         linkedAccID,
-		WalletId:   wallet.ID,
+		WalletID:   wallet.ID,
 		Provider:   machnet.ProviderName,
 		ProviderID: uuid.NewString(),
 	}, nil)
@@ -385,7 +386,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 
 	b.linked.EXPECT().Get(gomock.Any(), fromLinkedAccID).Return(&linkedaccounts.LinkedAccount{
 		ID:         fromLinkedAccID,
-		WalletId:   fromWallet.ID,
+		WalletID:   fromWallet.ID,
 		Provider:   machnet.ProviderName,
 		ProviderID: uuid.NewString(),
 	}, nil).Times(2)
@@ -427,4 +428,92 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 
 	_, err = env.ExecuteActivity(a.DeliverTransaction, fromLinkedAccID, trxID)
 	require.NoError(t, err)
+}
+
+func TestActivity_FundUserWalletFromCard(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	machnetExt := machnet_external_inmem.New()
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnetExt).AnyTimes()
+	b := testBackends{
+		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
+	}
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	a := NewActivity(b)
+	env.RegisterActivity(a.FundUserWalletFromCard)
+
+	fromLinkedAccID := uuid.NewString()
+	fromUserID := uuid.NewString()
+	toLinkedAccID := uuid.NewString()
+
+	// Create Signup
+	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), fromUserID)
+	require.NoError(t, err)
+
+	fromWallet, err := b.users.CreateNewWallet(ctx, fromUserID, "TestWallet")
+	require.NoError(t, err)
+
+	mu, err := a.b.External().RegisterUser(ctx, external.User{
+		Type: external.TypeSendUser,
+	})
+	require.NoError(t, err)
+
+	widget, err := a.b.External().GetFundingAccountWidgetToken(ctx, mu.ID)
+	require.NoError(t, err)
+	cardExtID := strings.Split(widget.Token, "|")[1]
+
+	mw, err := a.b.External().CreateUserWallet(ctx, mu.ID, "testWallet")
+	require.NoError(t, err)
+
+	_, err = ops.CreateUser(ctx, a.b, machnet.CreateArgs{
+		WalletID:   fromWallet.ID,
+		ExternalID: mu.ID,
+	})
+	require.NoError(t, err)
+
+	b.linked.EXPECT().Get(gomock.Any(), fromLinkedAccID).Return(&linkedaccounts.LinkedAccount{
+		ID:         fromLinkedAccID,
+		WalletID:   fromWallet.ID,
+		Provider:   machnet.ProviderName,
+		ProviderID: cardExtID,
+		Type:       machnet.TypeSendCard,
+	}, nil).AnyTimes()
+
+	linkedAccID := uuid.NewString()
+	b.linked.EXPECT().ListByWalletId(gomock.Any(), fromWallet.ID).Return([]linkedaccounts.LinkedAccount{
+		{
+			ID:         linkedAccID,
+			WalletID:   fromWallet.ID,
+			Provider:   machnet.ProviderName,
+			ProviderID: mw.ID,
+			Type:       machnet.TypeWallet,
+		},
+	}, nil).AnyTimes()
+
+	trxIDEnc, err := env.ExecuteActivity(a.FundUserWalletFromCard, machnet.CreateTransactionArgs{
+		ToLinkedAccountID:   toLinkedAccID,
+		FromLinkedAccountID: fromLinkedAccID,
+		Amount:              20,
+		Currency:            "USD",
+		IPAddress:           "197.0.2.8",
+	})
+	require.NoError(t, err)
+	var fundResp FundWalletResponse
+	err = trxIDEnc.Get(&fundResp)
+	require.NoError(t, err)
+	require.Equal(t, fundResp.FromWalletLinkedAcc, linkedAccID)
+
+	// Lookup user funds
+	wallet, err := machnetExt.GetUserWallet(ctx, mu.ID, mw.ID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 20.0, wallet.Balance.Balance)
+	assert.Equal(t, 20.0, wallet.Balance.AvailableBalance)
 }

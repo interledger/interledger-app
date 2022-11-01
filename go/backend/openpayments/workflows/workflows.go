@@ -29,7 +29,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	}
 
 	// Check that the recv payment pointer can receive
-	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, machnet.ProviderName, machnet.TypeReceiveBankAccount)
+	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, machnet.ProviderName, machnet.TypeWallet)
 	if err != nil {
 		return nil, err
 	}
