@@ -348,7 +348,7 @@ func CreateWallet(ctx context.Context, b Backends, args machnet.CreateWalletArgs
 
 	if len(existingIDAndNickname) == 1 {
 		if !strings.EqualFold(existingIDAndNickname[0].Nickname, strings.TrimSpace(args.Nickname)) {
-			return nil, fmt.Errorf("%w SendUserId=%s already has a wallet.", machnet.ErrInternal, args.SendUserID)
+			return nil, fmt.Errorf("%w SendUserId=%s already has a wallet.", machnet.ErrUserHasExistingWallet, args.SendUserID)
 		}
 
 		sendUser, err := GetUserByID(ctx, b, args.SendUserID)

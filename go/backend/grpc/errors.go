@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
@@ -17,8 +18,9 @@ import (
 var errorStatus = map[error]error{
 	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
 	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP:    NewValidationError("OTP", "Could not validate OTP"),
-	user.ErrDuplicateWallet: status.Error(codes.AlreadyExists, "Wallet already exists"),
+	twilio.ErrInvalidOTP:             NewValidationError("OTP", "Could not validate OTP"),
+	user.ErrDuplicateWallet:          status.Error(codes.AlreadyExists, "Wallet already exists"),
+	machnet.ErrUserHasExistingWallet: status.Error(codes.AlreadyExists, "Machnet wallet already exists"),
 }
 
 func validationDesc(fe validator.FieldError) string {

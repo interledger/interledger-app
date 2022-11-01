@@ -14,6 +14,8 @@ import (
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestGetMachnetWidgetToken(t *testing.T) {
@@ -212,5 +214,31 @@ func TestCreateWallet(t *testing.T) {
 		assert.Equal(st, "Fynbos Cash", rpc.GetMask())
 		assert.Equal(st, name, rpc.GetName())
 		assert.Equal(st, machnet.TypeWallet, rpc.GetType())
+	})
+
+	t.Run("returns already exists if user has a machnet wallet with a different name", func(st *testing.T) {
+		name := faker.Name()
+		sendUserID := uuid.NewString()
+		c.machnet.EXPECT().GetUserByWalletID(gomock.Any(), wallet.ID).Return(
+			&machnet.User{
+				ID:       sendUserID,
+				WalletID: wallet.ID,
+			},
+			nil,
+		).Times(1)
+		c.machnet.EXPECT().CreateWallet(gomock.Any(), machnet.CreateWalletArgs{
+			Nickname:   name,
+			SendUserID: sendUserID,
+		}).Return(nil, machnet.ErrUserHasExistingWallet).Times(1)
+
+		_, err := client.CreateWallet(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.CreateWalletRequest{
+				Nickname: name,
+			})
+		require.Error(st, err)
+		grpcStatus, ok := status.FromError(err)
+		require.True(st, ok)
+		assert.Equal(st, codes.AlreadyExists, grpcStatus.Code())
 	})
 }
