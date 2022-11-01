@@ -3,6 +3,7 @@ package machnet
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 )
 
@@ -23,4 +24,6 @@ type Client interface {
 	CreateReceiveUserBankAccount(ctx context.Context, args CreateReceiveUserBankAccountArgs) (*ReceiveUserBankAccount, error)
 	GetReceiveUserBankAccount(ctx context.Context, args GetReceiveUserBankAccountArgs) (*ReceiveUserBankAccount, error)
 	GetBanks(ctx context.Context, countryCode string) ([]Bank, error)
+	CreateWallet(ctx context.Context, args CreateWalletArgs) (*linkedaccounts.LinkedAccount, error)
+	GetWallet(ctx context.Context, id string) (*Wallet, error)
 }

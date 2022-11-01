@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -336,6 +337,113 @@ func GetTransactionWorkflowRef(ctx context.Context, b Backends, userID string, t
 	}
 
 	return &ref, nil
+}
+
+func CreateWallet(ctx context.Context, b Backends, args machnet.CreateWalletArgs) (*linkedaccounts.LinkedAccount, error) {
+	var existingIDAndNickname []dbWallet
+	err := b.DB().SelectContext(ctx, &existingIDAndNickname, "SELECT id, nickname FROM machnet_wallets WHERE send_user_id=$1;", args.SendUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	if len(existingIDAndNickname) == 1 {
+		if !strings.EqualFold(existingIDAndNickname[0].Nickname, strings.TrimSpace(args.Nickname)) {
+			return nil, fmt.Errorf("%w SendUserId=%s already has a wallet.", machnet.ErrInternal, args.SendUserID)
+		}
+
+		sendUser, err := GetUserByID(ctx, b, args.SendUserID)
+		if err != nil {
+			return nil, err
+		}
+
+		return b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
+			Provider:   machnet.ProviderName,
+			ProviderID: existingIDAndNickname[0].ID,
+			Type:       machnet.TypeWallet,
+			WalletID:   sendUser.WalletID,
+		})
+	}
+
+	if len(existingIDAndNickname) > 1 {
+		return nil, fmt.Errorf("%w SendUserId=%s has more than 1 wallet.", machnet.ErrInternal, args.SendUserID)
+	}
+
+	_, linkedAccount, err := createWallet(ctx, b, args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return linkedAccount, nil
+}
+
+func createWallet(ctx context.Context, b Backends, args machnet.CreateWalletArgs) (*dbWallet, *linkedaccounts.LinkedAccount, error) {
+	sendUser, err := GetUserByID(ctx, b, args.SendUserID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	externalWallet, err := b.External().CreateUserWallet(ctx, args.SendUserID, args.Nickname)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	insert := db.NewInsert("machnet_wallets").
+		Value("id", externalWallet.ID).Returning("id").
+		Value("nickname", strings.TrimSpace(externalWallet.NickName)).Returning("nickname").
+		Value("send_user_id", externalWallet.UserID).Returning("send_user_id").
+		Returning("created_at").Returning("updated_at")
+
+	sql, values, err := insert.GetStatement()
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var dbWallet dbWallet
+	err = b.DB().GetContext(ctx, &dbWallet, sql, values...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	la, err := b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   sendUser.WalletID,
+		Name:       args.Nickname,
+		Provider:   machnet.ProviderName,
+		ProviderID: externalWallet.ID,
+		Type:       machnet.TypeWallet,
+		Mask:       "Fynbos Cash",
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &dbWallet, la, nil
+}
+
+func GetWallet(ctx context.Context, b Backends, id string) (*machnet.Wallet, error) {
+	var wallet dbWallet
+	err := b.DB().GetContext(ctx, &wallet, "SELECT id, send_user_id, nickname, created_at, updated_at FROM machnet_wallets WHERE id=$1;", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w wallet not found. id=%s", machnet.ErrNotFound, id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	externalWallet, err := b.External().GetUserWallet(ctx, wallet.SendUserID, wallet.ID)
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &machnet.Wallet{
+		ID:               wallet.ID,
+		SendUserID:       wallet.SendUserID,
+		Nickname:         wallet.Nickname,
+		AvailableBalance: uint64(externalWallet.Balance.AvailableBalance * float64(100)),
+		Balance:          uint64(externalWallet.Balance.Balance * float64(100)),
+	}, nil
 }
 
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {

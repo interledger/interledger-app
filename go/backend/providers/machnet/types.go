@@ -1,11 +1,14 @@
 package machnet
 
-import "context"
+import (
+	"context"
+)
 
 const (
 	ProviderName           = "machnet"
 	TypeReceiveBankAccount = "receiveBankAccount"
 	TypeSendCard           = "sendCard"
+	TypeWallet             = "wallet"
 )
 
 type Await func(context.Context, interface{}) error
@@ -147,5 +150,20 @@ type (
 		SendUserID    string
 		WorkflowID    string
 		WorkflowRunID string
+	}
+)
+
+type (
+	Wallet struct {
+		ID               string
+		SendUserID       string
+		Nickname         string
+		AvailableBalance uint64
+		Balance          uint64
+	}
+
+	CreateWalletArgs struct {
+		Nickname   string
+		SendUserID string
 	}
 )
