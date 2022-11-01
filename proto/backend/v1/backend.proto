@@ -160,6 +160,7 @@ service BackendService {
   rpc CreateReceiveBankAccount(CreateReceiveBankAccountRequest) returns (LinkedAccount);
   rpc CreateSendUser(Empty) returns(Empty);
   rpc HasSendUser(Empty) returns (HasSendUserResponse);
+  rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
 
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
@@ -395,4 +396,8 @@ message SetSignupCompleteRequest{
 
 message HasSendUserResponse{
   bool hasSendUser = 1;
+}
+
+message CreateWalletRequest{
+  string nickname = 1;
 }

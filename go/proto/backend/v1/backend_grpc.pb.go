@@ -458,6 +458,7 @@ type BackendServiceClient interface {
 	CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	CreateSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error)
+	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -679,6 +680,15 @@ func (c *backendServiceClient) HasSendUser(ctx context.Context, in *Empty, opts 
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -738,6 +748,7 @@ type BackendServiceServer interface {
 	CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error)
 	CreateSendUser(context.Context, *Empty) (*Empty, error)
 	HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error)
+	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -816,6 +827,9 @@ func (UnimplementedBackendServiceServer) CreateSendUser(context.Context, *Empty)
 }
 func (UnimplementedBackendServiceServer) HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HasSendUser not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateWallet not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -1252,6 +1266,24 @@ func _BackendService_HasSendUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateWallet(ctx, req.(*CreateWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1404,6 +1436,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HasSendUser",
 			Handler:    _BackendService_HasSendUser_Handler,
+		},
+		{
+			MethodName: "CreateWallet",
+			Handler:    _BackendService_CreateWallet_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",

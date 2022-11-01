@@ -86,3 +86,37 @@ func (r *rpcService) HasSendUser(
 		HasSendUser: true,
 	}, nil
 }
+
+func (r *rpcService) CreateWallet(
+	ctx context.Context, req *backendv1.CreateWalletRequest,
+) (*backendv1.LinkedAccount, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := r.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	sendUser, err := r.b.Machnet().GetUserByWalletID(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	la, err := r.b.Machnet().CreateWallet(ctx, machnet.CreateWalletArgs{
+		Nickname:   req.GetNickname(),
+		SendUserID: sendUser.ID,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.LinkedAccount{
+		Id:   la.ID,
+		Type: la.Type,
+		Name: la.Name,
+		Mask: la.Mask,
+	}, nil
+}

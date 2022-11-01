@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -146,4 +148,69 @@ func TestCreateSendUser(t *testing.T) {
 		require.Error(st, err)
 	})
 
+}
+
+func TestCreateWallet(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.ID, "default")
+	require.NoError(t, err)
+
+	t.Run("requires authenticated user", func(st *testing.T) {
+		rpc, err := client.GetMachnetWidgetToken(
+			user_mock.ActingAsContext(t, context.Background(), nil),
+			&backendv1.Empty{},
+		)
+		require.NotNil(st, err)
+		assert.Nil(st, rpc)
+	})
+
+	t.Run("creates linked account", func(st *testing.T) {
+		name := faker.Name()
+		sendUserID := uuid.NewString()
+		c.machnet.EXPECT().GetUserByWalletID(gomock.Any(), wallet.ID).Return(
+			&machnet.User{
+				ID:       sendUserID,
+				WalletID: wallet.ID,
+			},
+			nil,
+		).Times(1)
+		linkedAccountID := uuid.NewString()
+		externalWalletID := uuid.NewString()
+		c.machnet.EXPECT().CreateWallet(gomock.Any(), machnet.CreateWalletArgs{
+			Nickname:   name,
+			SendUserID: sendUserID,
+		}).Return(
+			&linkedaccounts.LinkedAccount{
+				ID:         linkedAccountID,
+				WalletId:   wallet.ID,
+				Name:       name,
+				Mask:       "Fynbos Cash",
+				Provider:   machnet.ProviderName,
+				ProviderID: externalWalletID,
+				Type:       machnet.TypeWallet,
+			},
+			nil,
+		).Times(1)
+
+		rpc, err := client.CreateWallet(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.CreateWalletRequest{
+				Nickname: name,
+			})
+		require.NoError(st, err)
+
+		assert.Equal(st, linkedAccountID, rpc.GetId())
+		assert.Equal(st, "Fynbos Cash", rpc.GetMask())
+		assert.Equal(st, name, rpc.GetName())
+		assert.Equal(st, machnet.TypeWallet, rpc.GetType())
+	})
 }
