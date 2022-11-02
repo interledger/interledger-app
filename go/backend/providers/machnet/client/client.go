@@ -156,3 +156,7 @@ func (c client) CreateWallet(ctx context.Context, args machnet.CreateWalletArgs)
 func (c client) GetWallet(ctx context.Context, id string) (*machnet.Wallet, error) {
 	return ops.GetWallet(ctx, c.b, id)
 }
+
+func (c client) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
+	return ops.WithdrawFromWallet(ctx, c.b, args)
+}
