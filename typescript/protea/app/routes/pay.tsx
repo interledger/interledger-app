@@ -1,17 +1,30 @@
-import type { ChangeEventHandler } from 'react'
-import { useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Layouts, TextField } from '~/components'
-import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { requireUserSession } from '~/lib/kratos.server'
+import {
+  flowType,
+  getCurrentFlow,
+  requireFlow,
+  updateFlow
+} from '~/lib/flows.server'
 import { route } from 'routes-gen'
+import type { GrpcError } from '~/lib/proto.server'
+import {
+  httpMapping,
+  isGrpcError,
+  openPaymentsClient,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
+  await requireUserSession(request)
+  const headers = await requireFlow(request, flowType.Pay)
+
   const flow = await getCurrentFlow(request, flowType.Pay)
-  return json({
-    flow
-  })
+
+  return json({ flow }, { headers })
 }
 
 export const handle = {
@@ -20,101 +33,88 @@ export const handle = {
 
 export default function Page() {
   const { flow } = useLoaderData<typeof loader>()
-  const fetcher = useFetcher()
-
-  const [amount, setAmount] = useState<string>(flow?.data.amount || '')
-
-  const changeHandler: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const newVal = e.target.value
-    if (newVal.split('.')[1] && newVal.split('.')[1].length > 2) {
-      setAmount(newVal.slice(0, -1))
-      fetcher.submit({ amount: newVal.slice(0, -1) }, { method: 'post' })
-      return
-    }
-    setAmount(newVal)
-    fetcher.submit({ amount: newVal }, { method: 'post' })
-  }
-
+  const actionData = useActionData<typeof action>()
   return (
-    <>
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
+      <span>Enter the recipient’s payment pointer.</span>
       <Form
-        id='amount-form'
-        action={`/flows/${flow.id}/withdraw/amount`}
+        id='pay-payment-pointer'
+        action='/pay'
         method='post'
-        className='col-span-full flex flex-col items-end space-y-2 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        className='hidden'
       />
       <TextField
-        id='amount'
-        form='amount-form'
-        label='Amount'
-        name='amount'
-        value={amount}
-        onChange={changeHandler}
-        type='number'
-        min='0'
-        step='0.01'
-        className='col-span-full flex flex-col sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        // aria-invalid={Boolean(actionData?.fieldErrors?.amount) || undefined}
-        // aria-describedby={
-        //   actionData?.fieldErrors?.amount ? 'amount-error' : undefined
-        // }
+        id='paymentPointer'
+        label='Payment pointer'
+        name='paymentPointer'
+        form='pay-payment-pointer'
+        type='text'
+        defaultValue={flow.data.paymentPointer.url || ''}
+        className='mt-6'
+        aria-invalid={Boolean(actionData?.errors.paymentPointer) || undefined}
+        aria-describedby={
+          actionData?.errors.paymentPointer ? 'paymentPointer-error' : undefined
+        }
         required
-        // errorMessage={actionData?.fieldErrors?.amount}
+        errorMessage={actionData?.errors.paymentPointer}
       />
 
-      <div className='text medium col-span-full flex justify-between sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-display text-sm font-medium'>Fees</span>
-        <span className='text-sm'>{flow?.data.displayFee || '$ 0.00'}</span>
-      </div>
-      <div className='col-span-full flex items-end justify-between py-3 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='font-display text-2xl font-medium'>Total</span>
-        <span className='text-4xl font-medium'>
-          {flow?.data.displayTotal || '$ 0.00'}
-        </span>
-      </div>
-      <div className='col-span-full flex justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <Button form='amount-form' type='submit' name='route-to' value='next'>
-          Continue
+      <div className='mt-6'>
+        <Button form='pay-payment-pointer' type='submit'>
+          Pay
         </Button>
       </div>
-    </>
+    </div>
   )
 }
 
-export async function action({ request }: ActionArgs) {
-  // TODO: fetch fee from db
-  const feeStructure = {
-    fixed: 1.0,
-    percentage: 0.02
-  }
-  const form = await request.formData()
-  const amount = parseFloat(String(form.get('amount')))
-  const routeTo = form.get('route-to')
+// The field names given by the backend for field violations
+type fieldErrorsMap = 'url'
 
-  let fee = 0,
-    total = 0
-  if (!isNaN(amount)) {
-    fee = amount * feeStructure.percentage + feeStructure.fixed
-    total = amount + fee
-    if (total < 0) total = 0
-  }
-  const data = {
-    amount: amount,
-    displayAmount: formatMoney(amount),
-    fee: fee,
-    displayFee: formatMoney(fee),
-    total: total,
-    displayTotal: formatMoney(total)
-  }
-
-  const headers = await updateFlow(request, flowType.Pay, data)
-  if (routeTo == 'next') {
-    return redirect(route('/'), { headers })
-  } else {
-    return json(data, { headers })
+function mapper(field: fieldErrorsMap): 'paymentPointer' | null {
+  switch (field) {
+    case 'url':
+      return 'paymentPointer'
+    default:
+      return null
   }
 }
 
-const formatMoney = (value: number): string => {
-  return `$ ${value.toFixed(2)}`
+export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const paymentPointer = form.get('paymentPointer') as string
+
+  const fieldErrors = {
+    paymentPointer: ''
+  }
+
+  const response = await openPaymentsClient
+    .getPaymentPointer({ url: paymentPointer })
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else if (response.code == 5) {
+      fieldErrors.paymentPointer = 'Payment pointer not found.'
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw json({}, httpMapping(response.code))
+  }
+
+  const flow = await getCurrentFlow(request, flowType.Pay)
+
+  const headers = await updateFlow(request, flowType.Pay, {
+    paymentPointer: { ...response.response }
+  })
+
+  return redirect(route('/pay/:flowId/amount', { flowId: flow.id }), {
+    headers
+  })
 }

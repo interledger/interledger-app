@@ -16,13 +16,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<any, ButtonProps>(
-  ({ children, ...buttonProps }, ref) => {
+  ({ children, shrink, ...buttonProps }, ref) => {
     return (
       <button
         ref={ref}
         {...buttonProps}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-display font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-display font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          shrink && 'sm:max-w-fit',
           buttonProps.className
         )}
       >
@@ -33,6 +34,26 @@ export const Button = forwardRef<any, ButtonProps>(
 )
 
 Button.displayName = 'Button'
+
+export const OutlineButton = forwardRef<any, ButtonProps>(
+  ({ children, shrink, ...buttonProps }, ref) => {
+    return (
+      <button
+        ref={ref}
+        {...buttonProps}
+        className={clsx(
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-6 font-display font-medium text-primary outline outline-2 -outline-offset-2 outline-blue-500 hover:text-primary-hover hover:outline-hover focus-visible:bg-container-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          shrink && 'sm:max-w-fit',
+          buttonProps.className
+        )}
+      >
+        {children}
+      </button>
+    )
+  }
+)
+
+OutlineButton.displayName = 'OutlineButton'
 
 interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
 

@@ -1,5 +1,6 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/blog/the-future-digital-wallets-and-payment-pointers": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
     "/linked-account/:type/:flowId/success": { "type": string, "flowId": string };
     "/personal-details/:flowId/address": { "flowId": string };
@@ -12,11 +13,14 @@ declare module "routes-gen" {
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/signup/:flowId/password": { "flowId": string };
+    "/receipt/:transactionId": { "transactionId": string };
     "/legal/privacy-policy": Record<string, never>;
     "/linked-account/:type": { "type": string };
     "/signup/:flowId/about": { "flowId": string };
     "/signup/:flowId/phone": { "flowId": string };
+    "/pay/:flowId/confirm": { "flowId": string };
     "/legal/terms-of-use": Record<string, never>;
+    "/pay/:flowId/amount": { "flowId": string };
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -25,7 +29,6 @@ declare module "routes-gen" {
     "/login/challenge": Record<string, never>;
     "/payment-pointer": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
-    "/pay/amount": Record<string, never>;
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
@@ -41,6 +44,7 @@ declare module "routes-gen" {
 
   export function route<
     T extends
+      | ["/blog/the-future-digital-wallets-and-payment-pointers"]
       | ["/blog/connecting-the-internet-economy"]
       | ["/linked-account/:type/:flowId/success", RouteParams["/linked-account/:type/:flowId/success"]]
       | ["/personal-details/:flowId/address", RouteParams["/personal-details/:flowId/address"]]
@@ -53,11 +57,14 @@ declare module "routes-gen" {
       | ["/what-is-a-payment-pointer"]
       | ["/settings/linked-accounts"]
       | ["/signup/:flowId/password", RouteParams["/signup/:flowId/password"]]
+      | ["/receipt/:transactionId", RouteParams["/receipt/:transactionId"]]
       | ["/legal/privacy-policy"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/signup/:flowId/about", RouteParams["/signup/:flowId/about"]]
       | ["/signup/:flowId/phone", RouteParams["/signup/:flowId/phone"]]
+      | ["/pay/:flowId/confirm", RouteParams["/pay/:flowId/confirm"]]
       | ["/legal/terms-of-use"]
+      | ["/pay/:flowId/amount", RouteParams["/pay/:flowId/amount"]]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
@@ -66,7 +73,6 @@ declare module "routes-gen" {
       | ["/login/challenge"]
       | ["/payment-pointer"]
       | ["/api/sendOtp"]
-      | ["/pay/amount"]
       | ["/recovery"]
       | ["/settings"]
       | ["/waitlist"]
