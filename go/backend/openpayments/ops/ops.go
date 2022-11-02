@@ -476,6 +476,10 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
 
+		if args.ExternalRef == "" {
+			return nil
+		}
+
 		_, err = tx.ExecContext(ctx,
 			"UPDATE openpayments_incoming_payment SET external_ref=$1 WHERE id=$2",
 			args.ExternalRef,

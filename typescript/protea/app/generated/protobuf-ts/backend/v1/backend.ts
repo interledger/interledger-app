@@ -205,6 +205,10 @@ export interface CreateQuoteRequest {
      * @generated from protobuf field: google.protobuf.Timestamp expiresAt = 4;
      */
     expiresAt?: Timestamp;
+    /**
+     * @generated from protobuf field: string externalRef = 5;
+     */
+    externalRef: string;
 }
 /**
  * @generated from protobuf message backend.v1.Quote
@@ -1524,11 +1528,12 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
             { no: 1, name: "sendPaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "receivePaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "amount", kind: "message", T: () => Amount },
-            { no: 4, name: "expiresAt", kind: "message", T: () => Timestamp }
+            { no: 4, name: "expiresAt", kind: "message", T: () => Timestamp },
+            { no: 5, name: "externalRef", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateQuoteRequest>): CreateQuoteRequest {
-        const message = { sendPaymentPointer: "", receivePaymentPointer: "" };
+        const message = { sendPaymentPointer: "", receivePaymentPointer: "", externalRef: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateQuoteRequest>(this, message, value);
@@ -1550,6 +1555,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
                     break;
                 case /* google.protobuf.Timestamp expiresAt */ 4:
                     message.expiresAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.expiresAt);
+                    break;
+                case /* string externalRef */ 5:
+                    message.externalRef = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1575,6 +1583,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
         /* google.protobuf.Timestamp expiresAt = 4; */
         if (message.expiresAt)
             Timestamp.internalBinaryWrite(message.expiresAt, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string externalRef = 5; */
+        if (message.externalRef !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.externalRef);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -84,6 +84,7 @@ message CreateQuoteRequest {
   string receivePaymentPointer = 2;
   Amount amount = 3;
   google.protobuf.Timestamp expiresAt = 4;
+  string externalRef = 5;
 }
 
 message Quote {
