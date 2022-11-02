@@ -224,7 +224,7 @@ type CreateNodeGroupArgs struct {
 func createGeneralNodeGroup(ctx *pulumi.Context, args CreateNodeGroupArgs) error {
 	instanceUserData := `
 [settings.kubernetes]
-max-pods = 20
+max-pods = 40
 `
 	// Launch template is required to set values in the user data field. This
 	// is merged with the default values from the EKS Node group to create
