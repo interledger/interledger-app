@@ -45,6 +45,8 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid currency"
 	case "ip_addr":
 		return "Provide a valid IP address"
+	case "gt":
+		return "Must be greater than " + fe.Param()
 	}
 
 	return ""
