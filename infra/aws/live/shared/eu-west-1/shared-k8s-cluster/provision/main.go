@@ -229,15 +229,15 @@ max-pods = 40
 	// Launch template is required to set values in the user data field. This
 	// is merged with the default values from the EKS Node group to create
 	// a new launch template
-	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-settings-template", &ec2.LaunchTemplateArgs{
+	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-settings-template-1", &ec2.LaunchTemplateArgs{
 		UserData: pulumi.String(b64.StdEncoding.EncodeToString([]byte(instanceUserData))),
 	})
 	if err != nil {
 		return err
 	}
 
-	_, err = eks.NewNodeGroup(ctx, "managed-ng-0", &eks.NodeGroupArgs{
-		NodeGroupName: pulumi.String("managed-ng-0"),
+	_, err = eks.NewNodeGroup(ctx, "managed-ng-1", &eks.NodeGroupArgs{
+		NodeGroupName: pulumi.String("managed-ng-1"),
 		ClusterName:   args.Cluster.Name,
 		ScalingConfig: eks.NodeGroupScalingConfigArgs{
 			DesiredSize: pulumi.Int(2),
@@ -249,7 +249,7 @@ max-pods = 40
 			Id:      launchTemplate.ID(),
 			Version: pulumi.Sprintf("%d", launchTemplate.LatestVersion),
 		},
-		InstanceTypes: pulumi.StringArray{pulumi.String("t2.small")},
+		InstanceTypes: pulumi.StringArray{pulumi.String("t2.medium")},
 		SubnetIds:     args.SubnetIds,
 		AmiType:       pulumi.String("BOTTLEROCKET_x86_64"),
 		Taints: eks.NodeGroupTaintArray{
