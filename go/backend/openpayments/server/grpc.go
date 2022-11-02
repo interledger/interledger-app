@@ -341,6 +341,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		QuoteID:     req.QuoteID,
 		Description: req.Description,
 		ExternalRef: req.ExternalRef,
+		IPAddress:   req.IpAddress,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

@@ -17,6 +17,11 @@ import (
 )
 
 func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (*openpayments.OutgoingPayment, error) {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return nil, err
+	}
+
 	// Validate the incoming, outgoing provider accounts exist
 	q, err := ops.GetQuote(ctx, b, args.QuoteID)
 	if err != nil {
@@ -58,7 +63,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	return ops.GetOutgoingPayment(ctx, b, id)
 }
 
-func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID string) (string, error) {
+func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -81,6 +86,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID string) (strin
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
+	tArgs.IPAddress = ipAddress
 
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,

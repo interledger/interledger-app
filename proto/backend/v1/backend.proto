@@ -49,6 +49,7 @@ message CreateOutgoingPaymentRequest {
   string quoteID = 1;
   string description = 2;
   string externalRef = 3;
+  string ipAddress = 4;
 }
 
 message LookupIncomingPaymentRequest {

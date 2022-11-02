@@ -100,6 +100,10 @@ export interface CreateOutgoingPaymentRequest {
      * @generated from protobuf field: string externalRef = 3;
      */
     externalRef: string;
+    /**
+     * @generated from protobuf field: string ipAddress = 4;
+     */
+    ipAddress: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupIncomingPaymentRequest
@@ -1186,11 +1190,12 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         super("backend.v1.CreateOutgoingPaymentRequest", [
             { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "externalRef", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "externalRef", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentRequest>): CreateOutgoingPaymentRequest {
-        const message = { quoteID: "", description: "", externalRef: "" };
+        const message = { quoteID: "", description: "", externalRef: "", ipAddress: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateOutgoingPaymentRequest>(this, message, value);
@@ -1209,6 +1214,9 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                     break;
                 case /* string externalRef */ 3:
                     message.externalRef = reader.string();
+                    break;
+                case /* string ipAddress */ 4:
+                    message.ipAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1231,6 +1239,9 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string externalRef = 3; */
         if (message.externalRef !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.externalRef);
+        /* string ipAddress = 4; */
+        if (message.ipAddress !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
