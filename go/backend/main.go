@@ -197,7 +197,7 @@ func start(args *cli.StartArgs) {
 	}
 	b.healthcheck = health
 
-	adminUsers, err := auth.NewService(args.GoogleOauth2ClientID)
+	adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain)
 	if err != nil {
 		log.Fatalln(err)
 	}

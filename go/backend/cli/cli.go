@@ -95,7 +95,6 @@ type StartArgs struct {
 	UsdLedgerID               uint32
 	LogLevel                  string
 	LogOutputPath             string
-	GoogleOauth2ClientID      string
 	MachnetClientID           string
 	MachnetClientSecret       string
 	MachnetWebhookSecret      string
@@ -108,6 +107,8 @@ type StartArgs struct {
 	TwilioServiceSid          string
 	ZendeskUser               string
 	ZendeskToken              string
+	AdminPolicyAud            string
+	AdminTeamDomain           string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -180,11 +181,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		log.Fatalln(err)
 	}
 
-	googleOauth2ClientID := os.Getenv("GOOGLE_OUATH2_CLIENT_ID")
-	if googleOauth2ClientID == "" {
-		return nil, errors.New("GOOGLE_OUATH2_CLIENT_ID is required.")
-	}
-
 	mxClientID := os.Getenv("MX_CLIENT_ID")
 	if mxClientID == "" {
 		return nil, errors.New("MX_CLIENT_ID is required.")
@@ -240,7 +236,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		UsdLedgerID:               uint32(usdLedgerID),
 		LogLevel:                  logLevel,
 		LogOutputPath:             logOutputPath,
-		GoogleOauth2ClientID:      googleOauth2ClientID,
 		MachnetClientID:           os.Getenv("MACHNET_CLIENT_ID"),
 		MachnetClientSecret:       os.Getenv("MACHNET_CLIENT_SECRET"),
 		MachnetWebhookSecret:      os.Getenv("MACHNET_WEBHOOK_SECRET"),
@@ -253,5 +248,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioServiceSid:          twilioServiceSid,
 		ZendeskToken:              zendeskToken,
 		ZendeskUser:               zendeskUser,
+		AdminPolicyAud:            os.Getenv("ADMIN_POLICY_AUD"),
+		AdminTeamDomain:           os.Getenv("ADMIN_TEAM_DOMAIN"),
 	}, nil
 }
