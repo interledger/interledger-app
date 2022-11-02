@@ -7,6 +7,8 @@ import type { CanSignupResponse } from "./backend";
 import type { CanSignupRequest } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
+import type { MachnetWalletWithdrawal } from "./backend";
+import type { WithdrawFromMachnetWalletRequest } from "./backend";
 import type { WalletBalance } from "./backend";
 import type { CreateWalletRequest } from "./backend";
 import type { HasSendUserResponse } from "./backend";
@@ -301,6 +303,10 @@ export interface IBackendServiceClient {
      */
     getWalletBalance(input: Empty, options?: RpcOptions): UnaryCall<Empty, WalletBalance>;
     /**
+     * @generated from protobuf rpc: WithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.MachnetWalletWithdrawal);
+     */
+    withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>;
+    /**
      * Waitlist
      *
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
@@ -510,26 +516,33 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<Empty, WalletBalance>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: WithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.MachnetWalletWithdrawal);
+     */
+    withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal> {
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
+        return stackIntercept<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Waitlist
      *
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[25], opt = this._transport.mergeOptions(options);
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CanSignup(backend.v1.CanSignupRequest) returns (backend.v1.CanSignupResponse);
      */
     canSignup(input: CanSignupRequest, options?: RpcOptions): UnaryCall<CanSignupRequest, CanSignupResponse> {
-        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
         return stackIntercept<CanSignupRequest, CanSignupResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetSignupComplete(backend.v1.SetSignupCompleteRequest) returns (backend.v1.Empty);
      */
     setSignupComplete(input: SetSignupCompleteRequest, options?: RpcOptions): UnaryCall<SetSignupCompleteRequest, Empty> {
-        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetSignupCompleteRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

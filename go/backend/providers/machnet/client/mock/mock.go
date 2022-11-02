@@ -303,3 +303,18 @@ func (mr *MockClientMockRecorder) ValidateWebhook(ctx, payload, base64Signature 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), ctx, payload, base64Signature)
 }
+
+// WithdrawFromWallet mocks base method.
+func (m *MockClient) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithdrawFromWallet", ctx, args)
+	ret0, _ := ret[0].(*machnet.WalletWithdrawal)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// WithdrawFromWallet indicates an expected call of WithdrawFromWallet.
+func (mr *MockClientMockRecorder) WithdrawFromWallet(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawFromWallet", reflect.TypeOf((*MockClient)(nil).WithdrawFromWallet), ctx, args)
+}

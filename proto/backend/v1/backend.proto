@@ -166,6 +166,7 @@ service BackendService {
   rpc HasSendUser(Empty) returns (HasSendUserResponse);
   rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
   rpc GetWalletBalance(Empty) returns (WalletBalance);
+  rpc WithdrawFromMachnetWallet(WithdrawFromMachnetWalletRequest) returns (MachnetWalletWithdrawal);
 
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
@@ -410,4 +411,17 @@ message CreateWalletRequest{
 message WalletBalance{
   uint64 balance = 1;
   uint64 available = 2;
+}
+
+message WithdrawFromMachnetWalletRequest {
+  string toLinkedAccountId = 1;
+  uint64 amount = 2;  
+  string ipAddress = 3;
+}
+
+message MachnetWalletWithdrawal {
+  string id = 1;
+  uint64 amount = 2;
+  string toLinkedAccountId = 3;
+  string status = 4;
 }

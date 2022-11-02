@@ -167,4 +167,18 @@ type (
 		Nickname   string
 		SendUserID string
 	}
+
+	WithdrawFromWalletArgs struct {
+		Amount                uint64
+		WalletLinkedAccountID string
+		ToLinkedAccountID     string
+		IpAddress             string
+	}
+
+	WalletWithdrawal struct {
+		ID                string
+		Amount            uint64
+		ToLinkedAccountID string
+		Status            string
+	}
 )

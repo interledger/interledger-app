@@ -14,6 +14,7 @@ import (
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -291,5 +292,93 @@ func TestRpcService_GetWalletBalance(t *testing.T) {
 
 		assert.Equal(st, uint64(100), rpc.Available)
 		assert.Equal(st, uint64(110), rpc.Balance)
+	})
+}
+
+func TestWithdrawFromMachnetWallet(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.ID, "default")
+	require.NoError(t, err)
+
+	t.Run("requires authenticated user", func(st *testing.T) {
+		rpc, err := client.GetMachnetWidgetToken(
+			user_mock.ActingAsContext(t, context.Background(), nil),
+			&backendv1.Empty{},
+		)
+		require.NotNil(st, err)
+		assert.Nil(st, rpc)
+	})
+
+	t.Run("creates withdrawal", func(st *testing.T) {
+		toLinkedAccountID := uuid.NewString()
+		c.linkedaccounts.EXPECT().Get(gomock.Any(), toLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
+			ID:       toLinkedAccountID,
+			WalletId: wallet.ID,
+		}, nil).Times(1)
+
+		walletLinkedAccountID := uuid.NewString()
+		c.linkedaccounts.EXPECT().ListByWalletId(gomock.Any(), wallet.ID).Return(
+			[]linkedaccounts.LinkedAccount{
+				{ID: walletLinkedAccountID, WalletId: wallet.ID, Provider: machnet.ProviderName, Type: machnet.TypeWallet},
+			},
+			nil,
+		).Times(1)
+
+		withdrawalID := uuid.NewString()
+		c.machnet.EXPECT().WithdrawFromWallet(gomock.Any(), machnet.WithdrawFromWalletArgs{
+			WalletLinkedAccountID: walletLinkedAccountID,
+			Amount:                1000,
+			ToLinkedAccountID:     toLinkedAccountID,
+			IpAddress:             "10.10.10.10",
+		}).Return(&machnet.WalletWithdrawal{
+			ID:                withdrawalID,
+			Amount:            1000,
+			ToLinkedAccountID: toLinkedAccountID,
+			Status:            "PROCESSING",
+		}, nil).Times(1)
+
+		withdrawal, err := client.WithdrawFromMachnetWallet(
+			user_mock.ActingAsContext(st, context.Background(), user),
+			&backendv1.WithdrawFromMachnetWalletRequest{
+				ToLinkedAccountId: toLinkedAccountID,
+				Amount:            1000,
+				IpAddress:         "10.10.10.10",
+			},
+		)
+		require.NoError(st, err)
+		assert.Equal(st, "PROCESSING", withdrawal.Status)
+		assert.Equal(st, toLinkedAccountID, withdrawal.ToLinkedAccountId)
+		assert.Equal(st, uint64(1000), withdrawal.Amount)
+		assert.Equal(st, withdrawalID, withdrawal.Id)
+	})
+
+	t.Run("validates request", func(st *testing.T) {
+		_, err := client.WithdrawFromMachnetWallet(
+			user_mock.ActingAsContext(st, context.Background(), user),
+			&backendv1.WithdrawFromMachnetWalletRequest{
+				ToLinkedAccountId: "asd",
+				Amount:            0,
+			},
+		)
+		require.Error(st, err)
+
+		grpcStatus, ok := status.FromError(err)
+		require.True(st, ok)
+		errorFields := []string{}
+		for _, detail := range grpcStatus.Details() {
+			for _, violation := range detail.(*errdetails.BadRequest).FieldViolations {
+				errorFields = append(errorFields, violation.Field)
+			}
+		}
+		assert.EqualValues(t, errorFields, []string{"ToLinkedAccount", "Amount", "IpAddress"})
 	})
 }
