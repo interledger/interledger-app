@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
@@ -89,4 +90,16 @@ func TestInMemoryClient(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, nickname, getWallet.NickName)
 	require.Equal(t, user.ID, getWallet.UserID)
+
+	// withdraw from wallets
+	_, err = client.WithdrawFromUserWallet(context.Background(), external.WithdrawFromUserWalletArgs{
+		UserID:    user.ID,
+		ToFundID:  uuid.NewString(),
+		WalletID:  getWallet.ID,
+		Amount:    10,
+		FeeAmount: 0,
+		Currency:  "USD",
+		IPAddress: "10.10.10.10",
+	})
+	require.ErrorIs(t, err, external.ErrInternal)
 }
