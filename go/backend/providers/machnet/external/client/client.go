@@ -446,7 +446,7 @@ func (c Client) GetUserWallet(ctx context.Context, userID, walletID string) (*ex
 }
 
 func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs) (*external.FundWalletResponse, error) {
-	reqURL := path.Join(c.baseUrl, "users", args.UserID, "funds", args.WalletID, "transfers")
+	reqURL := path.Join("users", args.UserID, "funds", args.WalletID, "transfers")
 
 	body := struct {
 		SourceFundID string  `json:"from_fund_id"`
@@ -467,7 +467,7 @@ func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs
 		return nil, fmt.Errorf("%w failed to marshall fund wallet payload (%s)", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(bb))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", c.baseUrl, reqURL), bytes.NewReader(bb))
 	if err != nil {
 		return nil, fmt.Errorf("%w failed to create fund wallet http req (%s)", external.ErrInternal, err)
 	}
@@ -492,7 +492,7 @@ func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs
 }
 
 func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTransferArgs) (*external.WalletTransfer, error) {
-	reqURL := path.Join(c.baseUrl, "users", args.SendUserID, "funds", args.SendFundID, "transfers")
+	reqURL := path.Join("users", args.SendUserID, "funds", args.SendFundID, "transfers")
 
 	body := struct {
 		Type      string  `json:"type"`
@@ -511,7 +511,7 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		return nil, fmt.Errorf("%w failed to marshall wallet transfer payload (%s)", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(bb))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", c.baseUrl, reqURL), bytes.NewReader(bb))
 	if err != nil {
 		return nil, fmt.Errorf("%w failed to create wallet transfer http req (%s)", external.ErrInternal, err)
 	}

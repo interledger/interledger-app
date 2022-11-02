@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -89,9 +90,9 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			break
 		}
 
-		// TODO: Fail on more specific events?
-		if external.TransactionFailedEvent == transactionEvent.EventName {
-			return "", temporal.NewNonRetryableApplicationError("fund user wallet transaction failed", "ErrInternal", external.ErrInternal)
+		if transactionEvent.EventName == external.TransactionFailedEvent ||
+			transactionEvent.EventName == external.TransactionCancelledEvent {
+			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
 		}
 	}
 
@@ -127,9 +128,9 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			break
 		}
 
-		// TODO: Fail on more specific events?
-		if external.TransactionFailedEvent == transactionEvent.EventName {
-			return "", temporal.NewNonRetryableApplicationError("wallet transfer failed", "ErrInternal", external.ErrInternal)
+		if transactionEvent.EventName == external.TransactionFailedEvent ||
+			transactionEvent.EventName == external.TransactionCancelledEvent {
+			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet transfer failed failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
 		}
 	}
 

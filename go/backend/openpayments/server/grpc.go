@@ -337,12 +337,19 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 }
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
-	op, err := workflows.StartOutgoingPayment(ctx, g.b, openpayments.CreateOutgoingPaymentArgs{
+	args := openpayments.CreateOutgoingPaymentArgs{
 		QuoteID:     req.QuoteID,
 		Description: req.Description,
 		ExternalRef: req.ExternalRef,
 		IPAddress:   req.IpAddress,
-	})
+	}
+
+	err := g.b.Validator().Struct(args)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	op, err := workflows.StartOutgoingPayment(ctx, g.b, args)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

@@ -36,6 +36,8 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid URL"
 	case "iso4217":
 		return "Provide a valid currency"
+	case "ip_addr":
+		return "Provide valid IP address"
 	}
 
 	return "This field failed validation"
