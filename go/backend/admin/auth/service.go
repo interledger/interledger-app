@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"strings"
 )
 
 var (
@@ -20,7 +23,6 @@ var (
 )
 
 type Service interface {
-	GetAdminUser(ctx context.Context) (*AdminUser, error)
 	ForContext(ctx context.Context) (*AdminUser, error)
 	MakeUnaryInterceptors() grpc.ServerOption
 }
@@ -36,64 +38,67 @@ type AdminUser struct {
 }
 
 type IDTokenClaims struct {
-	Iss           string
-	Azp           string
-	Aud           string
-	Sub           string
-	Hd            string
-	Iat           uint64
-	Exp           uint64
-	AtHash        string `json:"at_hash"`
-	Email         string
-	EmailVerified bool `json:"email_verified"`
+	Email string
 }
 
 type service struct {
 	verifier *oidc.IDTokenVerifier
 }
 
-func NewService(oauth2ClientID string) (Service, error) {
-	if oauth2ClientID == "" {
-		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Oauth2 client ID is required.")
+func NewService(policyAud, teamDomain string) (Service, error) {
+
+	if !env.IsLocal() {
+		if policyAud == "" {
+			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Policy audience required.")
+		}
+		if teamDomain == "" {
+			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Team domain required.")
+		}
+		ctx := context.Background()
+
+		config := &oidc.Config{
+			ClientID: policyAud,
+		}
+		certsURL := fmt.Sprintf("%s/cdn-cgi/access/certs", teamDomain)
+		keySet := oidc.NewRemoteKeySet(ctx, certsURL)
+		verifier := oidc.NewVerifier(teamDomain, keySet, config)
+
+		return &service{
+			verifier: verifier,
+		}, nil
 	}
 
-	provider, err := oidc.NewProvider(context.Background(), "https://accounts.google.com")
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return &service{
-		verifier: provider.Verifier(&oidc.Config{
-			ClientID: oauth2ClientID,
-		}),
-	}, nil
+	return &service{}, nil
 }
 
-func (s *service) GetAdminUser(ctx context.Context) (*AdminUser, error) {
+func (s *service) verifyToken(ctx context.Context) (*oidc.IDToken, error) {
 	meta, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, ErrNoUserFound
+		return nil, ErrInvalidToken
 	}
-	idTokens := meta.Get("idToken") // must match the metadata field key configured in Retool
-	if len(idTokens) < 1 {
-		return nil, ErrNoUserFound
+
+	// Make sure that the incoming request has our token header
+	//  Could also look in the cookies for CF_AUTHORIZATION
+	cookies := meta.Get("cookies")
+
+	var cfCookie string
+	for _, c := range cookies {
+		k, v, _ := strings.Cut(c, "=")
+		trimmed := strings.Trim(k, " ")
+		if trimmed == "CF_Authorization" {
+			cfCookie = v
+		}
 	}
-	idToken, err := s.verifier.Verify(ctx, idTokens[0])
+	if cfCookie == "" {
+		return nil, ErrInvalidToken
+	}
+
+	token, err := s.verifier.Verify(ctx, cfCookie)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInvalidToken, err)
+		return nil, ErrInvalidToken
 	}
 
-	claims := IDTokenClaims{}
-	err = idToken.Claims(&claims)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	if !claims.EmailVerified || claims.Email == "" {
-		return nil, fmt.Errorf("%w %s", ErrNoUserFound, "Unverified or invalid email address.")
-	}
-
-	return &AdminUser{Email: claims.Email}, nil
+	return token, nil
 }
 
 func (s *service) ForContext(ctx context.Context) (*AdminUser, error) {
@@ -114,18 +119,22 @@ func (s *service) MakeUnaryInterceptors() grpc.ServerOption {
 	) (interface{}, error) {
 
 		newCtx := ctx
-		if env.IsProd() {
-			user, err := s.GetAdminUser(ctx)
+		if !env.IsLocal() {
+			token, err := s.verifyToken(ctx)
 			if err != nil {
-				fmt.Println(err)
-				if !errors.Is(err, ErrNoUserFound) {
-					return nil, status.Error(codes.Internal, "error parsing id token.")
-				}
+				return nil, status.Error(codes.Unauthenticated, "token not verified")
 			}
 
-			if user != nil {
-				newCtx = context.WithValue(ctx, userCtxKey, user)
+			var claims IDTokenClaims
+			if err := token.Claims(&claims); err != nil {
+				return nil, status.Error(codes.Internal, "error parsing claims")
 			}
+
+			user := &AdminUser{
+				Email: claims.Email,
+			}
+			newCtx = context.WithValue(ctx, userCtxKey, user)
+			log.Info("admin access", zap.String("email", user.Email), zap.String("route", info.FullMethod))
 		}
 
 		return handler(newCtx, req)
