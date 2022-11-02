@@ -2159,28 +2159,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grpc/grpc-js@npm:^1.6.7":
-  version: 1.6.7
-  resolution: "@grpc/grpc-js@npm:1.6.7"
+"@grpc/grpc-js@npm:^1.7.3":
+  version: 1.7.3
+  resolution: "@grpc/grpc-js@npm:1.7.3"
   dependencies:
-    "@grpc/proto-loader": ^0.6.4
+    "@grpc/proto-loader": ^0.7.0
     "@types/node": ">=12.12.47"
-  checksum: 2668b08c2eec433970561384b22cf81443106835077ff1d8b7989cb5519fb7d2284c7a46b6ae94968f3b488ffbd9326ba9b4fbe4971a185d3b89eb0ee99e4fcd
+  checksum: cb05aae4599f5deac9e0f50ea458b4465c581653501b5c1f3f3a9d6bfc5120c731726914d2d0d3a8244fce60cdf86ebbfc69c9d9f39fc34f0ab0100afd4af3e4
   languageName: node
   linkType: hard
 
-"@grpc/proto-loader@npm:^0.6.4":
-  version: 0.6.12
-  resolution: "@grpc/proto-loader@npm:0.6.12"
+"@grpc/proto-loader@npm:^0.7.0":
+  version: 0.7.3
+  resolution: "@grpc/proto-loader@npm:0.7.3"
   dependencies:
     "@types/long": ^4.0.1
     lodash.camelcase: ^4.3.0
     long: ^4.0.0
-    protobufjs: ^6.10.0
+    protobufjs: ^7.0.0
     yargs: ^16.2.0
   bin:
     proto-loader-gen-types: build/bin/proto-loader-gen-types.js
-  checksum: 19bb53811e650e9a975cafa1e0cb084870235cff957695a38a8429c4a71435d584740c1d780fb51882ff4d4863cb9c81393d4dc25c55f5078be283f5ea5289a9
+  checksum: a37712bca61da8d3b3dbf3fe39fa04447d748fd1f96f0758a1e99ede652b0afdfc17ce8093b596f64e9b685be57214e83821e3795905cc2a410336884458ac6d
   languageName: node
   linkType: hard
 
@@ -2398,31 +2398,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobuf-ts/grpc-transport@npm:^2.6.0":
-  version: 2.6.0
-  resolution: "@protobuf-ts/grpc-transport@npm:2.6.0"
+"@protobuf-ts/grpc-transport@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "@protobuf-ts/grpc-transport@npm:2.8.1"
   dependencies:
-    "@protobuf-ts/runtime": ^2.6.0
-    "@protobuf-ts/runtime-rpc": ^2.6.0
+    "@protobuf-ts/runtime": ^2.8.1
+    "@protobuf-ts/runtime-rpc": ^2.8.1
   peerDependencies:
     "@grpc/grpc-js": ^1.6.0
-  checksum: 599d76b96f0d51b4cde9fceba8107a665aa26d2088fbd1261643c2a601d0921ead023292c47a77a27ebd2d9831ab9c5193844f8296c1e19fad31486822d9e860
+  checksum: 4bf16ca9f8eedb2f49fba25cb637f8ec130145ad89bb9a2cd60a8b82cd9506b0c3919306a3424d82cd308041522297184cc1338a43f983e7e14d77c35262202b
   languageName: node
   linkType: hard
 
-"@protobuf-ts/runtime-rpc@npm:^2.6.0":
-  version: 2.6.0
-  resolution: "@protobuf-ts/runtime-rpc@npm:2.6.0"
+"@protobuf-ts/runtime-rpc@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "@protobuf-ts/runtime-rpc@npm:2.8.1"
   dependencies:
-    "@protobuf-ts/runtime": ^2.6.0
-  checksum: f046cd40d5ea07518a83763f6383c0d4f5401e13f42ba94a9f490d0aac2f1449d5023133fe85ca8e2d09ab3d4910466d5333fa1616db59e1e46eef391c251c43
+    "@protobuf-ts/runtime": ^2.8.1
+  checksum: 3a23f88322aa4fe68ba52bb07ee251460d21107e7776e26e2561265d0727ce3698a9c7e44939dbc12907d586768c7699c7ae81e82339f1446dd75c23b9ab6e76
   languageName: node
   linkType: hard
 
-"@protobuf-ts/runtime@npm:^2.6.0":
-  version: 2.6.0
-  resolution: "@protobuf-ts/runtime@npm:2.6.0"
-  checksum: 01e06a658554a588bf09614bc7f9805b1ac1c311de8314fe075e3eb7882c966455cdc0a3cd3e8feb5138b7b8a3d4bde0185ac6284d1bac142c7d07d20a34add4
+"@protobuf-ts/runtime@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "@protobuf-ts/runtime@npm:2.8.1"
+  checksum: 456ce844edf22d1d744c616c661c0aee605d756e4d57fba35c721503f289b6bd7b2fd6c75501169b4d1dc94843dcfa397040a88003bf81b0268a91ad4e222013
   languageName: node
   linkType: hard
 
@@ -8008,6 +8008,13 @@ autoprefixer@latest:
   languageName: node
   linkType: hard
 
+"long@npm:^5.0.0":
+  version: 5.2.0
+  resolution: "long@npm:5.2.0"
+  checksum: 37aa4e67b9c3eebc6d9d675adcc9d06f06059ca268922a71273de389746bf07f0ff282f9e604d17fdf84c4149099b44e936ea2b621a6c4759a216621afa97efd
+  languageName: node
+  linkType: hard
+
 "longest-streak@npm:^3.0.0":
   version: 3.0.1
   resolution: "longest-streak@npm:3.0.1"
@@ -9946,15 +9953,15 @@ postcss@latest:
   resolution: "protea@workspace:."
   dependencies:
     "@googlemaps/google-maps-services-js": ^3.3.16
-    "@grpc/grpc-js": ^1.6.7
+    "@grpc/grpc-js": ^1.7.3
     "@headlessui/react": ^1.6.6
     "@mapbox/rehype-prism": ^0.7.0
     "@mxenabled/web-widget-sdk": ^0.0.8
     "@ory/kratos-client": v0.10.1
     "@playwright/test": ^1.23.3
-    "@protobuf-ts/grpc-transport": ^2.6.0
-    "@protobuf-ts/runtime": ^2.6.0
-    "@protobuf-ts/runtime-rpc": ^2.6.0
+    "@protobuf-ts/grpc-transport": ^2.8.1
+    "@protobuf-ts/runtime": ^2.8.1
+    "@protobuf-ts/runtime-rpc": ^2.8.1
     "@remix-run/dev": ^1.7.3
     "@remix-run/eslint-config": ^1.7.3
     "@remix-run/node": ^1.7.3
@@ -9988,9 +9995,9 @@ postcss@latest:
   languageName: unknown
   linkType: soft
 
-"protobufjs@npm:^6.10.0":
-  version: 6.11.3
-  resolution: "protobufjs@npm:6.11.3"
+"protobufjs@npm:^7.0.0":
+  version: 7.1.2
+  resolution: "protobufjs@npm:7.1.2"
   dependencies:
     "@protobufjs/aspromise": ^1.1.2
     "@protobufjs/base64": ^1.1.2
@@ -10002,13 +10009,9 @@ postcss@latest:
     "@protobufjs/path": ^1.1.2
     "@protobufjs/pool": ^1.1.0
     "@protobufjs/utf8": ^1.1.0
-    "@types/long": ^4.0.1
     "@types/node": ">=13.7.0"
-    long: ^4.0.0
-  bin:
-    pbjs: bin/pbjs
-    pbts: bin/pbts
-  checksum: 4a6ce1964167e4c45c53fd8a312d7646415c777dd31b4ba346719947b88e61654912326101f927da387d6b6473ab52a7ea4f54d6f15d63b31130ce28e2e15070
+    long: ^5.0.0
+  checksum: ae41669b1b0372fb1d49f506f2d1f2b0fb3dc3cece85987b17bcb544e4cef7c8d27f480486cdec324146ad0a5d22a327166a7ea864a9b3e49cc3c92a5d3f6500
   languageName: node
   linkType: hard
 

@@ -15,9 +15,10 @@ import (
 )
 
 var errorStatus = map[error]error{
-	openpayments.ErrPaymentPointerNotFound: NotFoundError("payment pointer not found"),
-	openpayments.ErrNotFound:               NotFoundError("open payments not found"),
+	openpayments.ErrPaymentPointerNotFound: NotFoundError("Payment pointer not found."),
+	openpayments.ErrNotFound:               NotFoundError("Open payments not found."),
 	openpayments.ErrPaymentPointerExists:   NewValidationError("url", "That payment pointer has been taken. Please choose another"),
+	openpayments.ErrInvalidPointerURL:      NewValidationError("url", "Payment pointer is invalid."),
 }
 
 func validationDesc(fe validator.FieldError) string {

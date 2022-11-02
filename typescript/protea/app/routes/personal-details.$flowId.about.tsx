@@ -89,7 +89,7 @@ export default function Page() {
           id='firstName'
           form='personal-details-about'
           label='First name'
-          labelSuffix='1'
+          labelSuffix='&dagger;'
           name='firstName'
           defaultValue={traits.firstName || flow?.data.firstName}
           type='text'
@@ -106,7 +106,7 @@ export default function Page() {
           id='lastName'
           form='personal-details-about'
           label='Last name'
-          labelSuffix='1'
+          labelSuffix='&dagger;'
           name='lastName'
           defaultValue={traits.lastName || flow?.data.lastName}
           type='text'
@@ -159,10 +159,13 @@ export default function Page() {
           Continue
         </Button>
       </div>
-      <div className='flex w-full flex-col p-4'>
+      <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>
-          <sup>1</sup> First and last name as they appear on your government
-          issued ID document.
+          <sup>&dagger;</sup>
+        </span>
+        <span className='text-xs text-medium'>
+          First and last name as they appear on your government issued ID
+          document.
         </span>
       </div>
     </>

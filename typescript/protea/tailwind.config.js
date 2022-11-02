@@ -21,6 +21,7 @@ module.exports = {
         weak: 'rgba(var(--text-weak), <alpha-value>)',
         disabled: 'rgba(var(--text-disabled), <alpha-value>)',
         primary: 'rgba(var(--text-primary), <alpha-value>)',
+        'primary-hover': 'rgba(var(--text-primary-hover), <alpha-value>)',
         error: 'rgba(var(--text-error), <alpha-value>)',
         success: 'rgba(var(--text-success), <alpha-value>)'
       },

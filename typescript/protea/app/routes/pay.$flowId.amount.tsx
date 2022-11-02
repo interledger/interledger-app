@@ -1,0 +1,219 @@
+import { useCallback } from 'react'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { useFetcher, useLoaderData } from '@remix-run/react'
+import { Button, Icon, Layouts, TextField } from '~/components'
+import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { route } from 'routes-gen'
+import type { GrpcError } from '~/lib/proto.server'
+import {
+  httpMapping,
+  isGrpcError,
+  openPaymentsClient,
+  StatusError
+} from '~/lib/proto.server'
+import { DateTime } from 'luxon'
+
+export async function loader({ request }: LoaderArgs) {
+  const flow = await getCurrentFlow(request, flowType.Pay)
+  return json({
+    flow
+  })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
+}
+
+export default function Page() {
+  const { flow } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher()
+
+  const _onChangeInput = useCallback(
+    (event) => {
+      let amount = event.target.value
+      fetcher.submit({ amount: amount }, { method: 'post' })
+    },
+    [fetcher]
+  )
+
+  return (
+    <>
+      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+        <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
+        <span>Enter the amount you want to pay.</span>
+        <fetcher.Form
+          id='amount-form'
+          action={`/pay/${flow.id}/amount`}
+          method='post'
+          className='hidden'
+        />
+        <TextField
+          id='amount'
+          form='amount-form'
+          label='You send'
+          name='amount'
+          defaultValue={flow?.data.amount}
+          onChange={_onChangeInput}
+          prefixIcon={<Icon className='text-medium'>attach_money</Icon>}
+          type='number'
+          min='0'
+          step='0.01'
+          className='mt-6'
+          aria-invalid={Boolean(fetcher.data?.errors.amount) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.amount ? 'amount-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.amount || undefined}
+          required
+        />
+
+        <div className='mt-4 flex w-full justify-between'>
+          <span className='text-sm'>Total fees</span>
+          <span className='text-sm font-medium text-strong'>
+            free <sup>*</sup>
+          </span>
+        </div>
+        <div className='mt-4 flex w-full justify-between'>
+          <span className='text-sm'>They receive</span>
+          <span className='text-sm text-2xl font-medium text-strong'>
+            {flow?.data.displayReceiveAmount || '$ 0.00'}
+          </span>
+        </div>
+        <TextField
+          id='note'
+          label='Note'
+          name='note'
+          form='amount-form'
+          type='text'
+          defaultValue={flow.data.note || ''}
+          className='mt-12'
+          aria-invalid={Boolean(fetcher.data?.errors.note) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.note ? 'paymentPointer-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.note}
+        />
+        <div className='mt-8'>
+          <Button form='amount-form' type='submit' name='route-to' value='next'>
+            Continue
+          </Button>
+        </div>
+      </div>
+      <div className='mt-6 flex w-full space-x-2'>
+        <span className='text-xs text-medium'>*</span>
+        <span className='text-xs text-medium'>
+          For a limited time, Fynbos will absorb the fees associated with making
+          a payment.
+        </span>
+      </div>
+    </>
+  )
+}
+
+// The field names given by the backend for field violations
+type fieldErrorsMap = 'amount'
+
+function mapper(field: fieldErrorsMap): 'amount' | null {
+  switch (field) {
+    case 'amount':
+      return 'amount'
+    default:
+      return null
+  }
+}
+
+export async function action({ request }: ActionArgs) {
+  const flow = await getCurrentFlow(request, flowType.Pay)
+  const form = await request.formData()
+  const amount = form.get('amount') as string
+  const note = form.get('note') as string
+  const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
+  const routeTo = form.get('route-to')
+
+  const expiresAt = {
+    seconds: `${Math.floor(DateTime.now().plus({ hour: 1 }).toSeconds())}`,
+    nanos: 0
+  }
+
+  const fieldErrors = {
+    amount: '',
+    note: ''
+  }
+
+  if (amountToSubmit == 'NaN') {
+    fieldErrors.amount = 'Amount is required.'
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
+  let sendPaymentPointer = 'https://fynbos.me/cairin',
+    receivePaymentPointer = flow.data.paymentPointer.url
+
+  // TODO: Submit note with quote
+  const response = await openPaymentsClient
+    .createQuote(
+      {
+        sendPaymentPointer,
+        receivePaymentPointer,
+        amount: {
+          amount: amountToSubmit,
+          asset: flow.data.paymentPointer.asset,
+          assetScale: flow.data.paymentPointer.assetScale
+        },
+        expiresAt
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(response)) {
+    if (response.code == 3) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw json({}, httpMapping(response.code))
+  }
+
+  let sendAmount = response.response.sendAmount?.amount,
+    receiveAmount = response.response.receiveAmount?.amount,
+    fee = 0
+
+  // TODO: should fetch this information directly from the quote.
+  const data = {
+    errors: { ...fieldErrors },
+    quoteID: response.response.id,
+    note,
+    amount: amount,
+    fee: fee,
+    displayFee: formatMoney(fee),
+    sendAmount,
+    displaySendAmount: formatMoney(parseFloat(sendAmount as string) / 100),
+    receiveAmount,
+    displayReceiveAmount: formatMoney(
+      parseFloat(receiveAmount as string) / 100
+    ),
+    receivePaymentPointer,
+    sendPaymentPointer
+  }
+
+  const headers = await updateFlow(request, flowType.Pay, data)
+  if (routeTo == 'next') {
+    return redirect(route('/pay/:flowId/confirm', { flowId: flow.id }), {
+      headers
+    })
+  } else {
+    return json(data, { headers })
+  }
+}
+
+const formatMoney = (value: number): string => {
+  return `$ ${value.toFixed(2)}`
+}
