@@ -19,7 +19,7 @@ import (
 func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (*openpayments.OutgoingPayment, error) {
 	err := b.Validator().Struct(args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", machnet.ErrInvalidArgument, err)
 	}
 
 	// Validate the incoming, outgoing provider accounts exist

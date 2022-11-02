@@ -42,13 +42,14 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 		ToLinkedAccountID:   uuid.NewString(),
 		Amount:              10.5,
 		Currency:            "USD",
+		IPAddress:           "198.0.0.3",
 	}
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs).Return("external_id", nil)
 	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, "external_id").Return(nil)
 
-	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id)
+	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, "198.0.0.3")
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())

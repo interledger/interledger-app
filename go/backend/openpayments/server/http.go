@@ -121,7 +121,7 @@ func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request)
 	// Extract IP address from the req
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
-		log.Error("failed to get ip address from http request, falling back to headers", zap.Error(err))
+		log.Error("failed to get ip address from http request, falling back to headers", zap.Error(err), zap.String("remoteAddress", req.RemoteAddr))
 	}
 	fips := strings.Split(req.Header.Get("X-Forwarded-For"), ",")
 	if len(fips) > 0 {
