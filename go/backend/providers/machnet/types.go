@@ -169,10 +169,10 @@ type (
 	}
 
 	WithdrawFromWalletArgs struct {
-		Amount                uint64
-		WalletLinkedAccountID string
-		ToLinkedAccountID     string
-		IpAddress             string
+		Amount                uint64 `validate:"gt=0"`
+		WalletLinkedAccountID string `validate:"required,uuid"`
+		ToLinkedAccountID     string `validate:"required,uuid"`
+		IpAddress             string `validate:"ip_addr"`
 	}
 
 	WalletWithdrawal struct {

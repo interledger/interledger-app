@@ -446,6 +446,49 @@ func GetWallet(ctx context.Context, b Backends, id string) (*machnet.Wallet, err
 	}, nil
 }
 
+func WithdrawFromWallet(ctx context.Context, b Backends, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
+	linkedWallet, err := b.LinkedAccounts().Get(ctx, args.WalletLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", machnet.ErrNotFound, "Linked wallet not found.")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	wallet, err := GetWallet(ctx, b, linkedWallet.ProviderID)
+	if err != nil {
+		return nil, err
+	}
+
+	toAccount, err := b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, fmt.Errorf("%w Destination linked account not found (id=%s).", machnet.ErrInternal, args.ToLinkedAccountID)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	withdrawal, err := b.External().WithdrawFromUserWallet(ctx, external.WithdrawFromUserWalletArgs{
+		UserID:    wallet.SendUserID,
+		WalletID:  wallet.ID,
+		ToFundID:  toAccount.ProviderID,
+		Amount:    float64(args.Amount) / float64(100),
+		FeeAmount: 0,
+		Currency:  "USD",
+		IPAddress: args.IpAddress,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &machnet.WalletWithdrawal{
+		ID:                withdrawal.ID,
+		Amount:            args.Amount,
+		ToLinkedAccountID: args.ToLinkedAccountID,
+		Status:            withdrawal.Status,
+	}, nil
+}
+
 func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
 	var err error
 	switch event.EventName {
