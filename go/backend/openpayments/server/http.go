@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"path"
 	"strings"
@@ -116,6 +117,17 @@ func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+
+	// Extract IP address from the req
+	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		log.Error("failed to get ip address from http request, falling back to headers", zap.Error(err))
+	}
+	fips := strings.Split(req.Header.Get("X-Forwarded-For"), ",")
+	if len(fips) > 0 {
+		ip = strings.TrimSpace(fips[0])
+	}
+	args.IPAddress = ip
 
 	op, err := workflows.StartOutgoingPayment(req.Context(), b, args)
 	if errors.Is(err, openpayments.ErrNotFound) {

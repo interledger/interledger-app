@@ -191,22 +191,13 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, trx machnet.Creat
 		return nil, err
 	}
 
-	ipAddress := trx.IPAddress
-	if ipAddress == "" {
-		id, err := a.b.KYC().GetIndividualDetails(ctx, fromCard.WalletID)
-		if err != nil {
-			return nil, err
-		}
-		ipAddress = id.IPAddress
-	}
-
 	fundResp, err := a.b.External().FundUserWallet(ctx, external.FundWalletArgs{
 		UserID:       mu.ID,
 		SourceFundID: fromCard.ProviderID,
 		WalletID:     found.ProviderID,
 		Amount:       trx.Amount,
 		Currency:     trx.Currency,
-		IPAddress:    ipAddress,
+		IPAddress:    trx.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to fund machnet user wallet (%s) from card (%s)", found.ProviderID, fromCard.ProviderID), "ErrInternal", err)
@@ -232,15 +223,6 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, trx machnet.CreateTr
 		return "", err
 	}
 
-	ipAddress := trx.IPAddress
-	if ipAddress == "" {
-		id, err := a.b.KYC().GetIndividualDetails(ctx, sendLA.WalletID)
-		if err != nil {
-			return "", err
-		}
-		ipAddress = id.IPAddress
-	}
-
 	sendUser, err := ops.GetUserByWalletID(ctx, a.b, sendLA.WalletID)
 	if err != nil {
 		return "", err
@@ -258,7 +240,7 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, trx machnet.CreateTr
 		RecvFundID: recvLA.ProviderID,
 		Amount:     trx.Amount,
 		Currency:   trx.Currency,
-		IPAddress:  ipAddress,
+		IPAddress:  trx.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
 		return "", temporal.NewNonRetryableApplicationError("failed to initiate machnet wallet transfer", "ErrInternal", err)

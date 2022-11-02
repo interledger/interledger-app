@@ -453,7 +453,7 @@ func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs
 		Type         string  `json:"type"`
 		Amount       float64 `json:"amount"`
 		Currency     string  `json:"currency"`
-		IPAddress    string  `json:"IPAddress"`
+		IPAddress    string  `json:"ip_address"`
 	}{
 		SourceFundID: args.SourceFundID,
 		Type:         "LOAD",
@@ -498,7 +498,7 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		Type      string  `json:"type"`
 		Amount    float64 `json:"amount"`
 		Currency  string  `json:"currency"`
-		IPAddress string  `json:"IPAddress"`
+		IPAddress string  `json:"ip_address"`
 	}{
 		Type:      "TRANSFER",
 		Amount:    args.Amount,
