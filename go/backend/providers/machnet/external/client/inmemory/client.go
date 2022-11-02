@@ -435,3 +435,45 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 
 	return &resp, nil
 }
+
+func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.WithdrawFromUserWalletArgs) (*external.WalletWithdrawal, error) {
+	usr, err := c.GetUserByID(ctx, args.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w Send user not found.", external.ErrNotFound)
+	}
+
+	wallet, exists := c.wallets[args.WalletID]
+	if !exists || wallet.UserID != usr.ID {
+		return nil, fmt.Errorf("%w %s", external.ErrNotFound, "User wallet not found.")
+	}
+
+	toUserID := uuid.NewString()
+	toFundingsource, exists := c.fundingsources[args.ToFundID]
+	if exists {
+		toUserID = toFundingsource.UserID
+	}
+
+	wallet.Balance.AvailableBalance -= (args.Amount + args.FeeAmount)
+	wallet.Balance.Balance -= (args.Amount + args.FeeAmount)
+	if wallet.Balance.AvailableBalance < 0 || wallet.Balance.Balance < 0 {
+		return nil, fmt.Errorf("%w Insufficient balance", external.ErrInternal)
+	}
+
+	c.wallets[wallet.ID] = wallet
+
+	return &external.WalletWithdrawal{
+		ID:           uuid.NewString(),
+		UserID:       usr.ID,
+		SourceFundID: wallet.ID,
+		Status:       "PROCESSED",
+		Amount:       args.Amount,
+		FeeAmount:    args.FeeAmount,
+		Currency:     args.Currency,
+		IPAddress:    args.IPAddress,
+		Type:         "UNLOAD",
+		To: external.WalletWithdrawalTo{
+			UserID: toUserID,
+			FundID: args.ToFundID,
+		},
+	}, nil
+}

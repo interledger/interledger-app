@@ -329,3 +329,33 @@ type (
 		Type         string  `json:"type"`
 	}
 )
+
+type (
+	WalletWithdrawal struct {
+		ID           string             `json:"id"`
+		UserID       string             `json:"user_id"`
+		SourceFundID string             `json:"from_fund_id"`
+		Status       string             `json:"status"`
+		Amount       float64            `json:"amount"`
+		FeeAmount    float64            `json:"fee_amount"`
+		Currency     string             `json:"currency"`
+		IPAddress    string             `json:"ip_address"`
+		Type         string             `json:"type"`
+		To           WalletWithdrawalTo `json:"to"`
+	}
+
+	WalletWithdrawalTo struct {
+		UserID string `json:"id"`
+		FundID string `json:"fund_id"`
+	}
+
+	WithdrawFromUserWalletArgs struct {
+		UserID    string
+		ToFundID  string
+		WalletID  string
+		Amount    float64
+		FeeAmount float64
+		Currency  string
+		IPAddress string
+	}
+)

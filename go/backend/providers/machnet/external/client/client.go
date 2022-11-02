@@ -535,6 +535,46 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 	return &res, nil
 }
 
+func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.WithdrawFromUserWalletArgs) (*external.WalletWithdrawal, error) {
+	urlPath, err := url.Parse(path.Join("users", args.UserID, "funds", args.WalletID, "transfers"))
+	if err != nil {
+		return nil, fmt.Errorf("%w Failed to format wallet withdrawal url", external.ErrInternal)
+	}
+
+	payload, err := json.Marshal(map[string]interface{}{
+		"amount":       args.Amount,
+		"fee_amount":   args.FeeAmount,
+		"from_fund_id": args.WalletID,
+		"id":           args.UserID,
+		"ip_address":   args.IPAddress,
+		"type":         "UNLOAD",
+		"to": map[string]string{
+			"fund_id": args.ToFundID,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	postUrl := fmt.Sprintf("%s/%s", c.baseUrl, urlPath.String())
+	resp, err := c.api.Post(postUrl, "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var withdrawal external.WalletWithdrawal
+	if err = json.Unmarshal(body, &withdrawal); err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &withdrawal, nil
+}
+
 func parseResponse(resp *http.Response) ([]byte, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

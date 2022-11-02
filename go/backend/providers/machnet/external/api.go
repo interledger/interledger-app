@@ -21,4 +21,5 @@ type Client interface {
 	GetUserWallet(ctx context.Context, sendUserID, walletID string) (*Wallet, error)
 	FundUserWallet(ctx context.Context, args FundWalletArgs) (*FundWalletResponse, error)
 	CreateWalletTransfer(ctx context.Context, args WalletTransferArgs) (*WalletTransfer, error)
+	WithdrawFromUserWallet(ctx context.Context, args WithdrawFromUserWalletArgs) (*WalletWithdrawal, error)
 }
