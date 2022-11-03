@@ -1,0 +1,16 @@
+{
+  "name": "pot",
+  "version": "0.0.0",
+  "devDependencies": {
+    "miniflare": "^2.10.0",
+    "wrangler": "2.1.15"
+  },
+  "private": true,
+  "scripts": {
+    "start": "miniflare -m true ./src/index.js --watch",
+    "deploy": "wrangler publish"
+  },
+  "resolutions": {
+    "miniflare": "^2.4.0"
+  }
+}

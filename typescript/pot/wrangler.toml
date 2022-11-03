@@ -1,0 +1,12 @@
+name = "pot"
+main = "src/index.js"
+compatibility_date = "2022-11-03"
+
+[[r2_buckets]]
+binding = 'BUCKET'
+bucket_name = 'cdn'
+
+
+[miniflare]
+env_path = ".env.local"
+cache = true
