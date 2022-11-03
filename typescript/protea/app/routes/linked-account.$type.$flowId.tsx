@@ -70,7 +70,7 @@ export default function Page() {
         elementId: 'widget',
         userId: widgetUserId,
         width: '100%',
-        height: '200px',
+        height: params.type == 'card' ? '258px' : '591px',
         type: params.type,
         locale: 'en',
         stylesheet: '',
@@ -121,7 +121,7 @@ export default function Page() {
       <p className='mt-6 text-medium'>
         Please provide your debit card details.
       </p>
-      <div id='widget' className='mt-6 w-full' />
+      <div id='widget' className='-mx-4 mt-6 w-[100vw-2rem]' />
     </div>
   )
 }
