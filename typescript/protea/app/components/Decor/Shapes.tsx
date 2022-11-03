@@ -484,43 +484,43 @@ const blogShapes: {
     [
       {
         radius: 'rounded-bl-full',
-        color: 'bg-slate-100'
+        color: 'bg-blue-400'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-rose-300'
       },
       {
         radius: 'rounded-bl-full',
-        color: 'bg-purple-200'
-      },
-      {
-        radius: 'rounded-tr-full',
-        color: 'bg-orange-500'
+        color: 'bg-rose-200'
       }
     ],
     [
       {
-        radius: 'rounded-tl-full',
-        color: 'bg-purple-400'
+        radius: 'rounded-bl-full',
+        color: 'bg-blue-200'
       },
       {
-        radius: 'rounded-bl-full',
-        color: 'bg-orange-500'
+        radius: 'rounded-tl-full',
+        color: 'bg-green-500'
       },
       {
         radius: 'rounded-br-full',
-        color: 'bg-orange-200'
+        color: 'bg-yellow-300'
       }
     ],
     [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-green-700'
+      },
       {
         radius: 'rounded-bl-full',
         color: 'bg-slate-200'
       },
       {
-        radius: 'rounded-bl-full',
-        color: 'bg-purple-600'
-      },
-      {
-        radius: 'rounded-full',
-        color: 'bg-orange-500'
+        radius: 'rounded-br-full',
+        color: 'bg-blue-500'
       }
     ]
   ],
