@@ -4,7 +4,8 @@ import * as postA from '~/routes/blog.connecting-the-internet-economy.mdx'
 import * as postB from '~/routes/blog.card-payments-still-suck.mdx'
 import * as postC from '~/routes/blog.our-fynbos-family-meet-don.mdx'
 import * as postD from '~/routes/blog.the-future-digital-wallets-and-payment-pointers.mdx'
-const modules = [postA, postB, postC, postD]
+import * as postE from '~/routes/blog.our-fynbos-family-meet-matt.mdx'
+const modules = [postA, postB, postC, postD, postE]
 
 export type Author = {
   name: string
