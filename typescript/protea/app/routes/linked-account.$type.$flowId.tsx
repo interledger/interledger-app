@@ -16,25 +16,27 @@ import { route } from 'routes-gen'
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
 
-  let cardRpc = await grpcClient
-    .getMachnetWidgetToken(
-      {},
-      {
-        meta: {
-          cookies: request.headers.get('cookie') || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(cardRpc)) {
-    throw json({}, httpMapping(cardRpc.code))
-  }
+  // let cardRpc = await grpcClient
+  //   .getMachnetWidgetToken(
+  //     {},
+  //     {
+  //       meta: {
+  //         cookies: request.headers.get('cookie') || ''
+  //       }
+  //     }
+  //   )
+  //   .then((v) => v)
+  //   .catch(StatusError)
+  // console.log('token response', cardRpc)
+  // if (isGrpcError(cardRpc)) {
+  //   throw json({}, httpMapping(cardRpc.code))
+  // }
 
   return json({
     widgetScriptUrl: 'https://widget.v4sandbox.machpay.com/widget/widget.js',
-    widgetUserId: cardRpc.response.userId,
-    widgetToken: cardRpc.response.value
+    widgetUserId: 'a3f7beb8-c15f-483d-b0f3-75214467b1ff', // cardRpc.response.userId,
+    widgetToken:
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtdG9JZCI6IlFUQkNSZ1xyXG4iLCJyb2xlcyI6WyJXSURHRVQiXSwib3JpZ2luYXRvciI6IkEwQkYiLCJleHAiOjE2Njc1NDk3MTAsImFmZmlsaWF0ZSI6IkEwQkYiLCJ1c2VySWQiOiJZVE5tTjJKbFlqZ3RZekUxWmkwME9ETmtMV0l3WmpNdE56VXlNVFEwTmpkaU1XWm1cclxuIiwiYWZmaWxpYXRlSWQiOjQxMX0.D5n1juwH7BIEcJvcv7kokIglRB2lktSH0H9xYhlnVe0' //cardRpc.response.value
   })
 }
 
@@ -73,7 +75,7 @@ export default function Page() {
         height: '200px',
         type: params.type,
         locale: 'en',
-        stylesheet: '',
+        stylesheet: 'https://cdn.fynbos.app/machnet/widget_css.css',
         token: widgetToken
       })
       widget.init()

@@ -105,3 +105,30 @@ input::-webkit-datetime-edit-month-field:focus,
 input::-webkit-datetime-edit-year-field:focus {
   background-color: rgba(var(--bg-primary), 0.5);
 }
+
+
+/* QRcode container styles */
+
+#video-container {
+  line-height: 0;
+}
+ /*#video-container.example-style-2 {*/
+ /*  position: relative;*/
+ /*  width: max-content;*/
+ /*  height: max-content;*/
+ /*  overflow: hidden;*/
+ /*}*/
+
+#video-container.example-style-2 .scan-region-highlight {
+  border-radius: 1rem;
+  outline: rgba(71, 85, 105, 0.45) solid 50vmax;
+}
+#video-container.example-style-2 .scan-region-highlight-svg {
+  display: none;
+}
+
+.code-outline-highlight {
+  stroke: rgba(255, 255, 255, 0.5) !important;
+  stroke-width: 15 !important;
+  stroke-dasharray: none !important;
+}

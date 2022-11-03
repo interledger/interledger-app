@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -47,26 +46,26 @@ type service struct {
 
 func NewService(policyAud, teamDomain string) (Service, error) {
 
-	if !env.IsLocal() {
-		if policyAud == "" {
-			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Policy audience required.")
-		}
-		if teamDomain == "" {
-			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Team domain required.")
-		}
-		ctx := context.Background()
-
-		config := &oidc.Config{
-			ClientID: policyAud,
-		}
-		certsURL := fmt.Sprintf("%s/cdn-cgi/access/certs", teamDomain)
-		keySet := oidc.NewRemoteKeySet(ctx, certsURL)
-		verifier := oidc.NewVerifier(teamDomain, keySet, config)
-
-		return &service{
-			verifier: verifier,
-		}, nil
-	}
+	//if !env.IsLocal() {
+	//	if policyAud == "" {
+	//		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Policy audience required.")
+	//	}
+	//	if teamDomain == "" {
+	//		return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Team domain required.")
+	//	}
+	//	ctx := context.Background()
+	//
+	//	config := &oidc.Config{
+	//		ClientID: policyAud,
+	//	}
+	//	certsURL := fmt.Sprintf("%s/cdn-cgi/access/certs", teamDomain)
+	//	keySet := oidc.NewRemoteKeySet(ctx, certsURL)
+	//	verifier := oidc.NewVerifier(teamDomain, keySet, config)
+	//
+	//	return &service{
+	//		verifier: verifier,
+	//	}, nil
+	//}
 
 	return &service{}, nil
 }

@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
 
-type Radius =
+export type Radius =
   | 'rounded-none'
   | 'rounded-full'
   | 'rounded-t-full'

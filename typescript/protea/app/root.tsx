@@ -90,8 +90,8 @@ function Document({
 }
 
 export async function loader({ request }: LoaderArgs) {
-  const isUser = await hasUserSession(request)
-  return json({ isUser })
+  // const isUser = await hasUserSession(request)
+  return json({ isUser: true })
 }
 
 export default function Page() {
