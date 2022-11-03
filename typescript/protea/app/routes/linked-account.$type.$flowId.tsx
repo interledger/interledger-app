@@ -15,7 +15,8 @@ import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
-  let rpc = await grpcClient
+
+  let cardRpc = await grpcClient
     .getMachnetWidgetToken(
       {},
       {
@@ -26,15 +27,14 @@ export async function loader({ request }: LoaderArgs) {
     )
     .then((v) => v)
     .catch(StatusError)
-  if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
+  if (isGrpcError(cardRpc)) {
+    throw json({}, httpMapping(cardRpc.code))
   }
 
-  let widgetScriptUrl = 'https://widget.v4sandbox.machpay.com/widget/widget.js'
   return json({
-    widgetScriptUrl,
-    widgetUserId: rpc.response.userId,
-    widgetToken: rpc.response.value
+    widgetScriptUrl: 'https://widget.v4sandbox.machpay.com/widget/widget.js',
+    widgetUserId: cardRpc.response.userId,
+    widgetToken: cardRpc.response.value
   })
 }
 
@@ -43,10 +43,12 @@ export const handle = {
 }
 
 export default function Page() {
-  const data = useLoaderData<typeof loader>()
-  const scriptStatus = useScript(data.widgetScriptUrl)
-  const navigate = useNavigate()
   const params = useParams()
+  const navigate = useNavigate()
+
+  const { widgetScriptUrl, widgetUserId, widgetToken } =
+    useLoaderData<typeof loader>()
+  const scriptStatus = useScript(widgetScriptUrl)
 
   const listener = useCallback(
     (event: any) => {
@@ -66,37 +68,56 @@ export default function Page() {
     if (scriptStatus === 'ready') {
       const widget = new (window as any).MachnetWidget({
         elementId: 'widget',
-        userId: data.widgetUserId,
+        userId: widgetUserId,
         width: '100%',
         height: '200px',
-        type: 'card',
+        type: params.type,
         locale: 'en',
         stylesheet: '',
-        token: data.widgetToken
+        token: widgetToken
       })
       widget.init()
 
       window.addEventListener('message', listener)
     }
-  }, [data.widgetToken, data.widgetUserId, listener, scriptStatus])
+  }, [widgetToken, widgetUserId, listener, scriptStatus, params.type])
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-      <div className='flex justify-between'>
-        <h1 className='font-display text-2xl font-medium'>Debit card</h1>
-        <div className='hidden sm:flex'>
-          <Shape
-            width={'w-8'}
-            radius={'rounded-br-full'}
-            color={'bg-lime-300'}
-          />
-          <Shape
-            width={'w-8'}
-            radius={'rounded-br-full'}
-            color={'bg-slate-500'}
-          />
+      {params.type == 'card' && (
+        <div className='flex justify-between'>
+          <h1 className='font-display text-2xl font-medium'>Debit card</h1>
+          <div className='hidden sm:flex'>
+            <Shape
+              width={'w-8'}
+              radius={'rounded-br-full'}
+              color={'bg-lime-300'}
+            />
+            <Shape
+              width={'w-8'}
+              radius={'rounded-br-full'}
+              color={'bg-slate-500'}
+            />
+          </div>
         </div>
-      </div>
+      )}
+      {params.type == 'bank' && (
+        <div className='flex justify-between'>
+          <h1 className='font-display text-2xl font-medium'>Bank details</h1>
+          <div className='hidden sm:flex'>
+            <Shape
+              width={'w-8'}
+              radius={'rounded-tr-full'}
+              color={'bg-slate-500'}
+            />
+            <Shape
+              width={'w-8'}
+              radius={'rounded-br-full'}
+              color={'bg-yellow-300'}
+            />
+          </div>
+        </div>
+      )}
       <p className='mt-6 text-medium'>
         Please provide your debit card details.
       </p>

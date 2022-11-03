@@ -181,6 +181,13 @@ const flowTemplate = (id: string, type: flowType): Flow => {
         data: {},
         defaultExitTo: route('/settings/linked-accounts')
       }
+    case flowType.LinkBankAccount:
+      return {
+        id,
+        startRoute: route('/linked-account/:type', { type: 'bank' }),
+        data: {},
+        defaultExitTo: route('/settings/linked-accounts')
+      }
     case flowType.Signup:
       return {
         id,
@@ -191,7 +198,7 @@ const flowTemplate = (id: string, type: flowType): Flow => {
     case flowType.PersonalDetails:
       return {
         id,
-        startRoute: route('/'),
+        startRoute: route('/personal-details/:flowId/about', { flowId: id }),
         data: {},
         defaultExitTo: route('/settings/linked-accounts')
       }
