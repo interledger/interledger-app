@@ -478,6 +478,7 @@ func TestCreateQuote(t *testing.T) {
 			args: openpayments.CreateQuoteArgs{
 				SendPaymentPointer:    "http://fynbos.me/paysend",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv",
+				Description:           "IncomingPayment",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: openpayments.Amount{
 					Value:      100,
@@ -595,22 +596,25 @@ func TestCreateIncomingPayment(t *testing.T) {
 		{
 			name: "success",
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "http://fynbos.me/moneyplease",
+				PaymentPointer:     "http://fynbos.me/moneyplease",
+				FromPaymentPointer: "http://fynbos.me/sendingmoney",
 				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
 					AssetScale: 2,
 				},
 				ExternalRef: "external",
+				Description: "Desc Incoming Payment",
 				ExpiresAt:   time.Now().Add(time.Hour),
 			},
 		},
 		{
 			name: "success no incoming amount",
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "http://fynbos.me/moneyplease4",
-				ExternalRef:    "external",
-				ExpiresAt:      time.Now().Add(time.Hour),
+				PaymentPointer:     "http://fynbos.me/moneyplease4",
+				FromPaymentPointer: "http://fynbos.me/sendingmoney4",
+				ExternalRef:        "external",
+				ExpiresAt:          time.Now().Add(time.Hour),
 			},
 		},
 		{
@@ -618,7 +622,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 			ppAsset: "ZAR",
 			err:     openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "http://fynbos.me/moneyplease2",
+				PaymentPointer:     "http://fynbos.me/moneyplease2",
+				FromPaymentPointer: "http://fynbos.me/sendingmoney2",
 				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
@@ -632,7 +637,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 			name: "past expiry",
 			err:  openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "http://fynbos.me/moneyplease3",
+				PaymentPointer:     "http://fynbos.me/moneyplease3",
+				FromPaymentPointer: "http://fynbos.me/sendingmoney3",
 				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
@@ -647,11 +653,14 @@ func TestCreateIncomingPayment(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			recvUserID := uuid.NewString()
+			sendUserID := uuid.NewString()
 			// Create Signups
-			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), recvUserID)
+			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), recvUserID, uuid.NewString(), sendUserID)
 			require.NoError(t, err)
 			// Create Wallets
 			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			require.NoError(t, err)
+			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
 			require.NoError(t, err)
 
 			asset := "USD"
@@ -671,6 +680,14 @@ func TestCreateIncomingPayment(t *testing.T) {
 				AssetScale: assetScale,
 			})
 			require.NoError(t, err)
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.args.FromPaymentPointer,
+				WalletID:   sendWallet.ID,
+				Alias:      "Alias",
+				Asset:      asset,
+				AssetScale: assetScale,
+			})
+			require.NoError(t, err)
 
 			ip, err := ops.CreateIncomingPayment(ctx, b, tc.args)
 			if tc.err != nil {
@@ -681,6 +698,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 
 			assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
 			assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
+			assert.Equal(t, tc.args.Description, ip.Description)
 			if tc.args.IncomingAmount != nil {
 				assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
 				assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)

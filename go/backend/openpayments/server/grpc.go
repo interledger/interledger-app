@@ -293,15 +293,16 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 	incomingAmt := toAmountPB(ip.IncomingAmount)
 	recvAmt := toAmountPB(ip.ReceivedAmount)
 	return &pb.IncomingPayment{
-		Id:             ip.ID,
-		PaymentPointer: ip.PaymentPointer,
-		IncomingAmount: incomingAmt,
-		ReceivedAmount: recvAmt,
-		Completed:      ip.Completed,
-		ExternalRef:    ip.ExternalRef,
-		ExpiresAt:      timestamppb.New(ip.ExpiresAt),
-		CreatedAt:      timestamppb.New(ip.CreatedAt),
-		UpdatedAt:      timestamppb.New(ip.UpdatedAt),
+		Id:                 ip.ID,
+		PaymentPointer:     ip.PaymentPointer,
+		FromPaymentPointer: ip.FromPaymentPointer,
+		IncomingAmount:     incomingAmt,
+		ReceivedAmount:     recvAmt,
+		Completed:          ip.Completed,
+		ExternalRef:        ip.ExternalRef,
+		ExpiresAt:          timestamppb.New(ip.ExpiresAt),
+		CreatedAt:          timestamppb.New(ip.CreatedAt),
+		UpdatedAt:          timestamppb.New(ip.UpdatedAt),
 	}, nil
 }
 
@@ -324,15 +325,16 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 	incomingAmt := toAmountPB(ip.IncomingAmount)
 	recvAmt := toAmountPB(ip.ReceivedAmount)
 	return &pb.IncomingPayment{
-		Id:             ip.ID,
-		PaymentPointer: ip.PaymentPointer,
-		IncomingAmount: incomingAmt,
-		ReceivedAmount: recvAmt,
-		Completed:      ip.Completed,
-		ExternalRef:    ip.ExternalRef,
-		ExpiresAt:      timestamppb.New(ip.ExpiresAt),
-		CreatedAt:      timestamppb.New(ip.CreatedAt),
-		UpdatedAt:      timestamppb.New(ip.UpdatedAt),
+		Id:                 ip.ID,
+		PaymentPointer:     ip.PaymentPointer,
+		FromPaymentPointer: ip.FromPaymentPointer,
+		IncomingAmount:     incomingAmt,
+		ReceivedAmount:     recvAmt,
+		Completed:          ip.Completed,
+		ExternalRef:        ip.ExternalRef,
+		ExpiresAt:          timestamppb.New(ip.ExpiresAt),
+		CreatedAt:          timestamppb.New(ip.CreatedAt),
+		UpdatedAt:          timestamppb.New(ip.UpdatedAt),
 	}, nil
 }
 
@@ -355,16 +357,17 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	}
 
 	return &pb.OutgoingPayment{
-		Id:             op.ID,
-		PaymentPointer: op.PaymentPointer,
-		Failed:         op.Failed,
-		Receiver:       op.Receiver,
-		SendAmount:     toAmountPB(&op.SendAmount),
-		ReceiveAmount:  toAmountPB(&op.ReceiveAmount),
-		SentAmount:     toAmountPB(&op.SentAmount),
-		Description:    op.Description,
-		CreatedAt:      timestamppb.New(op.CreatedAt),
-		UpdatedAt:      timestamppb.New(op.UpdatedAt),
+		Id:               op.ID,
+		PaymentPointer:   op.PaymentPointer,
+		ToPaymentPointer: op.ToPaymentPointer,
+		Failed:           op.Failed,
+		Receiver:         op.Receiver,
+		SendAmount:       toAmountPB(&op.SendAmount),
+		ReceiveAmount:    toAmountPB(&op.ReceiveAmount),
+		SentAmount:       toAmountPB(&op.SentAmount),
+		Description:      op.Description,
+		CreatedAt:        timestamppb.New(op.CreatedAt),
+		UpdatedAt:        timestamppb.New(op.UpdatedAt),
 	}, nil
 }
 
@@ -375,15 +378,16 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 	}
 
 	return &pb.OutgoingPayment{
-		Id:             op.ID,
-		PaymentPointer: op.PaymentPointer,
-		Failed:         op.Failed,
-		Receiver:       op.Receiver,
-		SendAmount:     toAmountPB(&op.SendAmount),
-		ReceiveAmount:  toAmountPB(&op.ReceiveAmount),
-		SentAmount:     toAmountPB(&op.SentAmount),
-		Description:    op.Description,
-		CreatedAt:      timestamppb.New(op.CreatedAt),
-		UpdatedAt:      timestamppb.New(op.UpdatedAt),
+		Id:               op.ID,
+		PaymentPointer:   op.PaymentPointer,
+		ToPaymentPointer: op.ToPaymentPointer,
+		Failed:           op.Failed,
+		Receiver:         op.Receiver,
+		SendAmount:       toAmountPB(&op.SendAmount),
+		ReceiveAmount:    toAmountPB(&op.ReceiveAmount),
+		SentAmount:       toAmountPB(&op.SentAmount),
+		Description:      op.Description,
+		CreatedAt:        timestamppb.New(op.CreatedAt),
+		UpdatedAt:        timestamppb.New(op.UpdatedAt),
 	}, nil
 }

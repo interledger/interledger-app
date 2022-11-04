@@ -233,7 +233,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		{
 			name: "success",
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "https://fynbos.me/moneyplease",
+				PaymentPointer:     "https://fynbos.me/moneyplease",
+				FromPaymentPointer: "https://fynbos.me/sendmoney",
 				IncomingAmount: &openpayments.Amount{
 					Value:      100,
 					Asset:      "USD",
@@ -247,22 +248,25 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		{
 			name: "success no amount",
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer: "https://fynbos.me/moneyplease2",
-				ExternalRef:    "External",
-				ExpiresAt:      time.Now().Add(time.Hour),
+				PaymentPointer:     "https://fynbos.me/moneyplease2",
+				FromPaymentPointer: "https://fynbos.me/sendmoney2",
+				ExternalRef:        "External",
+				ExpiresAt:          time.Now().Add(time.Hour),
 			},
 			statusCode: http.StatusCreated,
 		},
 	}
 
 	for _, tc := range cases {
-
+		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
 		// Create Signups
-		_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), recvUserID)
+		_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2),($3, $4)", uuid.NewString(), recvUserID, uuid.NewString(), sendUserID)
 		require.NoError(t, err)
 		// Create Wallets
 		recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+		require.NoError(t, err)
+		sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
 		require.NoError(t, err)
 
 		body, err := json.Marshal(tc.args)
@@ -282,6 +286,14 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 			URL:        tc.args.PaymentPointer,
 			Alias:      "alias",
 			WalletID:   recvWallet.ID,
+			Asset:      asset,
+			AssetScale: assetScale,
+		})
+		require.NoError(t, err)
+		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			URL:        tc.args.FromPaymentPointer,
+			Alias:      "alias",
+			WalletID:   sendWallet.ID,
 			Asset:      asset,
 			AssetScale: assetScale,
 		})

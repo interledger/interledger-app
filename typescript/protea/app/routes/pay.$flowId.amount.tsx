@@ -155,6 +155,7 @@ export async function action({ request }: ActionArgs) {
       {
         sendPaymentPointer,
         receivePaymentPointer,
+        description:note,
         amount: {
           amount: amountToSubmit,
           asset: flow.data.paymentPointer.asset,
