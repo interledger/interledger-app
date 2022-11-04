@@ -57,6 +57,9 @@ async function handleGet(url, request, bucket, context) {
 	// Any changes made to the response here will be reflected in the cached value
 	headers.append('Cache-Control', 's-maxage=31536000');
 
+	// Add access control for scripts to be allowed
+	headers.append("Access-Control-Allow-Origin", "*");
+
 	response = new Response(object.body, {
 		headers,
 	});
