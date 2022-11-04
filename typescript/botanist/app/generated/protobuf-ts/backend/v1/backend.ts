@@ -966,6 +966,19 @@ export interface CreateWalletRequest {
      */
     nickname: string;
 }
+/**
+ * @generated from protobuf message backend.v1.WalletBalance
+ */
+export interface WalletBalance {
+    /**
+     * @generated from protobuf field: uint64 balance = 1;
+     */
+    balance: string;
+    /**
+     * @generated from protobuf field: uint64 available = 2;
+     */
+    available: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class Amount$Type extends MessageType<Amount> {
     constructor() {
@@ -4498,6 +4511,60 @@ class CreateWalletRequest$Type extends MessageType<CreateWalletRequest> {
  * @generated MessageType for protobuf message backend.v1.CreateWalletRequest
  */
 export const CreateWalletRequest = new CreateWalletRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WalletBalance$Type extends MessageType<WalletBalance> {
+    constructor() {
+        super("backend.v1.WalletBalance", [
+            { no: 1, name: "balance", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 2, name: "available", kind: "scalar", T: 4 /*ScalarType.UINT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WalletBalance>): WalletBalance {
+        const message = { balance: "0", available: "0" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WalletBalance>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletBalance): WalletBalance {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* uint64 balance */ 1:
+                    message.balance = reader.uint64().toString();
+                    break;
+                case /* uint64 available */ 2:
+                    message.available = reader.uint64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WalletBalance, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* uint64 balance = 1; */
+        if (message.balance !== "0")
+            writer.tag(1, WireType.Varint).uint64(message.balance);
+        /* uint64 available = 2; */
+        if (message.available !== "0")
+            writer.tag(2, WireType.Varint).uint64(message.available);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.WalletBalance
+ */
+export const WalletBalance = new WalletBalance$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -4541,6 +4608,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateSendUser", options: {}, I: Empty, O: Empty },
     { name: "HasSendUser", options: {}, I: Empty, O: HasSendUserResponse },
     { name: "CreateWallet", options: {}, I: CreateWalletRequest, O: LinkedAccount },
+    { name: "GetWalletBalance", options: {}, I: Empty, O: WalletBalance },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }

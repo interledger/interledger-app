@@ -459,6 +459,7 @@ type BackendServiceClient interface {
 	CreateSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error)
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -689,6 +690,15 @@ func (c *backendServiceClient) CreateWallet(ctx context.Context, in *CreateWalle
 	return out, nil
 }
 
+func (c *backendServiceClient) GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error) {
+	out := new(WalletBalance)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetWalletBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -749,6 +759,7 @@ type BackendServiceServer interface {
 	CreateSendUser(context.Context, *Empty) (*Empty, error)
 	HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error)
 	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
+	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -830,6 +841,9 @@ func (UnimplementedBackendServiceServer) HasSendUser(context.Context, *Empty) (*
 }
 func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWallet not implemented")
+}
+func (UnimplementedBackendServiceServer) GetWalletBalance(context.Context, *Empty) (*WalletBalance, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWalletBalance not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -1284,6 +1298,24 @@ func _BackendService_CreateWallet_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetWalletBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetWalletBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetWalletBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetWalletBalance(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1440,6 +1472,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateWallet",
 			Handler:    _BackendService_CreateWallet_Handler,
+		},
+		{
+			MethodName: "GetWalletBalance",
+			Handler:    _BackendService_GetWalletBalance_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",
