@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -118,5 +120,44 @@ func (r *rpcService) CreateWallet(
 		Type: la.Type,
 		Name: la.Name,
 		Mask: la.Mask,
+	}, nil
+}
+
+func (r *rpcService) GetWalletBalance(ctx context.Context, _ *backendv1.Empty) (*backendv1.WalletBalance, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := r.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	lal, err := r.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var found *linkedaccounts.LinkedAccount
+	for _, la := range lal {
+		if la.Provider != machnet.ProviderName || la.Type != machnet.TypeWallet {
+			continue
+		}
+		found = &la
+		break
+	}
+	if found == nil {
+		return nil, NotFoundError("machnet wallet not found")
+	}
+
+	mw, err := r.b.Machnet().GetWallet(ctx, found.ProviderID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.WalletBalance{
+		Balance:   mw.Balance,
+		Available: mw.AvailableBalance,
 	}, nil
 }

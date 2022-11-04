@@ -242,3 +242,54 @@ func TestCreateWallet(t *testing.T) {
 		assert.Equal(st, codes.AlreadyExists, grpcStatus.Code())
 	})
 }
+
+func TestRpcService_GetWalletBalance(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.ID, "default")
+	require.NoError(t, err)
+
+	t.Run("requires authenticated user", func(st *testing.T) {
+		rpc, err := client.GetWalletBalance(
+			user_mock.ActingAsContext(t, context.Background(), nil),
+			&backendv1.Empty{},
+		)
+		require.NotNil(st, err)
+		assert.Nil(st, rpc)
+	})
+
+	t.Run("get wallet balance", func(st *testing.T) {
+		walletProviderID := uuid.NewString()
+		c.linkedaccounts.EXPECT().ListByWalletId(gomock.Any(), wallet.ID).Return(
+			[]linkedaccounts.LinkedAccount{
+				{
+					Provider:   machnet.ProviderName,
+					ProviderID: walletProviderID,
+					Type:       machnet.TypeWallet,
+				},
+			}, nil)
+		c.machnet.EXPECT().GetWallet(gomock.Any(), walletProviderID).Return(
+			&machnet.Wallet{
+				AvailableBalance: 100,
+				Balance:          110,
+			},
+			nil,
+		).Times(1)
+
+		rpc, err := client.GetWalletBalance(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.Empty{})
+		require.NoError(st, err)
+
+		assert.Equal(st, uint64(100), rpc.Available)
+		assert.Equal(st, uint64(110), rpc.Balance)
+	})
+}

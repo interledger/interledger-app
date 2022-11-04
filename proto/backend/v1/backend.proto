@@ -162,6 +162,7 @@ service BackendService {
   rpc CreateSendUser(Empty) returns(Empty);
   rpc HasSendUser(Empty) returns (HasSendUserResponse);
   rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
+  rpc GetWalletBalance(Empty) returns (WalletBalance);
 
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
@@ -401,4 +402,9 @@ message HasSendUserResponse{
 
 message CreateWalletRequest{
   string nickname = 1;
+}
+
+message WalletBalance{
+  uint64 balance = 1;
+  uint64 available = 2;
 }
