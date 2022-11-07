@@ -20,6 +20,16 @@ type grpcServer struct {
 	b Backends
 }
 
+func (g *grpcServer) ListPendingOutgoingPayments(ctx context.Context, empty *pb.Empty) (*pb.ListOutgoingPaymentsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *grpcServer) ListOutgoingPayments(ctx context.Context, empty *pb.Empty) (*pb.ListOutgoingPaymentsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewGRPCServer(b Backends) pb.OpenPaymentServiceServer {
 	return &grpcServer{b: b}
 }
@@ -336,6 +346,11 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 		CreatedAt:          timestamppb.New(ip.CreatedAt),
 		UpdatedAt:          timestamppb.New(ip.UpdatedAt),
 	}, nil
+}
+
+func (g *grpcServer) ListIncomingPayments(ctx context.Context, empty *pb.Empty) (*pb.ListIncomingPaymentsResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {

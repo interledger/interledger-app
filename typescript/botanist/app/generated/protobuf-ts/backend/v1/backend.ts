@@ -14,6 +14,24 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.v1.ListOutgoingPaymentsResponse
+ */
+export interface ListOutgoingPaymentsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.OutgoingPayment payments = 2;
+     */
+    payments: OutgoingPayment[];
+}
+/**
+ * @generated from protobuf message backend.v1.ListIncomingPaymentsResponse
+ */
+export interface ListIncomingPaymentsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.IncomingPayment payments = 1;
+     */
+    payments: IncomingPayment[];
+}
+/**
  * @generated from protobuf message backend.v1.Amount
  */
 export interface Amount {
@@ -1029,6 +1047,100 @@ export interface MachnetWalletWithdrawal {
      */
     status: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class ListOutgoingPaymentsResponse$Type extends MessageType<ListOutgoingPaymentsResponse> {
+    constructor() {
+        super("backend.v1.ListOutgoingPaymentsResponse", [
+            { no: 2, name: "payments", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => OutgoingPayment }
+        ]);
+    }
+    create(value?: PartialMessage<ListOutgoingPaymentsResponse>): ListOutgoingPaymentsResponse {
+        const message = { payments: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListOutgoingPaymentsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListOutgoingPaymentsResponse): ListOutgoingPaymentsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.OutgoingPayment payments */ 2:
+                    message.payments.push(OutgoingPayment.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListOutgoingPaymentsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.OutgoingPayment payments = 2; */
+        for (let i = 0; i < message.payments.length; i++)
+            OutgoingPayment.internalBinaryWrite(message.payments[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListOutgoingPaymentsResponse
+ */
+export const ListOutgoingPaymentsResponse = new ListOutgoingPaymentsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListIncomingPaymentsResponse$Type extends MessageType<ListIncomingPaymentsResponse> {
+    constructor() {
+        super("backend.v1.ListIncomingPaymentsResponse", [
+            { no: 1, name: "payments", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => IncomingPayment }
+        ]);
+    }
+    create(value?: PartialMessage<ListIncomingPaymentsResponse>): ListIncomingPaymentsResponse {
+        const message = { payments: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListIncomingPaymentsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListIncomingPaymentsResponse): ListIncomingPaymentsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.IncomingPayment payments */ 1:
+                    message.payments.push(IncomingPayment.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListIncomingPaymentsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.IncomingPayment payments = 1; */
+        for (let i = 0; i < message.payments.length; i++)
+            IncomingPayment.internalBinaryWrite(message.payments[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListIncomingPaymentsResponse
+ */
+export const ListIncomingPaymentsResponse = new ListIncomingPaymentsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Amount$Type extends MessageType<Amount> {
     constructor() {
@@ -4777,8 +4889,11 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
+    { name: "ListIncomingPayments", options: {}, I: Empty, O: ListIncomingPaymentsResponse },
     { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
-    { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment }
+    { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
+    { name: "ListOutgoingPayments", options: {}, I: Empty, O: ListOutgoingPaymentsResponse },
+    { name: "ListPendingOutgoingPayments", options: {}, I: Empty, O: ListOutgoingPaymentsResponse }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService

@@ -18,8 +18,19 @@ service OpenPaymentService {
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
+  rpc ListIncomingPayments(Empty) returns (ListIncomingPaymentsResponse);
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
+  rpc ListOutgoingPayments(Empty) returns (ListOutgoingPaymentsResponse);
+  rpc ListPendingOutgoingPayments(Empty) returns (ListOutgoingPaymentsResponse);
+}
+
+message ListOutgoingPaymentsResponse {
+  repeated OutgoingPayment payments = 2;
+}
+
+message ListIncomingPaymentsResponse {
+  repeated IncomingPayment payments = 1;
 }
 
 message Amount {
