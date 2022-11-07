@@ -495,15 +495,20 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 	reqURL := path.Join("users", args.SendUserID, "funds", args.SendFundID, "transfers")
 
 	body := struct {
-		Type      string  `json:"type"`
-		Amount    float64 `json:"amount"`
-		Currency  string  `json:"currency"`
-		IPAddress string  `json:"ip_address"`
+		Type      string                 `json:"type"`
+		Amount    float64                `json:"amount"`
+		Currency  string                 `json:"currency"`
+		IPAddress string                 `json:"ip_address"`
+		To        external.TransactionTo `json:"to"`
 	}{
 		Type:      "TRANSFER",
 		Amount:    args.Amount,
 		Currency:  args.Currency,
 		IPAddress: args.IPAddress,
+		To: external.TransactionTo{
+			ID:     args.RecvUserID,
+			FundID: args.RecvFundID,
+		},
 	}
 
 	bb, err := json.Marshal(body)

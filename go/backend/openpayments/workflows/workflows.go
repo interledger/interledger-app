@@ -55,7 +55,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		TaskQueue: "backend",
 	}
 
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id, args.IPAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}

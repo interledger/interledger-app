@@ -107,7 +107,7 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 				}, {
 					ID:       uuid.NewString(),
 					Provider: machnet.ProviderName,
-					Type:     machnet.TypeReceiveBankAccount,
+					Type:     machnet.TypeWallet,
 				},
 			}, nil).Times(2)
 
