@@ -44,26 +44,42 @@ export interface PaginationResponse {
     hasNextPage: boolean;
 }
 /**
- * @generated from protobuf message backend.v1.ListOutgoingPaymentsResponse
+ * @generated from protobuf message backend.v1.Transaction
  */
-export interface ListOutgoingPaymentsResponse {
+export interface Transaction {
     /**
-     * @generated from protobuf field: repeated backend.v1.OutgoingPayment payments = 1;
+     * @generated from protobuf field: string id = 1;
      */
-    payments: OutgoingPayment[];
+    id: string;
     /**
-     * @generated from protobuf field: backend.v1.PaginationResponse page = 2;
+     * @generated from protobuf field: string type = 2;
      */
-    page?: PaginationResponse;
+    type: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 3;
+     */
+    amount?: Amount;
+    /**
+     * @generated from protobuf field: string source = 4;
+     */
+    source: string;
+    /**
+     * @generated from protobuf field: string destination = 5;
+     */
+    destination: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp timestamp = 6;
+     */
+    timestamp?: Timestamp;
 }
 /**
- * @generated from protobuf message backend.v1.ListIncomingPaymentsResponse
+ * @generated from protobuf message backend.v1.ListTransactionsResponse
  */
-export interface ListIncomingPaymentsResponse {
+export interface ListTransactionsResponse {
     /**
-     * @generated from protobuf field: repeated backend.v1.IncomingPayment payments = 1;
+     * @generated from protobuf field: repeated backend.v1.Transaction transactions = 1;
      */
-    payments: IncomingPayment[];
+    transactions: Transaction[];
     /**
      * @generated from protobuf field: backend.v1.PaginationResponse page = 2;
      */
@@ -1295,30 +1311,46 @@ class PaginationResponse$Type extends MessageType<PaginationResponse> {
  */
 export const PaginationResponse = new PaginationResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListOutgoingPaymentsResponse$Type extends MessageType<ListOutgoingPaymentsResponse> {
+class Transaction$Type extends MessageType<Transaction> {
     constructor() {
-        super("backend.v1.ListOutgoingPaymentsResponse", [
-            { no: 1, name: "payments", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => OutgoingPayment },
-            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+        super("backend.v1.Transaction", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "message", T: () => Amount },
+            { no: 4, name: "source", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "timestamp", kind: "message", T: () => Timestamp }
         ]);
     }
-    create(value?: PartialMessage<ListOutgoingPaymentsResponse>): ListOutgoingPaymentsResponse {
-        const message = { payments: [] };
+    create(value?: PartialMessage<Transaction>): Transaction {
+        const message = { id: "", type: "", source: "", destination: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<ListOutgoingPaymentsResponse>(this, message, value);
+            reflectionMergePartial<Transaction>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListOutgoingPaymentsResponse): ListOutgoingPaymentsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Transaction): Transaction {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.OutgoingPayment payments */ 1:
-                    message.payments.push(OutgoingPayment.internalBinaryRead(reader, reader.uint32(), options));
+                case /* string id */ 1:
+                    message.id = reader.string();
                     break;
-                case /* backend.v1.PaginationResponse page */ 2:
-                    message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
+                case /* string type */ 2:
+                    message.type = reader.string();
+                    break;
+                case /* backend.v1.Amount amount */ 3:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                case /* string source */ 4:
+                    message.source = reader.string();
+                    break;
+                case /* string destination */ 5:
+                    message.destination = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp timestamp */ 6:
+                    message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1331,13 +1363,25 @@ class ListOutgoingPaymentsResponse$Type extends MessageType<ListOutgoingPayments
         }
         return message;
     }
-    internalBinaryWrite(message: ListOutgoingPaymentsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.OutgoingPayment payments = 1; */
-        for (let i = 0; i < message.payments.length; i++)
-            OutgoingPayment.internalBinaryWrite(message.payments[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PaginationResponse page = 2; */
-        if (message.page)
-            PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: Transaction, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string type = 2; */
+        if (message.type !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
+        /* backend.v1.Amount amount = 3; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string source = 4; */
+        if (message.source !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.source);
+        /* string destination = 5; */
+        if (message.destination !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.destination);
+        /* google.protobuf.Timestamp timestamp = 6; */
+        if (message.timestamp)
+            Timestamp.internalBinaryWrite(message.timestamp, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1345,31 +1389,31 @@ class ListOutgoingPaymentsResponse$Type extends MessageType<ListOutgoingPayments
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.ListOutgoingPaymentsResponse
+ * @generated MessageType for protobuf message backend.v1.Transaction
  */
-export const ListOutgoingPaymentsResponse = new ListOutgoingPaymentsResponse$Type();
+export const Transaction = new Transaction$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListIncomingPaymentsResponse$Type extends MessageType<ListIncomingPaymentsResponse> {
+class ListTransactionsResponse$Type extends MessageType<ListTransactionsResponse> {
     constructor() {
-        super("backend.v1.ListIncomingPaymentsResponse", [
-            { no: 1, name: "payments", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => IncomingPayment },
+        super("backend.v1.ListTransactionsResponse", [
+            { no: 1, name: "transactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transaction },
             { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
         ]);
     }
-    create(value?: PartialMessage<ListIncomingPaymentsResponse>): ListIncomingPaymentsResponse {
-        const message = { payments: [] };
+    create(value?: PartialMessage<ListTransactionsResponse>): ListTransactionsResponse {
+        const message = { transactions: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<ListIncomingPaymentsResponse>(this, message, value);
+            reflectionMergePartial<ListTransactionsResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListIncomingPaymentsResponse): ListIncomingPaymentsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListTransactionsResponse): ListTransactionsResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.IncomingPayment payments */ 1:
-                    message.payments.push(IncomingPayment.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated backend.v1.Transaction transactions */ 1:
+                    message.transactions.push(Transaction.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 case /* backend.v1.PaginationResponse page */ 2:
                     message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
@@ -1385,10 +1429,10 @@ class ListIncomingPaymentsResponse$Type extends MessageType<ListIncomingPayments
         }
         return message;
     }
-    internalBinaryWrite(message: ListIncomingPaymentsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.IncomingPayment payments = 1; */
-        for (let i = 0; i < message.payments.length; i++)
-            IncomingPayment.internalBinaryWrite(message.payments[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: ListTransactionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.Transaction transactions = 1; */
+        for (let i = 0; i < message.transactions.length; i++)
+            Transaction.internalBinaryWrite(message.transactions[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* backend.v1.PaginationResponse page = 2; */
         if (message.page)
             PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
@@ -1399,9 +1443,9 @@ class ListIncomingPaymentsResponse$Type extends MessageType<ListIncomingPayments
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.ListIncomingPaymentsResponse
+ * @generated MessageType for protobuf message backend.v1.ListTransactionsResponse
  */
-export const ListIncomingPaymentsResponse = new ListIncomingPaymentsResponse$Type();
+export const ListTransactionsResponse = new ListTransactionsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Amount$Type extends MessageType<Amount> {
     constructor() {
@@ -5150,11 +5194,10 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
-    { name: "ListIncomingPayments", options: {}, I: PaginationRequest, O: ListIncomingPaymentsResponse },
     { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
-    { name: "ListOutgoingPayments", options: {}, I: PaginationRequest, O: ListOutgoingPaymentsResponse },
-    { name: "ListPendingOutgoingPayments", options: {}, I: PaginationRequest, O: ListOutgoingPaymentsResponse }
+    { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
+    { name: "ListPendingTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService

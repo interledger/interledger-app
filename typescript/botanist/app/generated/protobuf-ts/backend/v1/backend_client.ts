@@ -44,12 +44,11 @@ import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenPaymentService } from "./backend";
-import type { ListOutgoingPaymentsResponse } from "./backend";
+import type { ListTransactionsResponse } from "./backend";
+import type { PaginationRequest } from "./backend";
 import type { LookupOutgoingPaymentRequest } from "./backend";
 import type { OutgoingPayment } from "./backend";
 import type { CreateOutgoingPaymentRequest } from "./backend";
-import type { ListIncomingPaymentsResponse } from "./backend";
-import type { PaginationRequest } from "./backend";
 import type { LookupIncomingPaymentRequest } from "./backend";
 import type { IncomingPayment } from "./backend";
 import type { CreateIncomingPaymentRequest } from "./backend";
@@ -103,10 +102,6 @@ export interface IOpenPaymentServiceClient {
      */
     lookupIncomingPayment(input: LookupIncomingPaymentRequest, options?: RpcOptions): UnaryCall<LookupIncomingPaymentRequest, IncomingPayment>;
     /**
-     * @generated from protobuf rpc: ListIncomingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListIncomingPaymentsResponse);
-     */
-    listIncomingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListIncomingPaymentsResponse>;
-    /**
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment>;
@@ -115,13 +110,13 @@ export interface IOpenPaymentServiceClient {
      */
     lookupOutgoingPayment(input: LookupOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<LookupOutgoingPaymentRequest, OutgoingPayment>;
     /**
-     * @generated from protobuf rpc: ListOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
-    listOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse>;
+    listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
     /**
-     * @generated from protobuf rpc: ListPendingOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     * @generated from protobuf rpc: ListPendingTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
-    listPendingOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse>;
+    listPendingTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.OpenPaymentService
@@ -189,39 +184,32 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<LookupIncomingPaymentRequest, IncomingPayment>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListIncomingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListIncomingPaymentsResponse);
-     */
-    listIncomingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListIncomingPaymentsResponse> {
-        const method = this.methods[8], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListIncomingPaymentsResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment> {
-        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: LookupOutgoingPayment(backend.v1.LookupOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     lookupOutgoingPayment(input: LookupOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<LookupOutgoingPaymentRequest, OutgoingPayment> {
-        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<LookupOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
-    listOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse> {
-        const method = this.methods[11], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListOutgoingPaymentsResponse>("unary", this._transport, method, opt, input);
+    listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListPendingOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     * @generated from protobuf rpc: ListPendingTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
-    listPendingOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListOutgoingPaymentsResponse>("unary", this._transport, method, opt, input);
+    listPendingTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**

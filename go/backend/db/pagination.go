@@ -17,7 +17,12 @@ func (p *Pagination) SQL() string {
 		pg -= 1
 	}
 
-	return fmt.Sprintf(" LIMIT %d OFFSET %d ORDER BY created_at ASC ", p.PageSize, pg*p.PageSize)
+	ps := p.PageSize
+	if ps <= 0 {
+		ps = 50
+	}
+
+	return fmt.Sprintf(" LIMIT %d OFFSET %d  ", ps, pg*ps)
 }
 
 func PaginationFromPB(req *pb.PaginationRequest) Pagination {
@@ -31,7 +36,7 @@ func PaginationFromPB(req *pb.PaginationRequest) Pagination {
 	}
 }
 
-func (p *Pagination) PaginationToPB(resultLen int) *pb.PaginationResponse {
+func (p *Pagination) ToPB(resultLen int) *pb.PaginationResponse {
 	return &pb.PaginationResponse{
 		Page:        int32(p.Page),
 		PageSize:    int32(p.PageSize),

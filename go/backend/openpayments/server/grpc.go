@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"gitlab.com/fynbos/backend/openpayments/workflows"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -351,6 +353,18 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, toGRPCError(err)
 	}
 
+	_, err = g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
+
+	_, err = g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	// TODO: ACL check that the quote belongs to the user
+
 	op, err := workflows.StartOutgoingPayment(ctx, g.b, args)
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -392,17 +406,68 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 	}, nil
 }
 
-func (g *grpcServer) ListIncomingPayments(ctx context.Context, req *pb.PaginationRequest) (*pb.ListIncomingPaymentsResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (g *grpcServer) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
+
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	page := db.PaginationFromPB(req)
+	tl, err := ops.ListTransactions(ctx, g.b, wallet.ID, page)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := make([]*pb.Transaction, len(tl))
+
+	for i, t := range tl {
+		resp[i] = &pb.Transaction{
+			Id:          t.ID,
+			Type:        string(t.Type),
+			Amount:      toAmountPB(&t.Amount),
+			Source:      t.Source,
+			Destination: t.Destination,
+			Timestamp:   timestamppb.New(t.Timestamp),
+		}
+	}
+
+	return &pb.ListTransactionsResponse{Transactions: resp, Page: page.ToPB(len(resp))}, nil
 }
 
-func (g *grpcServer) ListOutgoingPayments(ctx context.Context, req *pb.PaginationRequest) (*pb.ListOutgoingPaymentsResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
+func (g *grpcServer) ListPendingTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
 
-func (g *grpcServer) ListPendingOutgoingPayments(ctx context.Context, req *pb.PaginationRequest) (*pb.ListOutgoingPaymentsResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	page := db.PaginationFromPB(req)
+	tl, err := ops.ListPendingTransactions(ctx, g.b, wallet.ID, page)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := make([]*pb.Transaction, len(tl))
+
+	for i, t := range tl {
+		resp[i] = &pb.Transaction{
+			Id:          t.ID,
+			Type:        string(t.Type),
+			Amount:      toAmountPB(&t.Amount),
+			Source:      t.Source,
+			Destination: t.Destination,
+			Timestamp:   timestamppb.New(t.Timestamp),
+		}
+	}
+
+	return &pb.ListTransactionsResponse{Transactions: resp, Page: page.ToPB(len(resp))}, nil
 }
