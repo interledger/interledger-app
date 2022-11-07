@@ -60,7 +60,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to parse payment pointer URL from receiver (%s)", op.Receiver), "ErrInvalidURL", err)
 	}
 
-	recvAcc, err := getProviderLinkedAccount(ctx, a.b, recvPPURL, machnet.ProviderName, machnet.TypeReceiveBankAccount)
+	recvAcc, err := getProviderLinkedAccount(ctx, a.b, recvPPURL, machnet.ProviderName, machnet.TypeWallet)
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}

@@ -460,7 +460,8 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		},
 		}, nil).Times(2)
 
-		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
+		ipAddress := "198.0.0.8"
+		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything, ipAddress).Return(nil, nil)
 
 		tc.opArgs.QuoteID = q.ID
 
@@ -469,7 +470,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 
 		req, err = http.NewRequest(http.MethodPost, tc.quoteArgs.SendPaymentPointer+"/outgoing-payments", bytes.NewReader(body))
 		require.NoError(t, err)
-		req.Header.Set("X-Forwarded-For", "198.0.0.8")
+		req.Header.Set("X-Forwarded-For", ipAddress)
 
 		rr = httptest.NewRecorder()
 		handler.ServeHTTP(rr, req)
