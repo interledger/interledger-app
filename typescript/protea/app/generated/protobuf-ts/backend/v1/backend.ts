@@ -1063,6 +1063,44 @@ export interface WalletBalance {
      */
     available: string;
 }
+/**
+ * @generated from protobuf message backend.v1.WithdrawFromMachnetWalletRequest
+ */
+export interface WithdrawFromMachnetWalletRequest {
+    /**
+     * @generated from protobuf field: string toLinkedAccountId = 1;
+     */
+    toLinkedAccountId: string;
+    /**
+     * @generated from protobuf field: uint64 amount = 2;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string ipAddress = 3;
+     */
+    ipAddress: string;
+}
+/**
+ * @generated from protobuf message backend.v1.MachnetWalletWithdrawal
+ */
+export interface MachnetWalletWithdrawal {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: uint64 amount = 2;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string toLinkedAccountId = 3;
+     */
+    toLinkedAccountId: string;
+    /**
+     * @generated from protobuf field: string status = 4;
+     */
+    status: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -4921,6 +4959,135 @@ class WalletBalance$Type extends MessageType<WalletBalance> {
  * @generated MessageType for protobuf message backend.v1.WalletBalance
  */
 export const WalletBalance = new WalletBalance$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WithdrawFromMachnetWalletRequest$Type extends MessageType<WithdrawFromMachnetWalletRequest> {
+    constructor() {
+        super("backend.v1.WithdrawFromMachnetWalletRequest", [
+            { no: 1, name: "toLinkedAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WithdrawFromMachnetWalletRequest>): WithdrawFromMachnetWalletRequest {
+        const message = { toLinkedAccountId: "", amount: "0", ipAddress: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WithdrawFromMachnetWalletRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WithdrawFromMachnetWalletRequest): WithdrawFromMachnetWalletRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string toLinkedAccountId */ 1:
+                    message.toLinkedAccountId = reader.string();
+                    break;
+                case /* uint64 amount */ 2:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string ipAddress */ 3:
+                    message.ipAddress = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WithdrawFromMachnetWalletRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string toLinkedAccountId = 1; */
+        if (message.toLinkedAccountId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.toLinkedAccountId);
+        /* uint64 amount = 2; */
+        if (message.amount !== "0")
+            writer.tag(2, WireType.Varint).uint64(message.amount);
+        /* string ipAddress = 3; */
+        if (message.ipAddress !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.ipAddress);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.WithdrawFromMachnetWalletRequest
+ */
+export const WithdrawFromMachnetWalletRequest = new WithdrawFromMachnetWalletRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class MachnetWalletWithdrawal$Type extends MessageType<MachnetWalletWithdrawal> {
+    constructor() {
+        super("backend.v1.MachnetWalletWithdrawal", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 3, name: "toLinkedAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "status", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<MachnetWalletWithdrawal>): MachnetWalletWithdrawal {
+        const message = { id: "", amount: "0", toLinkedAccountId: "", status: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<MachnetWalletWithdrawal>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: MachnetWalletWithdrawal): MachnetWalletWithdrawal {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* uint64 amount */ 2:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string toLinkedAccountId */ 3:
+                    message.toLinkedAccountId = reader.string();
+                    break;
+                case /* string status */ 4:
+                    message.status = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: MachnetWalletWithdrawal, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* uint64 amount = 2; */
+        if (message.amount !== "0")
+            writer.tag(2, WireType.Varint).uint64(message.amount);
+        /* string toLinkedAccountId = 3; */
+        if (message.toLinkedAccountId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.toLinkedAccountId);
+        /* string status = 4; */
+        if (message.status !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.status);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.MachnetWalletWithdrawal
+ */
+export const MachnetWalletWithdrawal = new MachnetWalletWithdrawal$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -4967,6 +5134,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "HasSendUser", options: {}, I: Empty, O: HasSendUserResponse },
     { name: "CreateWallet", options: {}, I: CreateWalletRequest, O: LinkedAccount },
     { name: "GetWalletBalance", options: {}, I: Empty, O: WalletBalance },
+    { name: "WithdrawFromMachnetWallet", options: {}, I: WithdrawFromMachnetWalletRequest, O: MachnetWalletWithdrawal },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }
