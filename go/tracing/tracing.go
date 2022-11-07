@@ -3,16 +3,14 @@ package tracing
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 )
 
@@ -31,17 +29,14 @@ func InitTraceProvider(serviceName string) (func(context.Context) error, error) 
 
 	var traceExporter sdktrace.SpanExporter
 
-	if env.IsDev() {
+	if env.IsDev() || env.IsProd() {
 		client := otlptracegrpc.NewClient()
 		traceExporter, err = otlptrace.New(ctx, client)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create trace exporter: %w", err)
 		}
 	} else {
-		traceExporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint()) // for debugging
-		if err != nil {
-			log.Panicf("failed to initialize stdouttrace exporter %v\n", err)
-		}
+		traceExporter = tracetest.NewNoopExporter()
 	}
 
 	// Register the trace exporter with a TracerProvider, using a batch
