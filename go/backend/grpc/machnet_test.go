@@ -322,13 +322,13 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 		toLinkedAccountID := uuid.NewString()
 		c.linkedaccounts.EXPECT().Get(gomock.Any(), toLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
 			ID:       toLinkedAccountID,
-			WalletId: wallet.ID,
+			WalletID: wallet.ID,
 		}, nil).Times(1)
 
 		walletLinkedAccountID := uuid.NewString()
 		c.linkedaccounts.EXPECT().ListByWalletId(gomock.Any(), wallet.ID).Return(
 			[]linkedaccounts.LinkedAccount{
-				{ID: walletLinkedAccountID, WalletId: wallet.ID, Provider: machnet.ProviderName, Type: machnet.TypeWallet},
+				{ID: walletLinkedAccountID, WalletID: wallet.ID, Provider: machnet.ProviderName, Type: machnet.TypeWallet},
 			},
 			nil,
 		).Times(1)
