@@ -22,9 +22,7 @@ export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const headers = await requireFlow(request, flowType.Pay)
 
-  const flow = await getCurrentFlow(request, flowType.Pay)
-
-  return json({ flow }, { headers })
+  return json({ flow: null}, { headers })
 }
 
 export const handle = {
@@ -50,7 +48,6 @@ export default function Page() {
         name='paymentPointer'
         form='pay-payment-pointer'
         type='text'
-        defaultValue={flow.data.paymentPointer.url || ''}
         className='mt-6'
         aria-invalid={Boolean(actionData?.errors.paymentPointer) || undefined}
         aria-describedby={
