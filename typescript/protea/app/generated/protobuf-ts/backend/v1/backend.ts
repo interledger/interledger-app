@@ -52,6 +52,10 @@ export interface OutgoingPayment {
      */
     paymentPointer: string;
     /**
+     * @generated from protobuf field: string toPaymentPointer = 11;
+     */
+    toPaymentPointer: string;
+    /**
      * @generated from protobuf field: bool failed = 3;
      */
     failed: boolean;
@@ -148,6 +152,10 @@ export interface IncomingPayment {
      */
     paymentPointer: string;
     /**
+     * @generated from protobuf field: string fromPaymentPointer = 10;
+     */
+    fromPaymentPointer: string;
+    /**
      * @generated from protobuf field: optional backend.v1.Amount incomingAmount = 3;
      */
     incomingAmount?: Amount;
@@ -205,6 +213,10 @@ export interface CreateQuoteRequest {
      * @generated from protobuf field: google.protobuf.Timestamp expiresAt = 4;
      */
     expiresAt?: Timestamp;
+    /**
+     * @generated from protobuf field: string description = 5;
+     */
+    description: string;
 }
 /**
  * @generated from protobuf message backend.v1.Quote
@@ -1093,6 +1105,7 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
         super("backend.v1.OutgoingPayment", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "paymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "toPaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "failed", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 4, name: "receiver", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "sendAmount", kind: "message", T: () => Amount },
@@ -1104,7 +1117,7 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
         ]);
     }
     create(value?: PartialMessage<OutgoingPayment>): OutgoingPayment {
-        const message = { id: "", paymentPointer: "", failed: false, receiver: "", description: "" };
+        const message = { id: "", paymentPointer: "", toPaymentPointer: "", failed: false, receiver: "", description: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<OutgoingPayment>(this, message, value);
@@ -1120,6 +1133,9 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
                     break;
                 case /* string paymentPointer */ 2:
                     message.paymentPointer = reader.string();
+                    break;
+                case /* string toPaymentPointer */ 11:
+                    message.toPaymentPointer = reader.string();
                     break;
                 case /* bool failed */ 3:
                     message.failed = reader.bool();
@@ -1163,6 +1179,9 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
         /* string paymentPointer = 2; */
         if (message.paymentPointer !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.paymentPointer);
+        /* string toPaymentPointer = 11; */
+        if (message.toPaymentPointer !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.toPaymentPointer);
         /* bool failed = 3; */
         if (message.failed !== false)
             writer.tag(3, WireType.Varint).bool(message.failed);
@@ -1386,6 +1405,7 @@ class IncomingPayment$Type extends MessageType<IncomingPayment> {
         super("backend.v1.IncomingPayment", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "paymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "fromPaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "incomingAmount", kind: "message", T: () => Amount },
             { no: 4, name: "receivedAmount", kind: "message", T: () => Amount },
             { no: 5, name: "completed", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
@@ -1396,7 +1416,7 @@ class IncomingPayment$Type extends MessageType<IncomingPayment> {
         ]);
     }
     create(value?: PartialMessage<IncomingPayment>): IncomingPayment {
-        const message = { id: "", paymentPointer: "", completed: false, externalRef: "" };
+        const message = { id: "", paymentPointer: "", fromPaymentPointer: "", completed: false, externalRef: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<IncomingPayment>(this, message, value);
@@ -1412,6 +1432,9 @@ class IncomingPayment$Type extends MessageType<IncomingPayment> {
                     break;
                 case /* string paymentPointer */ 2:
                     message.paymentPointer = reader.string();
+                    break;
+                case /* string fromPaymentPointer */ 10:
+                    message.fromPaymentPointer = reader.string();
                     break;
                 case /* optional backend.v1.Amount incomingAmount */ 3:
                     message.incomingAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.incomingAmount);
@@ -1452,6 +1475,9 @@ class IncomingPayment$Type extends MessageType<IncomingPayment> {
         /* string paymentPointer = 2; */
         if (message.paymentPointer !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.paymentPointer);
+        /* string fromPaymentPointer = 10; */
+        if (message.fromPaymentPointer !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.fromPaymentPointer);
         /* optional backend.v1.Amount incomingAmount = 3; */
         if (message.incomingAmount)
             Amount.internalBinaryWrite(message.incomingAmount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
@@ -1537,11 +1563,12 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
             { no: 1, name: "sendPaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "receivePaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "amount", kind: "message", T: () => Amount },
-            { no: 4, name: "expiresAt", kind: "message", T: () => Timestamp }
+            { no: 4, name: "expiresAt", kind: "message", T: () => Timestamp },
+            { no: 5, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateQuoteRequest>): CreateQuoteRequest {
-        const message = { sendPaymentPointer: "", receivePaymentPointer: "" };
+        const message = { sendPaymentPointer: "", receivePaymentPointer: "", description: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateQuoteRequest>(this, message, value);
@@ -1563,6 +1590,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
                     break;
                 case /* google.protobuf.Timestamp expiresAt */ 4:
                     message.expiresAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.expiresAt);
+                    break;
+                case /* string description */ 5:
+                    message.description = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1588,6 +1618,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
         /* google.protobuf.Timestamp expiresAt = 4; */
         if (message.expiresAt)
             Timestamp.internalBinaryWrite(message.expiresAt, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string description = 5; */
+        if (message.description !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.description);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
