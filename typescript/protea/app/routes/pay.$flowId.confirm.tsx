@@ -11,6 +11,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { requireUserSession } from '~/lib/kratos.server'
+import {getClientIP} from "~/lib/ip.server";
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -144,7 +145,7 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  const ipAddress = request.headers.get('x-forwarded-for') as string
+  const clientIpAddress = getClientIP(request)
 
   const response = await openPaymentsClient
     .createOutgoingPayment(
@@ -152,7 +153,7 @@ export async function action({ request }: ActionArgs) {
         quoteID: flow.data.quoteID,
         description: flow.data.note,
         externalRef: '',
-        ipAddress
+        ipAddress: clientIpAddress
       },
       {
         meta: {
