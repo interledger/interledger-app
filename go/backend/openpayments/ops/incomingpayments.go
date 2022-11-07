@@ -8,26 +8,92 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
+const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at`
+
 type dbIncomingPayment struct {
-	ID               string         `db:"id"`
-	PaymentPointerID string         `db:"payment_pointer_id"`
-	AssetCode        sql.NullString `db:"asset_code"`
-	AssetScale       sql.NullInt32  `db:"asset_scale"`
-	IncomingAmount   uint64         `db:"incoming_amount"`
-	ReceivedAmount   uint64         `db:"received_amount"`
-	Completed        bool           `db:"completed"`
-	ExternalRef      sql.NullString `db:"external_ref"`
-	ILPStream        sql.NullString `db:"ilp_stream_id"`
-	ILPAddress       sql.NullString `db:"ilp_address"`
-	ILPSecret        sql.NullString `db:"ilp_shared_secret"`
-	ExpiresAt        sql.NullTime   `db:"expires_at"`
-	CreatedAt        time.Time      `db:"created_at"`
-	UpdatedAt        time.Time      `db:"updated_at"`
+	ID                   string         `db:"id"`
+	PaymentPointerID     string         `db:"payment_pointer_id"`
+	FromPaymentPointerID sql.NullString `db:"from_payment_pointer_id"`
+	Description          sql.NullString `db:"description"`
+	AssetCode            sql.NullString `db:"asset_code"`
+	AssetScale           sql.NullInt32  `db:"asset_scale"`
+	IncomingAmount       uint64         `db:"incoming_amount"`
+	ReceivedAmount       uint64         `db:"received_amount"`
+	Completed            bool           `db:"completed"`
+	ExternalRef          sql.NullString `db:"external_ref"`
+	ILPStream            sql.NullString `db:"ilp_stream_id"`
+	ILPAddress           sql.NullString `db:"ilp_address"`
+	ILPSecret            sql.NullString `db:"ilp_shared_secret"`
+	ExpiresAt            sql.NullTime   `db:"expires_at"`
+	CreatedAt            time.Time      `db:"created_at"`
+	UpdatedAt            time.Time      `db:"updated_at"`
+}
+
+func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments.CreateIncomingPaymentArgs) (*openpayments.IncomingPayment, error) {
+	err := b.Validator().Struct(payment)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
+	}
+
+	if !payment.ExpiresAt.IsZero() && payment.ExpiresAt.Before(time.Now()) {
+		return nil, fmt.Errorf("%w invalid expiry time", openpayments.ErrInvalidArgument)
+	}
+
+	pp, err := GetPaymentPointer(ctx, b, payment.PaymentPointer)
+	if err != nil {
+		return nil, err
+	}
+
+	fromPP, err := GetPaymentPointer(ctx, b, payment.FromPaymentPointer)
+	if err != nil {
+		return nil, err
+	}
+
+	if payment.IncomingAmount != nil && pp.Asset != payment.IncomingAmount.Asset {
+		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
+	}
+
+	id := uuid.NewString()
+	ib := db.NewInsert("openpayments_incoming_payment").
+		Value("id", id).
+		Value("payment_pointer_id", pp.ID).
+		Value("received_amount", 0).
+		Value("from_payment_pointer_id", fromPP.ID)
+	if payment.IncomingAmount != nil {
+		ib.Value("asset_code", payment.IncomingAmount.Asset).
+			Value("asset_scale", payment.IncomingAmount.AssetScale).
+			Value("incoming_amount", payment.IncomingAmount.Value)
+	} else {
+		ib.Value("incoming_amount", 0)
+	}
+	if !payment.ExpiresAt.IsZero() {
+		ib.Value("expires_at", payment.ExpiresAt)
+	}
+	if payment.ExternalRef != "" {
+		ib.Value("external_ref", payment.ExternalRef)
+	}
+	if payment.Description != "" {
+		ib.Value("description", payment.Description)
+	}
+
+	stmt, args, err := ib.GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, stmt, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return GetIncomingPayment(ctx, b, id)
 }
 
 func GetIncomingPayment(ctx context.Context, b Backends, id string) (*openpayments.IncomingPayment, error) {
@@ -48,24 +114,30 @@ func GetIncomingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	return transformIncomingPayment(ctx, b, dbIncomingPayment{})
+	return transformIncomingPayment(ctx, b, payment)
 }
 
 func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomingPayment) (*openpayments.IncomingPayment, error) {
-	var pp string
-	err := b.DB().GetContext(ctx, &pp, "SELECT url FROM payment_pointers WHERE id=$1", payment.PaymentPointerID)
+	fromPP, err := getPaymentPointerByID(ctx, b, payment.FromPaymentPointerID.String)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		return nil, err
+	}
+
+	toPP, err := getPaymentPointerByID(ctx, b, payment.PaymentPointerID)
+	if err != nil {
+		return nil, err
 	}
 
 	resp := &openpayments.IncomingPayment{
-		ID:             fmt.Sprintf("%s/incoming-payments/%s", pp, payment.ID),
-		PaymentPointer: pp,
-		Completed:      payment.Completed,
-		ExternalRef:    payment.ExternalRef.String,
-		ExpiresAt:      payment.ExpiresAt.Time,
-		CreatedAt:      payment.CreatedAt,
-		UpdatedAt:      payment.UpdatedAt,
+		ID:                 fmt.Sprintf("%s/incoming-payments/%s", toPP.URL, payment.ID),
+		PaymentPointer:     toPP.URL,
+		FromPaymentPointer: fromPP.URL,
+		Completed:          payment.Completed,
+		ExternalRef:        payment.ExternalRef.String,
+		ExpiresAt:          payment.ExpiresAt.Time,
+		CreatedAt:          payment.CreatedAt,
+		UpdatedAt:          payment.UpdatedAt,
+		Description:        payment.Description.String,
 	}
 	if payment.IncomingAmount > 0 {
 		resp.IncomingAmount = &openpayments.Amount{
@@ -85,73 +157,14 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 	return resp, nil
 }
 
-func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments.CreateIncomingPaymentArgs) (*openpayments.IncomingPayment, error) {
-	err := b.Validator().Struct(payment)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
-	}
-
-	if !payment.ExpiresAt.IsZero() && payment.ExpiresAt.Before(time.Now()) {
-		return nil, fmt.Errorf("%w invalid expiry time", openpayments.ErrInvalidArgument)
-	}
-
-	pp, err := GetPaymentPointer(ctx, b, payment.PaymentPointer)
-	if err != nil {
-		return nil, err
-	}
-
-	if payment.IncomingAmount != nil && pp.Asset != payment.IncomingAmount.Asset {
-		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
-	}
-
-	id := uuid.NewString()
-	ib := db.NewInsert("openpayments_incoming_payment").
-		Value("id", id).
-		Value("payment_pointer_id", pp.ID).
-		Value("received_amount", 0)
-	if payment.IncomingAmount != nil {
-		ib.Value("asset_code", payment.IncomingAmount.Asset).
-			Value("asset_scale", payment.IncomingAmount.AssetScale).
-			Value("incoming_amount", payment.IncomingAmount.Value)
-	} else {
-		ib.Value("incoming_amount", 0)
-	}
-	if !payment.ExpiresAt.IsZero() {
-		ib.Value("expires_at", payment.ExpiresAt)
-	}
-	if payment.ExternalRef != "" {
-		ib.Value("external_ref", payment.ExternalRef)
-	}
-
-	stmt, args, err := ib.GetStatement()
+func ListIncomingPayments(ctx context.Context, b Backends, ids []string) ([]openpayments.IncomingPayment, error) {
+	query, args, err := sqlx.In(fmt.Sprintf("SELECT %s FROM openpayments_incoming_payment WHERE id IN (?)", incomingPaymentsCols), ids)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	_, err = b.DB().ExecContext(ctx, stmt, args...)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	return GetIncomingPayment(ctx, b, id)
-}
-
-const incomingPaymentsCols = `id, payment_pointer_id, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at`
-
-func ListIncomingPayments(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]openpayments.IncomingPayment, error) {
-	pp, err := ListWalletPaymentPointers(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(pp) != 1 {
-		return nil, fmt.Errorf("%w wallet has (%s) payment pointer", openpayments.ErrInternal, len(pp))
 	}
 
 	var dbList []dbIncomingPayment
-	err = b.DB().SelectContext(ctx, &dbList,
-		fmt.Sprintf("SELECT %s FROM openpayments_incoming_payment WHERE completed=true AND payment_pointer_id=$1 %s", incomingPaymentsCols, page.SQL()),
-		pp[0].ID)
+	err = b.DB().SelectContext(ctx, &dbList, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}

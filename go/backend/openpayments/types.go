@@ -92,3 +92,21 @@ type CompleteOutgoingPaymentArgs struct {
 	ID         string
 	SentAmount Amount
 }
+
+type TransactionType string
+
+const (
+	TransactionTypeIncomingPayment TransactionType = "incoming"
+	TransactionTypeOutgoingPayment TransactionType = "outgoing"
+)
+
+// Transaction is abstract information representing either an incoming or outgoing payment.
+// This is used for listing transactions for the frontend
+type Transaction struct {
+	ID          string
+	Source      string
+	Destination string
+	Type        TransactionType
+	Timestamp   time.Time
+	Amount      Amount
+}

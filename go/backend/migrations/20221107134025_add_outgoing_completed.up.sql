@@ -1,0 +1,1 @@
+ALTER TABLE openpayments_outgoing_payment ADD COLUMN completed BOOLEAN NOT NULL DEFAULT FALSE;
