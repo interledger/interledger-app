@@ -30,8 +30,11 @@ type OpenPaymentServiceClient interface {
 	LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
+	ListIncomingPayments(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListIncomingPaymentsResponse, error)
 	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
+	ListOutgoingPayments(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListOutgoingPaymentsResponse, error)
+	ListPendingOutgoingPayments(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListOutgoingPaymentsResponse, error)
 }
 
 type openPaymentServiceClient struct {
@@ -114,6 +117,15 @@ func (c *openPaymentServiceClient) LookupIncomingPayment(ctx context.Context, in
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) ListIncomingPayments(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListIncomingPaymentsResponse, error) {
+	out := new(ListIncomingPaymentsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListIncomingPayments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *openPaymentServiceClient) CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error) {
 	out := new(OutgoingPayment)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CreateOutgoingPayment", in, out, opts...)
@@ -132,6 +144,24 @@ func (c *openPaymentServiceClient) LookupOutgoingPayment(ctx context.Context, in
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) ListOutgoingPayments(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListOutgoingPaymentsResponse, error) {
+	out := new(ListOutgoingPaymentsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListOutgoingPayments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *openPaymentServiceClient) ListPendingOutgoingPayments(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListOutgoingPaymentsResponse, error) {
+	out := new(ListOutgoingPaymentsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListPendingOutgoingPayments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OpenPaymentServiceServer is the server API for OpenPaymentService service.
 // All implementations should embed UnimplementedOpenPaymentServiceServer
 // for forward compatibility
@@ -144,8 +174,11 @@ type OpenPaymentServiceServer interface {
 	LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error)
 	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
+	ListIncomingPayments(context.Context, *PaginationRequest) (*ListIncomingPaymentsResponse, error)
 	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
+	ListOutgoingPayments(context.Context, *PaginationRequest) (*ListOutgoingPaymentsResponse, error)
+	ListPendingOutgoingPayments(context.Context, *PaginationRequest) (*ListOutgoingPaymentsResponse, error)
 }
 
 // UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
@@ -176,11 +209,20 @@ func (UnimplementedOpenPaymentServiceServer) CreateIncomingPayment(context.Conte
 func (UnimplementedOpenPaymentServiceServer) LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupIncomingPayment not implemented")
 }
+func (UnimplementedOpenPaymentServiceServer) ListIncomingPayments(context.Context, *PaginationRequest) (*ListIncomingPaymentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListIncomingPayments not implemented")
+}
 func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOutgoingPayment not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupOutgoingPayment not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) ListOutgoingPayments(context.Context, *PaginationRequest) (*ListOutgoingPaymentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOutgoingPayments not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) ListPendingOutgoingPayments(context.Context, *PaginationRequest) (*ListOutgoingPaymentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPendingOutgoingPayments not implemented")
 }
 
 // UnsafeOpenPaymentServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -338,6 +380,24 @@ func _OpenPaymentService_LookupIncomingPayment_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenPaymentService_ListIncomingPayments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).ListIncomingPayments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/ListIncomingPayments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).ListIncomingPayments(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OpenPaymentService_CreateOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOutgoingPaymentRequest)
 	if err := dec(in); err != nil {
@@ -370,6 +430,42 @@ func _OpenPaymentService_LookupOutgoingPayment_Handler(srv interface{}, ctx cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OpenPaymentServiceServer).LookupOutgoingPayment(ctx, req.(*LookupOutgoingPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OpenPaymentService_ListOutgoingPayments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).ListOutgoingPayments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/ListOutgoingPayments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).ListOutgoingPayments(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OpenPaymentService_ListPendingOutgoingPayments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).ListPendingOutgoingPayments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/ListPendingOutgoingPayments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).ListPendingOutgoingPayments(ctx, req.(*PaginationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -414,12 +510,24 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OpenPaymentService_LookupIncomingPayment_Handler,
 		},
 		{
+			MethodName: "ListIncomingPayments",
+			Handler:    _OpenPaymentService_ListIncomingPayments_Handler,
+		},
+		{
 			MethodName: "CreateOutgoingPayment",
 			Handler:    _OpenPaymentService_CreateOutgoingPayment_Handler,
 		},
 		{
 			MethodName: "LookupOutgoingPayment",
 			Handler:    _OpenPaymentService_LookupOutgoingPayment_Handler,
+		},
+		{
+			MethodName: "ListOutgoingPayments",
+			Handler:    _OpenPaymentService_ListOutgoingPayments_Handler,
+		},
+		{
+			MethodName: "ListPendingOutgoingPayments",
+			Handler:    _OpenPaymentService_ListPendingOutgoingPayments_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -460,7 +568,6 @@ type BackendServiceClient interface {
 	HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error)
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
-	WithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*MachnetWalletWithdrawal, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -700,15 +807,6 @@ func (c *backendServiceClient) GetWalletBalance(ctx context.Context, in *Empty, 
 	return out, nil
 }
 
-func (c *backendServiceClient) WithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*MachnetWalletWithdrawal, error) {
-	out := new(MachnetWalletWithdrawal)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/WithdrawFromMachnetWallet", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -770,7 +868,6 @@ type BackendServiceServer interface {
 	HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error)
 	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
 	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
-	WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -855,9 +952,6 @@ func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWa
 }
 func (UnimplementedBackendServiceServer) GetWalletBalance(context.Context, *Empty) (*WalletBalance, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletBalance not implemented")
-}
-func (UnimplementedBackendServiceServer) WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WithdrawFromMachnetWallet not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -1330,24 +1424,6 @@ func _BackendService_GetWalletBalance_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_WithdrawFromMachnetWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WithdrawFromMachnetWalletRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).WithdrawFromMachnetWallet(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/WithdrawFromMachnetWallet",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).WithdrawFromMachnetWallet(ctx, req.(*WithdrawFromMachnetWalletRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1508,10 +1584,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWalletBalance",
 			Handler:    _BackendService_GetWalletBalance_Handler,
-		},
-		{
-			MethodName: "WithdrawFromMachnetWallet",
-			Handler:    _BackendService_WithdrawFromMachnetWallet_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",

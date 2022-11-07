@@ -7,8 +7,6 @@ import type { CanSignupResponse } from "./backend";
 import type { CanSignupRequest } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
-import type { MachnetWalletWithdrawal } from "./backend";
-import type { WithdrawFromMachnetWalletRequest } from "./backend";
 import type { WalletBalance } from "./backend";
 import type { CreateWalletRequest } from "./backend";
 import type { HasSendUserResponse } from "./backend";
@@ -44,9 +42,12 @@ import type { GetBankAccountWidgetRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenPaymentService } from "./backend";
+import type { ListOutgoingPaymentsResponse } from "./backend";
 import type { LookupOutgoingPaymentRequest } from "./backend";
 import type { OutgoingPayment } from "./backend";
 import type { CreateOutgoingPaymentRequest } from "./backend";
+import type { ListIncomingPaymentsResponse } from "./backend";
+import type { PaginationRequest } from "./backend";
 import type { LookupIncomingPaymentRequest } from "./backend";
 import type { IncomingPayment } from "./backend";
 import type { CreateIncomingPaymentRequest } from "./backend";
@@ -100,6 +101,10 @@ export interface IOpenPaymentServiceClient {
      */
     lookupIncomingPayment(input: LookupIncomingPaymentRequest, options?: RpcOptions): UnaryCall<LookupIncomingPaymentRequest, IncomingPayment>;
     /**
+     * @generated from protobuf rpc: ListIncomingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListIncomingPaymentsResponse);
+     */
+    listIncomingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListIncomingPaymentsResponse>;
+    /**
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment>;
@@ -107,6 +112,14 @@ export interface IOpenPaymentServiceClient {
      * @generated from protobuf rpc: LookupOutgoingPayment(backend.v1.LookupOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     lookupOutgoingPayment(input: LookupOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<LookupOutgoingPaymentRequest, OutgoingPayment>;
+    /**
+     * @generated from protobuf rpc: ListOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     */
+    listOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse>;
+    /**
+     * @generated from protobuf rpc: ListPendingOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     */
+    listPendingOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.OpenPaymentService
@@ -174,18 +187,39 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<LookupIncomingPaymentRequest, IncomingPayment>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: ListIncomingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListIncomingPaymentsResponse);
+     */
+    listIncomingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListIncomingPaymentsResponse> {
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListIncomingPaymentsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment> {
-        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: LookupOutgoingPayment(backend.v1.LookupOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     lookupOutgoingPayment(input: LookupOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<LookupOutgoingPaymentRequest, OutgoingPayment> {
-        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
         return stackIntercept<LookupOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     */
+    listOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse> {
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListOutgoingPaymentsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListPendingOutgoingPayments(backend.v1.PaginationRequest) returns (backend.v1.ListOutgoingPaymentsResponse);
+     */
+    listPendingOutgoingPayments(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListOutgoingPaymentsResponse> {
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListOutgoingPaymentsResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**
@@ -302,10 +336,6 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetWalletBalance(backend.v1.Empty) returns (backend.v1.WalletBalance);
      */
     getWalletBalance(input: Empty, options?: RpcOptions): UnaryCall<Empty, WalletBalance>;
-    /**
-     * @generated from protobuf rpc: WithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.MachnetWalletWithdrawal);
-     */
-    withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>;
     /**
      * Waitlist
      *
@@ -516,33 +546,26 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<Empty, WalletBalance>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: WithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.MachnetWalletWithdrawal);
-     */
-    withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal> {
-        const method = this.methods[25], opt = this._transport.mergeOptions(options);
-        return stackIntercept<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>("unary", this._transport, method, opt, input);
-    }
-    /**
      * Waitlist
      *
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CanSignup(backend.v1.CanSignupRequest) returns (backend.v1.CanSignupResponse);
      */
     canSignup(input: CanSignupRequest, options?: RpcOptions): UnaryCall<CanSignupRequest, CanSignupResponse> {
-        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
         return stackIntercept<CanSignupRequest, CanSignupResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetSignupComplete(backend.v1.SetSignupCompleteRequest) returns (backend.v1.Empty);
      */
     setSignupComplete(input: SetSignupCompleteRequest, options?: RpcOptions): UnaryCall<SetSignupCompleteRequest, Empty> {
-        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetSignupCompleteRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

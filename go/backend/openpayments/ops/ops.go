@@ -10,9 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/jmoiron/sqlx"
-
 	"github.com/google/uuid"
 
 	"gitlab.com/fynbos/backend/db"
