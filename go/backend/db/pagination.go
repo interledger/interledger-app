@@ -17,12 +17,11 @@ func (p *Pagination) SQL() string {
 		pg -= 1
 	}
 
-	ps := p.PageSize
-	if ps <= 0 {
-		ps = 50
+	if p.PageSize <= 0 {
+		p.PageSize = 50
 	}
 
-	return fmt.Sprintf(" LIMIT %d OFFSET %d  ", ps, pg*ps)
+	return fmt.Sprintf(" LIMIT %d OFFSET %d  ", p.PageSize, pg*p.PageSize)
 }
 
 func PaginationFromPB(req *pb.PaginationRequest) Pagination {
