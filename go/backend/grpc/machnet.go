@@ -192,7 +192,7 @@ func (r *rpcService) WithdrawFromMachnetWallet(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if toLinkedAcc.WalletId != wallet.ID {
+	if toLinkedAcc.WalletID != wallet.ID {
 		return nil, NotFoundError("Linked account not found.")
 	}
 

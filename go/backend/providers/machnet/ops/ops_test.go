@@ -529,7 +529,7 @@ func TestWithdrawFromWallet(t *testing.T) {
 	walletLinkedAccountID, toLinkedAccountID := uuid.NewString(), uuid.NewString()
 	b.linkedaccounts.EXPECT().Get(gomock.Any(), walletLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
 		ID:         walletLinkedAccountID,
-		WalletId:   walletID,
+		WalletID:   walletID,
 		Provider:   machnet.ProviderName,
 		ProviderID: externalWallet.ID,
 		Type:       machnet.TypeWallet,
@@ -537,7 +537,7 @@ func TestWithdrawFromWallet(t *testing.T) {
 	bankAccountID := uuid.NewString()
 	b.linkedaccounts.EXPECT().Get(gomock.Any(), toLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
 		ID:         toLinkedAccountID,
-		WalletId:   walletID,
+		WalletID:   walletID,
 		Provider:   machnet.ProviderName,
 		ProviderID: bankAccountID,
 		Type:       machnet.TypeReceiveBankAccount,
