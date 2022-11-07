@@ -14,6 +14,7 @@ import {
 import { requireUserSession } from '~/lib/kratos.server'
 import { useCallback, useState } from 'react'
 import { DateTime } from 'luxon'
+import {getClientIP} from "~/lib/ip.server";
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -206,7 +207,7 @@ export async function action({ request, params }: ActionArgs) {
     gender: ''
   }
 
-  const ipAddress = request.headers.get('x-forwarded-for') as string
+  const clientIpAddress = getClientIP(request)
 
   const seconds = `${DateTime.fromFormat(
     dateOfBirth,
@@ -225,7 +226,7 @@ export async function action({ request, params }: ActionArgs) {
         lastName,
         gender: parseInt(gender),
         dateOfBirth: timestamp,
-        ipAddress
+        ipAddress: clientIpAddress
       },
       {
         meta: {
