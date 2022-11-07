@@ -138,7 +138,7 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 
 const incomingPaymentsCols = `id, payment_pointer_id, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at`
 
-func ListIncomingPayments(ctx context.Context, b Backends, walletID string) ([]openpayments.IncomingPayment, error) {
+func ListIncomingPayments(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]openpayments.IncomingPayment, error) {
 	pp, err := ListWalletPaymentPointers(ctx, b, walletID)
 	if err != nil {
 		return nil, err
@@ -149,9 +149,8 @@ func ListIncomingPayments(ctx context.Context, b Backends, walletID string) ([]o
 	}
 
 	var dbList []dbIncomingPayment
-	// TODO pagination
 	err = b.DB().SelectContext(ctx, &dbList,
-		fmt.Sprintf("SELECT %s FROM openpayments_incoming_payment WHERE completed=true AND payment_pointer_id=$1", incomingPaymentsCols),
+		fmt.Sprintf("SELECT %s FROM openpayments_incoming_payment WHERE completed=true AND payment_pointer_id=$1 %s", incomingPaymentsCols, page.SQL()),
 		pp[0].ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)

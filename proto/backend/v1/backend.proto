@@ -9,6 +9,17 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "./backend/v1;backend";
 
+message PaginationRequest {
+  int32 page = 1;
+  int32 pageSize = 2;
+}
+
+message PaginationResponse {
+  int32 page = 1;
+  int32 pageSize = 2;
+  bool hasNextPage = 3;
+}
+
 service OpenPaymentService {
   rpc CreatePaymentPointer(CreatePaymentPointerRequest) returns (Empty);
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
@@ -18,19 +29,21 @@ service OpenPaymentService {
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
-  rpc ListIncomingPayments(Empty) returns (ListIncomingPaymentsResponse);
+  rpc ListIncomingPayments(PaginationRequest) returns (ListIncomingPaymentsResponse);
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
-  rpc ListOutgoingPayments(Empty) returns (ListOutgoingPaymentsResponse);
-  rpc ListPendingOutgoingPayments(Empty) returns (ListOutgoingPaymentsResponse);
+  rpc ListOutgoingPayments(PaginationRequest) returns (ListOutgoingPaymentsResponse);
+  rpc ListPendingOutgoingPayments(PaginationRequest) returns (ListOutgoingPaymentsResponse);
 }
 
 message ListOutgoingPaymentsResponse {
-  repeated OutgoingPayment payments = 2;
+  repeated OutgoingPayment payments = 1;
+  PaginationResponse page = 2;
 }
 
 message ListIncomingPaymentsResponse {
   repeated IncomingPayment payments = 1;
+  PaginationResponse page = 2;
 }
 
 message Amount {

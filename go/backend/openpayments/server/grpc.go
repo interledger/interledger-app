@@ -20,16 +20,6 @@ type grpcServer struct {
 	b Backends
 }
 
-func (g *grpcServer) ListPendingOutgoingPayments(ctx context.Context, empty *pb.Empty) (*pb.ListOutgoingPaymentsResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (g *grpcServer) ListOutgoingPayments(ctx context.Context, empty *pb.Empty) (*pb.ListOutgoingPaymentsResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewGRPCServer(b Backends) pb.OpenPaymentServiceServer {
 	return &grpcServer{b: b}
 }
@@ -348,11 +338,6 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 	}, nil
 }
 
-func (g *grpcServer) ListIncomingPayments(ctx context.Context, empty *pb.Empty) (*pb.ListIncomingPaymentsResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 	args := openpayments.CreateOutgoingPaymentArgs{
 		QuoteID:     req.QuoteID,
@@ -405,4 +390,19 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 		CreatedAt:        timestamppb.New(op.CreatedAt),
 		UpdatedAt:        timestamppb.New(op.UpdatedAt),
 	}, nil
+}
+
+func (g *grpcServer) ListIncomingPayments(ctx context.Context, req *pb.PaginationRequest) (*pb.ListIncomingPaymentsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *grpcServer) ListOutgoingPayments(ctx context.Context, req *pb.PaginationRequest) (*pb.ListOutgoingPaymentsResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *grpcServer) ListPendingOutgoingPayments(ctx context.Context, req *pb.PaginationRequest) (*pb.ListOutgoingPaymentsResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
