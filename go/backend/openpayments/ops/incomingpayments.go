@@ -157,14 +157,14 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 	return resp, nil
 }
 
-func ListIncomingPayments(ctx context.Context, b Backends, ids []string) ([]openpayments.IncomingPayment, error) {
+func listIncomingPayments(ctx context.Context, b Backends, ids []string) ([]openpayments.IncomingPayment, error) {
 	query, args, err := sqlx.In(fmt.Sprintf("SELECT %s FROM openpayments_incoming_payment WHERE id IN (?)", incomingPaymentsCols), ids)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
 	var dbList []dbIncomingPayment
-	err = b.DB().SelectContext(ctx, &dbList, query, args...)
+	err = b.DB().SelectContext(ctx, &dbList, b.DB().Rebind(query), args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}

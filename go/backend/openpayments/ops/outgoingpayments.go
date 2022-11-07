@@ -209,7 +209,8 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, opID)
 		}
 
-		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET received_amount=$1 WHERE id=$2 AND received_amount<=$1", args.SentAmount.Value, ipID)
+		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4 AND received_amount<=$1",
+			args.SentAmount.Value, args.SentAmount.Asset, args.SentAmount.AssetScale, ipID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
@@ -225,14 +226,14 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 	})
 }
 
-func ListOutgoingPayments(ctx context.Context, b Backends, ids []string) ([]openpayments.OutgoingPayment, error) {
+func listOutgoingPayments(ctx context.Context, b Backends, ids []string) ([]openpayments.OutgoingPayment, error) {
 	query, args, err := sqlx.In(fmt.Sprintf("SELECT %s FROM openpayments_outgoing_payment WHERE id IN (?)", outgoingPaymentCols), ids)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
 	var dbList []dbOutgoingPayments
-	err = b.DB().SelectContext(ctx, &dbList, query, args...)
+	err = b.DB().SelectContext(ctx, &dbList, b.DB().Rebind(query), args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}

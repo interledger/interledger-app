@@ -362,7 +362,7 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 	var ids []string
 	err = b.DB().SelectContext(ctx, &ids, "SELECT id FROM (SELECT id, created_at FROM openpayments_incoming_payment WHERE completed=true AND payment_pointer_id=$1 "+
 		" UNION "+
-		"SELECT op.id, op.created_at FROM openpayments_outgoing_payment op INNER JOIN openpayments_quotes q ON  op.quote_id = q.id WHERE op.failed=false AND op.completed=true AND q.send_payment_pointer_id=$1) "+
+		"SELECT op.id as id, op.created_at as created_at FROM openpayments_outgoing_payment op INNER JOIN openpayments_quotes q ON  op.quote_id = q.id WHERE op.failed=false AND op.completed=true AND q.send_payment_pointer_id=$1) "+
 		page.SQL(),
 		pp[0].ID)
 	if err != nil {
@@ -378,12 +378,12 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 		idIndex[id] = i
 	}
 
-	incoming, err := ListIncomingPayments(ctx, b, ids)
+	incoming, err := listIncomingPayments(ctx, b, ids)
 	if err != nil {
 		return nil, err
 	}
 
-	outgoing, err := ListOutgoingPayments(ctx, b, ids)
+	outgoing, err := listOutgoingPayments(ctx, b, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -428,8 +428,6 @@ func ListPendingTransactions(ctx context.Context, b Backends, walletID string, p
 	}
 
 	var ids []string
-
-	fmt.Println(page.SQL())
 	err = b.DB().SelectContext(ctx, &ids,
 		"SELECT op.id FROM openpayments_outgoing_payment op INNER JOIN openpayments_quotes q ON  op.quote_id = q.id WHERE op.failed=false AND op.completed=false AND q.send_payment_pointer_id=$1 ORDER BY op.created_at DESC"+
 			page.SQL(),
@@ -447,7 +445,7 @@ func ListPendingTransactions(ctx context.Context, b Backends, walletID string, p
 		idIndex[id] = i
 	}
 
-	outgoing, err := ListOutgoingPayments(ctx, b, ids)
+	outgoing, err := listOutgoingPayments(ctx, b, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +460,7 @@ func ListPendingTransactions(ctx context.Context, b Backends, walletID string, p
 			Destination: o.ToPaymentPointer,
 			Type:        openpayments.TransactionTypeOutgoingPayment,
 			Timestamp:   o.CreatedAt,
-			Amount:      o.SentAmount,
+			Amount:      o.SendAmount,
 		}
 	}
 

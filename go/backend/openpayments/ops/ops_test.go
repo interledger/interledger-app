@@ -652,16 +652,48 @@ func TestListTransactions(t *testing.T) {
 			_, err = ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
 			require.NoError(t, err)
 
-			pendingSend, err := ops.ListPendingTransactions(ctx, b, sendWallet.ID, db.Pagination{})
+			pendingSender, err := ops.ListPendingTransactions(ctx, b, sendWallet.ID, db.Pagination{})
 			require.NoError(t, err)
-			assert.Len(t, pendingSend, 1)
+			assert.Len(t, pendingSender, 1)
 
-			assert.Equal(t, pendingSend[0].Source, tc.quoteArgs.SendPaymentPointer)
-			assert.Equal(t, pendingSend[0].Destination, tc.quoteArgs.ReceivePaymentPointer)
-			assert.Equal(t, pendingSend[0].Type, openpayments.TransactionTypeOutgoingPayment)
-			assert.Equal(t, pendingSend[0].Amount.Value, tc.quoteArgs.SendAmount.Value)
-			assert.Equal(t, pendingSend[0].Amount.AssetScale, tc.quoteArgs.SendAmount.AssetScale)
-			assert.Equal(t, pendingSend[0].Amount.Asset, tc.quoteArgs.SendAmount.Asset)
+			assert.Equal(t, pendingSender[0].Source, tc.quoteArgs.SendPaymentPointer)
+			assert.Equal(t, pendingSender[0].Destination, tc.quoteArgs.ReceivePaymentPointer)
+			assert.Equal(t, pendingSender[0].Type, openpayments.TransactionTypeOutgoingPayment)
+			assert.Equal(t, pendingSender[0].Amount.Value, tc.quoteArgs.SendAmount.Value)
+			assert.Equal(t, pendingSender[0].Amount.AssetScale, tc.quoteArgs.SendAmount.AssetScale)
+			assert.Equal(t, pendingSender[0].Amount.Asset, tc.quoteArgs.SendAmount.Asset)
+
+			err = ops.CompleteOutgoingPayment(ctx, b, openpayments.CompleteOutgoingPaymentArgs{
+				ID:         pendingSender[0].ID,
+				SentAmount: tc.quoteArgs.SendAmount,
+			})
+			require.NoError(t, err)
+
+			pendingSender, err = ops.ListPendingTransactions(ctx, b, sendWallet.ID, db.Pagination{})
+			require.NoError(t, err)
+			assert.Empty(t, pendingSender)
+
+			completeSender, err := ops.ListTransactions(ctx, b, sendWallet.ID, db.Pagination{})
+			require.NoError(t, err)
+			assert.Len(t, completeSender, 1)
+
+			assert.Equal(t, completeSender[0].Source, tc.quoteArgs.SendPaymentPointer)
+			assert.Equal(t, completeSender[0].Destination, tc.quoteArgs.ReceivePaymentPointer)
+			assert.Equal(t, completeSender[0].Type, openpayments.TransactionTypeOutgoingPayment)
+			assert.Equal(t, completeSender[0].Amount.Value, tc.quoteArgs.SendAmount.Value)
+			assert.Equal(t, completeSender[0].Amount.AssetScale, tc.quoteArgs.SendAmount.AssetScale)
+			assert.Equal(t, completeSender[0].Amount.Asset, tc.quoteArgs.SendAmount.Asset)
+
+			completeRecv, err := ops.ListTransactions(ctx, b, recvWallet.ID, db.Pagination{})
+			require.NoError(t, err)
+			assert.Len(t, completeRecv, 1)
+
+			assert.Equal(t, completeRecv[0].Source, tc.quoteArgs.SendPaymentPointer)
+			assert.Equal(t, completeRecv[0].Destination, tc.quoteArgs.ReceivePaymentPointer)
+			assert.Equal(t, completeRecv[0].Type, openpayments.TransactionTypeIncomingPayment)
+			assert.Equal(t, completeRecv[0].Amount.Value, tc.quoteArgs.SendAmount.Value)
+			assert.Equal(t, completeRecv[0].Amount.AssetScale, tc.quoteArgs.SendAmount.AssetScale)
+			assert.Equal(t, completeRecv[0].Amount.Asset, tc.quoteArgs.SendAmount.Asset)
 		})
 	}
 }
