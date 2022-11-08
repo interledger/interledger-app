@@ -88,7 +88,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	switch suffix {
 	case "outgoing-payments":
-		createOutgoingPayment(b, w, req)
+		createOutgoingPayment(b, w, req, pp)
 		return
 	case "incoming-payments":
 		createIncomingPayment(b, w, req, pp)
@@ -101,7 +101,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request) {
+func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request, pp *openpayments.PaymentPointer) {
 	bodyData, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Error("failed to decode create outgoing payment body", zap.Error(err))
@@ -115,6 +115,18 @@ func createOutgoingPayment(b Backends, w http.ResponseWriter, req *http.Request)
 	if err != nil {
 		log.Error("failed to unmarshal create outgoing payment body", zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	_, err = ops.GetPaymentPointerQuote(req.Context(), b, pp.ID, args.QuoteID)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		log.Error("failed to start outgoing payment, quote not found", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Error("failed to start outgoing payment, could not look up quote", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
@@ -286,7 +298,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	switch suffix {
 	case "quotes":
-		getQuote(b, w, req)
+		getQuote(b, pp, w, req)
 		return
 	case "incoming-payments":
 		getIncomingPayment(b, w, req)
@@ -306,8 +318,8 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func getQuote(b Backends, w http.ResponseWriter, req *http.Request) {
-	q, err := ops.GetQuote(req.Context(), b, getFullURL(req))
+func getQuote(b Backends, pp *openpayments.PaymentPointer, w http.ResponseWriter, req *http.Request) {
+	q, err := ops.GetPaymentPointerQuote(req.Context(), b, pp.ID, getFullURL(req))
 	if errors.Is(err, openpayments.ErrNotFound) {
 		log.Error("quote not found", zap.Error(err), zap.String("url", getFullURL(req)))
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)

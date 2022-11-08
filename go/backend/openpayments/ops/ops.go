@@ -275,7 +275,7 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w insert failed (%s)", openpayments.ErrInternal, err)
 	}
 
-	return GetQuote(ctx, b, id)
+	return GetPaymentPointerQuote(ctx, b, sendPP.ID, id)
 }
 
 type dbQuote struct {
@@ -310,18 +310,7 @@ func getDBQuote(ctx context.Context, b Backends, where string, args ...interface
 	return &dbq, nil
 }
 
-func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, error) {
-	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
-	idxSlash := strings.LastIndex(id, "/")
-	if idxSlash > 0 {
-		id = id[idxSlash+1:]
-	}
-
-	dbq, err := getDBQuote(ctx, b, "id=$1", id)
-	if err != nil {
-		return nil, err
-	}
-
+func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments.Quote, error) {
 	recvPP, err := getPaymentPointerByID(ctx, b, dbq.ReceivePaymentPointer)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
@@ -346,7 +335,50 @@ func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, 
 		ExpiresAt:       dbq.ExpiresAt,
 		CreatedAt:       dbq.CreatedAt,
 	}, nil
+}
 
+// GetQuote returns a quote for the given ID. No validation is done on if the caller/user/paymentpointer can access the quote.
+func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, error) {
+	// Our friends may have provided the full ID with the payment pointer and the `quotes` prefix.
+	idxSlash := strings.LastIndex(id, "/")
+	if idxSlash > 0 {
+		id = id[idxSlash+1:]
+	}
+
+	dbq, err := getDBQuote(ctx, b, "id=$1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	return transformQuote(ctx, b, *dbq)
+}
+
+func GetWalletQuote(ctx context.Context, b Backends, walletID, id string) (*openpayments.Quote, error) {
+	pp, err := ListWalletPaymentPointers(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(pp) != 1 {
+		return nil, fmt.Errorf("%w wallet has (%d) payment pointers", openpayments.ErrInternal, len(pp))
+	}
+
+	return GetPaymentPointerQuote(ctx, b, pp[0].ID, id)
+}
+
+func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, id string) (*openpayments.Quote, error) {
+	// Our friends may have provided the full ID with the payment pointer and the `quotes` prefix.
+	idxSlash := strings.LastIndex(id, "/")
+	if idxSlash > 0 {
+		id = id[idxSlash+1:]
+	}
+
+	dbq, err := getDBQuote(ctx, b, "id=$1 AND send_payment_pointer_id=$2", id, paymentPointerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return transformQuote(ctx, b, *dbq)
 }
 
 func ListTransactions(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]openpayments.Transaction, error) {

@@ -217,12 +217,12 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	_, err = g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	q, err := ops.GetQuote(ctx, g.b, req.Id)
+	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, req.Id)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -358,12 +358,15 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	_, err = g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	// TODO: ACL check that the quote belongs to the user
+	_, err = ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
 
 	op, err := workflows.StartOutgoingPayment(ctx, g.b, args)
 	if err != nil {
