@@ -37,8 +37,8 @@ func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndi
 		args.AddressState = req.GetAddress().GetState()
 		args.AddressCountryCode = req.GetAddress().GetCountryCode()
 	}
-	if err := s.b.Validator().Struct(args); err != nil {
-		return nil, ValidationError(err, validationDesc)
+	if err := s.b.Validator().StructCtx(ctx, args); err != nil {
+		return nil, toGRPCError(err)
 	}
 
 	update := kyc.IndividualDetails{

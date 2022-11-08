@@ -45,11 +45,15 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid currency"
 	case "ip_addr":
 		return "Provide a valid IP address"
-	case "gt":
+	case "gt", "min-number":
 		return "Must be greater than " + fe.Param()
+	case "min-items":
+		return "Must contain at least " + fe.Param()
+	case "oneof":
+		return fmt.Sprintf("Must be one of [%s]", fe.Param())
 	}
 
-	return ""
+	return fe.Error() // default message
 }
 
 // toGRPCError converts a given error to its frontend friendly equivalent.

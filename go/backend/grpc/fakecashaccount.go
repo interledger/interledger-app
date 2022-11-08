@@ -22,6 +22,10 @@ func (s *rpcService) LinkCashAccount(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
+	if err = s.b.Validator().VarCtx(ctx, req.GetName(), "required"); err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	fakecashAccount, err := s.b.FakeCash().Create(ctx, fakecash.CreateArgs{})
 	if err != nil {
 		return nil, toGRPCError(err)
