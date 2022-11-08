@@ -53,6 +53,7 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 	env.OnActivity(a.CreateExternalSendUser, mock.Anything, wallet.ID).Return(externalUserID, nil)
 	env.OnActivity(a.CreateUser, mock.Anything, wallet.ID, externalUserID).Return(externalUserID, nil)
 	env.OnActivity(a.StartExternalKYC, mock.Anything, externalUserID).Return(nil)
+	env.OnActivity(a.CreateWallet, mock.Anything, externalUserID).Return(nil)
 
 	env.ExecuteWorkflow(CreateSendUserWorkflow, wallet.ID)
 
