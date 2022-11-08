@@ -5,4 +5,4 @@ include('./../../typescript/protea/Tiltfile')
 include('./../../go/backend/Tiltfile')
 
 # admin
-include('./../../typescript/botanist/Tiltfile')
+# include('./../../typescript/botanist/Tiltfile')
