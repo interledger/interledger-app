@@ -151,6 +151,23 @@ func (a *Activity) StartExternalKYC(ctx context.Context, externalID string) erro
 	return err
 }
 
+func (a *Activity) CreateWallet(ctx context.Context, externalID string) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("CreateWallet_Activity", "externalID", externalID)
+
+	mu, err := a.b.External().GetUserByID(ctx, externalID)
+	if errors.Is(err, external.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", externalID), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	_, err = a.b.External().CreateUserWallet(ctx, mu.ID, "default")
+
+	return err
+}
+
 type FundWalletResponse struct {
 	FromWalletLinkedAcc string
 	FundTX              string
