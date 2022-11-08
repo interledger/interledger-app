@@ -9,7 +9,7 @@ import {
   Shape,
   TextField
 } from '~/components'
-import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import {
   getCsrfTokenFromFlow,
   handleFlowError,
@@ -26,7 +26,7 @@ import { flashSnackbar } from '~/lib/snackbar.server'
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
   await canSignup(request)
-  const flow = await getCurrentFlow(request, flowType.Signup)
+  await requireFlow(request, flowType.Signup)
   const cookie = String(request.headers.get('cookie'))
 
   const url = new URL(request.url)
@@ -54,12 +54,11 @@ export async function loader({ request }: LoaderArgs) {
     )
     kratosFlow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(kratosFlow, 'signup')
-    return redirect(`/signup/${flow?.id}/password?flow=${kratosFlow.id}`, {
+    return redirect(`/signup/password?flow=${kratosFlow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({
-    flow,
     kratosFlowId,
     csrfToken: getCsrfTokenFromFlow(kratosFlow)
   })
@@ -71,7 +70,7 @@ export const handle = {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, kratosFlowId, csrfToken } = useLoaderData<typeof loader>()
+  const { kratosFlowId, csrfToken } = useLoaderData<typeof loader>()
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
@@ -98,7 +97,7 @@ export default function Page() {
 
       <Form
         id='signup-password'
-        action={`/signup/${flow.id}/password?flow=${kratosFlowId}`}
+        action={`/signup/password?flow=${kratosFlowId}`}
         method='post'
         className='hidden'
       />
@@ -187,7 +186,7 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  const flow = await getCurrentFlow(request, flowType.Signup)
+  const flow = await requireFlow(request, flowType.Signup)
 
   const email = flow?.data.email
 
@@ -235,21 +234,14 @@ export async function action({ request }: ActionArgs) {
   const userId = successData.identity.id
   // TODO: also handle via kratos webhook, add retry here and error handling
   await grpcClient.completeSignup({
-    id: flow.id,
+    id: flow.data.id,
     userId: userId
   })
   await setWaitlistSignupComplete(request, userId)
-
-  const headers = await exitFlow(request, flowType.Signup)
+  await exitFlow(request, flowType.Signup)
 
   // Delete all the values from the header instead of set-cookie
   const resHeaders = trimHeaders(res.headers, ['set-cookie'])
-
-  // Append the exitFlow set-cookie
-  const flowSetCookie = headers.get('set-cookie')
-  if (flowSetCookie) {
-    resHeaders.append('set-cookie', flowSetCookie)
-  }
 
   const sessionHeaders = await flashSnackbar(request, {
     message: 'Your account was created successfully.',

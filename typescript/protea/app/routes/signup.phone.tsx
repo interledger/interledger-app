@@ -19,12 +19,7 @@ import {
   TextButton,
   TextField
 } from '~/components'
-import {
-  flowType,
-  getCurrentFlow,
-  requireFlow,
-  updateFlow
-} from '~/lib/flows.server'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -37,11 +32,10 @@ import styles from '~/styles/flags.css'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { canSignup } from '~/lib/signupCheck.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
   await canSignup(request)
-  await requireFlow(request, flowType.Signup, params)
-  const flow = await getCurrentFlow(request, flowType.Signup)
+  const flow = await requireFlow(request, flowType.Signup)
   let countries = await grpcClient
     .getCountries({})
     .then((v) => v)
@@ -143,7 +137,7 @@ export default function Page() {
       <div className='mt-12'>
         {hasVerified && (
           <Router
-            to={route('/signup/:flowId/password', { flowId: flow.id })}
+            to={route('/signup/password')}
             className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10'
           >
             <span className='font-display font-medium text-white'>
@@ -160,7 +154,7 @@ export default function Page() {
       <Dialog open={showDialog} setOpen={setShowDialog}>
         <Form
           id='signup-phone-otp-validation'
-          action={`/signup/${flow.id}/phone`}
+          action='/signup/phone'
           method='post'
           className='hidden'
         />
@@ -228,11 +222,11 @@ export async function action({ request }: ActionArgs) {
     phone: ''
   }
 
-  const flow = await getCurrentFlow(request, flowType.Signup)
+  const flow = await requireFlow(request, flowType.Signup)
 
   let response = await grpcClient
     .setSignupMobileNumber({
-      id: flow.id,
+      id: flow.data.id,
       mobile: phone,
       otp: otp
     })
@@ -250,15 +244,10 @@ export async function action({ request }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  const headers = await updateFlow(request, flowType.Signup, {
+  await updateFlow(request, flowType.Signup, {
     phone,
     otp
   })
 
-  return redirect(
-    route('/signup/:flowId/password', {
-      flowId: flow?.id as string
-    }),
-    { headers }
-  )
+  return redirect(route('/signup/password'))
 }

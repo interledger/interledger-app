@@ -2,7 +2,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Checkbox, Layouts } from '~/components'
-import { exitFlow, flowType, getCurrentFlow } from '~/lib/flows.server'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import {
   httpMapping,
@@ -15,7 +15,7 @@ import { getClientIP } from '~/lib/ip.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
-  const flow = await getCurrentFlow(request, flowType.Pay)
+  const flow = await requireFlow(request, flowType.Pay)
   return json({
     flow,
     traits: session.identity.traits
@@ -83,7 +83,7 @@ export default function Page() {
 
         <Form
           id='pay-confirm'
-          action={`/pay/${flow.id}/confirm`}
+          action='/pay/confirm'
           method='post'
           className='hidden'
         />
@@ -125,7 +125,7 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const flow = await getCurrentFlow(request, flowType.Pay)
+  const flow = await requireFlow(request, flowType.Pay)
   const form = await request.formData()
   const serviceAgreement = form.get('service-agreement') as string
 
@@ -165,11 +165,9 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
 
-  const headers = await exitFlow(request, flowType.Pay)
+  await exitFlow(request, flowType.Pay)
+  // TODO: Should route to a success page rather. As the payment may take some time to process
   return redirect(
-    route('/receipt/:transactionId', { transactionId: response.response.id }),
-    {
-      headers
-    }
+    route('/receipt/:transactionId', { transactionId: response.response.id })
   )
 }

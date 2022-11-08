@@ -5,12 +5,7 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Autocomplete, Button, Layouts, Shape, TextField } from '~/components'
-import {
-  flowType,
-  getCurrentFlow,
-  requireFlow,
-  updateFlow
-} from '~/lib/flows.server'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -28,8 +23,7 @@ import { canSignup } from '~/lib/signupCheck.server'
 export async function loader({ request, params }: LoaderArgs) {
   await requireNoUserSession(request)
   await canSignup(request)
-  await requireFlow(request, flowType.Signup, params)
-  const flow = await getCurrentFlow(request, flowType.Signup)
+  const flow = await requireFlow(request, flowType.Signup)
 
   let response = await grpcClient
     .getCountries({})
@@ -106,7 +100,7 @@ export default function Page() {
 
       <Form
         id='signup-about-details'
-        action={`/signup/${flow.id}/about`}
+        action='/signup/about'
         method='post'
         className='hidden'
       />
@@ -205,7 +199,8 @@ function mapper(
   }
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request }: ActionArgs) {
+  await requireFlow(request, flowType.Signup)
   const form = await request.formData()
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string
@@ -228,7 +223,6 @@ export async function action({ request, params }: ActionArgs) {
 
   let response = await grpcClient
     .setSignupUserData({
-      id: params.flowId,
       firstName,
       lastName,
       countryCode: country,
@@ -255,7 +249,7 @@ export async function action({ request, params }: ActionArgs) {
     >
   ).response.id
 
-  const headers = await updateFlow(request, flowType.Signup, {
+  await updateFlow(request, flowType.Signup, {
     id,
     firstName,
     lastName,
@@ -263,10 +257,5 @@ export async function action({ request, params }: ActionArgs) {
     email
   })
 
-  return redirect(
-    route('/signup/:flowId/phone', {
-      flowId: params.flowId as string
-    }),
-    { headers }
-  )
+  return redirect(route('/signup/phone'))
 }

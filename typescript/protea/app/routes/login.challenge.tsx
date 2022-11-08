@@ -2,33 +2,24 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Layouts, TextField } from '~/components'
-import { route } from 'routes-gen'
 import {
-  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
+  KRATOS_URL,
   requireUserSession
 } from '~/lib/kratos.server'
-import { commitSession, getSession } from '~/session.server'
 import { trimHeaders } from '~/lib/headers.server'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
-  const userSettings = await getSession(request.headers.get('Cookie'))
+  await requireFlow(request, flowType.PasswordChallenge)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const challengeFlow = url.searchParams.get('challenge-flow')
+
   const cookie = String(request.headers.get('cookie'))
 
-  if (challengeFlow == 'settings-password') {
-    userSettings.set('challenge-flow', {
-      type: challengeFlow,
-      returnTo: '/settings/password',
-      email: session.identity.traits.email
-    })
-  }
-
-  let flow
+  let kratosFlow
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
@@ -40,24 +31,23 @@ export async function loader({ request }: LoaderArgs) {
         }
       }
     )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'login/challenge')
+    kratosFlow = await flowRes.json()
+    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'login/challenge')
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
       `${KRATOS_URL}/self-service/login/browser?refresh=true`,
       { headers: { Accept: 'application/json' } }
     )
-    if (flowRes.status >= 400) handleFlowError(flow, 'login/challenge')
-    flow = await flowRes.json()
-    flowRes.headers.append('Set-Cookie', await commitSession(userSettings))
-    return redirect(`/login/challenge?flow=${flow.id}`, {
+    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'login/challenge')
+    kratosFlow = await flowRes.json()
+    return redirect(`/login/challenge?flow=${kratosFlow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({
-    flow,
-    csrfToken: getCsrfTokenFromFlow(flow),
+    flow: kratosFlow,
+    csrfToken: getCsrfTokenFromFlow(kratosFlow),
     email: session.identity.traits.email
   })
 }
@@ -118,7 +108,7 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const userSettings = await getSession(request.headers.get('Cookie'))
+  const flow = await requireFlow(request, flowType.PasswordChallenge)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -162,13 +152,8 @@ export async function action({ request }: ActionArgs) {
   }
 
   const headers = trimHeaders(res.headers, ['set-cookie'])
-  if (userSettings.has('challenge-flow')) {
-    const { returnTo } = userSettings.get('challenge-flow')
-    return redirect(returnTo, {
-      headers: headers
-    })
-  }
-  return redirect(route('/'), {
+  await exitFlow(request, flowType.PasswordChallenge)
+  return redirect(flow.returnTo, {
     headers: headers
   })
 }

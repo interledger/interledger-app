@@ -3,7 +3,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { Button, Icon, Layouts, TextField } from '~/components'
-import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -16,7 +16,7 @@ import { DateTime } from 'luxon'
 import { getWalletPaymentPointer } from '~/lib/paymentPointer.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const flow = await getCurrentFlow(request, flowType.Pay)
+  const flow = await requireFlow(request, flowType.Pay)
   return json({
     flow
   })
@@ -45,7 +45,7 @@ export default function Page() {
         <span>Enter the amount you want to pay.</span>
         <fetcher.Form
           id='amount-form'
-          action={`/pay/${flow.id}/amount`}
+          action='/pay/amount'
           method='post'
           className='hidden'
         />
@@ -125,7 +125,7 @@ function mapper(field: fieldErrorsMap): 'amount' | null {
 }
 
 export async function action({ request }: ActionArgs) {
-  const flow = await getCurrentFlow(request, flowType.Pay)
+  const flow = await requireFlow(request, flowType.Pay)
   const form = await request.formData()
   const amount = form.get('amount') as string
   const note = form.get('note') as string
@@ -206,13 +206,13 @@ export async function action({ request }: ActionArgs) {
     sendPaymentPointer: sendPaymentPointer.url
   }
 
-  const headers = await updateFlow(request, flowType.Pay, data)
+  await updateFlow(request, flowType.Pay, data)
+
+  // TODO: should always return data, because using fetcher means redirecting from here doesn't add the route to the stack which breaks the back button.
   if (routeTo == 'next') {
-    return redirect(route('/pay/:flowId/confirm', { flowId: flow.id }), {
-      headers
-    })
+    return redirect(route('/pay/confirm'))
   } else {
-    return json(data, { headers })
+    return json(data)
   }
 }
 

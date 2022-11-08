@@ -1,126 +1,83 @@
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
-import type { Params } from 'react-router-dom'
-import { v4 } from 'uuid'
 import { getSession, commitSession } from '~/session.server'
 
 export enum flowType {
   Pay = 'pay',
   Signup = 'signup',
-  LinkCardAccount = 'link-card',
-  LinkBankAccount = 'link-bank',
-  PersonalDetails = 'personal-details'
+  LinkCardAccount = 'linkCard',
+  LinkBankAccount = 'linkBank',
+  PersonalDetails = 'personalDetails',
+  PasswordChallenge = 'passwordChallenge'
 }
 
 type Flow = {
-  id: string
   data?: any
   startRoute: string
-  defaultExitTo: string
+  returnTo: string
 }
 
 type Flows = {
-  [flowType.Pay]: Flow | null
-  [flowType.Signup]: Flow | null
-  [flowType.LinkCardAccount]: Flow | null
-  [flowType.LinkBankAccount]: Flow | null
-  [flowType.PersonalDetails]: Flow | null
+  [K in flowType]: Flow | null
 }
 
 /**
- * Sets up the flow pseudo-stack:
- * 1. Allows stacking flows of different types on top of each other.
- * 2. Flows of the same type will only be added if a previous flow is complete.
+ * Sets up the flow object.
+ * Will throw a redirect to the newly created flow, if one of the specified type doesn't exist yet.
  *
  * @param request Request received in a loader function.
  * @param type The flow type used to identify the flow.
- * @param params Params received in a loader function.
- * @returns returns the current flow (Top of stack), or throws redirects to the newly created flow.
+ * @param template A dynamic runtime flow template to use to override the templates defined here.
+ * @returns returns the current flow of type flowType.
  */
 export async function requireFlow(
   request: Request,
   type: flowType,
-  params?: Params
-): Promise<Headers> {
-  const userSettings = await getSession(request.headers.get('Cookie'))
-
-  let flows: Flows = userSettings.get('flows') || {
-    pay: null,
-    signup: null,
-    linkAccount: null
-  }
-
-  let currentFlow = flows[type]
-  const headers = new Headers()
-
-  if (currentFlow != null) {
-    if (
-      typeof params?.flowId !== 'undefined' &&
-      params?.flowId != currentFlow.id
-    ) {
-      flows[type] = null
-      userSettings.set('flows', flows)
-      headers.append('Set-Cookie', await commitSession(userSettings))
-      throw redirect(currentFlow.startRoute, {
-        headers
-      })
-    }
-  } else {
-    currentFlow = flowTemplate(v4(), type)
-    flows[type] = currentFlow
-
-    userSettings.set('flows', flows)
-    headers.append('Set-Cookie', await commitSession(userSettings))
-
-    const url = new URL(request.url)
-    if (url.pathname != currentFlow.startRoute)
-      throw redirect(currentFlow.startRoute, {
-        headers
-      })
-  }
-  return headers
-}
-
-export async function getCurrentFlow(
-  request: Request,
-  type: flowType
+  template?: Flow
 ): Promise<Flow> {
-  const userSettings = await getSession(request.headers.get('Cookie'))
+  const session = await getSession(request.headers.get('Cookie'))
 
-  const flows: Flows = userSettings.get('flows') || {
+  const flows: Flows = session.get('flows') || {
     pay: null,
     signup: null,
-    linkAccount: null
+    linkCard: null,
+    linkBank: null,
+    personalDetails: null,
+    passwordChallenge: null
   }
+
   let currentFlow = flows[type]
 
   if (currentFlow == null) {
-    throw json(
-      {
-        title: 'No flows found.'
-      },
-      { status: 400, statusText: 'Bad Request' }
-    )
+    currentFlow = template ?? flowTemplate(type)
+    flows[type] = currentFlow
+
+    session.set('flows', flows)
+    throw redirect(currentFlow.startRoute, {
+      headers: {
+        'Set-Cookie': await commitSession(session)
+      }
+    })
   }
+
   return currentFlow
 }
 
 /**
- * Allows adding/updating data to a flows data.
+ * Allows updating a flow's data.
  * @param request
  * @param type The flow type used to identify the flow.
- * @param data A data object to me merged into the flow data
- * @returns Headers
+ * @param data A data object to me merged into the flow data.
+ * @returns string The set cookie header to commit the session.
  */
 export async function updateFlow(
   request: Request,
   type: flowType,
   data?: any
-): Promise<Headers> {
-  const headers = new Headers()
-  const userSettings = await getSession(request.headers.get('Cookie'))
+): Promise<string> {
+  const session = await getSession(request.headers.get('Cookie'))
 
-  const flows: Flows = userSettings.get('flows')
+  const flows: Flows = session.get('flows')
   const currentFlow = flows[type]
 
   if (currentFlow) {
@@ -128,15 +85,13 @@ export async function updateFlow(
       Object.assign(currentFlow.data, data)
     }
     flows[type] = currentFlow
-    userSettings.set('flows', flows)
+    session.set('flows', flows)
 
-    headers.append('Set-Cookie', await commitSession(userSettings))
-
-    return headers
+    return commitSession(session)
   }
   throw json(
     {
-      title: "Can't update/complete a flow that doesn't exist"
+      title: "Can't update a flow that doesn't exist."
     },
     { status: 400, statusText: 'Bad Request' }
   )
@@ -147,60 +102,58 @@ export async function updateFlow(
  * Or returns headers allowing the consumer to redirect out of the flow.
  * @param request Request
  * @param type The flow type used to identify the flow.
- * @returns Headers
+ * @returns string The set cookie header to commit the session
  */
 export async function exitFlow(
   request: Request,
   type: flowType
-): Promise<Headers> {
-  const headers = new Headers()
-  const userSettings = await getSession(request.headers.get('Cookie'))
-  const flows: Flows = userSettings.get('flows')
+): Promise<string> {
+  const session = await getSession(request.headers.get('Cookie'))
+  const flows: Flows = session.get('flows')
 
   flows[type] = null
+  session.set('flows', flows)
 
-  userSettings.set('flows', flows)
-  headers.append('Set-Cookie', await commitSession(userSettings))
-
-  return headers
+  return commitSession(session)
 }
 
-const flowTemplate = (id: string, type: flowType): Flow => {
+const flowTemplate = (type: flowType): Flow => {
   switch (type) {
     case flowType.Pay:
       return {
-        id: id,
         startRoute: route('/pay'),
         data: {},
-        defaultExitTo: '/'
+        returnTo: '/'
       }
     case flowType.LinkCardAccount:
       return {
-        id,
         startRoute: route('/linked-account/:type', { type: 'card' }),
         data: {},
-        defaultExitTo: route('/settings/linked-accounts')
+        returnTo: route('/settings/linked-accounts')
       }
     case flowType.LinkBankAccount:
       return {
-        id,
         startRoute: route('/linked-account/:type', { type: 'bank' }),
         data: {},
-        defaultExitTo: route('/settings/linked-accounts')
+        returnTo: route('/settings/linked-accounts')
       }
     case flowType.Signup:
       return {
-        id,
         startRoute: route('/signup'),
         data: {},
-        defaultExitTo: route('/')
+        returnTo: route('/')
       }
     case flowType.PersonalDetails:
       return {
-        id,
-        startRoute: route('/personal-details/:flowId/about', { flowId: id }),
+        startRoute: route('/personal-details/about'),
         data: {},
-        defaultExitTo: route('/settings/linked-accounts')
+        returnTo: route('/settings/linked-accounts')
+      }
+    case flowType.PasswordChallenge:
+      return {
+        startRoute: route('/login/challenge'),
+        data: {},
+        returnTo: route('/')
       }
     default:
       throw json(
