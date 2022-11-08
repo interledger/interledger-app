@@ -378,7 +378,7 @@ function AppPage() {
           <span className='font-medium text-medium'>
             {paymentPointer.formatted}
           </span>
-          <Icon className='text-success'>check</Icon>
+          <Icon className=''>qr_code</Icon>
         </div>
       </div>
 
