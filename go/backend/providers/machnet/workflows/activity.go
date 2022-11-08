@@ -173,17 +173,22 @@ type FundWalletResponse struct {
 	FundTX              string
 }
 
-func (a *Activity) FundUserWalletFromCard(ctx context.Context, trx machnet.CreateTransactionArgs) (*FundWalletResponse, error) {
-	fromCard, err := getLinkedAccount(ctx, a.b, trx.FromLinkedAccountID)
+type FundWalletArgs struct {
+	machnet.CreateTransactionArgs
+	WorkflowID string
+}
+
+func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletArgs) (*FundWalletResponse, error) {
+	fromCard, err := getLinkedAccount(ctx, a.b, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to find linked account (%s)", trx.FromLinkedAccountID), "ErrInternal", err)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to find linked account (%s)", args.FromLinkedAccountID), "ErrInternal", err)
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	if fromCard.Type != machnet.TypeSendCard {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("from linked account (%s) invalid type (%s)", trx.FromLinkedAccountID, fromCard.Type), "ErrInvalidArgument", machnet.ErrInvalidArgument)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("from linked account (%s) invalid type (%s)", args.FromLinkedAccountID, fromCard.Type), "ErrInvalidArgument", machnet.ErrInvalidArgument)
 	}
 
 	accs, err := a.b.LinkedAccounts().ListByWalletId(ctx, fromCard.WalletID)
@@ -203,6 +208,17 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, trx machnet.Creat
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("could not find linked account for type (%s) on walletID (%s)", machnet.TypeWallet, fromCard.WalletID), "ErrNotFound", machnet.ErrNotFound)
 	}
 
+	existingWorkflowRef, err := ops.GetWorkflowRef(ctx, a.b, args.WorkflowID, "FundUserWalletFromCard")
+	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
+		return nil, err
+	}
+	if existingWorkflowRef != nil { // this activity has been run sucessfully before from the same or different workflow run
+		return &FundWalletResponse{
+			FromWalletLinkedAcc: found.ID,
+			FundTX:              existingWorkflowRef.ID,
+		}, nil
+	}
+
 	mu, err := ops.GetUserByWalletID(ctx, a.b, fromCard.WalletID)
 	if err != nil {
 		return nil, err
@@ -212,9 +228,9 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, trx machnet.Creat
 		UserID:       mu.ID,
 		SourceFundID: fromCard.ProviderID,
 		WalletID:     found.ProviderID,
-		Amount:       trx.Amount,
-		Currency:     trx.Currency,
-		IPAddress:    trx.IPAddress,
+		Amount:       args.Amount,
+		Currency:     args.Currency,
+		IPAddress:    args.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to fund machnet user wallet (%s) from card (%s)", found.ProviderID, fromCard.ProviderID), "ErrInternal", err)
@@ -229,13 +245,26 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, trx machnet.Creat
 	}, nil
 }
 
-func (a *Activity) StartWalletTransfer(ctx context.Context, trx machnet.CreateTransactionArgs, fundTX FundWalletResponse) (string, error) {
+type StartWalletTransferArgs struct {
+	machnet.CreateTransactionArgs
+	WorkflowID string
+}
+
+func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTransferArgs, fundTX FundWalletResponse) (string, error) {
+	existingWorkflowRef, err := ops.GetWorkflowRef(ctx, a.b, args.WorkflowID, "StartWalletTransfer")
+	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
+		return "", err
+	}
+	if existingWorkflowRef != nil { // this activity has been run sucessfully before for the given WorkflowID
+		return existingWorkflowRef.ID, nil
+	}
+
 	sendLA, err := a.b.LinkedAccounts().Get(ctx, fundTX.FromWalletLinkedAcc)
 	if err != nil {
 		return "", err
 	}
 
-	recvLA, err := a.b.LinkedAccounts().Get(ctx, trx.ToLinkedAccountID)
+	recvLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
 	if err != nil {
 		return "", err
 	}
@@ -255,9 +284,9 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, trx machnet.CreateTr
 		SendFundID: sendLA.ProviderID,
 		RecvUserID: recvUser.ID,
 		RecvFundID: recvLA.ProviderID,
-		Amount:     trx.Amount,
-		Currency:   trx.Currency,
-		IPAddress:  trx.IPAddress,
+		Amount:     args.Amount,
+		Currency:   args.Currency,
+		IPAddress:  args.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
 		return "", temporal.NewNonRetryableApplicationError("failed to initiate machnet wallet transfer", "ErrInternal", err)
@@ -511,6 +540,7 @@ type CreateTransactionWorkflowRefArgs struct {
 	FromLinkedAccountID   string
 	WorkflowID            string
 	WorkflowRunID         string
+	AcitivityName         string
 }
 
 func (a *Activity) CreateTransactionWorkflowRef(ctx context.Context, args CreateTransactionWorkflowRefArgs) error {
@@ -535,6 +565,7 @@ func (a *Activity) CreateTransactionWorkflowRef(ctx context.Context, args Create
 		WorkflowRunID: args.WorkflowRunID,
 		WorkflowID:    args.WorkflowID,
 		SendUserID:    mu.ID,
+		ActivityName:  args.AcitivityName,
 	})
 	if err != nil {
 		return err

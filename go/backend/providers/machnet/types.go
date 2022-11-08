@@ -144,6 +144,7 @@ type (
 		SendUserID    string `db:"send_user_id"`
 		WorkflowID    string `db:"workflow_id"`
 		WorkflowRunID string `db:"workflow_run_id"`
+		ActivityName  string `db:"activity_name"`
 	}
 
 	CreateTransactionWorkflowRefArgs struct {
@@ -151,6 +152,7 @@ type (
 		SendUserID    string
 		WorkflowID    string
 		WorkflowRunID string
+		ActivityName  string
 	}
 )
 
