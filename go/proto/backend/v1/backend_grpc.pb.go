@@ -502,10 +502,6 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackendServiceClient interface {
-	GetBankAccountWidget(ctx context.Context, in *GetBankAccountWidgetRequest, opts ...grpc.CallOption) (*GetBankAccountWidgetResponse, error)
-	AddBankAccount(ctx context.Context, in *AddBankAccountRequest, opts ...grpc.CallOption) (*AddBankAccountResponse, error)
-	GetBankAccountDetails(ctx context.Context, in *GetBankAccountDetailsRequest, opts ...grpc.CallOption) (*BankAccountDetails, error)
-	ContinueAddingBankAccount(ctx context.Context, in *ContinueAddingBankAccountRequest, opts ...grpc.CallOption) (*ContinueAddingBankAccountResponse, error)
 	UpdateIndividualKYC(ctx context.Context, in *UpdateIndividualKYCRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetSignupUserData(ctx context.Context, in *SetSignupUserDataRequest, opts ...grpc.CallOption) (*SetSignupUserDataResponse, error)
 	SetSignupMobileNumber(ctx context.Context, in *SetSignupMobileNumberRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -545,42 +541,6 @@ type backendServiceClient struct {
 
 func NewBackendServiceClient(cc grpc.ClientConnInterface) BackendServiceClient {
 	return &backendServiceClient{cc}
-}
-
-func (c *backendServiceClient) GetBankAccountWidget(ctx context.Context, in *GetBankAccountWidgetRequest, opts ...grpc.CallOption) (*GetBankAccountWidgetResponse, error) {
-	out := new(GetBankAccountWidgetResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetBankAccountWidget", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) AddBankAccount(ctx context.Context, in *AddBankAccountRequest, opts ...grpc.CallOption) (*AddBankAccountResponse, error) {
-	out := new(AddBankAccountResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AddBankAccount", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetBankAccountDetails(ctx context.Context, in *GetBankAccountDetailsRequest, opts ...grpc.CallOption) (*BankAccountDetails, error) {
-	out := new(BankAccountDetails)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetBankAccountDetails", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) ContinueAddingBankAccount(ctx context.Context, in *ContinueAddingBankAccountRequest, opts ...grpc.CallOption) (*ContinueAddingBankAccountResponse, error) {
-	out := new(ContinueAddingBankAccountResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ContinueAddingBankAccount", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *backendServiceClient) UpdateIndividualKYC(ctx context.Context, in *UpdateIndividualKYCRequest, opts ...grpc.CallOption) (*Empty, error) {
@@ -812,10 +772,6 @@ func (c *backendServiceClient) SetSignupComplete(ctx context.Context, in *SetSig
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
 type BackendServiceServer interface {
-	GetBankAccountWidget(context.Context, *GetBankAccountWidgetRequest) (*GetBankAccountWidgetResponse, error)
-	AddBankAccount(context.Context, *AddBankAccountRequest) (*AddBankAccountResponse, error)
-	GetBankAccountDetails(context.Context, *GetBankAccountDetailsRequest) (*BankAccountDetails, error)
-	ContinueAddingBankAccount(context.Context, *ContinueAddingBankAccountRequest) (*ContinueAddingBankAccountResponse, error)
 	UpdateIndividualKYC(context.Context, *UpdateIndividualKYCRequest) (*Empty, error)
 	SetSignupUserData(context.Context, *SetSignupUserDataRequest) (*SetSignupUserDataResponse, error)
 	SetSignupMobileNumber(context.Context, *SetSignupMobileNumberRequest) (*Empty, error)
@@ -853,18 +809,6 @@ type BackendServiceServer interface {
 type UnimplementedBackendServiceServer struct {
 }
 
-func (UnimplementedBackendServiceServer) GetBankAccountWidget(context.Context, *GetBankAccountWidgetRequest) (*GetBankAccountWidgetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBankAccountWidget not implemented")
-}
-func (UnimplementedBackendServiceServer) AddBankAccount(context.Context, *AddBankAccountRequest) (*AddBankAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddBankAccount not implemented")
-}
-func (UnimplementedBackendServiceServer) GetBankAccountDetails(context.Context, *GetBankAccountDetailsRequest) (*BankAccountDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBankAccountDetails not implemented")
-}
-func (UnimplementedBackendServiceServer) ContinueAddingBankAccount(context.Context, *ContinueAddingBankAccountRequest) (*ContinueAddingBankAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ContinueAddingBankAccount not implemented")
-}
 func (UnimplementedBackendServiceServer) UpdateIndividualKYC(context.Context, *UpdateIndividualKYCRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateIndividualKYC not implemented")
 }
@@ -950,78 +894,6 @@ type UnsafeBackendServiceServer interface {
 
 func RegisterBackendServiceServer(s grpc.ServiceRegistrar, srv BackendServiceServer) {
 	s.RegisterService(&BackendService_ServiceDesc, srv)
-}
-
-func _BackendService_GetBankAccountWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBankAccountWidgetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetBankAccountWidget(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetBankAccountWidget",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetBankAccountWidget(ctx, req.(*GetBankAccountWidgetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_AddBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddBankAccountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).AddBankAccount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/AddBankAccount",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).AddBankAccount(ctx, req.(*AddBankAccountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetBankAccountDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBankAccountDetailsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetBankAccountDetails(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetBankAccountDetails",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetBankAccountDetails(ctx, req.(*GetBankAccountDetailsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_ContinueAddingBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ContinueAddingBankAccountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).ContinueAddingBankAccount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/ContinueAddingBankAccount",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).ContinueAddingBankAccount(ctx, req.(*ContinueAddingBankAccountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _BackendService_UpdateIndividualKYC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1481,22 +1353,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "backend.v1.BackendService",
 	HandlerType: (*BackendServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetBankAccountWidget",
-			Handler:    _BackendService_GetBankAccountWidget_Handler,
-		},
-		{
-			MethodName: "AddBankAccount",
-			Handler:    _BackendService_AddBankAccount_Handler,
-		},
-		{
-			MethodName: "GetBankAccountDetails",
-			Handler:    _BackendService_GetBankAccountDetails_Handler,
-		},
-		{
-			MethodName: "ContinueAddingBankAccount",
-			Handler:    _BackendService_ContinueAddingBankAccount_Handler,
-		},
 		{
 			MethodName: "UpdateIndividualKYC",
 			Handler:    _BackendService_UpdateIndividualKYC_Handler,
