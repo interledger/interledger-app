@@ -299,7 +299,8 @@ func CreateTransactionWorkflowRef(ctx context.Context, b Backends, args machnet.
 		Value("id", args.ID).Returning("id").
 		Value("send_user_id", args.SendUserID).Returning("send_user_id").
 		Value("workflow_id", args.WorkflowID).Returning("workflow_id").
-		Value("workflow_run_id", args.WorkflowRunID).Returning("workflow_run_id")
+		Value("workflow_run_id", args.WorkflowRunID).Returning("workflow_run_id").
+		Value("activity_name", args.ActivityName).Returning("activity_name")
 
 	statement, values, err := insert.GetStatement()
 	if err != nil {
@@ -325,9 +326,28 @@ func GetTransactionWorkflowRef(ctx context.Context, b Backends, userID string, t
 	err := b.DB().GetContext(
 		ctx,
 		&ref,
-		"SELECT id, send_user_id, workflow_id, workflow_run_id FROM machnet_transactions_workflow_ref WHERE id=$1 AND send_user_id=$2;",
+		"SELECT id, send_user_id, workflow_id, workflow_run_id, activity_name FROM machnet_transactions_workflow_ref WHERE id=$1 AND send_user_id=$2;",
 		transactionID,
 		userID,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ref, nil
+}
+
+func GetWorkflowRef(ctx context.Context, b Backends, workflowID, activityName string) (*machnet.TransactionWorkflowRef, error) {
+	var ref machnet.TransactionWorkflowRef
+	err := b.DB().GetContext(
+		ctx,
+		&ref,
+		"SELECT id, send_user_id, workflow_id, workflow_run_id, activity_name FROM machnet_transactions_workflow_ref WHERE workflow_id=$1 AND activity_name=$2;",
+		workflowID,
+		activityName,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, machnet.ErrNotFound

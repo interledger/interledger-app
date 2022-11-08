@@ -486,21 +486,21 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	fromWallet, err := b.users.CreateNewWallet(ctx, fromUserID, "TestWallet")
 	require.NoError(t, err)
 
-	mu, err := a.b.External().RegisterUser(ctx, external.User{
+	externalMachnetUser, err := a.b.External().RegisterUser(ctx, external.User{
 		Type: external.TypeSendUser,
 	})
 	require.NoError(t, err)
 
-	widget, err := a.b.External().GetFundingAccountWidgetToken(ctx, mu.ID)
+	widget, err := a.b.External().GetFundingAccountWidgetToken(ctx, externalMachnetUser.ID)
 	require.NoError(t, err)
 	cardExtID := strings.Split(widget.Token, "|")[1]
 
-	mw, err := a.b.External().CreateUserWallet(ctx, mu.ID, "testWallet")
+	mw, err := a.b.External().CreateUserWallet(ctx, externalMachnetUser.ID, "testWallet")
 	require.NoError(t, err)
 
 	_, err = ops.CreateUser(ctx, a.b, machnet.CreateArgs{
 		WalletID:   fromWallet.ID,
-		ExternalID: mu.ID,
+		ExternalID: externalMachnetUser.ID,
 	})
 	require.NoError(t, err)
 
@@ -523,12 +523,15 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 		},
 	}, nil).AnyTimes()
 
-	trxIDEnc, err := env.ExecuteActivity(a.FundUserWalletFromCard, machnet.CreateTransactionArgs{
-		ToLinkedAccountID:   toLinkedAccID,
-		FromLinkedAccountID: fromLinkedAccID,
-		Amount:              20,
-		Currency:            "USD",
-		IPAddress:           "197.0.2.8",
+	trxIDEnc, err := env.ExecuteActivity(a.FundUserWalletFromCard, FundWalletArgs{
+		CreateTransactionArgs: machnet.CreateTransactionArgs{
+			ToLinkedAccountID:   toLinkedAccID,
+			FromLinkedAccountID: fromLinkedAccID,
+			Amount:              20,
+			Currency:            "USD",
+			IPAddress:           "197.0.2.8",
+		},
+		WorkflowID: "",
 	})
 	require.NoError(t, err)
 	var fundResp FundWalletResponse
@@ -537,7 +540,32 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	require.Equal(t, fundResp.FromWalletLinkedAcc, linkedAccID)
 
 	// Lookup user funds
-	wallet, err := machnetExt.GetUserWallet(ctx, mu.ID, mw.ID)
+	wallet, err := machnetExt.GetUserWallet(ctx, externalMachnetUser.ID, mw.ID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 20.0, wallet.Balance.Balance)
+	assert.Equal(t, 20.0, wallet.Balance.AvailableBalance)
+
+	// check idempotency
+	workflowID := uuid.NewString()
+	_ = b.db.MustExec("INSERT INTO machnet_transactions_workflow_ref (id, send_user_id, workflow_id, workflow_run_id, activity_name) VALUES ($1, $2, $3, $4, $5)", uuid.NewString(), externalMachnetUser.ID, workflowID, uuid.NewString(), "FundUserWalletFromCard")
+
+	trxIDEnc, err = env.ExecuteActivity(a.FundUserWalletFromCard, FundWalletArgs{
+		CreateTransactionArgs: machnet.CreateTransactionArgs{
+			ToLinkedAccountID:   toLinkedAccID,
+			FromLinkedAccountID: fromLinkedAccID,
+			Amount:              20,
+			Currency:            "USD",
+			IPAddress:           "197.0.2.8",
+		},
+		WorkflowID: workflowID,
+	})
+	require.NoError(t, err)
+	err = trxIDEnc.Get(&fundResp)
+	require.NoError(t, err)
+	require.Equal(t, fundResp.FromWalletLinkedAcc, linkedAccID)
+
+	wallet, err = machnetExt.GetUserWallet(ctx, externalMachnetUser.ID, mw.ID)
 	require.NoError(t, err)
 
 	assert.Equal(t, 20.0, wallet.Balance.Balance)

@@ -65,7 +65,10 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	logger.Info("CreateTransactionWorkflow workflow started", "From", args.FromLinkedAccountID, "To", args.ToLinkedAccountID, "Amount", args.Amount)
 
 	var fundWalletTX FundWalletResponse
-	err := workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, args).Get(ctx, &fundWalletTX)
+	err := workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, FundWalletArgs{
+		CreateTransactionArgs: args,
+		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
+	}).Get(ctx, &fundWalletTX)
 	if err != nil {
 		logger.Error("FundUserWalletFromCard Activity failed.", "Error", err)
 		return "", err
@@ -76,6 +79,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		ExternalTransactionID: fundWalletTX.FundTX,
 		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
 		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		AcitivityName:         "FundUserWalletFromCard",
 	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("CreateTransactionWorkflowRef Activity failed.", "Error", err)
@@ -103,7 +107,15 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	}
 
 	var transferID string
-	err = workflow.ExecuteActivity(ctx, a.StartWalletTransfer, args, fundWalletTX).Get(ctx, &transferID)
+	err = workflow.ExecuteActivity(
+		ctx,
+		a.StartWalletTransfer,
+		StartWalletTransferArgs{
+			CreateTransactionArgs: args,
+			WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
+		},
+		fundWalletTX,
+	).Get(ctx, &transferID)
 	if err != nil {
 		logger.Error("StartWalletTransfer Activity failed.", "Error", err)
 		return "", err
@@ -114,6 +126,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		ExternalTransactionID: transferID,
 		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
 		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		AcitivityName:         "StartWalletTransfer",
 	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("CreateTransactionWorkflowRef Activity failed.", "Error", err)
