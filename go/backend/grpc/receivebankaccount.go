@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 
-	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -58,18 +57,6 @@ type validateCreateReceiveBankAccount struct {
 	Name          string `validate:"required"`
 }
 
-func validateCreateReceiveBankAccountDescription(err validator.FieldError) string {
-	switch err.Field() {
-	case "AccountType":
-		return "Account type can only be CHECKING or SAVINGS"
-	case "AccountNumber":
-		return "Account number is required"
-	case "Name":
-		return "Name is required"
-	}
-	return ""
-}
-
 func (r rpcService) CreateReceiveBankAccount(
 	ctx context.Context, req *backendv1.CreateReceiveBankAccountRequest,
 ) (*backendv1.LinkedAccount, error) {
@@ -82,14 +69,14 @@ func (r rpcService) CreateReceiveBankAccount(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	if err := r.b.Validator().Struct(validateCreateReceiveBankAccount{
+	if err := r.b.Validator().StructCtx(ctx, validateCreateReceiveBankAccount{
 		BankID:        req.GetBankId(),
 		BranchID:      req.GetBranchId(),
 		AccountType:   req.GetAccountType(),
 		AccountNumber: req.GetAccountNumber(),
 		Name:          req.GetName(),
 	}); err != nil {
-		return nil, ValidationError(err, validateCreateReceiveBankAccountDescription)
+		return nil, toGRPCError(err)
 	}
 
 	bankaccount, err := r.b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{

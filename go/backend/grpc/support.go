@@ -8,12 +8,17 @@ import (
 )
 
 func (s *rpcService) CreateSupportTicket(ctx context.Context, req *pb.CreateSupportTicketRequest) (*pb.Empty, error) {
-	err := s.b.SupportTickets().CreateTicket(ctx, supporttickets.CreateTicketArgs{
+	args := supporttickets.CreateTicketArgs{
 		FirstName:   req.FirstName,
 		LastName:    req.LastName,
 		Email:       req.Email,
 		Description: req.Description,
-	})
+	}
+	if err := s.b.Validator().StructCtx(ctx, args); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err := s.b.SupportTickets().CreateTicket(ctx, args)
 
 	if err != nil {
 		return nil, toGRPCError(err)

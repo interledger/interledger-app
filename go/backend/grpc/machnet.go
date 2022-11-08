@@ -101,6 +101,10 @@ func (r *rpcService) CreateWallet(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
+	if err = r.b.Validator().VarCtx(ctx, req.GetNickname(), "required"); err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	sendUser, err := r.b.Machnet().GetUserByWalletID(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -180,12 +184,12 @@ func (r *rpcService) WithdrawFromMachnetWallet(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if err = r.b.Validator().Struct(validateWithdrawFromMachnetWalletArgs{
+	if err = r.b.Validator().StructCtx(ctx, validateWithdrawFromMachnetWalletArgs{
 		ToLinkedAccount: req.GetToLinkedAccountId(),
 		Amount:          req.GetAmount(),
 		IpAddress:       req.GetIpAddress(),
 	}); err != nil {
-		return nil, ValidationError(err, validationDesc)
+		return nil, toGRPCError(err)
 	}
 
 	toLinkedAcc, err := r.b.LinkedAccounts().Get(ctx, req.GetToLinkedAccountId())

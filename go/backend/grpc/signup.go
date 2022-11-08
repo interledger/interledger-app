@@ -20,7 +20,7 @@ func (s *rpcService) SetSignupUserData(ctx context.Context, req *pb.SetSignupUse
 		CountryCode: req.CountryCode,
 	}
 
-	err := s.b.Validator().Struct(args)
+	err := s.b.Validator().StructCtx(ctx, args)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -39,7 +39,7 @@ func (s *rpcService) SetSignupMobileNumber(ctx context.Context, req *pb.SetSignu
 		MobileNumber: req.Mobile,
 		OTP:          req.Otp,
 	}
-	err := s.b.Validator().Struct(args)
+	err := s.b.Validator().StructCtx(ctx, args)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
