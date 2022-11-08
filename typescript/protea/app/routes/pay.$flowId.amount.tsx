@@ -13,6 +13,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { DateTime } from 'luxon'
+import {getWalletPaymentPointer} from "~/lib/paymentPointer.server";
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await getCurrentFlow(request, flowType.Pay)
@@ -146,14 +147,14 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  let sendPaymentPointer = 'https://fynbos.me/cairin',
-    receivePaymentPointer = flow.data.paymentPointer.url
+  let sendPaymentPointer = await getWalletPaymentPointer(request)
+  let receivePaymentPointer = flow.data.paymentPointer.url
 
   // TODO: Submit note with quote
   const response = await openPaymentsClient
     .createQuote(
       {
-        sendPaymentPointer,
+        sendPaymentPointer: sendPaymentPointer.url,
         receivePaymentPointer,
         description:note,
         amount: {
@@ -202,7 +203,7 @@ export async function action({ request }: ActionArgs) {
       parseFloat(receiveAmount as string) / 100
     ),
     receivePaymentPointer,
-    sendPaymentPointer
+    sendPaymentPointer: sendPaymentPointer.url
   }
 
   const headers = await updateFlow(request, flowType.Pay, data)
