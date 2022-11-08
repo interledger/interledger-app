@@ -4,12 +4,11 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Layouts, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
-  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
+  KRATOS_URL,
   requireUserSession
 } from '~/lib/kratos.server'
-import { getSession } from '~/session.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
@@ -96,8 +95,7 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const cookie = request.headers.get('Cookie')
-  const userSettings = await getSession(cookie)
+  const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -118,7 +116,7 @@ export async function action({ request }: ActionArgs) {
       headers: {
         'Content-type': 'application/json',
         Accept: 'application/json',
-        cookie: String(request.headers.get('Cookie'))
+        cookie
       }
     }
   )
@@ -136,15 +134,12 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  userSettings.unset('challenge-flow')
-  const sessionHeader = await flashSnackbar(request, {
-    message: 'New password successfully saved.',
-    icon: 'close'
-  })
-
   return redirect(route('/settings'), {
     headers: {
-      'Set-Cookie': sessionHeader
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'New password successfully saved.',
+        icon: 'close'
+      })
     }
   })
 }

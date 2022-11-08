@@ -2,15 +2,21 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { AnchorRouter, ButtonRouter, Icon, Layouts } from '~/components'
-import { flowType, getCurrentFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import { requireUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
-  const flow = await getCurrentFlow(request, flowType.Pay)
+  const transaction = {
+    displaySendAmount: '$ 42.00',
+    displayReceiveAmount: '$ 42.00',
+    receivePaymentPointer: '$ 42.00',
+    sendPaymentPointer: '$ 42.00',
+    note: 'Some note'
+  }
+  // TODO fetch transaction information properly
   return json({
-    flow,
+    transaction,
     traits: session.identity.traits
   })
 }
@@ -20,7 +26,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
+  const { transaction } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -30,7 +36,7 @@ export default function Page() {
         <div className='mt-6 flex w-full justify-between'>
           <span className='text-sm'>You pay</span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.displaySendAmount || '$ 0.00'}
+            {transaction.displaySendAmount || '$ 0.00'}
           </span>
         </div>
         <div className='mt-2 flex w-full justify-between'>
@@ -40,27 +46,27 @@ export default function Page() {
         <div className='mt-2 flex w-full justify-between'>
           <span className='text-sm'>They receive</span>
           <span className='text-sm text-2xl font-medium text-strong'>
-            {flow?.data.displayReceiveAmount || '$ 0.00'}
+            {transaction.displayReceiveAmount || '$ 0.00'}
           </span>
         </div>
-        {flow?.data.note && (
+        {transaction.note && (
           <div className='mt-8 flex w-full flex-col space-y-2'>
             <span className='text-sm'>Note</span>
-            <span className='text-sm text-strong'>{flow?.data.note}</span>
+            <span className='text-sm text-strong'>{transaction.note}</span>
           </div>
         )}
 
         <div className='mt-8 flex w-full justify-between'>
           <span className='text-sm'>To</span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.receivePaymentPointer}
+            {transaction.receivePaymentPointer}
           </span>
         </div>
 
         <div className='mt-8 flex w-full justify-between'>
           <span className='text-sm'>From</span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.sendPaymentPointer}
+            {transaction.sendPaymentPointer}
           </span>
         </div>
         <div className='mt-2 flex w-full justify-end'>

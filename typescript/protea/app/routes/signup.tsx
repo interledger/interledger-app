@@ -1,7 +1,7 @@
 import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { requireNoUserSession } from '~/lib/kratos.server'
-import { flowType, getCurrentFlow, requireFlow } from '~/lib/flows.server'
+import { flowType, requireFlow } from '~/lib/flows.server'
 import { Button, Layouts, Router, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { Form } from '@remix-run/react'
@@ -10,8 +10,8 @@ import { canSignup } from '~/lib/signupCheck.server'
 export async function loader({ request }: LoaderArgs) {
   await canSignup(request)
   await requireNoUserSession(request)
-  const headers = await requireFlow(request, flowType.Signup)
-  return json({}, { headers })
+  await requireFlow(request, flowType.Signup)
+  return json({})
 }
 
 export const handle = {
@@ -82,7 +82,7 @@ export default function Page() {
         </div>
       </div>
 
-      <Form id='signup' action={'/signup'} method='post' className='hidden' />
+      <Form id='signup' action='/signup' method='post' className='hidden' />
       <div className='mt-12'>
         <Button form='signup' type='submit'>
           Let's get started
@@ -101,11 +101,6 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const flow = await getCurrentFlow(request, flowType.Signup)
-
-  return redirect(
-    route('/signup/:flowId/about', {
-      flowId: flow.id
-    })
-  )
+  await requireFlow(request, flowType.Signup)
+  return redirect(route('/signup/about'))
 }

@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Button, Layouts, Select, Shape, TextField } from '~/components'
-import { flowType, getCurrentFlow, updateFlow } from '~/lib/flows.server'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -18,7 +18,7 @@ import { getClientIP } from '~/lib/ip.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await requireUserSession(request)
-  const flow = await getCurrentFlow(request, flowType.PersonalDetails)
+  const flow = await requireFlow(request, flowType.PersonalDetails)
 
   const maxDate = `${DateTime.now().toFormat('yyyy-MM-dd')}`
 
@@ -81,7 +81,7 @@ export default function Page() {
 
         <Form
           id='personal-details-about'
-          action={`/personal-details/${flow.id}/about`}
+          action='/personal-details/about'
           method='post'
           className='hidden'
         />
@@ -194,6 +194,7 @@ function mapper(
 }
 
 export async function action({ request, params }: ActionArgs) {
+  await requireFlow(request, flowType.PersonalDetails)
   const form = await request.formData()
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string
@@ -248,7 +249,7 @@ export async function action({ request, params }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  const headers = await updateFlow(request, flowType.PersonalDetails, {
+  await updateFlow(request, flowType.PersonalDetails, {
     firstName,
     lastName,
     gender,
@@ -256,10 +257,5 @@ export async function action({ request, params }: ActionArgs) {
     address: {}
   })
 
-  return redirect(
-    route('/personal-details/:flowId/address', {
-      flowId: params.flowId as string
-    }),
-    { headers }
-  )
+  return redirect(route('/personal-details/address'))
 }

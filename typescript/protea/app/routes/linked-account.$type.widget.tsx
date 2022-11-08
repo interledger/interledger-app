@@ -54,14 +54,13 @@ export default function Page() {
     (event: any) => {
       if (event.data.type == 'CARD' && event.data.status == 'CARD_ADDED') {
         navigate(
-          route('/linked-account/:type/:flowId/success', {
-            type: params.type as string,
-            flowId: params.flowId as string
+          route('/linked-account/:type/success', {
+            type: params.type as string
           })
         )
       }
     },
-    [navigate, params.flowId, params.type]
+    [navigate, params.type]
   )
 
   useEffect(() => {

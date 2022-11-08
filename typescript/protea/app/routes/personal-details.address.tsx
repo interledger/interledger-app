@@ -9,7 +9,7 @@ import {
   Shape,
   TextField
 } from '~/components'
-import { flowType, getCurrentFlow } from '~/lib/flows.server'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import {
   grpcClient,
   httpMapping,
@@ -23,7 +23,7 @@ import { getClientIP } from '~/lib/ip.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
-  let flow = await getCurrentFlow(request, flowType.PersonalDetails)
+  let flow = await requireFlow(request, flowType.PersonalDetails)
 
   return json({
     flow,
@@ -86,7 +86,7 @@ export default function Page() {
 
       <Form
         id='personal-details-address'
-        action={`/personal-details/${flow.id}/address`}
+        action='/personal-details/address'
         method='post'
         className='hidden'
       />
@@ -243,6 +243,7 @@ export async function action({ request }: ActionArgs) {
 
   if (isGrpcError(res)) throw json({}, httpMapping(res.code))
 
-  const flow = await getCurrentFlow(request, flowType.PersonalDetails)
-  return redirect(flow.data.returnTo)
+  const flow = await requireFlow(request, flowType.PersonalDetails)
+  await exitFlow(request, flowType.PersonalDetails)
+  return redirect(flow.returnTo)
 }

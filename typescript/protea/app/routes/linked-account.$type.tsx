@@ -1,15 +1,10 @@
 import type { LoaderArgs, ActionArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
 import { requireUserSession } from '~/lib/kratos.server'
 import { Button, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
-import {
-  flowType,
-  getCurrentFlow,
-  requireFlow,
-  updateFlow
-} from '~/lib/flows.server'
+import { flowType, requireFlow } from '~/lib/flows.server'
 import {
   grpcClient,
   httpMapping,
@@ -17,9 +12,8 @@ import {
   StatusError
 } from '~/lib/proto.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
-  let headers
 
   const response = await grpcClient
     .hasSendUser(
@@ -37,19 +31,8 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   const hasSendUser = response.response.hasSendUser
-  if (!hasSendUser) {
-    headers = await requireFlow(request, flowType.PersonalDetails)
-  } else if (params.type == 'card') {
-    headers = await requireFlow(request, flowType.LinkCardAccount)
-  } else if (params.type == 'bank') {
-    headers = await requireFlow(request, flowType.LinkBankAccount)
-  } else
-    throw json(
-      { title: `Linking type ${params.type} not allowed.` },
-      { status: 400 }
-    )
 
-  return json({ hasSendUser }, { headers })
+  return json({ hasSendUser })
 }
 
 export const handle = {
@@ -219,38 +202,21 @@ export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const hasSendUser = form.get('hasSendUser') as string
 
-  let flow
   if (!hasSendUser) {
-    flow = await getCurrentFlow(request, flowType.PersonalDetails)
-    const headers = await updateFlow(request, flowType.PersonalDetails, {
-      returnTo: route('/linked-account/:type/:flowId', {
-        type: params.type as string,
-        flowId: flow.id
+    await requireFlow(request, flowType.PersonalDetails, {
+      data: {},
+      startRoute: route('/personal-details/about'),
+      returnTo: route('/linked-account/:type/widget', {
+        type: params.type as string
       })
     })
-
-    return redirect(
-      route('/personal-details/:flowId/about', {
-        flowId: flow.id
-      }),
-      {
-        headers
-      }
-    )
   } else if (params.type == 'card') {
-    flow = await getCurrentFlow(request, flowType.LinkCardAccount)
+    await requireFlow(request, flowType.LinkCardAccount)
   } else if (params.type == 'bank') {
-    flow = await getCurrentFlow(request, flowType.LinkBankAccount)
+    await requireFlow(request, flowType.LinkBankAccount)
   } else
     throw json(
       { title: `Linking type ${params.type} not allowed.` },
       { status: 400 }
     )
-
-  return redirect(
-    route('/linked-account/:type/:flowId', {
-      type: params.type,
-      flowId: flow.id
-    })
-  )
 }

@@ -1,14 +1,9 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Layouts, TextField } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import {
-  flowType,
-  getCurrentFlow,
-  requireFlow,
-  updateFlow
-} from '~/lib/flows.server'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -20,9 +15,9 @@ import {
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
-  const headers = await requireFlow(request, flowType.Pay)
+  const flow = await requireFlow(request, flowType.Pay)
 
-  return json({ flow: null }, { headers })
+  return json({ flow })
 }
 
 export const handle = {
@@ -30,6 +25,7 @@ export const handle = {
 }
 
 export default function Page() {
+  const { flow } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
@@ -48,6 +44,7 @@ export default function Page() {
         form='pay-payment-pointer'
         type='text'
         className='mt-6'
+        defaultValue={flow.data?.paymentPointer?.url}
         aria-invalid={Boolean(actionData?.errors.paymentPointer) || undefined}
         aria-describedby={
           actionData?.errors.paymentPointer ? 'paymentPointer-error' : undefined
@@ -78,6 +75,7 @@ function mapper(field: fieldErrorsMap): 'paymentPointer' | null {
 }
 
 export async function action({ request }: ActionArgs) {
+  await requireFlow(request, flowType.Pay)
   const form = await request.formData()
   const paymentPointer = form.get('paymentPointer') as string
 
@@ -104,13 +102,9 @@ export async function action({ request }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  const flow = await getCurrentFlow(request, flowType.Pay)
-
-  const headers = await updateFlow(request, flowType.Pay, {
+  await updateFlow(request, flowType.Pay, {
     paymentPointer: { ...response.response }
   })
 
-  return redirect(route('/pay/:flowId/amount', { flowId: flow.id }), {
-    headers
-  })
+  return redirect(route('/pay/amount'))
 }

@@ -67,16 +67,16 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </Router>
         <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
-        <Router
-          to='/login/challenge?challenge-flow=settings-password'
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
-        >
-          <div className='flex space-x-3'>
-            <Icon>password</Icon>
-            <span>Password</span>
-          </div>
-          <Icon>navigate_next</Icon>
-        </Router>
+        {/*<Router*/}
+        {/*  to='/login/challenge?challenge-flow=settings-password'*/}
+        {/*  className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'*/}
+        {/*>*/}
+        {/*  <div className='flex space-x-3'>*/}
+        {/*    <Icon>password</Icon>*/}
+        {/*    <span>Password</span>*/}
+        {/*  </div>*/}
+        {/*  <Icon>navigate_next</Icon>*/}
+        {/*</Router>*/}
         <Router
           to={route('/logout')}
           className='mt-2 flex items-center space-x-3 rounded-xl p-3 text-primary'
