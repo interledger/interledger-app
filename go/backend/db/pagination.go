@@ -17,7 +17,7 @@ func (p *Pagination) SQL() string {
 		pg -= 1
 	}
 
-	if p.PageSize <= 0 {
+	if p.PageSize <= 0 || p.Page > 50 {
 		p.PageSize = 50
 	}
 

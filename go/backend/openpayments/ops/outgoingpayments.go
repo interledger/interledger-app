@@ -15,6 +15,21 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
+const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at `
+
+type dbOutgoingPayments struct {
+	ID                 string    `db:"id"`
+	QuoteID            string    `db:"quote_id"`
+	ToPaymentPointerID string    `db:"to_payment_pointer_id"`
+	Failed             bool      `db:"failed"`
+	Description        string    `db:"description"`
+	AssetCode          string    `db:"sent_asset"`
+	AssetScale         int       `db:"sent_scale"`
+	SentAmount         uint64    `db:"sent_amount"`
+	CreatedAt          time.Time `db:"created_at"`
+	UpdatedAt          time.Time `db:"updated_at"`
+}
+
 func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (string, error) {
 	qid := args.QuoteID
 	idxSlash := strings.LastIndex(qid, "/")
@@ -83,21 +98,6 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 	return fmt.Sprintf("%s/outgoing-payments/%s", toPP.URL, id), nil
 }
 
-const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at `
-
-type dbOutgoingPayments struct {
-	ID                 string    `db:"id"`
-	QuoteID            string    `db:"quote_id"`
-	ToPaymentPointerID string    `db:"to_payment_pointer_id"`
-	Failed             bool      `db:"failed"`
-	Description        string    `db:"description"`
-	AssetCode          string    `db:"sent_asset"`
-	AssetScale         int       `db:"sent_scale"`
-	SentAmount         uint64    `db:"sent_amount"`
-	CreatedAt          time.Time `db:"created_at"`
-	UpdatedAt          time.Time `db:"updated_at"`
-}
-
 func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpayments.OutgoingPayment, error) {
 	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
 	idxSlash := strings.LastIndex(id, "/")
@@ -120,12 +120,12 @@ func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 }
 
 func transformOutgoingPayment(ctx context.Context, b Backends, op dbOutgoingPayments) (*openpayments.OutgoingPayment, error) {
-	q, err := GetQuote(ctx, b, op.QuoteID)
+	dbq, err := getDBQuote(ctx, b, "id=$1", op.QuoteID)
 	if err != nil {
 		return nil, err
 	}
 
-	dbq, err := getDBQuote(ctx, b, "id=$1", op.QuoteID)
+	q, err := transformQuote(ctx, b, *dbq)
 	if err != nil {
 		return nil, err
 	}
