@@ -18,6 +18,7 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
+import {getWalletPaymentPointer} from "~/lib/paymentPointer.server";
 
 type Activity = {
   id: string
@@ -52,24 +53,10 @@ export async function loader({ request }: LoaderArgs) {
   }
 
   if (isUser) {
-    const cookie = String(request.headers.get('cookie'))
     const session = await requireUserSession(request)
     data.firstName = session.identity.traits.firstName
-    let response = await openPaymentsClient
-      .listWalletPaymentPointers(
-        {},
-        {
-          meta: {
-            cookies: cookie || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(response)) {
-      throw json({}, httpMapping(response.code))
-    }
-    data.paymentPointer = response.response.pointers[0]
+
+    data.paymentPointer = await getWalletPaymentPointer(request)
   }
   return json(data)
 }
