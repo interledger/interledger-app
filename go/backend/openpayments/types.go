@@ -106,6 +106,7 @@ type Transaction struct {
 	ID          string
 	Source      string
 	Destination string
+	Note        string
 	Type        TransactionType
 	Timestamp   time.Time
 	Amount      Amount

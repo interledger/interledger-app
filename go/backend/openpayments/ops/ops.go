@@ -241,6 +241,11 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
 	}
 
+	// Tying to send money to yourself.
+	if recvPP.ID == sendPP.ID {
+		return nil, fmt.Errorf("%w cannot send money to the same payment pointer", openpayments.ErrInvalidArgument)
+	}
+
 	// Create Incoming Payment
 	ip, err := CreateIncomingPayment(ctx, b, openpayments.CreateIncomingPaymentArgs{
 		PaymentPointer:     recvPP.URL,
@@ -379,122 +384,4 @@ func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, i
 	}
 
 	return transformQuote(ctx, b, *dbq)
-}
-
-func ListTransactions(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]openpayments.Transaction, error) {
-	pp, err := ListWalletPaymentPointers(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(pp) != 1 {
-		return nil, fmt.Errorf("%w wallet has (%d) payment pointer", openpayments.ErrInternal, len(pp))
-	}
-
-	var ids []string
-	err = b.DB().SelectContext(ctx, &ids, "SELECT id FROM (SELECT id, created_at FROM openpayments_incoming_payment WHERE completed=true AND payment_pointer_id=$1 "+
-		" UNION "+
-		"SELECT op.id as id, op.created_at as created_at FROM openpayments_outgoing_payment op INNER JOIN openpayments_quotes q ON  op.quote_id = q.id WHERE op.failed=false AND op.completed=true AND q.send_payment_pointer_id=$1) "+
-		page.SQL(),
-		pp[0].ID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	if len(ids) == 0 {
-		return nil, nil
-	}
-
-	idIndex := make(map[string]int)
-	for i, id := range ids {
-		idIndex[id] = i
-	}
-
-	incoming, err := listIncomingPayments(ctx, b, ids)
-	if err != nil {
-		return nil, err
-	}
-
-	outgoing, err := listOutgoingPayments(ctx, b, ids)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := make([]openpayments.Transaction, len(ids))
-
-	for _, i := range incoming {
-		idx := idIndex[i.ID]
-		resp[idx] = openpayments.Transaction{
-			ID:          i.ID,
-			Source:      i.FromPaymentPointer,
-			Destination: i.PaymentPointer,
-			Type:        openpayments.TransactionTypeIncomingPayment,
-			Timestamp:   i.CreatedAt,
-			Amount:      *i.ReceivedAmount,
-		}
-	}
-
-	for _, o := range outgoing {
-		idx := idIndex[o.ID]
-		resp[idx] = openpayments.Transaction{
-			ID:          o.ID,
-			Source:      o.PaymentPointer,
-			Destination: o.ToPaymentPointer,
-			Type:        openpayments.TransactionTypeOutgoingPayment,
-			Timestamp:   o.CreatedAt,
-			Amount:      o.SentAmount,
-		}
-	}
-
-	return resp, err
-}
-
-func ListPendingTransactions(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]openpayments.Transaction, error) {
-	pp, err := ListWalletPaymentPointers(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(pp) != 1 {
-		return nil, fmt.Errorf("%w wallet has (%d) payment pointer", openpayments.ErrInternal, len(pp))
-	}
-
-	var ids []string
-	err = b.DB().SelectContext(ctx, &ids,
-		"SELECT op.id FROM openpayments_outgoing_payment op INNER JOIN openpayments_quotes q ON  op.quote_id = q.id WHERE op.failed=false AND op.completed=false AND q.send_payment_pointer_id=$1 ORDER BY op.created_at DESC"+
-			page.SQL(),
-		pp[0].ID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	if len(ids) == 0 {
-		return nil, nil
-	}
-
-	idIndex := make(map[string]int)
-	for i, id := range ids {
-		idIndex[id] = i
-	}
-
-	outgoing, err := listOutgoingPayments(ctx, b, ids)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := make([]openpayments.Transaction, len(ids))
-
-	for _, o := range outgoing {
-		idx := idIndex[o.ID]
-		resp[idx] = openpayments.Transaction{
-			ID:          o.ID,
-			Source:      o.PaymentPointer,
-			Destination: o.ToPaymentPointer,
-			Type:        openpayments.TransactionTypeOutgoingPayment,
-			Timestamp:   o.CreatedAt,
-			Amount:      o.SendAmount,
-		}
-	}
-
-	return resp, err
 }

@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -152,30 +150,6 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 			Asset:      payment.AssetCode.String,
 			AssetScale: int(payment.AssetScale.Int32),
 		}
-	}
-
-	return resp, nil
-}
-
-func listIncomingPayments(ctx context.Context, b Backends, ids []string) ([]openpayments.IncomingPayment, error) {
-	query, args, err := sqlx.In(fmt.Sprintf("SELECT %s FROM openpayments_incoming_payment WHERE id IN (?)", incomingPaymentsCols), ids)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	var dbList []dbIncomingPayment
-	err = b.DB().SelectContext(ctx, &dbList, b.DB().Rebind(query), args...)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	resp := make([]openpayments.IncomingPayment, len(dbList))
-	for i, ip := range dbList {
-		transform, err := transformIncomingPayment(ctx, b, ip)
-		if err != nil {
-			return nil, err
-		}
-		resp[i] = *transform
 	}
 
 	return resp, nil
