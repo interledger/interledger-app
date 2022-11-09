@@ -27,6 +27,8 @@ import (
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
+	"gitlab.com/fynbos/backend/email"
+	email_client "gitlab.com/fynbos/backend/email/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/kyc"
@@ -209,6 +211,8 @@ func start(args *cli.StartArgs) {
 
 	b.kyc = kyc_client.New(b)
 
+	b.email = email_client.New(b, args.SendgridAPIKey)
+
 	wg := sync.WaitGroup{}
 
 	server, err := _grpc.NewServer(b)
@@ -338,6 +342,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret, args.MachnetWebhookSecret)
 
+	b.email = email_client.New(b, args.SendgridAPIKey)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -370,6 +376,7 @@ type backends struct {
 	users          user.Client
 	waitlist       waitlist.Client
 	kyc            kyc.Client
+	email          email.Client
 }
 
 func (b backends) KYC() kyc.Client {
@@ -442,6 +449,10 @@ func (b backends) LinkedAccounts() linkedaccounts.Client {
 
 func (b backends) Machnet() machnet.Client {
 	return b.machnet
+}
+
+func (b backends) Email() email.Client {
+	return b.email
 }
 
 func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {
