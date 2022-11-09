@@ -21,7 +21,7 @@ import { trimHeaders } from '~/lib/headers.server'
 import { grpcClient } from '~/lib/proto.server'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
-import { commitSession, getSession } from '~/session.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -162,8 +162,6 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const cookie = request.headers.get('Cookie')
-  const userSettings = await getSession(cookie)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow') as string
 
@@ -253,11 +251,11 @@ export async function action({ request }: ActionArgs) {
     resHeaders.append('set-cookie', flowSetCookie)
   }
 
-  userSettings.flash('snackbar', {
+  const sessionHeaders = await flashSnackbar(request, {
     message: 'Your account was created successfully.',
     icon: 'close'
   })
-  resHeaders.append('set-cookie', await commitSession(userSettings))
+  resHeaders.append('set-cookie', sessionHeaders)
 
   return redirect(route('/payment-pointer'), {
     headers: resHeaders

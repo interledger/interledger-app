@@ -9,8 +9,9 @@ import {
   handleFlowError,
   requireUserSession
 } from '~/lib/kratos.server'
-import { commitSession, getSession } from '~/session.server'
+import { getSession } from '~/session.server'
 import { trimHeaders } from '~/lib/headers.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -136,13 +137,14 @@ export async function action({ request }: ActionArgs) {
   }
 
   userSettings.unset('challenge-flow')
-  userSettings.flash('snackbar', {
+  const sessionHeader = await flashSnackbar(request, {
     message: 'New password successfully saved.',
     icon: 'close'
   })
+
   return redirect(route('/settings'), {
     headers: {
-      'Set-Cookie': await commitSession(userSettings)
+      'Set-Cookie': sessionHeader
     }
   })
 }
