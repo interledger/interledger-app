@@ -26,6 +26,51 @@ func main() {
 			Proxied: pulumi.Bool(true),
 		})
 
+		_, err = cloudflare.NewRecord(ctx, "sendgrid-cname-1", &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(zone.Id),
+			Name:    pulumi.String("url9532.fynbos.app"),
+			Value:   pulumi.String("sendgrid.net"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(false),
+		})
+
+		_, err = cloudflare.NewRecord(ctx, "sendgrid-cname-2", &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(zone.Id),
+			Name:    pulumi.String("26945468.fynbos.app"),
+			Value:   pulumi.String("sendgrid.net"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(false),
+		})
+
+		_, err = cloudflare.NewRecord(ctx, "sendgrid-cname-3", &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(zone.Id),
+			Name:    pulumi.String("em5194.fynbos.app"),
+			Value:   pulumi.String("u26945468.wl219.sendgrid.net"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(false),
+		})
+
+		_, err = cloudflare.NewRecord(ctx, "sendgrid-cname-4", &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(zone.Id),
+			Name:    pulumi.String("s1._domainkey.fynbos.app"),
+			Value:   pulumi.String("s1.domainkey.u26945468.wl219.sendgrid.net"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(false),
+		})
+
+		_, err = cloudflare.NewRecord(ctx, "sendgrid-cname-5", &cloudflare.RecordArgs{
+			ZoneId:  pulumi.String(zone.Id),
+			Name:    pulumi.String("s2._domainkey.fynbos.app"),
+			Value:   pulumi.String("s2.domainkey.u26945468.wl219.sendgrid.net"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(false),
+		})
+
 		if err != nil {
 			return err
 		}
