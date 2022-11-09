@@ -523,5 +523,49 @@ const blogShapes: {
         color: 'bg-blue-500'
       }
     ]
+  ],
+  'our-fynbos-family-meet-adrian': [
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-blue-300'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-blue-100'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-rose-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-200'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-slate-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-yellow-400'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-500'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-blue-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-slate-600'
+      }
+    ]
   ]
 }
