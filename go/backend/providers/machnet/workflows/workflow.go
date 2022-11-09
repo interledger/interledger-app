@@ -40,6 +40,8 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 		return "", err
 	}
 
+	// TODO await for KYC passing
+
 	err = workflow.ExecuteActivity(ctx, a.CreateWallet, externalUserID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("CreateWallet Activity failed.", "Error", err)
