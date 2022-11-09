@@ -147,32 +147,6 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 	assert.Equal(t, mu.Status, external.StatusVerified)
 }
 
-func TestActivity_CreateWallet(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
-	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
-	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
-	}
-	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
-
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestActivityEnvironment()
-	a := NewActivity(b)
-	env.RegisterActivity(a.CreateWallet)
-
-	mu, err := a.b.External().RegisterUser(ctx, external.User{
-		Type: external.TypeSendUser,
-	})
-	require.NoError(t, err)
-
-	_, err = env.ExecuteActivity(a.CreateWallet, mu.ID)
-	require.NoError(t, err)
-}
-
 func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
