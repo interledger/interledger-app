@@ -14,7 +14,8 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { useEffect, useState } from 'react'
-import { commitSession, getSession } from '~/sessions'
+import { commitSession, getSession } from '~/session.server'
+import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)

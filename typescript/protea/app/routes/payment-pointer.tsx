@@ -12,7 +12,7 @@ import {
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
-import { commitSession, getSession } from '~/sessions'
+import { commitSession, getSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   const hasSession = await hasUserSession(request)

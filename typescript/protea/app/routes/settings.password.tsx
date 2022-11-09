@@ -9,7 +9,7 @@ import {
   handleFlowError,
   requireUserSession
 } from '~/lib/kratos.server'
-import { commitSession, getSession } from '~/sessions'
+import { commitSession, getSession } from '~/session.server'
 import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {

@@ -21,7 +21,7 @@ import { trimHeaders } from '~/lib/headers.server'
 import { grpcClient } from '~/lib/proto.server'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
-import { commitSession, getSession } from '~/sessions'
+import { commitSession, getSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)

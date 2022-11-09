@@ -1,6 +1,6 @@
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
-import { commitSession, getSession } from '~/sessions'
+import { commitSession, getSession } from '~/session.server'
 import { grpcClient } from '~/lib/proto.server'
 
 const IS_SIGNUP_GATED = process.env.GATE_SIGNUP == 'true' || false

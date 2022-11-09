@@ -5,7 +5,7 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import { getSession, commitSession } from '~/sessions'
+import { getSession, commitSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   const userSettings = await getSession(request.headers.get('Cookie'))
