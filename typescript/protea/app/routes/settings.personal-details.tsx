@@ -5,31 +5,22 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import { getSession, commitSession } from '~/session.server'
+import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
   const session = await requireUserSession(request)
-  const snackbar = {
-    // NOTE: userSettings.has must be called before userSettings.get
-    show: userSettings.has('snackbar'),
-    ...userSettings.get('snackbar')
-  }
 
-  return json(
-    {
-      traits: session.identity.traits,
-      snackbar
-    },
-    {
-      headers: { 'Set-Cookie': await commitSession(userSettings) }
-    }
-  )
+  const snackbar = await getSnackbar(request)
+
+  return json({
+    traits: session.identity.traits,
+    snackbar
+  })
 }
 
 export const handle = {
@@ -38,7 +29,7 @@ export const handle = {
 
 export default function Page() {
   const { traits, snackbar } = useLoaderData<typeof loader>()
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

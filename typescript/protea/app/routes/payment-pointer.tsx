@@ -12,13 +12,11 @@ import {
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
-import { commitSession, getSession } from '~/session.server'
+import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const hasSession = await hasUserSession(request)
   if (!hasSession) return redirect('/signup')
-
-  const userSettings = await getSession(request.headers.get('Cookie'))
 
   let response = await openPaymentsClient
     .listWalletPaymentPointers(
@@ -63,18 +61,9 @@ export async function loader({ request }: LoaderArgs) {
     }
   }
 
-  const snackbar = {
-    // NOTE: userSettings.has must be called before userSettings.get
-    show: userSettings.has('snackbar'),
-    ...userSettings.get('snackbar')
-  }
+  const snackbar = await getSnackbar(request)
 
-  return json(
-    { username, snackbar },
-    {
-      headers: { 'Set-Cookie': await commitSession(userSettings) }
-    }
-  )
+  return json({ username, snackbar })
 }
 
 export const handle = {
@@ -84,7 +73,7 @@ export const handle = {
 export default function Page() {
   const fetcher = useFetcher()
   const { username, snackbar } = useLoaderData<typeof loader>()
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   const _onChangeInput = useCallback(
     (event) => {

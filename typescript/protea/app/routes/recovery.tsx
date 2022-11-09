@@ -14,12 +14,10 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { useEffect, useState } from 'react'
-import { commitSession, getSession } from '~/session.server'
-import { route } from 'routes-gen'
+import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
-  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -51,18 +49,9 @@ export async function loader({ request }: LoaderArgs) {
     })
   }
 
-  const snackbar = {
-    // NOTE: userSettings.has must be called before userSettings.get
-    show: userSettings.has('snackbar'),
-    ...userSettings.get('snackbar')
-  }
+  const snackbar = await getSnackbar(request)
 
-  return json(
-    { flow, snackbar, csrfToken: getCsrfTokenFromFlow(flow) },
-    {
-      headers: { 'Set-Cookie': await commitSession(userSettings) }
-    }
-  )
+  return json({ flow, snackbar, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle = {
@@ -74,11 +63,11 @@ export default function Page() {
   const { flow, snackbar, csrfToken } = useLoaderData<typeof loader>()
 
   const transition = useTransition()
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show)
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   useEffect(() => {
     if (transition.state == 'idle' && transition.type == 'idle') {
-      setSnackbar(snackbar.show)
+      setSnackbar(snackbar.show ?? false)
     }
   }, [transition.type, transition.state, snackbar.show])
 
@@ -134,7 +123,6 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const userSettings = await getSession(request.headers.get('Cookie'))
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -172,14 +160,12 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  userSettings.flash('snackbar', {
-    message: 'Recovery email successfully sent.',
-    icon: 'close'
-  })
-
   return redirect(`/recovery?flow=${flowId}`, {
     headers: {
-      'Set-Cookie': await commitSession(userSettings)
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'Recovery email successfully sent.',
+        icon: 'close'
+      })
     }
   })
 }
