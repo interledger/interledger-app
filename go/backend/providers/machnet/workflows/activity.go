@@ -163,7 +163,10 @@ func (a *Activity) CreateWallet(ctx context.Context, externalID string) error {
 		return err
 	}
 
-	_, err = a.b.External().CreateUserWallet(ctx, mu.ID, "default")
+	_, err = ops.CreateWallet(ctx, a.b, machnet.CreateWalletArgs{
+		Nickname:   "default",
+		SendUserID: mu.SendUserID,
+	})
 
 	return err
 }

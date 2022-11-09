@@ -3,6 +3,7 @@ package workflows
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/trace"
 	"time"
 
 	"go.temporal.io/sdk/temporal"
@@ -17,6 +18,7 @@ import (
 )
 
 func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (*openpayments.OutgoingPayment, error) {
+	span := trace.SpanFromContext(ctx)
 	err := b.Validator().Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInvalidArgument, err)
@@ -25,28 +27,33 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	// Validate the incoming, outgoing provider accounts exist
 	q, err := ops.GetQuote(ctx, b, args.QuoteID)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 
 	recvPPURL, _, err := ops.ExtractPaymentPointer(q.IncomingPayment)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 
 	// Check that the recv payment pointer can receive
 	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, machnet.ProviderName, machnet.TypeWallet)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 
 	// Check that the sending payment pointer has the provider types
 	_, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 
 	id, err := ops.CreateOutgoingPayment(ctx, b, args)
 	if err != nil {
+		span.RecordError(err)
 		return nil, err
 	}
 
@@ -57,7 +64,9 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 
 	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id, args.IPAddress)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		err = fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		span.RecordError(err)
+		return nil, err
 	}
 
 	return ops.GetOutgoingPayment(ctx, b, id)
