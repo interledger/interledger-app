@@ -11,7 +11,7 @@ import {
   Snackbar,
   WalletGrid
 } from '~/components'
-import { getSession, commitSession } from '~/sessions'
+import { getSession, commitSession } from '~/session.server'
 import { requireUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {

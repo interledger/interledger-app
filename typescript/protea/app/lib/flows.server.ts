@@ -2,7 +2,7 @@ import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { Params } from 'react-router-dom'
 import { v4 } from 'uuid'
-import { getSession, commitSession } from '~/sessions'
+import { getSession, commitSession } from '~/session.server'
 
 export enum flowType {
   Pay = 'pay',
