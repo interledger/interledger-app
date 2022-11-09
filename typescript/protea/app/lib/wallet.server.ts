@@ -15,7 +15,7 @@ export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 export const formatAmount = (amount?: Amount): string => {
   if (typeof amount == 'undefined') return '$ 0.00'
   const symbol = amount.asset == 'USD' ? '$' : amount.asset
-  return `${symbol} ${parseInt(amount.amount).toFixed(amount.assetScale)}`
+  return `${symbol} ${(parseInt(amount.amount)/100).toFixed(amount.assetScale)}`
 }
 
 export async function getWalletPaymentPointer(
