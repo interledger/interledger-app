@@ -13,7 +13,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { DateTime } from 'luxon'
-import { getWalletPaymentPointer } from '~/lib/paymentPointer.server'
+import { getWalletPaymentPointer } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Pay)

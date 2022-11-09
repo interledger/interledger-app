@@ -12,7 +12,7 @@ import {
   WalletGrid
 } from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
-import { getWalletPaymentPointer } from '~/lib/paymentPointer.server'
+import { getWalletBalance, getWalletPaymentPointer } from '~/lib/wallet.server'
 
 type Activity = {
   id: string
@@ -42,6 +42,7 @@ export async function loader({ request }: LoaderArgs) {
       walletID: '',
       formatted: ''
     },
+    balance: '',
     recentActivities: [] as Activities[],
     pendingTransactions: [] as Activity[]
   }
@@ -51,6 +52,7 @@ export async function loader({ request }: LoaderArgs) {
     data.firstName = session.identity.traits.firstName
 
     data.paymentPointer = await getWalletPaymentPointer(request)
+    data.balance = await getWalletBalance(request)
   }
   return json(data)
 }
@@ -344,7 +346,7 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { firstName, paymentPointer } = useLoaderData<typeof loader>()
+  const { firstName, paymentPointer, balance } = useLoaderData<typeof loader>()
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -362,6 +364,13 @@ function AppPage() {
           <Icon className='text-success'>check</Icon>
         </div>
       </div>
+
+      {balance && (
+        <div className='col-span-full flex justify-between rounded-2xl bg-page p-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <h1 className='font-display text-lg font-medium'>Cash balance</h1>
+          <h1 className='font-display text-lg font-medium'>{balance}</h1>
+        </div>
+      )}
 
       <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-lg font-medium'>What to do next</h1>
