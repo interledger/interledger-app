@@ -3,6 +3,7 @@ declare module "routes-gen" {
     "/blog/the-future-digital-wallets-and-payment-pointers": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
     "/linked-account/:type/:flowId/success": { "type": string, "flowId": string };
+    "/blog/our-fynbos-family-meet-matt": Record<string, never>;
     "/personal-details/:flowId/address": { "flowId": string };
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
     "/personal-details/:flowId/about": { "flowId": string };
@@ -47,6 +48,7 @@ declare module "routes-gen" {
       | ["/blog/the-future-digital-wallets-and-payment-pointers"]
       | ["/blog/connecting-the-internet-economy"]
       | ["/linked-account/:type/:flowId/success", RouteParams["/linked-account/:type/:flowId/success"]]
+      | ["/blog/our-fynbos-family-meet-matt"]
       | ["/personal-details/:flowId/address", RouteParams["/personal-details/:flowId/address"]]
       | ["/blog/our-fynbos-family-meet-don"]
       | ["/personal-details/:flowId/about", RouteParams["/personal-details/:flowId/about"]]

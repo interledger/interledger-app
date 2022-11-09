@@ -12,13 +12,7 @@ import {
   WalletGrid
 } from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
-import {
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
-import {getWalletPaymentPointer} from "~/lib/paymentPointer.server";
+import { getWalletPaymentPointer } from '~/lib/paymentPointer.server'
 
 type Activity = {
   id: string

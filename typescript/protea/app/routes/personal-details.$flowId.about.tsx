@@ -14,7 +14,7 @@ import {
 import { requireUserSession } from '~/lib/kratos.server'
 import { useCallback, useState } from 'react'
 import { DateTime } from 'luxon'
-import {getClientIP} from "~/lib/ip.server";
+import { getClientIP } from '~/lib/ip.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await requireUserSession(request)

@@ -11,7 +11,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { requireUserSession } from '~/lib/kratos.server'
-import {getClientIP} from "~/lib/ip.server";
+import { getClientIP } from '~/lib/ip.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
