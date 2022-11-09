@@ -24,6 +24,9 @@ export function WalletLayout() {
               <span className='font-display font-medium'>Pay</span>
             </Router>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/transactions')}>
+              Transactions
+            </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/settings')}>
               Settings
             </NavDrawer.ListItem>
@@ -75,6 +78,9 @@ export function WalletLayout() {
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/transactions')}>
+              Transactions
+            </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/settings')}>
               Settings
             </NavDrawer.ListItem>
