@@ -1,5 +1,5 @@
 import type { LoaderArgs, ActionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
 import { requireUserSession } from '~/lib/kratos.server'
 import { Button, Layouts, Shape } from '~/components'
@@ -201,9 +201,9 @@ function BankPage() {
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const hasSendUser = form.get('hasSendUser') as string
-
+  let flow
   if (!hasSendUser) {
-    await requireFlow(request, flowType.PersonalDetails, {
+    flow = await requireFlow(request, flowType.PersonalDetails, {
       data: {},
       startRoute: route('/personal-details/about'),
       returnTo: route('/linked-account/:type/widget', {
@@ -211,12 +211,14 @@ export async function action({ request, params }: ActionArgs) {
       })
     })
   } else if (params.type == 'card') {
-    await requireFlow(request, flowType.LinkCardAccount)
+    flow = await requireFlow(request, flowType.LinkCardAccount)
   } else if (params.type == 'bank') {
-    await requireFlow(request, flowType.LinkBankAccount)
+    flow = await requireFlow(request, flowType.LinkBankAccount)
   } else
     throw json(
       { title: `Linking type ${params.type} not allowed.` },
       { status: 400 }
     )
+
+  return redirect(flow.startRoute)
 }
