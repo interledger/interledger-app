@@ -109,6 +109,7 @@ type StartArgs struct {
 	ZendeskToken              string
 	AdminPolicyAud            string
 	AdminTeamDomain           string
+	SendgridAPIKey            string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -250,5 +251,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		ZendeskUser:               zendeskUser,
 		AdminPolicyAud:            os.Getenv("ADMIN_POLICY_AUD"),
 		AdminTeamDomain:           os.Getenv("ADMIN_TEAM_DOMAIN"),
+		SendgridAPIKey:            os.Getenv("SENDGRID_API_KEY"),
 	}, nil
 }
