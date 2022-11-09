@@ -13,7 +13,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { DateTime } from 'luxon'
-import {getWalletPaymentPointer} from "~/lib/paymentPointer.server";
+import { getWalletPaymentPointer } from '~/lib/paymentPointer.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await getCurrentFlow(request, flowType.Pay)
@@ -156,7 +156,7 @@ export async function action({ request }: ActionArgs) {
       {
         sendPaymentPointer: sendPaymentPointer.url,
         receivePaymentPointer,
-        description:note,
+        description: note,
         amount: {
           amount: amountToSubmit,
           asset: flow.data.paymentPointer.asset,

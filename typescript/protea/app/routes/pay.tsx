@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, useActionData } from '@remix-run/react'
 import { Button, Layouts, TextField } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import {
@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const headers = await requireFlow(request, flowType.Pay)
 
-  return json({ flow: null}, { headers })
+  return json({ flow: null }, { headers })
 }
 
 export const handle = {
@@ -30,7 +30,6 @@ export const handle = {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
