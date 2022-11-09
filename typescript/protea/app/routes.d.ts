@@ -27,6 +27,7 @@ declare module "routes-gen" {
     "/signup/password": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
+    "/transactions": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/pay/amount": Record<string, never>;
@@ -72,6 +73,7 @@ declare module "routes-gen" {
       | ["/signup/password"]
       | ["/signup/about"]
       | ["/signup/phone"]
+      | ["/transactions"]
       | ["/api/sendOtp"]
       | ["/pay/confirm"]
       | ["/pay/amount"]
