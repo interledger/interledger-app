@@ -49,7 +49,7 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 	}
 
 	pp := openpayments.PaymentPointer{
-		URL:        req.Url,
+		URL:        ops.StandardisePaymentPointer(req.Url),
 		WalletID:   wallet.ID,
 		Alias:      req.Alias,
 		Asset:      req.Asset,
@@ -73,7 +73,7 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 }
 
 func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPointerRequest) (*pb.PaymentPointer, error) {
-	pp, err := ops.GetPaymentPointer(ctx, g.b, req.Url)
+	pp, err := ops.GetPaymentPointer(ctx, g.b, ops.StandardisePaymentPointer(req.Url))
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -129,7 +129,7 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 }
 
 func (g *grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPointerExistsRequest) (*pb.PaymentPointerExistsResponse, error) {
-	exists, err := ops.PaymentPointerExists(ctx, g.b, req.Url)
+	exists, err := ops.PaymentPointerExists(ctx, g.b, ops.StandardisePaymentPointer(req.Url))
 	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
 		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
 	}
@@ -144,8 +144,8 @@ func (g *grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPo
 
 func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest) (*pb.Quote, error) {
 	args := openpayments.CreateQuoteArgs{
-		SendPaymentPointer:    req.SendPaymentPointer,
-		ReceivePaymentPointer: req.ReceivePaymentPointer,
+		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
 		ExpiresAt:             req.ExpiresAt.AsTime(),
 		SendAmount: openpayments.Amount{
 			Value:      req.GetAmount().GetAmount(),
@@ -242,7 +242,7 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 
 func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIncomingPaymentRequest) (*pb.IncomingPayment, error) {
 	args := openpayments.CreateIncomingPaymentArgs{
-		PaymentPointer: req.PaymentPointer,
+		PaymentPointer: ops.StandardisePaymentPointer(req.PaymentPointer),
 		ExternalRef:    req.Reference,
 		ExpiresAt:      req.ExpiresAt.AsTime(),
 	}

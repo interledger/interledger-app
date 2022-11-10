@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"path"
 	"regexp"
 	"strings"
 	"time"
@@ -180,9 +181,33 @@ func FormattedPaymentPointer(rawURL string) (string, error) {
 		return "", err
 	}
 
-	formatted := fmt.Sprintf("$%s%s", parsedUrl.Host, parsedUrl.Path)
+	formatted := fmt.Sprintf("$%s", path.Join(parsedUrl.Host, parsedUrl.Path))
 
 	return formatted, nil
+}
+
+// StandardisePaymentPointer takes in a payment pointer in either the forms:
+// - https://fynbos.me/alice
+// - fynbos.me/alice
+// - $fynbos.me/alice
+// Returns the standard format of : https:///fynbos.me/alice
+func StandardisePaymentPointer(pp string) string {
+	if strings.HasPrefix(pp, "https://") {
+		return pp
+	}
+
+	// Replace the $ with https://
+	if strings.HasPrefix(pp, "$") {
+		return strings.Replace(pp, "$", "https://", 1)
+	}
+
+	// We use https here
+	if strings.HasPrefix(pp, "http://") {
+		return strings.Replace(pp, "http://", "https://", 1)
+	}
+
+	// The payment pointer has no prefix assume we need to add https://
+	return "https://" + pp
 }
 
 // ExtractPaymentPointer takes a full URL and removes the known suffix and what is left is the original Payment pointer
