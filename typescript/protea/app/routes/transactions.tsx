@@ -5,7 +5,6 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { HomeShapes, Icon, Layouts, Router, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import type { Amount } from '~/generated/protobuf-ts/backend/v1/backend'
 import { DateTime } from 'luxon'
 import {
   httpMapping,
@@ -13,12 +12,7 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
-
-const formatAmount = (amount?: Amount): string => {
-  if (typeof amount == 'undefined') return '$ 0.00'
-  const symbol = amount.asset == 'USD' ? '$' : amount.asset
-  return `${symbol} ${parseInt(amount.amount).toFixed(amount.assetScale)}`
-}
+import { formatAmount } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -78,8 +72,8 @@ export async function loader({ request }: LoaderArgs) {
 
   const transactions = responses[1].response.transactions.map((trx) => ({
     id: trx.id,
-    icon: 'schedule',
-    title: 'Sending',
+    icon: trx.type == 'outgoing' ? 'north_east' : 'south_west',
+    title: trx.type == 'outgoing' ? 'Sent' : 'Received',
     total: formatAmount(trx.amount),
     description:
       trx.type == 'outgoing' ? `to ${trx.destination}` : `from ${trx.source}`,
