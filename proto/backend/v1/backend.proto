@@ -194,6 +194,7 @@ service BackendService {
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc CanSignup(CanSignupRequest) returns(CanSignupResponse);
   rpc SetSignupComplete(SetSignupCompleteRequest) returns(Empty);
+  rpc IsMugAvailable(IsMugAvailableRequest) returns(IsMugAvailableResponse);
 }
 
 message GetStatementsResponse {
@@ -336,9 +337,18 @@ message JoinWaitlistRequest {
   string country_code = 2;
   string full_name = 3;
   bool  beta_opt_in = 4;
+  optional string mug_id = 5;
 }
 
 message JoinWaitlistResponse {}
+
+message IsMugAvailableRequest {
+  string mug_id = 1;
+}
+
+message IsMugAvailableResponse {
+  bool available = 1;
+}
 
 message GetLinkedAccountsResponse {
   repeated LinkedAccount linkedAccounts = 1;

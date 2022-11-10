@@ -810,11 +810,33 @@ export interface JoinWaitlistRequest {
      * @generated from protobuf field: bool beta_opt_in = 4;
      */
     betaOptIn: boolean;
+    /**
+     * @generated from protobuf field: optional string mug_id = 5;
+     */
+    mugId?: string;
 }
 /**
  * @generated from protobuf message backend.v1.JoinWaitlistResponse
  */
 export interface JoinWaitlistResponse {
+}
+/**
+ * @generated from protobuf message backend.v1.IsMugAvailableRequest
+ */
+export interface IsMugAvailableRequest {
+    /**
+     * @generated from protobuf field: string mug_id = 1;
+     */
+    mugId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.IsMugAvailableResponse
+ */
+export interface IsMugAvailableResponse {
+    /**
+     * @generated from protobuf field: bool available = 1;
+     */
+    available: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.GetLinkedAccountsResponse
@@ -3786,7 +3808,8 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
             { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "country_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "full_name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "beta_opt_in", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 4, name: "beta_opt_in", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "mug_id", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<JoinWaitlistRequest>): JoinWaitlistRequest {
@@ -3813,6 +3836,9 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
                 case /* bool beta_opt_in */ 4:
                     message.betaOptIn = reader.bool();
                     break;
+                case /* optional string mug_id */ 5:
+                    message.mugId = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -3837,6 +3863,9 @@ class JoinWaitlistRequest$Type extends MessageType<JoinWaitlistRequest> {
         /* bool beta_opt_in = 4; */
         if (message.betaOptIn !== false)
             writer.tag(4, WireType.Varint).bool(message.betaOptIn);
+        /* optional string mug_id = 5; */
+        if (message.mugId !== undefined)
+            writer.tag(5, WireType.LengthDelimited).string(message.mugId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3873,6 +3902,100 @@ class JoinWaitlistResponse$Type extends MessageType<JoinWaitlistResponse> {
  * @generated MessageType for protobuf message backend.v1.JoinWaitlistResponse
  */
 export const JoinWaitlistResponse = new JoinWaitlistResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IsMugAvailableRequest$Type extends MessageType<IsMugAvailableRequest> {
+    constructor() {
+        super("backend.v1.IsMugAvailableRequest", [
+            { no: 1, name: "mug_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IsMugAvailableRequest>): IsMugAvailableRequest {
+        const message = { mugId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IsMugAvailableRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IsMugAvailableRequest): IsMugAvailableRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string mug_id */ 1:
+                    message.mugId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IsMugAvailableRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string mug_id = 1; */
+        if (message.mugId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.mugId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IsMugAvailableRequest
+ */
+export const IsMugAvailableRequest = new IsMugAvailableRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IsMugAvailableResponse$Type extends MessageType<IsMugAvailableResponse> {
+    constructor() {
+        super("backend.v1.IsMugAvailableResponse", [
+            { no: 1, name: "available", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IsMugAvailableResponse>): IsMugAvailableResponse {
+        const message = { available: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IsMugAvailableResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IsMugAvailableResponse): IsMugAvailableResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool available */ 1:
+                    message.available = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IsMugAvailableResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool available = 1; */
+        if (message.available !== false)
+            writer.tag(1, WireType.Varint).bool(message.available);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IsMugAvailableResponse
+ */
+export const IsMugAvailableResponse = new IsMugAvailableResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetLinkedAccountsResponse$Type extends MessageType<GetLinkedAccountsResponse> {
     constructor() {
@@ -4843,5 +4966,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "WithdrawFromMachnetWallet", options: {}, I: WithdrawFromMachnetWalletRequest, O: MachnetWalletWithdrawal },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
-    { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty }
+    { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty },
+    { name: "IsMugAvailable", options: {}, I: IsMugAvailableRequest, O: IsMugAvailableResponse }
 ]);
