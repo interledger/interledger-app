@@ -425,6 +425,42 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	require.ErrorIs(t, err, openpayments.ErrPaymentPointerExists)
 }
 
+func TestStandardisePaymentPointer(t *testing.T) {
+	cases := []struct {
+		name     string
+		url      string
+		expected string
+	}{
+		{
+			name:     "http",
+			url:      "http://fynbos.me/asdf",
+			expected: "https://fynbos.me/asdf",
+		},
+		{
+			name:     "https",
+			url:      "https://fynbos.me/asdf",
+			expected: "https://fynbos.me/asdf",
+		},
+		{
+			name:     "dollar",
+			url:      "$fynbos.me/asdf",
+			expected: "https://fynbos.me/asdf",
+		},
+		{
+			name:     "noprefix",
+			url:      "fynbos.me/asdf",
+			expected: "https://fynbos.me/asdf",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			standard := ops.StandardisePaymentPointer(tc.url)
+			assert.Equal(t, tc.expected, standard)
+		})
+	}
+}
+
 func TestFormattedPaymentPointer(t *testing.T) {
 	cases := []struct {
 		name              string

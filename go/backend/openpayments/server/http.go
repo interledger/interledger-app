@@ -185,6 +185,7 @@ func createQuote(b Backends, w http.ResponseWriter, req *http.Request, pp *openp
 		return
 	}
 
+	args.ReceivePaymentPointer = ops.StandardisePaymentPointer(args.ReceivePaymentPointer)
 	args.SendPaymentPointer = pp.URL
 
 	if args.ExpiresAt.IsZero() {
@@ -241,6 +242,7 @@ func createIncomingPayment(b Backends, w http.ResponseWriter, req *http.Request,
 		return
 	}
 
+	args.FromPaymentPointer = ops.StandardisePaymentPointer(args.FromPaymentPointer)
 	args.PaymentPointer = pp.URL
 
 	q, err := ops.CreateIncomingPayment(req.Context(), b, args)
