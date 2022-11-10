@@ -3,11 +3,13 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/waitlist"
 )
 
-func AddSignup(ctx context.Context, b Backends, email, country, fullName string, betaOptIn bool) error {
+func AddSignup(ctx context.Context, b Backends, email, country, fullName, mugID string, betaOptIn bool) error {
 	err := b.Validator().Var(email, "required,email")
 	if err != nil {
 		return fmt.Errorf("%w %s", waitlist.ErrInvalidEmail, err.Error())
@@ -23,14 +25,46 @@ func AddSignup(ctx context.Context, b Backends, email, country, fullName string,
 		return fmt.Errorf("%w %s", waitlist.ErrInvalidName, err.Error())
 	}
 
+	var mug sql.NullString
+	if mugID != "" && mugIDs[mugID] {
+		available, err := IsMugAvailable(ctx, b, mugID)
+		if err != nil {
+			return err
+		}
+
+		mug = sql.NullString{
+			String: mugID,
+			Valid:  available,
+		}
+	}
+
 	_, err = b.DB().ExecContext(ctx,
-		"INSERT INTO waitlist_signups (email, country_code, full_name, beta_opt_in) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING ",
-		email, country, fullName, betaOptIn)
+		"INSERT INTO waitlist_signups (email, country_code, full_name, beta_opt_in, mug_id) VALUES ($1, $2, $3, $4, $5) "+
+			"ON CONFLICT (email, country_code) DO UPDATE SET mug_id = excluded.mug_id WHERE waitlist_signups.mug_id IS NULL AND waitlist_signups.email=$1 AND waitlist_signups.country_code=$2",
+		email, country, fullName, betaOptIn, mug)
 	if err != nil {
 		return fmt.Errorf("%w %s", waitlist.ErrInternal, err.Error())
 	}
 
 	return nil
+}
+
+func IsMugAvailable(ctx context.Context, b Backends, mugID string) (bool, error) {
+	// Does this even exists
+	if !mugIDs[mugID] {
+		return false, nil
+	}
+
+	var id string
+	err := b.DB().GetContext(ctx, &id, "SELECT id FROM waitlist_signups WHERE mug_id=$1", mugID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return true, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("%w %s", waitlist.ErrInternal, err)
+	}
+
+	return false, nil
 }
 
 type dbSignup struct {

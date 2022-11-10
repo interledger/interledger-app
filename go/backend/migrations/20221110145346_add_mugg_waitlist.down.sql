@@ -1,0 +1,1 @@
+ALTER TABLE waitlist_signups DROP COLUMN mug_id;

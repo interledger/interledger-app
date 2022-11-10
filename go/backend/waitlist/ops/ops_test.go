@@ -2,8 +2,12 @@ package ops_test
 
 import (
 	"context"
-	"github.com/google/uuid"
+	"database/sql"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/google/uuid"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
@@ -88,13 +92,89 @@ func TestAddSignup(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, tc.betaOptIn)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, "", tc.betaOptIn)
 			if tc.err == nil {
 				assert.NoError(t, err)
 				return
 			}
 
 			assert.ErrorIs(t, err, tc.err)
+		})
+	}
+}
+
+func TestAddSignupWithMug(t *testing.T) {
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewBackends(t, db, validator.New())
+
+	cases := []struct {
+		name     string
+		email    string
+		country  string
+		fullName string
+		mugID    string
+		hasMug   string
+	}{
+		{
+			name:     "success no mug",
+			email:    "signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+		},
+		{
+			name:     "override with mug",
+			email:    "signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+			mugID:    "1e25f533",
+			hasMug:   "1e25f533",
+		},
+		{
+			name:     "signup with duplicate mug",
+			email:    "taken@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+			mugID:    "1e25f533",
+			hasMug:   "",
+		},
+		{
+			name:     "not override mug with null",
+			email:    "signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+			mugID:    "",
+			hasMug:   "1e25f533",
+		},
+		{
+			name:     "not override mug with new mug",
+			email:    "signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+			mugID:    "16ba8774",
+			hasMug:   "1e25f533",
+		},
+		{
+			name:     "success with mug",
+			email:    "new_signup@fynbos.dev",
+			country:  "ZA",
+			fullName: "Bob",
+			mugID:    "625ee641",
+			hasMug:   "625ee641",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, tc.mugID, false)
+			require.NoError(t, err)
+
+			var mug sql.NullString
+			err = b.DB().GetContext(ctx, &mug, "SELECT mug_id FROM waitlist_signups WHERE country_code=$1 AND email=$2", tc.country, tc.email)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.hasMug, mug.String)
 		})
 	}
 }
@@ -134,7 +214,7 @@ func TestCanSignup(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, tc.betaOptIn)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, "", tc.betaOptIn)
 			if tc.err == nil {
 				assert.NoError(t, err)
 			}
@@ -181,7 +261,7 @@ func TestSetSignupComplete(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, false)
+			err := ops.AddSignup(ctx, b, tc.email, tc.country, tc.fullName, "", false)
 			if tc.err == nil {
 				assert.NoError(t, err)
 			}
@@ -241,7 +321,7 @@ func TestListSignups(t *testing.T) {
 	}
 
 	for _, signup := range sups {
-		err := ops.AddSignup(ctx, b, signup.email, signup.country, signup.fullName, false)
+		err := ops.AddSignup(ctx, b, signup.email, signup.country, signup.fullName, "", false)
 		assert.NoError(t, err)
 	}
 

@@ -36,17 +36,17 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockClient) Add(ctx context.Context, email, countryCode, fullName string, betaOptIn bool) error {
+func (m *MockClient) Add(ctx context.Context, email, countryCode, fullName, mugID string, betaOptIn bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", ctx, email, countryCode, fullName, betaOptIn)
+	ret := m.ctrl.Call(m, "Add", ctx, email, countryCode, fullName, mugID, betaOptIn)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add.
-func (mr *MockClientMockRecorder) Add(ctx, email, countryCode, fullName, betaOptIn interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Add(ctx, email, countryCode, fullName, mugID, betaOptIn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, email, countryCode, fullName, betaOptIn)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, email, countryCode, fullName, mugID, betaOptIn)
 }
 
 // CanSignup mocks base method.
@@ -62,6 +62,21 @@ func (m *MockClient) CanSignup(ctx context.Context, id string) (bool, error) {
 func (mr *MockClientMockRecorder) CanSignup(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanSignup", reflect.TypeOf((*MockClient)(nil).CanSignup), ctx, id)
+}
+
+// IsMugAvailable mocks base method.
+func (m *MockClient) IsMugAvailable(ctx context.Context, mugID string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsMugAvailable", ctx, mugID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsMugAvailable indicates an expected call of IsMugAvailable.
+func (mr *MockClientMockRecorder) IsMugAvailable(ctx, mugID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsMugAvailable", reflect.TypeOf((*MockClient)(nil).IsMugAvailable), ctx, mugID)
 }
 
 // ListSignups mocks base method.

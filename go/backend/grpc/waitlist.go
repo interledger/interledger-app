@@ -3,12 +3,13 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"gitlab.com/fynbos/backend/waitlist"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func (s *rpcService) JoinWaitlist(ctx context.Context, req *pb.JoinWaitlistRequest) (*pb.JoinWaitlistResponse, error) {
-	err := s.b.Waitlist().Add(ctx, req.Email, req.CountryCode, req.FullName, req.BetaOptIn)
+	err := s.b.Waitlist().Add(ctx, req.Email, req.CountryCode, req.FullName, req.GetMugId(), req.BetaOptIn)
 	if errors.Is(err, waitlist.ErrInvalidEmail) {
 		return nil, NewValidationError("Email", "Invalid email address.")
 	}
@@ -24,6 +25,15 @@ func (s *rpcService) JoinWaitlist(ctx context.Context, req *pb.JoinWaitlistReque
 	}
 
 	return &pb.JoinWaitlistResponse{}, nil
+}
+
+func (s *rpcService) IsMugAvailable(ctx context.Context, req *pb.IsMugAvailableRequest) (*pb.IsMugAvailableResponse, error) {
+	available, err := s.b.Waitlist().IsMugAvailable(ctx, req.MugId)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.IsMugAvailableResponse{Available: available}, nil
 }
 
 func (s *rpcService) CanSignup(ctx context.Context, req *pb.CanSignupRequest) (*pb.CanSignupResponse, error) {
