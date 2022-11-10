@@ -100,7 +100,7 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 
 func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkedaccounts.LinkedAccount, error) {
 
-	linkedAccounts := []linkedaccounts.LinkedAccount{}
+	var linkedAccounts []linkedaccounts.LinkedAccount
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
