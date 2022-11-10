@@ -18,7 +18,9 @@ export function FocusLayout() {
         <Outlet />
       </div>
       <footer className='col-span-full flex space-x-3 self-end overflow-hidden px-4 py-6 sm:px-0 lg:col-span-6 lg:col-start-4'>
-        <span className='text-xs font-medium text-medium'>&copy;Fynbos</span>
+        <span className='text-xs font-medium text-medium'>
+          &copy;&nbsp;Fynbos
+        </span>
         <Router
           className='text-xs font-medium text-primary'
           to={route('/legal/privacy-policy')}
