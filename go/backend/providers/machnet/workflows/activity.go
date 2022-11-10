@@ -201,7 +201,9 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 		if la.Provider != machnet.ProviderName || la.Type != machnet.TypeWallet {
 			continue
 		}
+		// NOTE: Breaking is important as the loop will reassign `la` which is a pointer and `found` is the same pointer
 		found = &la
+		break
 	}
 
 	if found == nil {
@@ -212,7 +214,7 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
 		return nil, err
 	}
-	if existingWorkflowRef != nil { // this activity has been run sucessfully before from the same or different workflow run
+	if existingWorkflowRef != nil { // this activity has been run successfully before from the same or different workflow run
 		return &FundWalletResponse{
 			FromWalletLinkedAcc: found.ID,
 			FundTX:              existingWorkflowRef.ID,
@@ -248,9 +250,10 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 type StartWalletTransferArgs struct {
 	machnet.CreateTransactionArgs
 	WorkflowID string
+	FundingTx  FundWalletResponse
 }
 
-func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTransferArgs, fundTX FundWalletResponse) (string, error) {
+func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTransferArgs) (string, error) {
 	existingWorkflowRef, err := ops.GetWorkflowRef(ctx, a.b, args.WorkflowID, "StartWalletTransfer")
 	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
 		return "", err
@@ -259,7 +262,7 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTran
 		return existingWorkflowRef.ID, nil
 	}
 
-	sendLA, err := a.b.LinkedAccounts().Get(ctx, fundTX.FromWalletLinkedAcc)
+	sendLA, err := a.b.LinkedAccounts().Get(ctx, args.FundingTx.FromWalletLinkedAcc)
 	if err != nil {
 		return "", err
 	}

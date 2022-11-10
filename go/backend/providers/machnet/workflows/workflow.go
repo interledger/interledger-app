@@ -36,7 +36,7 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 
 	err = workflow.ExecuteActivity(ctx, a.StartExternalKYC, externalUserID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("StartExternalKYC Activity failed.", "Error", err)
+		logger.Error("StartExternalKYC Activity failed.", "Error", err, "externalID", externalUserID)
 		return "", err
 	}
 
@@ -113,8 +113,8 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		StartWalletTransferArgs{
 			CreateTransactionArgs: args,
 			WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
+			FundingTx:             fundWalletTX,
 		},
-		fundWalletTX,
 	).Get(ctx, &transferID)
 	if err != nil {
 		logger.Error("StartWalletTransfer Activity failed.", "Error", err)
