@@ -29,15 +29,35 @@ export async function loader({ request }: LoaderArgs) {
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
+  const countries = response.response.countries
 
   const url = new URL(request.url)
+  const mugId = url.searchParams.get('mug')
   const countryCode = url.searchParams.get('country')
   const email = url.searchParams.get('email')
   const fullName = url.searchParams.get('fullName')
 
+  let isMugAvailable = false
+  if (mugId != null) {
+    let response = await grpcClient
+      .isMugAvailable({
+        mugId: mugId
+      })
+      .then((v) => v)
+      .catch(StatusError)
+    if (isGrpcError(response)) {
+      throw json({}, httpMapping(response.code))
+    }
+    isMugAvailable = response.response.available
+  }
+
   return json({
+    mug: {
+      id: mugId ?? undefined,
+      available: isMugAvailable
+    },
     countryCode,
-    countries: response.response.countries,
+    countries,
     email,
     fullName
   })
@@ -49,7 +69,7 @@ export const handle = {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { countryCode, countries, email, fullName } =
+  const { mug, countryCode, countries, email, fullName } =
     useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
@@ -81,13 +101,52 @@ export default function Page() {
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-      <span className='font-display text-2xl font-medium'>
-        Join the waitlist
-      </span>
-      <span className='mt-6 text-medium'>
-        Leave your details below and we will notify you as soon as enrollment
-        opens.
-      </span>
+      {!mug.available && (
+        <>
+          <span className='font-display text-2xl font-medium'>
+            Join the waitlist
+          </span>
+          <span className='mt-6 text-medium'>
+            Leave your details below and we will notify you as soon as
+            enrollment opens.
+          </span>
+        </>
+      )}
+      {mug.available && (
+        <>
+          <span className='font-display text-2xl font-medium'>
+            Congratulations!
+          </span>
+          <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-y-0 sm:space-x-6 sm:space-x-reverse'>
+            <span className='text-medium'>
+              You got your hands on a limited edition Fynbos mug.
+            </span>
+            <img
+              className='w-full sm:w-2/5'
+              alt='Fynbos mug'
+              src='https://cdn.fynbos.workers.dev/marketing/enamel-mug-waitlist.webp'
+            />
+          </div>
+          <span className='mt-6 text-medium'>
+            Each mug has a unique payment pointer - now this one could be yours.
+          </span>
+          <span className='mt-4 text-medium'>
+            Sign up to the waitlist and we'll link this mug's payment pointer to
+            your Fynbos wallet.
+          </span>
+          <span className='mt-4 text-medium'>
+            If you’re already on the waitlist, submit your details again and
+            we’ll link your mug to your existing details.
+          </span>
+          <span className='mt-6 font-medium'>Join the waitlist</span>
+          <input
+            type='hidden'
+            form='join-waitlist'
+            name='mugId'
+            value={mug.id as string}
+          />
+        </>
+      )}
 
       <Form
         id='join-waitlist'
@@ -181,12 +240,13 @@ function mapper(field: fieldErrorsMap): 'countryCode' | 'email' | null {
   }
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const fullName = form.get('fullName') as string
   const email = form.get('email') as string
   const country = form.get('country') as string
   const betaOptIn = form.get('beta') as string
+  const mugId = form.get('mugId') as string
 
   const fieldErrors = {
     fullName: '',
@@ -199,7 +259,8 @@ export async function action({ request, params }: ActionArgs) {
       email,
       countryCode: country,
       fullName,
-      betaOptIn: betaOptIn != null
+      betaOptIn: betaOptIn != null,
+      mugId
     })
     .then((v) => v)
     .catch(StatusError)
