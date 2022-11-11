@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { Empty as Empty$ } from "./backend";
+import type { AllowWaitlistSignupRequest } from "./backend";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { ListWaitlistSignupsResponse } from "./backend";
 import type { Empty } from "../../../google/protobuf/empty";
@@ -17,6 +19,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ListWaitlistSignups(google.protobuf.Empty) returns (backend.admin.v1.ListWaitlistSignupsResponse);
      */
     listWaitlistSignups(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListWaitlistSignupsResponse>;
+    /**
+     * @generated from protobuf rpc: AllowWaitlistSignup(backend.admin.v1.AllowWaitlistSignupRequest) returns (backend.admin.v1.Empty);
+     */
+    allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -33,5 +39,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     listWaitlistSignups(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListWaitlistSignupsResponse> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListWaitlistSignupsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: AllowWaitlistSignup(backend.admin.v1.AllowWaitlistSignupRequest) returns (backend.admin.v1.Empty);
+     */
+    allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$> {
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AllowWaitlistSignupRequest, Empty$>("unary", this._transport, method, opt, input);
     }
 }
