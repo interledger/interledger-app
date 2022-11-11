@@ -79,7 +79,12 @@ func (s *service) verifyToken(ctx context.Context) (*oidc.IDToken, error) {
 
 	// Make sure that the incoming request has our token header
 	//  Could also look in the cookies for CF_AUTHORIZATION
-	cookies := meta.Get("cookies")
+	rawCookies := meta.Get("cookies")
+	if len(rawCookies) == 0 {
+		return nil, ErrInvalidToken
+	}
+
+	cookies := strings.Split(rawCookies[0], ";")
 
 	var cfCookie string
 	for _, c := range cookies {
