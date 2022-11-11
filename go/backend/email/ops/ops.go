@@ -17,7 +17,7 @@ func SendMailTemplate(ctx context.Context, b Backends, walletID string, template
 	if err != nil {
 		return err
 	}
-	if len(users) == 1 {
+	if len(users) < 1 {
 		return fmt.Errorf("%w wallet has (%d) users associated", email.ErrInternal, len(users))
 	}
 

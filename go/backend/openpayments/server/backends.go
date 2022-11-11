@@ -1,6 +1,7 @@
 package server
 
 import (
+	"gitlab.com/fynbos/backend/email"
 	"testing"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -18,6 +19,7 @@ type Backends interface {
 	Users() user.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
+	Email() email.Client
 }
 
 type testBackends struct {
@@ -25,6 +27,7 @@ type testBackends struct {
 	val  *validator.Validate
 	la   linkedaccounts.Client
 	temp temporal.Client
+	em   email.Client
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -33,6 +36,10 @@ func (t testBackends) Temporal() temporal.Client {
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {
 	return t.la
+}
+
+func (t testBackends) Email() email.Client {
+	return t.em
 }
 
 func (t testBackends) Users() user.Client {
