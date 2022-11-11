@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"gitlab.com/fynbos/backend/email"
 	"net"
 	"testing"
 
@@ -23,6 +24,7 @@ import (
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
 	"gitlab.com/fynbos/backend/country"
 	country_mock "gitlab.com/fynbos/backend/country/client/mock"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -58,6 +60,11 @@ type TestContainer struct {
 	TemporalImpl      *mocks.Client
 	TicketClient      *support_mock.MockClient
 	KYCClient         *kyc_mock.MockClient
+	EmailClient       *email_mock.MockClient
+}
+
+func (t TestContainer) Email() email.Client {
+	return t.EmailClient
 }
 
 func (t TestContainer) KYC() kyc.Client {

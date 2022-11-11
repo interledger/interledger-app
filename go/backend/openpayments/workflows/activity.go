@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/email"
 	"math"
+	"time"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -112,6 +114,41 @@ func (a *Activity) CompleteOutgoingPayment(ctx context.Context, outgoingID, extI
 	}
 
 	return err
+}
+
+func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID string, extID string) error {
+	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	pp, err := ops.GetPaymentPointer(ctx, a.b, op.PaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	// TODO verify that these are formatted correctly.
+	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceiptTemplateID, map[string]interface{}{
+		"transactionID":      op.ID,
+		"paymentDate":        op.UpdatedAt.Format(time.RFC1123),
+		"sendAmount":         formatMoney(op.SentAmount),
+		"fees":               "$ 0.00",
+		"receiveAmount":      formatMoney(op.ReceiveAmount),
+		"note":               op.Description,
+		"toPaymentPointer":   op.ToPaymentPointer,
+		"fromPaymentPointer": op.PaymentPointer,
+	})
+
+	return err
+}
+
+func formatMoney(amount openpayments.Amount) string {
+	value := fmt.Sprintf("%d", amount.Value)
+	length := len(value)
+	return "$ " + value[0:length-amount.AssetScale] + "." + value[length-amount.AssetScale:]
 }
 
 func isNonRetryableError(err error) bool {

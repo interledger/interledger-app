@@ -125,5 +125,11 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress str
 		return "", err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, extID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
+		return "", err
+	}
+
 	return extID, nil
 }

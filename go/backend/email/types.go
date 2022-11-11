@@ -27,9 +27,9 @@ func (t TemplateID) String() string {
 }
 
 const (
-	PaymentSentTemplateID TemplateID = `d-aslkdfja0983u45pq0324r` // TODO: This is just an example
+	ReceiptTemplateID TemplateID = `d-9b905a8243894b298c4dc2eab502e7d5`
 )
 
 var templateSubjects = map[TemplateID]string{
-	PaymentSentTemplateID: "Fynbos%s:You have received a payment on", // TODO: This is just an example
+	ReceiptTemplateID: "Fynbos payment receipt.", // TODO: This is just an example
 }
