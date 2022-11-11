@@ -12,6 +12,13 @@ option go_package = "./backend/admin/v1;admin";
 
 service Backend {
   rpc ListWaitlistSignups(google.protobuf.Empty) returns (ListWaitlistSignupsResponse);
+  rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
+}
+
+message Empty {}
+
+message AllowWaitlistSignupRequest {
+  string id = 1;
 }
 
 message ListWaitlistSignupsResponse {
@@ -23,4 +30,6 @@ message WaitlistSignup {
   string name = 2;
   string email = 3;
   bool beta_opt_in = 4;
+  bool can_signup = 5;
+  string mug_id = 6;
 }

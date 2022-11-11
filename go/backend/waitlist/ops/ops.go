@@ -142,10 +142,12 @@ func ListSignups(ctx context.Context, b Backends) (signups []waitlist.Signup, er
 		Name      string `db:"full_name"`
 		Email     string `db:"email"`
 		BetaOptIn bool   `db:"beta_opt_in"`
+		CanSignup bool   `db:"can_signup"`
+		MugID     string `db:"mug_id"`
 	}
 	dbSignups := []dbSignup{}
 	err = b.DB().SelectContext(ctx, &dbSignups,
-		"SELECT id, full_name, email, beta_opt_in from waitlist_signups order by created_at DESC")
+		"SELECT id, full_name, email, beta_opt_in, can_signup from waitlist_signups order by created_at DESC")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", waitlist.ErrInternal, err.Error())
 	}
@@ -156,6 +158,8 @@ func ListSignups(ctx context.Context, b Backends) (signups []waitlist.Signup, er
 			Name:      signup.Name,
 			Email:     signup.Email,
 			BetaOtpIn: signup.BetaOptIn,
+			CanSignup: signup.CanSignup,
+			MugID:     signup.MugID,
 		})
 	}
 

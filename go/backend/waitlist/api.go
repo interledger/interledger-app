@@ -8,4 +8,5 @@ type Client interface {
 	SetSignupComplete(ctx context.Context, id, userSignupId string) error
 	ListSignups(ctx context.Context) ([]Signup, error)
 	IsMugAvailable(ctx context.Context, mugID string) (bool, error)
+	AllowSignupById(ctx context.Context, id string) error
 }

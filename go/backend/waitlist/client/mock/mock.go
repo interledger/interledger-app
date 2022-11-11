@@ -49,6 +49,20 @@ func (mr *MockClientMockRecorder) Add(ctx, email, countryCode, fullName, mugID, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, email, countryCode, fullName, mugID, betaOptIn)
 }
 
+// AllowSignupById mocks base method.
+func (m *MockClient) AllowSignupById(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AllowSignupById", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AllowSignupById indicates an expected call of AllowSignupById.
+func (mr *MockClientMockRecorder) AllowSignupById(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllowSignupById", reflect.TypeOf((*MockClient)(nil).AllowSignupById), ctx, id)
+}
+
 // CanSignup mocks base method.
 func (m *MockClient) CanSignup(ctx context.Context, id string) (bool, error) {
 	m.ctrl.T.Helper()

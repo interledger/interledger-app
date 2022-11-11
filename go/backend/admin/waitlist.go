@@ -32,10 +32,24 @@ func (s *AdminRpcService) ListWaitlistSignups(
 			Name:      signup.Name,
 			Email:     signup.Email,
 			BetaOptIn: signup.BetaOtpIn,
+			CanSignup: signup.CanSignup,
+			MugId:     signup.MugID,
 		}
 	}
 
 	return &adminv1.ListWaitlistSignupsResponse{
 		Signups: ret,
 	}, nil
+}
+
+func (s *AdminRpcService) AllowWaitlistSignup(
+	ctx context.Context, request *adminv1.AllowWaitlistSignupRequest,
+) (*adminv1.Empty, error) {
+
+	err := s.b.Waitlist().AllowSignupById(ctx, request.Id)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &adminv1.Empty{}, nil
 }
