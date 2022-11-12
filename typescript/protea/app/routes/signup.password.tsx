@@ -76,9 +76,7 @@ export default function Page() {
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>
-            Create a password
-          </h1>
+          <h1 className='font-display text-2xl font-medium'>Password</h1>
           <div className='hidden sm:flex'>
             <Shape
               width={'w-8'}
@@ -92,7 +90,7 @@ export default function Page() {
             />
           </div>
         </div>
-        <p>You will need your password to log in to your account.</p>
+        <p>Create a password to log in to your account securely.</p>
       </div>
 
       <Form

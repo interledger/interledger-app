@@ -104,15 +104,15 @@ export default function Page() {
         name='csrf_token'
         type='hidden'
       />
-
-      <Button className='mt-12' form='login' type='submit'>
-        Login
-      </Button>
       <div className='mt-4 flex justify-end'>
         <Router to={route('/recovery')} aria-label='Forgot password?'>
           <span className='text-primary'>Forgot password?</span>
         </Router>
       </div>
+
+      <Button className='mt-12' form='login' type='submit'>
+        Log in
+      </Button>
     </div>
   )
 }
