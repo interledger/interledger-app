@@ -3,7 +3,7 @@ import type { LoaderArgs } from '@remix-run/node'
 import { WalletGrid } from '~/components'
 import { grpcClient } from '~/lib/proto.server'
 import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 
 export async function loader({ request }: LoaderArgs) {
   const signups = await grpcClient.listWaitlistSignups(
@@ -21,7 +21,26 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function Page() {
+  const allowSignup = useFetcher()
   const { signups } = useLoaderData<typeof loader>()
+  const onClick = async (id: string, canSignup: boolean) => {
+    if (!canSignup) {
+      if (allowSignup.state === 'idle') {
+        allowSignup.submit(
+          { id: id },
+          {
+            method: 'post',
+            action: '/api/allowSignup'
+          }
+        )
+      }
+    } else {
+      await navigator.clipboard.writeText(
+        `https://fynbos.app/signup?waitlistSignupId=${id}`
+      )
+    }
+  }
+
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-12 sm:col-start-2 lg:col-start-1'>
@@ -59,6 +78,18 @@ export default function Page() {
                         >
                           Beta Opt In
                         </th>
+                        <th
+                          scope='col'
+                          className='sticky top-0 z-10 hidden border-b border-gray-300 bg-gray-50 bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter lg:table-cell'
+                        >
+                          Mug Id
+                        </th>
+                        <th
+                          scope='col'
+                          className='sticky top-0 z-10 hidden border-b border-gray-300 bg-gray-50 bg-opacity-75 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter lg:table-cell'
+                        >
+                          Can Signup
+                        </th>
                       </tr>
                     </thead>
                     <tbody className='bg-white'>
@@ -73,6 +104,17 @@ export default function Page() {
                             </td>
                             <td className='whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 lg:pl-8'>
                               {signup.betaOptIn ? 'TRUE' : 'FALSE'}
+                            </td>
+                            <td className='whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 lg:pl-8'>
+                              {signup.mugId}
+                            </td>
+                            <td
+                              onClick={() =>
+                                onClick(signup.id, signup.canSignup)
+                              }
+                              className='whitespace-nowrap cursor-pointer py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 lg:pl-8'
+                            >
+                              {signup.canSignup ? 'TRUE' : 'FALSE'}
                             </td>
                           </tr>
                         )
