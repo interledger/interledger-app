@@ -152,7 +152,7 @@ export default function Page() {
       />
 
       <Button className='mt-12' form='payment-pointer' type='submit'>
-        Continue
+        Save
       </Button>
 
       <Snackbar

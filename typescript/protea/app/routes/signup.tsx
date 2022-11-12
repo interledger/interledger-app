@@ -78,7 +78,9 @@ export default function Page() {
         />
         <div className='ml-5'>
           <h3 className='mb-1 font-medium text-strong'>Payment pointer</h3>
-          <p className='text-sm text-medium'>Create a unique payment pointer</p>
+          <p className='text-sm text-medium'>
+            Create a unique payment pointer.
+          </p>
         </div>
       </div>
 
