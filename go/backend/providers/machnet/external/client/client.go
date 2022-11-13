@@ -19,7 +19,7 @@ import (
 
 const (
 	sandboxUrl = "https://v4sandbox.machpay.com/v4"
-	prodUrl    = "https://v4sandbox.machpay.com/v4" // TODO: ask what prod url is
+	prodUrl    = "https://api.machpay.com/v4"
 )
 
 var _ external.Client = Client{}
