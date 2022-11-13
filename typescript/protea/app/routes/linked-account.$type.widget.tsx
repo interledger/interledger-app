@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderArgs) {
   }
 
   return json({
-    widgetScriptUrl: 'https://widget.v4sandbox.machpay.com/widget/widget.js',
+    widgetScriptUrl: process.env.MACHNET_WIDGET_URL || 'https://widget.v4sandbox.machpay.com/widget/widget.js',
     widgetUserId: cardRpc.response.userId,
     widgetToken: cardRpc.response.value
   })
