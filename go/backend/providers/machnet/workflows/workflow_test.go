@@ -53,6 +53,16 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 	env.OnActivity(a.CreateExternalSendUser, mock.Anything, wallet.ID).Return(externalUserID, nil)
 	env.OnActivity(a.CreateUser, mock.Anything, wallet.ID, externalUserID).Return(externalUserID, nil)
 	env.OnActivity(a.StartExternalKYC, mock.Anything, externalUserID).Return(nil)
+	env.OnActivity(a.CreateUserWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.RegisterDelayedCallback(func() {
+		env.SignalWorkflow(ops.UserEventsChannel, external.Event{
+			ID:         uuid.NewString(),
+			EventName:  external.UserKYCVerified,
+			ResourceID: uuid.NewString(),
+			UserID:     externalUserID,
+		})
+	}, 2*time.Minute)
+	env.OnActivity(a.CompleteUserWorkflowRef, mock.Anything, mock.Anything).Return(nil)
 	env.OnActivity(a.CreateWallet, mock.Anything, externalUserID).Return(nil)
 
 	env.ExecuteWorkflow(CreateSendUserWorkflow, wallet.ID)

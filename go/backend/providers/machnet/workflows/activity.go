@@ -580,6 +580,47 @@ func (a *Activity) CreateTransactionWorkflowRef(ctx context.Context, args Create
 	return nil
 }
 
+type CreateUserWorkflowRefArgs struct {
+	ExternalUserID string
+	WorkflowID     string
+	WorkflowRunID  string
+	ActivityName   string
+}
+
+func (a *Activity) CreateUserWorkflowRef(ctx context.Context, args CreateUserWorkflowRefArgs) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("CreateUserWorkflowRef_Activity", "external user ID", args.ExternalUserID)
+
+	_, err := ops.CreateUserWorkflowRef(ctx, a.b, machnet.CreateUserWorkflowRefArgs{
+		WorkflowRunID: args.WorkflowRunID,
+		WorkflowID:    args.WorkflowID,
+		UserID:        args.ExternalUserID,
+		ActivityName:  args.ActivityName,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) CompleteUserWorkflowRef(ctx context.Context, args CreateUserWorkflowRefArgs) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("CompleteUserWorkflowRef_Activity", "external user ID", args.ExternalUserID)
+
+	_, err := ops.CreateUserWorkflowRef(ctx, a.b, machnet.CreateUserWorkflowRefArgs{
+		WorkflowRunID: args.WorkflowRunID,
+		WorkflowID:    args.WorkflowID,
+		UserID:        args.ExternalUserID,
+		ActivityName:  args.ActivityName,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Activity) DeliverTransaction(ctx context.Context, fromLinkedAccID, transactionID string) error {
 	logger := activity.GetLogger(ctx)
 	logger.Info("DeliverTransaction_Activity", "from", fromLinkedAccID, "transactions_id", transactionID)
