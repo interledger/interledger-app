@@ -35,12 +35,12 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 	msg.Subject = subject
 	msg.SetTemplateID(templateID)
 
-	p := mail.NewPersonalization()
-	p.DynamicTemplateData = templateData
 	for _, t := range to {
+		p := mail.NewPersonalization()
+		p.DynamicTemplateData = templateData
 		p.AddTos(mail.NewEmail(t.Name, t.Address))
+		msg.AddPersonalizations(p)
 	}
-	msg.AddPersonalizations(p)
 
 	_, err := c.mailer.SendWithContext(ctx, msg)
 	if err != nil {
