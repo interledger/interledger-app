@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/machnet/ops"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
-	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -40,7 +41,44 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 		return "", err
 	}
 
-	// TODO await for KYC passing
+	// Wait for KYC passing
+	workflowArgs := CreateUserWorkflowRefArgs{
+		ExternalUserID: externalUserID,
+		WorkflowID:     workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowRunID:  workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		ActivityName:   "StartExternalKYC",
+	}
+	err = workflow.ExecuteActivity(ctx, a.CreateUserWorkflowRef, workflowArgs).Get(ctx, nil)
+	if err != nil {
+		logger.Error("CreateUserWorkflowRef Activity failed.", "Error", err)
+		return "", err
+	}
+
+	trxChan := workflow.GetSignalChannel(ctx, ops.UserEventsChannel)
+	for {
+		var kycEvent external.Event
+		trxChan.Receive(ctx, &kycEvent)
+		logger.Info("status event: external user ID=", kycEvent.UserID, "status=", kycEvent.EventName)
+		if kycEvent.UserID != externalUserID { // not for this user
+			logger.Error("Received notification for different user.")
+			continue
+		}
+
+		if external.UserKYCVerified == kycEvent.EventName {
+			break
+		}
+
+		if kycEvent.EventName == external.UserKYCRetry ||
+			kycEvent.EventName == external.UserKYCSuspended {
+			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("user (%s) KYC failed (%s)", externalUserID, kycEvent.EventName), "ErrInternal", external.ErrInternal)
+		}
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CompleteUserWorkflowRef, workflowArgs).Get(ctx, nil)
+	if err != nil {
+		logger.Error("CompleteUserWorkflowRef Activity failed.", "Error", err)
+		return "", err
+	}
 
 	err = workflow.ExecuteActivity(ctx, a.CreateWallet, externalUserID).Get(ctx, nil)
 	if err != nil {

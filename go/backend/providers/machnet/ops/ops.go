@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	UserEventsChannel                = "machnet_user_events"
 	TransactionEventsChannel         = "machnet_transaction_events"
 	TransactionDeliveryEventsChannel = "machnet_delivery_events"
 )
@@ -292,6 +293,52 @@ func GetBanks(ctx context.Context, b Backends, countryCode string) ([]machnet.Ba
 	}
 
 	return banks, nil
+}
+
+func CreateUserWorkflowRef(ctx context.Context, b Backends, args machnet.CreateUserWorkflowRefArgs) (*machnet.UserWorkflowRef, error) {
+	insert := db.NewInsert("machnet_users_workflow_ref").
+		Value("user_id", args.UserID).Returning("user_id").
+		Value("workflow_id", args.WorkflowID).Returning("workflow_id").
+		Value("workflow_run_id", args.WorkflowRunID).Returning("workflow_run_id").
+		Value("activity_name", args.ActivityName).Returning("activity_name")
+
+	statement, values, err := insert.GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var ref machnet.UserWorkflowRef
+	err = b.DB().GetContext(
+		ctx,
+		&ref,
+		statement,
+		values...,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &ref, nil
+}
+
+func ListActiveUserWorkflowRefs(ctx context.Context, b Backends, userID string) ([]machnet.UserWorkflowRef, error) {
+	var res []machnet.UserWorkflowRef
+	err := b.DB().SelectContext(ctx, &res, "SELECT user_id, workflow_id, workflow_run_id, activity_name FROM  machnet_users_workflow_ref WHERE user_id=$1 AND completed=false", userID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return res, nil
+}
+
+func CompleteUserWorkflowRef(ctx context.Context, b Backends, args machnet.CreateUserWorkflowRefArgs) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE machnet_users_workflow_ref SET completed=true, updated_at=now() WHERE completed=false AND user_id=$1 AND workflow_id=$2 AND workflow_run_id=$3 AND activity_name=$4",
+		args.UserID, args.WorkflowID, args.WorkflowID, args.ActivityName)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
 }
 
 func CreateTransactionWorkflowRef(ctx context.Context, b Backends, args machnet.CreateTransactionWorkflowRefArgs) (*machnet.TransactionWorkflowRef, error) {
@@ -576,6 +623,18 @@ func HandleUserKYCEvent(ctx context.Context, b Backends, event external.Event) e
 	_, err = b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2", newStatus, event.UserID)
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	refs, err := ListActiveUserWorkflowRefs(ctx, b, event.UserID)
+	if err != nil {
+		return err
+	}
+
+	for _, ref := range refs {
+		err = b.Temporal().SignalWorkflow(ctx, ref.WorkflowID, ref.WorkflowRunID, UserEventsChannel, event)
+		if err != nil {
+			return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+		}
 	}
 
 	return nil

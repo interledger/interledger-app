@@ -154,6 +154,20 @@ type (
 		WorkflowRunID string
 		ActivityName  string
 	}
+
+	CreateUserWorkflowRefArgs struct {
+		UserID        string
+		WorkflowID    string
+		WorkflowRunID string
+		ActivityName  string
+	}
+
+	UserWorkflowRef struct {
+		UserID        string `db:"user_id"`
+		WorkflowID    string `db:"workflow_id"`
+		WorkflowRunID string `db:"workflow_run_id"`
+		ActivityName  string `db:"activity_name"`
+	}
 )
 
 type (

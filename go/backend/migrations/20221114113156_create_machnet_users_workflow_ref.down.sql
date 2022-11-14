@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS machnet_users_workflow_ref;

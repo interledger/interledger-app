@@ -163,7 +163,18 @@ func TestHandleUserKYCEvent(t *testing.T) {
 		Payload:        []byte("{}"),
 	}
 
-	err := ops.HandleUserKYCEvent(context.Background(), b, kycEvent)
+	workflowID := uuid.NewString()
+	worklflowRunID := uuid.NewString()
+	_, err := ops.CreateUserWorkflowRef(context.Background(), b, machnet.CreateUserWorkflowRefArgs{
+		UserID:        mu.ID,
+		WorkflowID:    workflowID,
+		WorkflowRunID: worklflowRunID,
+		ActivityName:  "ActivityName",
+	})
+	require.NoError(t, err)
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.UserEventsChannel, kycEvent).Return(nil)
+
+	err = ops.HandleUserKYCEvent(context.Background(), b, kycEvent)
 	require.NoError(t, err)
 
 	u, err := ops.GetUserByID(context.Background(), b, mu.ID)
@@ -192,6 +203,8 @@ func TestHandleUserKYCEvent(t *testing.T) {
 		Timestamp:      time.Now().UTC().Format(time.RFC3339),
 		Payload:        []byte("{}"),
 	}
+
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.UserEventsChannel, kycEvent).Return(nil)
 
 	err = ops.HandleUserKYCEvent(context.Background(), b, kycEvent)
 	require.NoError(t, err)
