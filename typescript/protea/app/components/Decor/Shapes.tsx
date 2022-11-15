@@ -567,5 +567,49 @@ const blogShapes: {
         color: 'bg-slate-600'
       }
     ]
+  ],
+  'our-fynbos-family-meet-cairin': [
+    [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-orange-200'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-purple-300'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-blue-300'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-slate-400'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-orange-500'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-purple-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-blue-600'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-orange-100'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-slate-300'
+      }
+    ]
   ]
 }
