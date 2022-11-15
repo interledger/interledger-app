@@ -5,10 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	client "github.com/ory/kratos-client-go"
 	"net/http"
 	"sync"
 	"time"
+
+	"gitlab.com/fynbos/backend/db"
+
+	client "github.com/ory/kratos-client-go"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
@@ -43,6 +46,31 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 
 	u := convertTraits(session.Identity.Id, session.Identity.Traits)
 	return &u, nil
+}
+
+func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error) {
+	id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, userID).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	u := convertTraits(id.Id, id.Traits)
+	return &u, nil
+}
+
+func ListAllUsers(ctx context.Context, b Backends, pagination db.Pagination) ([]user.User, error) {
+
+	ids, _, err := b.Kratos().V0alpha2Api.AdminListIdentities(ctx).Page(int64(pagination.Page)).PerPage(int64(pagination.PageSize)).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	resp := make([]user.User, len(ids))
+	for i, id := range ids {
+		resp[i] = convertTraits(id.Id, id.Traits)
+	}
+
+	return resp, nil
 }
 
 func convertTraits(userID string, traits interface{}) user.User {

@@ -4,6 +4,12 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ListUserTransactionsResponse } from "./backend";
+import type { ListUserTransactionsRequest } from "./backend";
+import type { GetUserDetailsResponse } from "./backend";
+import type { GetUserDetailsRequest } from "./backend";
+import type { ListUsersResponse } from "./backend";
+import type { PaginationRequest } from "./backend";
 import type { Empty as Empty$ } from "./backend";
 import type { AllowWaitlistSignupRequest } from "./backend";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
@@ -23,6 +29,18 @@ export interface IBackendClient {
      * @generated from protobuf rpc: AllowWaitlistSignup(backend.admin.v1.AllowWaitlistSignupRequest) returns (backend.admin.v1.Empty);
      */
     allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: ListUsers(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListUsersResponse);
+     */
+    listUsers(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListUsersResponse>;
+    /**
+     * @generated from protobuf rpc: GetUserDetails(backend.admin.v1.GetUserDetailsRequest) returns (backend.admin.v1.GetUserDetailsResponse);
+     */
+    getUserDetails(input: GetUserDetailsRequest, options?: RpcOptions): UnaryCall<GetUserDetailsRequest, GetUserDetailsResponse>;
+    /**
+     * @generated from protobuf rpc: ListUserTransactions(backend.admin.v1.ListUserTransactionsRequest) returns (backend.admin.v1.ListUserTransactionsResponse);
+     */
+    listUserTransactions(input: ListUserTransactionsRequest, options?: RpcOptions): UnaryCall<ListUserTransactionsRequest, ListUserTransactionsResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -46,5 +64,26 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<AllowWaitlistSignupRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListUsers(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListUsersResponse);
+     */
+    listUsers(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListUsersResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListUsersResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetUserDetails(backend.admin.v1.GetUserDetailsRequest) returns (backend.admin.v1.GetUserDetailsResponse);
+     */
+    getUserDetails(input: GetUserDetailsRequest, options?: RpcOptions): UnaryCall<GetUserDetailsRequest, GetUserDetailsResponse> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetUserDetailsRequest, GetUserDetailsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListUserTransactions(backend.admin.v1.ListUserTransactionsRequest) returns (backend.admin.v1.ListUserTransactionsResponse);
+     */
+    listUserTransactions(input: ListUserTransactionsRequest, options?: RpcOptions): UnaryCall<ListUserTransactionsRequest, ListUserTransactionsResponse> {
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListUserTransactionsRequest, ListUserTransactionsResponse>("unary", this._transport, method, opt, input);
     }
 }

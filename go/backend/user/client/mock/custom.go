@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"testing"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"github.com/google/uuid"
 	"github.com/machinebox/graphql"
 	"gitlab.com/fynbos/backend/user"
@@ -18,6 +20,28 @@ var _ user.Client = mockClient{}
 type mockClient struct {
 	wallets    map[string]*user.Wallet
 	walletUser map[string]string
+}
+
+func (mc mockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
+	return &user.User{
+		ID:          userID,
+		Email:       "info@fynbos.com",
+		PhoneNumber: "+27836321959",
+	}, nil
+
+}
+
+func (mc mockClient) ListAllUsers(ctx context.Context, pagination db.Pagination) ([]user.User, error) {
+	var res []user.User
+	for _, w := range mc.wallets {
+		res = append(res, user.User{
+			ID:          mc.walletUser[w.ID],
+			Email:       "info@fynbos.com",
+			PhoneNumber: "+27836321959",
+		})
+	}
+
+	return res, nil
 }
 
 func (mc mockClient) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {

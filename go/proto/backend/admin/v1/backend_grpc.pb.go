@@ -25,6 +25,9 @@ const _ = grpc.SupportPackageIsVersion7
 type BackendClient interface {
 	ListWaitlistSignups(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListWaitlistSignupsResponse, error)
 	AllowWaitlistSignup(ctx context.Context, in *AllowWaitlistSignupRequest, opts ...grpc.CallOption) (*Empty, error)
+	ListUsers(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error)
+	ListUserTransactions(ctx context.Context, in *ListUserTransactionsRequest, opts ...grpc.CallOption) (*ListUserTransactionsResponse, error)
 }
 
 type backendClient struct {
@@ -53,12 +56,42 @@ func (c *backendClient) AllowWaitlistSignup(ctx context.Context, in *AllowWaitli
 	return out, nil
 }
 
+func (c *backendClient) ListUsers(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
+	out := new(ListUsersResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error) {
+	out := new(GetUserDetailsResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetUserDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) ListUserTransactions(ctx context.Context, in *ListUserTransactionsRequest, opts ...grpc.CallOption) (*ListUserTransactionsResponse, error) {
+	out := new(ListUserTransactionsResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListUserTransactions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
 type BackendServer interface {
 	ListWaitlistSignups(context.Context, *emptypb.Empty) (*ListWaitlistSignupsResponse, error)
 	AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error)
+	ListUsers(context.Context, *PaginationRequest) (*ListUsersResponse, error)
+	GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error)
+	ListUserTransactions(context.Context, *ListUserTransactionsRequest) (*ListUserTransactionsResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -70,6 +103,15 @@ func (UnimplementedBackendServer) ListWaitlistSignups(context.Context, *emptypb.
 }
 func (UnimplementedBackendServer) AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllowWaitlistSignup not implemented")
+}
+func (UnimplementedBackendServer) ListUsers(context.Context, *PaginationRequest) (*ListUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (UnimplementedBackendServer) GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserDetails not implemented")
+}
+func (UnimplementedBackendServer) ListUserTransactions(context.Context, *ListUserTransactionsRequest) (*ListUserTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserTransactions not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -119,6 +161,60 @@ func _Backend_AllowWaitlistSignup_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListUsers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListUsers(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_GetUserDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetUserDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/GetUserDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetUserDetails(ctx, req.(*GetUserDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_ListUserTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListUserTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListUserTransactions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListUserTransactions(ctx, req.(*ListUserTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -133,6 +229,18 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AllowWaitlistSignup",
 			Handler:    _Backend_AllowWaitlistSignup_Handler,
+		},
+		{
+			MethodName: "ListUsers",
+			Handler:    _Backend_ListUsers_Handler,
+		},
+		{
+			MethodName: "GetUserDetails",
+			Handler:    _Backend_GetUserDetails_Handler,
+		},
+		{
+			MethodName: "ListUserTransactions",
+			Handler:    _Backend_ListUserTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
