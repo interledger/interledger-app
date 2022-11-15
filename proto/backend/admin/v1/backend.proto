@@ -13,9 +13,79 @@ option go_package = "./backend/admin/v1;admin";
 service Backend {
   rpc ListWaitlistSignups(google.protobuf.Empty) returns (ListWaitlistSignupsResponse);
   rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
+  rpc ListUsers(PaginationRequest) returns (ListUsersResponse);
+  rpc GetUserDetails(GetUserDetailsRequest) returns (GetUserDetailsResponse);
+  rpc ListUserTransactions(ListUserTransactionsRequest) returns (ListUserTransactionsResponse);
 }
 
 message Empty {}
+
+message ListUserTransactionsRequest {
+  string userID = 1;
+  PaginationRequest page = 2;
+}
+
+message ListUserTransactionsResponse {
+  repeated Transaction transactions = 1;
+  PaginationResponse page = 2;
+}
+
+message Transaction {
+  string walletID = 8;
+  string id = 1;
+  string type = 2;
+  string asset = 7;
+  double amount = 3;
+  string source = 4;
+  string destination = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message GetUserTransactionsRequest {
+  string userID = 1;
+}
+message GetUserDetailsRequest {
+  string userID = 1;
+}
+
+message GetUserDetailsResponse {
+  UserDetails user = 1;
+}
+
+message UserDetails {
+  string userID = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string countryCode = 4;
+  int32 gender = 5; // 0 Unknown, 1 Male, 2 Female, 3 Other
+  google.protobuf.Timestamp dateOfBirth = 6;
+  string address = 7;
+  string email = 8;
+  string phoneNumber = 9;
+}
+
+message PaginationRequest {
+  int32 page = 1;
+  int32 pageSize = 2;
+}
+
+message PaginationResponse {
+  int32 page = 1;
+  int32 pageSize = 2;
+  bool hasNextPage = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  PaginationResponse page = 2;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string phoneNumber = 3;
+  repeated string wallets = 4;
+}
 
 message AllowWaitlistSignupRequest {
   string id = 1;

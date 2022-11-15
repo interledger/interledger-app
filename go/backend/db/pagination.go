@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 
+	adminpb "gitlab.com/fynbos/proto/backend/admin/v1"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -35,8 +36,27 @@ func PaginationFromPB(req *pb.PaginationRequest) Pagination {
 	}
 }
 
+func FromAdminPB(req *adminpb.PaginationRequest) Pagination {
+	pageSize := req.PageSize
+	if pageSize > 50 {
+		pageSize = 50
+	}
+	return Pagination{
+		Page:     int(req.Page),
+		PageSize: int(pageSize),
+	}
+}
+
 func (p *Pagination) ToPB(resultLen int) *pb.PaginationResponse {
 	return &pb.PaginationResponse{
+		Page:        int32(p.Page),
+		PageSize:    int32(p.PageSize),
+		HasNextPage: resultLen == p.PageSize,
+	}
+}
+
+func (p *Pagination) ToAdminPB(resultLen int) *adminpb.PaginationResponse {
+	return &adminpb.PaginationResponse{
 		Page:        int32(p.Page),
 		PageSize:    int32(p.PageSize),
 		HasNextPage: resultLen == p.PageSize,

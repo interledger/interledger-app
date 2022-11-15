@@ -4,6 +4,9 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 )
 
@@ -12,4 +15,7 @@ type Backends interface {
 	AdminAuth() auth.Service
 	Validator() *validator.Validate
 	Waitlist() waitlist.Client
+	Users() user.Client
+	KYC() kyc.Client
+	OpenPayments() openpayments.Client
 }

@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/openpayments"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -36,6 +38,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/migrations"
+	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -213,6 +216,8 @@ func start(args *cli.StartArgs) {
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
+	b.openpayments = openpayments_client.New(b)
+
 	wg := sync.WaitGroup{}
 
 	server, err := _grpc.NewServer(b)
@@ -344,6 +349,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
+	b.openpayments = openpayments_client.New(b)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -377,6 +384,7 @@ type backends struct {
 	waitlist       waitlist.Client
 	kyc            kyc.Client
 	email          email.Client
+	openpayments   openpayments.Client
 }
 
 func (b backends) KYC() kyc.Client {
@@ -453,6 +461,10 @@ func (b backends) Machnet() machnet.Client {
 
 func (b backends) Email() email.Client {
 	return b.email
+}
+
+func (b backends) OpenPayments() openpayments.Client {
+	return b.openpayments
 }
 
 func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {

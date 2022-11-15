@@ -3,9 +3,14 @@ package admin_test
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/admin"
 	"net"
 	"testing"
+
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/user"
+
+	"gitlab.com/fynbos/backend/admin"
+	"gitlab.com/fynbos/backend/openpayments"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -35,6 +40,18 @@ type TestContainer struct {
 	ValidatorImpl *validator.Validate
 	Auth          auth.Service
 	WaitlistImpl  *waitlist_mock.MockClient
+}
+
+func (c *TestContainer) Users() user.Client {
+	return nil
+}
+
+func (c *TestContainer) KYC() kyc.Client {
+	return nil
+}
+
+func (c *TestContainer) OpenPayments() openpayments.Client {
+	return nil
 }
 
 func (c *TestContainer) AdminAuth() auth.Service {

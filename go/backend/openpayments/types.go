@@ -1,6 +1,11 @@
 package openpayments
 
-import "time"
+import (
+	"fmt"
+	"math"
+	"strconv"
+	"time"
+)
 
 type PaymentPointer struct {
 	ID         string `db:"id" json:"-"`
@@ -24,6 +29,19 @@ type Amount struct {
 	Value      uint64 `validate:"gt=0" json:"value,string"`
 	Asset      string `validate:"iso4217"  json:"assetCode"`
 	AssetScale int    `validate:"gt=0" json:"assetScale"`
+}
+
+func (a Amount) Format() string {
+	return fmt.Sprintf("%s %s", strconv.FormatFloat(a.FormatAmount(), 'f', a.AssetScale, 64), a.Asset)
+}
+
+func (a Amount) FormatAmount() float64 {
+	amnt := float64(a.Value)
+	if a.AssetScale > 0 {
+		amnt /= math.Pow(10, float64(a.AssetScale))
+	}
+
+	return amnt
 }
 
 type Quote struct {

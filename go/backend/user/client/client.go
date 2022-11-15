@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	kratos "github.com/ory/kratos-client-go"
@@ -15,7 +17,7 @@ import (
 	"gitlab.com/fynbos/log"
 )
 
-var _ user.Client = client{}
+var _ user.Client = &client{}
 
 type client struct {
 	b ops.Backends
@@ -48,7 +50,7 @@ func New(b Backends, kratosURL, kratosAdminURL string) user.Client {
 	}
 }
 
-func (c client) UserForCookie(ctx context.Context, cookie string) (usr *user.User, err error) {
+func (c *client) UserForCookie(ctx context.Context, cookie string) (usr *user.User, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			log.Debug("failed to parse user cookie", zap.Error(err))
@@ -58,7 +60,7 @@ func (c client) UserForCookie(ctx context.Context, cookie string) (usr *user.Use
 	return ops.UserForCookie(ctx, c.b, cookie)
 }
 
-func (c client) UserForContext(ctx context.Context) (usr *user.User, err error) {
+func (c *client) UserForContext(ctx context.Context) (usr *user.User, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			log.Info("no user in context", zap.Error(err))
@@ -68,11 +70,19 @@ func (c client) UserForContext(ctx context.Context) (usr *user.User, err error) 
 	return ops.UserForContext(ctx)
 }
 
-func (c client) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
+func (c *client) GetUser(ctx context.Context, userID string) (*user.User, error) {
+	return ops.GetUser(ctx, c.b, userID)
+}
+
+func (c *client) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
 	return ops.ListUsers(ctx, c.b, walletID)
 }
 
-func (c client) WalletForContext(ctx context.Context) (uw *user.Wallet, err error) {
+func (c *client) ListAllUsers(ctx context.Context, pagination db.Pagination) ([]user.User, error) {
+	return ops.ListAllUsers(ctx, c.b, pagination)
+}
+
+func (c *client) WalletForContext(ctx context.Context) (uw *user.Wallet, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
 			log.Info("no wallet in context", zap.Error(err))
@@ -82,14 +92,14 @@ func (c client) WalletForContext(ctx context.Context) (uw *user.Wallet, err erro
 	return ops.WalletForContext(ctx)
 }
 
-func (c client) CreateNewWallet(ctx context.Context, userID, walletName string) (*user.Wallet, error) {
+func (c *client) CreateNewWallet(ctx context.Context, userID, walletName string) (*user.Wallet, error) {
 	return ops.CreateWallet(ctx, c.b, userID, walletName)
 }
 
-func (c client) ListWallets(ctx context.Context, userID string) ([]user.Wallet, error) {
+func (c *client) ListWallets(ctx context.Context, userID string) ([]user.Wallet, error) {
 	return ops.ListWallets(ctx, c.b, userID)
 }
 
-func (c client) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
+func (c *client) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
 	return ops.GetWallet(ctx, c.b, userID, id)
 }
