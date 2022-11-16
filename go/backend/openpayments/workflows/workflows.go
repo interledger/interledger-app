@@ -3,15 +3,14 @@ package workflows
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel/trace"
 	"time"
-
-	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
+	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
+	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/workflow"
@@ -58,8 +57,9 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	}
 
 	workflowOptions := temporal_client.StartWorkflowOptions{
-		ID:        "openpayments_execute_outgoing_payment_" + id,
-		TaskQueue: "backend",
+		ID:                       "openpayments_execute_outgoing_payment_" + id,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
 	}
 
 	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id, args.IPAddress)
@@ -86,7 +86,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress str
 	var tArgs machnet.CreateTransactionArgs
 	err := workflow.ExecuteActivity(ctx, a.GetProviderArgs, outgoingID).Get(ctx, &tArgs)
 	if err != nil {
-		if isNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
 			if innerErr != nil {
 				return "", err
@@ -99,9 +99,6 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress str
 
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 4,
-		},
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 
@@ -109,7 +106,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress str
 	err = workflow.ExecuteChildWorkflow(ctx, machnet_workflows.CreateTransactionWorkflow, tArgs).Get(ctx, &extID)
 	if err != nil {
 		logger.Error("CreateTransactionWorkflow child workflow failed.", "Error", err)
-		if isNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
 			if innerErr != nil {
 				return "", err

@@ -95,9 +95,6 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Minute,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 30,
-		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
