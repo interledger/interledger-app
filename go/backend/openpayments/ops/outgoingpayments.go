@@ -248,7 +248,7 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return err
 		}
 
-		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4 AND received_amount<=$1",
+		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET updated_at=now(), received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4 AND received_amount<=$1",
 			args.SentAmount.Value, args.SentAmount.Asset, args.SentAmount.AssetScale, ipID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)

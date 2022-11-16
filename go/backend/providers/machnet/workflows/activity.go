@@ -574,6 +574,23 @@ func (a *Activity) CreateTransactionWorkflowRef(ctx context.Context, args Create
 		return err
 	}
 
+	// Idempotency check
+	existing, err := ops.GetTransactionWorkflowRef(ctx, a.b, mu.ID, args.ExternalTransactionID)
+	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
+		return err
+	}
+	if existing != nil {
+		// Check that the existing ref contains the same values
+		if existing.WorkflowID != args.WorkflowID ||
+			existing.ActivityName != args.AcitivityName {
+			return fmt.Errorf("exiting workflow ref for transaction (%s) has different workflow (expected:%s, actual:%s) or activity name (expected:%s actual:%s)",
+				args.ExternalTransactionID, args.WorkflowID, existing.WorkflowID, args.AcitivityName, existing.ActivityName)
+		}
+
+		// Reference is correct, do not do insert
+		return nil
+	}
+
 	_, err = ops.CreateTransactionWorkflowRef(ctx, a.b, machnet.CreateTransactionWorkflowRefArgs{
 		ID:            args.ExternalTransactionID,
 		WorkflowRunID: args.WorkflowRunID,
