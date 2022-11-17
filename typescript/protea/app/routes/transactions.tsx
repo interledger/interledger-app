@@ -5,82 +5,19 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { HomeShapes, Icon, Layouts, Router, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import { DateTime } from 'luxon'
-import {
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
-import { formatAmount } from '~/lib/wallet.server'
+import { getPendingTransactions, getTransactions } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
-  const cookie = String(request.headers.get('cookie'))
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
-  let pendingTransactionsResponse = openPaymentsClient
-    .listPendingTransactions(
-      { page: 1, pageSize: 20 },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  let transactionsResponse = openPaymentsClient
-    .listTransactions(
-      { page: 1, pageSize: 20 },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  const responses = await Promise.all([
-    pendingTransactionsResponse,
-    transactionsResponse
+  const [pendingTransactions, transactions] = await Promise.all([
+    getPendingTransactions(request),
+    getTransactions(request)
   ])
-
-  if (isGrpcError(responses[0])) {
-    throw json({}, httpMapping(responses[0].code))
-  }
-  if (isGrpcError(responses[1])) {
-    throw json({}, httpMapping(responses[1].code))
-  }
-
-  const pendingTransactions = responses[0].response.transactions.map((trx) => ({
-    id: trx.id,
-    icon: 'schedule',
-    title: 'Sending',
-    total: formatAmount(trx.amount),
-    description:
-      trx.type == 'outgoing' ? `to ${trx.destination}` : `from ${trx.source}`,
-    date: DateTime.fromSeconds(parseInt(trx.timestamp?.seconds ?? '')).toFormat(
-      'dd MMM yyyy'
-    )
-  }))
-
-  const transactions = responses[1].response.transactions.map((trx) => ({
-    id: trx.id,
-    icon: trx.type == 'outgoing' ? 'north_east' : 'south_west',
-    title: trx.type == 'outgoing' ? 'Sent' : 'Received',
-    total: formatAmount(trx.amount),
-    description:
-      trx.type == 'outgoing' ? `to ${trx.destination}` : `from ${trx.source}`,
-    date: DateTime.fromSeconds(parseInt(trx.timestamp?.seconds ?? '')).toFormat(
-      'dd MMM yyyy'
-    )
-  }))
 
   return json({
     transactions: [...pendingTransactions, ...transactions]
@@ -122,18 +59,24 @@ export default function Page() {
                 {transaction.date}
               </span>
             )}
-            <div className='mt-2 flex w-full justify-between'>
-              <div className='mx-1 flex space-x-1'>
-                <Icon className='text-medium'>{transaction.icon}</Icon>
+            <Router
+              to={route('/transaction/:type/:transactionId', {
+                type: transaction.type,
+                transactionId: transaction.id
+              })}
+              className='mt-2 flex w-full justify-between'
+            >
+              <div className='flex space-x-1'>
+                <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
                 <div className='flex flex-col space-y-2'>
                   <span className='text-medium'>{transaction.title}</span>
                   <span className='text-xs text-medium'>
-                    {transaction.description}
+                    {transaction.time}
                   </span>
                 </div>
               </div>
               <span className='font-medium'>{transaction.total}</span>
-            </div>
+            </Router>
           </Fragment>
         ))}
       </div>
