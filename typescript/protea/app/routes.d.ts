@@ -5,6 +5,7 @@ declare module "routes-gen" {
     "/blog/our-fynbos-family-meet-adrian": Record<string, never>;
     "/blog/our-fynbos-family-meet-cairin": Record<string, never>;
     "/blog/our-fynbos-family-meet-matt": Record<string, never>;
+    "/transaction/:type/:transactionId": { "type": string, "transactionId": string };
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
     "/blog/card-payments-still-suck": Record<string, never>;
     "/linked-account/:type/success": { "type": string };
@@ -15,7 +16,6 @@ declare module "routes-gen" {
     "/personal-details/address": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/personal-details/about": Record<string, never>;
-    "/receipt/:transactionId": { "transactionId": string };
     "/legal/privacy-policy": Record<string, never>;
     "/linked-account/:type": { "type": string };
     "/legal/terms-of-use": Record<string, never>;
@@ -53,6 +53,7 @@ declare module "routes-gen" {
       | ["/blog/our-fynbos-family-meet-adrian"]
       | ["/blog/our-fynbos-family-meet-cairin"]
       | ["/blog/our-fynbos-family-meet-matt"]
+      | ["/transaction/:type/:transactionId", RouteParams["/transaction/:type/:transactionId"]]
       | ["/blog/our-fynbos-family-meet-don"]
       | ["/blog/card-payments-still-suck"]
       | ["/linked-account/:type/success", RouteParams["/linked-account/:type/success"]]
@@ -63,7 +64,6 @@ declare module "routes-gen" {
       | ["/personal-details/address"]
       | ["/settings/linked-accounts"]
       | ["/personal-details/about"]
-      | ["/receipt/:transactionId", RouteParams["/receipt/:transactionId"]]
       | ["/legal/privacy-policy"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/legal/terms-of-use"]
