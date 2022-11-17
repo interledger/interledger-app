@@ -77,105 +77,122 @@ export default function Page() {
   }, [query, countries])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-      <div className='flex justify-between'>
-        <h1 className='font-display text-2xl font-medium'>
-          Your personal details
-        </h1>
+    <>
+      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+        <div className='flex justify-between'>
+          <h1 className='font-display text-2xl font-medium'>
+            Personal details
+          </h1>
 
-        <div className='hidden sm:flex'>
-          <Shape
-            width={'w-8'}
-            radius={'rounded-tl-full'}
-            color={'bg-yellow-300'}
-          />
-          <Shape
-            width={'w-8'}
-            radius={'rounded-bl-full'}
-            color={'bg-slate-500'}
-          />
+          <div className='hidden sm:flex'>
+            <Shape
+              width={'w-8'}
+              radius={'rounded-tl-full'}
+              color={'bg-yellow-300'}
+            />
+            <Shape
+              width={'w-8'}
+              radius={'rounded-bl-full'}
+              color={'bg-slate-500'}
+            />
+          </div>
         </div>
+        <p className='mt-6 text-medium'>
+          Please provide your personal details.
+        </p>
+
+        <Form
+          id='signup-about-details'
+          action='/signup/about'
+          method='post'
+          className='hidden'
+        />
+
+        <TextField
+          id='firstName'
+          form='signup-about-details'
+          label='First name'
+          name='firstName'
+          labelSuffix='&dagger;'
+          defaultValue={flow?.data.firstName}
+          type='text'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
+          aria-describedby={
+            actionData?.errors.firstName ? 'firstName-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.firstName}
+        />
+
+        <TextField
+          id='lastName'
+          form='signup-about-details'
+          label='Last name'
+          name='lastName'
+          labelSuffix='&dagger;'
+          defaultValue={flow?.data.lastName}
+          type='text'
+          className='mt-1'
+          aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
+          aria-describedby={
+            actionData?.errors.lastName ? 'lastName-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.lastName}
+        />
+
+        <TextField
+          id='email'
+          form='signup-about-details'
+          label='Email address'
+          name='email'
+          defaultValue={flow?.data.email}
+          type='text'
+          className='mt-1'
+          aria-invalid={Boolean(actionData?.errors.email) || undefined}
+          aria-describedby={
+            actionData?.errors.email ? 'email-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.email}
+        />
+
+        <Autocomplete
+          id='country'
+          value={country}
+          onChange={setCountry}
+          onQuery={setQuery}
+          options={filteredCountries}
+          label='Country of residence'
+          className='mt-1'
+          aria-invalid={Boolean(actionData?.errors.country) || undefined}
+          aria-describedby={
+            actionData?.errors.country ? 'country-error' : undefined
+          }
+          errorMessage={actionData?.errors.country}
+        />
+        <input
+          form='signup-about-details'
+          value={String(country?.id)}
+          name='country'
+          type='hidden'
+        />
+
+        <Button className='mt-12' form='signup-about-details' type='submit'>
+          Continue
+        </Button>
       </div>
-      <p className='mt-6 text-medium'>Please provide your personal details.</p>
-
-      <Form
-        id='signup-about-details'
-        action='/signup/about'
-        method='post'
-        className='hidden'
-      />
-
-      <TextField
-        id='firstName'
-        form='signup-about-details'
-        label='First name'
-        name='firstName'
-        defaultValue={flow?.data.firstName}
-        type='text'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
-        aria-describedby={
-          actionData?.errors.firstName ? 'firstName-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors.firstName}
-      />
-
-      <TextField
-        id='lastName'
-        form='signup-about-details'
-        label='Last name'
-        name='lastName'
-        defaultValue={flow?.data.lastName}
-        type='text'
-        className='mt-1'
-        aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
-        aria-describedby={
-          actionData?.errors.lastName ? 'lastName-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors.lastName}
-      />
-
-      <TextField
-        id='email'
-        form='signup-about-details'
-        label='Email'
-        name='email'
-        defaultValue={flow?.data.email}
-        type='text'
-        className='mt-1'
-        aria-invalid={Boolean(actionData?.errors.email) || undefined}
-        aria-describedby={actionData?.errors.email ? 'email-error' : undefined}
-        required
-        errorMessage={actionData?.errors.email}
-      />
-
-      <Autocomplete
-        id='country'
-        value={country}
-        onChange={setCountry}
-        onQuery={setQuery}
-        options={filteredCountries}
-        label='Country of residence'
-        className='mt-1'
-        aria-invalid={Boolean(actionData?.errors.country) || undefined}
-        aria-describedby={
-          actionData?.errors.country ? 'country-error' : undefined
-        }
-        errorMessage={actionData?.errors.country}
-      />
-      <input
-        form='signup-about-details'
-        value={String(country?.id)}
-        name='country'
-        type='hidden'
-      />
-
-      <Button className='mt-12' form='signup-about-details' type='submit'>
-        Continue
-      </Button>
-    </div>
+      <div className='mt-6 flex w-full space-x-2'>
+        <span className='text-xs text-medium'>
+          <sup>&dagger;</sup>
+        </span>
+        <span className='text-xs text-medium'>
+          First and last name as they appear on your government issued ID
+          document.
+        </span>
+      </div>
+    </>
   )
 }
 
