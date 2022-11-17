@@ -57,7 +57,7 @@ export function WalletLayout() {
             <Logo className='h-8' />
           </Router>
         </header>
-        <div className='my-16 lg:my-[5.5rem] lg:ml-64'>
+        <div className='mt-16 mb-32 lg:my-[5.5rem] lg:ml-64'>
           <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
             <Outlet />
           </div>

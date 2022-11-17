@@ -45,11 +45,11 @@ export const Snackbar: FC<SnackbarProps> = ({
       show={show}
       as={'div'}
       className={clsx(
-        'fixed bottom-0 left-0 z-10 mx-auto w-full overflow-y-auto',
+        'fixed top-2 left-0 z-[100] mx-auto w-full overflow-y-visible lg:top-4',
         offset ? 'lg:pl-64' : ''
       )}
     >
-      <div className='flex justify-center pb-8 text-center'>
+      <div className='flex justify-center text-center'>
         <Transition.Child
           as={Fragment}
           enter='ease-out duration-300'
