@@ -39,7 +39,7 @@ export async function loader({ request }: LoaderArgs) {
 
   console.log(response.response.linkedAccounts)
   const linkedAccounts = response.response.linkedAccounts
-    .filter((account) => account.type != 'wallet')
+    // .filter((account) => account.type != 'wallet')
     .map((linkedAccount) => ({
       id: linkedAccount.id,
       name:
@@ -103,10 +103,10 @@ export default function Page() {
               </div>
               <div className='flex items-center space-x-3 '>
                 {method.type == 'send' && (
-                  <Chip color={ChipColor.orange}>Send</Chip>
+                  <Chip color={ChipColor.orange}>send</Chip>
                 )}
                 {method.type == 'receive' && (
-                  <Chip color={ChipColor.purple}>Receive</Chip>
+                  <Chip color={ChipColor.purple}>receive</Chip>
                 )}
                 <Icon>navigate_next</Icon>
               </div>
