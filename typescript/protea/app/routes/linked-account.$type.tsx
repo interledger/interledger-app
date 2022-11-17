@@ -2,7 +2,8 @@ import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
 import { requireUserSession } from '~/lib/kratos.server'
-import { Button, Layouts, Shape } from '~/components'
+import type { RadioGroupOption } from '~/components'
+import { Button, Layouts, RadioGroup, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import {
@@ -11,6 +12,7 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
+import { useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -47,8 +49,62 @@ export default function Page() {
     case 'bank':
       return <BankPage />
     default:
-      return null
+      return <GenericPage />
   }
+}
+
+const options = [
+  {
+    id: 'card',
+    name: 'Debit card',
+    icon: 'credit_card'
+  },
+  {
+    id: 'bank',
+    name: 'Bank account',
+    icon: 'account_balance'
+  }
+]
+
+function GenericPage() {
+  const { hasSendUser } = useLoaderData<typeof loader>()
+  const [value, setValue] = useState<RadioGroupOption>(options[0])
+
+  return (
+    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <h1 className='mb-6 font-display text-2xl font-medium'>
+        Add linked account
+      </h1>
+      <span>Select the type of account to add.</span>
+
+      <RadioGroup
+        id={'type'}
+        className='mt-6'
+        label='Account type'
+        value={value}
+        onChange={setValue}
+        options={options}
+      />
+      <input form='link-card' value={value.id} name='radioType' type='hidden' />
+      <Form
+        id='link-card'
+        action={'/linked-account/new'}
+        method='post'
+        className='hidden'
+      />
+      <input
+        form='link-card'
+        value={hasSendUser ? 'hasSendUser' : undefined}
+        name='hasSendUser'
+        type='hidden'
+      />
+      <div className='mt-12'>
+        <Button form='link-card' type='submit'>
+          Continue
+        </Button>
+      </div>
+    </div>
+  )
 }
 
 function CardPage() {
@@ -201,6 +257,8 @@ function BankPage() {
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const hasSendUser = form.get('hasSendUser') as string
+  const radioType = form.get('radioType') as string
+  console.log('radioType', radioType, params.type)
   let flow
   if (!hasSendUser) {
     flow = await requireFlow(request, flowType.PersonalDetails, {
@@ -210,9 +268,15 @@ export async function action({ request, params }: ActionArgs) {
         type: params.type as string
       })
     })
-  } else if (params.type == 'card') {
+  } else if (
+    params.type == 'card' ||
+    (params.type == 'new' && radioType == 'card')
+  ) {
     flow = await requireFlow(request, flowType.LinkCardAccount)
-  } else if (params.type == 'bank') {
+  } else if (
+    params.type == 'bank' ||
+    (params.type == 'new' && radioType == 'bank')
+  ) {
     flow = await requireFlow(request, flowType.LinkBankAccount)
   } else
     throw json(
