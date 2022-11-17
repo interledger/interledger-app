@@ -5,7 +5,7 @@ import { Icon } from '.'
 export type RadioGroupOption = {
   id: string
   name: string
-  description: string
+  description?: string
   icon: string
   disabled?: boolean
 }
@@ -48,7 +48,7 @@ export const RadioGroup: FC<RadioGroupProps> = ({
         <HeadlessRadioGroup.Label className='sr-only'>
           {label}
         </HeadlessRadioGroup.Label>
-        <div className='space-y-2'>
+        <div className='space-y-4'>
           {options.map((option) => (
             <HeadlessRadioGroup.Option
               key={option.id}
@@ -74,14 +74,16 @@ export const RadioGroup: FC<RadioGroupProps> = ({
                         <HeadlessRadioGroup.Label as='span'>
                           {option.name}
                         </HeadlessRadioGroup.Label>
-                        <HeadlessRadioGroup.Description
-                          as='span'
-                          className={`text-xs ${
-                            disabled ? 'text-disabled' : 'text-weak'
-                          }`}
-                        >
-                          {option.description}
-                        </HeadlessRadioGroup.Description>
+                        {option.description && (
+                          <HeadlessRadioGroup.Description
+                            as='span'
+                            className={`text-xs ${
+                              disabled ? 'text-disabled' : 'text-weak'
+                            }`}
+                          >
+                            {option.description}
+                          </HeadlessRadioGroup.Description>
+                        )}
                       </div>
                     </div>
                     <div

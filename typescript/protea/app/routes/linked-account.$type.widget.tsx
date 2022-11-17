@@ -32,7 +32,9 @@ export async function loader({ request }: LoaderArgs) {
   }
 
   return json({
-    widgetScriptUrl: process.env.MACHNET_WIDGET_URL || 'https://widget.v4sandbox.machpay.com/widget/widget.js',
+    widgetScriptUrl:
+      process.env.MACHNET_WIDGET_URL ||
+      'https://widget.v4sandbox.machpay.com/widget/widget.js',
     widgetUserId: cardRpc.response.userId,
     widgetToken: cardRpc.response.value
   })
@@ -84,42 +86,49 @@ export default function Page() {
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       {params.type == 'card' && (
-        <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>Debit card</h1>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-br-full'}
-              color={'bg-lime-300'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-br-full'}
-              color={'bg-slate-500'}
-            />
+        <>
+          <div className='flex justify-between'>
+            <h1 className='font-display text-2xl font-medium'>Debit card</h1>
+            <div className='hidden sm:flex'>
+              <Shape
+                width={'w-8'}
+                radius={'rounded-br-full'}
+                color={'bg-lime-300'}
+              />
+              <Shape
+                width={'w-8'}
+                radius={'rounded-br-full'}
+                color={'bg-slate-500'}
+              />
+            </div>
           </div>
-        </div>
+          <p className='mt-6 text-medium'>
+            Please provide your debit card details.
+          </p>
+        </>
       )}
       {params.type == 'bank' && (
-        <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>Bank details</h1>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-tr-full'}
-              color={'bg-slate-500'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-br-full'}
-              color={'bg-yellow-300'}
-            />
+        <>
+          <div className='flex justify-between'>
+            <h1 className='font-display text-2xl font-medium'>Bank details</h1>
+            <div className='hidden sm:flex'>
+              <Shape
+                width={'w-8'}
+                radius={'rounded-tr-full'}
+                color={'bg-slate-500'}
+              />
+              <Shape
+                width={'w-8'}
+                radius={'rounded-br-full'}
+                color={'bg-yellow-300'}
+              />
+            </div>
           </div>
-        </div>
+          <p className='mt-6 text-medium'>
+            Please provide your bank account details.
+          </p>
+        </>
       )}
-      <p className='mt-6 text-medium'>
-        Please provide your debit card details.
-      </p>
       <div id='widget' className='-mx-4 mt-6 w-[100vw-2rem]' />
     </div>
   )
