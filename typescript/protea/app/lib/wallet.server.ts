@@ -6,9 +6,13 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { json } from '@remix-run/node'
-import type { PaymentPointer } from '~/generated/protobuf-ts/backend/v1/backend'
+import type {
+  PaginationRequest,
+  PaymentPointer
+} from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import type { Amount } from '~/generated/protobuf-ts/backend/v1/backend'
+import { DateTime } from 'luxon'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -65,4 +69,173 @@ export async function getWalletBalance(request: Request): Promise<string> {
     assetScale: 2,
     amount: response.response.available
   })
+}
+
+export type Transaction = {
+  id: string
+  type: string
+  icon: string
+  title: string
+  total: string
+  time: string
+  date: string
+}
+
+export async function getPendingTransactions(
+  request: Request
+): Promise<Transaction[]> {
+  const cookie = String(request.headers.get('cookie'))
+  return openPaymentsClient
+    .listPendingTransactions(
+      { page: 1, pageSize: 20 },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((response) =>
+      response.response.transactions.map((trx) => ({
+        id: trx.id,
+        type: trx.type,
+        icon: 'schedule',
+        title: trx.type == 'outgoing' ? trx.destination : trx.source,
+        total: formatAmount(trx.amount),
+        time: 'Pending',
+        date: DateTime.fromSeconds(
+          parseInt(trx.timestamp?.seconds ?? '')
+        ).toFormat('dd MMM yyyy')
+      }))
+    )
+    .catch((error) => {
+      const status = StatusError(error)
+      if (isGrpcError(status)) {
+        throw json({}, httpMapping(status.code))
+      }
+      return []
+    })
+}
+
+export async function getTransactions(
+  request: Request,
+  input: PaginationRequest = { page: 1, pageSize: 20 }
+): Promise<Transaction[]> {
+  const cookie = String(request.headers.get('cookie'))
+  return openPaymentsClient
+    .listTransactions(input, {
+      meta: {
+        cookies: cookie || ''
+      }
+    })
+    .then((response) =>
+      response.response.transactions.map((trx) => ({
+        id: trx.id,
+        type: trx.type,
+        icon: trx.type == 'outgoing' ? 'north_east' : 'south_west',
+        title: trx.type == 'outgoing' ? trx.destination : trx.source,
+        total: formatAmount(trx.amount),
+        time: DateTime.fromSeconds(
+          parseInt(trx.timestamp?.seconds ?? '')
+        ).toFormat('HH:mm'),
+        date: DateTime.fromSeconds(
+          parseInt(trx.timestamp?.seconds ?? '')
+        ).toFormat('dd MMM yyyy')
+      }))
+    )
+    .catch((error) => {
+      const status = StatusError(error)
+      if (isGrpcError(status)) {
+        throw json({}, httpMapping(status.code))
+      }
+      return []
+    })
+}
+
+export type DetailedTransaction = {
+  id: string
+  status: string
+  paymentPointer: string
+  subTotal: string
+  fees: string
+  total: string
+  date: string
+  note: string
+}
+
+export async function getTransaction(
+  request: Request,
+  type: string,
+  id: string
+): Promise<DetailedTransaction> {
+  const cookie = String(request.headers.get('cookie'))
+  if (type == 'outgoing') {
+    return openPaymentsClient
+      .lookupOutgoingPayment(
+        { id },
+        {
+          meta: {
+            cookies: cookie || ''
+          }
+        }
+      )
+      .then((response) => {
+        const status =
+          response.response.sentAmount?.amount ==
+          response.response.sendAmount?.amount
+            ? 'Sent'
+            : 'Pending'
+
+        return {
+          id: response.response.id.split('/').at(-1) as string,
+          status,
+          paymentPointer: response.response.toPaymentPointer,
+          subTotal: formatAmount(response.response.sendAmount),
+          fees: '$ 0.00',
+          total: formatAmount(response.response.sendAmount),
+          date: DateTime.fromSeconds(
+            parseInt(response.response.updatedAt?.seconds ?? '')
+          ).toLocaleString(DateTime.DATETIME_FULL),
+          note: response.response.description
+        }
+      })
+      .catch((error) => {
+        const status = StatusError(error)
+        if (isGrpcError(status)) {
+          throw json({}, httpMapping(status.code))
+        }
+        throw json({}, { status: 404, statusText: "Can't find transaction." })
+      })
+  } else if (type == 'incoming') {
+    return openPaymentsClient
+      .lookupIncomingPayment(
+        { id },
+        {
+          meta: {
+            cookies: cookie || ''
+          }
+        }
+      )
+      .then((response) => {
+        return {
+          id: response.response.id.split('/').at(-1) as string,
+          status: 'Received',
+          paymentPointer: response.response.fromPaymentPointer,
+          subTotal: formatAmount(response.response.incomingAmount),
+          fees: '$ 0.00',
+          total: formatAmount(response.response.incomingAmount),
+          date: DateTime.fromSeconds(
+            parseInt(response.response.updatedAt?.seconds ?? '')
+          ).toLocaleString(DateTime.DATETIME_FULL),
+          note: response.response.externalRef
+        }
+      })
+      .catch((error) => {
+        const status = StatusError(error)
+        if (isGrpcError(status)) {
+          throw json({}, httpMapping(status.code))
+        }
+        throw json({}, { status: 404, statusText: "Can't find transaction." })
+      })
+  } else
+    throw json({}, { status: 400, statusText: 'Invalid transaction type.' })
 }
