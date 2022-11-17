@@ -6,6 +6,12 @@ import { route } from 'routes-gen'
 import { Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -14,11 +20,21 @@ export async function loader({ request }: LoaderArgs) {
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
   const session = await requireUserSession(request)
+  let countries = await grpcClient
+    .getCountries({})
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(countries)) {
+    throw json({}, httpMapping(countries.code))
+  }
 
   const snackbar = await getSnackbar(request)
 
   return json({
     traits: session.identity.traits,
+    country: countries.response.countries.find(
+      (country) => country.id == session.identity.traits.countryCode
+    )?.name,
     snackbar
   })
 }
@@ -28,7 +44,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { traits, snackbar } = useLoaderData<typeof loader>()
+  const { traits, snackbar, country } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   return (
     <WalletGrid>
@@ -67,6 +83,16 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </Router>
         <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
+        <Router
+          to={route('/settings/linked-accounts')}
+          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+        >
+          <div className='flex space-x-3'>
+            <Icon>flag</Icon>
+            <span>{country}</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
         {/*<Router*/}
         {/*  to='/login/challenge?challenge-flow=settings-password'*/}
         {/*  className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'*/}
