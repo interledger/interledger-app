@@ -165,9 +165,13 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
 
+  const transactionId = response.response.id.split('/').at(-1) as string
   await exitFlow(request, flowType.Pay)
   // TODO: Should route to a success page rather. As the payment may take some time to process
   return redirect(
-    route('/receipt/:transactionId', { transactionId: response.response.id })
+    route('/transaction/:type/:transactionId', {
+      type: 'outgoing',
+      transactionId
+    })
   )
 }

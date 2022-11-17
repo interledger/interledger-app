@@ -9,24 +9,18 @@ import {
   Layouts,
   Router,
   Shape,
+  Snackbar,
   WalletGrid
 } from '~/components'
 import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
-import { getWalletBalance, getWalletPaymentPointer } from '~/lib/wallet.server'
-
-type Activity = {
-  id: string
-  amount: string
-  // transactionType: TransactionType
-  title: string
-  description: string
-  status: string
-}
-
-type Activities = {
-  date: string
-  activities: Activity[]
-}
+import type { Transaction } from '~/lib/wallet.server'
+import {
+  getPendingTransactions,
+  getTransactions,
+  getWalletBalance,
+  getWalletPaymentPointer
+} from '~/lib/wallet.server'
+import { Fragment, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = await hasUserSession(request)
@@ -43,16 +37,39 @@ export async function loader({ request }: LoaderArgs) {
       formatted: ''
     },
     balance: '',
-    recentActivities: [] as Activities[],
-    pendingTransactions: [] as Activity[]
+    transactions: [] as Transaction[]
   }
 
   if (isUser) {
-    const session = await requireUserSession(request)
-    data.firstName = session.identity.traits.firstName
+    const [
+      session,
+      paymentPointer,
+      balance,
+      pendingTransactions,
+      transactions
+    ] = await Promise.all([
+      requireUserSession(request),
+      getWalletPaymentPointer(request),
+      getWalletBalance(request),
+      getPendingTransactions(request),
+      getTransactions(request, { page: 1, pageSize: 3 })
+    ])
 
-    data.paymentPointer = await getWalletPaymentPointer(request)
-    data.balance = await getWalletBalance(request)
+    /** TODO whatNext state machine
+     * Verify user data (Get cash balance)
+     * Set up receiving
+     * Set up sending
+     * Make a payment / share payment pointer
+     * Set up payouts ?
+     */
+
+    data = {
+      ...data,
+      firstName: session.identity.traits.firstName,
+      paymentPointer,
+      balance,
+      transactions: [...pendingTransactions, ...transactions]
+    }
   }
   return json(data)
 }
@@ -346,7 +363,19 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { firstName, paymentPointer, balance } = useLoaderData<typeof loader>()
+  const { firstName, paymentPointer, balance, transactions } =
+    useLoaderData<typeof loader>()
+
+  const [snackbar, setSnackbar] = useState<any>({
+    message: '',
+    action: '',
+    icon: 'close',
+    show: false
+  })
+
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    snackbar.show ?? false
+  )
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -357,12 +386,33 @@ function AppPage() {
         <p className='mt-6'>
           Your payment pointer has been set up successfully.
         </p>
-        <div className='mt-4 flex justify-between rounded-xl bg-container p-4'>
+        <button
+          type='button'
+          onClick={async () => {
+            navigator.clipboard.writeText(paymentPointer.formatted).then(
+              () => {
+                setSnackbar({
+                  message: 'Payment pointer copied to clipboard.',
+                  icon: 'close'
+                })
+                setShowSnackbar(true)
+              },
+              () => {
+                setSnackbar({
+                  message: "Couldn't copy to clipboard.",
+                  icon: 'close'
+                })
+                setShowSnackbar(true)
+              }
+            )
+          }}
+          className='mt-4 flex flex items-center justify-between rounded-xl bg-container p-4 hover:bg-container-hover'
+        >
           <span className='font-medium text-medium'>
             {paymentPointer.formatted}
           </span>
-          <Icon className='text-success'>check</Icon>
-        </div>
+          <Icon className='text-medium'>content_copy</Icon>
+        </button>
       </div>
 
       {balance && (
@@ -374,15 +424,23 @@ function AppPage() {
 
       <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-lg font-medium'>What to do next</h1>
-        <p>You currently do not have any linked accounts.</p>
-        <div className='flex items-center space-x-3 rounded-xl bg-container-secondary p-4 text-medium'>
-          <Icon>tips_and_updates</Icon>
-          <p className='text-sm'>
-            You need to enable sending or receiving before you can transact.
-          </p>
+        <div className='flex items-start space-x-4'>
+          <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <Icon>account_balance</Icon>
+          </div>
+          <div className='flex flex-col space-y-2'>
+            <h1 className='font-medium text-medium'>Receive money</h1>
+            <p className='text-sm text-medium'>
+              Receive money into your cash balance.
+            </p>
+            <Router
+              className='text-sm font-medium text-primary'
+              to={route('/linked-account/:type', { type: 'bank' })}
+            >
+              Enable receiving
+            </Router>
+          </div>
         </div>
-      </div>
-      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='flex items-start space-x-4'>
           <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
             <Icon>credit_card</Icon>
@@ -401,25 +459,68 @@ function AppPage() {
           </div>
         </div>
       </div>
-      <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='flex items-start space-x-4'>
-          <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
-            <Icon>account_balance</Icon>
-          </div>
-          <div className='flex flex-col space-y-2'>
-            <h1 className='font-medium text-medium'>Receive money</h1>
-            <p className='text-sm text-medium'>
-              Receive money into your bank account securely.
-            </p>
+      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex items-center justify-between'>
+          <h1 className='font-display text-lg font-medium'>
+            Latest transactions
+          </h1>
+          <Router className='flex max-h-fit' to={route('/transactions')}>
+            <Icon className='text-medium'>read_more</Icon>
+          </Router>
+        </div>
+        {transactions.length == 0 && (
+          <div className='mt-4 flex flex-col space-y-4'>
+            <span className='text-sm text-medium'>
+              Your payment activity will appear here once you start using your
+              payment pointer.
+            </span>
             <Router
+              to={route('/pay')}
               className='text-sm font-medium text-primary'
-              to={route('/linked-account/:type', { type: 'bank' })}
             >
-              Enable receiving
+              Send or receive payments now
             </Router>
           </div>
-        </div>
+        )}
+        {transactions.map((transaction, index) => (
+          <Fragment key={transaction.id}>
+            {(index == 0 ||
+              transaction.date != transactions[index - 1].date) && (
+              <span className='mt-6 text-xs text-medium'>
+                {transaction.date}
+              </span>
+            )}
+            <Router
+              to={route('/transaction/:type/:transactionId', {
+                type: transaction.type,
+                transactionId: transaction.id
+              })}
+              className='mt-2 flex w-full justify-between'
+            >
+              <div className='flex space-x-1'>
+                <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
+                <div className='flex flex-col space-y-2'>
+                  <span className='text-medium'>{transaction.title}</span>
+                  <span className='text-xs text-medium'>
+                    {transaction.time}
+                  </span>
+                </div>
+              </div>
+              <span className='font-medium'>{transaction.total}</span>
+            </Router>
+          </Fragment>
+        ))}
       </div>
+      <Snackbar
+        message={snackbar.message}
+        action={snackbar.action}
+        icon={snackbar.icon}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        dismissAfter={3000}
+        offset
+        onClose={() => setShowSnackbar(false)}
+      />
     </WalletGrid>
   )
 }
