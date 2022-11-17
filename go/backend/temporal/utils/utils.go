@@ -11,11 +11,6 @@ func IsNonRetryableError(err error) bool {
 		return false
 	}
 
-	// Cancelled errors cannot be recovered from
-	if temporal.IsCanceledError(err) {
-		return true
-	}
-
 	if !temporal.IsApplicationError(err) {
 		return false
 	}

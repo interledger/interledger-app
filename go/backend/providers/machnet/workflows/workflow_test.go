@@ -117,7 +117,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 			EventName:  external.TransactionProcessedEvent,
 			ResourceID: trxID,
 		})
-	}, 2*time.Minute)
+	}, time.Minute*2)
 
 	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   uuid.NewString(),

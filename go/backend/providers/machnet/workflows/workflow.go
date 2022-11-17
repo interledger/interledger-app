@@ -123,24 +123,49 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
-	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
-	for {
-		var transactionEvent external.Event
-		trxChan.Receive(ctx, &transactionEvent)
-		logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
-		if transactionEvent.ResourceID != fundWalletTX.FundTX { // not for this transaction
-			logger.Error("Received notification for different transaction.")
-			continue
-		}
+	// The fund wallet has 7 days to complete
+	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*7)
 
-		if external.TransactionProcessedEvent == transactionEvent.EventName {
+	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
+	var doBreak bool
+	var errToReturn error
+	for {
+		if doBreak {
 			break
 		}
+		selector := workflow.NewSelector(ctx)
+		selector.AddFuture(timeoutFuture, func(f workflow.Future) {
+			doBreak = true
+			errToReturn = temporal.NewNonRetryableApplicationError("fund user wallet transaction has timed out", "ErrTimeout", machnet.ErrInternal)
+		})
 
-		if transactionEvent.EventName == external.TransactionFailedEvent ||
-			transactionEvent.EventName == external.TransactionCancelledEvent {
-			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
-		}
+		selector.AddReceive(trxChan, func(c workflow.ReceiveChannel, _ bool) {
+			var transactionEvent external.Event
+			trxChan.Receive(ctx, &transactionEvent)
+			logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
+			if transactionEvent.ResourceID != fundWalletTX.FundTX { // not for this transaction
+				logger.Error("Received notification for different transaction.")
+				return
+			}
+
+			if external.TransactionProcessedEvent == transactionEvent.EventName {
+				doBreak = true
+				return
+			}
+
+			if transactionEvent.EventName == external.TransactionFailedEvent ||
+				transactionEvent.EventName == external.TransactionCancelledEvent {
+				doBreak = true
+				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
+			}
+		})
+
+		// Wait the timer or the transaction to complete on machnet side.
+		selector.Select(ctx)
+	}
+
+	if errToReturn != nil {
+		return "", errToReturn
 	}
 
 	var transferID string
@@ -171,23 +196,44 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	}
 
 	// Wait for webhook to say if transfer is successful
+	doBreak = false
 	for {
-		var transactionEvent external.Event
-		trxChan.Receive(ctx, &transactionEvent)
-		logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
-		if transactionEvent.ResourceID != transferID { // not for this transaction
-			logger.Error("Received notification for different transaction.")
-			continue
-		}
-
-		if external.TransactionProcessedEvent == transactionEvent.EventName {
+		if doBreak {
 			break
 		}
+		selector := workflow.NewSelector(ctx)
+		selector.AddFuture(timeoutFuture, func(f workflow.Future) {
+			doBreak = true
+			errToReturn = temporal.NewNonRetryableApplicationError("wallet to wallet transaction has timed out", "ErrTimeout", machnet.ErrInternal)
+		})
 
-		if transactionEvent.EventName == external.TransactionFailedEvent ||
-			transactionEvent.EventName == external.TransactionCancelledEvent {
-			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet transfer failed failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
-		}
+		selector.AddReceive(trxChan, func(c workflow.ReceiveChannel, _ bool) {
+			var transactionEvent external.Event
+			trxChan.Receive(ctx, &transactionEvent)
+			logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
+			if transactionEvent.ResourceID != transferID { // not for this transaction
+				logger.Error("Received notification for different transaction.")
+				return
+			}
+
+			if external.TransactionProcessedEvent == transactionEvent.EventName {
+				doBreak = true
+				return
+			}
+
+			if transactionEvent.EventName == external.TransactionFailedEvent ||
+				transactionEvent.EventName == external.TransactionCancelledEvent {
+				doBreak = true
+				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet transfer failed failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
+			}
+		})
+
+		// Wait the timer or the transaction to complete on machnet side.
+		selector.Select(ctx)
+	}
+
+	if errToReturn != nil {
+		return "", errToReturn
 	}
 
 	logger.Info("CreateTransactionWorkflow completed.", "fund_transfer_id", fundWalletTX.FundTX, "external_transfer_id", transferID)

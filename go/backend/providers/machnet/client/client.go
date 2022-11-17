@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
@@ -111,9 +110,8 @@ func (c client) CreateSendUser(ctx context.Context, walletID string) (machnet.Aw
 
 func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) (machnet.Await, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
-		ID:                       "machnet_create_transaction_" + args.FromLinkedAccountID + "_" + args.ToLinkedAccountID,
-		TaskQueue:                "backend",
-		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
+		ID:        "machnet_create_transaction_" + args.FromLinkedAccountID + "_" + args.ToLinkedAccountID,
+		TaskQueue: "backend",
 	}
 
 	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateTransactionWorkflow, args)
