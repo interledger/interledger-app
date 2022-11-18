@@ -53,16 +53,7 @@ export const meta: MetaFunction = () => {
 export const links: LinksFunction = () => {
   return [
     { rel: 'stylesheet', href: styles },
-    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico?v=2' },
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Source+Code+Pro&family=Overpass+Mono&family=Inter:wght@400;500&family=Poppins:wght@400;500&display=swap'
-    },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0'
-    }
+    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico?v=2' }
   ]
 }
 

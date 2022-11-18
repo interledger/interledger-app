@@ -8,7 +8,8 @@ module.exports = {
     fontFamily: {
       display: ['Poppins'],
       sans: ['Inter'],
-      mono: ['"Overpass Mono"', '"Source Code Pro"']
+      mono: ['"Overpass Mono"', '"Source Code Pro"'],
+      icon: ['"Material Symbols Outlined"', { fontFeatureSettings: '"liga"' }]
     },
     extend: {
       colors: {
