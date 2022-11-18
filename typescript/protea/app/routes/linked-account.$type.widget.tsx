@@ -74,7 +74,7 @@ export default function Page() {
         height: params.type == 'card' ? '258px' : '591px',
         type: params.type,
         locale: 'en',
-        stylesheet: '',
+        stylesheet: 'https://cdn.fynbos.app/machnet/widget_css.css',
         token: widgetToken
       })
       widget.init()
