@@ -1,3 +1,4 @@
+@import 'fonts.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -69,7 +70,7 @@
 }
 
 /* Prism syntax highlighting */
-@import 'prism.css';
+/*@import 'prism.css';*/
 
 /* Smooth scrolling to anchor tags */
 html {
