@@ -160,3 +160,20 @@ func (c client) GetWallet(ctx context.Context, id string) (*machnet.Wallet, erro
 func (c client) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
 	return ops.WithdrawFromWallet(ctx, c.b, args)
 }
+
+func (c client) DeleteFundSource(ctx context.Context, linkedAccID string) (machnet.Await, error) {
+	workflowOptions := temporal.StartWorkflowOptions{
+		ID:        "machnet_delete_func_source" + linkedAccID,
+		TaskQueue: "backend",
+	}
+
+	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.DeleteAccountWorkflow, linkedAccID)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(ctx context.Context, _ interface{}) error {
+		// Wait for the Workflow to complete.
+		return wf.Get(ctx, nil)
+	}, nil
+}

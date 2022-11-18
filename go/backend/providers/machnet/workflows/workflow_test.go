@@ -130,3 +130,30 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	require.NoError(t, env.GetWorkflowResult(&result))
 	require.Equal(t, result, trxID)
 }
+
+func TestDeleteAccountWorkflow(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
+	b := testBackends{
+		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
+	}
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	a := NewActivity(b)
+
+	env.OnActivity(a.DeleteUserFundSource, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.DeleteLinkedAccount, mock.Anything, mock.Anything).Return(nil)
+
+	env.ExecuteWorkflow(DeleteAccountWorkflow, uuid.NewString())
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	require.NoError(t, env.GetWorkflowResult(nil))
+}

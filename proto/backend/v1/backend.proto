@@ -176,6 +176,8 @@ service BackendService {
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
+  rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
+  rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
@@ -352,6 +354,14 @@ message IsMugAvailableResponse {
 
 message GetLinkedAccountsResponse {
   repeated LinkedAccount linkedAccounts = 1;
+}
+
+message GetLinkedAccountRequest {
+  string id = 1;
+}
+
+message DeleteLinkedAccountRequest {
+  string id = 1;
 }
 
 message Country {

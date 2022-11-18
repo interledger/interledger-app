@@ -197,3 +197,29 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 
 	return transferID, nil
 }
+
+func DeleteAccountWorkflow(ctx workflow.Context, linkedAccountID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("DeleteAccountWorkflow workflow started", "linkedAccountID", linkedAccountID)
+
+	err := workflow.ExecuteActivity(ctx, a.DeleteUserFundSource, linkedAccountID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("DeleteUserFundSource Activity failed.", "Error", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.DeleteLinkedAccount, linkedAccountID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("DeleteLinkedAccount Activity failed.", "Error", err)
+		return err
+	}
+
+	return nil
+}

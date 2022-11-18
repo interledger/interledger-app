@@ -517,6 +517,8 @@ type BackendServiceClient interface {
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
 	GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error)
+	GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 	LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
@@ -637,6 +639,24 @@ func (c *backendServiceClient) SignAgreements(ctx context.Context, in *SignAgree
 func (c *backendServiceClient) GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error) {
 	out := new(GetLinkedAccountsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetLinkedAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetLinkedAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/DeleteLinkedAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -797,6 +817,8 @@ type BackendServiceServer interface {
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
 	GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error)
+	GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error)
+	DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 	LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error)
@@ -852,6 +874,12 @@ func (UnimplementedBackendServiceServer) SignAgreements(context.Context, *SignAg
 }
 func (UnimplementedBackendServiceServer) GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccounts not implemented")
+}
+func (UnimplementedBackendServiceServer) GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteLinkedAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSupportTicket not implemented")
@@ -1104,6 +1132,42 @@ func _BackendService_GetLinkedAccounts_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).GetLinkedAccounts(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetLinkedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLinkedAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetLinkedAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetLinkedAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetLinkedAccount(ctx, req.(*GetLinkedAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_DeleteLinkedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteLinkedAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).DeleteLinkedAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/DeleteLinkedAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).DeleteLinkedAccount(ctx, req.(*DeleteLinkedAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1428,6 +1492,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLinkedAccounts",
 			Handler:    _BackendService_GetLinkedAccounts_Handler,
+		},
+		{
+			MethodName: "GetLinkedAccount",
+			Handler:    _BackendService_GetLinkedAccount_Handler,
+		},
+		{
+			MethodName: "DeleteLinkedAccount",
+			Handler:    _BackendService_DeleteLinkedAccount_Handler,
 		},
 		{
 			MethodName: "CreateSupportTicket",

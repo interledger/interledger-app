@@ -649,3 +649,37 @@ func (a *Activity) DeliverTransaction(ctx context.Context, fromLinkedAccID, tran
 
 	return err
 }
+
+func (a *Activity) DeleteUserFundSource(ctx context.Context, linkedAccID string) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("DeleteUserFundSource", "linkedAccID", linkedAccID)
+
+	la, err := getLinkedAccount(ctx, a.b, linkedAccID)
+	if err != nil {
+		return err
+	}
+
+	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletID)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", la.WalletID), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	err = a.b.External().DeleteFundingSource(ctx, mu.ID, la.ProviderID)
+	if errors.Is(err, external.ErrNotFound) {
+		// Already deleted, do nothing
+		return nil
+	}
+
+	return err
+}
+
+func (a *Activity) DeleteLinkedAccount(ctx context.Context, linkedAccID string) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("DeleteLinkedAccount", "linkedAccID", linkedAccID)
+
+	// Deleting is idempotent
+	return a.b.LinkedAccounts().Delete(ctx, linkedAccID)
+}

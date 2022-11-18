@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -74,5 +76,45 @@ func TestGetLinkedAccounts(t *testing.T) {
 		assert.Equal(st, response.GetLinkedAccounts()[1].Id, expectedLinkedAccounts[1].ID)
 		assert.Equal(st, response.GetLinkedAccounts()[1].Name, expectedLinkedAccounts[1].Name)
 		assert.Equal(st, response.GetLinkedAccounts()[1].Mask, expectedLinkedAccounts[1].Mask)
+	})
+}
+
+func TestGetLinkedAccount(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+
+	t.Run("returns linked account", func(st *testing.T) {
+		accID := uuid.NewString()
+		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+		if err != nil {
+			t.Fatal(err)
+		}
+		walletID := wallet.ID
+		expectedLinkedAccount := &linkedaccounts.LinkedAccount{
+			ID:       accID,
+			WalletID: walletID,
+			Name:     "test1",
+			Mask:     "abc",
+		}
+		c.linkedaccounts.EXPECT().Get(gomock.Any(), accID).Return(expectedLinkedAccount, nil).Times(1)
+
+		response, err := client.GetLinkedAccount(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.GetLinkedAccountRequest{Id: accID},
+		)
+		require.NoError(st, err)
+
+		assert.Equal(st, response.Id, expectedLinkedAccount.ID)
+		assert.Equal(st, response.Name, expectedLinkedAccount.Name)
+		assert.Equal(st, response.Mask, expectedLinkedAccount.Mask)
 	})
 }

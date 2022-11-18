@@ -115,3 +115,36 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, la.WalletID, wallet.ID)
 	})
 }
+
+func TestDelete(t *testing.T) {
+	ctx := context.Background()
+	c, err := NewTestContainer(ctx, t)
+	require.NoError(t, err)
+
+	userId := uuid.NewString()
+	// Create Signup
+	_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
+	require.NoError(t, err)
+	// Create Wallet
+	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID: wallet.ID,
+		Name:     "Test",
+		Mask:     "1234",
+		Provider: "mx",
+		Type:     "bank",
+	})
+	require.NoError(t, err)
+
+	_, err = c.LinkedAccounts.Get(ctx, la.ID)
+	require.NoError(t, err)
+
+	err = c.LinkedAccounts.Delete(ctx, la.ID)
+	require.NoError(t, err)
+
+	_, err = c.LinkedAccounts.Get(ctx, la.ID)
+	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
+}

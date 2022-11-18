@@ -59,7 +59,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	err := b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts where id=$1 LIMIT 1;",
+		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts where id=$1 and deleted_at IS NULL LIMIT 1;",
 		id,
 	)
 	if err != nil {
@@ -71,6 +71,15 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	}
 
 	return &linkedAccount, nil
+}
+
+func Delete(ctx context.Context, b Backends, id string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now() WHERE id=$1", id)
+	if err != nil {
+		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	return nil
 }
 
 func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByProviderIDArgs) (*linkedaccounts.LinkedAccount, error) {
@@ -104,7 +113,7 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE wallet_id=$1;",
+		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND wallet_id=$1;",
 		walletId,
 	)
 	if err != nil {
