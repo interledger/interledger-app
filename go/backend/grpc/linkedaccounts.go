@@ -3,12 +3,14 @@ package grpc
 import (
 	"context"
 
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
+	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func (s *rpcService) GetLinkedAccounts(
-	ctx context.Context, _ *backendv1.Empty,
-) (*backendv1.GetLinkedAccountsResponse, error) {
+	ctx context.Context, _ *pb.Empty,
+) (*pb.GetLinkedAccountsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -24,9 +26,9 @@ func (s *rpcService) GetLinkedAccounts(
 		return nil, InternalError("Unable to get linked accounts.")
 	}
 
-	ret := make([]*backendv1.LinkedAccount, len(linkedAccounts))
+	ret := make([]*pb.LinkedAccount, len(linkedAccounts))
 	for i, fs := range linkedAccounts {
-		ret[i] = &backendv1.LinkedAccount{
+		ret[i] = &pb.LinkedAccount{
 			Id:   fs.ID,
 			Name: fs.Name,
 			Mask: fs.Mask,
@@ -34,7 +36,67 @@ func (s *rpcService) GetLinkedAccounts(
 		}
 	}
 
-	return &backendv1.GetLinkedAccountsResponse{
+	return &pb.GetLinkedAccountsResponse{
 		LinkedAccounts: ret,
 	}, nil
+}
+
+func (s *rpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinkedAccountRequest) (*pb.LinkedAccount, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if la.WalletID != wallet.ID {
+		return nil, toGRPCError(linkedaccounts.ErrNotFound)
+	}
+
+	return &pb.LinkedAccount{
+		Id:   la.ID,
+		Type: la.Type,
+		Name: la.Name,
+		Mask: la.Mask,
+	}, nil
+
+}
+
+func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLinkedAccountRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if la.WalletID != wallet.ID {
+		return nil, toGRPCError(linkedaccounts.ErrNotFound)
+	}
+
+	// TODO: One day we will have a switch statement to get the correct provider, but for now it's always machnet
+	await, err := s.b.Machnet().DeleteFundSource(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = await(ctx, nil)
+
+	return &pb.Empty{}, toGRPCError(err)
 }

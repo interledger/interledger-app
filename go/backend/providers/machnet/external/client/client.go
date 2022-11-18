@@ -304,6 +304,25 @@ func (c Client) GetUserFundingsource(ctx context.Context, userID, fundingsourceI
 	return fs, nil
 }
 
+func (c Client) DeleteFundingSource(ctx context.Context, userID, fundingSourceID string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, fmt.Sprintf("%s/users/%s/funds/%s", c.baseUrl, userID, fundingSourceID), nil)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	_, err = parseResponse(resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransactionArgs) (*external.Transaction, error) {
 	payload, err := json.Marshal(trx)
 	if err != nil {

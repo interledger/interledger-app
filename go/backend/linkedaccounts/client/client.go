@@ -110,3 +110,7 @@ func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []link
 
 	return ops.ListByWalletId(ctx, c.b, walletId)
 }
+
+func (c client) Delete(ctx context.Context, id string) error {
+	return ops.Delete(ctx, c.b, id)
+}

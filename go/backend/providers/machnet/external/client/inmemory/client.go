@@ -194,6 +194,26 @@ func (c Client) GetUserFundingsource(
 	return &fs, nil
 }
 
+func (c Client) DeleteFundingSource(
+	ctx context.Context, userID, fundingSourceID string) error {
+
+	user, err := c.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	fs, found := c.fundingsources[fundingSourceID]
+	if !found {
+		return external.ErrNotFound
+	}
+	if user.ID != fs.UserID {
+		return external.ErrNotFound
+	}
+	delete(c.fundingsources, fundingSourceID)
+
+	return nil
+}
+
 func (c Client) CreateTransaction(
 	ctx context.Context, args external.CreateTransactionArgs,
 ) (*external.Transaction, error) {

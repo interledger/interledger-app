@@ -142,6 +142,21 @@ func (mr *MockClientMockRecorder) CreateWallet(ctx, args interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockClient)(nil).CreateWallet), ctx, args)
 }
 
+// DeleteFundSource mocks base method.
+func (m *MockClient) DeleteFundSource(ctx context.Context, linkedAccID string) (machnet.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFundSource", ctx, linkedAccID)
+	ret0, _ := ret[0].(machnet.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteFundSource indicates an expected call of DeleteFundSource.
+func (mr *MockClientMockRecorder) DeleteFundSource(ctx, linkedAccID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFundSource", reflect.TypeOf((*MockClient)(nil).DeleteFundSource), ctx, linkedAccID)
+}
+
 // External mocks base method.
 func (m *MockClient) External() external.Client {
 	m.ctrl.T.Helper()

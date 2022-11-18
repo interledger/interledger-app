@@ -11,6 +11,7 @@ type Client interface {
 	GetReceiveUserList(ctx context.Context, userID string) ([]User, error)
 	GetFundingAccountWidgetToken(ctx context.Context, userID string) (*WidgetTokenResponse, error)
 	GetUserFundingsource(ctx context.Context, userID, fundingsourceID string) (*FundingSource, error)
+	DeleteFundingSource(ctx context.Context, userID, fundingSourceID string) error
 	CreateTransaction(ctx context.Context, transaction CreateTransactionArgs) (*Transaction, error)
 	GetUserTransaction(ctx context.Context, userID, id string) (*Transaction, error)
 	UpdateDeliveryRequest(ctx context.Context, request DeliveryRequest) error
