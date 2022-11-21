@@ -23,15 +23,15 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 	logger.Info("CreateSendUserWorkflow workflow started", "walletID", walletID)
 
 	var externalUserID string
-	err := workflow.ExecuteActivity(ctx, a.CreateExternalSendUser, walletID).Get(ctx, &externalUserID)
+	err := workflow.ExecuteActivity(ctx, a.UpsertExternalSendUser, walletID).Get(ctx, &externalUserID)
 	if err != nil {
-		logger.Error("CreateExternalSendUser Activity failed.", "Error", err)
+		logger.Error("UpsertExternalSendUser Activity failed.", "Error", err)
 		return "", err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CreateUser, walletID, externalUserID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("CreateExternalSendUser Activity failed.", "Error", err)
+		logger.Error("UpsertExternalSendUser Activity failed.", "Error", err)
 		return "", err
 	}
 

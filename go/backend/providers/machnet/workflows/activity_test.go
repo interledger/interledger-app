@@ -28,6 +28,7 @@ import (
 )
 
 func TestActivity_CreateExternalSendUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -42,7 +43,7 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	a := NewActivity(b)
-	env.RegisterActivity(a.CreateExternalSendUser)
+	env.RegisterActivity(a.UpsertExternalSendUser)
 
 	userID := uuid.NewString()
 	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
@@ -68,7 +69,7 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 		IPAddress: "192.8.6.12",
 	}, nil).Times(1)
 
-	val, err := env.ExecuteActivity(a.CreateExternalSendUser, wallet.ID)
+	val, err := env.ExecuteActivity(a.UpsertExternalSendUser, wallet.ID)
 	require.NoError(t, err)
 
 	var res string
@@ -83,6 +84,7 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 }
 
 func TestActivity_CreateUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -119,6 +121,7 @@ func TestActivity_CreateUser(t *testing.T) {
 }
 
 func TestActivity_StartExternalKYC(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -148,6 +151,7 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 }
 
 func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -263,6 +267,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 }
 
 func TestActivity_CreateExternalTransaction(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -344,6 +349,7 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 }
 
 func TestActivity_CreateUserFundingsource(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -431,6 +437,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 }
 
 func TestActivity_FundUserWalletFromCard(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	machnetExt := machnet_external_inmem.New()

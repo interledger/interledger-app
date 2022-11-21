@@ -32,7 +32,7 @@ func NewActivity(b Backends) *Activity {
 	return &Activity{b: ob}
 }
 
-func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) (string, error) {
+func (a *Activity) UpsertExternalSendUser(ctx context.Context, walletID string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("CreateExternalSendUser_Activity", "walletID", walletID)
 
@@ -40,7 +40,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
 		return "", err
 	}
-	if mu != nil {
+	if mu != nil && mu.KYCStatus == machnet.KYCStatusVerified {
 		return mu.ID, nil
 	}
 
@@ -80,7 +80,7 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		state = strings.TrimSpace(stateParts[1])
 	}
 
-	emu, err := a.b.External().RegisterUser(ctx, external.User{
+	userKYC := external.User{
 		FirstName:    kycData.FirstName,
 		LastName:     kycData.LastName,
 		Email:        userData.Email,
@@ -95,9 +95,17 @@ func (a *Activity) CreateExternalSendUser(ctx context.Context, walletID string) 
 		Country:      kycData.Address.CountryCode,
 		IPAddress:    kycData.IPAddress,
 		Type:         external.TypeSendUser,
-	})
+	}
+	var emu *external.User
+
+	if mu != nil {
+		emu, err = a.b.External().UpdateUser(ctx, mu.ID, userKYC)
+	} else {
+		emu, err = a.b.External().RegisterUser(ctx, userKYC)
+	}
 	if errors.Is(err, external.ErrInvalidArgument) {
-		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid arguments to create send user wallet(%s) error (%s)", walletID, err), "external.ErrInvalidArgument", external.ErrInvalidArgument)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid arguments to create or update send user wallet(%s) error (%s) is update(%t)", walletID, err, mu != nil),
+			"external.ErrInvalidArgument", external.ErrInvalidArgument)
 	}
 
 	if err != nil {

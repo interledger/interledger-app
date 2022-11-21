@@ -26,6 +26,7 @@ import (
 )
 
 func TestCreateSendUserWorkflow(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -50,7 +51,7 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 
 	a := NewActivity(b)
 
-	env.OnActivity(a.CreateExternalSendUser, mock.Anything, wallet.ID).Return(externalUserID, nil)
+	env.OnActivity(a.UpsertExternalSendUser, mock.Anything, wallet.ID).Return(externalUserID, nil)
 	env.OnActivity(a.CreateUser, mock.Anything, wallet.ID, externalUserID).Return(externalUserID, nil)
 	env.OnActivity(a.StartExternalKYC, mock.Anything, externalUserID).Return(nil)
 	env.OnActivity(a.CreateUserWorkflowRef, mock.Anything, mock.Anything).Return(nil)
@@ -75,6 +76,7 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 }
 
 func TestCreateTransactionWorkflow(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
