@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/user"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
@@ -21,21 +23,9 @@ func (s *AdminRpcService) ListUsers(ctx context.Context, req *adminv1.Pagination
 
 	resp := make([]*adminv1.User, len(users))
 	for i, u := range users {
-		wallets, err := s.b.Users().ListWallets(ctx, u.ID)
+		resp[i], err = convertUser(ctx, s.b, u)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
-		}
-
-		walletIDs := make([]string, len(wallets))
-		for y, w := range wallets {
-			walletIDs[y] = w.ID
-		}
-
-		resp[i] = &adminv1.User{
-			Id:          u.ID,
-			Email:       u.Email,
-			PhoneNumber: u.PhoneNumber,
-			Wallets:     walletIDs,
+			return nil, err
 		}
 	}
 
@@ -45,30 +35,52 @@ func (s *AdminRpcService) ListUsers(ctx context.Context, req *adminv1.Pagination
 	}, nil
 }
 
-func (s *AdminRpcService) GetUserDetails(ctx context.Context, req *adminv1.GetUserDetailsRequest) (*adminv1.GetUserDetailsResponse, error) {
-
-	u, err := s.b.Users().GetUser(ctx, req.UserID)
+func convertUser(ctx context.Context, b Backends, input user.User) (*adminv1.User, error) {
+	wallets, err := b.Users().ListWallets(ctx, input.ID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	wallets, err := s.b.Users().ListWallets(ctx, u.ID)
+	walletIDs := make([]string, len(wallets))
+	for y, w := range wallets {
+		walletIDs[y] = w.ID
+	}
+
+	return &adminv1.User{
+		Id:          input.ID,
+		Email:       input.Email,
+		PhoneNumber: input.PhoneNumber,
+		Wallets:     walletIDs,
+	}, nil
+}
+
+func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.GetWalletDetailsRequest) (*adminv1.WalletDetails, error) {
+	users, err := s.b.Users().ListUsers(ctx, req.WalletID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	if len(wallets) == 0 {
-		return nil, status.Error(codes.NotFound, "user has no wallets")
+	if len(users) == 0 {
+		return nil, status.Error(codes.NotFound, "no user found for walletID")
 	}
 
-	// TODO: Do we want this API to work with users or wallets?
-	id, err := s.b.KYC().GetIndividualDetails(ctx, wallets[0].ID)
+	usersPB := make([]*adminv1.User, len(users))
+	for i, u := range users {
+		usersPB[i], err = convertUser(ctx, s.b, u)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	wallet, err := s.b.Users().GetWallet(ctx, users[0].ID, req.WalletID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	id, err := s.b.KYC().GetIndividualDetails(ctx, wallet.ID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return &adminv1.GetUserDetailsResponse{
-			User: &adminv1.UserDetails{
-				UserID:      u.ID,
-				Email:       u.Email,
-				PhoneNumber: u.PhoneNumber,
-			},
+		return &adminv1.WalletDetails{
+			Users:    usersPB,
+			WalletID: req.WalletID,
 		}, nil
 	}
 	if err != nil {
@@ -80,32 +92,22 @@ func (s *AdminRpcService) GetUserDetails(ctx context.Context, req *adminv1.GetUs
 		address = id.Address.FormattedAddress
 	}
 
-	return &adminv1.GetUserDetailsResponse{User: &adminv1.UserDetails{
-		UserID:      u.ID,
-		Email:       u.Email,
-		PhoneNumber: u.PhoneNumber,
+	return &adminv1.WalletDetails{
+		WalletID:    req.WalletID,
 		FirstName:   id.FirstName,
 		LastName:    id.LastName,
 		CountryCode: id.CountryCode,
 		Gender:      int32(id.Gender),
 		DateOfBirth: timestamppb.New(id.DateOfBirth),
 		Address:     address,
-	}}, nil
-
+		Users:       usersPB,
+	}, nil
 }
 
-func (s *AdminRpcService) ListUserTransactions(ctx context.Context, req *adminv1.ListUserTransactionsRequest) (*adminv1.ListUserTransactionsResponse, error) {
+func (s *AdminRpcService) ListWalletTransactions(ctx context.Context, req *adminv1.ListWalletTransactionsRequest) (*adminv1.ListWalletTransactionsResponse, error) {
 	page := db.FromAdminPB(req.Page)
 
-	wallets, err := s.b.Users().ListWallets(ctx, req.UserID)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	if len(wallets) == 0 {
-		return nil, status.Error(codes.NotFound, "user has no wallets")
-	}
-
-	trxs, err := s.b.OpenPayments().ListTransactions(ctx, wallets[0].ID, db.Pagination{})
+	trxs, err := s.b.OpenPayments().ListTransactions(ctx, req.WalletID, db.Pagination{})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -113,7 +115,7 @@ func (s *AdminRpcService) ListUserTransactions(ctx context.Context, req *adminv1
 	res := make([]*adminv1.Transaction, len(trxs))
 	for i, tx := range trxs {
 		res[i] = &adminv1.Transaction{
-			WalletID:    wallets[0].ID,
+			WalletID:    req.WalletID,
 			Id:          tx.ID,
 			Type:        string(tx.Type),
 			Asset:       tx.Amount.Asset,
@@ -124,5 +126,5 @@ func (s *AdminRpcService) ListUserTransactions(ctx context.Context, req *adminv1
 		}
 	}
 
-	return &adminv1.ListUserTransactionsResponse{Transactions: res, Page: page.ToAdminPB(len(res))}, nil
+	return &adminv1.ListWalletTransactionsResponse{Transactions: res, Page: page.ToAdminPB(len(res))}, nil
 }

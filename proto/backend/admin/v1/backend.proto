@@ -14,18 +14,18 @@ service Backend {
   rpc ListWaitlistSignups(google.protobuf.Empty) returns (ListWaitlistSignupsResponse);
   rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
   rpc ListUsers(PaginationRequest) returns (ListUsersResponse);
-  rpc GetUserDetails(GetUserDetailsRequest) returns (GetUserDetailsResponse);
-  rpc ListUserTransactions(ListUserTransactionsRequest) returns (ListUserTransactionsResponse);
+  rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
+  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
 }
 
 message Empty {}
 
-message ListUserTransactionsRequest {
-  string userID = 1;
+message ListWalletTransactionsRequest {
+  string walletID = 1;
   PaginationRequest page = 2;
 }
 
-message ListUserTransactionsResponse {
+message ListWalletTransactionsResponse {
   repeated Transaction transactions = 1;
   PaginationResponse page = 2;
 }
@@ -44,24 +44,19 @@ message Transaction {
 message GetUserTransactionsRequest {
   string userID = 1;
 }
-message GetUserDetailsRequest {
-  string userID = 1;
+message GetWalletDetailsRequest {
+  string walletID = 1;
 }
 
-message GetUserDetailsResponse {
-  UserDetails user = 1;
-}
-
-message UserDetails {
-  string userID = 1;
+message WalletDetails {
+  repeated User users = 8;
+  string walletID = 1;
   string firstName = 2;
   string lastName = 3;
   string countryCode = 4;
   int32 gender = 5; // 0 Unknown, 1 Male, 2 Female, 3 Other
   google.protobuf.Timestamp dateOfBirth = 6;
   string address = 7;
-  string email = 8;
-  string phoneNumber = 9;
 }
 
 message PaginationRequest {
