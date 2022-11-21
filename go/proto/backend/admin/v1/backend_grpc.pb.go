@@ -26,8 +26,8 @@ type BackendClient interface {
 	ListWaitlistSignups(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListWaitlistSignupsResponse, error)
 	AllowWaitlistSignup(ctx context.Context, in *AllowWaitlistSignupRequest, opts ...grpc.CallOption) (*Empty, error)
 	ListUsers(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
-	GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error)
-	ListUserTransactions(ctx context.Context, in *ListUserTransactionsRequest, opts ...grpc.CallOption) (*ListUserTransactionsResponse, error)
+	GetWalletDetails(ctx context.Context, in *GetWalletDetailsRequest, opts ...grpc.CallOption) (*WalletDetails, error)
+	ListWalletTransactions(ctx context.Context, in *ListWalletTransactionsRequest, opts ...grpc.CallOption) (*ListWalletTransactionsResponse, error)
 }
 
 type backendClient struct {
@@ -65,18 +65,18 @@ func (c *backendClient) ListUsers(ctx context.Context, in *PaginationRequest, op
 	return out, nil
 }
 
-func (c *backendClient) GetUserDetails(ctx context.Context, in *GetUserDetailsRequest, opts ...grpc.CallOption) (*GetUserDetailsResponse, error) {
-	out := new(GetUserDetailsResponse)
-	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetUserDetails", in, out, opts...)
+func (c *backendClient) GetWalletDetails(ctx context.Context, in *GetWalletDetailsRequest, opts ...grpc.CallOption) (*WalletDetails, error) {
+	out := new(WalletDetails)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetWalletDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *backendClient) ListUserTransactions(ctx context.Context, in *ListUserTransactionsRequest, opts ...grpc.CallOption) (*ListUserTransactionsResponse, error) {
-	out := new(ListUserTransactionsResponse)
-	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListUserTransactions", in, out, opts...)
+func (c *backendClient) ListWalletTransactions(ctx context.Context, in *ListWalletTransactionsRequest, opts ...grpc.CallOption) (*ListWalletTransactionsResponse, error) {
+	out := new(ListWalletTransactionsResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListWalletTransactions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +90,8 @@ type BackendServer interface {
 	ListWaitlistSignups(context.Context, *emptypb.Empty) (*ListWaitlistSignupsResponse, error)
 	AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error)
 	ListUsers(context.Context, *PaginationRequest) (*ListUsersResponse, error)
-	GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error)
-	ListUserTransactions(context.Context, *ListUserTransactionsRequest) (*ListUserTransactionsResponse, error)
+	GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error)
+	ListWalletTransactions(context.Context, *ListWalletTransactionsRequest) (*ListWalletTransactionsResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -107,11 +107,11 @@ func (UnimplementedBackendServer) AllowWaitlistSignup(context.Context, *AllowWai
 func (UnimplementedBackendServer) ListUsers(context.Context, *PaginationRequest) (*ListUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (UnimplementedBackendServer) GetUserDetails(context.Context, *GetUserDetailsRequest) (*GetUserDetailsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserDetails not implemented")
+func (UnimplementedBackendServer) GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWalletDetails not implemented")
 }
-func (UnimplementedBackendServer) ListUserTransactions(context.Context, *ListUserTransactionsRequest) (*ListUserTransactionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListUserTransactions not implemented")
+func (UnimplementedBackendServer) ListWalletTransactions(context.Context, *ListWalletTransactionsRequest) (*ListWalletTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWalletTransactions not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -179,38 +179,38 @@ func _Backend_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Backend_GetUserDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserDetailsRequest)
+func _Backend_GetWalletDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWalletDetailsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServer).GetUserDetails(ctx, in)
+		return srv.(BackendServer).GetWalletDetails(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.admin.v1.Backend/GetUserDetails",
+		FullMethod: "/backend.admin.v1.Backend/GetWalletDetails",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).GetUserDetails(ctx, req.(*GetUserDetailsRequest))
+		return srv.(BackendServer).GetWalletDetails(ctx, req.(*GetWalletDetailsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Backend_ListUserTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListUserTransactionsRequest)
+func _Backend_ListWalletTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWalletTransactionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServer).ListUserTransactions(ctx, in)
+		return srv.(BackendServer).ListWalletTransactions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.admin.v1.Backend/ListUserTransactions",
+		FullMethod: "/backend.admin.v1.Backend/ListWalletTransactions",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).ListUserTransactions(ctx, req.(*ListUserTransactionsRequest))
+		return srv.(BackendServer).ListWalletTransactions(ctx, req.(*ListWalletTransactionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -235,12 +235,12 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Backend_ListUsers_Handler,
 		},
 		{
-			MethodName: "GetUserDetails",
-			Handler:    _Backend_GetUserDetails_Handler,
+			MethodName: "GetWalletDetails",
+			Handler:    _Backend_GetWalletDetails_Handler,
 		},
 		{
-			MethodName: "ListUserTransactions",
-			Handler:    _Backend_ListUserTransactions_Handler,
+			MethodName: "ListWalletTransactions",
+			Handler:    _Backend_ListWalletTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
