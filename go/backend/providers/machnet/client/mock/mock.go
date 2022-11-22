@@ -186,6 +186,21 @@ func (mr *MockClientMockRecorder) GetBanks(ctx, countryCode interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBanks", reflect.TypeOf((*MockClient)(nil).GetBanks), ctx, countryCode)
 }
 
+// GetKYCStatus mocks base method.
+func (m *MockClient) GetKYCStatus(ctx context.Context, walletID string) (*machnet.UserKYC, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKYCStatus", ctx, walletID)
+	ret0, _ := ret[0].(*machnet.UserKYC)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetKYCStatus indicates an expected call of GetKYCStatus.
+func (mr *MockClientMockRecorder) GetKYCStatus(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKYCStatus", reflect.TypeOf((*MockClient)(nil).GetKYCStatus), ctx, walletID)
+}
+
 // GetReceiveBankAccount mocks base method.
 func (m *MockClient) GetReceiveBankAccount(ctx context.Context, id string) (*machnet.ReceiveBankAccount, error) {
 	m.ctrl.T.Helper()

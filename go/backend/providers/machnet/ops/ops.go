@@ -41,6 +41,58 @@ func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*mach
 	return &user, nil
 }
 
+func GetKYCStatus(ctx context.Context, b Backends, walletID string) (*machnet.UserKYC, error) {
+	u, err := GetUserByWalletID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if u.KYCStatus != machnet.KYCStatusRetry {
+		return &machnet.UserKYC{
+			User: *u,
+		}, nil
+	}
+
+	vs, err := b.External().GetVerificationStatus(ctx, u.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var failed []string
+
+	if vs.CipInfo.PhoneNumber == external.StatusFailed {
+		failed = append(failed, "phoneNumber")
+	}
+	if vs.CipInfo.Email == external.StatusFailed {
+		failed = append(failed, "email")
+	}
+	if vs.CipInfo.DateOfBirth == external.StatusFailed {
+		failed = append(failed, "dateOfBirth")
+	}
+	if vs.CipInfo.Gender == external.StatusFailed {
+		failed = append(failed, "gender")
+	}
+	if vs.CipInfo.FirstName == external.StatusFailed {
+		failed = append(failed, "firstName")
+	}
+	if vs.CipInfo.LastName == external.StatusFailed {
+		failed = append(failed, "lastName")
+	}
+	if vs.CipInfo.State == external.StatusFailed ||
+		vs.CipInfo.ZipCode == external.StatusFailed ||
+		vs.CipInfo.City == external.StatusFailed ||
+		vs.CipInfo.Country == external.StatusFailed ||
+		vs.CipInfo.AddressLine1 == external.StatusFailed ||
+		vs.CipInfo.AddressLine2 == external.StatusFailed {
+		failed = append(failed, "address")
+	}
+
+	return &machnet.UserKYC{
+		User:         *u,
+		FailedFields: failed,
+	}, nil
+}
+
 func GetUserByWalletID(ctx context.Context, b Backends, walletID string) (*machnet.User, error) {
 	var user machnet.User
 	err := b.DB().GetContext(

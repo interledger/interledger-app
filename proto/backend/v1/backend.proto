@@ -188,6 +188,7 @@ service BackendService {
   rpc CreateReceiveBankAccount(CreateReceiveBankAccountRequest) returns (LinkedAccount);
   rpc CreateSendUser(Empty) returns(Empty);
   rpc HasSendUser(Empty) returns (HasSendUserResponse);
+  rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
   rpc GetWalletBalance(Empty) returns (WalletBalance);
   rpc WithdrawFromMachnetWallet(WithdrawFromMachnetWalletRequest) returns (MachnetWalletWithdrawal);
@@ -422,6 +423,12 @@ message SetSignupCompleteRequest{
 
 message HasSendUserResponse{
   bool hasSendUser = 1;
+}
+
+message KYCStatusResponse {
+  bool hasSendUser = 1;
+  int32 kycStatus = 2;
+  repeated string failedFields = 3;
 }
 
 message CreateWalletRequest{

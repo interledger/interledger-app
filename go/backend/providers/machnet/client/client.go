@@ -63,6 +63,10 @@ func (c client) External() external.Client {
 	return c.externalApi
 }
 
+func (c client) GetKYCStatus(ctx context.Context, walletID string) (*machnet.UserKYC, error) {
+	return ops.GetKYCStatus(ctx, c.b, walletID)
+}
+
 func (c client) GetUserByWalletID(ctx context.Context, walletID string) (*machnet.User, error) {
 	return ops.GetUserByWalletID(ctx, c.b, walletID)
 }

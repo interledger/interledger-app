@@ -9,6 +9,7 @@ import (
 
 type Client interface {
 	External() external.Client
+	GetKYCStatus(ctx context.Context, walletID string) (*UserKYC, error)
 	GetUserByWalletID(ctx context.Context, walletID string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
 	CreateUser(ctx context.Context, args CreateArgs) (*User, error)

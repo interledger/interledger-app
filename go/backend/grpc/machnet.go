@@ -9,20 +9,20 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (r *rpcService) GetMachnetWidgetToken(
+func (s *rpcService) GetMachnetWidgetToken(
 	ctx context.Context, req *backendv1.Empty,
 ) (*backendv1.MachnetWidgetToken, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	token, err := r.b.Machnet().GetWidgetToken(ctx, wallet.ID)
+	token, err := s.b.Machnet().GetWidgetToken(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -34,20 +34,20 @@ func (r *rpcService) GetMachnetWidgetToken(
 	}, nil
 }
 
-func (r *rpcService) CreateSendUser(
+func (s *rpcService) CreateSendUser(
 	ctx context.Context, req *backendv1.Empty,
 ) (*backendv1.Empty, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	await, err := r.b.Machnet().CreateSendUser(ctx, wallet.ID)
+	await, err := s.b.Machnet().CreateSendUser(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -60,20 +60,20 @@ func (r *rpcService) CreateSendUser(
 	return &backendv1.Empty{}, nil
 }
 
-func (r *rpcService) HasSendUser(
+func (s *rpcService) HasSendUser(
 	ctx context.Context, req *backendv1.Empty,
 ) (*backendv1.HasSendUserResponse, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	_, err = r.b.Machnet().GetUserByWalletID(ctx, wallet.ID)
+	_, err = s.b.Machnet().GetUserByWalletID(ctx, wallet.ID)
 	if err != nil {
 		if errors.Is(err, machnet.ErrNotFound) {
 			return &backendv1.HasSendUserResponse{
@@ -88,29 +88,57 @@ func (r *rpcService) HasSendUser(
 	}, nil
 }
 
-func (r *rpcService) CreateWallet(
+func (s *rpcService) KYCStatus(ctx context.Context, _ *backendv1.Empty) (*backendv1.KYCStatusResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthorized.")
+	}
+
+	kyc, err := s.b.Machnet().GetKYCStatus(ctx, wallet.ID)
+	if err != nil {
+		if errors.Is(err, machnet.ErrNotFound) {
+			return &backendv1.KYCStatusResponse{
+				HasSendUser: false,
+			}, nil
+		}
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.KYCStatusResponse{
+		HasSendUser:  true,
+		KycStatus:    int32(kyc.User.KYCStatus),
+		FailedFields: kyc.FailedFields,
+	}, nil
+}
+
+func (s *rpcService) CreateWallet(
 	ctx context.Context, req *backendv1.CreateWalletRequest,
 ) (*backendv1.LinkedAccount, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if err = r.b.Validator().VarCtx(ctx, req.GetNickname(), "required"); err != nil {
+	if err = s.b.Validator().VarCtx(ctx, req.GetNickname(), "required"); err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	sendUser, err := r.b.Machnet().GetUserByWalletID(ctx, wallet.ID)
+	sendUser, err := s.b.Machnet().GetUserByWalletID(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	la, err := r.b.Machnet().CreateWallet(ctx, machnet.CreateWalletArgs{
+	la, err := s.b.Machnet().CreateWallet(ctx, machnet.CreateWalletArgs{
 		Nickname:   req.GetNickname(),
 		SendUserID: sendUser.ID,
 	})
@@ -126,18 +154,18 @@ func (r *rpcService) CreateWallet(
 	}, nil
 }
 
-func (r *rpcService) GetWalletBalance(ctx context.Context, _ *backendv1.Empty) (*backendv1.WalletBalance, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+func (s *rpcService) GetWalletBalance(ctx context.Context, _ *backendv1.Empty) (*backendv1.WalletBalance, error) {
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	lal, err := r.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
+	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -154,7 +182,7 @@ func (r *rpcService) GetWalletBalance(ctx context.Context, _ *backendv1.Empty) (
 		return nil, NotFoundError("machnet wallet not found")
 	}
 
-	mw, err := r.b.Machnet().GetWallet(ctx, found.ProviderID)
+	mw, err := s.b.Machnet().GetWallet(ctx, found.ProviderID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -171,20 +199,20 @@ type validateWithdrawFromMachnetWalletArgs struct {
 	IpAddress       string `validate:"ip_addr"`
 }
 
-func (r *rpcService) WithdrawFromMachnetWallet(
+func (s *rpcService) WithdrawFromMachnetWallet(
 	ctx context.Context, req *backendv1.WithdrawFromMachnetWalletRequest,
 ) (*backendv1.MachnetWalletWithdrawal, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	if err = r.b.Validator().StructCtx(ctx, validateWithdrawFromMachnetWalletArgs{
+	if err = s.b.Validator().StructCtx(ctx, validateWithdrawFromMachnetWalletArgs{
 		ToLinkedAccount: req.GetToLinkedAccountId(),
 		Amount:          req.GetAmount(),
 		IpAddress:       req.GetIpAddress(),
@@ -192,7 +220,7 @@ func (r *rpcService) WithdrawFromMachnetWallet(
 		return nil, toGRPCError(err)
 	}
 
-	toLinkedAcc, err := r.b.LinkedAccounts().Get(ctx, req.GetToLinkedAccountId())
+	toLinkedAcc, err := s.b.LinkedAccounts().Get(ctx, req.GetToLinkedAccountId())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -200,7 +228,7 @@ func (r *rpcService) WithdrawFromMachnetWallet(
 		return nil, NotFoundError("Linked account not found.")
 	}
 
-	linkedAccounts, err := r.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
+	linkedAccounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -215,7 +243,7 @@ func (r *rpcService) WithdrawFromMachnetWallet(
 		return nil, toGRPCError(errors.New("Machnet wallet not found."))
 	}
 
-	withdrawal, err := r.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
+	withdrawal, err := s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
 		Amount:                req.GetAmount(),
 		WalletLinkedAccountID: linkedWallet.ID,
 		ToLinkedAccountID:     req.GetToLinkedAccountId(),
