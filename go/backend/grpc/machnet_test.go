@@ -110,6 +110,82 @@ func TestHasSendUser(t *testing.T) {
 	})
 }
 
+func TestKYCStatus(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+	require.NoError(t, err)
+
+	t.Run("returns empty fields if status is NOT retry", func(st *testing.T) {
+		machnetUserID := uuid.NewString()
+		c.machnet.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(&machnet.UserKYC{
+			User: machnet.User{
+				ID:        machnetUserID,
+				WalletID:  wallet.ID,
+				CreatedAt: "",
+				UpdatedAt: "",
+				KYCStatus: machnet.KYCStatusVerified,
+			},
+			FailedFields: nil,
+		}, nil).Times(1)
+
+		rpc, err := client.KYCStatus(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.Empty{},
+		)
+		require.NoError(st, err)
+
+		assert.True(st, rpc.HasSendUser)
+		assert.Equal(st, int32(machnet.KYCStatusVerified), rpc.KycStatus)
+	})
+
+	t.Run("returns fields if status IS retry", func(st *testing.T) {
+		machnetUserID := uuid.NewString()
+		c.machnet.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(&machnet.UserKYC{
+			User: machnet.User{
+				ID:        machnetUserID,
+				WalletID:  wallet.ID,
+				CreatedAt: "",
+				UpdatedAt: "",
+				KYCStatus: machnet.KYCStatusRetry,
+			},
+			FailedFields: []string{"dateOfBirth", "address"},
+		}, nil).Times(1)
+
+		rpc, err := client.KYCStatus(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.Empty{},
+		)
+		require.NoError(st, err)
+
+		assert.True(st, rpc.HasSendUser)
+		assert.Equal(st, int32(machnet.KYCStatusRetry), rpc.KycStatus)
+		assert.Len(st, rpc.FailedFields, 2)
+	})
+
+	t.Run("returns false if no user exists", func(st *testing.T) {
+		c.machnet.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(nil, machnet.ErrNotFound).Times(1)
+
+		rpc, err := client.KYCStatus(
+			user_mock.ActingAsContext(t, context.Background(), user),
+			&backendv1.Empty{},
+		)
+		require.NoError(st, err)
+
+		assert.False(t, rpc.HasSendUser)
+		assert.Equal(st, int32(machnet.KYCStatusUnknown), rpc.KycStatus)
+	})
+}
+
 func TestCreateSendUser(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()

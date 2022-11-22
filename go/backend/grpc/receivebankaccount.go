@@ -8,22 +8,22 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (r rpcService) ListBanks(ctx context.Context, args *backendv1.Empty) (*backendv1.ListBanksResponse, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+func (s rpcService) ListBanks(ctx context.Context, args *backendv1.Empty) (*backendv1.ListBanksResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	kyc, err := r.b.KYC().GetIndividualDetails(ctx, wallet.ID)
+	kyc, err := s.b.KYC().GetIndividualDetails(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	machnetBanks, err := r.b.Machnet().GetBanks(ctx, kyc.CountryCode)
+	machnetBanks, err := s.b.Machnet().GetBanks(ctx, kyc.CountryCode)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -57,19 +57,19 @@ type validateCreateReceiveBankAccount struct {
 	Name          string `validate:"required"`
 }
 
-func (r rpcService) CreateReceiveBankAccount(
+func (s rpcService) CreateReceiveBankAccount(
 	ctx context.Context, req *backendv1.CreateReceiveBankAccountRequest,
 ) (*backendv1.LinkedAccount, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
-	wallet, err := r.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	if err := r.b.Validator().StructCtx(ctx, validateCreateReceiveBankAccount{
+	if err := s.b.Validator().StructCtx(ctx, validateCreateReceiveBankAccount{
 		BankID:        req.GetBankId(),
 		BranchID:      req.GetBranchId(),
 		AccountType:   req.GetAccountType(),
@@ -79,7 +79,7 @@ func (r rpcService) CreateReceiveBankAccount(
 		return nil, toGRPCError(err)
 	}
 
-	bankaccount, err := r.b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{
+	bankaccount, err := s.b.Machnet().CreateReceiveBankAccount(ctx, machnet.CreateReceiveBankAccountArgs{
 		WalletID:      wallet.ID,
 		AccountNumber: req.GetAccountNumber(),
 		BankID:        req.GetBankId(),
@@ -91,7 +91,7 @@ func (r rpcService) CreateReceiveBankAccount(
 		return nil, toGRPCError(err)
 	}
 
-	linkedaccount, err := r.b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
+	linkedaccount, err := s.b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
 		Provider:   machnet.ProviderName,
 		ProviderID: bankaccount.ID,
 		Type:       machnet.TypeReceiveBankAccount,

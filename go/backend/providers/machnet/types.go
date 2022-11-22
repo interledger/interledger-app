@@ -21,6 +21,11 @@ type User struct {
 	KYCStatus KYCStatus `db:"kyc_status"`
 }
 
+type UserKYC struct {
+	User         User
+	FailedFields []string
+}
+
 type CreateArgs struct {
 	WalletID   string
 	ExternalID string
