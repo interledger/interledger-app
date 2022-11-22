@@ -14,44 +14,44 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (s *AdminRpcService) ListUsers(ctx context.Context, req *adminv1.PaginationRequest) (*adminv1.ListUsersResponse, error) {
+func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.PaginationRequest) (*adminv1.ListWalletsResponse, error) {
 	page := db.FromAdminPB(req)
-	users, err := s.b.Users().ListAllUsers(ctx, page)
+	wallets, err := s.b.Users().ListAllWallets(ctx, page)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	resp := make([]*adminv1.User, len(users))
-	for i, u := range users {
-		resp[i], err = convertUser(ctx, s.b, u)
+	resp := make([]*adminv1.Wallet, len(wallets))
+	for i, w := range wallets {
+		users, err := s.b.Users().ListUsers(ctx, w.ID)
 		if err != nil {
-			return nil, err
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+
+		usersPB := make([]*adminv1.User, len(users))
+		for y, u := range users {
+			usersPB[y] = convertUser(u)
+		}
+
+		resp[i] = &adminv1.Wallet{
+			WalletID:   w.ID,
+			WalletName: w.Name,
+			Users:      usersPB,
 		}
 	}
 
-	return &adminv1.ListUsersResponse{
-		Users: resp,
-		Page:  page.ToAdminPB(len(resp)),
+	return &adminv1.ListWalletsResponse{
+		Wallets: resp,
+		Page:    page.ToAdminPB(len(resp)),
 	}, nil
 }
 
-func convertUser(ctx context.Context, b Backends, input user.User) (*adminv1.User, error) {
-	wallets, err := b.Users().ListWallets(ctx, input.ID)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	walletIDs := make([]string, len(wallets))
-	for y, w := range wallets {
-		walletIDs[y] = w.ID
-	}
-
+func convertUser(input user.User) *adminv1.User {
 	return &adminv1.User{
 		Id:          input.ID,
 		Email:       input.Email,
 		PhoneNumber: input.PhoneNumber,
-		Wallets:     walletIDs,
-	}, nil
+	}
 }
 
 func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.GetWalletDetailsRequest) (*adminv1.WalletDetails, error) {
@@ -65,10 +65,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 
 	usersPB := make([]*adminv1.User, len(users))
 	for i, u := range users {
-		usersPB[i], err = convertUser(ctx, s.b, u)
-		if err != nil {
-			return nil, err
-		}
+		usersPB[i] = convertUser(u)
 	}
 
 	wallet, err := s.b.Users().GetWallet(ctx, users[0].ID, req.WalletID)

@@ -44,6 +44,15 @@ func (mc mockClient) ListAllUsers(ctx context.Context, pagination db.Pagination)
 	return res, nil
 }
 
+func (mc mockClient) ListAllWallets(ctx context.Context, pagination db.Pagination) ([]user.Wallet, error) {
+	var res []user.Wallet
+	for _, w := range mc.wallets {
+		res = append(res, *w)
+	}
+
+	return res, nil
+}
+
 func (mc mockClient) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
 	wallet := mc.wallets[walletID]
 	if wallet == nil {

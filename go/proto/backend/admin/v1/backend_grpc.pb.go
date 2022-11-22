@@ -25,7 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 type BackendClient interface {
 	ListWaitlistSignups(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListWaitlistSignupsResponse, error)
 	AllowWaitlistSignup(ctx context.Context, in *AllowWaitlistSignupRequest, opts ...grpc.CallOption) (*Empty, error)
-	ListUsers(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	ListWallets(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListWalletsResponse, error)
 	GetWalletDetails(ctx context.Context, in *GetWalletDetailsRequest, opts ...grpc.CallOption) (*WalletDetails, error)
 	ListWalletTransactions(ctx context.Context, in *ListWalletTransactionsRequest, opts ...grpc.CallOption) (*ListWalletTransactionsResponse, error)
 }
@@ -56,9 +56,9 @@ func (c *backendClient) AllowWaitlistSignup(ctx context.Context, in *AllowWaitli
 	return out, nil
 }
 
-func (c *backendClient) ListUsers(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
-	out := new(ListUsersResponse)
-	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListUsers", in, out, opts...)
+func (c *backendClient) ListWallets(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListWalletsResponse, error) {
+	out := new(ListWalletsResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListWallets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *backendClient) ListWalletTransactions(ctx context.Context, in *ListWall
 type BackendServer interface {
 	ListWaitlistSignups(context.Context, *emptypb.Empty) (*ListWaitlistSignupsResponse, error)
 	AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error)
-	ListUsers(context.Context, *PaginationRequest) (*ListUsersResponse, error)
+	ListWallets(context.Context, *PaginationRequest) (*ListWalletsResponse, error)
 	GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error)
 	ListWalletTransactions(context.Context, *ListWalletTransactionsRequest) (*ListWalletTransactionsResponse, error)
 }
@@ -104,8 +104,8 @@ func (UnimplementedBackendServer) ListWaitlistSignups(context.Context, *emptypb.
 func (UnimplementedBackendServer) AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllowWaitlistSignup not implemented")
 }
-func (UnimplementedBackendServer) ListUsers(context.Context, *PaginationRequest) (*ListUsersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
+func (UnimplementedBackendServer) ListWallets(context.Context, *PaginationRequest) (*ListWalletsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWallets not implemented")
 }
 func (UnimplementedBackendServer) GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletDetails not implemented")
@@ -161,20 +161,20 @@ func _Backend_AllowWaitlistSignup_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Backend_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Backend_ListWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PaginationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServer).ListUsers(ctx, in)
+		return srv.(BackendServer).ListWallets(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.admin.v1.Backend/ListUsers",
+		FullMethod: "/backend.admin.v1.Backend/ListWallets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).ListUsers(ctx, req.(*PaginationRequest))
+		return srv.(BackendServer).ListWallets(ctx, req.(*PaginationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -231,8 +231,8 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Backend_AllowWaitlistSignup_Handler,
 		},
 		{
-			MethodName: "ListUsers",
-			Handler:    _Backend_ListUsers_Handler,
+			MethodName: "ListWallets",
+			Handler:    _Backend_ListWallets_Handler,
 		},
 		{
 			MethodName: "GetWalletDetails",

@@ -13,7 +13,7 @@ option go_package = "./backend/admin/v1;admin";
 service Backend {
   rpc ListWaitlistSignups(google.protobuf.Empty) returns (ListWaitlistSignupsResponse);
   rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
-  rpc ListUsers(PaginationRequest) returns (ListUsersResponse);
+  rpc ListWallets(PaginationRequest) returns (ListWalletsResponse);
   rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
   rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
 }
@@ -70,8 +70,14 @@ message PaginationResponse {
   bool hasNextPage = 3;
 }
 
-message ListUsersResponse {
-  repeated User users = 1;
+message Wallet {
+  string walletID = 1;
+  string walletName = 2;
+  repeated User users = 3;
+}
+
+message ListWalletsResponse {
+  repeated Wallet wallets = 1;
   PaginationResponse page = 2;
 }
 
@@ -79,7 +85,6 @@ message User {
   string id = 1;
   string email = 2;
   string phoneNumber = 3;
-  repeated string wallets = 4;
 }
 
 message AllowWaitlistSignupRequest {

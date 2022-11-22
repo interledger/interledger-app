@@ -8,7 +8,7 @@ import type { ListWalletTransactionsResponse } from "./backend";
 import type { ListWalletTransactionsRequest } from "./backend";
 import type { WalletDetails } from "./backend";
 import type { GetWalletDetailsRequest } from "./backend";
-import type { ListUsersResponse } from "./backend";
+import type { ListWalletsResponse } from "./backend";
 import type { PaginationRequest } from "./backend";
 import type { Empty as Empty$ } from "./backend";
 import type { AllowWaitlistSignupRequest } from "./backend";
@@ -30,9 +30,9 @@ export interface IBackendClient {
      */
     allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$>;
     /**
-     * @generated from protobuf rpc: ListUsers(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListUsersResponse);
+     * @generated from protobuf rpc: ListWallets(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListWalletsResponse);
      */
-    listUsers(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListUsersResponse>;
+    listWallets(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListWalletsResponse>;
     /**
      * @generated from protobuf rpc: GetWalletDetails(backend.admin.v1.GetWalletDetailsRequest) returns (backend.admin.v1.WalletDetails);
      */
@@ -66,11 +66,11 @@ export class BackendClient implements IBackendClient, ServiceInfo {
         return stackIntercept<AllowWaitlistSignupRequest, Empty$>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListUsers(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListUsersResponse);
+     * @generated from protobuf rpc: ListWallets(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListWalletsResponse);
      */
-    listUsers(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListUsersResponse> {
+    listWallets(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListWalletsResponse> {
         const method = this.methods[2], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListUsersResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<PaginationRequest, ListWalletsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetWalletDetails(backend.admin.v1.GetWalletDetailsRequest) returns (backend.admin.v1.WalletDetails);
