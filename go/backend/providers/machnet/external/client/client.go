@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -44,7 +45,7 @@ func New(clientID, clientSecret string) *Client {
 
 	return &Client{
 		api: &http.Client{
-			Transport: newAuthTransport(clientID, clientSecret),
+			Transport: otelhttp.NewTransport(newAuthTransport(clientID, clientSecret)),
 			Timeout:   5 * time.Second,
 		},
 		baseUrl: baseUrl,
@@ -57,7 +58,11 @@ func (c Client) RegisterUser(ctx context.Context, user external.User) (*external
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	resp, err := c.api.Post(c.baseUrl+"/users", "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseUrl+"/users", bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -82,7 +87,11 @@ func (c Client) CreateReceiveUserBankAccount(ctx context.Context, sendUserID, re
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	resp, err := c.api.Post(fmt.Sprintf("%s/users/%s/receive-users/%s/accounts", c.baseUrl, sendUserID, receiveUserID), "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/users/%s/receive-users/%s/accounts", c.baseUrl, sendUserID, receiveUserID), bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -135,7 +144,12 @@ func (c Client) UpdateUser(ctx context.Context, id string, newValues external.Us
 }
 
 func (c Client) GetUserByID(ctx context.Context, id string) (*external.User, error) {
-	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s", c.baseUrl, id))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s", c.baseUrl, id), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -155,7 +169,12 @@ func (c Client) GetUserByID(ctx context.Context, id string) (*external.User, err
 }
 
 func (c Client) InitiateKYC(ctx context.Context, userID string) (*external.InitiateKycResponse, error) {
-	resp, err := c.api.Post(fmt.Sprintf("%s/users/%s/kyc", c.baseUrl, userID), "application/json", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/users/%s/kyc", c.baseUrl, userID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -175,7 +194,12 @@ func (c Client) InitiateKYC(ctx context.Context, userID string) (*external.Initi
 }
 
 func (c Client) GetVerificationStatus(ctx context.Context, userID string) (*external.VerificationStatus, error) {
-	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/cip-info", c.baseUrl, userID))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/cip-info", c.baseUrl, userID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -195,7 +219,12 @@ func (c Client) GetVerificationStatus(ctx context.Context, userID string) (*exte
 }
 
 func (c Client) GetReceiveUserList(ctx context.Context, userID string) ([]external.User, error) {
-	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/receive-users", c.baseUrl, userID))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/receive-users", c.baseUrl, userID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -215,7 +244,12 @@ func (c Client) GetReceiveUserList(ctx context.Context, userID string) ([]extern
 }
 
 func (c Client) GetFundingAccountWidgetToken(ctx context.Context, userID string) (*external.WidgetTokenResponse, error) {
-	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/widget-token", c.baseUrl, userID))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/widget-token", c.baseUrl, userID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -235,7 +269,12 @@ func (c Client) GetFundingAccountWidgetToken(ctx context.Context, userID string)
 }
 
 func (c Client) GetUserFundingsource(ctx context.Context, userID, fundingsourceID string) (*external.FundingSource, error) {
-	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/funds", c.baseUrl, userID))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/funds", c.baseUrl, userID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -296,7 +335,12 @@ func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransa
 }
 
 func (c Client) GetUserTransaction(ctx context.Context, userID, transactionID string) (*external.Transaction, error) {
-	resp, err := c.api.Get(fmt.Sprintf("%s/users/%s/transactions/%s", c.baseUrl, userID, transactionID))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/transactions/%s", c.baseUrl, userID, transactionID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -370,7 +414,12 @@ func (c Client) GetBanks(ctx context.Context, countryCode string) ([]external.Ba
 		return nil, fmt.Errorf("%w Failed to get banks url.", external.ErrInternal)
 	}
 
-	resp, err := c.api.Get(getBanksUrl.String())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, getBanksUrl.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -403,7 +452,12 @@ func (c Client) CreateUserWallet(ctx context.Context, userID, nickName string) (
 	}
 
 	postUrl := fmt.Sprintf("%s/%s", c.baseUrl, url.String())
-	resp, err := c.api.Post(postUrl, "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, postUrl, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -427,7 +481,12 @@ func (c Client) GetUserWallet(ctx context.Context, userID, walletID string) (*ex
 		return nil, fmt.Errorf("%w Failed to format url to get user wallet.", external.ErrInternal)
 	}
 
-	resp, err := c.api.Get(fmt.Sprintf("%s/%s", c.baseUrl, url.String()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/%s", c.baseUrl, url.String()), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -562,7 +621,12 @@ func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.Withdr
 	}
 
 	postUrl := fmt.Sprintf("%s/%s", c.baseUrl, urlPath.String())
-	resp, err := c.api.Post(postUrl, "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, postUrl, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -585,6 +649,8 @@ func parseResponse(resp *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, fmt.Errorf("%w statusCode: %d, message: %s, body: %s", external.ErrNotFound, resp.StatusCode, resp.Status, string(body))

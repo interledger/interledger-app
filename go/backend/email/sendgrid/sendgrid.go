@@ -5,6 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/sendgrid/rest"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
@@ -23,6 +27,9 @@ type client struct {
 }
 
 func NewClient(apiKey string) Client {
+	// Override the default API HTTP client. The lib doesn't seem to have a nice way to set this...
+	rest.DefaultClient.HTTPClient = otelhttp.DefaultClient
+
 	return &client{
 		from:   mail.NewEmail("Fynbos", "hello@fynbos.app"),
 		mailer: sendgrid.NewSendClient(apiKey),

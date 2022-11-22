@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	kratos "github.com/ory/kratos-client-go"
 
 	"go.uber.org/zap"
@@ -22,6 +24,7 @@ type client struct {
 func New(b Backends, kratosURL, kratosAdminURL string) user.Client {
 
 	configuration := kratos.NewConfiguration()
+	configuration.HTTPClient = otelhttp.DefaultClient
 	configuration.Servers = kratos.ServerConfigurations{
 		{
 			URL:         kratosURL,
