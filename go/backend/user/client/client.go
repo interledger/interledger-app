@@ -103,3 +103,7 @@ func (c *client) ListWallets(ctx context.Context, userID string) ([]user.Wallet,
 func (c *client) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
 	return ops.GetWallet(ctx, c.b, userID, id)
 }
+
+func (c *client) ListAllWallets(ctx context.Context, pagination db.Pagination) ([]user.Wallet, error) {
+	return ops.ListAllWallets(ctx, c.b, pagination)
+}

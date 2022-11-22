@@ -168,13 +168,30 @@ export interface PaginationResponse {
     hasNextPage: boolean;
 }
 /**
- * @generated from protobuf message backend.admin.v1.ListUsersResponse
+ * @generated from protobuf message backend.admin.v1.Wallet
  */
-export interface ListUsersResponse {
+export interface Wallet {
     /**
-     * @generated from protobuf field: repeated backend.admin.v1.User users = 1;
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string walletName = 2;
+     */
+    walletName: string;
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.User users = 3;
      */
     users: User[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListWalletsResponse
+ */
+export interface ListWalletsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.Wallet wallets = 1;
+     */
+    wallets: Wallet[];
     /**
      * @generated from protobuf field: backend.admin.v1.PaginationResponse page = 2;
      */
@@ -196,10 +213,6 @@ export interface User {
      * @generated from protobuf field: string phoneNumber = 3;
      */
     phoneNumber: string;
-    /**
-     * @generated from protobuf field: repeated string wallets = 4;
-     */
-    wallets: string[];
 }
 /**
  * @generated from protobuf message backend.admin.v1.AllowWaitlistSignupRequest
@@ -784,27 +797,88 @@ class PaginationResponse$Type extends MessageType<PaginationResponse> {
  */
 export const PaginationResponse = new PaginationResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListUsersResponse$Type extends MessageType<ListUsersResponse> {
+class Wallet$Type extends MessageType<Wallet> {
     constructor() {
-        super("backend.admin.v1.ListUsersResponse", [
-            { no: 1, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User },
-            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+        super("backend.admin.v1.Wallet", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User }
         ]);
     }
-    create(value?: PartialMessage<ListUsersResponse>): ListUsersResponse {
-        const message = { users: [] };
+    create(value?: PartialMessage<Wallet>): Wallet {
+        const message = { walletID: "", walletName: "", users: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<ListUsersResponse>(this, message, value);
+            reflectionMergePartial<Wallet>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListUsersResponse): ListUsersResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Wallet): Wallet {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.admin.v1.User users */ 1:
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string walletName */ 2:
+                    message.walletName = reader.string();
+                    break;
+                case /* repeated backend.admin.v1.User users */ 3:
                     message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Wallet, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string walletName = 2; */
+        if (message.walletName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletName);
+        /* repeated backend.admin.v1.User users = 3; */
+        for (let i = 0; i < message.users.length; i++)
+            User.internalBinaryWrite(message.users[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Wallet
+ */
+export const Wallet = new Wallet$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListWalletsResponse$Type extends MessageType<ListWalletsResponse> {
+    constructor() {
+        super("backend.admin.v1.ListWalletsResponse", [
+            { no: 1, name: "wallets", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Wallet },
+            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+        ]);
+    }
+    create(value?: PartialMessage<ListWalletsResponse>): ListWalletsResponse {
+        const message = { wallets: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListWalletsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListWalletsResponse): ListWalletsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.Wallet wallets */ 1:
+                    message.wallets.push(Wallet.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 case /* backend.admin.v1.PaginationResponse page */ 2:
                     message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
@@ -820,10 +894,10 @@ class ListUsersResponse$Type extends MessageType<ListUsersResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: ListUsersResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.admin.v1.User users = 1; */
-        for (let i = 0; i < message.users.length; i++)
-            User.internalBinaryWrite(message.users[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: ListWalletsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.Wallet wallets = 1; */
+        for (let i = 0; i < message.wallets.length; i++)
+            Wallet.internalBinaryWrite(message.wallets[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         /* backend.admin.v1.PaginationResponse page = 2; */
         if (message.page)
             PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
@@ -834,21 +908,20 @@ class ListUsersResponse$Type extends MessageType<ListUsersResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.admin.v1.ListUsersResponse
+ * @generated MessageType for protobuf message backend.admin.v1.ListWalletsResponse
  */
-export const ListUsersResponse = new ListUsersResponse$Type();
+export const ListWalletsResponse = new ListWalletsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class User$Type extends MessageType<User> {
     constructor() {
         super("backend.admin.v1.User", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "wallets", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<User>): User {
-        const message = { id: "", email: "", phoneNumber: "", wallets: [] };
+        const message = { id: "", email: "", phoneNumber: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<User>(this, message, value);
@@ -867,9 +940,6 @@ class User$Type extends MessageType<User> {
                     break;
                 case /* string phoneNumber */ 3:
                     message.phoneNumber = reader.string();
-                    break;
-                case /* repeated string wallets */ 4:
-                    message.wallets.push(reader.string());
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -892,9 +962,6 @@ class User$Type extends MessageType<User> {
         /* string phoneNumber = 3; */
         if (message.phoneNumber !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.phoneNumber);
-        /* repeated string wallets = 4; */
-        for (let i = 0; i < message.wallets.length; i++)
-            writer.tag(4, WireType.LengthDelimited).string(message.wallets[i]);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1087,7 +1154,7 @@ export const WaitlistSignup = new WaitlistSignup$Type();
 export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListWaitlistSignups", options: {}, I: Empty$, O: ListWaitlistSignupsResponse },
     { name: "AllowWaitlistSignup", options: {}, I: AllowWaitlistSignupRequest, O: Empty },
-    { name: "ListUsers", options: {}, I: PaginationRequest, O: ListUsersResponse },
+    { name: "ListWallets", options: {}, I: PaginationRequest, O: ListWalletsResponse },
     { name: "GetWalletDetails", options: {}, I: GetWalletDetailsRequest, O: WalletDetails },
     { name: "ListWalletTransactions", options: {}, I: ListWalletTransactionsRequest, O: ListWalletTransactionsResponse }
 ]);
