@@ -2,10 +2,7 @@ package ops
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -14,8 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 )
 
 const (
@@ -608,148 +603,9 @@ func WithdrawFromWallet(ctx context.Context, b Backends, args machnet.WithdrawFr
 	}, nil
 }
 
-func HandleEvent(ctx context.Context, b Backends, event external.Event) error {
-	var err error
-	switch event.EventName {
-	case external.UserCardAdded:
-		err = HandleUserCardAddedEvent(ctx, b, event)
-	case external.UserKYCInProgress, external.UserKYCSuspended, external.UserKYCRetry, external.UserKYCVerified, external.UserKYCReviewPending:
-		err = HandleUserKYCEvent(ctx, b, event)
-	case external.TransactionPendingEvent, external.TransactionProcessingEvent, external.TransactionHoldEvent,
-		external.TransactionProcessedEvent, external.TransactionCancelledEvent, external.TransactionFailedEvent,
-		external.TransactionReturnedEvent:
-		err = HandleTransactionEvent(ctx, b, event)
-	case external.TransactionDeliveryHoldEvent, external.TransactionDeliveryPendingEvent, external.TransactionDeliveryRequestedEvent,
-		external.TransactionDeliveredEvent, external.TransactionDeliveryFailedEvent, external.TransactionDeliveryAuthorizedEvent,
-		external.TransactionDeliveryPayoutReadyEvent:
-		err = HandleTransactionDeliveryEvent(ctx, b, event)
-	default:
-		log.Warn(
-			"Unhandled machnet event",
-			zap.String("eventName", event.EventName),
-			zap.String("externalUserID", event.UserID),
-			zap.String("externalResourceID", event.ResourceID),
-			zap.String("body", string(event.Payload)),
-		)
-	}
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func ValidateWebhook(ctx context.Context, b Backends, payload []byte, secret, signature string) error {
-	mac := hmac.New(sha256.New, []byte(secret))
-	if _, err := mac.Write(payload); err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	if signature != hex.EncodeToString(mac.Sum(nil)) {
-		return machnet.ErrInvalidSignature
-	}
-
-	return nil
-}
-
 func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 
 	_, err := b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2 AND kyc_status=$3", machnet.KYCStatusInProgress, userID, machnet.KYCStatusRetry)
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	return nil
-}
-
-func HandleUserKYCEvent(ctx context.Context, b Backends, event external.Event) error {
-	_, err := GetUserByID(ctx, b, event.UserID)
-	if err != nil {
-		return err
-	}
-
-	var newStatus machnet.KYCStatus
-	switch event.EventName {
-	case external.UserKYCInProgress:
-		newStatus = machnet.KYCStatusInProgress
-	case external.UserKYCSuspended:
-		newStatus = machnet.KYCStatusSuspended
-	case external.UserKYCRetry:
-		newStatus = machnet.KYCStatusRetry
-	case external.UserKYCVerified:
-		newStatus = machnet.KYCStatusVerified
-	case external.UserKYCReviewPending:
-		newStatus = machnet.KYCStatusReviewPending
-	}
-
-	_, err = b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2", newStatus, event.UserID)
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	refs, err := ListActiveUserWorkflowRefs(ctx, b, event.UserID)
-	if err != nil {
-		return err
-	}
-
-	for _, ref := range refs {
-		err = b.Temporal().SignalWorkflow(ctx, ref.WorkflowID, ref.WorkflowRunID, UserEventsChannel, event)
-		if err != nil {
-			return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-		}
-	}
-
-	return nil
-}
-
-func HandleUserCardAddedEvent(ctx context.Context, b Backends, event external.Event) error {
-	user, err := GetUserByID(ctx, b, event.UserID)
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	// TODO: find out if these details are in the event payload
-	card, err := b.External().GetUserFundingsource(ctx, user.ID, event.ResourceID)
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	_, err = b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID:   user.WalletID,
-		Name:       card.FundingsourceName,
-		Mask:       card.AccountNumber,
-		Provider:   machnet.ProviderName,
-		ProviderID: card.ID,
-		Type:       machnet.TypeSendCard,
-	})
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	return nil
-}
-
-func HandleTransactionEvent(ctx context.Context, b Backends, event external.Event) error {
-	trx, err := GetTransactionWorkflowRef(ctx, b, event.UserID, event.ResourceID)
-	if err != nil {
-		return err
-	}
-
-	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, TransactionEventsChannel, event)
-	if err != nil {
-		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	return nil
-}
-
-func HandleTransactionDeliveryEvent(ctx context.Context, b Backends, event external.Event) error {
-	trx, err := GetTransactionWorkflowRef(ctx, b, event.UserID, event.ResourceID)
-	if err != nil {
-		return err
-	}
-
-	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, TransactionDeliveryEventsChannel, event)
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
