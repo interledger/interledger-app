@@ -178,7 +178,7 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret, args.MachnetWebhookSecret)
+	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
 	var wg sync.WaitGroup
 
@@ -188,7 +188,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Handle("/webhooks/machnet", machnet_webhook.New(b))
+	router.Handle("/webhooks/machnet", machnet_webhook.New(b, args.MachnetWebhookSecret))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 

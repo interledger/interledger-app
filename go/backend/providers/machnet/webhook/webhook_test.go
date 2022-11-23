@@ -23,9 +23,8 @@ import (
 
 func TestWebhook(t *testing.T) {
 	t.Parallel()
-	ctrl := gomock.NewController(t)
-	b := backends{machnet: machnet_mock.NewMockClient(ctrl)}
-	wh := webhook.New(b)
+	b := webhook.NewTestBackends(t)
+	wh := webhook.New(b, "secret")
 
 	userCardAddedEvent := external.Event{
 		ID:             uuid.NewString(),

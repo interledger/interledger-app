@@ -20,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -41,28 +40,22 @@ func (b opsBackends) External() external.Client {
 	return b.external
 }
 
-func New(b Backends, clientID, clientSecret, webhookSecret string) machnet.Client {
+func New(b Backends, clientID, clientSecret string) machnet.Client {
 	opsBackends := opsBackends{
 		Backends: b,
 		external: inmemory_external_client.New(),
 	}
 	if !env.IsLocal() || (clientID != "" && clientSecret != "") {
 		opsBackends.external = external_client.New(clientID, clientSecret)
-
-		if webhookSecret == "" {
-			log.Error("machnet webhook secret not set")
-			panic("machnet webhook secret not set")
-		}
 	}
 
-	return &client{b: opsBackends, t: b.Temporal(), webhookSecret: webhookSecret, externalApi: opsBackends.external}
+	return &client{b: opsBackends, t: b.Temporal(), externalApi: opsBackends.external}
 }
 
 type client struct {
-	b             ops.Backends
-	t             temporal.Client
-	webhookSecret string
-	externalApi   external.Client
+	b           ops.Backends
+	t           temporal.Client
+	externalApi external.Client
 }
 
 func (c client) External() external.Client {
@@ -87,14 +80,6 @@ func (c client) CreateUser(ctx context.Context, args machnet.CreateArgs) (*machn
 
 func (c client) GetWidgetToken(ctx context.Context, walletID string) (*machnet.WidgetToken, error) {
 	return ops.GetWidgetToken(ctx, c.b, walletID)
-}
-
-func (c client) HandleEvent(ctx context.Context, event external.Event) error {
-	return ops.HandleEvent(ctx, c.b, event)
-}
-
-func (c client) ValidateWebhook(ctx context.Context, payload []byte, base64Signature string) error {
-	return ops.ValidateWebhook(ctx, c.b, payload, c.webhookSecret, base64Signature)
 }
 
 func (c client) StartSendUserKYC(ctx context.Context, walletID string) (machnet.Await, error) {
@@ -161,6 +146,7 @@ func (c client) CreateReceiveBankAccount(ctx context.Context, args machnet.Creat
 	return ops.CreateReceiveBankAccount(ctx, c.b, args)
 }
 
+/*
 func (c client) GetReceiveBankAccount(ctx context.Context, id string) (*machnet.ReceiveBankAccount, error) {
 	return ops.GetReceiveBankAccount(ctx, c.b, id)
 }
@@ -180,6 +166,7 @@ func (c client) CreateReceiveUserBankAccount(ctx context.Context, args machnet.C
 func (c client) GetReceiveUserBankAccount(ctx context.Context, args machnet.GetReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
 	return ops.GetReceiveUserBankAccount(ctx, c.b, args)
 }
+*/
 
 func (c client) GetBanks(ctx context.Context, countryCode string) ([]machnet.Bank, error) {
 	return ops.GetBanks(ctx, c.b, countryCode)
