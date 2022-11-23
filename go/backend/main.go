@@ -188,7 +188,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Handle("/webhooks/machnet", machnet_webhook.New(b, args.MachnetWebhookSecret))
+	router.Handle("/webhooks/machnet", machnet_webhook.New(b, args.MachnetWebhookSecret, args.MachnetClientID, args.MachnetClientSecret))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
