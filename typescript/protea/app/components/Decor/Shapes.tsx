@@ -611,5 +611,49 @@ const blogShapes: {
         color: 'bg-slate-300'
       }
     ]
+  ], 
+  'our-fynbos-family-meet-justin': [
+    [
+        {
+          radius: 'rounded-tl-full',
+          color: 'bg-green-100'
+        },
+        {
+          radius: 'rounded-br-full',
+          color: 'bg-green-600'
+        },
+        {
+          radius: 'rounded-full',
+          color: 'bg-green-300'
+        }
+    ],
+    [
+      {
+        radius: 'rounded-full',
+        color: 'bg-yellow-300'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-slate-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-slate-300'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-orange-500'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-orange-200'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-orange-600'
+      }
+    ]
   ]
 }
