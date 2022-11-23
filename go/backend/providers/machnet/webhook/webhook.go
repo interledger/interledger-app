@@ -13,6 +13,7 @@ import (
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
