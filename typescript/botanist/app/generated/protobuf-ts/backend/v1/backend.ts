@@ -508,18 +508,18 @@ export interface UpdateIndividualKYCRequest {
      */
     dateOfBirth?: Timestamp;
     /**
-     * @generated from protobuf field: optional backend.v1.UpdateIndividualKYCRequest.Address address = 6;
+     * @generated from protobuf field: optional backend.v1.Address address = 6;
      */
-    address?: UpdateIndividualKYCRequest_Address;
+    address?: Address;
     /**
      * @generated from protobuf field: string ipAddress = 7;
      */
     ipAddress: string;
 }
 /**
- * @generated from protobuf message backend.v1.UpdateIndividualKYCRequest.Address
+ * @generated from protobuf message backend.v1.Address
  */
-export interface UpdateIndividualKYCRequest_Address {
+export interface Address {
     /**
      * @generated from protobuf field: optional string line1 = 1;
      */
@@ -560,6 +560,15 @@ export interface UpdateIndividualKYCRequest_Address {
      * @generated from protobuf field: optional string formattedAddress = 10;
      */
     formattedAddress?: string;
+}
+/**
+ * @generated from protobuf message backend.v1.IsUSPSAddressResponse
+ */
+export interface IsUSPSAddressResponse {
+    /**
+     * @generated from protobuf field: bool valid = 1;
+     */
+    valid: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.GetBankAccountWidgetRequest
@@ -2728,7 +2737,7 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
             { no: 3, name: "countryCode", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "gender", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 5, name: "dateOfBirth", kind: "message", T: () => Timestamp },
-            { no: 6, name: "address", kind: "message", T: () => UpdateIndividualKYCRequest_Address },
+            { no: 6, name: "address", kind: "message", T: () => Address },
             { no: 7, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
@@ -2759,8 +2768,8 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
                 case /* optional google.protobuf.Timestamp dateOfBirth */ 5:
                     message.dateOfBirth = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.dateOfBirth);
                     break;
-                case /* optional backend.v1.UpdateIndividualKYCRequest.Address address */ 6:
-                    message.address = UpdateIndividualKYCRequest_Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
+                case /* optional backend.v1.Address address */ 6:
+                    message.address = Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
                     break;
                 case /* string ipAddress */ 7:
                     message.ipAddress = reader.string();
@@ -2792,9 +2801,9 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
         /* optional google.protobuf.Timestamp dateOfBirth = 5; */
         if (message.dateOfBirth)
             Timestamp.internalBinaryWrite(message.dateOfBirth, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
-        /* optional backend.v1.UpdateIndividualKYCRequest.Address address = 6; */
+        /* optional backend.v1.Address address = 6; */
         if (message.address)
-            UpdateIndividualKYCRequest_Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+            Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         /* string ipAddress = 7; */
         if (message.ipAddress !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.ipAddress);
@@ -2809,9 +2818,9 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
  */
 export const UpdateIndividualKYCRequest = new UpdateIndividualKYCRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdateIndividualKYCRequest_Address$Type extends MessageType<UpdateIndividualKYCRequest_Address> {
+class Address$Type extends MessageType<Address> {
     constructor() {
-        super("backend.v1.UpdateIndividualKYCRequest.Address", [
+        super("backend.v1.Address", [
             { no: 1, name: "line1", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "line2", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "building", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
@@ -2824,14 +2833,14 @@ class UpdateIndividualKYCRequest_Address$Type extends MessageType<UpdateIndividu
             { no: 10, name: "formattedAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<UpdateIndividualKYCRequest_Address>): UpdateIndividualKYCRequest_Address {
+    create(value?: PartialMessage<Address>): Address {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdateIndividualKYCRequest_Address>(this, message, value);
+            reflectionMergePartial<Address>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateIndividualKYCRequest_Address): UpdateIndividualKYCRequest_Address {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Address): Address {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -2877,7 +2886,7 @@ class UpdateIndividualKYCRequest_Address$Type extends MessageType<UpdateIndividu
         }
         return message;
     }
-    internalBinaryWrite(message: UpdateIndividualKYCRequest_Address, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: Address, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* optional string line1 = 1; */
         if (message.line1 !== undefined)
             writer.tag(1, WireType.LengthDelimited).string(message.line1);
@@ -2915,9 +2924,56 @@ class UpdateIndividualKYCRequest_Address$Type extends MessageType<UpdateIndividu
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.UpdateIndividualKYCRequest.Address
+ * @generated MessageType for protobuf message backend.v1.Address
  */
-export const UpdateIndividualKYCRequest_Address = new UpdateIndividualKYCRequest_Address$Type();
+export const Address = new Address$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IsUSPSAddressResponse$Type extends MessageType<IsUSPSAddressResponse> {
+    constructor() {
+        super("backend.v1.IsUSPSAddressResponse", [
+            { no: 1, name: "valid", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IsUSPSAddressResponse>): IsUSPSAddressResponse {
+        const message = { valid: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IsUSPSAddressResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IsUSPSAddressResponse): IsUSPSAddressResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool valid */ 1:
+                    message.valid = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IsUSPSAddressResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool valid = 1; */
+        if (message.valid !== false)
+            writer.tag(1, WireType.Varint).bool(message.valid);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IsUSPSAddressResponse
+ */
+export const IsUSPSAddressResponse = new IsUSPSAddressResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetBankAccountWidgetRequest$Type extends MessageType<GetBankAccountWidgetRequest> {
     constructor() {
@@ -5133,6 +5189,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
  */
 export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UpdateIndividualKYC", options: {}, I: UpdateIndividualKYCRequest, O: Empty },
+    { name: "IsUSPSAddress", options: {}, I: Address, O: IsUSPSAddressResponse },
     { name: "SetSignupUserData", options: {}, I: SetSignupUserDataRequest, O: SetSignupUserDataResponse },
     { name: "SetSignupMobileNumber", options: {}, I: SetSignupMobileNumberRequest, O: Empty },
     { name: "GetSignup", options: {}, I: GetSignupRequest, O: Signup },

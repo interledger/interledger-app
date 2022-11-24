@@ -21,6 +21,7 @@ require (
 	github.com/riandyrn/otelchi v0.4.0
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
+	github.com/smartystreets/smartystreets-go-sdk v1.15.1
 	github.com/stretchr/testify v1.8.0
 	github.com/testcontainers/testcontainers-go v0.12.0
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.1.16

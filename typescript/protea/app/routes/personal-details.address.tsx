@@ -18,7 +18,7 @@ import {
 } from '~/lib/proto.server'
 import { requireUserSession } from '~/lib/kratos.server'
 import { useCallback } from 'react'
-import type { UpdateIndividualKYCRequest_Address } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { Address } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getClientIP } from '~/lib/ip.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -197,7 +197,7 @@ export async function action({ request }: ActionArgs) {
   const placeID = form.get('placeID') as string
   const formattedAddress = form.get('formattedAddress') as string
 
-  const address: UpdateIndividualKYCRequest_Address = {
+  const address: Address = {
     line1,
     line2,
     building,

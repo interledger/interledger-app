@@ -58,18 +58,7 @@ func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndi
 	}
 
 	if req.Address != nil {
-		update.Address = &kyc.Address{
-			Line1:            req.Address.GetLine1(),
-			Line2:            req.Address.GetLine2(),
-			Building:         req.Address.GetBuilding(),
-			Apartment:        req.Address.GetApartment(),
-			City:             req.Address.GetCity(),
-			State:            req.Address.GetState(),
-			ZipCode:          req.Address.GetZipCode(),
-			CountryCode:      req.Address.GetCountryCode(),
-			FormattedAddress: req.Address.GetFormattedAddress(),
-			PlaceID:          req.Address.GetPlaceID(),
-		}
+		update.Address = addressFromPB(req.Address)
 		// Validate struct doesn't validate sub structs individually, so we do it manually
 		err = s.b.Validator().Struct(update.Address)
 		if err != nil {
@@ -83,4 +72,43 @@ func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndi
 	}
 
 	return &pb.Empty{}, nil
+}
+
+func addressFromPB(address *pb.Address) *kyc.Address {
+	if address == nil {
+		return nil
+	}
+
+	return &kyc.Address{
+		Line1:            address.GetLine1(),
+		Line2:            address.GetLine2(),
+		Building:         address.GetBuilding(),
+		Apartment:        address.GetApartment(),
+		City:             address.GetCity(),
+		State:            address.GetState(),
+		ZipCode:          address.GetZipCode(),
+		CountryCode:      address.GetCountryCode(),
+		FormattedAddress: address.GetFormattedAddress(),
+		PlaceID:          address.GetPlaceID(),
+	}
+}
+
+func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.IsUSPSAddressResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	address := addressFromPB(req)
+	// Validate struct doesn't validate sub structs individually, so we do it manually
+	err = s.b.Validator().Struct(address)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	valid, err := s.b.KYC().IsUSPSAddress(ctx, *address)
+
+	return &pb.IsUSPSAddressResponse{
+		Valid: valid,
+	}, toGRPCError(err)
 }

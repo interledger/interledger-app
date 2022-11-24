@@ -86,7 +86,7 @@ func TestUpdateUserKYC(t *testing.T) {
 		Gender:      &genderFemale,
 		IpAddress:   "41.71.7.130",
 		DateOfBirth: timestamppb.New(ud.DateOfBirth),
-		Address: &pb.UpdateIndividualKYCRequest_Address{
+		Address: &pb.Address{
 			Line1:       &ud.Address.Line1,
 			Line2:       &ud.Address.Line2,
 			Building:    &ud.Address.Building,
@@ -108,7 +108,7 @@ func TestUpdateUserKYC(t *testing.T) {
 		// CountryCode: &badCountryCode,
 		Gender:      &genderFemale,
 		DateOfBirth: timestamppb.New(ud.DateOfBirth),
-		Address: &pb.UpdateIndividualKYCRequest_Address{
+		Address: &pb.Address{
 			Line1:       &ud.Address.Line1,
 			Line2:       &ud.Address.Line2,
 			Building:    &ud.Address.Building,

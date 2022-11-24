@@ -50,6 +50,21 @@ func (mr *MockClientMockRecorder) GetIndividualDetails(ctx, walletID interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndividualDetails", reflect.TypeOf((*MockClient)(nil).GetIndividualDetails), ctx, walletID)
 }
 
+// IsUSPSAddress mocks base method.
+func (m *MockClient) IsUSPSAddress(ctx context.Context, address kyc.Address) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsUSPSAddress", ctx, address)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsUSPSAddress indicates an expected call of IsUSPSAddress.
+func (mr *MockClientMockRecorder) IsUSPSAddress(ctx, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUSPSAddress", reflect.TypeOf((*MockClient)(nil).IsUSPSAddress), ctx, address)
+}
+
 // UpdateIndividualDetails mocks base method.
 func (m *MockClient) UpdateIndividualDetails(ctx context.Context, args kyc.IndividualDetails) (*kyc.IndividualDetails, error) {
 	m.ctrl.T.Helper()
