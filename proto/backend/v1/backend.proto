@@ -162,6 +162,7 @@ message Empty {}
 
 service BackendService {
   rpc UpdateIndividualKYC(UpdateIndividualKYCRequest) returns (Empty);
+  rpc IsUSPSAddress(Address) returns (IsUSPSAddressResponse);
   rpc SetSignupUserData(SetSignupUserDataRequest) returns (SetSignupUserDataResponse);
   rpc SetSignupMobileNumber(SetSignupMobileNumberRequest) returns (Empty);
   // Returns the current signup flow.
@@ -234,19 +235,23 @@ message UpdateIndividualKYCRequest {
   optional google.protobuf.Timestamp dateOfBirth = 5;
   optional Address address = 6;
   string ipAddress = 7;
+}
 
-  message Address {
-    optional string line1 = 1;
-    optional string line2 = 2;
-    optional string building = 3;
-    optional string apartment = 4;
-    optional string city = 5;
-    optional string state = 6;
-    optional string zipCode = 7;
-    optional string countryCode = 8;
-    optional string placeID = 9;
-    optional string formattedAddress = 10;
-  }
+message Address {
+  optional string line1 = 1;
+  optional string line2 = 2;
+  optional string building = 3;
+  optional string apartment = 4;
+  optional string city = 5;
+  optional string state = 6;
+  optional string zipCode = 7;
+  optional string countryCode = 8;
+  optional string placeID = 9;
+  optional string formattedAddress = 10;
+}
+
+message IsUSPSAddressResponse {
+  bool valid = 1;
 }
 
 message GetBankAccountWidgetRequest {}

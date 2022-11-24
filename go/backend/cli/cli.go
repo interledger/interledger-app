@@ -110,6 +110,8 @@ type StartArgs struct {
 	AdminPolicyAud            string
 	AdminTeamDomain           string
 	SendgridAPIKey            string
+	SmartyAuthID              string
+	SmartyAuthToken           string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -247,10 +249,12 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioSid:                 TwilioSid,
 		TwilioSecret:              TwilioSecret,
 		TwilioServiceSid:          twilioServiceSid,
-		ZendeskToken:              zendeskToken,
 		ZendeskUser:               zendeskUser,
+		ZendeskToken:              zendeskToken,
 		AdminPolicyAud:            os.Getenv("ADMIN_POLICY_AUD"),
 		AdminTeamDomain:           os.Getenv("ADMIN_TEAM_DOMAIN"),
 		SendgridAPIKey:            os.Getenv("SENDGRID_API_KEY"),
+		SmartyAuthID:              os.Getenv("SMARTY_AUTH_ID"),
+		SmartyAuthToken:           os.Getenv("SMARTY_AUTH_TOKEN"),
 	}, nil
 }
