@@ -95,13 +95,13 @@ export default function Page() {
           <div className='hidden sm:flex'>
             <Shape
               width={'w-8'}
-              radius={'rounded-tr-full'}
-              color={'bg-lime-400'}
+              radius={'rounded-full'}
+              color={'bg-rose-500'}
             />
             <Shape
               width={'w-8'}
-              radius={'rounded-tl-full'}
-              color={'bg-slate-300'}
+              radius={'rounded-tr-full'}
+              color={'bg-lime-300'}
             />
           </div>
         </div>

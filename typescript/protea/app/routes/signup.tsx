@@ -22,63 +22,83 @@ export default function Page() {
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <h1 className='mb-6 font-display text-2xl font-medium'>Sign up</h1>
-      <span>Here's what we will need to create your account.</span>
+      <span>Here's what we will need to create your account:</span>
       <div className='mt-6 flex items-start'>
         <Shape
+          flex='flex-none'
           width={'w-8'}
           radius={'rounded-tl-full'}
           color={'bg-yellow-300'}
         />
         <Shape
+          flex='flex-none'
           width={'w-8'}
           radius={'rounded-bl-full'}
           color={'bg-slate-500'}
         />
         <div className='ml-5'>
           <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
-          <p className='text-sm text-medium'>
+          <p className='text-xs text-medium'>
             Your name, email address and country of residence.
           </p>
         </div>
       </div>
       <div className='mt-10 flex items-start'>
         <Shape
+          flex='flex-none'
           width={'w-8'}
           radius={'rounded-bl-full'}
-          color={'bg-slate-300'}
+          color={'bg-rose-400'}
         />
-        <Shape width={'w-8'} radius={'rounded-full'} color={'bg-lime-500'} />
+        <Shape
+          flex='flex-none'
+          width={'w-8'}
+          radius={'rounded-full'}
+          color={'bg-lime-500'}
+        />
         <div className='ml-5'>
           <h3 className='mb-1 font-medium text-strong'>Phone number</h3>
-          <p className='text-sm text-medium'>
+          <p className='text-xs text-medium'>
             A mobile phone number we can verify.
           </p>
         </div>
       </div>
       <div className='mt-10 flex items-start'>
-        <Shape width={'w-8'} radius={'rounded-bl-full'} color={'bg-rose-400'} />
         <Shape
+          flex='flex-none'
           width={'w-8'}
           radius={'rounded-tl-full'}
           color={'bg-yellow-300'}
         />
+        <Shape
+          flex='flex-none'
+          width={'w-8'}
+          radius={'rounded-bl-full'}
+          color={'bg-slate-300'}
+        />
         <div className='ml-5'>
           <h3 className='mb-1 font-medium text-strong'>Password</h3>
-          <p className='text-sm text-medium'>
+          <p className='text-xs text-medium'>
             Create a password we can verify.
           </p>
         </div>
       </div>
       <div className='mt-10 flex items-start'>
-        <Shape width={'w-8'} radius={'rounded-tr-full'} color={'bg-lime-400'} />
         <Shape
+          flex='flex-none'
           width={'w-8'}
-          radius={'rounded-tl-full'}
-          color={'bg-slate-300'}
+          radius={'rounded-full'}
+          color={'bg-rose-500'}
+        />
+        <Shape
+          flex='flex-none'
+          width={'w-8'}
+          radius={'rounded-tr-full'}
+          color={'bg-lime-300'}
         />
         <div className='ml-5'>
           <h3 className='mb-1 font-medium text-strong'>Payment pointer</h3>
-          <p className='text-sm text-medium'>
+          <p className='text-xs text-medium'>
             Create a unique payment pointer.
           </p>
         </div>
