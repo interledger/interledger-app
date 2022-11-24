@@ -91,7 +91,7 @@ export default function Page() {
             <Shape
               width={'w-8'}
               radius={'rounded-bl-full'}
-              color={'bg-slate-300'}
+              color={'bg-rose-400'}
             />
             <Shape
               width={'w-8'}

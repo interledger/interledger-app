@@ -18,13 +18,21 @@ export type ShapeProps = {
   width?: string
   radius: Radius
   color: string
+  flex?: 'flex-1' | 'flex-auto' | 'flex-initial' | 'flex-none'
 }
 
-export const Shape: FC<ShapeProps> = ({ children, width, radius, color }) => {
+export const Shape: FC<ShapeProps> = ({
+  children,
+  width,
+  radius,
+  color,
+  flex = 'flex-initial'
+}) => {
   return (
     <div
       className={clsx(
         'flex aspect-square items-center justify-center',
+        flex,
         width || 'w-full',
         radius,
         color
