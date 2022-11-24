@@ -1,6 +1,6 @@
 import { getSession, commitSession } from '~/session.server'
 
-type Snackbar = {
+export type SnackbarType = {
   message: string
   show?: boolean
   action?: string
@@ -15,7 +15,7 @@ type Snackbar = {
  */
 export async function flashSnackbar(
   request: Request,
-  snackbar: Snackbar
+  snackbar: SnackbarType
 ): Promise<string> {
   const session = await getSession(request.headers.get('Cookie'))
   session.flash('snackbar', snackbar)
@@ -25,9 +25,9 @@ export async function flashSnackbar(
 /**
  * Fetches the data for a snackbar, and commits the session so the snackbar has been spent.
  * @param request Request
- * @returns Promise<Snackbar>
+ * @returns Promise<SnackbarType>
  */
-export async function getSnackbar(request: Request): Promise<Snackbar> {
+export async function getSnackbar(request: Request): Promise<SnackbarType> {
   const session = await getSession(request.headers.get('Cookie'))
 
   const snackbar = {

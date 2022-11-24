@@ -21,6 +21,8 @@ import {
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
 import { Fragment, useState } from 'react'
+import type { SnackbarType } from '~/lib/snackbar.server'
+import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = await hasUserSession(request)
@@ -37,7 +39,10 @@ export async function loader({ request }: LoaderArgs) {
       formatted: ''
     },
     balance: '',
-    transactions: [] as Transaction[]
+    transactions: [] as Transaction[],
+    snackbar: {
+      message: ''
+    } as SnackbarType
   }
 
   if (isUser) {
@@ -46,13 +51,15 @@ export async function loader({ request }: LoaderArgs) {
       paymentPointer,
       balance,
       pendingTransactions,
-      transactions
+      transactions,
+      snackbar
     ] = await Promise.all([
       requireUserSession(request),
       getWalletPaymentPointer(request),
       getWalletBalance(request),
       getPendingTransactions(request),
-      getTransactions(request, { page: 1, pageSize: 3 })
+      getTransactions(request, { page: 1, pageSize: 3 }),
+      getSnackbar(request)
     ])
 
     /** TODO whatNext state machine
@@ -68,7 +75,8 @@ export async function loader({ request }: LoaderArgs) {
       firstName: session.identity.traits.firstName,
       paymentPointer,
       balance,
-      transactions: [...pendingTransactions, ...transactions]
+      transactions: [...pendingTransactions, ...transactions],
+      snackbar
     }
   }
   return json(data)
@@ -363,19 +371,14 @@ function MarketingPage() {
 }
 
 function AppPage() {
-  const { firstName, paymentPointer, balance, transactions } =
+  const { firstName, paymentPointer, snackbar, balance, transactions } =
     useLoaderData<typeof loader>()
 
-  const [snackbar, setSnackbar] = useState<any>({
-    message: '',
-    action: '',
-    icon: 'close',
-    show: false
-  })
-
+  const [snackbarState, setSnackbar] = useState<any>(snackbar)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
   )
+
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -393,14 +396,16 @@ function AppPage() {
               () => {
                 setSnackbar({
                   message: 'Payment pointer copied to clipboard.',
-                  icon: 'close'
+                  icon: 'close',
+                  show: true
                 })
                 setShowSnackbar(true)
               },
               () => {
                 setSnackbar({
                   message: "Couldn't copy to clipboard.",
-                  icon: 'close'
+                  icon: 'close',
+                  show: true
                 })
                 setShowSnackbar(true)
               }
@@ -512,9 +517,9 @@ function AppPage() {
         ))}
       </div>
       <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
+        message={snackbarState.message}
+        action={snackbarState.action}
+        icon={snackbarState.icon}
         show={showSnackbar}
         id='cookie-snackbar'
         dismissAfter={3000}
