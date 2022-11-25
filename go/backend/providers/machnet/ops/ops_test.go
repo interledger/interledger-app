@@ -119,16 +119,7 @@ func TestGetUserKYC(t *testing.T) {
 
 			uk, err = ops.GetKYCStatus(ctx, b, args.WalletID)
 			require.NoError(t, err)
-			for _, ex := range tc.failed {
-				var found bool
-				for _, ac := range uk.FailedFields {
-					if ac == ex {
-						found = true
-						break
-					}
-				}
-				assert.True(t, found, ex)
-			}
+			assert.ElementsMatch(t, tc.failed, uk.FailedFields)
 		})
 	}
 }
