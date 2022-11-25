@@ -528,6 +528,7 @@ type BackendServiceClient interface {
 	CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	CreateSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error)
+	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
 	WithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*MachnetWalletWithdrawal, error)
@@ -735,6 +736,15 @@ func (c *backendServiceClient) HasSendUser(ctx context.Context, in *Empty, opts 
 	return out, nil
 }
 
+func (c *backendServiceClient) KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error) {
+	out := new(KYCStatusResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/KYCStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateWallet", in, out, opts...)
@@ -828,6 +838,7 @@ type BackendServiceServer interface {
 	CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error)
 	CreateSendUser(context.Context, *Empty) (*Empty, error)
 	HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error)
+	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
 	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
 	WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error)
@@ -904,6 +915,9 @@ func (UnimplementedBackendServiceServer) CreateSendUser(context.Context, *Empty)
 }
 func (UnimplementedBackendServiceServer) HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HasSendUser not implemented")
+}
+func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KYCStatus not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWallet not implemented")
@@ -1316,6 +1330,24 @@ func _BackendService_HasSendUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_KYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).KYCStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/KYCStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).KYCStatus(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_CreateWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateWalletRequest)
 	if err := dec(in); err != nil {
@@ -1532,6 +1564,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HasSendUser",
 			Handler:    _BackendService_HasSendUser_Handler,
+		},
+		{
+			MethodName: "KYCStatus",
+			Handler:    _BackendService_KYCStatus_Handler,
 		},
 		{
 			MethodName: "CreateWallet",
