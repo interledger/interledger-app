@@ -187,7 +187,7 @@ func (b backends) MachnetExternal() machnet_external.Client {
 
 func (b *backends) KYC() kyc.Client {
 	if b.kyc == nil {
-		b.kyc = kyc_client.New(b, "ID", "TOKEN")
+		b.kyc, _ = kyc_client.New(b, "ID", "TOKEN")
 	}
 	return b.kyc
 }

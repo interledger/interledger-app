@@ -212,7 +212,10 @@ func start(args *cli.StartArgs) {
 
 	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
-	b.kyc = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
@@ -341,7 +344,10 @@ func startWorker(args *cli.StartArgs) {
 
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 
-	b.kyc = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	b.linkedaccounts = linked_account_client.New(b, logger)
 

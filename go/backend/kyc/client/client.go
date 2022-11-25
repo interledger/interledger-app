@@ -2,6 +2,9 @@ package client
 
 import (
 	"context"
+	"errors"
+
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/address"
@@ -15,11 +18,16 @@ type client struct {
 	val address.Validator
 }
 
-func New(b ops.Backends, smartyAuthID, smartyAuthToken string) kyc.Client {
+func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
+	if (smartyAuthID == "" || smartyAuthToken == "") &&
+		(env.IsSandbox() || env.IsProd()) {
+		return nil, errors.New("no auth information for smarty address verification")
+	}
+
 	return &client{
 		b:   b,
 		val: address.New(smartyAuthID, smartyAuthToken),
-	}
+	}, nil
 }
 
 func (c client) IsUSPSAddress(ctx context.Context, address kyc.Address) (bool, error) {
