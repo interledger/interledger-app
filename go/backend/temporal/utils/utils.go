@@ -16,7 +16,9 @@ func IsNonRetryableError(err error) bool {
 	}
 
 	var applicationError *temporal.ApplicationError
-	errors.As(err, &applicationError)
+	if !errors.As(err, &applicationError) {
+		return false
+	}
 
 	return applicationError.NonRetryable()
 }
