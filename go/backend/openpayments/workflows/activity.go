@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/email"
 	"math"
 	"time"
 
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -149,19 +149,4 @@ func formatMoney(amount openpayments.Amount) string {
 	value := fmt.Sprintf("%d", amount.Value)
 	length := len(value)
 	return "$ " + value[0:length-amount.AssetScale] + "." + value[length-amount.AssetScale:]
-}
-
-func isNonRetryableError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	if !temporal.IsApplicationError(err) {
-		return false
-	}
-
-	var applicationError *temporal.ApplicationError
-	errors.As(err, &applicationError)
-
-	return applicationError.NonRetryable()
 }

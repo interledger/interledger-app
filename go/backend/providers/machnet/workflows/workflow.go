@@ -124,7 +124,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	}
 
 	// The fund wallet has 7 days to complete
-	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*7)
+	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*8)
 
 	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
 	var doBreak bool
