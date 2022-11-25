@@ -13,10 +13,206 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
  * @generated from protobuf message backend.admin.v1.Empty
  */
 export interface Empty {
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListWalletTransactionsRequest
+ */
+export interface ListWalletTransactionsRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: backend.admin.v1.PaginationRequest page = 2;
+     */
+    page?: PaginationRequest;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListWalletTransactionsResponse
+ */
+export interface ListWalletTransactionsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.Transaction transactions = 1;
+     */
+    transactions: Transaction[];
+    /**
+     * @generated from protobuf field: backend.admin.v1.PaginationResponse page = 2;
+     */
+    page?: PaginationResponse;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Transaction
+ */
+export interface Transaction {
+    /**
+     * @generated from protobuf field: string walletID = 8;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string type = 2;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: string asset = 7;
+     */
+    asset: string;
+    /**
+     * @generated from protobuf field: double amount = 3;
+     */
+    amount: number;
+    /**
+     * @generated from protobuf field: string source = 4;
+     */
+    source: string;
+    /**
+     * @generated from protobuf field: string destination = 5;
+     */
+    destination: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp timestamp = 6;
+     */
+    timestamp?: Timestamp;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetUserTransactionsRequest
+ */
+export interface GetUserTransactionsRequest {
+    /**
+     * @generated from protobuf field: string userID = 1;
+     */
+    userID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetWalletDetailsRequest
+ */
+export interface GetWalletDetailsRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.WalletDetails
+ */
+export interface WalletDetails {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.User users = 8;
+     */
+    users: User[];
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string firstName = 2;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 3;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string countryCode = 4;
+     */
+    countryCode: string;
+    /**
+     * @generated from protobuf field: int32 gender = 5;
+     */
+    gender: number; // 0 Unknown, 1 Male, 2 Female, 3 Other
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp dateOfBirth = 6;
+     */
+    dateOfBirth?: Timestamp;
+    /**
+     * @generated from protobuf field: string address = 7;
+     */
+    address: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.PaginationRequest
+ */
+export interface PaginationRequest {
+    /**
+     * @generated from protobuf field: int32 page = 1;
+     */
+    page: number;
+    /**
+     * @generated from protobuf field: int32 pageSize = 2;
+     */
+    pageSize: number;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.PaginationResponse
+ */
+export interface PaginationResponse {
+    /**
+     * @generated from protobuf field: int32 page = 1;
+     */
+    page: number;
+    /**
+     * @generated from protobuf field: int32 pageSize = 2;
+     */
+    pageSize: number;
+    /**
+     * @generated from protobuf field: bool hasNextPage = 3;
+     */
+    hasNextPage: boolean;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Wallet
+ */
+export interface Wallet {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string walletName = 2;
+     */
+    walletName: string;
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.User users = 3;
+     */
+    users: User[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListWalletsResponse
+ */
+export interface ListWalletsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.Wallet wallets = 1;
+     */
+    wallets: Wallet[];
+    /**
+     * @generated from protobuf field: backend.admin.v1.PaginationResponse page = 2;
+     */
+    page?: PaginationResponse;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.User
+ */
+export interface User {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string email = 2;
+     */
+    email: string;
+    /**
+     * @generated from protobuf field: string phoneNumber = 3;
+     */
+    phoneNumber: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.AllowWaitlistSignupRequest
@@ -91,6 +287,691 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.admin.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListWalletTransactionsRequest$Type extends MessageType<ListWalletTransactionsRequest> {
+    constructor() {
+        super("backend.admin.v1.ListWalletTransactionsRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "page", kind: "message", T: () => PaginationRequest }
+        ]);
+    }
+    create(value?: PartialMessage<ListWalletTransactionsRequest>): ListWalletTransactionsRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListWalletTransactionsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListWalletTransactionsRequest): ListWalletTransactionsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* backend.admin.v1.PaginationRequest page */ 2:
+                    message.page = PaginationRequest.internalBinaryRead(reader, reader.uint32(), options, message.page);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListWalletTransactionsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* backend.admin.v1.PaginationRequest page = 2; */
+        if (message.page)
+            PaginationRequest.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListWalletTransactionsRequest
+ */
+export const ListWalletTransactionsRequest = new ListWalletTransactionsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListWalletTransactionsResponse$Type extends MessageType<ListWalletTransactionsResponse> {
+    constructor() {
+        super("backend.admin.v1.ListWalletTransactionsResponse", [
+            { no: 1, name: "transactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transaction },
+            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+        ]);
+    }
+    create(value?: PartialMessage<ListWalletTransactionsResponse>): ListWalletTransactionsResponse {
+        const message = { transactions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListWalletTransactionsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListWalletTransactionsResponse): ListWalletTransactionsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.Transaction transactions */ 1:
+                    message.transactions.push(Transaction.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* backend.admin.v1.PaginationResponse page */ 2:
+                    message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListWalletTransactionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.Transaction transactions = 1; */
+        for (let i = 0; i < message.transactions.length; i++)
+            Transaction.internalBinaryWrite(message.transactions[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.admin.v1.PaginationResponse page = 2; */
+        if (message.page)
+            PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListWalletTransactionsResponse
+ */
+export const ListWalletTransactionsResponse = new ListWalletTransactionsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Transaction$Type extends MessageType<Transaction> {
+    constructor() {
+        super("backend.admin.v1.Transaction", [
+            { no: 8, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
+            { no: 4, name: "source", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "timestamp", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<Transaction>): Transaction {
+        const message = { walletID: "", id: "", type: "", asset: "", amount: 0, source: "", destination: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Transaction>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Transaction): Transaction {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 8:
+                    message.walletID = reader.string();
+                    break;
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string type */ 2:
+                    message.type = reader.string();
+                    break;
+                case /* string asset */ 7:
+                    message.asset = reader.string();
+                    break;
+                case /* double amount */ 3:
+                    message.amount = reader.double();
+                    break;
+                case /* string source */ 4:
+                    message.source = reader.string();
+                    break;
+                case /* string destination */ 5:
+                    message.destination = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp timestamp */ 6:
+                    message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Transaction, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 8; */
+        if (message.walletID !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.walletID);
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string type = 2; */
+        if (message.type !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
+        /* string asset = 7; */
+        if (message.asset !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.asset);
+        /* double amount = 3; */
+        if (message.amount !== 0)
+            writer.tag(3, WireType.Bit64).double(message.amount);
+        /* string source = 4; */
+        if (message.source !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.source);
+        /* string destination = 5; */
+        if (message.destination !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.destination);
+        /* google.protobuf.Timestamp timestamp = 6; */
+        if (message.timestamp)
+            Timestamp.internalBinaryWrite(message.timestamp, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Transaction
+ */
+export const Transaction = new Transaction$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetUserTransactionsRequest$Type extends MessageType<GetUserTransactionsRequest> {
+    constructor() {
+        super("backend.admin.v1.GetUserTransactionsRequest", [
+            { no: 1, name: "userID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetUserTransactionsRequest>): GetUserTransactionsRequest {
+        const message = { userID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetUserTransactionsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetUserTransactionsRequest): GetUserTransactionsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string userID */ 1:
+                    message.userID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetUserTransactionsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string userID = 1; */
+        if (message.userID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.userID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetUserTransactionsRequest
+ */
+export const GetUserTransactionsRequest = new GetUserTransactionsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetWalletDetailsRequest$Type extends MessageType<GetWalletDetailsRequest> {
+    constructor() {
+        super("backend.admin.v1.GetWalletDetailsRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetWalletDetailsRequest>): GetWalletDetailsRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetWalletDetailsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetWalletDetailsRequest): GetWalletDetailsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetWalletDetailsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetWalletDetailsRequest
+ */
+export const GetWalletDetailsRequest = new GetWalletDetailsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WalletDetails$Type extends MessageType<WalletDetails> {
+    constructor() {
+        super("backend.admin.v1.WalletDetails", [
+            { no: 8, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User },
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "gender", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 6, name: "dateOfBirth", kind: "message", T: () => Timestamp },
+            { no: 7, name: "address", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WalletDetails>): WalletDetails {
+        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WalletDetails>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletDetails): WalletDetails {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.User users */ 8:
+                    message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string firstName */ 2:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 3:
+                    message.lastName = reader.string();
+                    break;
+                case /* string countryCode */ 4:
+                    message.countryCode = reader.string();
+                    break;
+                case /* int32 gender */ 5:
+                    message.gender = reader.int32();
+                    break;
+                case /* google.protobuf.Timestamp dateOfBirth */ 6:
+                    message.dateOfBirth = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.dateOfBirth);
+                    break;
+                case /* string address */ 7:
+                    message.address = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WalletDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.User users = 8; */
+        for (let i = 0; i < message.users.length; i++)
+            User.internalBinaryWrite(message.users[i], writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string firstName = 2; */
+        if (message.firstName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 3; */
+        if (message.lastName !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.lastName);
+        /* string countryCode = 4; */
+        if (message.countryCode !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.countryCode);
+        /* int32 gender = 5; */
+        if (message.gender !== 0)
+            writer.tag(5, WireType.Varint).int32(message.gender);
+        /* google.protobuf.Timestamp dateOfBirth = 6; */
+        if (message.dateOfBirth)
+            Timestamp.internalBinaryWrite(message.dateOfBirth, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* string address = 7; */
+        if (message.address !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.address);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.WalletDetails
+ */
+export const WalletDetails = new WalletDetails$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PaginationRequest$Type extends MessageType<PaginationRequest> {
+    constructor() {
+        super("backend.admin.v1.PaginationRequest", [
+            { no: 1, name: "page", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PaginationRequest>): PaginationRequest {
+        const message = { page: 0, pageSize: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PaginationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PaginationRequest): PaginationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 page */ 1:
+                    message.page = reader.int32();
+                    break;
+                case /* int32 pageSize */ 2:
+                    message.pageSize = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PaginationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 page = 1; */
+        if (message.page !== 0)
+            writer.tag(1, WireType.Varint).int32(message.page);
+        /* int32 pageSize = 2; */
+        if (message.pageSize !== 0)
+            writer.tag(2, WireType.Varint).int32(message.pageSize);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.PaginationRequest
+ */
+export const PaginationRequest = new PaginationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PaginationResponse$Type extends MessageType<PaginationResponse> {
+    constructor() {
+        super("backend.admin.v1.PaginationResponse", [
+            { no: 1, name: "page", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "hasNextPage", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PaginationResponse>): PaginationResponse {
+        const message = { page: 0, pageSize: 0, hasNextPage: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PaginationResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PaginationResponse): PaginationResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 page */ 1:
+                    message.page = reader.int32();
+                    break;
+                case /* int32 pageSize */ 2:
+                    message.pageSize = reader.int32();
+                    break;
+                case /* bool hasNextPage */ 3:
+                    message.hasNextPage = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PaginationResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 page = 1; */
+        if (message.page !== 0)
+            writer.tag(1, WireType.Varint).int32(message.page);
+        /* int32 pageSize = 2; */
+        if (message.pageSize !== 0)
+            writer.tag(2, WireType.Varint).int32(message.pageSize);
+        /* bool hasNextPage = 3; */
+        if (message.hasNextPage !== false)
+            writer.tag(3, WireType.Varint).bool(message.hasNextPage);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.PaginationResponse
+ */
+export const PaginationResponse = new PaginationResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Wallet$Type extends MessageType<Wallet> {
+    constructor() {
+        super("backend.admin.v1.Wallet", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "users", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => User }
+        ]);
+    }
+    create(value?: PartialMessage<Wallet>): Wallet {
+        const message = { walletID: "", walletName: "", users: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Wallet>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Wallet): Wallet {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string walletName */ 2:
+                    message.walletName = reader.string();
+                    break;
+                case /* repeated backend.admin.v1.User users */ 3:
+                    message.users.push(User.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Wallet, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string walletName = 2; */
+        if (message.walletName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletName);
+        /* repeated backend.admin.v1.User users = 3; */
+        for (let i = 0; i < message.users.length; i++)
+            User.internalBinaryWrite(message.users[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Wallet
+ */
+export const Wallet = new Wallet$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListWalletsResponse$Type extends MessageType<ListWalletsResponse> {
+    constructor() {
+        super("backend.admin.v1.ListWalletsResponse", [
+            { no: 1, name: "wallets", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Wallet },
+            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+        ]);
+    }
+    create(value?: PartialMessage<ListWalletsResponse>): ListWalletsResponse {
+        const message = { wallets: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListWalletsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListWalletsResponse): ListWalletsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.Wallet wallets */ 1:
+                    message.wallets.push(Wallet.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* backend.admin.v1.PaginationResponse page */ 2:
+                    message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListWalletsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.Wallet wallets = 1; */
+        for (let i = 0; i < message.wallets.length; i++)
+            Wallet.internalBinaryWrite(message.wallets[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.admin.v1.PaginationResponse page = 2; */
+        if (message.page)
+            PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListWalletsResponse
+ */
+export const ListWalletsResponse = new ListWalletsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class User$Type extends MessageType<User> {
+    constructor() {
+        super("backend.admin.v1.User", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "phoneNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<User>): User {
+        const message = { id: "", email: "", phoneNumber: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<User>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: User): User {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string email */ 2:
+                    message.email = reader.string();
+                    break;
+                case /* string phoneNumber */ 3:
+                    message.phoneNumber = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: User, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string email = 2; */
+        if (message.email !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.email);
+        /* string phoneNumber = 3; */
+        if (message.phoneNumber !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.phoneNumber);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.User
+ */
+export const User = new User$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AllowWaitlistSignupRequest$Type extends MessageType<AllowWaitlistSignupRequest> {
     constructor() {
@@ -272,5 +1153,8 @@ export const WaitlistSignup = new WaitlistSignup$Type();
  */
 export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListWaitlistSignups", options: {}, I: Empty$, O: ListWaitlistSignupsResponse },
-    { name: "AllowWaitlistSignup", options: {}, I: AllowWaitlistSignupRequest, O: Empty }
+    { name: "AllowWaitlistSignup", options: {}, I: AllowWaitlistSignupRequest, O: Empty },
+    { name: "ListWallets", options: {}, I: PaginationRequest, O: ListWalletsResponse },
+    { name: "GetWalletDetails", options: {}, I: GetWalletDetailsRequest, O: WalletDetails },
+    { name: "ListWalletTransactions", options: {}, I: ListWalletTransactionsRequest, O: ListWalletTransactionsResponse }
 ]);

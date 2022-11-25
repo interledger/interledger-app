@@ -4,6 +4,12 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ListWalletTransactionsResponse } from "./backend";
+import type { ListWalletTransactionsRequest } from "./backend";
+import type { WalletDetails } from "./backend";
+import type { GetWalletDetailsRequest } from "./backend";
+import type { ListWalletsResponse } from "./backend";
+import type { PaginationRequest } from "./backend";
 import type { Empty as Empty$ } from "./backend";
 import type { AllowWaitlistSignupRequest } from "./backend";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
@@ -23,6 +29,18 @@ export interface IBackendClient {
      * @generated from protobuf rpc: AllowWaitlistSignup(backend.admin.v1.AllowWaitlistSignupRequest) returns (backend.admin.v1.Empty);
      */
     allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: ListWallets(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListWalletsResponse);
+     */
+    listWallets(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListWalletsResponse>;
+    /**
+     * @generated from protobuf rpc: GetWalletDetails(backend.admin.v1.GetWalletDetailsRequest) returns (backend.admin.v1.WalletDetails);
+     */
+    getWalletDetails(input: GetWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetWalletDetailsRequest, WalletDetails>;
+    /**
+     * @generated from protobuf rpc: ListWalletTransactions(backend.admin.v1.ListWalletTransactionsRequest) returns (backend.admin.v1.ListWalletTransactionsResponse);
+     */
+    listWalletTransactions(input: ListWalletTransactionsRequest, options?: RpcOptions): UnaryCall<ListWalletTransactionsRequest, ListWalletTransactionsResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -46,5 +64,26 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     allowWaitlistSignup(input: AllowWaitlistSignupRequest, options?: RpcOptions): UnaryCall<AllowWaitlistSignupRequest, Empty$> {
         const method = this.methods[1], opt = this._transport.mergeOptions(options);
         return stackIntercept<AllowWaitlistSignupRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListWallets(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListWalletsResponse);
+     */
+    listWallets(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListWalletsResponse> {
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListWalletsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetWalletDetails(backend.admin.v1.GetWalletDetailsRequest) returns (backend.admin.v1.WalletDetails);
+     */
+    getWalletDetails(input: GetWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetWalletDetailsRequest, WalletDetails> {
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetWalletDetailsRequest, WalletDetails>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListWalletTransactions(backend.admin.v1.ListWalletTransactionsRequest) returns (backend.admin.v1.ListWalletTransactionsResponse);
+     */
+    listWalletTransactions(input: ListWalletTransactionsRequest, options?: RpcOptions): UnaryCall<ListWalletTransactionsRequest, ListWalletTransactionsResponse> {
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListWalletTransactionsRequest, ListWalletTransactionsResponse>("unary", this._transport, method, opt, input);
     }
 }
