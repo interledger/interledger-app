@@ -22,15 +22,12 @@ import (
 	"gitlab.com/fynbos/log"
 )
 
-func StartOpenPaymentsHTTP(b Backends, port string) {
+func OpenPaymentsHTTPHandler(b Backends) http.Handler {
 	router := chi.NewRouter()
 	router.Use(otelchi.Middleware("open_payments", otelchi.WithChiRoutes(router)))
 
 	router.NotFound(catchAllHandler(b))
-	log.Info("payment pointers served on http://localhost:{port}/{paymentpointer}", zap.String("port", port))
-	go func() {
-		log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
-	}()
+	return router
 }
 
 func catchAllHandler(b Backends) http.HandlerFunc {

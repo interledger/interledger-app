@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -181,6 +182,8 @@ func start(args *cli.StartArgs) {
 
 	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret, args.MachnetWebhookSecret)
 
+	var wg sync.WaitGroup
+
 	router := chi.NewRouter()
 	router.Routes()
 	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
@@ -189,12 +192,10 @@ func start(args *cli.StartArgs) {
 	}))
 	router.Handle("/webhooks/machnet", machnet_webhook.New(b))
 
-	open_server.StartOpenPaymentsHTTP(b, args.OpenPaymentsPort)
+	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
 	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
-	go func() {
-		log.Fatalln(http.ListenAndServe(":"+args.Port, router))
-	}()
+	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
 
 	health, err := healthcheck.NewService()
 	if err != nil {
@@ -221,30 +222,29 @@ func start(args *cli.StartArgs) {
 
 	b.openpayments = openpayments_client.New(b)
 
-	wg := sync.WaitGroup{}
-
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	serverCh := make(chan os.Signal, 1)
-	signal.Notify(serverCh, syscall.SIGTERM, syscall.SIGINT)
-	serveGrpc("8443", server, &wg, serverCh)
+
+	serveGrpc("8443", server, &wg)
 
 	adminServer, err := admin.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	adminCh := make(chan os.Signal, 1)
-	signal.Notify(adminCh, syscall.SIGTERM, syscall.SIGINT)
-	serveGrpc("8448", adminServer, &wg, adminCh)
+
+	serveGrpc("8448", adminServer, &wg)
 
 	log.Info("waiting for shutdown")
 	wg.Wait()
 	log.Info("clean shutdown")
 }
 
-func serveGrpc(port string, server *grpc.Server, wg *sync.WaitGroup, sigCh chan os.Signal) {
+func serveGrpc(port string, server *grpc.Server, wg *sync.WaitGroup) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
+
 	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
 	if err != nil {
 		log.Fatalln(err)
@@ -252,17 +252,43 @@ func serveGrpc(port string, server *grpc.Server, wg *sync.WaitGroup, sigCh chan 
 
 	wg.Add(1)
 	go func(sigCh chan os.Signal, wg *sync.WaitGroup) {
+		defer wg.Done()
 		<-sigCh
 		log.Info(fmt.Sprintf("got signal attempting graceful shutdown: 0.0.0.0:%s", port))
 		server.GracefulStop()
-		wg.Done()
-	}(sigCh, wg)
+	}(ch, wg)
 
 	go func() {
 		log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", port))
 		err = server.Serve(listener)
 		if err != nil {
 			log.Fatalln(err)
+		}
+	}()
+}
+
+func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
+
+	wg.Add(1)
+	go func(sigCh chan os.Signal, wg *sync.WaitGroup) {
+		defer wg.Done()
+		<-sigCh
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		log.Info(fmt.Sprintf("got signal attempting graceful HTTP shutdown: %s", server.Addr))
+		_ = server.Shutdown(shutdownCtx)
+	}(ch, wg)
+
+	go func() {
+		err := server.ListenAndServe()
+		// http.ErrServerClosed is returned immediately after Shutdown is called.
+		//Don't panic and let the HTTP shutdown inside the 30-second timeout.
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal("failed to start HTTP server", zap.Error(err))
 		}
 	}()
 }
