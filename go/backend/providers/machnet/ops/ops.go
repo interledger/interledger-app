@@ -32,7 +32,7 @@ func CreateUser(ctx context.Context, b Backends, args machnet.CreateArgs) (*mach
 		"INSERT INTO machnet_users (id, wallet_id, kyc_status) VALUES ($1, $2, $3) RETURNING id, wallet_id, kyc_status, created_at, updated_at;",
 		args.ExternalID,
 		args.WalletID,
-		machnet.KYCStatusUnknown,
+		machnet.KYCStatusInProgress,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)

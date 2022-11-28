@@ -34,8 +34,8 @@ func (s *rpcService) GetMachnetWidgetToken(
 	}, nil
 }
 
-func (s *rpcService) CreateSendUser(
-	ctx context.Context, req *backendv1.Empty,
+func (s *rpcService) StartMachnetKYC(
+	ctx context.Context, _ *backendv1.Empty,
 ) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -47,12 +47,7 @@ func (s *rpcService) CreateSendUser(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	await, err := s.b.Machnet().CreateSendUser(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	err = await(ctx, nil)
+	_, err = s.b.Machnet().StartSendUserKYC(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

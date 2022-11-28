@@ -117,7 +117,7 @@ func TestActivity_CreateUser(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, u.ID, externalUserID)
-	assert.Equal(t, u.KYCStatus, machnet.KYCStatusUnknown)
+	assert.Equal(t, u.KYCStatus, machnet.KYCStatusInProgress)
 }
 
 func TestActivity_StartExternalKYC(t *testing.T) {

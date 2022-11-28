@@ -205,28 +205,14 @@ func TestCreateSendUser(t *testing.T) {
 		await := func(ctx context.Context, out interface{}) error {
 			return nil
 		}
-		c.machnet.EXPECT().CreateSendUser(gomock.Any(), wallet.ID).Return(await, nil).Times(1)
+		c.machnet.EXPECT().StartSendUserKYC(gomock.Any(), wallet.ID).Return(await, nil).Times(1)
 
-		_, err := client.CreateSendUser(
+		_, err := client.StartMachnetKYC(
 			user_mock.ActingAsContext(t, context.Background(), user),
 			&backendv1.Empty{},
 		)
 		require.NoError(st, err)
 	})
-
-	t.Run("returns error if workflow fails", func(st *testing.T) {
-		await := func(ctx context.Context, out interface{}) error {
-			return machnet.ErrInternal
-		}
-		c.machnet.EXPECT().CreateSendUser(gomock.Any(), wallet.ID).Return(await, nil).Times(1)
-
-		_, err := client.CreateSendUser(
-			user_mock.ActingAsContext(t, context.Background(), user),
-			&backendv1.Empty{},
-		)
-		require.Error(st, err)
-	})
-
 }
 
 func TestCreateWallet(t *testing.T) {

@@ -5208,7 +5208,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetMachnetWidgetToken", options: {}, I: Empty, O: MachnetWidgetToken },
     { name: "ListBanks", options: {}, I: Empty, O: ListBanksResponse },
     { name: "CreateReceiveBankAccount", options: {}, I: CreateReceiveBankAccountRequest, O: LinkedAccount },
-    { name: "CreateSendUser", options: {}, I: Empty, O: Empty },
+    { name: "StartMachnetKYC", options: {}, I: Empty, O: Empty },
     { name: "HasSendUser", options: {}, I: Empty, O: HasSendUserResponse },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "CreateWallet", options: {}, I: CreateWalletRequest, O: LinkedAccount },

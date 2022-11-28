@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 
+	"go.temporal.io/api/enums/v1"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -91,10 +93,11 @@ func (c client) ValidateWebhook(ctx context.Context, payload []byte, base64Signa
 	return ops.ValidateWebhook(ctx, c.b, payload, c.webhookSecret, base64Signature)
 }
 
-func (c client) CreateSendUser(ctx context.Context, walletID string) (machnet.Await, error) {
+func (c client) StartSendUserKYC(ctx context.Context, walletID string) (machnet.Await, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
-		ID:        "machnet_create_send_user_" + walletID,
-		TaskQueue: "backend",
+		ID:                    "machnet_create_send_user_" + walletID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
 	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateSendUserWorkflow, walletID)

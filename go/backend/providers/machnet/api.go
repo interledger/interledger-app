@@ -17,7 +17,7 @@ type Client interface {
 	HandleEvent(ctx context.Context, event external.Event) error
 	ValidateWebhook(ctx context.Context, payload []byte, base64Signature string) error
 	CreateTransaction(ctx context.Context, args CreateTransactionArgs) (Await, error)
-	CreateSendUser(ctx context.Context, walletID string) (Await, error)
+	StartSendUserKYC(ctx context.Context, walletID string) (Await, error)
 	CreateReceiveBankAccount(ctx context.Context, args CreateReceiveBankAccountArgs) (*ReceiveBankAccount, error)
 	GetReceiveBankAccount(ctx context.Context, id string) (*ReceiveBankAccount, error)
 	CreateReceiveUser(ctx context.Context, args CreateReceiveUserArgs) (*ReceiveUser, error)

@@ -101,7 +101,7 @@ func TestGetUserKYC(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, args.ExternalID, user.ID)
 			require.Equal(t, walletID, user.WalletID)
-			require.Equal(t, machnet.KYCStatusUnknown, user.KYCStatus)
+			require.Equal(t, machnet.KYCStatusInProgress, user.KYCStatus)
 
 			err = ops.HandleUserKYCEvent(ctx, b, external.Event{UserID: user.ID, EventName: tc.externalStatus})
 			require.NoError(t, err)
