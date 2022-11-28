@@ -80,6 +80,15 @@ func main() {
 					Protocol:  pulumi.String("tcp"),
 					CidrBlock: pulumi.String("0.0.0.0/0"),
 				},
+				// sendgrid smtp relay
+				ec2.NetworkAclIngressArgs{
+					RuleNo:    pulumi.Int(160),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(465),
+					ToPort:    pulumi.Int(465),
+					Protocol:  pulumi.String("tcp"),
+					CidrBlock: pulumi.String("0.0.0.0/0"),
+				},
 			},
 			PublicOutboundNacls: ec2.NetworkAclEgressArray{
 				// HTTP Access
@@ -117,6 +126,15 @@ func main() {
 					ToPort:    pulumi.Int(22),
 					Protocol:  pulumi.String("tcp"),
 					CidrBlock: pulumi.String("10.10.0.0/17"),
+				},
+				// sendgrid smtp relay
+				ec2.NetworkAclEgressArgs{
+					RuleNo:    pulumi.Int(160),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(465),
+					ToPort:    pulumi.Int(465),
+					Protocol:  pulumi.String("tcp"),
+					CidrBlock: pulumi.String("0.0.0.0/0"), // sendgrid may change their ip
 				},
 			},
 			PrivateInboundNacls: ec2.NetworkAclIngressArray{
@@ -201,6 +219,15 @@ func main() {
 					ToPort:    pulumi.Int(0),
 					Protocol:  pulumi.String("-1"),
 					CidrBlock: pulumi.String("10.10.192.0/18"),
+				},
+				// sendgrid smtp relay
+				ec2.NetworkAclEgressArgs{
+					RuleNo:    pulumi.Int(160),
+					Action:    pulumi.String("allow"),
+					FromPort:  pulumi.Int(465),
+					ToPort:    pulumi.Int(465),
+					Protocol:  pulumi.String("tcp"),
+					CidrBlock: pulumi.String("0.0.0.0/0"), // sendgrid may change their ip
 				},
 			},
 			IntraInboundNacls: ec2.NetworkAclIngressArray{
