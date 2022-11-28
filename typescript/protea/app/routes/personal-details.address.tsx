@@ -230,7 +230,7 @@ export async function action({ request }: ActionArgs) {
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
 
   let res = await grpcClient
-    .createSendUser(
+    .startMachnetKYC(
       {},
       {
         meta: {

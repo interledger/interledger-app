@@ -306,9 +306,9 @@ export interface IBackendServiceClient {
      */
     createReceiveBankAccount(input: CreateReceiveBankAccountRequest, options?: RpcOptions): UnaryCall<CreateReceiveBankAccountRequest, LinkedAccount>;
     /**
-     * @generated from protobuf rpc: CreateSendUser(backend.v1.Empty) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: StartMachnetKYC(backend.v1.Empty) returns (backend.v1.Empty);
      */
-    createSendUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
+    startMachnetKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
     /**
      * @generated from protobuf rpc: HasSendUser(backend.v1.Empty) returns (backend.v1.HasSendUserResponse);
      */
@@ -508,9 +508,9 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreateReceiveBankAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: CreateSendUser(backend.v1.Empty) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: StartMachnetKYC(backend.v1.Empty) returns (backend.v1.Empty);
      */
-    createSendUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
+    startMachnetKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
         const method = this.methods[20], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }

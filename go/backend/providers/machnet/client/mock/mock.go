@@ -82,21 +82,6 @@ func (mr *MockClientMockRecorder) CreateReceiveUserBankAccount(ctx, args interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveUserBankAccount", reflect.TypeOf((*MockClient)(nil).CreateReceiveUserBankAccount), ctx, args)
 }
 
-// CreateSendUser mocks base method.
-func (m *MockClient) CreateSendUser(ctx context.Context, walletID string) (machnet.Await, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSendUser", ctx, walletID)
-	ret0, _ := ret[0].(machnet.Await)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateSendUser indicates an expected call of CreateSendUser.
-func (mr *MockClientMockRecorder) CreateSendUser(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSendUser", reflect.TypeOf((*MockClient)(nil).CreateSendUser), ctx, walletID)
-}
-
 // CreateTransaction mocks base method.
 func (m *MockClient) CreateTransaction(ctx context.Context, args machnet.CreateTransactionArgs) (machnet.Await, error) {
 	m.ctrl.T.Helper()
@@ -318,6 +303,21 @@ func (m *MockClient) HandleEvent(ctx context.Context, event external.Event) erro
 func (mr *MockClientMockRecorder) HandleEvent(ctx, event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockClient)(nil).HandleEvent), ctx, event)
+}
+
+// StartSendUserKYC mocks base method.
+func (m *MockClient) StartSendUserKYC(ctx context.Context, walletID string) (machnet.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartSendUserKYC", ctx, walletID)
+	ret0, _ := ret[0].(machnet.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartSendUserKYC indicates an expected call of StartSendUserKYC.
+func (mr *MockClientMockRecorder) StartSendUserKYC(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartSendUserKYC", reflect.TypeOf((*MockClient)(nil).StartSendUserKYC), ctx, walletID)
 }
 
 // ValidateWebhook mocks base method.

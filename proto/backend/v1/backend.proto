@@ -187,7 +187,7 @@ service BackendService {
   rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
   rpc ListBanks(Empty) returns (ListBanksResponse);
   rpc CreateReceiveBankAccount(CreateReceiveBankAccountRequest) returns (LinkedAccount);
-  rpc CreateSendUser(Empty) returns(Empty);
+  rpc StartMachnetKYC(Empty) returns(Empty);
   rpc HasSendUser(Empty) returns (HasSendUserResponse);
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
