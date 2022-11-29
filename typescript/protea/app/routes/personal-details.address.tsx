@@ -1,9 +1,16 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import {
+  Form,
+  useActionData,
+  useFetcher,
+  useLoaderData
+} from '@remix-run/react'
+import {
+  AnchorRouter,
   Autocomplete,
   Button,
+  Checkbox,
   Icon,
   Layouts,
   Shape,
@@ -37,6 +44,7 @@ export const handle = {
 
 export default function Page() {
   const { flow, country } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
 
   const placeAutocompleteFetcher = useFetcher()
   const geocodeFetcher = useFetcher()
@@ -175,6 +183,39 @@ export default function Page() {
         disabled={!formattedAddress}
         className='mt-1'
       />
+      <Checkbox
+        id='service-agreement'
+        name='service-agreement'
+        form='personal-details-address'
+        className='mt-4 flex'
+        aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
+        aria-describedby={
+          actionData?.errors.serviceAgreement
+            ? 'serviceAgreement-error'
+            : undefined
+        }
+        errorMessage={actionData?.errors.serviceAgreement}
+      >
+        I agree to the Machnet&nbsp;
+        <AnchorRouter
+          className='text-primary'
+          to={
+            'https://machnetservices.com/fynbos-technologies-llc-privacypolicy/'
+          }
+        >
+          Privacy Policy
+        </AnchorRouter>
+        &nbsp;and&nbsp;
+        <AnchorRouter
+          className='text-primary'
+          to={
+            'https://machnetservices.com/fynbos-technologies-llc-termsofservice/'
+          }
+        >
+          Terms of Service
+        </AnchorRouter>
+        .
+      </Checkbox>
 
       <Button className='mt-12' form='personal-details-address' type='submit'>
         Continue
@@ -185,6 +226,24 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
+
+  const serviceAgreement = form.get('service-agreement') as string
+  // TODO: use actual service agreement service
+  const fieldErrors = {
+    serviceAgreement: ''
+  }
+
+  if (serviceAgreement == null) {
+    fieldErrors.serviceAgreement = 'You are required to agree to continue.'
+    return json(
+      {
+        errors: {
+          ...fieldErrors
+        }
+      },
+      { status: 400 }
+    )
+  }
 
   const line1 = form.get('line1') as string
   const line2 = form.get('line2') as string

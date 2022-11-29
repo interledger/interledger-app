@@ -9,6 +9,7 @@ declare module "routes-gen" {
     "/transaction/:type/:transactionId": { "type": string, "transactionId": string };
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
     "/blog/card-payments-still-suck": Record<string, never>;
+    "/legal/electronic-disclosures": Record<string, never>;
     "/linked-account/:type/success": { "type": string };
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/linked-account/:type/widget": { "type": string };
@@ -42,6 +43,7 @@ declare module "routes-gen" {
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
     "/": Record<string, never>;
+    "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/pay": Record<string, never>;
@@ -58,6 +60,7 @@ declare module "routes-gen" {
       | ["/transaction/:type/:transactionId", RouteParams["/transaction/:type/:transactionId"]]
       | ["/blog/our-fynbos-family-meet-don"]
       | ["/blog/card-payments-still-suck"]
+      | ["/legal/electronic-disclosures"]
       | ["/linked-account/:type/success", RouteParams["/linked-account/:type/success"]]
       | ["/api/maps/placesAutocomplete"]
       | ["/linked-account/:type/widget", RouteParams["/linked-account/:type/widget"]]
@@ -91,6 +94,7 @@ declare module "routes-gen" {
       | ["/signup"]
       | ["/verify"]
       | ["/"]
+      | ["/legal"]
       | ["/login"]
       | ["/blog"]
       | ["/pay"]
