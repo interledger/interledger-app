@@ -172,8 +172,6 @@ func start(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	//b.mxProvider = mx_client.New(b, args.MxClientID, args.MxApiKey)
-
 	b.linkedaccounts = linked_account_client.New(b, logger)
 
 	b.signup = signup_client.New(b)
