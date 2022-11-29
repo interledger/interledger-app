@@ -145,9 +145,9 @@ const flowTemplate = (type: flowType): Flow => {
       }
     case flowType.PersonalDetails:
       return {
-        startRoute: route('/personal-details/about'),
+        startRoute: route('/personal-details'),
         data: {},
-        returnTo: route('/settings/linked-accounts')
+        returnTo: route('/')
       }
     case flowType.PasswordChallenge:
       return {
