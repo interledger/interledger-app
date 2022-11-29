@@ -233,12 +233,12 @@ type DeliveryRequest struct {
 
 type (
 	Event struct {
-		ID             string          `json:"id"`
-		EventName      string          `json:"event_name"`
-		ResourceID     string          `json:"resource_id"`
-		UserID         string          `json:"user_id"`
-		Payload        json.RawMessage `json:"payload"` // TODO: find out what payload looks like
-		SubscriptionID string          `json:"subscription_id"`
+		ID             string          `json:"id" db:"db"`
+		EventName      string          `json:"event_name" db:"event_name"`
+		ResourceID     string          `json:"resource_id" db:"resource_id"`
+		UserID         string          `json:"user_id" db:"user_id"`
+		Payload        json.RawMessage `json:"payload" db:"payload"` // TODO: find out what payload looks like
+		SubscriptionID string          `json:"subscription_id" db:"subscription_id"`
 		Timestamp      string          `json:"timestamp"`
 	}
 )

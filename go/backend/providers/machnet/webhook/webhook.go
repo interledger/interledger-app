@@ -11,19 +11,16 @@ import (
 	"io"
 	"net/http"
 
-	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
-	inmemory_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
-	"gitlab.com/fynbos/env"
-
-	"gitlab.com/fynbos/backend/providers/machnet/ops"
-
-	"gitlab.com/fynbos/log"
-
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"go.uber.org/zap"
-
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
+	inmemory_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
+	"gitlab.com/fynbos/backend/providers/machnet/ops"
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 const SignatureHeader = "x-raas-webhook-signature"
@@ -58,6 +55,12 @@ func New(globalBackends Backends, webhookSecret, clientID, clientSecret string) 
 		err = json.Unmarshal(body, &event)
 		if err != nil {
 			http.Error(w, "failed to parse payload", http.StatusBadRequest)
+			return
+		}
+
+		err = SaveWebhook(r.Context(), b, event)
+		if err != nil {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
@@ -205,6 +208,30 @@ func HandleTransactionDeliveryEvent(ctx context.Context, b ops.Backends, event e
 
 	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, ops.TransactionDeliveryEventsChannel, event)
 	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func SaveWebhook(ctx context.Context, b ops.Backends, event external.Event) error {
+	ib := db.NewInsert("machnet_webhook").
+		Value("id", event.ID).
+		Value("user_id", event.UserID).
+		Value("event_name", event.EventName).
+		Value("resource_id", event.ResourceID).
+		Value("subscription_id", event.SubscriptionID)
+	if len(event.Payload) > 0 {
+		ib.Value("payload", event.Payload)
+	}
+
+	q, args, err := ib.GetStatement()
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, q, args...)
+	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
