@@ -5,6 +5,7 @@ declare module "routes-gen" {
     "/settings/linked-accounts/:accountId": { "accountId": string };
     "/blog/our-fynbos-family-meet-adrian": Record<string, never>;
     "/blog/our-fynbos-family-meet-cairin": Record<string, never>;
+    "/blog/our-fynbos-family-meet-justin": Record<string, never>;
     "/blog/our-fynbos-family-meet-matt": Record<string, never>;
     "/transaction/:type/:transactionId": { "type": string, "transactionId": string };
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
@@ -24,11 +25,13 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
+    "/personal-details": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/payment-pointer": Record<string, never>;
     "/signup/password": Record<string, never>;
+    "/support/success": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/transactions": Record<string, never>;
@@ -39,6 +42,7 @@ declare module "routes-gen" {
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/contact": Record<string, never>;
+    "/support": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
@@ -56,6 +60,7 @@ declare module "routes-gen" {
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
       | ["/blog/our-fynbos-family-meet-adrian"]
       | ["/blog/our-fynbos-family-meet-cairin"]
+      | ["/blog/our-fynbos-family-meet-justin"]
       | ["/blog/our-fynbos-family-meet-matt"]
       | ["/transaction/:type/:transactionId", RouteParams["/transaction/:type/:transactionId"]]
       | ["/blog/our-fynbos-family-meet-don"]
@@ -75,11 +80,13 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
+      | ["/personal-details"]
       | ["/waitlist/success"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/payment-pointer"]
       | ["/signup/password"]
+      | ["/support/success"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/transactions"]
@@ -90,6 +97,7 @@ declare module "routes-gen" {
       | ["/settings"]
       | ["/waitlist"]
       | ["/contact"]
+      | ["/support"]
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]

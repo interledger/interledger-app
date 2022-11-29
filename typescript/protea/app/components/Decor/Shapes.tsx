@@ -619,21 +619,21 @@ const blogShapes: {
         color: 'bg-slate-300'
       }
     ]
-  ], 
+  ],
   'our-fynbos-family-meet-justin': [
     [
-        {
-          radius: 'rounded-tl-full',
-          color: 'bg-green-100'
-        },
-        {
-          radius: 'rounded-br-full',
-          color: 'bg-green-600'
-        },
-        {
-          radius: 'rounded-full',
-          color: 'bg-green-300'
-        }
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-green-100'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-green-600'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-green-300'
+      }
     ],
     [
       {
