@@ -6,33 +6,14 @@ import type { RadioGroupOption } from '~/components'
 import { Button, Layouts, RadioGroup, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { flowType, requireFlow } from '~/lib/flows.server'
-import {
-  grpcClient,
-  httpMapping,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
 import { useState } from 'react'
+import { getKycStatus } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
 
-  const response = await grpcClient
-    .hasSendUser(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
-
-  const hasSendUser = response.response.hasSendUser
+  // TODO: Use kyc status to show things rather
+  const hasSendUser = (await getKycStatus(request)).hasSendUser
 
   return json({ hasSendUser })
 }

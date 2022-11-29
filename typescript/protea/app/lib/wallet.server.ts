@@ -7,11 +7,12 @@ import {
 } from '~/lib/proto.server'
 import { json } from '@remix-run/node'
 import type {
+  Amount,
+  KYCStatusResponse,
   PaginationRequest,
   PaymentPointer
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import type { Amount } from '~/generated/protobuf-ts/backend/v1/backend'
 import { DateTime } from 'luxon'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
@@ -22,6 +23,27 @@ export const formatAmount = (amount?: Amount): string => {
   return `${symbol} ${(parseInt(amount.amount) / 100).toFixed(
     amount.assetScale
   )}`
+}
+
+export async function getKycStatus(
+  request: Request
+): Promise<KYCStatusResponse> {
+  const response = await grpcClient
+    .kYCStatus(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
 }
 
 export async function getWalletPaymentPointer(
@@ -69,6 +91,57 @@ export async function getWalletBalance(request: Request): Promise<string> {
     assetScale: 2,
     amount: response.response.available
   })
+}
+
+type LinkedAccountsResponse = {
+  linkedAccounts: Array<{
+    id: string
+    name: string
+    type: string
+    icon: string
+  }>
+  canTopUp: boolean
+  canWithdraw: boolean
+}
+
+export async function getLinkedAccounts(
+  request: Request
+): Promise<LinkedAccountsResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .getLinkedAccounts(
+      {},
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  const linkedAccounts = response.response.linkedAccounts
+    .filter((account) => account.type != 'wallet')
+    .map((linkedAccount) => ({
+      id: linkedAccount.id,
+      name:
+        linkedAccount.type == 'sendCard'
+          ? `Card ending ${linkedAccount.mask}`
+          : 'Bank account',
+      // TODO: Remove send/receive and replace with proper typings
+      type: linkedAccount.type == 'sendCard' ? 'send' : 'receive',
+      icon: linkedAccount.type == 'sendCard' ? 'credit_card' : 'account_balance'
+    }))
+
+  return {
+    linkedAccounts,
+    canTopUp: linkedAccounts.filter(({ type }) => type == 'send').length > 0,
+    canWithdraw:
+      linkedAccounts.filter(({ type }) => type == 'receive').length > 0
+  }
 }
 
 export type Transaction = {

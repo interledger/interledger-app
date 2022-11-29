@@ -12,7 +12,7 @@ import {
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
-import { getSnackbar } from '~/lib/snackbar.server'
+import { getSnackbar, flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const hasSession = await hasUserSession(request)
@@ -95,13 +95,13 @@ export default function Page() {
           <div className='hidden sm:flex'>
             <Shape
               width={'w-8'}
-              radius={'rounded-tr-full'}
-              color={'bg-lime-400'}
+              radius={'rounded-full'}
+              color={'bg-rose-500'}
             />
             <Shape
               width={'w-8'}
-              radius={'rounded-tl-full'}
-              color={'bg-slate-300'}
+              radius={'rounded-tr-full'}
+              color={'bg-lime-300'}
             />
           </div>
         </div>
@@ -247,6 +247,14 @@ export async function action({ request }: ActionArgs) {
         return json({ errors: { ...fieldErrors } }, { status: 400 })
       } else throw json({}, httpMapping(response.code))
     }
-    return redirect(route('/'))
+
+    return redirect(route('/'), {
+      headers: {
+        'Set-Cookie': await flashSnackbar(request, {
+          message: 'Payment pointer reserved.',
+          icon: 'close'
+        })
+      }
+    })
   } else return json({ errors: { ...fieldErrors } })
 }
