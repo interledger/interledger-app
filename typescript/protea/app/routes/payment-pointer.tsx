@@ -251,7 +251,7 @@ export async function action({ request }: ActionArgs) {
     return redirect(route('/'), {
       headers: {
         'Set-Cookie': await flashSnackbar(request, {
-          message: 'Payment pointer created successfully.',
+          message: 'Payment pointer reserved.',
           icon: 'close'
         })
       }
