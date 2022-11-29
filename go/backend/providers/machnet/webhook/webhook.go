@@ -11,6 +11,10 @@ import (
 	"io"
 	"net/http"
 
+	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client"
+	inmemory_external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 
 	"gitlab.com/fynbos/log"
@@ -24,9 +28,13 @@ import (
 
 const SignatureHeader = "x-raas-webhook-signature"
 
-func New(globalBackends Backends, webhookSecret string) http.HandlerFunc {
+func New(globalBackends Backends, webhookSecret, clientID, clientSecret string) http.HandlerFunc {
 	b := opsBackends{
 		Backends: globalBackends,
+		external: inmemory_external_client.New(),
+	}
+	if !env.IsLocal() || (clientID != "" && clientSecret != "") {
+		b.external = external_client.New(clientID, clientSecret)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
