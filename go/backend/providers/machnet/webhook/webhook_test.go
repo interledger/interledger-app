@@ -207,6 +207,31 @@ func TestTransactionDeliveryEventWebhook(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSaveWebhook(t *testing.T) {
+	t.Parallel()
+	b := newTestBackends(t)
+	walletID := newWallet(t, b)
+	e := external.Event{
+		ID:         uuid.NewString(),
+		EventName:  external.TransactionDeliveredEvent,
+		ResourceID: uuid.NewString(),
+		UserID:     uuid.NewString(),
+	}
+
+	_, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: e.UserID,
+	})
+	require.NoError(t, err)
+
+	err = webhook.SaveWebhook(context.Background(), b, e)
+	require.NoError(t, err)
+
+	// Do the same webhook as a no-op, but not an error
+	err = webhook.SaveWebhook(context.Background(), b, e)
+	require.NoError(t, err)
+}
+
 func newWallet(t *testing.T, b webhook.Backends) string {
 	walletID := uuid.NewString()
 	_, err := b.DB().Exec(
