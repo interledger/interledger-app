@@ -98,8 +98,6 @@ type StartArgs struct {
 	MachnetClientID           string
 	MachnetClientSecret       string
 	MachnetWebhookSecret      string
-	MxClientID                string
-	MxApiKey                  string
 	RafikiGraphqlUrl          string
 	TemporalUrl               string
 	TwilioSid                 string
@@ -184,16 +182,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		log.Fatalln(err)
 	}
 
-	mxClientID := os.Getenv("MX_CLIENT_ID")
-	if mxClientID == "" {
-		return nil, errors.New("MX_CLIENT_ID is required.")
-	}
-
-	mxApiKey := os.Getenv("MX_API_KEY")
-	if mxApiKey == "" {
-		return nil, errors.New("MX_API_KEY is required.")
-	}
-
 	rafikiGraphqlUrl := os.Getenv("RAFIKI_GRAPHQL_URL")
 	if rafikiGraphqlUrl == "" {
 		return nil, errors.New("text RAFIKI_GRAPHQL_URL is required.")
@@ -242,8 +230,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		MachnetClientID:           os.Getenv("MACHNET_CLIENT_ID"),
 		MachnetClientSecret:       os.Getenv("MACHNET_CLIENT_SECRET"),
 		MachnetWebhookSecret:      os.Getenv("MACHNET_WEBHOOK_SECRET"),
-		MxClientID:                mxClientID,
-		MxApiKey:                  mxApiKey,
 		RafikiGraphqlUrl:          rafikiGraphqlUrl,
 		TemporalUrl:               temporalUrl,
 		TwilioSid:                 TwilioSid,
