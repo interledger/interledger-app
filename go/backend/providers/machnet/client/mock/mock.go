@@ -52,34 +52,19 @@ func (mr *MockClientMockRecorder) CreateReceiveBankAccount(ctx, args interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveBankAccount", reflect.TypeOf((*MockClient)(nil).CreateReceiveBankAccount), ctx, args)
 }
 
-// CreateReceiveUser mocks base method.
-func (m *MockClient) CreateReceiveUser(ctx context.Context, args machnet.CreateReceiveUserArgs) (*machnet.ReceiveUser, error) {
+// CreateSendUser mocks base method.
+func (m *MockClient) CreateSendUser(ctx context.Context, walletID string) (machnet.Await, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateReceiveUser", ctx, args)
-	ret0, _ := ret[0].(*machnet.ReceiveUser)
+	ret := m.ctrl.Call(m, "CreateSendUser", ctx, walletID)
+	ret0, _ := ret[0].(machnet.Await)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateReceiveUser indicates an expected call of CreateReceiveUser.
-func (mr *MockClientMockRecorder) CreateReceiveUser(ctx, args interface{}) *gomock.Call {
+// CreateSendUser indicates an expected call of CreateSendUser.
+func (mr *MockClientMockRecorder) CreateSendUser(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveUser", reflect.TypeOf((*MockClient)(nil).CreateReceiveUser), ctx, args)
-}
-
-// CreateReceiveUserBankAccount mocks base method.
-func (m *MockClient) CreateReceiveUserBankAccount(ctx context.Context, args machnet.CreateReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateReceiveUserBankAccount", ctx, args)
-	ret0, _ := ret[0].(*machnet.ReceiveUserBankAccount)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateReceiveUserBankAccount indicates an expected call of CreateReceiveUserBankAccount.
-func (mr *MockClientMockRecorder) CreateReceiveUserBankAccount(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReceiveUserBankAccount", reflect.TypeOf((*MockClient)(nil).CreateReceiveUserBankAccount), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSendUser", reflect.TypeOf((*MockClient)(nil).CreateSendUser), ctx, walletID)
 }
 
 // CreateTransaction mocks base method.
@@ -186,51 +171,6 @@ func (mr *MockClientMockRecorder) GetKYCStatus(ctx, walletID interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKYCStatus", reflect.TypeOf((*MockClient)(nil).GetKYCStatus), ctx, walletID)
 }
 
-// GetReceiveBankAccount mocks base method.
-func (m *MockClient) GetReceiveBankAccount(ctx context.Context, id string) (*machnet.ReceiveBankAccount, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReceiveBankAccount", ctx, id)
-	ret0, _ := ret[0].(*machnet.ReceiveBankAccount)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetReceiveBankAccount indicates an expected call of GetReceiveBankAccount.
-func (mr *MockClientMockRecorder) GetReceiveBankAccount(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReceiveBankAccount", reflect.TypeOf((*MockClient)(nil).GetReceiveBankAccount), ctx, id)
-}
-
-// GetReceiveUser mocks base method.
-func (m *MockClient) GetReceiveUser(ctx context.Context, args machnet.GetReceiveUserArgs) (*machnet.ReceiveUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReceiveUser", ctx, args)
-	ret0, _ := ret[0].(*machnet.ReceiveUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetReceiveUser indicates an expected call of GetReceiveUser.
-func (mr *MockClientMockRecorder) GetReceiveUser(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReceiveUser", reflect.TypeOf((*MockClient)(nil).GetReceiveUser), ctx, args)
-}
-
-// GetReceiveUserBankAccount mocks base method.
-func (m *MockClient) GetReceiveUserBankAccount(ctx context.Context, args machnet.GetReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetReceiveUserBankAccount", ctx, args)
-	ret0, _ := ret[0].(*machnet.ReceiveUserBankAccount)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetReceiveUserBankAccount indicates an expected call of GetReceiveUserBankAccount.
-func (mr *MockClientMockRecorder) GetReceiveUserBankAccount(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReceiveUserBankAccount", reflect.TypeOf((*MockClient)(nil).GetReceiveUserBankAccount), ctx, args)
-}
-
 // GetUserByID mocks base method.
 func (m *MockClient) GetUserByID(ctx context.Context, id string) (*machnet.User, error) {
 	m.ctrl.T.Helper()
@@ -289,49 +229,6 @@ func (m *MockClient) GetWidgetToken(ctx context.Context, walletID string) (*mach
 func (mr *MockClientMockRecorder) GetWidgetToken(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetToken", reflect.TypeOf((*MockClient)(nil).GetWidgetToken), ctx, walletID)
-}
-
-// HandleEvent mocks base method.
-func (m *MockClient) HandleEvent(ctx context.Context, event external.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HandleEvent", ctx, event)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// HandleEvent indicates an expected call of HandleEvent.
-func (mr *MockClientMockRecorder) HandleEvent(ctx, event interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEvent", reflect.TypeOf((*MockClient)(nil).HandleEvent), ctx, event)
-}
-
-// StartSendUserKYC mocks base method.
-func (m *MockClient) StartSendUserKYC(ctx context.Context, walletID string) (machnet.Await, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartSendUserKYC", ctx, walletID)
-	ret0, _ := ret[0].(machnet.Await)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// StartSendUserKYC indicates an expected call of StartSendUserKYC.
-func (mr *MockClientMockRecorder) StartSendUserKYC(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartSendUserKYC", reflect.TypeOf((*MockClient)(nil).StartSendUserKYC), ctx, walletID)
-}
-
-// ValidateWebhook mocks base method.
-func (m *MockClient) ValidateWebhook(ctx context.Context, payload []byte, base64Signature string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidateWebhook", ctx, payload, base64Signature)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ValidateWebhook indicates an expected call of ValidateWebhook.
-func (mr *MockClientMockRecorder) ValidateWebhook(ctx, payload, base64Signature interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), ctx, payload, base64Signature)
 }
 
 // WithdrawFromWallet mocks base method.
