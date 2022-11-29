@@ -375,7 +375,7 @@ func startWorker(args *cli.StartArgs) {
 
 	b.linkedaccounts = linked_account_client.New(b, logger)
 
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret, args.MachnetWebhookSecret)
+	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
 

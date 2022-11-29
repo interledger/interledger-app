@@ -175,7 +175,6 @@ func (b *backends) Machnet() machnet.Client {
 			b,
 			os.Getenv("MACHNET_CLIENT_ID"),
 			os.Getenv("MACHNET_CLIENT_SECRET"),
-			os.Getenv("MACHNET_WEBHOOK_SECRET"),
 		)
 	}
 	return b.machnet
