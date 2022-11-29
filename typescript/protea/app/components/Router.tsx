@@ -98,6 +98,7 @@ ButtonRouter.displayName = 'ButtonRouter'
  * @param rest The props passed through to the anchor tag.
  */
 export const AnchorRouter = forwardRef<any, RouterProps>(
+  // TODO make extend <a>
   ({ className, children, to, ...rest }, ref) => {
     return (
       <a

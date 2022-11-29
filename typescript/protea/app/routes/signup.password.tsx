@@ -128,21 +128,21 @@ export default function Page() {
         errorMessage={actionData?.errors.serviceAgreement}
       >
         I agree to the Fynbos&nbsp;
-        <Router className='text-primary' to='/privacy-policy'>
+        <Router className='text-primary' to={route('/legal/privacy-policy')}>
           Privacy Policy
         </Router>
         ,&nbsp;
-        <Router className='text-primary' to='/privacy-policy'>
-          Consent to Electronic Disclosures
+        <Router className='text-primary' to={route('/legal/privacy-policy')}>
+          Terms of Use
         </Router>
-        ,&nbsp;
-        <Router className='text-primary' to='/privacy-policy'>
-          Deposit Terms &amp; Conditions
+        , and&nbsp;
+        <Router
+          className='text-primary'
+          to={route('/legal/electronic-disclosures')}
+        >
+          Electronic Disclosures
         </Router>
-        ,&nbsp;
-        <Router className='text-primary' to='/privacy-policy'>
-          Client Terms of Service
-        </Router>
+        .
       </Checkbox>
 
       <input

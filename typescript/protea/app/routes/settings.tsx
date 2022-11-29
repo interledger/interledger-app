@@ -80,7 +80,7 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </button>
         <Router
-          to={route('/legal/privacy-policy')}
+          to={route('/legal')}
           className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
         >
           <div className='flex space-x-3'>
