@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+	"go.temporal.io/api/serviceerror"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -174,6 +177,9 @@ func TestKYCStatus(t *testing.T) {
 
 	t.Run("returns false if no user exists", func(st *testing.T) {
 		c.machnet.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(nil, machnet.ErrNotFound).Times(1)
+
+		c.TemporalImpl.On("DescribeWorkflowExecution", mock.Anything, mock.Anything, mock.Anything).
+			Return(nil, serviceerror.NewNotFound("not found")).Times(1)
 
 		rpc, err := client.KYCStatus(
 			user_mock.ActingAsContext(t, context.Background(), user),

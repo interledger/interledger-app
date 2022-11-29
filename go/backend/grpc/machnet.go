@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"go.temporal.io/api/enums/v1"
+
+	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -95,12 +99,36 @@ func (s *rpcService) KYCStatus(ctx context.Context, _ *backendv1.Empty) (*backen
 	}
 
 	kyc, err := s.b.Machnet().GetKYCStatus(ctx, wallet.ID)
-	if err != nil {
-		if errors.Is(err, machnet.ErrNotFound) {
+	if errors.Is(err, machnet.ErrNotFound) {
+		// Check the temporal workflow exists to create a KYC user
+		wfd, err := s.b.Temporal().DescribeWorkflowExecution(ctx, "machnet_create_send_user_"+wallet.ID, "")
+		if temporal_utils.IsNotFoundError(err) {
 			return &backendv1.KYCStatusResponse{
 				HasSendUser: false,
 			}, nil
 		}
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		// If the workflow is in any of these states it failed and needs to be retried.
+		switch wfd.GetWorkflowExecutionInfo().GetStatus() {
+		case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+			enums.WORKFLOW_EXECUTION_STATUS_FAILED,
+			enums.WORKFLOW_EXECUTION_STATUS_CANCELED,
+			enums.WORKFLOW_EXECUTION_STATUS_TERMINATED,
+			enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT:
+			return &backendv1.KYCStatusResponse{
+				HasSendUser: false,
+			}, nil
+		}
+
+		return &backendv1.KYCStatusResponse{
+			HasSendUser: true,
+			KycStatus:   int32(machnet.KYCStatusInProgress),
+		}, nil
+	}
+	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
