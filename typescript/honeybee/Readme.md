@@ -29,6 +29,9 @@ An example template:
 </template>
 ```
 
-### Helpful esources
+> NOTE: we don't generate .gotmpl files (just used in kratos). Just copy the
+> contents on the corresponding .html file.
+
+### Helpful resources
 
 https://www.caniemail.com/
