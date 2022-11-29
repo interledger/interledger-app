@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 
+	"go.temporal.io/api/serviceerror"
+
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -21,4 +23,17 @@ func IsNonRetryableError(err error) bool {
 	}
 
 	return applicationError.NonRetryable()
+}
+
+func IsNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var notFoundErr *serviceerror.NotFound
+	if !errors.As(err, &notFoundErr) {
+		return false
+	}
+
+	return true
 }
