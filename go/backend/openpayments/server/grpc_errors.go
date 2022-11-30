@@ -15,11 +15,13 @@ import (
 )
 
 var errorStatus = map[error]error{
-	openpayments.ErrPaymentPointerNotFound: NotFoundError("Payment pointer not found."),
-	openpayments.ErrNotFound:               NotFoundError("Open payments not found."),
-	openpayments.ErrPaymentPointerExists:   NewValidationError("url", "That payment pointer has been taken. Please choose another"),
-	openpayments.ErrInvalidPointerURL:      NewValidationError("url", "Payment pointer is invalid."),
-	openpayments.ErrInsufficientBalance:    NewValidationError("amount", "Insufficient wallet balance"),
+	openpayments.ErrPaymentPointerNotFound:   NotFoundError("Payment pointer not found."),
+	openpayments.ErrNotFound:                 NotFoundError("Open payments not found."),
+	openpayments.ErrPaymentPointerExists:     NewValidationError("url", "That payment pointer has been taken. Please choose another"),
+	openpayments.ErrInvalidPointerURL:        NewValidationError("url", "Payment pointer is invalid."),
+	openpayments.ErrPaymentPointerCannotSend: status.Error(codes.FailedPrecondition, "Payment pointer is not enabled to send"),
+	openpayments.ErrPaymentPointerCannotRecv: status.Error(codes.FailedPrecondition, "Payment pointer is not enabled to receive"),
+	openpayments.ErrInsufficientBalance:       NewValidationError("amount", "Insufficient wallet balance"),
 }
 
 func validationDesc(fe validator.FieldError) string {

@@ -15,6 +15,8 @@ import (
 
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
+	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
+
 	"github.com/stretchr/testify/mock"
 
 	"gitlab.com/fynbos/backend/db"
@@ -122,6 +124,9 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 
 	ctrl := gomock.NewController(t)
+	mc := machnet_mock.NewMockClient(ctrl)
+	mc.EXPECT().GetUserByWalletID(gomock.Any(), gomock.Any()).Return(&machnet.User{KYCStatus: machnet.KYCStatusVerified}, nil).AnyTimes()
+
 	tc := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
@@ -374,6 +379,8 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
+	mc := machnet_mock.NewMockClient(ctrl)
+	mc.EXPECT().GetUserByWalletID(gomock.Any(), gomock.Any()).Return(&machnet.User{KYCStatus: machnet.KYCStatusVerified}, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 
