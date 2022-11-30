@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
 
   return json({
     linkedAccounts: linkedAccounts,
-    hasSend: linkedAccounts.filter(({ type }) => type == 'send').length > 0,
+    canTopUp: linkedAccounts.filter(({ type }) => type == 'send').length > 0,
     hasReceive:
       linkedAccounts.filter(({ type }) => type == 'receive').length > 0
   })
@@ -63,7 +63,8 @@ export const handle = {
 }
 
 export default function Page() {
-  const { linkedAccounts, hasSend, hasReceive } = useLoaderData<typeof loader>()
+  const { linkedAccounts, canTopUp, hasReceive } =
+    useLoaderData<typeof loader>()
 
   return (
     <WalletGrid>
@@ -122,7 +123,7 @@ export default function Page() {
           </Router>
         )}
       </div>
-      {!hasSend && (
+      {!canTopUp && (
         <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>

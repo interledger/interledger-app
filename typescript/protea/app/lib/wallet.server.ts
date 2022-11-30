@@ -131,16 +131,14 @@ export async function getLinkedAccounts(
         linkedAccount.type == 'sendCard'
           ? `Card ending ${linkedAccount.mask}`
           : 'Bank account',
-      // TODO: Remove send/receive and replace with proper typings
-      type: linkedAccount.type == 'sendCard' ? 'send' : 'receive',
+      type: linkedAccount.type == 'sendCard' ? 'card' : 'bank',
       icon: linkedAccount.type == 'sendCard' ? 'credit_card' : 'account_balance'
     }))
 
   return {
     linkedAccounts,
-    canTopUp: linkedAccounts.filter(({ type }) => type == 'send').length > 0,
-    canWithdraw:
-      linkedAccounts.filter(({ type }) => type == 'receive').length > 0
+    canTopUp: linkedAccounts.filter(({ type }) => type == 'card').length > 0,
+    canWithdraw: linkedAccounts.filter(({ type }) => type == 'bank').length > 0
   }
 }
 
