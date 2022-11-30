@@ -663,5 +663,49 @@ const blogShapes: {
         color: 'bg-orange-600'
       }
     ]
+  ],
+  'our-fynbos-family-meet-barnard': [
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-indigo-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-green-400'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-indigo-300'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-blue-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-yellow-200'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-orange-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-slate-600'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-green-300'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-blue-400'
+      }
+    ]
   ]
 }
