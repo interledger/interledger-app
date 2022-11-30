@@ -8,7 +8,8 @@ import * as postE from '~/routes/blog.our-fynbos-family-meet-matt.mdx'
 import * as postF from '~/routes/blog.our-fynbos-family-meet-adrian.mdx'
 import * as postG from '~/routes/blog.our-fynbos-family-meet-cairin.mdx'
 import * as postH from '~/routes/blog.our-fynbos-family-meet-justin.mdx'
-const modules = [postA, postB, postC, postD, postE, postF, postG, postH]
+import * as postI from '~/routes/blog.our-fynbos-family-meet-barnard.mdx'
+const modules = [postA, postB, postC, postD, postE, postF, postG, postH, postI]
 
 export type Author = {
   name: string
