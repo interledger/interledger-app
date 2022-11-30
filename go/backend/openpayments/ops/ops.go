@@ -274,6 +274,31 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w cannot send money to the same payment pointer", openpayments.ErrInvalidArgument)
 	}
 
+	// Validate machnet KYC levels of sender and receiver.
+	recvKYC, err := b.Machnet().GetUserByWalletID(ctx, recvPP.WalletID)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return nil, fmt.Errorf("%w receive not enabled for payment pointer", openpayments.ErrPaymentPointerCannotRecv)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	if recvKYC.KYCStatus != machnet.KYCStatusVerified {
+		return nil, fmt.Errorf("%w receive not enabled for payment pointer", openpayments.ErrPaymentPointerCannotRecv)
+	}
+
+	sendKYC, err := b.Machnet().GetUserByWalletID(ctx, sendPP.WalletID)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return nil, fmt.Errorf("%w send not enabled for payment pointer", openpayments.ErrPaymentPointerCannotSend)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	if sendKYC.KYCStatus != machnet.KYCStatusVerified {
+		return nil, fmt.Errorf("%w send not enabled for payment pointer", openpayments.ErrPaymentPointerCannotSend)
+	}
+
 	if args.LinkedAccID != "" {
 		la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccID)
 		if err != nil {

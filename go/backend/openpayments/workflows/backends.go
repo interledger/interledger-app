@@ -35,6 +35,7 @@ type testBackends struct {
 	t   temporal.Client
 	la  linkedaccounts.Client
 	em  email.Client
+	mc  machnet.Client
 	tx  transactions.Client
 }
 
@@ -68,6 +69,10 @@ func (t testBackends) Validator() *validator.Validate {
 
 func (t testBackends) DB() *sqlx.DB {
 	return t.db
+}
+
+func (t testBackends) Machnet() machnet.Client {
+	return t.mc
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client) Backends {

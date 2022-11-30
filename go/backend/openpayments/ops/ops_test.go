@@ -525,11 +525,15 @@ func TestCreateQuote(t *testing.T) {
 		name      string
 		args      openpayments.CreateQuoteArgs
 		recvAsset string
+		recvKYC   machnet.KYCStatus
+		sendKYC   machnet.KYCStatus
 		balance   uint64
 		err       error
 	}{
 		{
-			name: "success",
+			name:    "success",
+			sendKYC: machnet.KYCStatusVerified,
+			recvKYC: machnet.KYCStatusVerified,
 			args: openpayments.CreateQuoteArgs{
 				SendPaymentPointer:    "http://fynbos.me/paysend",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv",
@@ -544,6 +548,8 @@ func TestCreateQuote(t *testing.T) {
 		},
 		{
 			name:      "different assets",
+			sendKYC:   machnet.KYCStatusVerified,
+			recvKYC:   machnet.KYCStatusVerified,
 			recvAsset: "ZAR",
 			err:       openpayments.ErrInvalidArgument,
 			args: openpayments.CreateQuoteArgs{
@@ -558,8 +564,10 @@ func TestCreateQuote(t *testing.T) {
 			},
 		},
 		{
-			name: "expiry in the past",
-			err:  openpayments.ErrInvalidArgument,
+			name:    "expiry in the past",
+			sendKYC: machnet.KYCStatusVerified,
+			recvKYC: machnet.KYCStatusVerified,
+			err:     openpayments.ErrInvalidArgument,
 			args: openpayments.CreateQuoteArgs{
 				SendPaymentPointer:    "http://fynbos.me/paysend3",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv4",
@@ -568,6 +576,38 @@ func TestCreateQuote(t *testing.T) {
 					Value:    100,
 					Currency: currency.ParseCurrency("USD"),
 					Scale:    2,
+				},
+			},
+		},
+		{
+			name:    "recv address not kyc verified",
+			sendKYC: machnet.KYCStatusVerified,
+			recvKYC: machnet.KYCStatusReviewPending,
+			err:     openpayments.ErrPaymentPointerCannotRecv,
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend5",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv6",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "ZAR",
+					AssetScale: 2,
+				},
+			},
+		},
+		{
+			name:    "send address not kyc verified",
+			sendKYC: machnet.KYCStatusReviewPending,
+			recvKYC: machnet.KYCStatusVerified,
+			err:     openpayments.ErrPaymentPointerCannotSend,
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend7",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv8",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "ZAR",
+					AssetScale: 2,
 				},
 			},
 		},
@@ -637,6 +677,9 @@ func TestCreateQuote(t *testing.T) {
 				AssetScale: tc.args.SendAmount.Scale,
 			})
 			require.NoError(t, err)
+
+			mClient.EXPECT().GetUserByWalletID(ctx, sendWallet.ID).Return(&machnet.User{KYCStatus: tc.sendKYC}, nil).AnyTimes()
+			mClient.EXPECT().GetUserByWalletID(ctx, recvWallet.ID).Return(&machnet.User{KYCStatus: tc.recvKYC}, nil).AnyTimes()
 
 			if tc.args.LinkedAccID != "" {
 				providerID := uuid.NewString()
