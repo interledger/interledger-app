@@ -145,7 +145,11 @@ export function handleFlowError(
   switch (flow.error.id) {
     case 'session_inactive':
       // The user doesn't have a session
-      throw redirect(route('/login'))
+      throw redirect(route('/login'), {
+        headers: {
+          'Clear-Site-Data': 'cookies'
+        }
+      })
     case 'session_aal2_required':
       // 2FA is enabled and enforced, but user did not perform 2fa yet!
       throw redirect(flow.error.redirect_browser_to)
@@ -161,13 +165,25 @@ export function handleFlowError(
       throw redirect(redirectRoute)
     case 'self_service_flow_expired':
       // The flow expired, let's request a new one.
-      throw redirect(redirectRoute)
+      throw redirect(redirectRoute, {
+        headers: {
+          'Clear-Site-Data': 'cookies'
+        }
+      })
     case 'security_csrf_violation':
       // A CSRF violation occurred. Best to just refresh the flow!
-      throw redirect(redirectRoute)
+      throw redirect(redirectRoute, {
+        headers: {
+          'Clear-Site-Data': 'cookies'
+        }
+      })
     case 'security_identity_mismatch':
       // The requested item was intended for someone else. Let's request a new flow...
-      throw redirect(redirectRoute)
+      throw redirect(redirectRoute, {
+        headers: {
+          'Clear-Site-Data': 'cookies'
+        }
+      })
     case 'browser_location_change_required':
       // Ory Kratos asked us to point the user to this URL.
       throw redirect(flow.error.redirect_browser_to)
