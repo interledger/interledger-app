@@ -16,7 +16,7 @@ import {
   Shape,
   TextField
 } from '~/components'
-import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { flowType, requireFlow } from '~/lib/flows.server'
 import {
   grpcClient,
   httpMapping,
@@ -327,6 +327,8 @@ export async function action({ request }: ActionArgs) {
   if (isGrpcError(res)) throw json({}, httpMapping(res.code))
 
   const flow = await requireFlow(request, flowType.PersonalDetails)
-  await exitFlow(request, flowType.PersonalDetails)
+  // NOTE Temporarily not exciting this flow so that if the user needs to fix something their data will be there.
+  // We should find a better way to do this.
+  // await exitFlow(request, flowType.PersonalDetails)
   return redirect(flow.returnTo)
 }

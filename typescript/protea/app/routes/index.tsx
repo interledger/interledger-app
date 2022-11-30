@@ -532,7 +532,12 @@ function AppPage() {
             Some of the details you provided were not correct. Please fix them
             and submit again.
           </p>
-          {/*  TODO: Implement fix personal details flow. */}
+          <Router
+            className='text-sm font-medium text-primary'
+            to={route('/personal-details')}
+          >
+            Fix personal details
+          </Router>
         </div>
       )}
       {kycStatus == KycStatus.Suspended && (
