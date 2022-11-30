@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -52,7 +53,18 @@ func New(clientID, clientSecret string) *Client {
 	}
 }
 
+func FormatIPAddress(ip string) string {
+	nip := net.ParseIP(ip)
+	if nip == nil || nip.To4() == nil {
+		return "0.0.0.0"
+	}
+
+	return ip
+}
+
 func (c Client) RegisterUser(ctx context.Context, user external.User) (*external.User, error) {
+	user.IPAddress = FormatIPAddress(user.IPAddress)
+
 	payload, err := json.Marshal(user)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -114,6 +126,8 @@ func (c Client) UpdateUser(ctx context.Context, id string, newValues external.Us
 	if newValues.ID != "" {
 		return nil, fmt.Errorf("%w Do not set ID on newValues.", external.ErrInvalidArgument)
 	}
+
+	newValues.IPAddress = FormatIPAddress(newValues.IPAddress)
 	payload, err := json.Marshal(newValues)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -324,6 +338,8 @@ func (c Client) DeleteFundingSource(ctx context.Context, userID, fundingSourceID
 }
 
 func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransactionArgs) (*external.Transaction, error) {
+	trx.IPAddress = FormatIPAddress(trx.IPAddress)
+
 	payload, err := json.Marshal(trx)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -537,7 +553,7 @@ func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs
 		Type:         "LOAD",
 		Amount:       args.Amount,
 		Currency:     args.Currency,
-		IPAddress:    args.IPAddress,
+		IPAddress:    FormatIPAddress(args.IPAddress),
 	}
 
 	bb, err := json.Marshal(body)
@@ -582,7 +598,7 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		Type:      "TRANSFER",
 		Amount:    args.Amount,
 		Currency:  args.Currency,
-		IPAddress: args.IPAddress,
+		IPAddress: FormatIPAddress(args.IPAddress),
 		To: external.TransactionTo{
 			ID:     args.RecvUserID,
 			FundID: args.RecvFundID,
@@ -629,7 +645,7 @@ func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.Withdr
 		"fee_amount":   args.FeeAmount,
 		"from_fund_id": args.WalletID,
 		"id":           args.UserID,
-		"ip_address":   args.IPAddress,
+		"ip_address":   FormatIPAddress(args.IPAddress),
 		"type":         "UNLOAD",
 		"to": map[string]string{
 			"fund_id": args.ToFundID,
