@@ -20,6 +20,7 @@ import {
 import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 
 const metaContent = {
   title: 'Fynbos',
@@ -82,7 +83,7 @@ function Document({
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = await hasUserSession(request)
-  return json({ isUser })
+  return json({ isUser, isSignupGated: IS_SIGNUP_GATED })
 }
 
 export default function Page() {
