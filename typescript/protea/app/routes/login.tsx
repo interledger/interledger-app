@@ -10,6 +10,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -43,7 +44,11 @@ export async function loader({ request }: LoaderArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return json({
+    flow,
+    csrfToken: getCsrfTokenFromFlow(flow),
+    isSignupGated: IS_SIGNUP_GATED
+  })
 }
 
 export const handle = {
@@ -52,7 +57,7 @@ export const handle = {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, csrfToken, isSignupGated } = useLoaderData<typeof loader>()
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <div className='mt-2'>
@@ -61,9 +66,16 @@ export default function Page() {
       <h1 className='mt-6 font-display text-2xl font-medium'>Log in</h1>
       <p className='mt-6 text-medium'>
         New to Fynbos?{' '}
-        <Router className='text-primary' to={route('/signup')}>
-          Sign up
-        </Router>
+        {isSignupGated && (
+          <Router className='text-primary' to={route('/waitlist')}>
+            Join waitlist
+          </Router>
+        )}
+        {!isSignupGated && (
+          <Router className='text-primary' to={route('/signup')}>
+            Sign up
+          </Router>
+        )}
       </p>
       <Form
         id='login'

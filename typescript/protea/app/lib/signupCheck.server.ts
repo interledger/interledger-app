@@ -3,7 +3,7 @@ import { route } from 'routes-gen'
 import { commitSession, getSession } from '~/session.server'
 import { grpcClient } from '~/lib/proto.server'
 
-const IS_SIGNUP_GATED = process.env.GATE_SIGNUP == 'true' || false
+export const IS_SIGNUP_GATED = process.env.GATE_SIGNUP == 'true' || false
 
 export async function canSignup(request: Request): Promise<void> {
   if (!IS_SIGNUP_GATED) {

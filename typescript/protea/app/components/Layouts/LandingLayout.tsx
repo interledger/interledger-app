@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from '@remix-run/react'
+import { NavLink, Outlet, useMatches } from '@remix-run/react'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
@@ -35,7 +35,8 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
 
 export function LandingLayout() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
-
+  const matches = useMatches()
+  const isSignupGated = matches.at(-1)?.data.isSignupGated
   return (
     <div className='relative flex min-h-screen w-full flex-col bg-white'>
       <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
@@ -66,8 +67,18 @@ export function LandingLayout() {
           <div className='hidden items-center lg:flex'>
             <div className='flex space-x-10 pt-3 pb-2'>
               <Router to={route('/waitlist')}>
-                <span className='text-sm font-medium'>Join the waitlist</span>
+                <span className='text-sm font-medium'>Login</span>
               </Router>
+              {isSignupGated && (
+                <Router to={route('/waitlist')}>
+                  <span className='text-sm font-medium'>Join the waitlist</span>
+                </Router>
+              )}
+              {!isSignupGated && (
+                <Router to={route('/signup')}>
+                  <span className='text-sm font-medium'>Sign up</span>
+                </Router>
+              )}
             </div>
           </div>
         </div>
@@ -215,9 +226,24 @@ export function LandingLayout() {
           </NavDrawer.List>
           <NavDrawer.List>
             <div className='flex flex-col space-y-2'>
-              <ButtonRouter className='h-11' to={route('/waitlist')}>
-                Join the waitlist
-              </ButtonRouter>
+              <Router
+                className='flex h-11 w-full items-center justify-center'
+                to={route('/login')}
+              >
+                <span className='font-display font-medium text-medium'>
+                  Log in
+                </span>
+              </Router>
+              {isSignupGated && (
+                <ButtonRouter className='h-11' to={route('/waitlist')}>
+                  Join the waitlist
+                </ButtonRouter>
+              )}
+              {!isSignupGated && (
+                <ButtonRouter className='h-11' to={route('/signup')}>
+                  Sign up
+                </ButtonRouter>
+              )}
             </div>
           </NavDrawer.List>
         </NavDrawer>
