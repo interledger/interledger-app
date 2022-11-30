@@ -108,6 +108,11 @@ export default function Page() {
             { id: 'ID', name: 'Searching for addresses...' }
           ]
         }
+        aria-invalid={Boolean(actionData?.errors.address) || undefined}
+        aria-describedby={
+          actionData?.errors.address ? 'address-error' : undefined
+        }
+        errorMessage={actionData?.errors.address}
         label='Address'
         prefixIcon={<Icon>search</Icon>}
         button={false}
@@ -230,7 +235,8 @@ export async function action({ request }: ActionArgs) {
   const serviceAgreement = form.get('service-agreement') as string
   // TODO: use actual service agreement service
   const fieldErrors = {
-    serviceAgreement: ''
+    serviceAgreement: '',
+    address: ''
   }
 
   if (serviceAgreement == null) {
@@ -267,6 +273,24 @@ export async function action({ request }: ActionArgs) {
     countryCode,
     placeID,
     formattedAddress
+  }
+
+  let isUpsAddressResponse = await grpcClient.isUSPSAddress(address, {
+    meta: {
+      cookies: request.headers.get('cookie') || ''
+    }
+  })
+
+  if (!isUpsAddressResponse.response.valid) {
+    fieldErrors.address = 'Your address is not a valid USPS address.'
+    return json(
+      {
+        errors: {
+          ...fieldErrors
+        }
+      },
+      { status: 400 }
+    )
   }
 
   const clientIpAddress = getClientIP(request)
