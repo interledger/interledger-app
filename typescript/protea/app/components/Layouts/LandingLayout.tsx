@@ -36,7 +36,7 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
 export function LandingLayout() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
-  const isSignupGated = matches.at(-1)?.data.isSignupGated
+  const isSignupGated = matches[0]?.data.isSignupGated
   return (
     <div className='relative flex min-h-screen w-full flex-col bg-white'>
       <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-white lg:h-24'>
