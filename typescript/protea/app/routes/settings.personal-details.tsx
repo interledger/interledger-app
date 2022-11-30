@@ -50,59 +50,33 @@ export default function Page() {
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-2xl font-medium'>Personal details</h1>
-        <Router
-          to={route('/settings/personal-details')}
-          className='mt-6 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
-        >
+        <div className='mt-6 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>face</Icon>
             <span>
               {traits.firstName} {traits.lastName}
             </span>
           </div>
-          <Icon>navigate_next</Icon>
-        </Router>
-        <Router
-          to={route('/settings/linked-accounts')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
-        >
+        </div>
+        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>mail</Icon>
             <span>{traits.email}</span>
           </div>
-          <Icon>navigate_next</Icon>
-        </Router>
-        <Router
-          to={route('/settings/linked-accounts')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
-        >
+        </div>
+        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>call</Icon>
             <span>{traits.phone}</span>
           </div>
-          <Icon>navigate_next</Icon>
-        </Router>
+        </div>
         <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
-        <Router
-          to={route('/settings/linked-accounts')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
-        >
+        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>flag</Icon>
             <span>{country}</span>
           </div>
-          <Icon>navigate_next</Icon>
-        </Router>
-        {/*<Router*/}
-        {/*  to='/login/challenge?challenge-flow=settings-password'*/}
-        {/*  className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'*/}
-        {/*>*/}
-        {/*  <div className='flex space-x-3'>*/}
-        {/*    <Icon>password</Icon>*/}
-        {/*    <span>Password</span>*/}
-        {/*  </div>*/}
-        {/*  <Icon>navigate_next</Icon>*/}
-        {/*</Router>*/}
+        </div>
         <Router
           to={route('/logout')}
           className='mt-2 flex items-center space-x-3 rounded-xl p-3 text-primary'
