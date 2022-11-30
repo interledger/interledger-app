@@ -15,6 +15,47 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/external/client"
 )
 
+func TestFormatIPAddress(t *testing.T) {
+	cases := []struct {
+		name   string
+		input  string
+		output string
+	}{
+		{
+			name:   "ipv4",
+			input:  "127.0.0.1",
+			output: "127.0.0.1",
+		},
+		{
+			name:   "ipv6",
+			input:  "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+			output: "0.0.0.0",
+		},
+		{
+			name:   "random string",
+			input:  "Ladida",
+			output: "0.0.0.0",
+		},
+		{
+			name:   "empty string",
+			input:  "",
+			output: "0.0.0.0",
+		},
+		{
+			name:   "invalid ip",
+			input:  "266.266.266.365",
+			output: "0.0.0.0",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ip := client.FormatIPAddress(tc.input)
+			assert.Equal(t, tc.output, ip)
+		})
+	}
+}
+
 func TestMachnetClientIntegration(t *testing.T) {
 	envFile := os.Getenv("ENV_FILE")
 	if envFile != "" {
