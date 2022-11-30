@@ -66,8 +66,8 @@ export function LandingLayout() {
           </div>
           <div className='hidden items-center lg:flex'>
             <div className='flex space-x-10 pt-3 pb-2'>
-              <Router to={route('/waitlist')}>
-                <span className='text-sm font-medium'>Login</span>
+              <Router to={route('/login')}>
+                <span className='text-sm font-medium'>Log in</span>
               </Router>
               {isSignupGated && (
                 <Router to={route('/waitlist')}>
