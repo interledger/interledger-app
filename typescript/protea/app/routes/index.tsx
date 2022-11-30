@@ -25,6 +25,7 @@ import {
 import { Fragment, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 
 export enum KycStatus {
   Unknown,
@@ -40,6 +41,7 @@ export async function loader({ request }: LoaderArgs) {
 
   let data = {
     isUser: isUser,
+    isSignupGated: IS_SIGNUP_GATED,
     firstName: '',
     paymentPointer: {
       url: '',
