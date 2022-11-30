@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -13,7 +13,6 @@ import {
 } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
-import { flowType, requireFlow } from '~/lib/flows.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -66,11 +65,8 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </Router>
         <h2 className='mt-6 text-sm font-medium'>Security</h2>
-        <button
-          form='settings'
-          name='challenge'
-          value='settings-password'
-          // to='/login/challenge?challenge-flow=settings-password'
+        <Router
+          to={route('/login/challenge')}
           className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
         >
           <div className='flex space-x-3'>
@@ -78,7 +74,7 @@ export default function Page() {
             <span>Password</span>
           </div>
           <Icon>navigate_next</Icon>
-        </button>
+        </Router>
         <Router
           to={route('/legal')}
           className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
@@ -102,16 +98,4 @@ export default function Page() {
       />
     </WalletGrid>
   )
-}
-
-export async function action({ request }: ActionArgs) {
-  const form = await request.formData()
-  const challenge = form.get('challenge') as string
-
-  if (challenge == 'settings-password')
-    await requireFlow(request, flowType.PasswordChallenge, {
-      data: {},
-      startRoute: route('/login/challenge'),
-      returnTo: route('/settings/password')
-    })
 }
