@@ -4,6 +4,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
+
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/eks"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
@@ -157,12 +158,29 @@ func main() {
 			return err
 		}
 
-		roleConfig := k8s.RoleMappingConfig([]*iam.Role{
-			instanceRole,
-		}, []k8s.RoleMap{})
+		deployRole, err := k8s.NewDeployRole(ctx, clusterName, "arn:aws:iam::823058932981:role/eksArgoRole")
 		if err != nil {
 			return err
 		}
+		ctx.Export("deployRoleArn", deployRole.Arn)
+
+		roleConfig := k8s.RoleMappingConfigV2([]k8s.RoleMapArg{
+			{
+				RoleArn:  instanceRole.Arn,
+				Username: pulumi.String("system:node:{{EC2PrivateDNSName}}"),
+				Groups: pulumi.StringArray{
+					pulumi.String("system:bootstrappers"),
+					pulumi.String("system:nodes"),
+				},
+			},
+			{
+				RoleArn:  deployRole.Arn,
+				Username: deployRole.Arn,
+				Groups: pulumi.StringArray{
+					pulumi.String("system:masters"),
+				},
+			},
+		})
 
 		authConfig, err := corev1.NewConfigMap(ctx, "aws-auth", &corev1.ConfigMapArgs{
 			Metadata: &metav1.ObjectMetaArgs{
