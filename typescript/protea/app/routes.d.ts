@@ -2,6 +2,7 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/blog/the-future-digital-wallets-and-payment-pointers": Record<string, never>;
     "/blog/connecting-the-internet-economy": Record<string, never>;
+    "/blog/our-fynbos-family-meet-barnard": Record<string, never>;
     "/settings/linked-accounts/:accountId": { "accountId": string };
     "/blog/our-fynbos-family-meet-adrian": Record<string, never>;
     "/blog/our-fynbos-family-meet-cairin": Record<string, never>;
@@ -57,6 +58,7 @@ declare module "routes-gen" {
     T extends
       | ["/blog/the-future-digital-wallets-and-payment-pointers"]
       | ["/blog/connecting-the-internet-economy"]
+      | ["/blog/our-fynbos-family-meet-barnard"]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
       | ["/blog/our-fynbos-family-meet-adrian"]
       | ["/blog/our-fynbos-family-meet-cairin"]
