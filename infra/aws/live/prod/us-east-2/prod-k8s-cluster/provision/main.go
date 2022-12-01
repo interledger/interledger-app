@@ -4,10 +4,12 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
+
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/ec2"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/eks"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/s3"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
@@ -19,6 +21,7 @@ import (
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
+		accountID := "806897333161"
 		clusterName := "prod-us-east-2-cluster"
 		awsConfig := config.New(ctx, "aws")
 		region := awsConfig.Get("region")
@@ -186,6 +189,59 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		// crdb backups bucket
+		crdbBackupsBucket, err := s3.NewBucket(ctx, "crdb-backups-bucket", &s3.BucketArgs{
+			Versioning: &s3.BucketVersioningArgs{
+				Enabled: pulumi.Bool(true),
+			},
+			LifecycleRules: s3.BucketLifecycleRuleArray{
+				s3.BucketLifecycleRuleArgs{
+					Expiration: s3.BucketLifecycleRuleExpirationArgs{
+						Days: pulumi.Int(365),
+					},
+					Enabled: pulumi.Bool(true),
+				},
+			},
+			ServerSideEncryptionConfiguration: s3.BucketServerSideEncryptionConfigurationArgs{
+				Rule: s3.BucketServerSideEncryptionConfigurationRuleArgs{
+					BucketKeyEnabled: pulumi.Bool(true), // use bucket level kms key
+					ApplyServerSideEncryptionByDefault: s3.BucketServerSideEncryptionConfigurationRuleApplyServerSideEncryptionByDefaultArgs{
+						SseAlgorithm: pulumi.String("aws:kms"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.Protect(true))
+		if err != nil {
+			return err
+		}
+		ctx.Export("crdbBackupsBucket", crdbBackupsBucket.Arn)
+
+		backupTrustPolicy := k8s.NewIamTrustPolicyDocumentV2(ctx, pulumi.String(accountID), provider.Url, pulumi.String("cockroachdb"), pulumi.String("cockroachdb"))
+		backupAccessPolicy := pulumi.All(crdbBackupsBucket.Arn).ApplyT(func(args []interface{}) (string, error) {
+			bucketARN := args[0].(string)
+
+			policy, err := k8s.NewCockroachS3BackupAccessPolicy(ctx, bucketARN)
+			if err != nil {
+				return "", err
+			}
+
+			return policy.Json, nil
+		}).(pulumi.StringOutput)
+
+		backupRole, err := iam.NewRole(ctx, "crdb-backup", &iam.RoleArgs{
+			AssumeRolePolicy: backupTrustPolicy,
+			InlinePolicies: iam.RoleInlinePolicyArray{
+				iam.RoleInlinePolicyArgs{
+					Name:   pulumi.String("read-write-access"),
+					Policy: backupAccessPolicy,
+				},
+			},
+		}, pulumi.Provider(kubeProvider))
+		if err != nil {
+			return err
+		}
+		ctx.Export("crdbBackupsRole", backupRole.Arn)
 
 		return nil
 	})
