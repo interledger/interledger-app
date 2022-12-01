@@ -249,6 +249,7 @@ export async function action({ request }: ActionArgs) {
   const mugId = form.get('mugId') as string
 
   const fieldErrors = {
+    form: '',
     fullName: '',
     countryCode: '',
     email: ''

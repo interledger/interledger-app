@@ -232,6 +232,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   const fieldErrors = {
+    form: '',
     firstName: '',
     lastName: '',
     country: '',

@@ -257,6 +257,7 @@ export async function action({ request }: ActionArgs) {
   const description = form.get('description') as string
 
   const fieldErrors = {
+    form: '',
     firstName: '',
     lastName: '',
     email: '',

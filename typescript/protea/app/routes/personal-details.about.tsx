@@ -202,6 +202,7 @@ export async function action({ request, params }: ActionArgs) {
   const gender = form.get('gender') as string
 
   const fieldErrors = {
+    form: '',
     firstName: '',
     lastName: '',
     dateOfBirth: '',

@@ -218,6 +218,7 @@ export async function action({ request }: ActionArgs) {
   const phone = form.get('phone') as string
 
   const fieldErrors = {
+    form: '',
     otp: '',
     phone: ''
   }
