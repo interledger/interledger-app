@@ -147,7 +147,7 @@ export default function Page() {
           Privacy Policy
         </Router>
         ,&nbsp;
-        <Router className='text-primary' to={route('/legal/privacy-policy')}>
+        <Router className='text-primary' to={route('/legal/terms-of-use')}>
           Terms of Use
         </Router>
         , and&nbsp;
