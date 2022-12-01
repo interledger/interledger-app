@@ -886,7 +886,7 @@ func NewDeployRole(ctx *pulumi.Context, clusterName string, deployerRoleArn stri
 	return deployerRole, nil
 }
 
-func NewCockroachS3BackupAccessPolicy(ctx *pulumi.Context, bucketARN string) (*iam.GetPolicyDocumentResult, error) {
+func NewBucketReadWriteDeleteAccessPolicy(ctx *pulumi.Context, bucketARN string) (*iam.GetPolicyDocumentResult, error) {
 	readWritePolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
 		Version: utils.StringPtr("2012-10-17"),
 		Statements: []iam.GetPolicyDocumentStatement{

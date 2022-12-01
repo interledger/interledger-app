@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-vault/sdk/v5/go/vault"
@@ -85,6 +86,11 @@ func main() {
 			return err
 		}
 
+		err = createSnapshotRole(ctx, k8sAuth.Path)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -138,6 +144,39 @@ path "pki/shared-int/sign/emissary"
 		},
 		BoundServiceAccountNamespaces: pulumi.StringArray{
 			pulumi.String("emissary"),
+		},
+		TokenPolicies: pulumi.StringArray{
+			policy.Name,
+		},
+	}, pulumi.DependsOn([]pulumi.Resource{policy}))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createSnapshotRole(ctx *pulumi.Context, path pulumi.StringPtrInput) error {
+	policy, err := vault.NewPolicy(ctx, "snapshot", &vault.PolicyArgs{
+		Name: pulumi.String("shared-euw1-snapshot"),
+		Policy: pulumi.String(`
+path "sys/storage/raft/snapshot" {
+   capabilities = ["read"]
+}
+`),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = vaultk8s.NewAuthBackendRole(ctx, "snapshot-role", &vaultk8s.AuthBackendRoleArgs{
+		RoleName: pulumi.String("snapshot"),
+		Backend:  path,
+		BoundServiceAccountNames: pulumi.StringArray{
+			pulumi.String("vault-snapshot"),
+		},
+		BoundServiceAccountNamespaces: pulumi.StringArray{
+			pulumi.String("vault"),
 		},
 		TokenPolicies: pulumi.StringArray{
 			policy.Name,
