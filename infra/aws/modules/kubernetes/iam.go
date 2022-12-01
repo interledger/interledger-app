@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	appsV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	coreV1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
@@ -883,4 +884,33 @@ func NewDeployRole(ctx *pulumi.Context, clusterName string, deployerRoleArn stri
 	}
 
 	return deployerRole, nil
+}
+
+func NewCockroachS3BackupAccessPolicy(ctx *pulumi.Context, bucketARN string) (*iam.GetPolicyDocumentResult, error) {
+	readWritePolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+		Version: utils.StringPtr("2012-10-17"),
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Sid:       utils.StringPtr("ListObjectsInBucket"),
+				Effect:    utils.StringPtr("Allow"),
+				Actions:   []string{"s3:ListBucket"},
+				Resources: []string{bucketARN},
+			},
+			{
+				Sid:    utils.StringPtr("AllObjectActions"),
+				Effect: utils.StringPtr("Allow"),
+				Actions: []string{
+					"s3:PutObject",
+					"s3:GetObject",
+					"s3:DeleteObject",
+				},
+				Resources: []string{fmt.Sprintf("%s/*", bucketARN)},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return readWritePolicy, nil
 }
