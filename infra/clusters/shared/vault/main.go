@@ -6,6 +6,7 @@ import (
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/kms"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/route53"
+	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/s3"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	"gitlab.com/fynbos/infra/aws/modules/utils"
 
@@ -300,6 +301,59 @@ func main() {
 				endpoint.Elem(),
 			},
 		})
+		if err != nil {
+			return err
+		}
+
+		snapshotBucket, err := s3.NewBucket(ctx, "snapshot-bucket", &s3.BucketArgs{
+			Versioning: &s3.BucketVersioningArgs{
+				Enabled: pulumi.Bool(true),
+			},
+			LifecycleRules: s3.BucketLifecycleRuleArray{
+				s3.BucketLifecycleRuleArgs{
+					Expiration: s3.BucketLifecycleRuleExpirationArgs{
+						Days: pulumi.Int(365),
+					},
+					Enabled: pulumi.Bool(true),
+				},
+			},
+			ServerSideEncryptionConfiguration: s3.BucketServerSideEncryptionConfigurationArgs{
+				Rule: s3.BucketServerSideEncryptionConfigurationRuleArgs{
+					BucketKeyEnabled: pulumi.Bool(true), // use bucket level kms key
+					ApplyServerSideEncryptionByDefault: s3.BucketServerSideEncryptionConfigurationRuleApplyServerSideEncryptionByDefaultArgs{
+						SseAlgorithm: pulumi.String("aws:kms"),
+					},
+				},
+			},
+		}, pulumi.Provider(kubeProvider), pulumi.Protect(true))
+		if err != nil {
+			return err
+		}
+		ctx.Export("snapshotBucket", snapshotBucket.Arn)
+
+		snapshotTrustPolicy := fynbosK8s.NewIamTrustPolicyDocumentV2(ctx, pulumi.String(accountId), oidcProvider, pulumi.String("vault"), pulumi.String("vault-snapshot"))
+		snapshotAccessPolicy := snapshotBucket.Arn.ApplyT(func(arn string) (string, error) {
+			policy, err := fynbosK8s.NewBucketReadWriteDeleteAccessPolicy(ctx, arn)
+			if err != nil {
+				return "", err
+			}
+
+			return policy.Json, nil
+		}).(pulumi.StringOutput)
+
+		snapshotRole, err := iam.NewRole(ctx, "snapshot-role", &iam.RoleArgs{
+			AssumeRolePolicy: snapshotTrustPolicy,
+			InlinePolicies: iam.RoleInlinePolicyArray{
+				iam.RoleInlinePolicyArgs{
+					Name:   pulumi.String("read-write-access"),
+					Policy: snapshotAccessPolicy,
+				},
+			},
+		}, pulumi.Provider(kubeProvider))
+		if err != nil {
+			return err
+		}
+		ctx.Export("snapshotRole", snapshotRole.Arn)
 
 		return err
 	})

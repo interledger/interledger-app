@@ -221,7 +221,7 @@ func main() {
 		backupAccessPolicy := pulumi.All(crdbBackupsBucket.Arn).ApplyT(func(args []interface{}) (string, error) {
 			bucketARN := args[0].(string)
 
-			policy, err := k8s.NewCockroachS3BackupAccessPolicy(ctx, bucketARN)
+			policy, err := k8s.NewBucketReadWriteDeleteAccessPolicy(ctx, bucketARN)
 			if err != nil {
 				return "", err
 			}
