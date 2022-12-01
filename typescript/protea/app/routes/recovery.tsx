@@ -11,7 +11,8 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  requireNoUserSession
+  requireNoUserSession,
+  kratosErrorMapping
 } from '~/lib/kratos.server'
 import { useEffect, useState } from 'react'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
@@ -130,7 +131,10 @@ export async function action({ request }: ActionArgs) {
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
 
-  const fieldErrors = { email: '' }
+  const fieldErrors = {
+    form: '',
+    email: ''
+  }
 
   const res = await fetch(
     `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
@@ -147,17 +151,8 @@ export async function action({ request }: ActionArgs) {
       }
     }
   )
-
-  const data = await res.json()
   if (res.status >= 400) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
+    return kratosErrorMapping(res, fieldErrors)
   }
 
   return redirect(`/recovery?flow=${flowId}`, {

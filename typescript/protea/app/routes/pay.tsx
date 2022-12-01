@@ -147,6 +147,7 @@ export async function action({ request }: ActionArgs) {
   const paymentPointer = form.get('paymentPointer') as string
 
   const fieldErrors = {
+    form: '',
     paymentPointer: ''
   }
 

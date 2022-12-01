@@ -7,6 +7,7 @@ import {
   Layouts,
   Router,
   Shape,
+  Snackbar,
   TextField
 } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
@@ -14,6 +15,7 @@ import {
   getCsrfTokenFromFlow,
   handleFlowError,
   KRATOS_URL,
+  kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { route } from 'routes-gen'
@@ -22,6 +24,7 @@ import { grpcClient } from '~/lib/proto.server'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -71,6 +74,18 @@ export const handle = {
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { kratosFlowId, csrfToken } = useLoaderData<typeof loader>()
+
+  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    Boolean(actionData?.errors.form) ?? false
+  )
+
+  useEffect(() => {
+    if (actionData?.errors.form) {
+      setSnackbar(actionData?.errors.form)
+      setShowSnackbar(true)
+    }
+  }, [actionData])
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
@@ -154,6 +169,16 @@ export default function Page() {
       <Button className='mt-12' form='signup-password' type='submit'>
         Confirm
       </Button>
+      <Snackbar
+        message={snackbarMessage}
+        icon='close'
+        show={showSnackbar}
+        id='error-snackbar'
+        onClose={() => {
+          setSnackbar('')
+          setShowSnackbar(false)
+        }}
+      />
     </div>
   )
 }
@@ -168,6 +193,7 @@ export async function action({ request }: ActionArgs) {
   const serviceAgreement = form.get('service-agreement') as string
 
   const fieldErrors = {
+    form: '',
     serviceAgreement: '',
     password: ''
   }
@@ -210,20 +236,11 @@ export async function action({ request }: ActionArgs) {
       }
     }
   )
-
-  const data = await res.json()
-
   if (res.status >= 400) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
+    return kratosErrorMapping(res, fieldErrors)
   }
 
+  const data = await res.json()
   // The SuccessfulSelfServiceRegistrationWithoutBrowser is correct here. The OpenAPI spec for kratos
   // has some weird naming for types....
   const successData = data as SuccessfulSelfServiceRegistrationWithoutBrowser

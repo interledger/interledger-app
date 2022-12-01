@@ -1,15 +1,17 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Layouts, TextField } from '~/components'
+import { Button, Layouts, Snackbar, TextField } from '~/components'
 import {
   getCsrfTokenFromFlow,
   handleFlowError,
   KRATOS_URL,
+  kratosErrorMapping,
   requireUserSession
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -60,6 +62,18 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken, email } = useLoaderData<typeof loader>()
 
+  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    Boolean(actionData?.errors.form) ?? false
+  )
+
+  useEffect(() => {
+    if (actionData?.errors.form) {
+      setSnackbar(actionData?.errors.form)
+      setShowSnackbar(true)
+    }
+  }, [actionData])
+
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <h1 className='mb-6 font-display text-2xl font-medium'>
@@ -103,6 +117,16 @@ export default function Page() {
       <Button className='mt-6' form='login-challenge' type='submit'>
         Continue
       </Button>
+      <Snackbar
+        message={snackbarMessage}
+        icon='close'
+        show={showSnackbar}
+        id='error-snackbar'
+        onClose={() => {
+          setSnackbar('')
+          setShowSnackbar(false)
+        }}
+      />
     </div>
   )
 }
@@ -118,6 +142,7 @@ export async function action({ request }: ActionArgs) {
   const password = form.get('password') as string
 
   const fieldErrors = {
+    form: '',
     email: '',
     password: ''
   }
@@ -136,19 +161,11 @@ export async function action({ request }: ActionArgs) {
       Cookie: String(request.headers.get('cookie'))
     }
   })
-
-  const data = await res.json()
-
-  // 4000001 is an error if the user already has a privileged session.
-  if (res.status >= 400 && data.ui.messages[0].id !== 4000001) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  if (res.status >= 400) {
+    const data = await res.json()
+    // 4000001 is an error if the user already has a privileged session.
+    if (data.ui.messages[0].id !== 4000001)
+      return kratosErrorMapping(res, fieldErrors)
   }
 
   const headers = trimHeaders(res.headers, ['set-cookie'])

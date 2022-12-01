@@ -7,6 +7,7 @@ import type {
   Session,
   UiNodeInputAttributes
 } from '@ory/kratos-client'
+import type { TypedResponse } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import {
@@ -188,4 +189,95 @@ export function handleFlowError(
       // Ory Kratos asked us to point the user to this URL.
       throw redirect(flow.error.redirect_browser_to)
   }
+}
+
+enum kratosErrorId {
+  ErrorValidation = 4000000,
+  ErrorValidationGeneric,
+  ErrorValidationRequired,
+  ErrorValidationMinLength,
+  ErrorValidationInvalidFormat,
+  ErrorValidationPasswordPolicyViolation,
+  ErrorValidationInvalidCredentials,
+  ErrorValidationDuplicateCredentials,
+  ErrorValidationTOTPVerifierWrong,
+  ErrorValidationIdentifierMissing,
+  ErrorValidationAddressNotVerified,
+  ErrorValidationNoTOTPDevice,
+  ErrorValidationLookupAlreadyUsed,
+  ErrorValidationNoWebAuthnDevice,
+  ErrorValidationNoLookup,
+  ErrorValidationSuchNoWebAuthnUser,
+  ErrorValidationLookupInvalid,
+  ErrorValidationLogin = 4010000,
+  ErrorValidationLoginFlowExpired,
+  ErrorValidationLoginNoStrategyFound,
+  ErrorValidationRegistrationNoStrategyFound,
+  ErrorValidationSettingsNoStrategyFound,
+  ErrorValidationRecoveryNoStrategyFound,
+  ErrorValidationVerificationNoStrategyFound,
+  ErrorValidationRegistration = 4040000,
+  ErrorValidationRegistrationFlowExpired,
+  ErrorValidationSettings = 4050000,
+  ErrorValidationSettingsFlowExpired,
+  ErrorValidationRecovery = 4060000,
+  ErrorValidationRecoveryRetrySuccess,
+  ErrorValidationRecoveryStateFailure,
+  ErrorValidationRecoveryMissingRecoveryToken,
+  ErrorValidationRecoveryTokenInvalidOrAlreadyUsed,
+  ErrorValidationRecoveryFlowExpired,
+  ErrorValidationRecoveryCodeInvalidOrAlreadyUsed,
+  ErrorValidationVerification = 4070000,
+  ErrorValidationVerificationTokenInvalidOrAlreadyUsed,
+  ErrorValidationVerificationRetrySuccess,
+  ErrorValidationVerificationStateFailure,
+  ErrorValidationVerificationMissingVerificationToken,
+  ErrorValidationVerificationFlowExpired,
+  ErrorValidationVerificationCodeInvalidOrAlreadyUsed,
+  ErrorSystem = 5000000,
+  ErrorSystemGeneric
+}
+
+type KratosMessage = {
+  id: kratosErrorId
+  text: string
+}
+
+/**
+ * Overrides the kratos error messages.
+ * Will pass on the kratos error message if not overridden.
+ * @param error The kratos error message.
+ */
+export function kratosErrorMessage(error: KratosMessage): string {
+  switch (error.id) {
+    case kratosErrorId.ErrorValidationInvalidCredentials:
+      return 'The provided credentials are invalid.'
+    case kratosErrorId.ErrorValidationDuplicateCredentials:
+      return 'An account with the same identifier (email, phone, username, ...) exists already.'
+    default:
+      return error.text
+  }
+}
+
+export async function kratosErrorMapping<T extends object>(
+  response: Response,
+  fieldErrors: T
+): Promise<TypedResponse<{ errors: T }>> {
+  const data = await response.json()
+  for (let node of data.ui.nodes) {
+    // Field validation errors
+    if (node.messages.length > 0) {
+      Object.assign(fieldErrors, {
+        [node.attributes.name]: kratosErrorMessage(node.messages[0])
+      })
+    }
+  }
+  if (data.ui.messages.length > 0) {
+    // form message validation errors
+    // This gets rendered in a snackbar - only use one.
+    Object.assign(fieldErrors, {
+      form: kratosErrorMessage(data.ui.messages[0])
+    })
+  }
+  return json({ errors: { ...fieldErrors } }, { status: 400 })
 }

@@ -187,6 +187,7 @@ export async function action({ request }: ActionArgs) {
   const canSubmit = Boolean(form.get('canSubmit') as string)
 
   const fieldErrors = {
+    form: '',
     username: ''
   }
 

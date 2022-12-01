@@ -1,16 +1,18 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Layouts, TextField } from '~/components'
+import { Button, Layouts, Snackbar, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   getCsrfTokenFromFlow,
   handleFlowError,
   KRATOS_URL,
+  kratosErrorMapping,
   requireUserSession
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -55,6 +57,18 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken } = useLoaderData<typeof loader>()
 
+  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    Boolean(actionData?.errors.form) ?? false
+  )
+
+  useEffect(() => {
+    if (actionData?.errors.form) {
+      setSnackbar(actionData?.errors.form)
+      setShowSnackbar(true)
+    }
+  }, [actionData])
+
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <h1 className='mb-6 font-display text-2xl font-medium'>Set password</h1>
@@ -90,6 +104,16 @@ export default function Page() {
       <Button className='mt-6' form='settings-password' type='submit'>
         Continue
       </Button>
+      <Snackbar
+        message={snackbarMessage}
+        icon='close'
+        show={showSnackbar}
+        id='error-snackbar'
+        onClose={() => {
+          setSnackbar('')
+          setShowSnackbar(false)
+        }}
+      />
     </div>
   )
 }
@@ -103,7 +127,10 @@ export async function action({ request }: ActionArgs) {
   const csrfToken = form.get('csrf_token') as string
   const password = form.get('new-password') as string
 
-  const fieldErrors = { password: '' }
+  const fieldErrors = {
+    form: '',
+    password: ''
+  }
   const res = await fetch(
     `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {
@@ -124,14 +151,7 @@ export async function action({ request }: ActionArgs) {
   const data = await res.json()
   if (res.status > 400) handleFlowError(data, 'settings/password')
   if (res.status == 400) {
-    for (let node of data.ui.nodes) {
-      if (node.messages.length > 0) {
-        Object.assign(fieldErrors, {
-          [node.attributes.name]: node.messages[0].text
-        })
-      }
-    }
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
+    return kratosErrorMapping(res, fieldErrors)
   }
 
   return redirect(route('/settings'), {

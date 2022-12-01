@@ -235,6 +235,7 @@ export async function action({ request }: ActionArgs) {
   const serviceAgreement = form.get('service-agreement') as string
   // TODO: use actual service agreement service
   const fieldErrors = {
+    form: '',
     serviceAgreement: '',
     address: ''
   }
