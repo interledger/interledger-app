@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/kyc"
 
@@ -99,6 +100,11 @@ func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.Is
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
+	if env.IsLocal() {
+		return &pb.IsUSPSAddressResponse{
+			Valid: true,
+		}, nil
+	}
 	address := addressFromPB(req)
 	// Validate struct doesn't validate sub structs individually, so we do it manually
 	err = s.b.Validator().Struct(address)
