@@ -80,9 +80,7 @@ export default function Page() {
     <>
       <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
         <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>
-            Personal details
-          </h1>
+          <h1 className='font-display text-2xl font-medium'>Profile details</h1>
 
           <div className='hidden sm:flex'>
             <Shape
@@ -98,7 +96,7 @@ export default function Page() {
           </div>
         </div>
         <p className='mt-6 text-medium'>
-          Please provide your personal details.
+          Please provide a few details about yourself.
         </p>
 
         <Form

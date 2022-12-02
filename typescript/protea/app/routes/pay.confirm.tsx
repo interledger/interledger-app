@@ -38,6 +38,19 @@ export default function Page() {
         </h1>
         <span>Please check the details and confirm the payment.</span>
         <div className='mt-6 flex w-full justify-between'>
+          <span className='text-sm'>To</span>
+          <span className='text-sm font-medium text-strong'>
+            {flow?.data.receivePaymentPointer}
+          </span>
+        </div>
+
+        <div className='mt-6 flex w-full justify-between'>
+          <span className='text-sm'>From</span>
+          <span className='text-sm font-medium text-strong'>
+            {flow?.data.sendPaymentPointer}
+          </span>
+        </div>
+        <div className='mt-6 flex w-full justify-between'>
           <span className='text-sm'>You pay</span>
           <span className='text-sm font-medium text-strong'>
             {flow?.data.displaySendAmount || '$ 0.00'}
@@ -61,25 +74,6 @@ export default function Page() {
             <span className='text-sm text-strong'>{flow?.data.note}</span>
           </div>
         )}
-
-        <div className='mt-8 flex w-full justify-between'>
-          <span className='text-sm'>To</span>
-          <span className='text-sm font-medium text-strong'>
-            {flow?.data.receivePaymentPointer}
-          </span>
-        </div>
-
-        <div className='mt-8 flex w-full justify-between'>
-          <span className='text-sm'>From</span>
-          <span className='text-sm font-medium text-strong'>
-            {flow?.data.sendPaymentPointer}
-          </span>
-        </div>
-        <div className='mt-2 flex w-full justify-end'>
-          <span className='text-sm font-medium text-strong'>
-            TODO: card information
-          </span>
-        </div>
 
         <Form
           id='pay-confirm'
@@ -135,7 +129,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (serviceAgreement == null) {
-    fieldErrors.serviceAgreement = 'You are required to agree to continue.'
+    fieldErrors.serviceAgreement = 'You are required to authorize to continue.'
     return json(
       {
         errors: {
