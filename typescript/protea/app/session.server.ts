@@ -1,16 +1,20 @@
-import { createSessionStorage } from '@remix-run/node'
+import { createCookie, createSessionStorage } from '@remix-run/node'
 import { redisClient } from '~/lib/redis.server'
 import { v4 } from 'uuid'
 
+const EXPIRATION_DURATION_IN_SECONDS = 60 * 60 * 24 // a day
+
+const cookie = createCookie('user_settings', {
+  httpOnly: true,
+  path: '/',
+  secrets: ['TODO:secrets'],
+  sameSite: 'lax', //true,
+  expires: new Date(Date.now() + EXPIRATION_DURATION_IN_SECONDS * 1000)
+})
+
 export const { getSession, commitSession, destroySession } =
   createSessionStorage({
-    cookie: {
-      name: 'user_settings',
-      httpOnly: true,
-      maxAge: 86400,
-      path: '/',
-      sameSite: 'lax'
-    },
+    cookie,
     async createData(data, expires) {
       const id = v4()
       await redisClient.set(id, JSON.stringify(data), {
