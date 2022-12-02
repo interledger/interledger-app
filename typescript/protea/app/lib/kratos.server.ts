@@ -272,7 +272,7 @@ export async function kratosErrorMapping<T extends object>(
       })
     }
   }
-  if (data.ui.messages.length > 0) {
+  if (data.ui.messages && data.ui.messages.length > 0) {
     // form message validation errors
     // This gets rendered in a snackbar - only use one.
     Object.assign(fieldErrors, {
