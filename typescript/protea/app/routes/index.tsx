@@ -465,7 +465,7 @@ function AppPage() {
         <div className='mt-2'>
           <HomeShapes />
         </div>
-        <h1 className='mt-6 font-display text-2xl'>Welcome {firstName}</h1>
+        <h1 className='mt-6 font-display text-2xl font-medium'>Welcome {firstName}</h1>
 
         {kycStatus != KycStatus.Verified && (
           <p className='mt-4'>Thank you for signing up to Fynbos.</p>
@@ -569,7 +569,7 @@ function AppPage() {
         </div>
       )}
 
-      {kycStatus == KycStatus.Verified && balance && (
+      {kycStatus == KycStatus.Verified && (
         <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>Cash balance</h2>
           <h1 className='mt-2 text-3xl font-medium'>{balance}</h1>

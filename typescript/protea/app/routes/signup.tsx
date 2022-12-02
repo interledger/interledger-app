@@ -37,9 +37,9 @@ export default function Page() {
           color={'bg-slate-500'}
         />
         <div className='ml-5'>
-          <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
+          <h3 className='mb-1 font-medium text-strong'>Profile details</h3>
           <p className='text-xs text-medium'>
-            Your name, email address and country of residence.
+            Your legal name, email address and country of residence.
           </p>
         </div>
       </div>

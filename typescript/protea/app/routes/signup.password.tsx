@@ -133,7 +133,7 @@ export default function Page() {
         id='service-agreement'
         name='service-agreement'
         form='signup-password'
-        className='mt-4 flex'
+        className='mt-8 flex'
         aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
         aria-describedby={
           actionData?.errors.serviceAgreement
