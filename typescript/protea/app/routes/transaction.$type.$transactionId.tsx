@@ -4,6 +4,7 @@ import { useLoaderData, useParams } from '@remix-run/react'
 import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getTransaction } from '~/lib/wallet.server'
+import { route } from 'routes-gen'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -13,6 +14,8 @@ export async function loader({ request, params }: LoaderArgs) {
     params.transactionId as string
   )
   return json({
+    // Always go to /transactions with back button even if we've just done a payment flow
+    backTo: route('/transactions'),
     transaction,
     traits: session.identity.traits
   })

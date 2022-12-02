@@ -168,7 +168,6 @@ export async function action({ request }: ActionArgs) {
 
   const transactionId = response.response.id.split('/').at(-1) as string
   await exitFlow(request, flowType.Pay)
-  // TODO: Should route to a success page rather. As the payment may take some time to process
   return redirect(
     route('/transaction/:type/:transactionId', {
       type: 'outgoing',
