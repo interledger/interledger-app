@@ -1,13 +1,21 @@
-import { Outlet, useNavigate } from '@remix-run/react'
+import { Outlet, useMatches, useNavigate } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { IconButton, Logo, Router } from '~/components'
 
 export function FocusLayout() {
+  const matches = useMatches()
   const navigate = useNavigate()
+  const backTo = matches.at(-1)?.data?.backTo
+
   return (
     <div className='relative mx-auto grid min-h-screen w-full grid-cols-4 grid-rows-[auto_1fr_auto] content-start gap-4 gap-y-2 bg-app sm:max-w-lg sm:grid-cols-8 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
       <header className='absolute top-0 col-span-full flex h-16 select-none items-center justify-start space-x-4 p-4 lg:top-16 lg:col-span-6 lg:col-start-4'>
-        <IconButton onClick={() => navigate(-1)} aria-label='Back'>
+        <IconButton
+          onClick={() => {
+            navigate(backTo ?? -1)
+          }}
+          aria-label='Back'
+        >
           arrow_back
         </IconButton>
         <Router to={route('/')} aria-label='Fynbos logo'>
