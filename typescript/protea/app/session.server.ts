@@ -9,7 +9,7 @@ const cookie = createCookie('user_settings', {
   path: '/',
   secrets: ['TODO:secrets'],
   sameSite: 'lax', //true,
-  expires: new Date(Date.now() + EXPIRATION_DURATION_IN_SECONDS * 1000)
+  maxAge: EXPIRATION_DURATION_IN_SECONDS
 })
 
 export const { getSession, commitSession, destroySession } =
@@ -18,8 +18,7 @@ export const { getSession, commitSession, destroySession } =
     async createData(data, expires) {
       const id = v4()
       await redisClient.set(id, JSON.stringify(data), {
-        PXAT: expires?.valueOf(),
-        NX: true
+        PXAT: expires?.valueOf()
       })
       return id
     },
@@ -29,9 +28,12 @@ export const { getSession, commitSession, destroySession } =
       return JSON.parse(data)
     },
     async updateData(id, data, expires) {
+      /**
+       * NOTE: Don't set the update only flag here, because we want to always set the data.
+       * Remix doesn't know if the data has changed or not, so we need to always set it.
+       */
       await redisClient.set(id, JSON.stringify(data), {
-        PXAT: expires?.valueOf(),
-        XX: true
+        PXAT: expires?.valueOf()
       })
     },
     async deleteData(id) {

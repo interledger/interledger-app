@@ -37,7 +37,7 @@ export async function requireFlow(
 ): Promise<Flow> {
   const session = await getSession(request.headers.get('Cookie'))
 
-  const flows: Flows = session.get('flows') || {
+  const flows: Flows = session.get('flows') ?? {
     pay: null,
     signup: null,
     linkCard: null,
