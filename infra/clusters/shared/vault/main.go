@@ -224,6 +224,9 @@ func main() {
 								"secretName": pulumi.String("vault-remote-tls"),
 							},
 						},
+						pulumi.Map{
+							"name": pulumi.String("certwatcher"),
+						},
 					},
 					"volumeMounts": pulumi.MapArray{
 						pulumi.Map{
@@ -235,6 +238,34 @@ func main() {
 							"mountPath": pulumi.String("/etc/vault/remote-tls/"),
 						},
 					},
+					"extraContainers": pulumi.MapArray{
+						pulumi.Map{
+							"name":            pulumi.String("watch-certs"),
+							"image":           pulumi.Sprintf("%s.dkr.ecr.eu-west-1.amazonaws.com/certwatcher:3.17.0", accountId),
+							"imagePullPolicy": pulumi.String("Always"),
+							"args": pulumi.StringArray{
+								pulumi.String("/etc/vault/remote-tls/* /etc/vault/tls/*"), // watched folders
+								pulumi.String("60"),                     // interval to validate checksums of watched folders
+								pulumi.String("vault"),                  // process name to SIGHUP
+								pulumi.String("/etc/vault/certwatcher"), // folder for checksums files
+							},
+							"volumeMounts": pulumi.MapArray{
+								pulumi.Map{
+									"name":      pulumi.String("vault-tls"),
+									"mountPath": pulumi.String("/etc/vault/tls/"),
+								},
+								pulumi.Map{
+									"name":      pulumi.String("vault-remote-tls"),
+									"mountPath": pulumi.String("/etc/vault/remote-tls/"),
+								},
+								pulumi.Map{
+									"name":      pulumi.String("certwatcher"),
+									"mountPath": pulumi.String("/etc/vault/certwatcher/"),
+								},
+							},
+						},
+					},
+					"shareProcessNamespace": pulumi.Bool(true),
 				},
 				"injector": pulumi.Map{
 					"port":        pulumi.Int(10285),
