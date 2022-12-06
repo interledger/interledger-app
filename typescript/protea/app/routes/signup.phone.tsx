@@ -31,6 +31,7 @@ import { route } from 'routes-gen'
 import styles from '~/styles/flags.css'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { canSignup } from '~/lib/signupCheck.server'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -80,6 +81,12 @@ export default function Page() {
     }
   }, [otpFetcher?.data, otpFetcher.state, showDialog])
 
+  useEffect(() => {
+    if (actionData?.errors?.phone) {
+      setShowDialog(false)
+    }
+  }, [actionData])
+
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <div className='flex flex-col space-y-6'>
@@ -126,11 +133,19 @@ export default function Page() {
           options={countries as PhoneAutocompleteOptions[]}
           label='Mobile number'
           className='mt-6'
-          aria-invalid={Boolean(otpFetcher.data?.errors?.phone) || undefined}
-          aria-describedby={
-            otpFetcher.data?.errors?.phone ? 'phone-error' : undefined
+          aria-invalid={
+            Boolean(
+              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+            ) || undefined
           }
-          errorMessage={otpFetcher.data?.errors?.phone}
+          aria-describedby={
+            otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+              ? 'phone-error'
+              : undefined
+          }
+          errorMessage={
+            otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+          }
         />
       )}
 
@@ -235,13 +250,16 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
 
   if (isGrpcError(response)) {
-    if (response.code == 3) {
+    if (response.code == Code.INVALID_ARGUMENT) {
       for (let violation of (response as GrpcError).details[0]
         .fieldViolations) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else if (response.code == Code.ALREADY_EXISTS) {
+      fieldErrors['phone'] = 'Phone number is already registered.'
+      return json({ errors: { ...fieldErrors } }, { status: 409 })
     } else throw json({}, httpMapping(response.code))
   }
 
