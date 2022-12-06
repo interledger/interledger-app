@@ -652,6 +652,16 @@ func ValidateWebhook(ctx context.Context, b Backends, payload []byte, secret, si
 	return nil
 }
 
+func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
+
+	_, err := b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2 AND kyc_status=$3", machnet.KYCStatusInProgress, userID, machnet.KYCStatusRetry)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
+}
+
 func HandleUserKYCEvent(ctx context.Context, b Backends, event external.Event) error {
 	_, err := GetUserByID(ctx, b, event.UserID)
 	if err != nil {

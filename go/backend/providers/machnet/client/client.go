@@ -2,6 +2,10 @@ package client
 
 import (
 	"context"
+	"errors"
+	"reflect"
+
+	"go.uber.org/zap"
 
 	"go.temporal.io/api/enums/v1"
 
@@ -100,9 +104,34 @@ func (c client) StartSendUserKYC(ctx context.Context, walletID string) (machnet.
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
+	u, err := ops.GetUserByWalletID(ctx, c.b, walletID)
+	if err != nil && !errors.Is(err, machnet.ErrNotFound) {
+		return nil, err
+	}
+
+	// Return immediately if the user already exists and the user's state is anything but Retry
+	if u != nil && u.KYCStatus != machnet.KYCStatusRetry {
+		return func(ctx context.Context, out interface{}) error {
+			rf := reflect.ValueOf(out)
+			if rf.Type().Kind() != reflect.Ptr {
+				return errors.New("value parameter is not a pointer")
+			}
+			rf.SetString(u.ID)
+			return nil
+		}, nil
+	}
+
 	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateSendUserWorkflow, walletID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Set the user KYC status to in progress as soon as possible for retries and in case the consumer doesn't wait.
+	if u != nil {
+		err = ops.SetKYCInProgress(ctx, c.b, u.ID)
+		if err != nil {
+			log.Warn("failed to update in machnet user KYC status to InProgress for retry", zap.Error(err))
+		}
 	}
 
 	return func(ctx context.Context, out interface{}) error {
