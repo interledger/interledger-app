@@ -10,11 +10,9 @@ import {
   Router,
   WalletGrid
 } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   return json(await getLinkedAccounts(request))
 }
 

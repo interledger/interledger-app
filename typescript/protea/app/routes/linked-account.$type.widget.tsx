@@ -3,7 +3,6 @@ import { json } from '@remix-run/node'
 import { useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import { useCallback, useEffect } from 'react'
 import { useScript } from '~/lib/useScript'
-import { requireUserSession } from '~/lib/kratos.server'
 import {
   grpcClient,
   httpMapping,
@@ -14,8 +13,6 @@ import { Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
-
   let cardRpc = await grpcClient
     .getMachnetWidgetToken(
       {},

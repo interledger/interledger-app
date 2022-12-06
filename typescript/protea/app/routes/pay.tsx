@@ -2,7 +2,6 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Icon, Layouts, Snackbar, TextField } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -12,14 +11,13 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
-import { getWalletPaymentPointer } from '~/lib/wallet.server'
+import { requireWalletPaymentPointer } from '~/lib/wallet.server'
 import { generateQR, qrSvg } from '~/lib/qr.server'
 import { useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
-  const paymentPointer = await getWalletPaymentPointer(request)
+  const paymentPointer = await requireWalletPaymentPointer(request)
 
   const paymentPointerQR = qrSvg(await generateQR(paymentPointer.url))
 

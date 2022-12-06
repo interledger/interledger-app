@@ -16,10 +16,8 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import { requireUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const cookie = String(request.headers.get('cookie'))
 
   const response = await grpcClient

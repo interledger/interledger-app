@@ -1,7 +1,6 @@
 import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
-import { requireUserSession } from '~/lib/kratos.server'
 import type { RadioGroupOption } from '~/components'
 import { Button, Layouts, RadioGroup, Shape } from '~/components'
 import { route } from 'routes-gen'
@@ -10,8 +9,6 @@ import { useState } from 'react'
 import { getKycStatus } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
-
   // TODO: Use kyc status to show things rather
   const hasSendUser = (await getKycStatus(request)).hasSendUser
 

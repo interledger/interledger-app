@@ -19,7 +19,7 @@ import {
   getPendingTransactions,
   getTransactions,
   getWalletBalance,
-  getWalletPaymentPointer,
+  requireWalletPaymentPointer,
   getLinkedAccounts
 } from '~/lib/wallet.server'
 import { Fragment, useState } from 'react'
@@ -79,7 +79,7 @@ export async function loader({ request }: LoaderArgs) {
       snackbar
     ] = await Promise.all([
       requireUserSession(request),
-      getWalletPaymentPointer(request),
+      requireWalletPaymentPointer(request),
       getWalletBalance(request),
       getPendingTransactions(request),
       getTransactions(request, { page: 1, pageSize: 3 }),
@@ -465,7 +465,9 @@ function AppPage() {
         <div className='mt-2'>
           <HomeShapes />
         </div>
-        <h1 className='mt-6 font-display text-2xl font-medium'>Welcome {firstName}</h1>
+        <h1 className='mt-6 font-display text-2xl font-medium'>
+          Welcome {firstName}
+        </h1>
 
         {kycStatus != KycStatus.Verified && (
           <p className='mt-4'>Thank you for signing up to Fynbos.</p>

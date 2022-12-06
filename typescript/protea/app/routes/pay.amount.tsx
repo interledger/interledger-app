@@ -13,7 +13,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { DateTime } from 'luxon'
-import { getWalletPaymentPointer } from '~/lib/wallet.server'
+import { requireWalletPaymentPointer } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Pay)
@@ -148,7 +148,7 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  let sendPaymentPointer = await getWalletPaymentPointer(request)
+  let sendPaymentPointer = await requireWalletPaymentPointer(request)
   let receivePaymentPointer = flow.data.paymentPointer.url
 
   // TODO: Submit note with quote
