@@ -20,7 +20,7 @@ func TestCreateOutgoingPayment(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 

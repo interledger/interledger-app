@@ -180,6 +180,25 @@ func (a *Activity) CreateWallet(ctx context.Context, externalID string) error {
 	return err
 }
 
+func (a *Activity) ShouldFundWallet(ctx context.Context, args machnet.CreateTransactionArgs) (bool, error) {
+	fromAcc, err := getLinkedAccount(ctx, a.b, args.FromLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return false, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to find linked account (%s)", args.FromLinkedAccountID), "ErrInternal", err)
+	}
+	if err != nil {
+		return false, err
+	}
+
+	if fromAcc.Type == machnet.TypeSendCard {
+		return true, nil
+	}
+	if fromAcc.Type == machnet.TypeWallet {
+		return false, nil
+	}
+
+	return false, temporal.NewNonRetryableApplicationError(fmt.Sprintf("unknown account type (%s)", fromAcc.Type), "ErrInvalidArgument", machnet.ErrInvalidArgument)
+}
+
 type FundWalletResponse struct {
 	FromWalletLinkedAcc string
 	FundTX              string
@@ -274,7 +293,12 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTran
 		return existingWorkflowRef.ID, nil
 	}
 
-	sendLA, err := a.b.LinkedAccounts().Get(ctx, args.FundingTx.FromWalletLinkedAcc)
+	sendAccIO := args.CreateTransactionArgs.FromLinkedAccountID
+	if args.FundingTx.FromWalletLinkedAcc != "" {
+		sendAccIO = args.FundingTx.FromWalletLinkedAcc
+	}
+
+	sendLA, err := a.b.LinkedAccounts().Get(ctx, sendAccIO)
 	if err != nil {
 		return "", err
 	}

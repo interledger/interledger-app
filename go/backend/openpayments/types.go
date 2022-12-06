@@ -23,6 +23,7 @@ type CreateQuoteArgs struct {
 	SendAmount            Amount `json:"sendAmount"`
 	Reference             string
 	Description           string
+	LinkedAccID           string
 }
 
 type Amount struct {
@@ -45,13 +46,14 @@ func (a Amount) FormatAmount() float64 {
 }
 
 type Quote struct {
-	ID              string    `json:"id"`
-	PaymentPointer  string    `json:"paymentPointer"`
-	IncomingPayment string    `json:"receiver"`
-	ReceiveAmount   Amount    `json:"receiveAmount"`
-	SendAmount      Amount    `json:"sendAmount"`
-	ExpiresAt       time.Time `json:"expiresAt"`
-	CreatedAt       time.Time `json:"createdAt"`
+	ID                string    `json:"id"`
+	PaymentPointer    string    `json:"paymentPointer"`
+	IncomingPayment   string    `json:"receiver"`
+	ReceiveAmount     Amount    `json:"receiveAmount"`
+	SendAmount        Amount    `json:"sendAmount"`
+	ExpiresAt         time.Time `json:"expiresAt"`
+	CreatedAt         time.Time `json:"createdAt"`
+	FromLinkedAccount string    `json:"-"`
 }
 
 type ILPConnection struct {
@@ -93,17 +95,18 @@ type CreateOutgoingPaymentArgs struct {
 }
 
 type OutgoingPayment struct {
-	ID               string    `json:"id"`
-	PaymentPointer   string    `json:"paymentPointer"`
-	ToPaymentPointer string    `json:"to"`
-	Failed           bool      `json:"failed"`
-	Receiver         string    `json:"receiver"`
-	SendAmount       Amount    `json:"sendAmount"`
-	ReceiveAmount    Amount    `json:"receiveAmount"`
-	SentAmount       Amount    `json:"sentAmount"`
-	Description      string    `json:"description"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
+	ID                string    `json:"id"`
+	PaymentPointer    string    `json:"paymentPointer"`
+	ToPaymentPointer  string    `json:"to"`
+	Failed            bool      `json:"failed"`
+	Receiver          string    `json:"receiver"`
+	SendAmount        Amount    `json:"sendAmount"`
+	ReceiveAmount     Amount    `json:"receiveAmount"`
+	SentAmount        Amount    `json:"sentAmount"`
+	Description       string    `json:"description"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
+	FromLinkedAccount string    `json:"-"`
 }
 
 type CompleteOutgoingPaymentArgs struct {

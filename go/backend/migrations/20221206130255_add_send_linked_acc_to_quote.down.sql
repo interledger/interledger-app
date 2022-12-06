@@ -1,0 +1,1 @@
+ALTER TABLE openpayments_quotes DROP COLUMN IF EXISTS send_linked_acc_id;

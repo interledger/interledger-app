@@ -21,7 +21,7 @@ func TestListTransactions(t *testing.T) {
 	ctx := context.Background()
 	dbc := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, dbc)
+	b := ops.NewTestBackends(t, dbc, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 

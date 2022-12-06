@@ -1,8 +1,11 @@
 package server
 
 import (
-	"gitlab.com/fynbos/backend/email"
 	"testing"
+
+	"gitlab.com/fynbos/backend/providers/machnet"
+
+	"gitlab.com/fynbos/backend/email"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	temporal "go.temporal.io/sdk/client"
@@ -20,6 +23,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Email() email.Client
+	Machnet() machnet.Client
 }
 
 type testBackends struct {
@@ -28,6 +32,11 @@ type testBackends struct {
 	la   linkedaccounts.Client
 	temp temporal.Client
 	em   email.Client
+	mc   machnet.Client
+}
+
+func (t testBackends) Machnet() machnet.Client {
+	return t.mc
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -54,6 +63,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc}
 }

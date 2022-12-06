@@ -100,6 +100,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 		FundTX:              uuid.NewString(),
 	}
 
+	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {

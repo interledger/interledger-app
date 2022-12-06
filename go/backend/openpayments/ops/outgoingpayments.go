@@ -154,13 +154,14 @@ func transformOutgoingPayment(ctx context.Context, b Backends, op dbOutgoingPaym
 	}
 
 	return &openpayments.OutgoingPayment{
-		ID:               fmt.Sprintf("%s/outgoing-payments/%s", q.PaymentPointer, op.ID),
-		PaymentPointer:   q.PaymentPointer,
-		ToPaymentPointer: toPP.URL,
-		Failed:           op.Failed,
-		Receiver:         q.IncomingPayment,
-		SendAmount:       q.SendAmount,
-		ReceiveAmount:    q.ReceiveAmount,
+		ID:                fmt.Sprintf("%s/outgoing-payments/%s", q.PaymentPointer, op.ID),
+		PaymentPointer:    q.PaymentPointer,
+		FromLinkedAccount: q.FromLinkedAccount,
+		ToPaymentPointer:  toPP.URL,
+		Failed:            op.Failed,
+		Receiver:          q.IncomingPayment,
+		SendAmount:        q.SendAmount,
+		ReceiveAmount:     q.ReceiveAmount,
 		SentAmount: openpayments.Amount{
 			Value:      op.SentAmount,
 			Asset:      op.AssetCode,

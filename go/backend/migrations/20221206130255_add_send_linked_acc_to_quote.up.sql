@@ -1,0 +1,1 @@
+ALTER TABLE openpayments_quotes ADD COLUMN IF NOT EXISTS send_linked_acc_id uuid references linked_accounts;

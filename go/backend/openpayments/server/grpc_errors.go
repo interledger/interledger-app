@@ -19,6 +19,7 @@ var errorStatus = map[error]error{
 	openpayments.ErrNotFound:               NotFoundError("Open payments not found."),
 	openpayments.ErrPaymentPointerExists:   NewValidationError("url", "That payment pointer has been taken. Please choose another"),
 	openpayments.ErrInvalidPointerURL:      NewValidationError("url", "Payment pointer is invalid."),
+	openpayments.ErrInsufficientBalance:    NewValidationError("amount", "Insufficient wallet balance"),
 }
 
 func validationDesc(fe validator.FieldError) string {

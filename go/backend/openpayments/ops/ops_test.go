@@ -6,6 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/machnet"
+
+	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	machnet_mock_client "gitlab.com/fynbos/backend/providers/machnet/client/mock"
+
+	"github.com/golang/mock/gomock"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +29,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -222,7 +230,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -273,7 +281,7 @@ func TestValidatePaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	cases := []struct {
 		name   string
@@ -381,7 +389,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()
@@ -499,7 +507,11 @@ func TestCreateQuote(t *testing.T) {
 	ctx := context.Background()
 	db := test_utils.MigrateCockroachDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	ctrl := gomock.NewController(t)
+	laClient := linked_account_mock.NewMockClient(ctrl)
+	mClient := machnet_mock_client.NewMockClient(ctrl)
+
+	b := ops.NewTestBackends(t, db, laClient, mClient)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -507,6 +519,7 @@ func TestCreateQuote(t *testing.T) {
 		name      string
 		args      openpayments.CreateQuoteArgs
 		recvAsset string
+		balance   uint64
 		err       error
 	}{
 		{
@@ -552,6 +565,37 @@ func TestCreateQuote(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "success send from wallet",
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend5",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv6",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      100,
+					Asset:      "ZAR",
+					AssetScale: 2,
+				},
+				LinkedAccID: "4153f92e-158a-46dc-b298-4b71635c2093",
+			},
+			balance: 10000,
+		},
+		{
+			name: "send from wallet insufficient balance",
+			err:  openpayments.ErrInsufficientBalance,
+			args: openpayments.CreateQuoteArgs{
+				SendPaymentPointer:    "http://fynbos.me/paysend7",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv8",
+				ExpiresAt:             time.Now().Add(time.Hour),
+				SendAmount: openpayments.Amount{
+					Value:      1000,
+					Asset:      "ZAR",
+					AssetScale: 2,
+				},
+				LinkedAccID: "b1e5d317-0d28-4310-8512-4e9606f13627",
+			},
+			balance: 1,
+		},
 	}
 
 	for _, tc := range cases {
@@ -587,6 +631,24 @@ func TestCreateQuote(t *testing.T) {
 				AssetScale: tc.args.SendAmount.AssetScale,
 			})
 			require.NoError(t, err)
+
+			if tc.args.LinkedAccID != "" {
+				providerID := uuid.NewString()
+				_, err = db.ExecContext(ctx, "insert into linked_accounts (id, wallet_id, name, mask, provider, provider_id, type) values ($1, $2, $3, $4, $5, $6, $7)",
+					tc.args.LinkedAccID, sendWallet.ID, "testing", "mask", machnet.ProviderName, providerID, machnet.TypeWallet)
+				require.NoError(t, err)
+				laClient.EXPECT().Get(ctx, tc.args.LinkedAccID).Return(&linkedaccounts.LinkedAccount{
+					ID:         tc.args.LinkedAccID,
+					WalletID:   sendWallet.ID,
+					ProviderID: providerID,
+					Type:       machnet.TypeWallet,
+				}, nil)
+				mClient.EXPECT().GetWallet(ctx, providerID).Return(&machnet.Wallet{
+					ID:               providerID,
+					AvailableBalance: tc.balance,
+					Balance:          tc.balance,
+				}, nil)
+			}
 
 			q, err := ops.CreateQuote(ctx, b, tc.args)
 			if tc.err != nil {
