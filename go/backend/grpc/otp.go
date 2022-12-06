@@ -26,7 +26,7 @@ func (s *rpcService) SendPhoneVerification(
 ) (*pb.Empty, error) {
 	err := s.b.Validator().VarCtx(ctx, req.To, "required,e164")
 	if err != nil {
-		return nil, toGRPCError(err)
+		return nil, NewValidationError("To", "Phone number is invalid.")
 	}
 
 	_, err = s.b.Twilio().SendVerificationCode(ctx, req.To)
