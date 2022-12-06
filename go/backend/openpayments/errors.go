@@ -10,4 +10,5 @@ var (
 	ErrPaymentPointerNotFound = errors.New("payment pointer: not found")
 	ErrInternal               = errors.New("open payments: internal error")
 	ErrInvalidArgument        = errors.New("open payments: invalid argument")
+	ErrInsufficientBalance    = errors.New("open payments: insufficient balance")
 )

@@ -289,6 +289,10 @@ export interface CreateQuoteRequest {
      * @generated from protobuf field: string description = 5;
      */
     description: string;
+    /**
+     * @generated from protobuf field: optional string sendLinkedAccount = 6;
+     */
+    sendLinkedAccount?: string;
 }
 /**
  * @generated from protobuf message backend.v1.Quote
@@ -1931,7 +1935,8 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
             { no: 2, name: "receivePaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "amount", kind: "message", T: () => Amount },
             { no: 4, name: "expiresAt", kind: "message", T: () => Timestamp },
-            { no: 5, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "sendLinkedAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateQuoteRequest>): CreateQuoteRequest {
@@ -1961,6 +1966,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
                 case /* string description */ 5:
                     message.description = reader.string();
                     break;
+                case /* optional string sendLinkedAccount */ 6:
+                    message.sendLinkedAccount = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -1988,6 +1996,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
         /* string description = 5; */
         if (message.description !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.description);
+        /* optional string sendLinkedAccount = 6; */
+        if (message.sendLinkedAccount !== undefined)
+            writer.tag(6, WireType.LengthDelimited).string(message.sendLinkedAccount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

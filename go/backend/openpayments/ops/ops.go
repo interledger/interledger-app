@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/machnet"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -271,6 +273,29 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w cannot send money to the same payment pointer", openpayments.ErrInvalidArgument)
 	}
 
+	if args.LinkedAccID != "" {
+		la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccID)
+		if err != nil {
+			return nil, err
+		}
+
+		if la.WalletID != sendPP.WalletID {
+			return nil, fmt.Errorf("%w specified linked account not associated with the send payment pointer", openpayments.ErrInvalidArgument)
+		}
+
+		if la.Type == machnet.TypeWallet {
+			// Do balance check
+			wallet, err := b.Machnet().GetWallet(ctx, la.ProviderID)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+			}
+
+			if wallet.AvailableBalance < args.SendAmount.Value {
+				return nil, fmt.Errorf("%w", openpayments.ErrInsufficientBalance)
+			}
+		}
+	}
+
 	// Create Incoming Payment
 	ip, err := CreateIncomingPayment(ctx, b, openpayments.CreateIncomingPaymentArgs{
 		PaymentPointer:     recvPP.URL,
@@ -296,7 +321,10 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("recv_amount", args.SendAmount.Value).
 		Value("recv_asset", args.SendAmount.Asset).
 		Value("recv_scale", args.SendAmount.AssetScale).
-		Value("expires_at", args.ExpiresAt).GetStatement()
+		Value("expires_at", args.ExpiresAt).Value("send_linked_acc_id", sql.NullString{
+		String: args.LinkedAccID,
+		Valid:  args.LinkedAccID != "",
+	}).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w insert sql create failed (%s)", openpayments.ErrInternal, err)
 	}
@@ -309,19 +337,20 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 }
 
 type dbQuote struct {
-	ID                    string    `db:"id"`
-	SendPaymentPointer    string    `db:"send_payment_pointer_id"`
-	ReceivePaymentPointer string    `db:"recv_payment_pointer_id"`
-	IncomingPaymentID     string    `db:"incoming_payment_id"`
-	SendAmount            uint64    `db:"send_amount"`
-	SendAsset             string    `db:"send_asset"`
-	SendAssetScale        int       `db:"send_scale"`
-	RecvAmount            uint64    `db:"recv_amount"`
-	RecvAsset             string    `db:"recv_asset"`
-	RecvAssetScale        int       `db:"recv_scale"`
-	ExpiresAt             time.Time `db:"expires_at"`
-	CreatedAt             time.Time `db:"created_at"`
-	UpdatedAt             time.Time `db:"updated_at"`
+	ID                    string         `db:"id"`
+	SendPaymentPointer    string         `db:"send_payment_pointer_id"`
+	ReceivePaymentPointer string         `db:"recv_payment_pointer_id"`
+	IncomingPaymentID     string         `db:"incoming_payment_id"`
+	SendAmount            uint64         `db:"send_amount"`
+	SendAsset             string         `db:"send_asset"`
+	SendAssetScale        int            `db:"send_scale"`
+	RecvAmount            uint64         `db:"recv_amount"`
+	RecvAsset             string         `db:"recv_asset"`
+	RecvAssetScale        int            `db:"recv_scale"`
+	ExpiresAt             time.Time      `db:"expires_at"`
+	CreatedAt             time.Time      `db:"created_at"`
+	UpdatedAt             time.Time      `db:"updated_at"`
+	SendLinkedAccountID   sql.NullString `db:"send_linked_acc_id"`
 }
 
 // getDBQuote returns a single quote in it's raw form from the DB without formatting.
@@ -329,7 +358,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -357,13 +386,14 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		AssetScale: dbq.SendAssetScale,
 	}
 	return &openpayments.Quote{
-		ID:              fmt.Sprintf("%s/quotes/%s", sendPP.URL, dbq.ID),
-		PaymentPointer:  sendPP.URL,
-		IncomingPayment: fmt.Sprintf("%s/incoming-payments/%s", recvPP.URL, dbq.IncomingPaymentID),
-		ReceiveAmount:   amount,
-		SendAmount:      amount,
-		ExpiresAt:       dbq.ExpiresAt,
-		CreatedAt:       dbq.CreatedAt,
+		ID:                fmt.Sprintf("%s/quotes/%s", sendPP.URL, dbq.ID),
+		PaymentPointer:    sendPP.URL,
+		IncomingPayment:   fmt.Sprintf("%s/incoming-payments/%s", recvPP.URL, dbq.IncomingPaymentID),
+		ReceiveAmount:     amount,
+		SendAmount:        amount,
+		ExpiresAt:         dbq.ExpiresAt,
+		CreatedAt:         dbq.CreatedAt,
+		FromLinkedAccount: dbq.SendLinkedAccountID.String,
 	}, nil
 }
 

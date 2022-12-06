@@ -114,6 +114,7 @@ message CreateQuoteRequest {
   Amount amount = 3;
   google.protobuf.Timestamp expiresAt = 4;
   string description = 5;
+  optional string sendLinkedAccount = 6;
 }
 
 message Quote {

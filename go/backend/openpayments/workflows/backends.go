@@ -1,8 +1,10 @@
 package workflows
 
 import (
-	"gitlab.com/fynbos/backend/email"
 	"testing"
+
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -21,6 +23,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Email() email.Client
+	Machnet() machnet.Client
 }
 
 type testBackends struct {
@@ -29,6 +32,10 @@ type testBackends struct {
 	t   temporal.Client
 	la  linkedaccounts.Client
 	em  email.Client
+}
+
+func (t testBackends) Machnet() machnet.Client {
+	return nil
 }
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {

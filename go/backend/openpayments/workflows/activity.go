@@ -70,12 +70,18 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		return nil, err
 	}
 
-	sendAcc, err := getProviderLinkedAccount(ctx, a.b, op.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
-	if errors.Is(err, openpayments.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
-	}
-	if err != nil {
-		return nil, err
+	sendAccID := op.FromLinkedAccount
+
+	if sendAccID == "" {
+		sendAcc, err := getProviderLinkedAccount(ctx, a.b, op.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
+		if errors.Is(err, openpayments.ErrNotFound) {
+			return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		sendAccID = sendAcc.ID
 	}
 
 	amnt := float64(op.SendAmount.Value)
@@ -84,7 +90,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 	}
 
 	return &machnet.CreateTransactionArgs{
-		FromLinkedAccountID: sendAcc.ID,
+		FromLinkedAccountID: sendAccID,
 		ToLinkedAccountID:   recvAcc.ID,
 		Amount:              amnt,
 		Currency:            op.SendAmount.Asset,

@@ -152,6 +152,7 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 			Asset:      req.GetAmount().GetAsset(),
 			AssetScale: int(req.GetAmount().GetAssetScale()),
 		},
+		LinkedAccID: req.GetSendLinkedAccount(),
 	}
 
 	_, err := g.b.Users().UserForContext(ctx)
