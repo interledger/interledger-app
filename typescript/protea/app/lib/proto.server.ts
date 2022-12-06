@@ -21,6 +21,8 @@ import {
   RetryInfo
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
+import type { TypedResponse } from '@remix-run/node'
+import { json } from '@remix-run/node'
 
 const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend:443'
 
@@ -29,8 +31,8 @@ const transport = new GrpcTransport({
   channelCredentials: ChannelCredentials.createInsecure()
 })
 
-let grpcClient: BackendServiceClient
-let openPaymentsClient: OpenPaymentServiceClient
+export let grpcClient: BackendServiceClient
+export let openPaymentsClient: OpenPaymentServiceClient
 
 declare global {
   var __grpcClient: BackendServiceClient | undefined
@@ -58,18 +60,25 @@ if (process.env.NODE_ENV === 'production') {
   openPaymentsClient = global.__openPaymentsClient
 }
 
-interface GrpcError extends Status {
+export interface GrpcError extends Status {
   code: number
   message: string
   details: any[]
 }
 
-function isGrpcError(res: any): res is GrpcError {
+export function isGrpcError(res: any): res is GrpcError {
   return (
     (res as GrpcError).code !== undefined &&
     (res as GrpcError).message !== undefined &&
     (res as GrpcError).details !== undefined
   )
+}
+// TODO: need a way to override certain error codes.
+export async function grpcErrorMapping<T extends object>(
+  response: GrpcError,
+  fieldErrors: T
+): Promise<TypedResponse<{ errors: T }>> {
+  return json({ errors: { ...fieldErrors } }, httpMapping(response.code))
 }
 
 /**
@@ -79,7 +88,7 @@ function isGrpcError(res: any): res is GrpcError {
  * @param err The error received from a grpc call.
  * @returns GrpcError - the error code and details
  */
-function StatusError(err: RpcError): GrpcError {
+export function StatusError(err: RpcError): GrpcError {
   let status: Status | undefined
   let details: any[] | undefined
   if (!err.meta) {
@@ -128,7 +137,7 @@ const typeRegistry: Record<string, any> = {
   'type.googleapis.com/google.rpc.ErrorInfo': ErrorInfo
 }
 
-function httpMapping(code: Code): ResponseInit | undefined {
+export function httpMapping(code: Code): ResponseInit | undefined {
   switch (code) {
     case Code.OK:
       return { status: 200, statusText: 'OK' }
@@ -137,6 +146,7 @@ function httpMapping(code: Code): ResponseInit | undefined {
     case Code.OUT_OF_RANGE:
       return { status: 400, statusText: 'Bad Request' }
     case Code.UNAUTHENTICATED:
+      // throw redirect('/login?return_to=TODO') // TODO: figure out returnTo
       return { status: 401, statusText: 'Unauthorized' }
     case Code.PERMISSION_DENIED:
       return { status: 403, statusText: 'Forbidden' }
@@ -200,6 +210,3 @@ function codeMapping(code: string): Code {
       return Code.OK
   }
 }
-
-export { grpcClient, openPaymentsClient, StatusError, httpMapping, isGrpcError }
-export type { GrpcError }
