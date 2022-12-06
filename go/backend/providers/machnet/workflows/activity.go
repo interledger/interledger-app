@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"gitlab.com/fynbos/backend/user"
@@ -83,7 +84,7 @@ func (a *Activity) UpsertExternalSendUser(ctx context.Context, walletID string) 
 	userKYC := external.User{
 		FirstName:    kycData.FirstName,
 		LastName:     kycData.LastName,
-		Email:        userData.Email,
+		Email:        StripEmailPlus(userData.Email),
 		Gender:       gender,
 		DateOfBirth:  kycData.DateOfBirth.Format("2006-01-02"),
 		AddressLine1: kycData.Address.Line1,
@@ -451,7 +452,7 @@ func addReceiveUser(ctx context.Context, b ops.Backends, recvWalletID, extSendUs
 	resp, err := b.External().RegisterUser(ctx, external.User{
 		FirstName:    indvKYC.FirstName,
 		LastName:     indvKYC.LastName,
-		Email:        recvUser.Email,
+		Email:        StripEmailPlus(recvUser.Email),
 		Gender:       gender,
 		DateOfBirth:  indvKYC.DateOfBirth.Format("2006-01-02"),
 		AddressLine1: indvKYC.Address.Line1,
@@ -707,4 +708,10 @@ func (a *Activity) DeleteLinkedAccount(ctx context.Context, linkedAccID string) 
 
 	// Deleting is idempotent
 	return a.b.LinkedAccounts().Delete(ctx, linkedAccID)
+}
+
+// StripEmailPlus Parse email to remove + due to Machnet not able to handle
+func StripEmailPlus(email string) string {
+	emailRegex := regexp.MustCompile("\\+[^)]*@")
+	return emailRegex.ReplaceAllString(email, "@")
 }
