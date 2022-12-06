@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/signup"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -23,6 +24,7 @@ var errorStatus = map[error]error{
 	user.ErrDuplicateWallet:          status.Error(codes.AlreadyExists, "Wallet already exists"),
 	machnet.ErrUserHasExistingWallet: status.Error(codes.AlreadyExists, "Machnet wallet already exists"),
 	linkedaccounts.ErrNotFound:       NotFoundError("linked account not found"),
+	signup.ErrDuplicatePhone:         status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
 }
 
 func validationDesc(fe validator.FieldError) string {

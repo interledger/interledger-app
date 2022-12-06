@@ -123,6 +123,49 @@ func TestSetMobileNumber(t *testing.T) {
 	assert.False(t, su.Completed)
 }
 
+func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
+	ctx := context.Background()
+	db := test_utils.MigrateCockroachDB(t, ctx)
+	tw := twilio.NewMockService(gomock.NewController(t))
+	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
+	b := &backends{
+		validator: validator.New(),
+		db:        db,
+		twilio:    tw,
+	}
+	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
+		FirstName:   "FirstName",
+		LastName:    "LastName",
+		Email:       "test@fynbos.dev",
+		CountryCode: "ZA",
+	})
+	require.NoError(t, err)
+	mobile := faker.E164PhoneNumber()
+	err = ops.SetMobileNumber(ctx, b, signup.MobileNumberArgs{
+		ID:           id,
+		MobileNumber: mobile,
+		OTP:          "123456",
+	})
+	require.NoError(t, err)
+	userID := uuid.NewString()
+	err = ops.Complete(ctx, b, id, userID)
+	require.NoError(t, err)
+
+	id1, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
+		FirstName:   "FirstName1",
+		LastName:    "LastName1",
+		Email:       "test1@fynbos.dev",
+		CountryCode: "ZA",
+	})
+	require.NoError(t, err)
+	err = ops.SetMobileNumber(ctx, b, signup.MobileNumberArgs{
+		ID:           id1,
+		MobileNumber: mobile,
+		OTP:          "123456",
+	})
+	require.ErrorIs(t, err, signup.ErrDuplicatePhone)
+}
+
 func TestComplete(t *testing.T) {
 	ctx := context.Background()
 

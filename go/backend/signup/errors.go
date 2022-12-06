@@ -7,4 +7,5 @@ var (
 	ErrInvalidArgument = errors.New("invalid argument")
 	ErrNotFound        = errors.New("not found")
 	ErrInvalidOTP      = errors.New("invalid OTP")
+	ErrDuplicatePhone  = errors.New("duplicate phone number used")
 )

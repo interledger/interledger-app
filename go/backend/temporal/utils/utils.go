@@ -31,9 +31,5 @@ func IsNotFoundError(err error) bool {
 	}
 
 	var notFoundErr *serviceerror.NotFound
-	if !errors.As(err, &notFoundErr) {
-		return false
-	}
-
-	return true
+	return errors.As(err, &notFoundErr)
 }
