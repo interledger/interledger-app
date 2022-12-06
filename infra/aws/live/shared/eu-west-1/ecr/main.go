@@ -83,6 +83,20 @@ func main() {
 			return err
 		}
 
+		//Temporal
+		if _, err = ecr.NewPrivateRepository(ctx, "temporalio/auto-setup", accountID, crossAccountIds); err != nil {
+			return err
+		}
+		if _, err = ecr.NewPrivateRepository(ctx, "temporalio/ui", accountID, crossAccountIds); err != nil {
+			return err
+		}
+		if _, err = ecr.NewPrivateRepository(ctx, "temporalio/server", accountID, crossAccountIds); err != nil {
+			return err
+		}
+		if _, err = ecr.NewPrivateRepository(ctx, "temporalio/admin-tools", accountID, crossAccountIds); err != nil {
+			return err
+		}
+
 		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
 		ctx.Export("eksImage", eksImage.ImageName)
 		ctx.Export("dockerRepoUri", dockerRepo.RepositoryUri)
