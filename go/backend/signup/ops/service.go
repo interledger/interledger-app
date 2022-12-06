@@ -131,6 +131,16 @@ func SetMobileNumber(ctx context.Context, b Backends, args signup.MobileNumberAr
 		return signup.ErrInvalidOTP
 	}
 
+	// Check if phone number already used. Note must be after OTP validation to prevent data leakage!
+	var existsId string
+	err = b.DB().GetContext(ctx, &existsId, "select id from signups where mobile_number=$1 and user_id is not null", args.MobileNumber)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("%w %s", signup.ErrInternal, err)
+	}
+	if existsId != "" {
+		return fmt.Errorf("%w %s", signup.ErrDuplicatePhone, err)
+	}
+
 	r, err := b.DB().ExecContext(ctx, "UPDATE signups SET mobile_number=$1, updated_at=now() WHERE id=$2",
 		args.MobileNumber, args.ID)
 	if err != nil {
