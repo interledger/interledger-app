@@ -1,7 +1,7 @@
-FROM ubuntu:21.10
+FROM ubuntu:22.04
 
 # Update to local SA mirror for building
-RUN sed -E -i 's#http://[^\s]*archive\.ubuntu\.com/ubuntu#http://ftp.leg.uct.ac.za/ubuntu#g' /etc/apt/sources.list
+# RUN sed -E -i 's#http://[^\s]*archive\.ubuntu\.com/ubuntu#http://ftp.leg.uct.ac.za/ubuntu#g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y curl gcc make jq git
 
 # Install docker v20.10 which is required for our GL Runner
