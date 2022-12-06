@@ -40,9 +40,12 @@ func main() {
 				Context:    pulumi.String("./"),
 				Dockerfile: pulumi.String("./DockerfileEcr"),
 			},
-			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/docker:20.10"),
+			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/docker:22.04"),
 			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
 		})
+		if err != nil {
+			return err
+		}
 
 		// used to store the custom image for deploying to eks
 		eksRepo, err := ecr.NewPrivateRepository(ctx, "eks", accountID, crossAccountIds)
@@ -58,6 +61,9 @@ func main() {
 			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/eks"),
 			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
 		})
+		if err != nil {
+			return err
+		}
 
 		// Registry for dependent images
 		_, err = ecr.NewPrivateRepository(ctx, "cockroach", accountID, crossAccountIds)
@@ -97,6 +103,25 @@ func main() {
 			return err
 		}
 
+		certWatcherRepo, err := ecr.NewPrivateRepository(ctx, "certwatcher", accountID, crossAccountIds)
+		if err != nil {
+			return err
+		}
+
+		certWatcherImage, err := docker.NewImage(ctx, "docker-certwatcher", &docker.ImageArgs{
+			Build: &docker.DockerBuildArgs{
+				Context:    pulumi.String("./certwatcher"),
+				Dockerfile: pulumi.String("./certwatcher/Dockerfile"),
+			},
+			ImageName: pulumi.String(accountID + ".dkr.ecr.eu-west-1.amazonaws.com/certwatcher:3.17.0"),
+			Registry:  docker.ImageRegistryArgs{}, // use ECR credential helper
+		})
+		if err != nil {
+			return err
+		}
+
+		ctx.Export("certWatcherRepoUri", certWatcherRepo.RepositoryUri)
+		ctx.Export("certWatcherDockerImage", certWatcherImage.ImageName)
 		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
 		ctx.Export("eksImage", eksImage.ImageName)
 		ctx.Export("dockerRepoUri", dockerRepo.RepositoryUri)
@@ -104,6 +129,7 @@ func main() {
 		ctx.Export("backendEcrRepoUri", backendEcrRepo.RepositoryUri)
 		ctx.Export("proteaEcrRepoUri", proteaRepo.RepositoryUri)
 		ctx.Export("pacioliRepoEcrRepoUri", pacioliRepo.RepositoryUri)
+
 		return nil
 	})
 }
