@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -551,4 +552,24 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 
 	assert.Equal(t, 20.0, wallet.Balance.Balance)
 	assert.Equal(t, 20.0, wallet.Balance.AvailableBalance)
+}
+
+func TestStripEmailPlus(t *testing.T) {
+	type test struct {
+		input string
+		want  string
+	}
+
+	tests := []test{
+		{input: "alice@fynbos.test", want: "alice@fynbos.test"},
+		{input: "alice+bob@fynbos.test", want: "alice@fynbos.test"},
+		{input: "bob1234+bob1234@fynbos.test", want: "bob1234@fynbos.test"},
+	}
+
+	for _, tc := range tests {
+		got := StripEmailPlus(tc.input)
+		if !reflect.DeepEqual(tc.want, got) {
+			t.Fatalf("expected: %v, got: %v", tc.want, got)
+		}
+	}
 }
