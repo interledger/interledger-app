@@ -5,10 +5,6 @@ import (
 	"errors"
 	"reflect"
 
-	"go.uber.org/zap"
-
-	"go.temporal.io/api/enums/v1"
-
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -20,7 +16,10 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/workflows"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 )
 
 type Backends interface {
@@ -145,28 +144,6 @@ func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransa
 func (c client) CreateReceiveBankAccount(ctx context.Context, args machnet.CreateReceiveBankAccountArgs) (*machnet.ReceiveBankAccount, error) {
 	return ops.CreateReceiveBankAccount(ctx, c.b, args)
 }
-
-/*
-func (c client) GetReceiveBankAccount(ctx context.Context, id string) (*machnet.ReceiveBankAccount, error) {
-	return ops.GetReceiveBankAccount(ctx, c.b, id)
-}
-
-func (c client) CreateReceiveUser(ctx context.Context, args machnet.CreateReceiveUserArgs) (*machnet.ReceiveUser, error) {
-	return ops.CreateReceiveUser(ctx, c.b, args)
-}
-
-func (c client) GetReceiveUser(ctx context.Context, args machnet.GetReceiveUserArgs) (*machnet.ReceiveUser, error) {
-	return ops.GetReceiveUser(ctx, c.b, args)
-}
-
-func (c client) CreateReceiveUserBankAccount(ctx context.Context, args machnet.CreateReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
-	return ops.CreateReceiveUserBankAccount(ctx, c.b, args)
-}
-
-func (c client) GetReceiveUserBankAccount(ctx context.Context, args machnet.GetReceiveUserBankAccountArgs) (*machnet.ReceiveUserBankAccount, error) {
-	return ops.GetReceiveUserBankAccount(ctx, c.b, args)
-}
-*/
 
 func (c client) GetBanks(ctx context.Context, countryCode string) ([]machnet.Bank, error) {
 	return ops.GetBanks(ctx, c.b, countryCode)
