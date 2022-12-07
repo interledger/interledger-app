@@ -61,7 +61,7 @@ export async function loader({ request }: LoaderArgs) {
 
   const snackbar = await getSnackbar(request)
 
-  return json({ username, snackbar })
+  return json({ username: username.toLowerCase(), snackbar })
 }
 
 export const handle = {
