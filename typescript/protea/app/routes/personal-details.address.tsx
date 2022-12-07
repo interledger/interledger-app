@@ -7,10 +7,8 @@ import {
   useLoaderData
 } from '@remix-run/react'
 import {
-  AnchorRouter,
   Autocomplete,
   Button,
-  Checkbox,
   Icon,
   Layouts,
   Shape,
@@ -27,6 +25,7 @@ import { requireUserSession } from '~/lib/kratos.server'
 import { useCallback } from 'react'
 import type { Address } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getClientIP } from '~/lib/ip.server'
+import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -188,39 +187,6 @@ export default function Page() {
         disabled={!formattedAddress}
         className='mt-1'
       />
-      <Checkbox
-        id='service-agreement'
-        name='service-agreement'
-        form='personal-details-address'
-        className='mt-4 flex'
-        aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
-        aria-describedby={
-          actionData?.errors.serviceAgreement
-            ? 'serviceAgreement-error'
-            : undefined
-        }
-        errorMessage={actionData?.errors.serviceAgreement}
-      >
-        I agree to the Machnet&nbsp;
-        <AnchorRouter
-          className='text-primary'
-          to={
-            'https://machnetservices.com/fynbos-technologies-llc-privacypolicy/'
-          }
-        >
-          Privacy Policy
-        </AnchorRouter>
-        &nbsp;and&nbsp;
-        <AnchorRouter
-          className='text-primary'
-          to={
-            'https://machnetservices.com/fynbos-technologies-llc-termsofservice/'
-          }
-        >
-          Terms of Service
-        </AnchorRouter>
-        .
-      </Checkbox>
 
       <Button className='mt-12' form='personal-details-address' type='submit'>
         Continue
@@ -232,24 +198,9 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
 
-  const serviceAgreement = form.get('service-agreement') as string
-  // TODO: use actual service agreement service
   const fieldErrors = {
     form: '',
-    serviceAgreement: '',
     address: ''
-  }
-
-  if (serviceAgreement == null) {
-    fieldErrors.serviceAgreement = 'You are required to agree to continue.'
-    return json(
-      {
-        errors: {
-          ...fieldErrors
-        }
-      },
-      { status: 400 }
-    )
   }
 
   const line1 = form.get('line1') as string
@@ -313,23 +264,8 @@ export async function action({ request }: ActionArgs) {
 
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
 
-  let res = await grpcClient
-    .startMachnetKYC(
-      {},
-      {
-        meta: {
-          cookies: request.headers.get('cookie') || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(res)) throw json({}, httpMapping(res.code))
-
-  const flow = await requireFlow(request, flowType.PersonalDetails)
   // NOTE Temporarily not exciting this flow so that if the user needs to fix something their data will be there.
   // We should find a better way to do this.
   // await exitFlow(request, flowType.PersonalDetails)
-  return redirect(flow.returnTo)
+  return redirect(route('/machnet-terms'))
 }
