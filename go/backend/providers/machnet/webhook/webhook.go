@@ -217,11 +217,13 @@ func HandleTransactionDeliveryEvent(ctx context.Context, b ops.Backends, event e
 
 func SaveWebhook(ctx context.Context, b ops.Backends, event external.Event) error {
 	ib := db.NewInsert("machnet_webhook").
-		Value("id", event.ID).
 		Value("user_id", event.UserID).
 		Value("event_name", event.EventName).
 		Value("resource_id", event.ResourceID).
 		Value("subscription_id", event.SubscriptionID)
+	if event.ID != "" {
+		ib.Value("id", event.ID)
+	}
 	if len(event.Payload) > 0 {
 		ib.Value("payload", event.Payload)
 	}
