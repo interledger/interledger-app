@@ -28,6 +28,7 @@ declare module "routes-gen" {
     "/api/maps/geocode": Record<string, never>;
     "/personal-details": Record<string, never>;
     "/waitlist/success": Record<string, never>;
+    "/withdraw/confirm": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/payment-pointer": Record<string, never>;
@@ -42,6 +43,7 @@ declare module "routes-gen" {
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
+    "/withdraw": Record<string, never>;
     "/contact": Record<string, never>;
     "/support": Record<string, never>;
     "/logout": Record<string, never>;
@@ -84,6 +86,7 @@ declare module "routes-gen" {
       | ["/api/maps/geocode"]
       | ["/personal-details"]
       | ["/waitlist/success"]
+      | ["/withdraw/confirm"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/payment-pointer"]
@@ -98,6 +101,7 @@ declare module "routes-gen" {
       | ["/recovery"]
       | ["/settings"]
       | ["/waitlist"]
+      | ["/withdraw"]
       | ["/contact"]
       | ["/support"]
       | ["/logout"]
