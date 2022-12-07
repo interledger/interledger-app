@@ -7,6 +7,7 @@ import (
 const (
 	ProviderName           = "machnet"
 	TypeReceiveBankAccount = "receiveBankAccount"
+	TypeBankAccount        = "bankAccount"
 	TypeSendCard           = "sendCard"
 	TypeWallet             = "wallet"
 )

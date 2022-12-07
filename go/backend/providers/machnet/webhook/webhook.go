@@ -81,6 +81,8 @@ func HandleEvent(ctx context.Context, b ops.Backends, event external.Event) erro
 	switch event.EventName {
 	case external.UserCardAdded:
 		err = HandleUserCardAddedEvent(ctx, b, event)
+	case external.UserBankAdded:
+		err = HandleBankAccountAddedEvent(ctx, b, event)
 	case external.UserKYCInProgress, external.UserKYCSuspended, external.UserKYCRetry, external.UserKYCVerified, external.UserKYCReviewPending:
 		err = HandleUserKYCEvent(ctx, b, event)
 	case external.TransactionPendingEvent, external.TransactionProcessingEvent, external.TransactionHoldEvent,
@@ -179,6 +181,33 @@ func HandleUserCardAddedEvent(ctx context.Context, b ops.Backends, event externa
 		Provider:   machnet.ProviderName,
 		ProviderID: card.ID,
 		Type:       machnet.TypeSendCard,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func HandleBankAccountAddedEvent(ctx context.Context, b ops.Backends, event external.Event) error {
+	user, err := ops.GetUserByID(ctx, b, event.UserID)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	// TODO: find out if these details are in the event payload
+	bankAcc, err := b.External().GetUserFundingsource(ctx, user.ID, event.ResourceID)
+	if err != nil {
+		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	_, err = b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   user.WalletID,
+		Name:       bankAcc.FundingsourceName,
+		Mask:       bankAcc.AccountNumber,
+		Provider:   machnet.ProviderName,
+		ProviderID: bankAcc.ID,
+		Type:       machnet.TypeBankAccount,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)

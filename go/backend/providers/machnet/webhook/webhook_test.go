@@ -134,6 +134,50 @@ func TestHandleUserCardAddedEvent(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestHandleBankAccountAddedEvent(t *testing.T) {
+	t.Parallel()
+	b := newTestBackends(t)
+	walletID := newWallet(t, b)
+	user := newMachnetUser(t, b, walletID)
+	externalFundingsource, err := b.external.CreateUserFundingsource(
+		context.Background(),
+		external.FundingSource{
+			ID:                 uuid.NewString(),
+			UserID:             user.ID,
+			AccountNumber:      "74788569",
+			FundingsourceName:  "BOI-74788569",
+			FundingsourceType:  string(external.FundingSourceTypeBankAccount),
+			InstitutionName:    "BANK_OF_IRELAND",
+			VerificationStatus: external.StatusVerified,
+		},
+	)
+	require.NoError(t, err)
+	userCardAddedEvent := external.Event{
+		ID:             uuid.NewString(),
+		EventName:      external.UserBankAdded,
+		ResourceID:     externalFundingsource.ID,
+		UserID:         externalFundingsource.UserID,
+		SubscriptionID: uuid.NewString(),
+		Timestamp:      time.Now().UTC().Format(time.RFC3339),
+		Payload:        []byte("{}"),
+	}
+
+	b.linkedaccounts.EXPECT().Create(gomock.Any(), &linkedaccounts.CreateArgs{
+		WalletID:   walletID,
+		Name:       externalFundingsource.FundingsourceName,
+		Provider:   machnet.ProviderName,
+		ProviderID: externalFundingsource.ID,
+		Type:       machnet.TypeBankAccount,
+		Mask:       externalFundingsource.AccountNumber,
+	}).Return(
+		&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletID: walletID},
+		nil,
+	).Times(1)
+
+	err = webhook.HandleEvent(context.Background(), b, userCardAddedEvent)
+	require.NoError(t, err)
+}
+
 func TestValidateWebhook(t *testing.T) {
 	t.Parallel()
 	// data from webhook received from Machnet sandbox
