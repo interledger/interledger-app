@@ -645,6 +645,7 @@ func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.Withdr
 		"fee_amount":   args.FeeAmount,
 		"from_fund_id": args.WalletID,
 		"id":           args.UserID,
+		"currency":     args.Currency,
 		"ip_address":   FormatIPAddress(args.IPAddress),
 		"type":         "UNLOAD",
 		"to": map[string]string{
