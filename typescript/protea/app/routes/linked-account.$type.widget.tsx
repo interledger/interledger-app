@@ -3,7 +3,6 @@ import { json } from '@remix-run/node'
 import { useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import { useCallback, useEffect } from 'react'
 import { useScript } from '~/lib/useScript'
-import { requireUserSession } from '~/lib/kratos.server'
 import {
   grpcClient,
   httpMapping,
@@ -12,10 +11,18 @@ import {
 } from '~/lib/proto.server'
 import { Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
+import { flowType, requireFlow } from '~/lib/flows.server'
 
-export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
-
+export async function loader({ request, params }: LoaderArgs) {
+  if (params.type == 'card') {
+    await requireFlow(request, flowType.LinkCardAccount)
+  } else if (params.type == 'bank') {
+    await requireFlow(request, flowType.LinkBankAccount)
+  } else
+    throw json(
+      { title: `Linking type ${params.type} not allowed.` },
+      { status: 400 }
+    )
   let cardRpc = await grpcClient
     .getMachnetWidgetToken(
       {},
@@ -54,7 +61,10 @@ export default function Page() {
 
   const listener = useCallback(
     (event: any) => {
-      if (event.data.type == 'CARD' && event.data.status == 'CARD_ADDED') {
+      if (
+        (event.data.type == 'CARD' && event.data.status == 'CARD_ADDED') ||
+        (event.data.type == 'BANK' && event.data.status == 'BANK_ADDED')
+      ) {
         navigate(
           route('/linked-account/:type/success', {
             type: params.type as string
@@ -92,13 +102,13 @@ export default function Page() {
             <div className='hidden sm:flex'>
               <Shape
                 width={'w-8'}
-                radius={'rounded-br-full'}
-                color={'bg-lime-300'}
+                radius={'rounded-tl-full'}
+                color={'bg-lime-500'}
               />
               <Shape
                 width={'w-8'}
-                radius={'rounded-br-full'}
-                color={'bg-slate-500'}
+                radius={'rounded-tl-full'}
+                color={'bg-slate-600'}
               />
             </div>
           </div>

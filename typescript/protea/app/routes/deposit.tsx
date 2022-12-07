@@ -1,24 +1,24 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Layouts, TextField } from '~/components'
+import { Button, Icon, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
-import type { GrpcError } from '~/lib/proto.server'
-import {
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
-import { DateTime } from 'luxon'
-import { requireWalletPaymentPointer } from '~/lib/wallet.server'
+import { getLinkedAccounts, getWalletBalance } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const flow = await requireFlow(request, flowType.Pay)
+  // TODO: require canDeposit here (from getLinkedAccounts). Redirect to card flow if can't
+  const { canTopUp, linkedAccounts } = await getLinkedAccounts(request)
+  if (!canTopUp)
+    return redirect(route('/linked-account/:type', { type: 'card' }))
+
+  const flow = await requireFlow(request, flowType.TopUp)
   return json({
-    flow
+    flow,
+    canTopUp,
+    balance: await getWalletBalance(request),
+    linkedAccounts: linkedAccounts.filter((account) => account.type == 'card')
   })
 }
 
@@ -27,8 +27,17 @@ export const handle = {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
+  const { flow, balance, linkedAccounts } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
+
+  const [linkedAccount, setLinkedAccount] = useState<{
+    id: string
+    name: string
+  }>(linkedAccounts[0])
+
+  const _onChangeLinkedAccount = useCallback((event) => {
+    setLinkedAccount(event)
+  }, [])
 
   const _onChangeInput = useCallback(
     (event) => {
@@ -41,18 +50,20 @@ export default function Page() {
   return (
     <>
       <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-        <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
-        <span>Enter the amount you want to pay.</span>
+        <h1 className='mb-6 font-display text-2xl font-medium'>
+          Top up cash balance
+        </h1>
+        <span>Enter the amount to top up.</span>
         <fetcher.Form
           id='amount-form'
-          action='/pay/amount'
+          action='/deposit'
           method='post'
           className='hidden'
         />
         <TextField
           id='amount'
           form='amount-form'
-          label='You send'
+          label='Amount'
           name='amount'
           defaultValue={flow?.data.amount}
           onChange={_onChangeInput}
@@ -69,6 +80,35 @@ export default function Page() {
           required
         />
 
+        <div className='mt-4 flex items-center justify-between rounded-xl bg-container p-4 text-medium'>
+          <span className='text-sm'>Available cash balance</span>
+          <span className='text-sm font-medium'>{balance}</span>
+        </div>
+
+        <Select
+          id='linkedAccount'
+          label='Top up from'
+          className='mt-12'
+          value={linkedAccount}
+          options={linkedAccounts}
+          onChange={_onChangeLinkedAccount}
+          aria-invalid={
+            Boolean(fetcher.data?.errors.linkedAccount) || undefined
+          }
+          aria-describedby={
+            fetcher.data?.errors.linkedAccount
+              ? 'linkedAccount-error'
+              : undefined
+          }
+          errorMessage={fetcher.data?.errors.linkedAccount}
+        />
+        <input
+          form='amount-form'
+          value={linkedAccount.id}
+          name='linkedAccount'
+          type='hidden'
+        />
+
         <div className='mt-4 flex w-full justify-between'>
           <span className='text-sm'>Total fees</span>
           <span className='text-sm font-medium text-strong'>
@@ -76,25 +116,11 @@ export default function Page() {
           </span>
         </div>
         <div className='mt-4 flex w-full justify-between'>
-          <span className='text-sm'>They receive</span>
+          <span className='text-sm'>You receive</span>
           <span className='text-sm text-2xl font-medium text-strong'>
             {flow?.data.displayReceiveAmount || '$ 0.00'}
           </span>
         </div>
-        <TextField
-          id='note'
-          label='Note'
-          name='note'
-          form='amount-form'
-          type='text'
-          defaultValue={flow.data.note || ''}
-          className='mt-12'
-          aria-invalid={Boolean(fetcher.data?.errors.note) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.note ? 'paymentPointer-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.note}
-        />
         <div className='mt-8'>
           <Button form='amount-form' type='submit' name='route-to' value='next'>
             Continue
@@ -112,34 +138,18 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'amount'
-
-function mapper(field: fieldErrorsMap): 'amount' | null {
-  switch (field) {
-    case 'amount':
-      return 'amount'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
-  const flow = await requireFlow(request, flowType.Pay)
+  // const flow = await requireFlow(request, flowType.TopUp)
   const form = await request.formData()
   const amount = form.get('amount') as string
-  const note = form.get('note') as string
+  const linkedAccount = form.get('linkedAccount') as string
   const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
   const routeTo = form.get('route-to')
-
-  const expiresAt = {
-    seconds: `${Math.floor(DateTime.now().plus({ hour: 1 }).toSeconds())}`,
-    nanos: 0
-  }
 
   const fieldErrors = {
     form: '',
     amount: '',
+    linkedAccount: '',
     note: ''
   }
 
@@ -148,70 +158,24 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  let sendPaymentPointer = await requireWalletPaymentPointer(request)
-  let receivePaymentPointer = flow.data.paymentPointer.url
-
-  // TODO: Submit note with quote
-  const response = await openPaymentsClient
-    .createQuote(
-      {
-        sendPaymentPointer: sendPaymentPointer.url,
-        receivePaymentPointer,
-        description: note,
-        amount: {
-          amount: amountToSubmit,
-          asset: flow.data.paymentPointer.asset,
-          assetScale: flow.data.paymentPointer.assetScale
-        },
-        expiresAt
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
-  }
-
-  let sendAmount = response.response.sendAmount?.amount,
-    receiveAmount = response.response.receiveAmount?.amount,
+  let receiveAmount = amountToSubmit,
     fee = 0
 
-  // TODO: should fetch this information directly from the quote.
   const data = {
     errors: { ...fieldErrors },
-    quoteID: response.response.id,
-    note,
     amount: amount,
     fee: fee,
+    linkedAccount,
     displayFee: formatMoney(fee),
-    sendAmount,
-    displaySendAmount: formatMoney(parseFloat(sendAmount as string) / 100),
     receiveAmount,
-    displayReceiveAmount: formatMoney(
-      parseFloat(receiveAmount as string) / 100
-    ),
-    receivePaymentPointer,
-    sendPaymentPointer: sendPaymentPointer.url
+    displayReceiveAmount: formatMoney(parseFloat(receiveAmount as string) / 100)
   }
 
-  await updateFlow(request, flowType.Pay, data)
+  await updateFlow(request, flowType.TopUp, data)
 
   // TODO: should always return data, because using fetcher means redirecting from here doesn't add the route to the stack which breaks the back button.
   if (routeTo == 'next') {
-    return redirect(route('/pay/confirm'))
+    return redirect(route('/deposit/confirm'))
   } else {
     return json(data)
   }

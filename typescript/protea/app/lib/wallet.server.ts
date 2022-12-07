@@ -5,7 +5,7 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import type {
   Amount,
   KYCStatusResponse,
@@ -14,6 +14,7 @@ import type {
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { DateTime } from 'luxon'
+import { route } from 'routes-gen'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -46,16 +47,15 @@ export async function getKycStatus(
   return response.response
 }
 
-export async function getWalletPaymentPointer(
+export async function requireWalletPaymentPointer(
   request: Request
 ): Promise<PaymentPointer> {
-  const cookie = String(request.headers.get('cookie'))
   let response = await openPaymentsClient
     .listWalletPaymentPointers(
       {},
       {
         meta: {
-          cookies: cookie || ''
+          cookies: String(request.headers.get('cookie')) || ''
         }
       }
     )
@@ -63,6 +63,8 @@ export async function getWalletPaymentPointer(
     .catch(StatusError)
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
+  } else if (response.response.pointers.length == 0) {
+    throw redirect(route('/payment-pointer'))
   }
 
   return response.response.pointers[0]
@@ -123,17 +125,36 @@ export async function getLinkedAccounts(
     throw json({}, httpMapping(response.code))
   }
 
-  const linkedAccounts = response.response.linkedAccounts
-    .filter((account) => account.type != 'wallet')
-    .map((linkedAccount) => ({
-      id: linkedAccount.id,
-      name:
-        linkedAccount.type == 'sendCard'
-          ? `Card ending ${linkedAccount.mask}`
-          : 'Bank account',
-      type: linkedAccount.type == 'sendCard' ? 'card' : 'bank',
-      icon: linkedAccount.type == 'sendCard' ? 'credit_card' : 'account_balance'
-    }))
+  const linkedAccounts = response.response.linkedAccounts.map(
+    (linkedAccount) => {
+      let type = '',
+        name = '',
+        icon = ''
+      switch (linkedAccount.type) {
+        case 'sendCard':
+          type = 'card'
+          name = `Card ending ${linkedAccount.mask}`
+          icon = 'credit_card'
+          break
+        case 'bankAccount':
+          type = 'bank'
+          name = `${linkedAccount.name} ${linkedAccount.mask}`
+          icon = 'account_balance'
+          break
+        case 'wallet':
+          type = 'wallet'
+          name = 'Cash balance'
+          icon = 'wallet'
+          break
+      }
+      return {
+        id: linkedAccount.id,
+        name,
+        type,
+        icon
+      }
+    }
+  )
 
   return {
     linkedAccounts,

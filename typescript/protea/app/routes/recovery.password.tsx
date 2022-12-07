@@ -7,7 +7,6 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  requireUserSession,
   kratosErrorMapping
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
@@ -19,7 +18,6 @@ export const handle = {
 }
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
