@@ -3,7 +3,9 @@ import { v4 } from 'uuid'
 import { redisClient } from '~/lib/redis.server'
 
 const EXPIRATION_DURATION_IN_SECONDS = 60 * 60 * 24 // a day
-const COOKIE_SECRETS = JSON.parse(process.env.COOKIE_SECRETS || '["TODO:secrets"]')
+const COOKIE_SECRETS = JSON.parse(
+  process.env.COOKIE_SECRETS || '["TODO:secrets"]'
+)
 
 const cookie = createCookie('user_settings', {
   httpOnly: true,

@@ -463,7 +463,9 @@ function AppPage() {
         <div className='mt-2'>
           <HomeShapes />
         </div>
-        <h1 className='mt-6 font-display text-2xl font-medium'>Welcome {firstName}</h1>
+        <h1 className='mt-6 font-display text-2xl font-medium'>
+          Welcome {firstName}
+        </h1>
 
         {kycStatus != KycStatus.Verified && (
           <p className='mt-4'>Thank you for signing up to Fynbos.</p>
