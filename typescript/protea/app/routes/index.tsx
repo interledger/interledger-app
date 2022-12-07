@@ -87,7 +87,6 @@ export async function loader({ request }: LoaderArgs) {
       getLinkedAccounts(request),
       getSnackbar(request)
     ])
-    console.log('KYCStatus', kycStatus)
 
     data = {
       ...data,
@@ -128,7 +127,7 @@ export async function loader({ request }: LoaderArgs) {
           'Add a debit card to easily send payments or top up your cash balance.',
         icon: 'add_card',
         action: {
-          to: route('/linked-account/:type', { type: 'card' }),
+          to: route('/linked-account/:type/widget', { type: 'card' }),
           text: 'Add a debit card'
         },
         show: true
@@ -143,7 +142,7 @@ export async function loader({ request }: LoaderArgs) {
           'Add a bank account to securely withdraw from your cash balance at any time.',
         icon: 'account_balance',
         action: {
-          to: route('/linked-account/:type', { type: 'bank' }),
+          to: route('/linked-account/:type/widget', { type: 'bank' }),
           text: 'Add bank account'
         },
         show: true
@@ -450,7 +449,6 @@ function AppPage() {
     transactions,
     kycStatus,
     canTopUp,
-    canWithdraw,
     nextStep
   } = useLoaderData<typeof loader>()
 
@@ -576,21 +574,13 @@ function AppPage() {
           <div className='mt-5 flex w-full justify-end space-x-6'>
             <Router
               className='text-sm font-medium text-primary'
-              to={
-                canTopUp
-                  ? route('/') // TODO: route to /deposit
-                  : route('/linked-account/:type', { type: 'card' })
-              }
+              to={route('/deposit')}
             >
               Top up
             </Router>
             <Router
               className='text-sm font-medium text-primary'
-              to={
-                canWithdraw
-                  ? route('/') // TODO: route to /withdraw
-                  : route('/linked-account/:type', { type: 'bank' })
-              }
+              to={route('/withdraw')}
             >
               Withdraw
             </Router>
