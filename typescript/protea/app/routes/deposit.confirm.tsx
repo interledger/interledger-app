@@ -1,0 +1,129 @@
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Button, Checkbox, Layouts } from '~/components'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { route } from 'routes-gen'
+import { requireUserSession } from '~/lib/kratos.server'
+
+export async function loader({ request }: LoaderArgs) {
+  const session = await requireUserSession(request)
+  const flow = await requireFlow(request, flowType.TopUp)
+  return json({
+    flow,
+    traits: session.identity.traits
+  })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
+}
+
+export default function Page() {
+  const { flow } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+
+  return (
+    <>
+      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+        <h1 className='mb-6 font-display text-2xl font-medium'>
+          Confirm top up
+        </h1>
+        <span>Please check the details and confirm your top up.</span>
+
+        <div className='mt-6 flex w-full justify-between'>
+          <span className='text-sm'>Top up from:</span>
+          <span className='text-sm font-medium text-strong'>
+            {flow?.data.linkedAccount}
+          </span>
+        </div>
+        <div className='mt-6 flex w-full justify-between'>
+          <span className='text-sm'>You pay</span>
+          <span className='text-sm font-medium text-strong'>
+            {flow?.data.displaySendAmount || '$ 0.00'}
+          </span>
+        </div>
+        <div className='mt-2 flex w-full justify-between'>
+          <span className='text-sm'>Total fees</span>
+          <span className='text-sm font-medium text-strong'>
+            free <sup>*</sup>
+          </span>
+        </div>
+        <div className='mt-2 flex w-full justify-between'>
+          <span className='text-sm'>They receive</span>
+          <span className='text-sm text-2xl font-medium text-strong'>
+            {flow?.data.displayReceiveAmount || '$ 0.00'}
+          </span>
+        </div>
+
+        <Form
+          id='pay-confirm'
+          action='/pay/confirm'
+          method='post'
+          className='hidden'
+        />
+        <Checkbox
+          id='service-agreement'
+          name='service-agreement'
+          form='pay-confirm'
+          className='mt-8 flex'
+          aria-invalid={
+            Boolean(actionData?.errors.serviceAgreement) || undefined
+          }
+          aria-describedby={
+            actionData?.errors.serviceAgreement
+              ? 'serviceAgreement-error'
+              : undefined
+          }
+          errorMessage={actionData?.errors.serviceAgreement}
+        >
+          I authorize Fynbos to debit the card indicated for the amount noted on
+          today’s date. I will not dispute Fynbos debiting my account, so long
+          as the transaction corresponds to the terms in this online form and my
+          agreement with Fynbos.
+        </Checkbox>
+        <div className='mt-6'>
+          <Button form='pay-confirm' type='submit'>
+            Confirm payment
+          </Button>
+        </div>
+      </div>
+      <div className='mt-6 flex w-full space-x-2'>
+        <span className='text-xs text-medium'>*</span>
+        <span className='text-xs text-medium'>
+          For a limited time, Fynbos will absorb the fees associated with making
+          a payment.
+        </span>
+      </div>
+    </>
+  )
+}
+
+export async function action({ request }: ActionArgs) {
+  // const flow = await requireFlow(request, flowType.TopUp)
+  const form = await request.formData()
+  const serviceAgreement = form.get('service-agreement') as string
+
+  const fieldErrors = {
+    form: '',
+    serviceAgreement: ''
+  }
+
+  if (serviceAgreement == null) {
+    fieldErrors.serviceAgreement = 'You are required to authorize to continue.'
+    return json(
+      {
+        errors: {
+          ...fieldErrors
+        }
+      },
+      { status: 400 }
+    )
+  }
+
+  // const clientIpAddress = getClientIP(request)
+  // TODO Actually initiate top up
+  // const transactionId = response.response.id.split('/').at(-1) as string
+  await exitFlow(request, flowType.TopUp)
+  return redirect(route('/'))
+}
