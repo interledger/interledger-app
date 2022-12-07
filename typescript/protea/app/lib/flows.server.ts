@@ -9,6 +9,7 @@ export enum flowType {
   LinkBankAccount = 'linkBank',
   PersonalDetails = 'personalDetails',
   PasswordChallenge = 'passwordChallenge',
+  TopUp = 'topUp',
   Withdraw = 'withdraw'
 }
 
@@ -155,6 +156,12 @@ const flowTemplate = (type: flowType): Flow => {
         startRoute: route('/login/challenge'),
         data: {},
         returnTo: route('/settings/password')
+      }
+    case flowType.TopUp:
+      return {
+        startRoute: route('/deposit'),
+        data: {},
+        returnTo: route('/')
       }
     case flowType.Withdraw:
       return {

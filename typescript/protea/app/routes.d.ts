@@ -30,6 +30,7 @@ declare module "routes-gen" {
     "/waitlist/success": Record<string, never>;
     "/withdraw/confirm": Record<string, never>;
     "/contact/success": Record<string, never>;
+    "/deposit/confirm": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/payment-pointer": Record<string, never>;
     "/signup/password": Record<string, never>;
@@ -45,6 +46,7 @@ declare module "routes-gen" {
     "/waitlist": Record<string, never>;
     "/withdraw": Record<string, never>;
     "/contact": Record<string, never>;
+    "/deposit": Record<string, never>;
     "/support": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -88,6 +90,7 @@ declare module "routes-gen" {
       | ["/waitlist/success"]
       | ["/withdraw/confirm"]
       | ["/contact/success"]
+      | ["/deposit/confirm"]
       | ["/login/challenge"]
       | ["/payment-pointer"]
       | ["/signup/password"]
@@ -103,6 +106,7 @@ declare module "routes-gen" {
       | ["/waitlist"]
       | ["/withdraw"]
       | ["/contact"]
+      | ["/deposit"]
       | ["/support"]
       | ["/logout"]
       | ["/signup"]
