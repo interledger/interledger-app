@@ -712,6 +712,6 @@ func (a *Activity) DeleteLinkedAccount(ctx context.Context, linkedAccID string) 
 
 // StripEmailPlus Parse email to remove + due to Machnet not able to handle
 func StripEmailPlus(email string) string {
-	emailRegex := regexp.MustCompile("\\+[^)]*@")
+	emailRegex := regexp.MustCompile(`\+[^)]*@`)
 	return emailRegex.ReplaceAllString(email, "@")
 }
