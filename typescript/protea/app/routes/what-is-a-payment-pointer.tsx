@@ -2,28 +2,28 @@ import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
 
 import type { MetaFunction } from '@remix-run/node'
-import { Metadata } from '@grpc/grpc-js'
 
 export const meta: MetaFunction = () => {
+  const metaContent = {
+    title: 'What is a payment pointer?',
+    description:
+      "It's quite simple really - think of it as an email address for your digital wallet."
+  }
 
-    const metaContent = {
-        'title': 'What is a payment pointer?',
-        'description': 'It\'s quite simple really - think of it as an email address for your digital wallet.',
-    }
-
-    return {
-      title: metaContent.title,
-      description: metaContent.description,
-      'og:title': metaContent.title,
-      'og:description': metaContent.description,
-      'og:image': 'https://cdn.fynbos.workers.dev/marketing/what-is-a-payment-pointer-og.png',
-      'og:url': 'https://fynbos.app/what-is-a-payment-pointer',
-      'twitter:title': metaContent.title,
-      'twitter:description': metaContent.description,
-      'twitter:image': 'https://cdn.fynbos.workers.dev/marketing/what-is-a-payment-pointer-twitter.png'
-    }
+  return {
+    title: metaContent.title,
+    description: metaContent.description,
+    'og:title': metaContent.title,
+    'og:description': metaContent.description,
+    'og:image':
+      'https://cdn.fynbos.workers.dev/marketing/what-is-a-payment-pointer-og.png',
+    'og:url': 'https://fynbos.app/what-is-a-payment-pointer',
+    'twitter:title': metaContent.title,
+    'twitter:description': metaContent.description,
+    'twitter:image':
+      'https://cdn.fynbos.workers.dev/marketing/what-is-a-payment-pointer-twitter.png'
+  }
 }
-
 
 export const handle = {
   layout: Layouts.LandingLayout
