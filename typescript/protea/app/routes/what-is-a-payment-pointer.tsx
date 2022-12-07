@@ -17,6 +17,7 @@ export const meta: MetaFunction = () => {
       'og:title': metaContent.title,
       'og:description': metaContent.description,
       'og:image': 'https://cdn.fynbos.workers.dev/marketing/what-is-a-payment-pointer-og.png',
+      'og:url': 'https://fynbos.app/what-is-a-payment-pointer',
       'twitter:title': metaContent.title,
       'twitter:description': metaContent.description,
       'twitter:image': 'https://cdn.fynbos.workers.dev/marketing/what-is-a-payment-pointer-twitter.png'
