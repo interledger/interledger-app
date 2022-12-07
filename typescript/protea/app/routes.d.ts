@@ -35,6 +35,7 @@ declare module "routes-gen" {
     "/payment-pointer": Record<string, never>;
     "/signup/password": Record<string, never>;
     "/support/success": Record<string, never>;
+    "/machnet-terms": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/transactions": Record<string, never>;
@@ -95,6 +96,7 @@ declare module "routes-gen" {
       | ["/payment-pointer"]
       | ["/signup/password"]
       | ["/support/success"]
+      | ["/machnet-terms"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/transactions"]
