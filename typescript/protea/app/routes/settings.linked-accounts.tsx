@@ -2,20 +2,25 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import {
-  Chip,
-  ChipColor,
-  Icon,
-  Layouts,
-  Router,
-  WalletGrid
-} from '~/components'
+import { Icon, Layouts, Router, WalletGrid } from '~/components'
+import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
+import { KycStatus } from '~/routes/index'
 import { requireUserSession } from '~/lib/kratos.server'
-import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
-  return json(await getLinkedAccounts(request))
+  const { linkedAccounts, canTopUp, canWithdraw } = await getLinkedAccounts(
+    request
+  )
+  const kycStatus = await getKycStatus(request)
+  return json({
+    linkedAccounts: linkedAccounts.filter(
+      (account) => account.type != 'wallet'
+    ),
+    kycStatus: kycStatus.kycStatus,
+    canTopUp,
+    canWithdraw
+  })
 }
 
 export const handle = {
@@ -23,7 +28,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { linkedAccounts, canTopUp, canWithdraw } =
+  const { linkedAccounts, canTopUp, canWithdraw, kycStatus } =
     useLoaderData<typeof loader>()
 
   return (
@@ -37,7 +42,6 @@ export default function Page() {
         {linkedAccounts &&
           linkedAccounts.length > 0 &&
           linkedAccounts.map((method) => (
-            // TODO: Create route for individual linked account display
             <Router
               to={route('/settings/linked-accounts/:accountId', {
                 accountId: method.id
@@ -51,28 +55,43 @@ export default function Page() {
                   <span>{method.name}</span>
                 </div>
               </div>
-              <div className='flex items-center space-x-3 '>
-                {method.type == 'card' && (
-                  <Chip color={ChipColor.orange}>Send</Chip>
-                )}
-                {method.type == 'bank' && (
-                  <Chip color={ChipColor.purple}>Withdraw</Chip>
-                )}
+              <div className='flex items-center'>
                 <Icon>navigate_next</Icon>
               </div>
             </Router>
           ))}
         {linkedAccounts.length > 0 && (
-          // TODO: Create route for choosing what type of linked account to add
           <Router
             className='mt-6 text-sm font-medium text-primary'
-            to={route('/linked-account/:type/widget', { type: 'new' })}
+            to={route('/linked-account/:type', { type: 'new' })}
           >
             Link another account
           </Router>
         )}
       </div>
-      {!canTopUp && (
+      {kycStatus == KycStatus.Unknown && (
+        <div className='col-span-full flex flex-col space-y-4 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <h1 className='font-display text-lg font-medium'>Next step</h1>
+          <div className='flex items-start space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+              <Icon>attach_money</Icon>
+            </div>
+            <div className='flex flex-col space-y-4'>
+              <p className='text-sm text-medium'>
+                Your payment pointer is reserved, we just need a few more
+                details to activate it.
+              </p>
+              <Router
+                className='text-sm font-medium text-primary'
+                to={route('/personal-details')}
+              >
+                Activate payment pointer
+              </Router>
+            </div>
+          </div>
+        </div>
+      )}
+      {kycStatus != KycStatus.Unknown && !canTopUp && (
         <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
@@ -86,7 +105,7 @@ export default function Page() {
               </p>
               <Router
                 className='text-sm font-medium text-primary'
-                to={route('/linked-account/:type', { type: 'card' })}
+                to={route('/linked-account/:type/widget', { type: 'card' })}
               >
                 Add a debit card
               </Router>
@@ -94,7 +113,7 @@ export default function Page() {
           </div>
         </div>
       )}
-      {!canWithdraw && (
+      {kycStatus != KycStatus.Unknown && !canWithdraw && (
         <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
@@ -108,7 +127,7 @@ export default function Page() {
               </p>
               <Router
                 className='text-sm font-medium text-primary'
-                to={route('/linked-account/:type', { type: 'bank' })}
+                to={route('/linked-account/:type/widget', { type: 'bank' })}
               >
                 Add a bank account
               </Router>

@@ -123,17 +123,36 @@ export async function getLinkedAccounts(
     throw json({}, httpMapping(response.code))
   }
 
-  const linkedAccounts = response.response.linkedAccounts
-    .filter((account) => account.type != 'wallet')
-    .map((linkedAccount) => ({
-      id: linkedAccount.id,
-      name:
-        linkedAccount.type == 'sendCard'
-          ? `Card ending ${linkedAccount.mask}`
-          : 'Bank account',
-      type: linkedAccount.type == 'sendCard' ? 'card' : 'bank',
-      icon: linkedAccount.type == 'sendCard' ? 'credit_card' : 'account_balance'
-    }))
+  const linkedAccounts = response.response.linkedAccounts.map(
+    (linkedAccount) => {
+      let type = '',
+        name = '',
+        icon = ''
+      switch (linkedAccount.type) {
+        case 'sendCard':
+          type = 'card'
+          name = `Card ending ${linkedAccount.mask}`
+          icon = 'credit_card'
+          break
+        case 'bankAccount':
+          type = 'bank'
+          name = `${linkedAccount.name} ${linkedAccount.mask}`
+          icon = 'account_balance'
+          break
+        case 'wallet':
+          type = 'wallet'
+          name = 'Cash balance'
+          icon = 'wallet'
+          break
+      }
+      return {
+        id: linkedAccount.id,
+        name,
+        type,
+        icon
+      }
+    }
+  )
 
   return {
     linkedAccounts,

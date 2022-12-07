@@ -37,7 +37,6 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(response.code))
   }
 
-  console.log(response.response.linkedAccounts)
   const linkedAccounts = response.response.linkedAccounts
     // .filter((account) => account.type != 'wallet')
     .map((linkedAccount) => ({
