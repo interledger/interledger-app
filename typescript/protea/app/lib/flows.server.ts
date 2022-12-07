@@ -8,7 +8,8 @@ export enum flowType {
   LinkCardAccount = 'linkCard',
   LinkBankAccount = 'linkBank',
   PersonalDetails = 'personalDetails',
-  PasswordChallenge = 'passwordChallenge'
+  PasswordChallenge = 'passwordChallenge',
+  Withdraw = 'withdraw'
 }
 
 type Flow = {
@@ -154,6 +155,12 @@ const flowTemplate = (type: flowType): Flow => {
         startRoute: route('/login/challenge'),
         data: {},
         returnTo: route('/settings/password')
+      }
+    case flowType.Withdraw:
+      return {
+        startRoute: route('/withdraw'),
+        data: {},
+        returnTo: route('/')
       }
     default:
       throw json(
