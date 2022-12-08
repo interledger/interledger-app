@@ -185,7 +185,7 @@ export default function Page() {
         defaultValue={flow?.data.address.apartment}
         type='text'
         disabled={!formattedAddress}
-        className='mt-1'
+        className='mt-6'
       />
 
       <Button className='mt-12' form='personal-details-address' type='submit'>
