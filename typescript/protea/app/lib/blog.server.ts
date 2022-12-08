@@ -9,7 +9,19 @@ import * as postF from '~/routes/blog.our-fynbos-family-meet-adrian.mdx'
 import * as postG from '~/routes/blog.our-fynbos-family-meet-cairin.mdx'
 import * as postH from '~/routes/blog.our-fynbos-family-meet-justin.mdx'
 import * as postI from '~/routes/blog.our-fynbos-family-meet-barnard.mdx'
-const modules = [postA, postB, postC, postD, postE, postF, postG, postH, postI]
+import * as postJ from '~/routes/blog.why-payment-pointers-are-urls.mdx'
+const modules = [
+  postA,
+  postB,
+  postC,
+  postD,
+  postE,
+  postF,
+  postG,
+  postH,
+  postI,
+  postJ
+]
 
 export type Author = {
   name: string
