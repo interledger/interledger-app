@@ -8,7 +8,7 @@ module.exports = {
     fontFamily: {
       display: ['Poppins'],
       sans: ['Inter'],
-      mono: ['"Overpass Mono"', '"Source Code Pro"'],
+      mono: ['"JetBrains Mono"'],
       icon: ['"Material Symbols Outlined"', { fontFeatureSettings: '"liga"' }]
     },
     extend: {
