@@ -4,14 +4,23 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Checkbox, Layouts } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getLinkedAccounts } from '~/lib/wallet.server'
+import { getClientIP } from '~/lib/ip.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await requireUserSession(request)
   const flow = await requireFlow(request, flowType.TopUp)
+  const { linkedAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
-    traits: session.identity.traits
+    linkedAccount: linkedAccounts.find(
+      (account) => account.id == flow.data.toLinkedAccountId
+    )
   })
 }
 
@@ -20,7 +29,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
+  const { flow, linkedAccount } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
 
   return (
@@ -34,7 +43,7 @@ export default function Page() {
         <div className='mt-6 flex w-full justify-between'>
           <span className='text-sm'>Top up from:</span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.linkedAccount}
+            {linkedAccount?.name}
           </span>
         </div>
         <div className='mt-6 flex w-full justify-between'>
@@ -57,15 +66,15 @@ export default function Page() {
         </div>
 
         <Form
-          id='pay-confirm'
-          action='/pay/confirm'
+          id='deposit-confirm'
+          action='/deposit/confirm'
           method='post'
           className='hidden'
         />
         <Checkbox
           id='service-agreement'
           name='service-agreement'
-          form='pay-confirm'
+          form='deposit-confirm'
           className='mt-8 flex'
           aria-invalid={
             Boolean(actionData?.errors.serviceAgreement) || undefined
@@ -83,7 +92,7 @@ export default function Page() {
           agreement with Fynbos.
         </Checkbox>
         <div className='mt-6'>
-          <Button form='pay-confirm' type='submit'>
+          <Button form='deposit-confirm' type='submit'>
             Confirm payment
           </Button>
         </div>
@@ -100,9 +109,11 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  // const flow = await requireFlow(request, flowType.TopUp)
+  const flow = await requireFlow(request, flowType.TopUp)
   const form = await request.formData()
   const serviceAgreement = form.get('service-agreement') as string
+
+  const clientIpAddress = getClientIP(request)
 
   const fieldErrors = {
     form: '',
@@ -120,10 +131,25 @@ export async function action({ request }: ActionArgs) {
       { status: 400 }
     )
   }
-
-  // const clientIpAddress = getClientIP(request)
-  // TODO Actually initiate top up
-  // const transactionId = response.response.id.split('/').at(-1) as string
+  const response = await grpcClient
+    .startMachnetWalletTopup(
+      {
+        fromLinkedAccountId: flow.data.toLinkedAccountId,
+        amount: flow.data.receiveAmount,
+        ipAddress: clientIpAddress,
+        currency: 'USD'
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
   await exitFlow(request, flowType.TopUp)
   return redirect(route('/'))
 }

@@ -8,7 +8,6 @@ import { route } from 'routes-gen'
 import { getLinkedAccounts, getWalletBalance } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  // TODO: require canDeposit here (from getLinkedAccounts). Redirect to card flow if can't
   const { canTopUp, linkedAccounts } = await getLinkedAccounts(request)
   if (!canTopUp)
     return redirect(route('/linked-account/:type', { type: 'card' }))
@@ -16,7 +15,6 @@ export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.TopUp)
   return json({
     flow,
-    canTopUp,
     balance: await getWalletBalance(request),
     linkedAccounts: linkedAccounts.filter((account) => account.type == 'card')
   })
@@ -105,7 +103,7 @@ export default function Page() {
         <input
           form='amount-form'
           value={linkedAccount.id}
-          name='linkedAccount'
+          name='toLinkedAccountId'
           type='hidden'
         />
 
@@ -139,17 +137,16 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  // const flow = await requireFlow(request, flowType.TopUp)
   const form = await request.formData()
   const amount = form.get('amount') as string
-  const linkedAccount = form.get('linkedAccount') as string
+  const toLinkedAccountId = form.get('toLinkedAccountId') as string
   const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
   const routeTo = form.get('route-to')
 
   const fieldErrors = {
     form: '',
     amount: '',
-    linkedAccount: '',
+    toLinkedAccountId: '',
     note: ''
   }
 
@@ -165,7 +162,7 @@ export async function action({ request }: ActionArgs) {
     errors: { ...fieldErrors },
     amount: amount,
     fee: fee,
-    linkedAccount,
+    toLinkedAccountId,
     displayFee: formatMoney(fee),
     receiveAmount,
     displayReceiveAmount: formatMoney(parseFloat(receiveAmount as string) / 100)
