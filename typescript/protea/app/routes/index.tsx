@@ -574,12 +574,12 @@ function AppPage() {
           <h2 className='font-display text-lg font-medium'>Cash balance</h2>
           <h1 className='mt-2 text-3xl font-medium'>{balance}</h1>
           <div className='mt-5 flex w-full justify-end space-x-6'>
-            {/*<Router*/}
-            {/*  className='text-sm font-medium text-primary'*/}
-            {/*  to={route('/deposit')}*/}
-            {/*>*/}
-            {/*  Top up*/}
-            {/*</Router>*/}
+            <Router
+              className='text-sm font-medium text-primary'
+              to={route('/deposit')}
+            >
+              Top up
+            </Router>
             <Router
               className='text-sm font-medium text-primary'
               to={route('/withdraw')}
