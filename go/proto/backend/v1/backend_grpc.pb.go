@@ -533,6 +533,7 @@ type BackendServiceClient interface {
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
 	WithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*MachnetWalletWithdrawal, error)
+	StartMachnetWalletTopup(ctx context.Context, in *StartMachnetWalletTopupRequest, opts ...grpc.CallOption) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -782,6 +783,15 @@ func (c *backendServiceClient) WithdrawFromMachnetWallet(ctx context.Context, in
 	return out, nil
 }
 
+func (c *backendServiceClient) StartMachnetWalletTopup(ctx context.Context, in *StartMachnetWalletTopupRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartMachnetWalletTopup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -853,6 +863,7 @@ type BackendServiceServer interface {
 	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
 	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
 	WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error)
+	StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -941,6 +952,9 @@ func (UnimplementedBackendServiceServer) GetWalletBalance(context.Context, *Empt
 }
 func (UnimplementedBackendServiceServer) WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawFromMachnetWallet not implemented")
+}
+func (UnimplementedBackendServiceServer) StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartMachnetWalletTopup not implemented")
 }
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
@@ -1434,6 +1448,24 @@ func _BackendService_WithdrawFromMachnetWallet_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_StartMachnetWalletTopup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartMachnetWalletTopupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).StartMachnetWalletTopup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/StartMachnetWalletTopup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).StartMachnetWalletTopup(ctx, req.(*StartMachnetWalletTopupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -1616,6 +1648,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WithdrawFromMachnetWallet",
 			Handler:    _BackendService_WithdrawFromMachnetWallet_Handler,
+		},
+		{
+			MethodName: "StartMachnetWalletTopup",
+			Handler:    _BackendService_StartMachnetWalletTopup_Handler,
 		},
 		{
 			MethodName: "JoinWaitlist",

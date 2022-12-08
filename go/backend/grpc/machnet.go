@@ -283,3 +283,72 @@ func (s *rpcService) WithdrawFromMachnetWallet(
 		Status:            withdrawal.Status,
 	}, nil
 }
+
+type validateStartMachnetWalletTopupArgs struct {
+	FromLinkedAccount string `validate:"required,uuid"`
+	Amount            uint64 `validate:"gt=0"`
+	IpAddress         string `validate:"ip_addr"`
+	Currency          string `validate:"iso4217"`
+}
+
+func (s *rpcService) StartMachnetWalletTopup(
+	ctx context.Context, req *backendv1.StartMachnetWalletTopupRequest,
+) (*backendv1.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	if err = s.b.Validator().StructCtx(ctx, validateStartMachnetWalletTopupArgs{
+		FromLinkedAccount: req.GetFromLinkedAccountId(),
+		Amount:            req.GetAmount(),
+		IpAddress:         req.GetIpAddress(),
+		Currency:          req.GetCurrency(),
+	}); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	fromLinkedAcc, err := s.b.LinkedAccounts().Get(ctx, req.GetFromLinkedAccountId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if fromLinkedAcc.WalletID != wallet.ID {
+		return nil, NotFoundError("Linked account not found.")
+	}
+	if fromLinkedAcc.Type != machnet.TypeSendCard {
+		return nil, InternalError("Cannot fund wallet from this linked account.")
+	}
+
+	linkedAccounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	var linkedWallet *linkedaccounts.LinkedAccount
+	for _, la := range linkedAccounts {
+		if la.Provider == machnet.ProviderName && la.Type == machnet.TypeWallet {
+			linkedWallet = &la
+			break
+		}
+	}
+	if linkedWallet == nil {
+		return nil, toGRPCError(errors.New("Machnet wallet not found."))
+	}
+
+	_, err = s.b.Machnet().StartWalletTopup(ctx, machnet.StartWalletTopupArgs{
+		Amount:                req.GetAmount(),
+		WalletLinkedAccountID: linkedWallet.ID,
+		FromLinkedAccountID:   fromLinkedAcc.ID,
+		IpAddress:             req.GetIpAddress(),
+		Currency:              req.GetCurrency(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.Empty{}, nil
+}
