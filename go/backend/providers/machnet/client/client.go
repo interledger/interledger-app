@@ -3,8 +3,11 @@ package client
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -176,4 +179,18 @@ func (c client) DeleteFundSource(ctx context.Context, linkedAccID string) (machn
 		// Wait for the Workflow to complete.
 		return wf.Get(ctx, nil)
 	}, nil
+}
+
+func (c client) StartWalletTopup(ctx context.Context, args machnet.StartWalletTopupArgs) (machnet.Await, error) {
+	opts := temporal.StartWorkflowOptions{
+		ID:                       "machnet_create_wallet_topup_" + uuid.NewString(), // TODO: get id from transaction
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 7, // Workflow has 7 days to complete
+	}
+	topupWorkflow, err := c.b.Temporal().ExecuteWorkflow(ctx, opts, workflows.CreateWalletTopupWorkflow, args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return topupWorkflow.Get, nil
 }
