@@ -203,4 +203,12 @@ type (
 		ToLinkedAccountID string
 		Status            string
 	}
+
+	StartWalletTopupArgs struct {
+		Amount                uint64 `validate:"gt=0"`
+		WalletLinkedAccountID string `validate:"required,uuid"`
+		FromLinkedAccountID   string `validate:"required,uuid"`
+		IpAddress             string `validate:"ip_addr"`
+		Currency              string `validate:"iso4217"`
+	}
 )

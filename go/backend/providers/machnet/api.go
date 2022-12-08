@@ -21,5 +21,6 @@ type Client interface {
 	CreateWallet(ctx context.Context, args CreateWalletArgs) (*linkedaccounts.LinkedAccount, error)
 	GetWallet(ctx context.Context, id string) (*Wallet, error)
 	WithdrawFromWallet(ctx context.Context, args WithdrawFromWalletArgs) (*WalletWithdrawal, error)
+	StartWalletTopup(ctx context.Context, args StartWalletTopupArgs) (Await, error)
 	DeleteFundSource(ctx context.Context, linkedAccID string) (Await, error)
 }

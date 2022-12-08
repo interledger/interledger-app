@@ -9,6 +9,7 @@ import type { CanSignupResponse } from "./backend";
 import type { CanSignupRequest } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
+import type { StartMachnetWalletTopupRequest } from "./backend";
 import type { MachnetWalletWithdrawal } from "./backend";
 import type { WithdrawFromMachnetWalletRequest } from "./backend";
 import type { WalletBalance } from "./backend";
@@ -330,6 +331,10 @@ export interface IBackendServiceClient {
      */
     withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>;
     /**
+     * @generated from protobuf rpc: StartMachnetWalletTopup(backend.v1.StartMachnetWalletTopupRequest) returns (backend.v1.Empty);
+     */
+    startMachnetWalletTopup(input: StartMachnetWalletTopupRequest, options?: RpcOptions): UnaryCall<StartMachnetWalletTopupRequest, Empty>;
+    /**
      * Waitlist
      *
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
@@ -550,33 +555,40 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: StartMachnetWalletTopup(backend.v1.StartMachnetWalletTopupRequest) returns (backend.v1.Empty);
+     */
+    startMachnetWalletTopup(input: StartMachnetWalletTopupRequest, options?: RpcOptions): UnaryCall<StartMachnetWalletTopupRequest, Empty> {
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StartMachnetWalletTopupRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Waitlist
      *
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CanSignup(backend.v1.CanSignupRequest) returns (backend.v1.CanSignupResponse);
      */
     canSignup(input: CanSignupRequest, options?: RpcOptions): UnaryCall<CanSignupRequest, CanSignupResponse> {
-        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
         return stackIntercept<CanSignupRequest, CanSignupResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetSignupComplete(backend.v1.SetSignupCompleteRequest) returns (backend.v1.Empty);
      */
     setSignupComplete(input: SetSignupCompleteRequest, options?: RpcOptions): UnaryCall<SetSignupCompleteRequest, Empty> {
-        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        const method = this.methods[29], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetSignupCompleteRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: IsMugAvailable(backend.v1.IsMugAvailableRequest) returns (backend.v1.IsMugAvailableResponse);
      */
     isMugAvailable(input: IsMugAvailableRequest, options?: RpcOptions): UnaryCall<IsMugAvailableRequest, IsMugAvailableResponse> {
-        const method = this.methods[29], opt = this._transport.mergeOptions(options);
+        const method = this.methods[30], opt = this._transport.mergeOptions(options);
         return stackIntercept<IsMugAvailableRequest, IsMugAvailableResponse>("unary", this._transport, method, opt, input);
     }
 }

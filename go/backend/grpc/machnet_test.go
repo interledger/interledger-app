@@ -450,3 +450,84 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 		assert.EqualValues(t, errorFields, []string{"ToLinkedAccount", "Amount", "IpAddress"})
 	})
 }
+
+func TestStartMachnetWalletTopup(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	user := &_user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.ID, "default")
+	require.NoError(t, err)
+
+	t.Run("requires authenticated user", func(st *testing.T) {
+		rpc, err := client.StartMachnetWalletTopup(
+			user_mock.ActingAsContext(t, context.Background(), nil),
+			&backendv1.StartMachnetWalletTopupRequest{},
+		)
+		require.NotNil(st, err)
+		assert.Nil(st, rpc)
+	})
+
+	t.Run("starts topup", func(st *testing.T) {
+		fromLinkedAccountID := uuid.NewString()
+		c.linkedaccounts.EXPECT().Get(gomock.Any(), fromLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
+			ID:       fromLinkedAccountID,
+			WalletID: wallet.ID,
+			Type:     machnet.TypeSendCard,
+		}, nil).Times(1)
+
+		walletLinkedAccountID := uuid.NewString()
+		c.linkedaccounts.EXPECT().ListByWalletId(gomock.Any(), wallet.ID).Return(
+			[]linkedaccounts.LinkedAccount{
+				{ID: walletLinkedAccountID, WalletID: wallet.ID, Provider: machnet.ProviderName, Type: machnet.TypeWallet},
+			},
+			nil,
+		).Times(1)
+
+		c.machnet.EXPECT().StartWalletTopup(gomock.Any(), machnet.StartWalletTopupArgs{
+			FromLinkedAccountID:   fromLinkedAccountID,
+			Amount:                1000,
+			WalletLinkedAccountID: walletLinkedAccountID,
+			IpAddress:             "10.10.10.10",
+			Currency:              "USD",
+		}).Return(nil, nil)
+
+		_, err = client.StartMachnetWalletTopup(
+			user_mock.ActingAsContext(st, context.Background(), user),
+			&backendv1.StartMachnetWalletTopupRequest{
+				FromLinkedAccountId: fromLinkedAccountID,
+				Amount:              1000,
+				IpAddress:           "10.10.10.10",
+				Currency:            "USD",
+			},
+		)
+		require.NoError(st, err)
+	})
+
+	t.Run("validates request", func(st *testing.T) {
+		_, err := client.StartMachnetWalletTopup(
+			user_mock.ActingAsContext(st, context.Background(), user),
+			&backendv1.StartMachnetWalletTopupRequest{
+				FromLinkedAccountId: "asd",
+				Amount:              0,
+			},
+		)
+		require.Error(st, err)
+
+		grpcStatus, ok := status.FromError(err)
+		require.True(st, ok)
+		errorFields := []string{}
+		for _, detail := range grpcStatus.Details() {
+			for _, violation := range detail.(*errdetails.BadRequest).FieldViolations {
+				errorFields = append(errorFields, violation.Field)
+			}
+		}
+		assert.EqualValues(t, errorFields, []string{"FromLinkedAccount", "Amount", "IpAddress", "Currency"})
+	})
+}

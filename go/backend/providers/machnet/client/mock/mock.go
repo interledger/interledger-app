@@ -231,6 +231,21 @@ func (mr *MockClientMockRecorder) StartSendUserKYC(ctx, walletID interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartSendUserKYC", reflect.TypeOf((*MockClient)(nil).StartSendUserKYC), ctx, walletID)
 }
 
+// StartWalletTopup mocks base method.
+func (m *MockClient) StartWalletTopup(ctx context.Context, args machnet.StartWalletTopupArgs) (machnet.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartWalletTopup", ctx, args)
+	ret0, _ := ret[0].(machnet.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartWalletTopup indicates an expected call of StartWalletTopup.
+func (mr *MockClientMockRecorder) StartWalletTopup(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartWalletTopup", reflect.TypeOf((*MockClient)(nil).StartWalletTopup), ctx, args)
+}
+
 // WithdrawFromWallet mocks base method.
 func (m *MockClient) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
 	m.ctrl.T.Helper()
