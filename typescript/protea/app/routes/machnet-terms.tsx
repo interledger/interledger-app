@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
-import { AnchorRouter, Button, Checkbox, Layouts } from '~/components'
+import { AnchorRouter, Button, Checkbox, Layouts, Shape } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import {
   grpcClient,
@@ -30,7 +30,23 @@ export default function Page() {
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-      <h1 className='font-display text-2xl font-medium'>Privacy and Terms</h1>
+      <div className='flex justify-between'>
+        <h1 className='font-display text-2xl font-medium'>Privacy and Terms</h1>
+        <div className='hidden sm:flex'>
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-tl-full'}
+            color={'bg-yellow-300'}
+          />
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-tr-full'}
+            color={'bg-rose-400'}
+          />
+        </div>
+      </div>
 
       <p className='mt-6 text-medium'>
         Fynbos uses Machnet to power our financial services for our customers in
