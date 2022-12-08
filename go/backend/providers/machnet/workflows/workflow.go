@@ -194,8 +194,15 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
+	var trxRefFromId string
+	if fundWallet {
+		trxRefFromId = fundWalletTX.FromWalletLinkedAcc
+	} else {
+		trxRefFromId = args.FromLinkedAccountID
+	}
+
 	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
-		FromLinkedAccountID:   fundWalletTX.FromWalletLinkedAcc,
+		FromLinkedAccountID:   trxRefFromId,
 		ExternalTransactionID: transferID,
 		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
 		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
