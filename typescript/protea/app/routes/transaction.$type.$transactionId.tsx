@@ -33,15 +33,15 @@ export default function Page() {
     <>
       <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
         <div className='flex justify-between'>
-          <span className='font-display text-2xl font-medium'>Receipt</span>
-          {transaction.status == 'Sent' && (
-            <Chip color={ChipColor.green}>Sent</Chip>
+          <span className='font-display text-2xl font-medium capitalize'>
+            {params.type == 'outgoing' && 'Sent'}
+            {params.type == 'incoming' && 'Received'}
+          </span>
+          {transaction.status != 'Pending' && (
+            <Chip color={ChipColor.green}>Complete</Chip>
           )}
           {transaction.status == 'Pending' && (
             <Chip color={ChipColor.yellow}>Pending</Chip>
-          )}
-          {transaction.status == 'Received' && (
-            <Chip color={ChipColor.blue}>Received</Chip>
           )}
         </div>
         <div className='mt-6 flex w-full flex-col space-y-1'>
@@ -73,7 +73,7 @@ export default function Page() {
             {params.type == 'outgoing' && 'They receive'}
             {params.type == 'incoming' && 'You receive'}
           </span>
-          <span className='text-sm font-medium text-strong'>
+          <span className='text-sm text-2xl font-medium text-strong'>
             {transaction.total || '$ 0.00'}
           </span>
         </div>
