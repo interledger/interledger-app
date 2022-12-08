@@ -50,7 +50,7 @@ export const Select: FC<SelectProps> = ({
         <div className='relative'>
           <Listbox.Button
             id={id}
-            className='mt-1 h-12 min-w-full rounded-xl ring-2 ring-base focus:outline-none focus:ring focus:ring-focus focus-visible:ring focus-visible:ring-focus'
+            className='mt-1 h-12 min-w-full rounded-xl border-2 border-base focus:border-focus focus:outline-none focus-visible:border-focus focus-visible:ring-0'
           >
             {({ disabled }: { disabled: boolean }) => (
               <div className='flex h-full items-center justify-between overflow-hidden rounded-xl'>
