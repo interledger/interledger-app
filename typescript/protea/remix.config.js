@@ -8,5 +8,14 @@ module.exports = {
   publicPath: '/build/',
   devServerPort: 8002,
   ignoredRouteFiles: ['.*', '**/*.draft.mdx'],
-  sourcemap: true
+  sourcemap: true,
+  mdx: async (filename) => {
+    const [rehypePrism] = await Promise.all([
+      import('@mapbox/rehype-prism').then((mod) => mod.default)
+    ])
+
+    return {
+      rehypePlugins: [rehypePrism]
+    }
+  }
 }
