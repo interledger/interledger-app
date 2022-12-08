@@ -707,5 +707,49 @@ const blogShapes: {
         color: 'bg-blue-400'
       }
     ]
+  ],
+  'why-payment-pointers-are-urls': [
+    [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-slate-600'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-indigo-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-indigo-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-rose-400'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-indigo-300'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-slate-400'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-indigo-500'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-indigo-100'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-rose-300'
+      }
+    ]
   ]
 }
