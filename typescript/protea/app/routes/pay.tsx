@@ -12,14 +12,19 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
-import { getWalletPaymentPointer } from '~/lib/wallet.server'
+import { getKycStatus, getWalletPaymentPointer } from '~/lib/wallet.server'
 import { generateQR, qrSvg } from '~/lib/qr.server'
 import { useState } from 'react'
+import { KycStatus } from '~/routes/index'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
   const paymentPointer = await getWalletPaymentPointer(request)
+  const { kycStatus } = await getKycStatus(request)
+
+  if (kycStatus != KycStatus.Verified)
+    return redirect(route('/linked-account/:type', { type: 'card' }))
 
   const paymentPointerQR = qrSvg(await generateQR(paymentPointer.url))
 
@@ -63,7 +68,7 @@ export default function Page() {
           form='pay-payment-pointer'
           type='text'
           className='mt-6'
-          defaultValue={flow.data?.paymentPointer?.url}
+          defaultValue={flow.data?.paymentPointer?.formatted}
           aria-invalid={Boolean(actionData?.errors.paymentPointer) || undefined}
           aria-describedby={
             actionData?.errors.paymentPointer

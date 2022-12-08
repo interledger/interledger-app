@@ -1,8 +1,8 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Layouts, TextField } from '~/components'
+import { Button, Icon, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -13,12 +13,14 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { DateTime } from 'luxon'
-import { getWalletPaymentPointer } from '~/lib/wallet.server'
+import { getLinkedAccounts, getWalletPaymentPointer } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Pay)
+  const { linkedAccounts } = await getLinkedAccounts(request)
   return json({
-    flow
+    flow,
+    linkedAccounts: linkedAccounts.filter((account) => account.type != 'bank')
   })
 }
 
@@ -27,13 +29,25 @@ export const handle = {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
+  const { flow, linkedAccounts } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
+
+  const [linkedAccount, setLinkedAccount] = useState<{
+    id: string
+    name: string
+  }>(linkedAccounts[0])
+
+  const _onChangeLinkedAccount = useCallback((event) => {
+    setLinkedAccount(event)
+  }, [])
 
   const _onChangeInput = useCallback(
     (event) => {
       let amount = event.target.value
-      fetcher.submit({ amount: amount }, { method: 'post' })
+      fetcher.submit(
+        { amount: amount, toLinkedAccountId: linkedAccount.id },
+        { method: 'post' }
+      )
     },
     [fetcher]
   )
@@ -42,7 +56,10 @@ export default function Page() {
     <>
       <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
         <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
-        <span>Enter the amount you want to pay.</span>
+        <span>You are about to pay:</span>
+        <div className='mt-4 flex items-center justify-between rounded-xl bg-container p-4 text-medium'>
+          <span>{flow.data.paymentPointer.formatted}</span>
+        </div>
         <fetcher.Form
           id='amount-form'
           action='/pay/amount'
@@ -52,7 +69,7 @@ export default function Page() {
         <TextField
           id='amount'
           form='amount-form'
-          label='You send'
+          label='You pay'
           name='amount'
           defaultValue={flow?.data.amount}
           onChange={_onChangeInput}
@@ -81,6 +98,29 @@ export default function Page() {
             {flow?.data.displayReceiveAmount || '$ 0.00'}
           </span>
         </div>
+        <Select
+          id='linkedAccount'
+          label='Pay from'
+          className='mt-12'
+          value={linkedAccount}
+          options={linkedAccounts}
+          onChange={_onChangeLinkedAccount}
+          aria-invalid={
+            Boolean(fetcher.data?.errors.linkedAccount) || undefined
+          }
+          aria-describedby={
+            fetcher.data?.errors.linkedAccount
+              ? 'linkedAccount-error'
+              : undefined
+          }
+          errorMessage={fetcher.data?.errors.linkedAccount}
+        />
+        <input
+          form='amount-form'
+          value={linkedAccount.id}
+          name='toLinkedAccountId'
+          type='hidden'
+        />
         <TextField
           id='note'
           label='Note'
@@ -129,6 +169,7 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const amount = form.get('amount') as string
   const note = form.get('note') as string
+  const toLinkedAccountId = form.get('toLinkedAccountId') as string
   const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
   const routeTo = form.get('route-to')
 
@@ -140,6 +181,7 @@ export async function action({ request }: ActionArgs) {
   const fieldErrors = {
     form: '',
     amount: '',
+    linkedAccount: '',
     note: ''
   }
 
@@ -163,7 +205,8 @@ export async function action({ request }: ActionArgs) {
           asset: flow.data.paymentPointer.asset,
           assetScale: flow.data.paymentPointer.assetScale
         },
-        expiresAt
+        expiresAt,
+        sendLinkedAccount: toLinkedAccountId
       },
       {
         meta: {
@@ -196,6 +239,7 @@ export async function action({ request }: ActionArgs) {
     note,
     amount: amount,
     fee: fee,
+    toLinkedAccountId,
     displayFee: formatMoney(fee),
     sendAmount,
     displaySendAmount: formatMoney(parseFloat(sendAmount as string) / 100),
