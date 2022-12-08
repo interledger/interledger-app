@@ -533,7 +533,7 @@ function AppPage() {
             and submit again.
           </p>
           <Router
-            className='text-sm font-medium text-primary'
+            className='mt-4 text-sm font-medium text-primary'
             to={route('/personal-details')}
           >
             Fix personal details
@@ -550,7 +550,7 @@ function AppPage() {
             continue.
           </p>
           <Router
-            className='text-sm font-medium text-primary'
+            className='mt-4 text-sm font-medium text-primary'
             to={route('/support')}
           >
             Contact support
