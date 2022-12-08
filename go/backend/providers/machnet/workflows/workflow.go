@@ -277,3 +277,112 @@ func DeleteAccountWorkflow(ctx workflow.Context, linkedAccountID string) error {
 
 	return nil
 }
+
+func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTopupArgs) (string, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("CreateWalletTopupWorkflow workflow started", "From", args.FromLinkedAccountID, "To Wallet", args.WalletLinkedAccountID, "Amount", args.Amount)
+
+	floatAmount := float64(args.Amount / 100) // TODO: asset scale
+
+	var fundWallet bool
+	err := workflow.ExecuteActivity(ctx, a.ShouldFundWallet, machnet.CreateTransactionArgs{
+		FromLinkedAccountID: args.FromLinkedAccountID,
+		ToLinkedAccountID:   args.WalletLinkedAccountID,
+		Amount:              floatAmount,
+		Currency:            args.Currency,
+		IPAddress:           args.IpAddress,
+	}).Get(ctx, &fundWallet)
+	if err != nil {
+		logger.Error("ShouldFundWallet Activity failed.", "Error", err)
+		return "", err
+	}
+	if !fundWallet {
+		err = fmt.Errorf("Cannot fund wallet from linked account. (id=%s)", args.FromLinkedAccountID)
+		logger.Error(err.Error(), "Error", err)
+		return "", err
+	}
+
+	// The fund wallet has 7 days to complete
+	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*7)
+
+	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
+
+	var doBreak bool
+	var errToReturn error
+
+	var fundWalletTX FundWalletResponse
+	err = workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, FundWalletArgs{
+		CreateTransactionArgs: machnet.CreateTransactionArgs{
+			FromLinkedAccountID: args.FromLinkedAccountID,
+			ToLinkedAccountID:   args.WalletLinkedAccountID,
+			Amount:              floatAmount,
+			Currency:            args.Currency,
+		},
+		WorkflowID: workflow.GetInfo(ctx).WorkflowExecution.ID,
+	}).Get(ctx, &fundWalletTX)
+	if err != nil {
+		logger.Error("FundUserWalletFromCard Activity failed.", "Error", err)
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
+		FromLinkedAccountID:   args.FromLinkedAccountID,
+		ExternalTransactionID: fundWalletTX.FundTX,
+		WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowRunID:         workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		AcitivityName:         "FundUserWalletFromCard",
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("CreateTransactionWorkflowRef Activity failed.", "Error", err)
+		return "", err
+	}
+
+	for {
+		if doBreak {
+			break
+		}
+		selector := workflow.NewSelector(ctx)
+		selector.AddFuture(timeoutFuture, func(f workflow.Future) {
+			doBreak = true
+			errToReturn = temporal.NewNonRetryableApplicationError("fund user wallet transaction has timed out", "ErrTimeout", machnet.ErrInternal)
+		})
+
+		selector.AddReceive(trxChan, func(c workflow.ReceiveChannel, _ bool) {
+			var transactionEvent external.Event
+			trxChan.Receive(ctx, &transactionEvent)
+			logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
+			if transactionEvent.ResourceID != fundWalletTX.FundTX { // not for this transaction
+				logger.Error("Received notification for different transaction.")
+				return
+			}
+
+			if external.TransactionProcessedEvent == transactionEvent.EventName {
+				doBreak = true
+				return
+			}
+
+			if transactionEvent.EventName == external.TransactionFailedEvent ||
+				transactionEvent.EventName == external.TransactionCancelledEvent {
+				doBreak = true
+				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
+			}
+		})
+
+		// Wait the timer or the transaction to complete on machnet side.
+		selector.Select(ctx)
+	}
+
+	if errToReturn != nil {
+		return "", errToReturn
+	}
+
+	logger.Info("CreateWalletTopupWorkflow completed.", "fund_transfer_id", fundWalletTX.FundTX)
+
+	return fundWalletTX.FundTX, nil
+}

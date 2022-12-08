@@ -160,3 +160,54 @@ func TestDeleteAccountWorkflow(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	require.NoError(t, env.GetWorkflowResult(nil))
 }
+
+func TestCreateWalletTopupWorkflow(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
+	b := testBackends{
+		db:      nil,
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
+	}
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	a := NewActivity(b)
+
+	trxID := uuid.NewString()
+	walletLinkedAccountID := uuid.NewString()
+	fromLinkedAccountID := uuid.NewString()
+	fundTrx := FundWalletResponse{
+		FromWalletLinkedAcc: walletLinkedAccountID,
+		FundTX:              trxID,
+	}
+
+	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
+	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
+	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.RegisterDelayedCallback(func() {
+		env.SignalWorkflow(ops.TransactionEventsChannel, external.Event{
+			ID:         uuid.NewString(),
+			EventName:  external.TransactionProcessedEvent,
+			ResourceID: fundTrx.FundTX,
+		})
+	}, time.Minute)
+
+	env.ExecuteWorkflow(CreateWalletTopupWorkflow, machnet.StartWalletTopupArgs{
+		WalletLinkedAccountID: walletLinkedAccountID,
+		FromLinkedAccountID:   fromLinkedAccountID,
+		Amount:                200,
+		Currency:              "USD",
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result string
+	require.NoError(t, env.GetWorkflowResult(&result))
+	require.Equal(t, result, trxID)
+}
