@@ -42,12 +42,9 @@ export default function Page() {
         {linkedAccounts &&
           linkedAccounts.length > 0 &&
           linkedAccounts.map((method) => (
-            <Router
-              to={route('/settings/linked-accounts/:accountId', {
-                accountId: method.id
-              })}
+            <div
               key={method.id}
-              className='mt-4 flex w-full items-center justify-between  space-x-3 rounded-xl bg-container p-3 first-of-type:mt-6 hover:bg-container-hover'
+              className='mt-4 flex w-full items-center justify-between  space-x-3 rounded-xl bg-container p-3 first-of-type:mt-6'
             >
               <div className='flex items-center space-x-3 text-medium'>
                 {method.icon && <Icon>{method.icon}</Icon>}
@@ -55,10 +52,7 @@ export default function Page() {
                   <span>{method.name}</span>
                 </div>
               </div>
-              <div className='flex items-center'>
-                <Icon>navigate_next</Icon>
-              </div>
-            </Router>
+            </div>
           ))}
         {linkedAccounts.length > 0 && (
           <Router
