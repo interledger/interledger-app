@@ -21,7 +21,7 @@ var errorStatus = map[error]error{
 	openpayments.ErrInvalidPointerURL:        NewValidationError("url", "Payment pointer is invalid."),
 	openpayments.ErrPaymentPointerCannotSend: status.Error(codes.FailedPrecondition, "Payment pointer is not enabled to send"),
 	openpayments.ErrPaymentPointerCannotRecv: status.Error(codes.FailedPrecondition, "Payment pointer is not enabled to receive"),
-	openpayments.ErrInsufficientBalance:       NewValidationError("amount", "Insufficient wallet balance"),
+	openpayments.ErrInsufficientBalance:      NewValidationError("amount", "Insufficient wallet balance"),
 }
 
 func validationDesc(fe validator.FieldError) string {

@@ -121,9 +121,9 @@ var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{4}$`)
 
 // validatePaymentPointer returns the sanitized url or an error if the payment pointer is not in the format https://{base}/{variable}
 // {variable} has the following conditions:
-//- Between 4 and 42 characters
-//- Only AlphaNumeric characters and underscore
-//- The first 4 characters can only be alpha
+// - Between 4 and 42 characters
+// - Only AlphaNumeric characters and underscore
+// - The first 4 characters can only be alpha
 // Assumption: {base} does not contain any slashes
 func validatePaymentPointer(rawURL string) (string, error) {
 

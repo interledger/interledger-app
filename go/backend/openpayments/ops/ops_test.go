@@ -612,10 +612,12 @@ func TestCreateQuote(t *testing.T) {
 			},
 		},
 		{
-			name: "success send from wallet",
+			name:    "success send from wallet",
+			sendKYC: machnet.KYCStatusVerified,
+			recvKYC: machnet.KYCStatusVerified,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend5",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv6",
+				SendPaymentPointer:    "http://fynbos.me/paysend9",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv10",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    100,
@@ -627,11 +629,13 @@ func TestCreateQuote(t *testing.T) {
 			balance: 10000,
 		},
 		{
-			name: "send from wallet insufficient balance",
-			err:  openpayments.ErrInsufficientBalance,
+			name:    "send from wallet insufficient balance",
+			sendKYC: machnet.KYCStatusVerified,
+			recvKYC: machnet.KYCStatusVerified,
+			err:     openpayments.ErrInsufficientBalance,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend7",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv8",
+				SendPaymentPointer:    "http://fynbos.me/paysend11",
+				ReceivePaymentPointer: "http://fynbos.me/payrecv12",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    1000,
