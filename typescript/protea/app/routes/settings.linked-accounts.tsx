@@ -85,7 +85,7 @@ export default function Page() {
           </div>
         </div>
       )}
-      {kycStatus != KycStatus.Unknown && !canTopUp && (
+      {kycStatus == KycStatus.Verified && !canTopUp && (
         <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
@@ -107,7 +107,7 @@ export default function Page() {
           </div>
         </div>
       )}
-      {kycStatus != KycStatus.Unknown && !canWithdraw && (
+      {kycStatus == KycStatus.Verified && !canWithdraw && (
         <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
