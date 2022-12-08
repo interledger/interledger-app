@@ -12,13 +12,18 @@ import {
 } from '~/lib/proto.server'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getClientIP } from '~/lib/ip.server'
+import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
+  const { linkedAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
-    traits: session.identity.traits
+    traits: session.identity.traits,
+    linkedAccount: linkedAccounts.find(
+      (account) => account.id == flow.data.toLinkedAccountId
+    )
   })
 }
 
@@ -27,7 +32,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
+  const { flow, linkedAccount } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
 
   return (
@@ -37,17 +42,17 @@ export default function Page() {
           Confirm payment
         </h1>
         <span>Please check the details and confirm the payment.</span>
-        <div className='mt-6 flex w-full justify-between'>
+        <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
           <span className='text-sm'>To</span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.receivePaymentPointer}
+            {flow?.data.paymentPointer.formatted}
           </span>
         </div>
 
-        <div className='mt-6 flex w-full justify-between'>
+        <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
           <span className='text-sm'>From</span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.sendPaymentPointer}
+            {linkedAccount?.name}
           </span>
         </div>
         <div className='mt-6 flex w-full justify-between'>
