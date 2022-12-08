@@ -44,7 +44,7 @@ func (t testBackends) Transactions() transactions.Client {
 }
 
 func (t testBackends) Machnet() machnet.Client {
-	return nil
+	return t.mc
 }
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {
