@@ -5,6 +5,7 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { HomeShapes, Icon, Layouts, Router, WalletGrid } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
+import type { Transaction } from '~/lib/wallet.server'
 import { getPendingTransactions, getTransactions } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -19,8 +20,17 @@ export async function loader({ request }: LoaderArgs) {
     getTransactions(request)
   ])
 
+  const dateGroupedTransactions = Object.values(
+    [...pendingTransactions, ...transactions].reduce<{
+      [date: string]: Transaction[]
+    }>((prev, current) => {
+      prev[current.date] = prev[current.date] || []
+      prev[current.date].push(current)
+      return prev
+    }, Object.create(null))
+  )
   return json({
-    transactions: [...pendingTransactions, ...transactions]
+    transactions: dateGroupedTransactions
   })
 }
 
@@ -32,7 +42,7 @@ export default function Page() {
   const { transactions } = useLoaderData<typeof loader>()
   return (
     <WalletGrid>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='mt-2'>
           <HomeShapes />
         </div>
@@ -51,35 +61,39 @@ export default function Page() {
             </Router>
           </div>
         )}
-        {transactions.map((transaction, index) => (
-          <Fragment key={transaction.id}>
-            {(index == 0 ||
-              transaction.date != transactions[index - 1].date) && (
-              <span className='mt-6 text-xs text-medium'>
-                {transaction.date}
-              </span>
-            )}
-            <Router
-              to={route('/transaction/:type/:transactionId', {
-                type: transaction.type,
-                transactionId: transaction.id
-              })}
-              className='mt-2 flex w-full justify-between'
-            >
-              <div className='flex space-x-1'>
-                <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
-                <div className='flex flex-col space-y-2'>
-                  <span className='text-medium'>{transaction.title}</span>
-                  <span className='text-xs text-medium'>
-                    {transaction.time}
-                  </span>
-                </div>
-              </div>
-              <span className='font-medium'>{transaction.total}</span>
-            </Router>
-          </Fragment>
-        ))}
       </div>
+      {transactions.map((transactionGroup, index) => (
+        <div
+          key={`group-${index}`}
+          className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'
+        >
+          <span className='text-xs text-medium'>
+            {transactionGroup[0].date}
+          </span>
+          {transactionGroup.map((transaction) => (
+            <Fragment key={transaction.id}>
+              <Router
+                to={route('/transaction/:type/:transactionId', {
+                  type: transaction.type,
+                  transactionId: transaction.id
+                })}
+                className='mt-4 flex w-full justify-between'
+              >
+                <div className='flex space-x-1'>
+                  <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
+                  <div className='flex flex-col space-y-2'>
+                    <span className='text-medium'>{transaction.title}</span>
+                    <span className='text-xs text-medium'>
+                      {transaction.time}
+                    </span>
+                  </div>
+                </div>
+                <span className='font-medium'>{transaction.total}</span>
+              </Router>
+            </Fragment>
+          ))}
+        </div>
+      ))}
     </WalletGrid>
   )
 }
