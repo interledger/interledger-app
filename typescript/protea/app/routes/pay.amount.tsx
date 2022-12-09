@@ -51,7 +51,7 @@ export default function Page() {
         { method: 'post' }
       )
     },
-    [fetcher]
+    [fetcher, linkedAccount.id]
   )
 
   return (
