@@ -153,6 +153,15 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
+  // TODO: get version of balance that isn't formatted.
+  const balance = parseInt(
+    (await getWalletBalance(request)).replace('$ ', '').replace('.', '')
+  )
+  if (balance < parseInt(amountToSubmit)) {
+    fieldErrors.amount = "Amount can't exceed your balance."
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
   let receiveAmount = amountToSubmit,
     fee = 0
 
