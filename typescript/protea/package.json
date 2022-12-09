@@ -20,7 +20,7 @@
     "@googlemaps/google-maps-services-js": "^3.3.16",
     "@grpc/grpc-js": "^1.7.3",
     "@headlessui/react": "^1.6.6",
-    "@mapbox/rehype-prism": "^0.7.0",
+    "@mapbox/rehype-prism": "^0.8.0",
     "@mxenabled/web-widget-sdk": "^0.0.8",
     "@ory/kratos-client": "v0.10.1",
     "@protobuf-ts/grpc-transport": "^2.8.1",
