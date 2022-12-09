@@ -31,6 +31,7 @@
     "@remix-run/react": "^1.7.3",
     "@remix-run/serve": "^1.7.3",
     "clsx": "^1.2.1",
+    "framer-motion": "^7.6.19",
     "libphonenumber-js": "^1.10.7",
     "luxon": "^2.0.2",
     "qrcode": "^1.5.1",
