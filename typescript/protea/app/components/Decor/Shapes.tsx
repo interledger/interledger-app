@@ -69,7 +69,12 @@ export function HomeShapes() {
       },
       {
         radius: 'rounded-full',
-        color: 'bg-lime-400'
+        color: 'bg-lime-400',
+        animation: {
+          animate: { x: 0 },
+          initial: { x: '100%', perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.2 }
+        }
       },
       {
         radius: 'rounded-b-full',
@@ -119,7 +124,12 @@ export function HomeShapes() {
       },
       {
         radius: 'rounded-full',
-        color: 'bg-rose-400'
+        color: 'bg-rose-400',
+        animation: {
+          animate: { x: 0 },
+          initial: { x: '-100%', perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.1 }
+        }
       },
       {
         radius: 'rounded-bl-full',
@@ -147,7 +157,12 @@ export function HomeShapes() {
       },
       {
         radius: 'rounded-full',
-        color: 'bg-rose-100'
+        color: 'bg-rose-100',
+        animation: {
+          animate: { x: 0 },
+          initial: { x: '-100%', perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.3 }
+        }
       },
       {
         radius: 'rounded-bl-full',
@@ -161,7 +176,12 @@ export function HomeShapes() {
       {
         width: 'w-0 lg:w-full',
         radius: 'rounded-full',
-        color: 'bg-lime-400'
+        color: 'bg-lime-400',
+        animation: {
+          animate: { scale: 1, opacity: 1 },
+          initial: { scale: 0.5, opacity: 0, perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.5 }
+        }
       },
       {
         width: 'w-0 lg:w-full',
