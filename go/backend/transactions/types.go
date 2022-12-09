@@ -51,6 +51,12 @@ type CreateTransactionArgs struct {
 	Transfers   []CreateTransferArgs
 }
 
+type UpdateTransactionArgs struct {
+	ForeignID string
+	State     State
+	Amount    Amount
+}
+
 type CreateTransferArgs struct {
 	TransactionID string
 	ForeignID     string

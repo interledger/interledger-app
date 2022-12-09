@@ -1,0 +1,153 @@
+package ops
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/google/uuid"
+
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/transactions"
+)
+
+func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transactions.CreateTransactionArgs) error {
+	transID := uuid.NewString()
+	is := db.NewInsert("transactions").
+		Value("id", transID).
+		Value("wallet_id", args.WalletID).
+		Value("foreign_id", args.ForeignID).
+		Value("type", args.ForeignType).
+		Value("state", args.State).
+		Value("amount", args.Amount.Value).
+		Value("asset_code", args.Amount.Asset).
+		Value("asset_scale", args.Amount.AssetScale)
+	if args.Source != "" {
+		is.Value("source", args.Source)
+	}
+	if args.Destination != "" {
+		is.Value("destination", args.Destination)
+	}
+	if args.Note != "" {
+		is.Value("note", args.Note)
+	}
+
+	stmt, qargs, err := is.GetStatement()
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	_, err = dbc.ExecContext(ctx, stmt, qargs...)
+	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	for _, transfer := range args.Transfers {
+		transfer.TransactionID = transID
+		err = addTransfer(ctx, dbc, transfer)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func CreateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.CreateTransactionArgs) error {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	return createTransaction(ctx, tx, args)
+}
+
+func CreateTransaction(ctx context.Context, b Backends, args transactions.CreateTransactionArgs) error {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		return createTransaction(ctx, tx, args)
+	})
+
+	return err
+}
+
+func updateTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transactions.UpdateTransactionArgs) error {
+	res, err := dbc.ExecContext(ctx, "UPDATE transactions SET state=$1, amount=$2, asset_code=$3, asset_scale=$4, updated_at=now() WHERE foreign_id=$5",
+		args.State, args.Amount.Value, args.Amount.Asset, args.Amount.AssetScale, args.ForeignID)
+	if err != nil {
+		return fmt.Errorf("%w failed to update transaction %s", transactions.ErrInternal, err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w failed to get affected transaction rows %s", transactions.ErrInternal, err)
+	}
+	if rows != 1 {
+		return fmt.Errorf("%w wrong number of transaciton rows updated (%d)", transactions.ErrInternal, rows)
+	}
+
+	return nil
+}
+
+func UpdateTransaction(ctx context.Context, b Backends, args transactions.UpdateTransactionArgs) error {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	return updateTransaction(ctx, b.DB(), args)
+}
+
+func UpdateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	return updateTransaction(ctx, tx, args)
+}
+
+func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, args transactions.CreateTransferArgs) error {
+	is := db.NewInsert("transfers").
+		Value("transaction_id", args.TransactionID).
+		Value("foreign_id", args.ForeignID).
+		Value("type", args.Type).
+		Value("amount", args.Amount.Value).
+		Value("asset_code", args.Amount.Asset).
+		Value("asset_scale", args.Amount.AssetScale)
+
+	stmt, qargs, err := is.GetStatement()
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	_, err = dbc.ExecContext(ctx, stmt, qargs...)
+	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func AddTransferTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.CreateTransferArgs) error {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	return addTransfer(ctx, b.DB(), args)
+}
+
+func AddTransfer(ctx context.Context, b Backends, args transactions.CreateTransferArgs) error {
+	err := b.Validator().Struct(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	return addTransfer(ctx, b.DB(), args)
+}
