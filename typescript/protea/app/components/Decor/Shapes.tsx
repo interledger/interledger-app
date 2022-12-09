@@ -1,6 +1,8 @@
 import type { FC } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
+import type { AnimationProps } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 export type Radius =
   | 'rounded-none'
@@ -19,6 +21,7 @@ export type ShapeProps = {
   radius: Radius
   color: string
   flex?: 'flex-1' | 'flex-auto' | 'flex-initial' | 'flex-none'
+  animation?: AnimationProps
 }
 
 export const Shape: FC<ShapeProps> = ({
@@ -26,10 +29,12 @@ export const Shape: FC<ShapeProps> = ({
   width,
   radius,
   color,
-  flex = 'flex-initial'
+  flex = 'flex-initial',
+  animation
 }) => {
   return (
-    <div
+    <motion.div
+      {...animation}
       className={clsx(
         'flex aspect-square items-center justify-center',
         flex,
@@ -39,7 +44,7 @@ export const Shape: FC<ShapeProps> = ({
       )}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }
 
