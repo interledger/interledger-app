@@ -124,11 +124,11 @@ export function LandingLayout() {
             <span className='pb-2 text-sm font-medium text-white'>
               Ecosystem
             </span>
+            <AnchorRouter to='https://paymentpointers.org/'>
+              <span className='text-sm text-white'>Payment Pointers</span>
+            </AnchorRouter>
             <AnchorRouter to='https://interledger.org/'>
               <span className='text-sm text-white'>Interledger Foundation</span>
-            </AnchorRouter>
-            <AnchorRouter to='https://webmonetization.org/'>
-              <span className='text-sm text-white'>Web monetization</span>
             </AnchorRouter>
             <AnchorRouter to='https://docs.openpayments.guide/'>
               <span className='text-sm text-white'>Open Payments</span>
@@ -141,11 +141,8 @@ export function LandingLayout() {
             <Router to={route('/blog')}>
               <span className='text-sm text-white'>Blog</span>
             </Router>
-            <Router to={route('/legal/privacy-policy')}>
-              <span className='text-sm text-white'>Privacy policy</span>
-            </Router>
-            <Router to={route('/legal/terms-of-use')}>
-              <span className='text-sm text-white'>Terms of use</span>
+            <Router to={route('/legal')}>
+              <span className='text-sm text-white'>Legal Agreements</span>
             </Router>
           </div>
           <div className='col-span-full mt-8 flex space-x-4 lg:col-span-3 lg:col-start-4'>
