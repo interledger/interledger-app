@@ -486,24 +486,32 @@ function AppPage() {
           <button
             type='button'
             onClick={async () => {
-              navigator.clipboard.writeText(paymentPointer.formatted).then(
-                () => {
-                  setSnackbar({
-                    message: 'Payment pointer copied to clipboard.',
-                    icon: 'close',
-                    show: true
-                  })
-                  setShowSnackbar(true)
-                },
-                () => {
-                  setSnackbar({
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    show: true
-                  })
-                  setShowSnackbar(true)
-                }
-              )
+              if (typeof navigator.clipboard == 'undefined') {
+                setSnackbar({
+                  message: "Couldn't copy to clipboard.",
+                  icon: 'close',
+                  show: true
+                })
+                setShowSnackbar(true)
+              } else
+                navigator.clipboard.writeText(paymentPointer.formatted).then(
+                  () => {
+                    setSnackbar({
+                      message: 'Payment pointer copied to clipboard.',
+                      icon: 'close',
+                      show: true
+                    })
+                    setShowSnackbar(true)
+                  },
+                  () => {
+                    setSnackbar({
+                      message: "Couldn't copy to clipboard.",
+                      icon: 'close',
+                      show: true
+                    })
+                    setShowSnackbar(true)
+                  }
+                )
             }}
             className='mt-4 flex flex items-center justify-between rounded-xl bg-container p-4 hover:bg-container-hover'
           >
