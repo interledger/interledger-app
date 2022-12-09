@@ -30,41 +30,36 @@ const (
 	TransferTypeDebitCard           TransferType = "debit_card"
 	TransferTypeCreditMachnetWallet TransferType = "credit_wallet"
 	TransferTypeDebitMachnetWallet  TransferType = "debit_wallet"
-	TransferTypeCreditBankAccount   TransferType = "credit_bank_acc"
 )
 
 type Amount struct {
-	Value      uint64 `validate:"gt=0"`
-	Asset      string `validate:"iso4217"`
-	AssetScale int    `validate:"gt=0"`
+	Value      uint64 `validate:"gt=0" json:"value,string"`
+	Asset      string `validate:"iso4217"  json:"assetCode"`
+	AssetScale int    `validate:"gt=0" json:"assetScale"`
 }
 
 type CreateTransactionArgs struct {
-	WalletID    string          `validate:"uuid"` // Fynbos wallet ID
-	ForeignID   string          `validate:"uuid"`
-	ForeignType TransactionType `validate:"required"`
-	Provider    Provider        `validate:"required"`
-	State       State           `validate:"required"`
+	WalletID    string // Fynbos wallet ID
+	ForeignID   string
+	ForeignType TransactionType
+	Provider    Provider
 	Note        string
+	State       State
 	Source      string // Usually the sending payment pointer
 	Destination string // Usually the receiving payment pointer
 	Amount      Amount
-	Transfers   []TransferArgs `validate:"omitempty,dive"`
+	Transfers   []CreateTransferArgs
 }
 
 type UpdateTransactionArgs struct {
-	WalletID        string `validate:"uuid"` // Fynbos wallet ID
-	ForeignID       string `validate:"uuid"`
-	State           State  `validate:"required"`
-	Amount          Amount
-	UpdateTransfers []TransferArgs `validate:"omitempty,dive"`
+	ForeignID string
+	State     State
+	Amount    Amount
 }
 
-type TransferArgs struct {
-	WalletID             string       `validate:"omitempty,uuid"` // Fynbos wallet ID
-	TransactionForeignID string       `validate:"omitempty,uuid"`
-	ForeignID            string       `validate:"uuid"`
-	Type                 TransferType `validate:"required"`
-	Amount               Amount
-	State                State `validate:"required"`
+type CreateTransferArgs struct {
+	TransactionID string
+	ForeignID     string
+	Type          TransferType
+	Amount        Amount
 }
