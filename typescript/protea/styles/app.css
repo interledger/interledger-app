@@ -1,4 +1,8 @@
 @import 'fonts.css';
+/* Prism syntax highlighting */
+/*! purgecss start ignore */
+@import 'prism.css';
+/*! purgecss end ignore */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,9 +72,6 @@
     --border-error: 185, 28, 28;
   }
 }
-
-/* Prism syntax highlighting */
-/*@import 'prism.css';*/
 
 /* Smooth scrolling to anchor tags */
 html {
