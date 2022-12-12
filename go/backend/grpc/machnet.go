@@ -340,6 +340,7 @@ func (s *rpcService) StartMachnetWalletTopup(
 	}
 
 	_, err = s.b.Machnet().StartWalletTopup(ctx, machnet.StartWalletTopupArgs{
+		WalletID:              wallet.ID,
 		Amount:                req.GetAmount(),
 		WalletLinkedAccountID: linkedWallet.ID,
 		FromLinkedAccountID:   fromLinkedAcc.ID,

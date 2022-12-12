@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
@@ -22,6 +23,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
 	Temporal() client.Client
+	Transactions() transactions.Client
 }
 
 type opsBackends struct {
@@ -40,6 +42,7 @@ type testBackends struct {
 	linked   *linkedaccounts_mock.MockClient
 	machnet  *machnet_mock.MockClient
 	temporal *mocks.Client
+	tx       transactions.Client
 }
 
 func (b testBackends) LinkedAccounts() linkedaccounts.Client {
@@ -68,4 +71,8 @@ func (b testBackends) Machnet() machnet.Client {
 
 func (b testBackends) Temporal() client.Client {
 	return b.temporal
+}
+
+func (b testBackends) Transactions() transactions.Client {
+	return b.tx
 }

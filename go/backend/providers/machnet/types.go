@@ -206,6 +206,7 @@ type (
 	}
 
 	StartWalletTopupArgs struct {
+		WalletID              string `validate:"uuid"`
 		Amount                uint64 `validate:"gt=0"`
 		WalletLinkedAccountID string `validate:"required,uuid"`
 		FromLinkedAccountID   string `validate:"required,uuid"`
