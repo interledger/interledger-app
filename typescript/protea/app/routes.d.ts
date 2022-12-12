@@ -8,6 +8,7 @@ declare module "routes-gen" {
     "/blog/our-fynbos-family-meet-cairin": Record<string, never>;
     "/blog/our-fynbos-family-meet-justin": Record<string, never>;
     "/blog/why-payment-pointers-are-urls": Record<string, never>;
+    "/linked-account/:type/almost-there": { "type": string };
     "/blog/our-fynbos-family-meet-matt": Record<string, never>;
     "/transaction/:type/:transactionId": { "type": string, "transactionId": string };
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
@@ -70,6 +71,7 @@ declare module "routes-gen" {
       | ["/blog/our-fynbos-family-meet-cairin"]
       | ["/blog/our-fynbos-family-meet-justin"]
       | ["/blog/why-payment-pointers-are-urls"]
+      | ["/linked-account/:type/almost-there", RouteParams["/linked-account/:type/almost-there"]]
       | ["/blog/our-fynbos-family-meet-matt"]
       | ["/transaction/:type/:transactionId", RouteParams["/transaction/:type/:transactionId"]]
       | ["/blog/our-fynbos-family-meet-don"]

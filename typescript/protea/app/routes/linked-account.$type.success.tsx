@@ -1,13 +1,34 @@
 import { ButtonRouter, Layouts, SuccessShapes } from '~/components'
 import { route } from 'routes-gen'
-import { useParams } from '@remix-run/react'
+import { useLoaderData, useParams } from '@remix-run/react'
+import type { LoaderArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { requireUserSession } from '~/lib/kratos.server'
+import { flowType, requireFlow } from '~/lib/flows.server'
 
+export async function loader({ request, params }: LoaderArgs) {
+  await requireUserSession(request)
+  let flow
+  if (params.type == 'card') {
+    flow = await requireFlow(request, flowType.LinkCardAccount)
+  } else if (params.type == 'bank') {
+    flow = await requireFlow(request, flowType.LinkBankAccount)
+  } else {
+    throw json(
+      { title: `Linking type ${params.type} not allowed.` },
+      { status: 400 }
+    )
+  }
+
+  return json({ flow })
+}
 export const handle = {
   layout: Layouts.FocusLayout
 }
 
 export default function Page() {
   const params = useParams()
+  const { flow } = useLoaderData<typeof loader>()
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
       <SuccessShapes />
@@ -19,7 +40,7 @@ export default function Page() {
       </span>
 
       <div className='flex justify-end pt-12'>
-        <ButtonRouter to={route('/settings/linked-accounts')}>
+        <ButtonRouter to={flow.returnTo ?? route('/settings/linked-accounts')}>
           Close
         </ButtonRouter>
       </div>
