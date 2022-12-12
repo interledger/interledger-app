@@ -70,6 +70,10 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 
 		if kycEvent.EventName == external.UserKYCRetry ||
 			kycEvent.EventName == external.UserKYCSuspended {
+			err = workflow.ExecuteActivity(ctx, a.CompleteUserWorkflowRef, workflowArgs).Get(ctx, nil)
+			if err != nil {
+				logger.Error("CompleteUserWorkflowRef Activity failed for failed KYC event.", "Error", err)
+			}
 			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("user (%s) KYC failed (%s)", externalUserID, kycEvent.EventName), "ErrInternal", external.ErrInternal)
 		}
 	}
