@@ -269,6 +269,7 @@
         display: flex;
         height: 50px;
         width: 100%;
+        margin-top: 32px;
         border-radius: 9999px;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -446,18 +447,21 @@
                       ">
                       <div style="max-width: 442px; margin: 0 auto">
                         <article>
-  <h1 style="margin: 0 auto 24px">Recover your account</h1>
-  <p style="margin: 0 auto 16px">
+  <p>Hello {{ .Identity.traits.firstName }},</p>
+  <h1 style="margin: 24px auto 0">
+    There was a request to recover your account
+  </h1>
+  <p style="margin: 24px auto 0">
     Please click on the button below to recover your account and set a new
     password!
+  </p>
+  <p style="margin: 16px auto 0">
+    If you did not request to recover your account, you can safely ignore this
+    email.
   </p>
   <a class="anchorButton" href="{{ .RecoveryURL }}">
     <p style="margin: auto auto; color: white">Recover account</p>
   </a>
-  <p style="margin: 0 auto 32px">
-    If you didn't ask for us to recover your account, you can safely ignore this
-    email.
-  </p>
 </article>
                       </div>
                     </td>

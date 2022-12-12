@@ -269,6 +269,7 @@
         display: flex;
         height: 50px;
         width: 100%;
+        margin-top: 32px;
         border-radius: 9999px;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -446,21 +447,18 @@
                       ">
                       <div style="max-width: 442px; margin: 0 auto">
                         <article>
-  <h1 style="margin: 0 auto 24px">Invalid recovery attempt</h1>
-  <p style="margin: 0 auto 16px">
-    You (or someone else) entered this email address when trying to recover
-    access to a Fynbos account.
+  <p>Hello {{ .Identity.traits.firstName }},</p>
+  <h1 style="margin: 24px auto 0">Verify your email address</h1>
+  <p style="margin: 24px auto 0">
+    Please click the button below to verify your email.
   </p>
-  <p style="margin: 0 auto 16px">
-    However, this email address is not on our database of registered users and
-    therefore the attempt has failed.
+  <p style="margin: 16px auto 0">
+    If you didn't try register an account with us, you can safely ignore this
+    email.
   </p>
-  <p style="margin: 0 auto 16px">
-    If this was you, check if you signed up using a different address.
-  </p>
-  <p style="margin: 0 auto 32px">
-    If this was not you, please ignore this email.
-  </p>
+  <a class="anchorButton" href="{{ .VerificationURL }}">
+    <p style="margin: auto auto; color: white">Verify email</p>
+  </a>
 </article>
                       </div>
                     </td>
