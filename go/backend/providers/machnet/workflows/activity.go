@@ -658,7 +658,7 @@ func (a *Activity) CompleteUserWorkflowRef(ctx context.Context, args CreateUserW
 	logger := activity.GetLogger(ctx)
 	logger.Info("CompleteUserWorkflowRef_Activity", "external user ID", args.ExternalUserID)
 
-	_, err := ops.CreateUserWorkflowRef(ctx, a.b, machnet.CreateUserWorkflowRefArgs{
+	err := ops.CompleteUserWorkflowRef(ctx, a.b, machnet.CreateUserWorkflowRefArgs{
 		WorkflowRunID: args.WorkflowRunID,
 		WorkflowID:    args.WorkflowID,
 		UserID:        args.ExternalUserID,
