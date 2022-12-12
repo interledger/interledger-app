@@ -133,32 +133,56 @@ func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID stri
 	return nil
 }
 
-func AddTransferTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.CreateTransferArgs) error {
+func AddTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transactions.CreateTransferArgs) error {
+	if len(args) <= 0 {
+		return nil
+	}
+
 	err := b.Validator().Struct(args)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	tid, err := getTransactionID(ctx, b.DB(), args.TransactionForeignID)
-	if err != nil {
-		return err
+	for _, a := range args {
+		tid, err := getTransactionID(ctx, b.DB(), a.TransactionForeignID)
+		if err != nil {
+			return err
+		}
+
+		err = addTransfer(ctx, tx, tid, a)
+		if err != nil {
+			return err
+		}
 	}
 
-	return addTransfer(ctx, tx, tid, args)
+	return nil
 }
 
-func AddTransfer(ctx context.Context, b Backends, args transactions.CreateTransferArgs) error {
+func AddTransfers(ctx context.Context, b Backends, args []transactions.CreateTransferArgs) error {
+	if len(args) <= 0 {
+		return nil
+	}
+
 	err := b.Validator().Struct(args)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	tid, err := getTransactionID(ctx, b.DB(), args.TransactionForeignID)
-	if err != nil {
-		return err
-	}
+	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		for _, a := range args {
+			tid, err := getTransactionID(ctx, tx, a.TransactionForeignID)
+			if err != nil {
+				return err
+			}
 
-	return addTransfer(ctx, b.DB(), tid, args)
+			err = addTransfer(ctx, tx, tid, a)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func getTransactionID(ctx context.Context, dbc sqlx.QueryerContext, fid string) (string, error) {
