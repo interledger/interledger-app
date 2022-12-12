@@ -5,7 +5,7 @@ import { IconButton, Logo, Router } from '~/components'
 export function FocusLayout() {
   const matches = useMatches()
   const navigate = useNavigate()
-  const backTo = matches.at(-1)?.data?.backTo
+  const backTo = matches[matches.length - 1]?.data?.backTo
 
   return (
     <div className='relative mx-auto grid min-h-screen w-full grid-cols-4 grid-rows-[auto_1fr_auto] content-start gap-4 gap-y-2 bg-app sm:max-w-lg sm:grid-cols-8 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
