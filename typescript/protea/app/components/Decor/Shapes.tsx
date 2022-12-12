@@ -224,12 +224,22 @@ export function SuccessShapes() {
       {
         width: 'w-14',
         radius: 'rounded-tl-full',
-        color: 'bg-slate-100'
+        color: 'bg-slate-100',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 1.2, delay: 0 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-br-full',
-        color: 'bg-green-50'
+        color: 'bg-green-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
+        }
       },
       {
         width: 'w-14',
@@ -241,27 +251,52 @@ export function SuccessShapes() {
       {
         width: 'w-14',
         radius: 'rounded-full',
-        color: 'bg-slate-50'
+        color: 'bg-slate-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-full',
-        color: 'bg-green-200'
+        color: 'bg-green-200',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-full',
-        color: 'bg-green-500'
+        color: 'bg-green-500',
+        animation: {
+          animate: { opacity: 1, scale: 1 },
+          initial: { opacity: 0, scale: 0.5 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-tl-full',
-        color: 'bg-green-100'
+        color: 'bg-green-100',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-tr-full',
-        color: 'bg-slate-50'
+        color: 'bg-slate-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 1.2 }
+        }
       }
     ],
     [
@@ -273,17 +308,32 @@ export function SuccessShapes() {
       {
         width: 'w-14',
         radius: 'rounded-l-full',
-        color: 'bg-green-50'
+        color: 'bg-green-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-none',
-        color: 'bg-green-50'
+        color: 'bg-green-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-br-full',
-        color: 'bg-green-200'
+        color: 'bg-green-200',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 1.2, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
@@ -307,6 +357,47 @@ export function SuccessShapes() {
         </div>
       ))}
     </div>
+  )
+}
+
+export function AlmostThereShapes() {
+  const container = {
+    visible: {
+      transition: {
+        staggerChildren: 0.3
+      }
+    }
+  }
+
+  const item = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1
+    }
+  }
+  return (
+    <motion.div
+      variants={container}
+      initial='hidden'
+      animate='visible'
+      transition={{ repeat: Infinity, repeatType: 'loop' }}
+      className='flex justify-center py-14'
+    >
+      {[0, 1, 2].map((index) => (
+        <motion.div
+          key={index}
+          className='flex aspect-square w-14 rounded-full bg-slate-100'
+          transition={{
+            ease: 'easeInOut',
+            repeat: Infinity,
+            repeatDelay: 0.7,
+            duration: 0.3,
+            repeatType: 'mirror'
+          }}
+          variants={item}
+        />
+      ))}
+    </motion.div>
   )
 }
 
