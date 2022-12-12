@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -16,6 +18,7 @@ type Backends interface {
 	Validator() *validator.Validate
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
+	Transactions() transactions.Client
 }
 
 type testBackends struct {
@@ -23,6 +26,11 @@ type testBackends struct {
 	val *validator.Validate
 	la  linkedaccounts.Client
 	mc  machnet.Client
+	tc  transactions.Client
+}
+
+func (t testBackends) Transactions() transactions.Client {
+	return nil
 }
 
 func (t testBackends) Machnet() machnet.Client {

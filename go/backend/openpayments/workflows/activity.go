@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/email"
@@ -52,6 +53,12 @@ func getProviderLinkedAccount(ctx context.Context, b Backends, pointer, provider
 }
 
 func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*machnet.CreateTransactionArgs, error) {
+	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
+	idxSlash := strings.LastIndex(outgoingID, "/")
+	if idxSlash > 0 {
+		outgoingID = outgoingID[idxSlash+1:]
+	}
+
 	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
 	if err != nil {
 		return nil, err
@@ -90,6 +97,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 	}
 
 	return &machnet.CreateTransactionArgs{
+		ForeignID:           outgoingID,
 		FromLinkedAccountID: sendAccID,
 		ToLinkedAccountID:   recvAcc.ID,
 		Amount:              amnt,
