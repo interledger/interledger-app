@@ -90,7 +90,7 @@ export default function Page() {
   const { isUser } = useLoaderData<typeof loader>()
   const matches = useMatches()
 
-  const layoutHandle = matches.at(-1)?.handle?.layout
+  const layoutHandle = matches[matches.length - 1]?.handle?.layout
 
   let layout, layoutComponent
 

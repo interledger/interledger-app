@@ -1,6 +1,8 @@
 import type { FC } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
+import type { AnimationProps } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 export type Radius =
   | 'rounded-none'
@@ -19,6 +21,7 @@ export type ShapeProps = {
   radius: Radius
   color: string
   flex?: 'flex-1' | 'flex-auto' | 'flex-initial' | 'flex-none'
+  animation?: AnimationProps
 }
 
 export const Shape: FC<ShapeProps> = ({
@@ -26,10 +29,12 @@ export const Shape: FC<ShapeProps> = ({
   width,
   radius,
   color,
-  flex = 'flex-initial'
+  flex = 'flex-initial',
+  animation
 }) => {
   return (
-    <div
+    <motion.div
+      {...animation}
       className={clsx(
         'flex aspect-square items-center justify-center',
         flex,
@@ -39,7 +44,7 @@ export const Shape: FC<ShapeProps> = ({
       )}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }
 
@@ -64,7 +69,12 @@ export function HomeShapes() {
       },
       {
         radius: 'rounded-full',
-        color: 'bg-lime-400'
+        color: 'bg-lime-400',
+        animation: {
+          animate: { x: 0 },
+          initial: { x: '100%', perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.2 }
+        }
       },
       {
         radius: 'rounded-b-full',
@@ -114,7 +124,12 @@ export function HomeShapes() {
       },
       {
         radius: 'rounded-full',
-        color: 'bg-rose-400'
+        color: 'bg-rose-400',
+        animation: {
+          animate: { x: 0 },
+          initial: { x: '-100%', perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.1 }
+        }
       },
       {
         radius: 'rounded-bl-full',
@@ -142,7 +157,12 @@ export function HomeShapes() {
       },
       {
         radius: 'rounded-full',
-        color: 'bg-rose-100'
+        color: 'bg-rose-100',
+        animation: {
+          animate: { x: 0 },
+          initial: { x: '-100%', perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.3 }
+        }
       },
       {
         radius: 'rounded-bl-full',
@@ -156,7 +176,12 @@ export function HomeShapes() {
       {
         width: 'w-0 lg:w-full',
         radius: 'rounded-full',
-        color: 'bg-lime-400'
+        color: 'bg-lime-400',
+        animation: {
+          animate: { scale: 1, opacity: 1 },
+          initial: { scale: 0.5, opacity: 0, perspective: 1200 },
+          transition: { ease: 'easeIn', delay: 0.5 }
+        }
       },
       {
         width: 'w-0 lg:w-full',
@@ -199,12 +224,22 @@ export function SuccessShapes() {
       {
         width: 'w-14',
         radius: 'rounded-tl-full',
-        color: 'bg-slate-100'
+        color: 'bg-slate-100',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 1.2, delay: 0 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-br-full',
-        color: 'bg-green-50'
+        color: 'bg-green-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
+        }
       },
       {
         width: 'w-14',
@@ -216,27 +251,52 @@ export function SuccessShapes() {
       {
         width: 'w-14',
         radius: 'rounded-full',
-        color: 'bg-slate-50'
+        color: 'bg-slate-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-full',
-        color: 'bg-green-200'
+        color: 'bg-green-200',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-full',
-        color: 'bg-green-500'
+        color: 'bg-green-500',
+        animation: {
+          animate: { opacity: 1, scale: 1 },
+          initial: { opacity: 0, scale: 0.5 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-tl-full',
-        color: 'bg-green-100'
+        color: 'bg-green-100',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-tr-full',
-        color: 'bg-slate-50'
+        color: 'bg-slate-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 1.2 }
+        }
       }
     ],
     [
@@ -248,17 +308,32 @@ export function SuccessShapes() {
       {
         width: 'w-14',
         radius: 'rounded-l-full',
-        color: 'bg-green-50'
+        color: 'bg-green-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-none',
-        color: 'bg-green-50'
+        color: 'bg-green-50',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
         radius: 'rounded-br-full',
-        color: 'bg-green-200'
+        color: 'bg-green-200',
+        animation: {
+          animate: { opacity: 1 },
+          initial: { opacity: 0 },
+          transition: { ease: 'easeInOut', duration: 1.2, delay: 0.6 }
+        }
       },
       {
         width: 'w-14',
@@ -282,6 +357,47 @@ export function SuccessShapes() {
         </div>
       ))}
     </div>
+  )
+}
+
+export function AlmostThereShapes() {
+  const container = {
+    visible: {
+      transition: {
+        staggerChildren: 0.3
+      }
+    }
+  }
+
+  const item = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1
+    }
+  }
+  return (
+    <motion.div
+      variants={container}
+      initial='hidden'
+      animate='visible'
+      transition={{ repeat: Infinity, repeatType: 'loop' }}
+      className='flex justify-center py-14'
+    >
+      {[0, 1, 2].map((index) => (
+        <motion.div
+          key={index}
+          className='flex aspect-square w-14 rounded-full bg-slate-100'
+          transition={{
+            ease: 'easeInOut',
+            repeat: Infinity,
+            repeatDelay: 0.7,
+            duration: 0.3,
+            repeatType: 'mirror'
+          }}
+          variants={item}
+        />
+      ))}
+    </motion.div>
   )
 }
 

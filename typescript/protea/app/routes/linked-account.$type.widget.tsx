@@ -12,20 +12,30 @@ import {
 } from '~/lib/proto.server'
 import { Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
-import { flowType, requireFlow } from '~/lib/flows.server'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
+import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   await requireUserSession(request)
 
+  const linkedAccounts = await getLinkedAccounts(request)
   if (params.type == 'card') {
     await requireFlow(request, flowType.LinkCardAccount)
+    await updateFlow(request, flowType.LinkCardAccount, {
+      linkedAccountLength: linkedAccounts.linkedAccounts.length
+    })
   } else if (params.type == 'bank') {
     await requireFlow(request, flowType.LinkBankAccount)
-  } else
+    await updateFlow(request, flowType.LinkBankAccount, {
+      linkedAccountLength: linkedAccounts.linkedAccounts.length
+    })
+  } else {
     throw json(
       { title: `Linking type ${params.type} not allowed.` },
       { status: 400 }
     )
+  }
+
   let cardRpc = await grpcClient
     .getMachnetWidgetToken(
       {},
@@ -69,7 +79,7 @@ export default function Page() {
         (event.data.type == 'BANK' && event.data.status == 'BANK_ADDED')
       ) {
         navigate(
-          route('/linked-account/:type/success', {
+          route('/linked-account/:type/almost-there', {
             type: params.type as string
           })
         )
