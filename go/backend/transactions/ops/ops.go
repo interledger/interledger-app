@@ -44,8 +44,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transac
 	}
 
 	for _, transfer := range args.Transfers {
-		transfer.TransactionID = transID
-		err = addTransfer(ctx, dbc, transfer)
+		err = addTransfer(ctx, dbc, transID, transfer)
 		if err != nil {
 			return err
 		}
@@ -112,9 +111,9 @@ func UpdateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args tran
 	return updateTransaction(ctx, tx, args)
 }
 
-func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, args transactions.CreateTransferArgs) error {
+func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID string, args transactions.CreateTransferArgs) error {
 	is := db.NewInsert("transfers").
-		Value("transaction_id", args.TransactionID).
+		Value("transaction_id", transactionID).
 		Value("foreign_id", args.ForeignID).
 		Value("type", args.Type).
 		Value("amount", args.Amount.Value).
@@ -140,7 +139,12 @@ func AddTransferTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactio
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	return addTransfer(ctx, b.DB(), args)
+	tid, err := getTransactionID(ctx, b.DB(), args.TransactionForeignID)
+	if err != nil {
+		return err
+	}
+
+	return addTransfer(ctx, tx, tid, args)
 }
 
 func AddTransfer(ctx context.Context, b Backends, args transactions.CreateTransferArgs) error {
@@ -149,5 +153,24 @@ func AddTransfer(ctx context.Context, b Backends, args transactions.CreateTransf
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	return addTransfer(ctx, b.DB(), args)
+	tid, err := getTransactionID(ctx, b.DB(), args.TransactionForeignID)
+	if err != nil {
+		return err
+	}
+
+	return addTransfer(ctx, b.DB(), tid, args)
+}
+
+func getTransactionID(ctx context.Context, dbc sqlx.QueryerContext, fid string) (string, error) {
+	var transID string
+	row := dbc.QueryRowxContext(ctx, "SELECT id FROM  transactions WHERE foreign_id=$1", fid)
+	if row.Err() != nil {
+		return "", fmt.Errorf("%w %s", transactions.ErrInternal, row.Err())
+	}
+	err := row.Scan(&transID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", transactions.ErrInternal, row.Err())
+	}
+
+	return transID, nil
 }
