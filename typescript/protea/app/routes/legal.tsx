@@ -16,7 +16,10 @@ export default function Page() {
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2 lg:mt-7'>
           <span className='flex justify-center text-center lg:text-2xl'>
-            Some parts of these legal agreements only apply to registered Fynbos wallet users, which at the time of publishing, is limited to users in the United States of America. All other terms apply to all users of Fynbos services.
+            Some parts of these legal agreements only apply to registered Fynbos
+            wallet users, which at the time of publishing, is limited to users
+            in the United States of America. All other terms apply to all users
+            of Fynbos services.
           </span>
         </div>
       </section>
@@ -61,8 +64,12 @@ export default function Page() {
             Machnet
           </h2>
           <p className='mt-3 text-sm'>
-            Banking services provided by Fynbos to registered users in the United States of America are powered by Machnet. Machnet is a financial technology company and not a bank. Banking services are
-            provided by Machnet's partner banks who are Member FDIC. Machnet provides these banking services through its banking software provider, Synapse.
+            Banking services provided by Fynbos to registered users in the
+            United States of America are powered by Machnet. Machnet is a
+            financial technology company and not a bank. Banking services are
+            provided by Machnet's partner banks who are Member FDIC. Machnet
+            provides these banking services through its banking software
+            provider, Synapse.
           </p>
         </div>
         <div className='col-span-full mt-2'>
