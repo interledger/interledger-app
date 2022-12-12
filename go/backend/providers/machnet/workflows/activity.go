@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/fynbos/backend/transactions"
-
 	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -278,10 +276,6 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 		FromWalletLinkedAcc: found.ID,
 		FundTX:              fundResp.ID,
 	}, nil
-}
-
-func (a *Activity) AddTransactionTransfer(ctx context.Context, args transactions.CreateTransferArgs) error {
-	return a.b.Transactions().AddTransfer(ctx, args)
 }
 
 type StartWalletTransferArgs struct {

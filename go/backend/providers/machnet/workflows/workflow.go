@@ -401,6 +401,24 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 		return "", err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		WalletID:    args.WalletID,
+		ForeignID:   fundWalletTX.FundTX,
+		ForeignType: transactions.TransactionTypeMachnetWalletTopUp,
+		Provider:    transactions.ProviderMachnet,
+		State:       transactions.StatePending,
+		Amount: transactions.Amount{
+			Value:      args.Amount,
+			Asset:      args.Currency,
+			AssetScale: 2, // TODO: Asset scale
+		},
+		Transfers: nil,
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("AddTransaction Activity failed.", "Error", err)
+		return "", err
+	}
+
 	for {
 		if doBreak {
 			break
