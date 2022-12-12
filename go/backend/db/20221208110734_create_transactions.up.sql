@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS transactions
   asset_scale   INT NOT NULL,
   created_at    TIMESTAMP NOT NULL DEFAULT now(),
   updated_at    TIMESTAMP NOT NULL DEFAULT now(),
-  CONSTRAINT  transactions_foreign_id UNIQUE (foreign_id),
+  CONSTRAINT  transactions_wallet_id_foreign_id UNIQUE (wallet_id, foreign_id),
   INDEX transactions_wallet_id_state(wallet_id, state)
 );
 
@@ -28,5 +28,5 @@ CREATE TABLE IF NOT EXISTS transfers
   asset_scale      INT NOT NULL,
   created_at       TIMESTAMP NOT NULL DEFAULT now(),
   updated_at       TIMESTAMP NOT NULL DEFAULT now(),
-  CONSTRAINT transfers_foreign_id UNIQUE (foreign_id)
+  CONSTRAINT transfers_transaction_id_foreign_id UNIQUE (transaction_id, foreign_id)
 );

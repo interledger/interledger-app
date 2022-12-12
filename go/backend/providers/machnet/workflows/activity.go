@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -341,6 +343,10 @@ func (a *Activity) WithdrawFromWallet(ctx context.Context, args machnet.Withdraw
 		ToLinkedAccountID: args.ToLinkedAccountID,
 		Status:            withdrawal.Status,
 	}, nil
+}
+
+func (a *Activity) AddTransactionTransfer(ctx context.Context, args transactions.CreateTransferArgs) error {
+	return a.b.Transactions().AddTransfer(ctx, args)
 }
 
 type StartWalletTransferArgs struct {
