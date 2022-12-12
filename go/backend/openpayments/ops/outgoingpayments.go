@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -94,15 +96,16 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
 
-		return createTransaction(ctx, tx, createTransactionArgs{
+		return b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:    fromPP.WalletID,
 			ForeignID:   id,
+			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			Provider:    transactions.ProviderMachnet,
 			Note:        args.Description,
-			ForeignType: openpayments.TransactionTypeOutgoingPayment,
-			State:       transactionStatePending,
+			State:       transactions.StatePending,
 			Source:      fromPP.URL,
 			Destination: toPP.URL,
-			Amount: openpayments.Amount{
+			Amount: transactions.Amount{
 				Value:      q.SendAmount,
 				Asset:      q.SendAsset,
 				AssetScale: q.SendAssetScale,

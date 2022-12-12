@@ -39,6 +39,7 @@ type WidgetToken struct {
 }
 
 type CreateTransactionArgs struct {
+	ForeignID           string // ID against which to create transfers
 	FromLinkedAccountID string
 	ToLinkedAccountID   string
 	Amount              float64

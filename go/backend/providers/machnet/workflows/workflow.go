@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -183,6 +185,21 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		}
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, transactions.CreateTransferArgs{
+		TransactionForeignID: args.ForeignID,
+		ForeignID:            fundWalletTX.FundTX,
+		Type:                 transactions.TransferTypeDebitCard,
+		Amount: transactions.Amount{
+			Value:      0,  // TODO
+			Asset:      "", // TODO
+			AssetScale: 0,  // TODO
+		},
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("AddTransactionTransfer Activity failed.", "Error", err)
+		return "", err
+	}
+
 	var transferID string
 	err = workflow.ExecuteActivity(
 		ctx,
@@ -256,6 +273,36 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 
 	if errToReturn != nil {
 		return "", errToReturn
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, transactions.CreateTransferArgs{
+		TransactionForeignID: args.ForeignID,
+		ForeignID:            fundWalletTX.FundTX,
+		Type:                 transactions.TransferTypeDebitMachnetWallet,
+		Amount: transactions.Amount{
+			Value:      0,  // TODO
+			Asset:      "", // TODO
+			AssetScale: 0,  // TODO
+		},
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("AddTransactionTransfer Activity failed.", "Error", err)
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, transactions.CreateTransferArgs{
+		TransactionForeignID: args.ForeignID,
+		ForeignID:            fundWalletTX.FundTX,
+		Type:                 transactions.TransferTypeCreditMachnetWallet,
+		Amount: transactions.Amount{
+			Value:      0,  // TODO
+			Asset:      "", // TODO
+			AssetScale: 0,  // TODO
+		},
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("AddTransactionTransfer Activity failed.", "Error", err)
+		return "", err
 	}
 
 	logger.Info("CreateTransactionWorkflow completed.", "fund_transfer_id", fundWalletTX.FundTX, "external_transfer_id", transferID)

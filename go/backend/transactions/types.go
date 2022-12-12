@@ -58,8 +58,8 @@ type UpdateTransactionArgs struct {
 }
 
 type CreateTransferArgs struct {
-	TransactionID string
-	ForeignID     string
-	Type          TransferType
-	Amount        Amount
+	TransactionForeignID string
+	ForeignID            string
+	Type                 TransferType
+	Amount               Amount
 }
