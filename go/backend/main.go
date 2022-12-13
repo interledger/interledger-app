@@ -293,17 +293,22 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	db, err := sqlx.Connect("postgres", args.ConnectionString)
+	dbConn, err := sqlx.Connect("postgres", args.ConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err := dbConn.Close(); err != nil {
 			log.Fatalln(err)
 		}
 	}()
 
-	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), db)
+	err = db.SeedCountries(context.Background(), dbConn)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
 	}
