@@ -5,8 +5,9 @@ docker_build('fynbos/backend', '../', dockerfile="./Dockerfile")
 k8s_custom_deploy(
   "backend",
   apply_cmd="""
-    kubectl -v=0 --namespace backend set image deployment/backend backend=$TILT_IMAGE_0 worker=$TILT_IMAGE_0 backend-migrations=$TILT_IMAGE_0 > /dev/null && \
-    kubectl get --namespace backend deployment/backend -o yaml
+    kubectl -v=0 --namespace backend set image deployment/backend backend=$TILT_IMAGE_0 backend-migrations=$TILT_IMAGE_0 > /dev/null && \
+    kubectl get --namespace backend deployment/backend -o yaml && \
+    kubectl -v=0 --namespace backend set image deployment/backend-worker worker=$TILT_IMAGE_0 > /dev/null
   """,
   delete_cmd="echo backend managed outside of Tilt",
   image_deps=["fynbos/backend"],
