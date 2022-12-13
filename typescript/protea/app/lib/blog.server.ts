@@ -10,6 +10,7 @@ import * as postG from '~/routes/blog.our-fynbos-family-meet-cairin.mdx'
 import * as postH from '~/routes/blog.our-fynbos-family-meet-justin.mdx'
 import * as postI from '~/routes/blog.our-fynbos-family-meet-barnard.mdx'
 import * as postJ from '~/routes/blog.why-payment-pointers-are-urls.mdx'
+import * as postK from '~/routes/blog.our-fynbos-family-meet-omer.mdx'
 const modules = [
   postA,
   postB,
@@ -20,7 +21,8 @@ const modules = [
   postG,
   postH,
   postI,
-  postJ
+  postJ,
+  postK
 ]
 
 export type Author = {
