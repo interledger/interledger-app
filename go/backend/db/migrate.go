@@ -50,6 +50,15 @@ func Migrate(ctx context.Context, connString string) error {
 	return nil
 }
 
+func SeedCountries(ctx context.Context, db *sqlx.DB) error {
+	_, err := db.ExecContext(ctx, insertCountries)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
@@ -358,5 +367,5 @@ VALUES
 ('Yemen','YE','YEM','887'),
 ('Zambia','ZM','ZMB','894'),
 ('Zimbabwe','ZW','ZWE','716'),
-('Åland Islands','AX','ALA','248');
+('Åland Islands','AX','ALA','248') ON CONFLICT(alpha_2) DO NOTHING;
 `

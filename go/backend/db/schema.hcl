@@ -108,6 +108,10 @@ table "countries" {
   primary_key {
     columns = [column.id]
   }
+  index "alpha_2_uniq" {
+    unique  = true
+    columns = [column.alpha_2]
+  }
 }
 table "individual_kyc_details" {
   schema = schema.public
