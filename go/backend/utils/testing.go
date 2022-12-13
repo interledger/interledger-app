@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
@@ -18,61 +16,12 @@ import (
 
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"gitlab.com/fynbos/backend/migrations"
 	pacioli_utils "gitlab.com/fynbos/pacioli/utils"
 )
-
-const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
-
-// Assumes that CRDB is running locally on port 26257.
-func MigrateCockroachDB(t *testing.T, ctx context.Context) (db *sqlx.DB) {
-	_, moduleDir, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("Could not get directory path for utils/testing.")
-	}
-
-	dbName := "backend_test_" + strings.Replace(uuid.NewString(), "-", "", 4)
-	connString := os.Getenv("DB_URL")
-	if connString == "" {
-		connString = testingCrdbConnectionString
-	}
-	connString = fmt.Sprintf(connString, dbName)
-	db, err := sqlx.Connect("postgres", connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	query := fmt.Sprintf("CREATE DATABASE %s;", dbName)
-	_, err = db.ExecContext(ctx, query)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../migrations")
-	err = migrations.MigrateFromDir(connString, migrationsPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Cleanup(func() {
-		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
-		_, err := db.ExecContext(ctx, cleanupQuery)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err = db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	})
-
-	return db
-}
 
 type KratosContainer struct {
 	testcontainers.Container
