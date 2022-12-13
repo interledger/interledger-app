@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -24,7 +25,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	user_client "gitlab.com/fynbos/backend/user/client"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -35,7 +35,7 @@ func TestActivity_CreateExternalSendUser(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		users:   user_mock.NewMock(),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
@@ -91,7 +91,7 @@ func TestActivity_CreateUser(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
 	}
@@ -128,7 +128,7 @@ func TestActivity_StartExternalKYC(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
 	}
@@ -158,7 +158,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := &testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		users:   user_mock.NewMock(),
@@ -274,7 +274,7 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		users:   user_mock.NewMock(),
@@ -356,7 +356,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
@@ -445,7 +445,7 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnetExt).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,

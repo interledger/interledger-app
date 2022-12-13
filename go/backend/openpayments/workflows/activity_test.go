@@ -9,20 +9,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	users_client "gitlab.com/fynbos/backend/user/client"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/testsuite"
 )
 
 func TestActivity_GetProviderArgs(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)

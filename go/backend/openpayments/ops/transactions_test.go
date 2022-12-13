@@ -13,13 +13,12 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	users_client "gitlab.com/fynbos/backend/user/client"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestListTransactions(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc, nil, nil)
 

@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/user"
 
@@ -89,7 +90,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c := &TestContainer{
 		ValidatorImpl: validator.New(),
 	}
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	c.Db = db
 
 	port, err := test_utils.GetFreePort()
