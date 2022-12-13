@@ -13,10 +13,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/signup/ops"
 	"gitlab.com/fynbos/backend/twilio"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 type backends struct {
@@ -40,7 +40,7 @@ func (b backends) Twilio() twilio.Service {
 func TestSetUserData(t *testing.T) {
 	ctx := context.Background()
 
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := &backends{
 		validator: validator.New(),
@@ -86,7 +86,7 @@ func TestSetUserData(t *testing.T) {
 func TestSetMobileNumber(t *testing.T) {
 	ctx := context.Background()
 
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
@@ -125,7 +125,7 @@ func TestSetMobileNumber(t *testing.T) {
 
 func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
 	b := &backends{
@@ -169,7 +169,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 func TestComplete(t *testing.T) {
 	ctx := context.Background()
 
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
@@ -225,7 +225,7 @@ func TestComplete(t *testing.T) {
 func TestCompleteIdempotent(t *testing.T) {
 	ctx := context.Background()
 
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
@@ -262,7 +262,7 @@ func TestCompleteIdempotent(t *testing.T) {
 func TestCompleteFailsAnotherUser(t *testing.T) {
 	ctx := context.Background()
 
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	tw := twilio.NewMockService(gomock.NewController(t))
 	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()

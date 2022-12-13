@@ -20,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/user"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 )
@@ -523,7 +522,7 @@ func TestWithdrawFromWallet(t *testing.T) {
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
-		db:             test_utils.MigrateCockroachDB(t, context.Background()),
+		db:             db.MigrateTestDB(t, context.Background()),
 		external:       external_client.New(),
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
 		temporal:       &mocks.Client{},

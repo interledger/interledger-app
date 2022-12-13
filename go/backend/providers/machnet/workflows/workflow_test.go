@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock_client "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -21,7 +22,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -32,7 +32,7 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
 	}
@@ -81,7 +81,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
@@ -139,7 +139,7 @@ func TestDeleteAccountWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/db"
 	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
 
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -15,7 +16,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -25,7 +25,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	b := NewTestBackends(t,
-		test_utils.MigrateCockroachDB(t, context.Background()),
+		db.MigrateTestDB(t, context.Background()),
 		nil,
 		la_mock)
 

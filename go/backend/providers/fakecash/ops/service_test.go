@@ -9,9 +9,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/fakecash/ops"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_mock "gitlab.com/fynbos/pacioli/client/mock"
 )
@@ -65,7 +65,7 @@ func newBackends(t *testing.T) *backends {
 	})
 
 	return &backends{
-		db:       test_utils.MigrateCockroachDB(t, context.Background()),
+		db:       db.MigrateTestDB(t, context.Background()),
 		ledgerID: uint32(10),
 		pacioli:  pacioli_mock.NewMockClient(ctrl),
 	}

@@ -6,13 +6,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/agreements/migrations"
-	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/backend/db"
 )
 
 func TestProdAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func TestProdAgreements(t *testing.T) {
 func TestMigrationIdempotency(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "assets/testing"); err != nil {
 		t.Fatal(err)
 	}

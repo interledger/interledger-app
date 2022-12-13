@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 
@@ -21,13 +22,12 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	users_client "gitlab.com/fynbos/backend/user/client"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestCreatePaymentPointer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
@@ -228,7 +228,7 @@ func TestExtractPaymentPointer(t *testing.T) {
 func TestListWalletPaymentPointers(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
@@ -279,7 +279,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 func TestValidatePaymentPointer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
@@ -387,7 +387,7 @@ func TestValidatePaymentPointer(t *testing.T) {
 func TestPaymentPointerCaseSensitive(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -505,7 +505,7 @@ func TestFormattedPaymentPointer(t *testing.T) {
 func TestCreateQuote(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	ctrl := gomock.NewController(t)
 	laClient := linked_account_mock.NewMockClient(ctrl)

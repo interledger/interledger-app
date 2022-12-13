@@ -11,14 +11,14 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/waitlist"
 	"gitlab.com/fynbos/backend/waitlist/ops"
 )
 
 func TestAddSignup(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -105,7 +105,7 @@ func TestAddSignup(t *testing.T) {
 
 func TestAddSignupWithMug(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -181,7 +181,7 @@ func TestAddSignupWithMug(t *testing.T) {
 
 func TestCanSignup(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -236,7 +236,7 @@ func TestCanSignup(t *testing.T) {
 
 func TestSetSignupComplete(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewBackends(t, db, validator.New())
 
@@ -290,7 +290,7 @@ func TestSetSignupComplete(t *testing.T) {
 
 func TestListSignups(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewBackends(t, db, validator.New())
 

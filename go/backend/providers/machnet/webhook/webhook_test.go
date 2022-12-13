@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -19,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/user"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
 )
@@ -305,7 +305,7 @@ func newMachnetUser(t *testing.T, b ops.Backends, walletID string) *machnet.User
 func newTestBackends(t *testing.T) testBackends {
 	ctrl := gomock.NewController(t)
 	return testBackends{
-		db:             test_utils.MigrateCockroachDB(t, context.Background()),
+		db:             db.MigrateTestDB(t, context.Background()),
 		external:       external_client.New(),
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
 		temporal:       &mocks.Client{},

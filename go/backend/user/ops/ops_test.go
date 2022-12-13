@@ -8,16 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
 	"gitlab.com/fynbos/backend/user/ops"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestCreateWallet(t *testing.T) {
 	ctx := context.Background()
 
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 
 	b := user_client.NewTestBackends(t, dbc, nil)
 
@@ -77,7 +77,7 @@ func TestWalletForContext(t *testing.T) {
 func TestListWallets(t *testing.T) {
 	ctx := context.Background()
 
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 
 	b := user_client.NewTestBackends(t, dbc, nil)
 
@@ -101,7 +101,7 @@ func TestListWallets(t *testing.T) {
 
 func TestGetWallet(t *testing.T) {
 	ctx := context.Background()
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 	b := user_client.NewTestBackends(t, dbc, nil)
 	userID := uuid.NewString()
 	// Create Signup
