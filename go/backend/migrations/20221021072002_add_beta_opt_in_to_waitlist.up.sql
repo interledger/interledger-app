@@ -1,1 +1,0 @@
-ALTER TABLE waitlist_signups ADD COLUMN IF NOT EXISTS beta_opt_in BOOLEAN NOT NULL DEFAULT false;

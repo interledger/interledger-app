@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"fmt"
 	"net"
@@ -66,9 +65,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
-
-//go:embed migrations/*.sql
-var fs embed.FS
 
 func main() {
 	if len(os.Args) < 2 {

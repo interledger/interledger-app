@@ -1,9 +1,0 @@
-CREATE TABLE IF NOT EXISTS agreements
-(
-	id TEXT PRIMARY KEY NOT NULL,
-	name TEXT NOT NULL,
-	version TEXT NOT NULL,
-	content TEXT NOT NULL,
-	created_at TIMESTAMP NOT NULL DEFAULT now(),
-	updated_at TIMESTAMP NOT NULL DEFAULT now()
-);

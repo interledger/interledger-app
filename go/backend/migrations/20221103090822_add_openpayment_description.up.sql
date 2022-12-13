@@ -1,3 +1,0 @@
-ALTER TABLE openpayments_incoming_payment ADD COLUMN from_payment_pointer_id UUID REFERENCES payment_pointers;
-ALTER TABLE openpayments_outgoing_payment ADD COLUMN to_payment_pointer_id UUID REFERENCES payment_pointers;
-ALTER TABLE openpayments_incoming_payment ADD COLUMN description TEXT;
