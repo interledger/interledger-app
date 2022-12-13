@@ -867,5 +867,49 @@ const blogShapes: {
         color: 'bg-rose-300'
       }
     ]
+  ],
+  'our-fynbos-family-meet-omer': [
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-slate-600'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-orange-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-indigo-500'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-yellow-200'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-orange-300'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-slate-200'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-full',
+        color: 'bg-yellow-300'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-indigo-400'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-blue-100'
+      }
+    ]
   ]
 }
