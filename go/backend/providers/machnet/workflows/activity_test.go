@@ -573,3 +573,87 @@ func TestStripEmailPlus(t *testing.T) {
 		}
 	}
 }
+
+func TestActivity_WithdrawFromWallet(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	machnetExt := machnet_external_inmem.New()
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnetExt).AnyTimes()
+	b := testBackends{
+		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
+	}
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+
+	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
+	require.NoError(t, err)
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	a := NewActivity(b)
+	env.RegisterActivity(a.WithdrawFromWallet)
+
+	externalSendUser, err := machnetExt.RegisterUser(ctx, external.User{
+		ID:   uuid.NewString(),
+		Type: external.TypeSendUser,
+	})
+	require.NoError(t, err)
+
+	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   wallet.ID,
+		ExternalID: externalSendUser.ID,
+	})
+	require.NoError(t, err)
+
+	externalWallet, err := machnetExt.CreateUserWallet(context.Background(), sendUser.ID, "default")
+	require.NoError(t, err)
+
+	insert := db.NewInsert("machnet_wallets").
+		Value("id", externalWallet.ID).Returning("id").
+		Value("nickname", "default").Returning("nickname").
+		Value("send_user_id", externalWallet.UserID).Returning("send_user_id").
+		Returning("created_at").Returning("updated_at")
+	sql, values, err := insert.GetStatement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = b.DB().ExecContext(context.Background(), sql, values...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	walletLinkedAccountID, toLinkedAccountID := uuid.NewString(), uuid.NewString()
+	b.linked.EXPECT().Get(gomock.Any(), walletLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
+		ID:         walletLinkedAccountID,
+		WalletID:   wallet.ID,
+		Provider:   machnet.ProviderName,
+		ProviderID: externalWallet.ID,
+		Type:       machnet.TypeWallet,
+	}, nil).Times(1)
+	bankAccountID := uuid.NewString()
+	b.linked.EXPECT().Get(gomock.Any(), toLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
+		ID:         toLinkedAccountID,
+		WalletID:   wallet.ID,
+		Provider:   machnet.ProviderName,
+		ProviderID: bankAccountID,
+		Type:       machnet.TypeReceiveBankAccount,
+	}, nil).Times(1)
+
+	_, err = env.ExecuteActivity(a.WithdrawFromWallet, machnet.WithdrawFromWalletArgs{
+		Amount:                1000,
+		WalletID:              wallet.ID,
+		WalletLinkedAccountID: walletLinkedAccountID,
+		ToLinkedAccountID:     toLinkedAccountID,
+		IpAddress:             "10.10.10.10",
+	})
+	assert.Contains(t, err.Error(), "Insufficient balance")
+}

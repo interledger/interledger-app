@@ -222,9 +222,9 @@ type validateWithdrawFromMachnetWalletArgs struct {
 	IpAddress       string `validate:"ip_addr"`
 }
 
-func (s *rpcService) WithdrawFromMachnetWallet(
+func (s *rpcService) StartWithdrawFromMachnetWallet(
 	ctx context.Context, req *backendv1.WithdrawFromMachnetWalletRequest,
-) (*backendv1.MachnetWalletWithdrawal, error) {
+) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -266,7 +266,7 @@ func (s *rpcService) WithdrawFromMachnetWallet(
 		return nil, toGRPCError(errors.New("Machnet wallet not found."))
 	}
 
-	withdrawal, err := s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
+	_, err = s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
 		Amount:                req.GetAmount(),
 		WalletLinkedAccountID: linkedWallet.ID,
 		ToLinkedAccountID:     req.GetToLinkedAccountId(),
@@ -276,12 +276,7 @@ func (s *rpcService) WithdrawFromMachnetWallet(
 		return nil, toGRPCError(err)
 	}
 
-	return &backendv1.MachnetWalletWithdrawal{
-		Id:                withdrawal.ID,
-		Amount:            withdrawal.Amount,
-		ToLinkedAccountId: toLinkedAcc.ID,
-		Status:            withdrawal.Status,
-	}, nil
+	return &backendv1.Empty{}, nil
 }
 
 type validateStartMachnetWalletTopupArgs struct {

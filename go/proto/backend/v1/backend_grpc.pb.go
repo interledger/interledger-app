@@ -532,7 +532,7 @@ type BackendServiceClient interface {
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
-	WithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*MachnetWalletWithdrawal, error)
+	StartWithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*Empty, error)
 	StartMachnetWalletTopup(ctx context.Context, in *StartMachnetWalletTopupRequest, opts ...grpc.CallOption) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
@@ -774,9 +774,9 @@ func (c *backendServiceClient) GetWalletBalance(ctx context.Context, in *Empty, 
 	return out, nil
 }
 
-func (c *backendServiceClient) WithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*MachnetWalletWithdrawal, error) {
-	out := new(MachnetWalletWithdrawal)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/WithdrawFromMachnetWallet", in, out, opts...)
+func (c *backendServiceClient) StartWithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartWithdrawFromMachnetWallet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -862,7 +862,7 @@ type BackendServiceServer interface {
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
 	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
-	WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error)
+	StartWithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*Empty, error)
 	StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
@@ -950,8 +950,8 @@ func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWa
 func (UnimplementedBackendServiceServer) GetWalletBalance(context.Context, *Empty) (*WalletBalance, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletBalance not implemented")
 }
-func (UnimplementedBackendServiceServer) WithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*MachnetWalletWithdrawal, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WithdrawFromMachnetWallet not implemented")
+func (UnimplementedBackendServiceServer) StartWithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartWithdrawFromMachnetWallet not implemented")
 }
 func (UnimplementedBackendServiceServer) StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartMachnetWalletTopup not implemented")
@@ -1430,20 +1430,20 @@ func _BackendService_GetWalletBalance_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_WithdrawFromMachnetWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _BackendService_StartWithdrawFromMachnetWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WithdrawFromMachnetWalletRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).WithdrawFromMachnetWallet(ctx, in)
+		return srv.(BackendServiceServer).StartWithdrawFromMachnetWallet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/WithdrawFromMachnetWallet",
+		FullMethod: "/backend.v1.BackendService/StartWithdrawFromMachnetWallet",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).WithdrawFromMachnetWallet(ctx, req.(*WithdrawFromMachnetWalletRequest))
+		return srv.(BackendServiceServer).StartWithdrawFromMachnetWallet(ctx, req.(*WithdrawFromMachnetWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1646,8 +1646,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetWalletBalance_Handler,
 		},
 		{
-			MethodName: "WithdrawFromMachnetWallet",
-			Handler:    _BackendService_WithdrawFromMachnetWallet_Handler,
+			MethodName: "StartWithdrawFromMachnetWallet",
+			Handler:    _BackendService_StartWithdrawFromMachnetWallet_Handler,
 		},
 		{
 			MethodName: "StartMachnetWalletTopup",

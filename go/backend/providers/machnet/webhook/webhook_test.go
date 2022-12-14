@@ -19,6 +19,7 @@ import (
 	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"gitlab.com/fynbos/backend/providers/machnet/webhook"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
@@ -363,4 +364,8 @@ func (b testBackends) LinkedAccounts() linkedaccounts.Client {
 
 func (b testBackends) Temporal() client.Client {
 	return b.temporal
+}
+
+func (b testBackends) Transactions() transactions.Client {
+	return nil
 }

@@ -560,49 +560,6 @@ func GetWallet(ctx context.Context, b Backends, id string) (*machnet.Wallet, err
 	}, nil
 }
 
-func WithdrawFromWallet(ctx context.Context, b Backends, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
-	linkedWallet, err := b.LinkedAccounts().Get(ctx, args.WalletLinkedAccountID)
-	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, fmt.Errorf("%w %s", machnet.ErrNotFound, "Linked wallet not found.")
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	wallet, err := GetWallet(ctx, b, linkedWallet.ProviderID)
-	if err != nil {
-		return nil, err
-	}
-
-	toAccount, err := b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
-	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, fmt.Errorf("%w Destination linked account not found (id=%s).", machnet.ErrInternal, args.ToLinkedAccountID)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	withdrawal, err := b.External().WithdrawFromUserWallet(ctx, external.WithdrawFromUserWalletArgs{
-		UserID:    wallet.SendUserID,
-		WalletID:  wallet.ID,
-		ToFundID:  toAccount.ProviderID,
-		Amount:    float64(args.Amount) / float64(100),
-		FeeAmount: 0,
-		Currency:  "USD",
-		IPAddress: args.IpAddress,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	return &machnet.WalletWithdrawal{
-		ID:                withdrawal.ID,
-		Amount:            args.Amount,
-		ToLinkedAccountID: args.ToLinkedAccountID,
-		Status:            withdrawal.Status,
-	}, nil
-}
-
 func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 
 	_, err := b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2 AND kyc_status=$3", machnet.KYCStatusInProgress, userID, machnet.KYCStatusRetry)
