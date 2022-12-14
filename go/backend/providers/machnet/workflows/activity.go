@@ -180,6 +180,28 @@ func (a *Activity) CreateWallet(ctx context.Context, externalID string) error {
 	return err
 }
 
+type TransactionWalletIDs struct {
+	FromWalletID string
+	ToWalletID   string
+}
+
+func (a *Activity) GetTransactionsWallets(ctx context.Context, args machnet.CreateTransactionArgs) (*TransactionWalletIDs, error) {
+	fromAcc, err := getLinkedAccount(ctx, a.b, args.FromLinkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	toAcc, err := getLinkedAccount(ctx, a.b, args.ToLinkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TransactionWalletIDs{
+		FromWalletID: fromAcc.WalletID,
+		ToWalletID:   toAcc.WalletID,
+	}, nil
+}
+
 func (a *Activity) ShouldFundWallet(ctx context.Context, args machnet.CreateTransactionArgs) (bool, error) {
 	fromAcc, err := getLinkedAccount(ctx, a.b, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {

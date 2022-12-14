@@ -228,7 +228,7 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 	// 	}
 	// }
 
-	// eventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	// eventErrors, err := b.TigerBeetle().Transfers(tbTransfers)
 	// if err != nil {
 	// 	log.Warn("failed to sync transfers into tigetbeetle", zap.Error(err))
 	// } else if len(eventErrors) > 0 {
@@ -348,7 +348,7 @@ func PostTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 	// 	})
 	// }
 
-	// tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	// tbEventErrors, err := b.TigerBeetle().Transfers(tbTransfers)
 	// if err != nil {
 	// 	log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
 	// } else if len(tbEventErrors) > 0 {
@@ -397,7 +397,7 @@ func VoidTransfers(ctx context.Context, b Backends, transferIDs []string) ([]pac
 	// 	}
 	// }
 
-	// tbEventErrors, err := b.TigerBeetle().CreateTransfers(tbTransfers)
+	// tbEventErrors, err := b.TigerBeetle().Transfers(tbTransfers)
 	// if err != nil {
 	// 	log.Warn("failed to sync posted transfers to tigerbeetle", zap.Error(err))
 	// } else if len(tbEventErrors) > 0 {

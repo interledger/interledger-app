@@ -7,10 +7,11 @@
 package pacioli
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -1607,7 +1608,7 @@ var file_pacioli_v1_pacioli_proto_depIdxs = []int32{
 	4,  // 15: pacioli.v1.PacioliService.GetLedgers:input_type -> pacioli.v1.GetLedgersRequest
 	9,  // 16: pacioli.v1.PacioliService.ConfigureAccounts:input_type -> pacioli.v1.ConfigureAccountsRequest
 	11, // 17: pacioli.v1.PacioliService.GetAccounts:input_type -> pacioli.v1.GetAccountsRequest
-	15, // 18: pacioli.v1.PacioliService.CreateTransfers:input_type -> pacioli.v1.CreateTransfersRequest
+	15, // 18: pacioli.v1.PacioliService.Transfers:input_type -> pacioli.v1.CreateTransfersRequest
 	18, // 19: pacioli.v1.PacioliService.GetTransfers:input_type -> pacioli.v1.GetTransfersRequest
 	20, // 20: pacioli.v1.PacioliService.PostTransfers:input_type -> pacioli.v1.PostTransfersRequest
 	22, // 21: pacioli.v1.PacioliService.VoidTransfers:input_type -> pacioli.v1.VoidTransfersRequest
@@ -1615,7 +1616,7 @@ var file_pacioli_v1_pacioli_proto_depIdxs = []int32{
 	5,  // 23: pacioli.v1.PacioliService.GetLedgers:output_type -> pacioli.v1.GetLedgersResponse
 	10, // 24: pacioli.v1.PacioliService.ConfigureAccounts:output_type -> pacioli.v1.ConfigureAccountsResponse
 	12, // 25: pacioli.v1.PacioliService.GetAccounts:output_type -> pacioli.v1.GetAccountsResponse
-	17, // 26: pacioli.v1.PacioliService.CreateTransfers:output_type -> pacioli.v1.CreateTransfersResponse
+	17, // 26: pacioli.v1.PacioliService.Transfers:output_type -> pacioli.v1.CreateTransfersResponse
 	19, // 27: pacioli.v1.PacioliService.GetTransfers:output_type -> pacioli.v1.GetTransfersResponse
 	21, // 28: pacioli.v1.PacioliService.PostTransfers:output_type -> pacioli.v1.PostTransfersResponse
 	23, // 29: pacioli.v1.PacioliService.VoidTransfers:output_type -> pacioli.v1.VoidTransfersResponse

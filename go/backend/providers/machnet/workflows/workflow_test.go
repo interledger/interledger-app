@@ -117,8 +117,10 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	}, time.Minute*2)
 
 	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
-		ToLinkedAccountID:   uuid.NewString(),
+		FromForeignID:       uuid.NewString(),
+		ToForeignID:         uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
+		ToLinkedAccountID:   uuid.NewString(),
 		Amount:              200,
 		Currency:            "USD",
 	})

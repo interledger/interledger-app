@@ -183,6 +183,16 @@ func FailOutgoingPayment(ctx context.Context, b Backends, id string) error {
 		id = id[idxSlash+1:]
 	}
 
+	op, err := GetOutgoingPayment(ctx, b, id)
+	if err != nil {
+		return err
+	}
+
+	pp, err := GetPaymentPointer(ctx, b, op.PaymentPointer)
+	if err != nil {
+		return err
+	}
+
 	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		res, err := tx.ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET failed=true, completed=true, updated_at=now() WHERE id=$1", id)
 		if err != nil {
@@ -196,7 +206,11 @@ func FailOutgoingPayment(ctx context.Context, b Backends, id string) error {
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, id)
 		}
 
-		return failTransaction(ctx, tx, id)
+		return b.Transactions().UpdateTransactionTx(ctx, tx, transactions.UpdateTransactionArgs{
+			WalletID:  pp.WalletID,
+			ForeignID: id,
+			State:     transactions.StateFailed,
+		})
 	})
 }
 
@@ -243,10 +257,15 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, opID)
 		}
 
-		err = updateTransaction(ctx, tx, updateTransactionArgs{
+		err = b.Transactions().UpdateTransactionTx(ctx, tx, transactions.UpdateTransactionArgs{
+			WalletID:  fromPP.WalletID,
 			ForeignID: opID,
-			State:     transactionStateCompleted,
-			Amount:    args.SentAmount,
+			State:     transactions.StateCompleted,
+			Amount: transactions.Amount{
+				Value:      args.SentAmount.Value,
+				Asset:      args.SentAmount.Asset,
+				AssetScale: args.SentAmount.AssetScale,
+			},
 		})
 		if err != nil {
 			return err
@@ -265,15 +284,14 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w incoming payment (%s) not found", openpayments.ErrNotFound, ipID)
 		}
 
-		return createTransaction(ctx, tx, createTransactionArgs{
-			WalletID:    toPP.WalletID,
-			ForeignID:   ipID,
-			ForeignType: openpayments.TransactionTypeIncomingPayment,
-			Note:        op.Description,
-			State:       transactionStateCompleted,
-			Source:      fromPP.URL,
-			Destination: toPP.URL,
-			Amount:      args.SentAmount,
+		return b.Transactions().UpdateTransactionTx(ctx, tx, transactions.UpdateTransactionArgs{
+			WalletID:  toPP.WalletID,
+			ForeignID: ipID,
+			State:     transactions.StateCompleted,
+			Amount: transactions.Amount{
+				Value:      args.SentAmount.Value,
+				Asset:      args.SentAmount.Asset,
+				AssetScale: args.SentAmount.AssetScale},
 		})
 	})
 }

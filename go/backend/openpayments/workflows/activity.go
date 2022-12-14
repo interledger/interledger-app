@@ -64,6 +64,17 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		return nil, err
 	}
 
+	ip, err := ops.GetIncomingPayment(ctx, a.b, op.Receiver)
+	if err != nil {
+		return nil, err
+	}
+
+	incomingID := ip.ID
+	idxSlash = strings.LastIndex(incomingID, "/")
+	if idxSlash > 0 {
+		incomingID = incomingID[idxSlash+1:]
+	}
+
 	recvPPURL, _, err := ops.ExtractPaymentPointer(op.Receiver)
 	if err != nil {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to parse payment pointer URL from receiver (%s)", op.Receiver), "ErrInvalidURL", err)
@@ -97,7 +108,8 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 	}
 
 	return &machnet.CreateTransactionArgs{
-		ForeignID:           outgoingID,
+		FromForeignID:       outgoingID,
+		ToForeignID:         incomingID,
 		FromLinkedAccountID: sendAccID,
 		ToLinkedAccountID:   recvAcc.ID,
 		Amount:              amnt,

@@ -76,7 +76,7 @@ func timeoutTransfers(ctx context.Context, b Backends) error {
 	// 		}.ToUint16(),
 	// 	})
 	// }
-	// tbErrors, err := b.TigerBeetle().CreateTransfers(tbTranfers)
+	// tbErrors, err := b.TigerBeetle().Transfers(tbTranfers)
 	// if err != nil {
 	// 	return err
 	// }

@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"time"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
@@ -31,6 +33,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
+	Transactions() transactions.Client
 }
 
 type opsBackends struct {
