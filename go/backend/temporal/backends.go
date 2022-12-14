@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
 )
@@ -20,4 +21,5 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
 	Email() email.Client
+	Transactions() transactions.Client
 }

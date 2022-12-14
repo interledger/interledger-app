@@ -8,6 +8,7 @@ package pacioli
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -78,7 +79,7 @@ func (c *pacioliServiceClient) GetAccounts(ctx context.Context, in *GetAccountsR
 
 func (c *pacioliServiceClient) CreateTransfers(ctx context.Context, in *CreateTransfersRequest, opts ...grpc.CallOption) (*CreateTransfersResponse, error) {
 	out := new(CreateTransfersResponse)
-	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/CreateTransfers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/pacioli.v1.PacioliService/Transfers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +144,7 @@ func (UnimplementedPacioliServiceServer) GetAccounts(context.Context, *GetAccoun
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccounts not implemented")
 }
 func (UnimplementedPacioliServiceServer) CreateTransfers(context.Context, *CreateTransfersRequest) (*CreateTransfersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTransfers not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method Transfers not implemented")
 }
 func (UnimplementedPacioliServiceServer) GetTransfers(context.Context, *GetTransfersRequest) (*GetTransfersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTransfers not implemented")
@@ -248,7 +249,7 @@ func _PacioliService_CreateTransfers_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pacioli.v1.PacioliService/CreateTransfers",
+		FullMethod: "/pacioli.v1.PacioliService/Transfers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PacioliServiceServer).CreateTransfers(ctx, req.(*CreateTransfersRequest))
@@ -334,7 +335,7 @@ var PacioliService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PacioliService_GetAccounts_Handler,
 		},
 		{
-			MethodName: "CreateTransfers",
+			MethodName: "Transfers",
 			Handler:    _PacioliService_CreateTransfers_Handler,
 		},
 		{

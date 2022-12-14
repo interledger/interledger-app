@@ -68,7 +68,7 @@ func (mr *MockClientMockRecorder) ConfigureLedgers(ctx, args interface{}) *gomoc
 // CreateTransfers mocks base method.
 func (m *MockClient) CreateTransfers(ctx context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTransfers", ctx, args)
+	ret := m.ctrl.Call(m, "Transfers", ctx, args)
 	ret0, _ := ret[0].([]pacioli.TransferResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -77,7 +77,7 @@ func (m *MockClient) CreateTransfers(ctx context.Context, args []pacioli.CreateT
 // CreateTransfers indicates an expected call of CreateTransfers.
 func (mr *MockClientMockRecorder) CreateTransfers(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransfers", reflect.TypeOf((*MockClient)(nil).CreateTransfers), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transfers", reflect.TypeOf((*MockClient)(nil).CreateTransfers), ctx, args)
 }
 
 // GetAccounts mocks base method.

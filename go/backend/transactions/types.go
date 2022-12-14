@@ -33,33 +33,37 @@ const (
 )
 
 type Amount struct {
-	Value      uint64 `validate:"gt=0" json:"value,string"`
-	Asset      string `validate:"iso4217"  json:"assetCode"`
-	AssetScale int    `validate:"gt=0" json:"assetScale"`
+	Value      uint64 `validate:"gt=0"`
+	Asset      string `validate:"iso4217"`
+	AssetScale int    `validate:"gt=0"`
 }
 
 type CreateTransactionArgs struct {
-	WalletID    string // Fynbos wallet ID
-	ForeignID   string
-	ForeignType TransactionType
-	Provider    Provider
+	WalletID    string          `validate:"uuid"` // Fynbos wallet ID
+	ForeignID   string          `validate:"uuid"`
+	ForeignType TransactionType `validate:"required"`
+	Provider    Provider        `validate:"required"`
+	State       State           `validate:"required"`
 	Note        string
-	State       State
 	Source      string // Usually the sending payment pointer
 	Destination string // Usually the receiving payment pointer
 	Amount      Amount
-	Transfers   []CreateTransferArgs
+	Transfers   []TransferArgs `validate:"omitempty,dive"`
 }
 
 type UpdateTransactionArgs struct {
-	ForeignID string
-	State     State
-	Amount    Amount
+	WalletID        string `validate:"uuid"` // Fynbos wallet ID
+	ForeignID       string `validate:"uuid"`
+	State           State  `validate:"required"`
+	Amount          Amount
+	UpdateTransfers []TransferArgs `validate:"omitempty,dive"`
 }
 
-type CreateTransferArgs struct {
-	TransactionForeignID string
-	ForeignID            string
-	Type                 TransferType
+type TransferArgs struct {
+	WalletID             string       `validate:"omitempty,uuid"` // Fynbos wallet ID
+	TransactionForeignID string       `validate:"omitempty,uuid"`
+	ForeignID            string       `validate:"uuid"`
+	Type                 TransferType `validate:"required"`
 	Amount               Amount
+	State                State `validate:"required"`
 }
