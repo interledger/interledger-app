@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"github.com/go-chi/chi/v5"
@@ -38,7 +39,6 @@ import (
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/migrations"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/fakecash"
@@ -292,7 +292,7 @@ func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
 }
 
 func migrate(args *cli.MigrationArgs) {
-	err := migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+	err := db.Migrate(context.Background(), args.ConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
