@@ -30,6 +30,7 @@ const (
 	TransferTypeDebitCard           TransferType = "debit_card"
 	TransferTypeCreditMachnetWallet TransferType = "credit_wallet"
 	TransferTypeDebitMachnetWallet  TransferType = "debit_wallet"
+	TransferTypeCreditBankAccount   TransferType = "credit_bank_acc"
 )
 
 type Amount struct {
