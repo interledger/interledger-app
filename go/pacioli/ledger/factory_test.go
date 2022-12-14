@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/pacioli/ledger"
 
 	test_utils "gitlab.com/fynbos/pacioli/utils"
@@ -19,7 +20,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c := &TestContainer{}
 	c.Ctx = ctx
 
-	_, db := test_utils.MigrateCockroachDB(t, ctx)
+	_, db := db.MigrateTestDB(t, ctx)
 
 	// tbClient, err := tigerbeetle_go.NewClient(0, []string{"0.0.0.0:3000"}, 1000)
 	// if err != nil {

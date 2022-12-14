@@ -1,0 +1,182 @@
+table "ledger_accounts" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "ledger_id" {
+    null = false
+    type = bigint
+  }
+  column "code" {
+    null = false
+    type = bigint
+  }
+  column "flags" {
+    null = true
+    type = smallint
+  }
+  column "debits_pending" {
+    null    = false
+    type    = bigint
+    default = sql("0:::INT8")
+  }
+  column "debits_posted" {
+    null    = false
+    type    = bigint
+    default = sql("0:::INT8")
+  }
+  column "credits_pending" {
+    null    = false
+    type    = bigint
+    default = sql("0:::INT8")
+  }
+  column "credits_posted" {
+    null    = false
+    type    = bigint
+    default = sql("0:::INT8")
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_accounts_ledgers" {
+    columns     = [column.ledger_id]
+    ref_columns = [table.ledgers.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "ledger_transfers" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "ledger_id" {
+    null = false
+    type = bigint
+  }
+  column "code" {
+    null = false
+    type = bigint
+  }
+  column "debit_account_id" {
+    null = false
+    type = uuid
+  }
+  column "credit_account_id" {
+    null = false
+    type = uuid
+  }
+  column "pending_id" {
+    null = true
+    type = uuid
+  }
+  column "amount" {
+    null = false
+    type = bigint
+  }
+  column "state" {
+    null = false
+    type = smallint
+  }
+  column "timeout_at" {
+    null = true
+    type = timestamp
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_transfers_accounts_credits" {
+    columns     = [column.credit_account_id]
+    ref_columns = [table.ledger_accounts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_transfers_accounts_debits" {
+    columns     = [column.debit_account_id]
+    ref_columns = [table.ledger_accounts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "ledgers" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = bigint
+  }
+  column "name" {
+    null = true
+    type = text
+  }
+  column "asset" {
+    null = false
+    type = text
+  }
+  column "scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+table "schema_lock" {
+  schema = schema.public
+  column "lock_id" {
+    null = false
+    type = bigint
+  }
+  primary_key {
+    columns = [column.lock_id]
+  }
+}
+table "schema_migrations" {
+  schema = schema.public
+  column "version" {
+    null = false
+    type = bigint
+  }
+  column "dirty" {
+    null = false
+    type = boolean
+  }
+  primary_key {
+    columns = [column.version]
+  }
+}
+schema "public" {
+}
