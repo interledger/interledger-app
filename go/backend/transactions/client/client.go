@@ -38,10 +38,18 @@ func (c *client) UpdateTransactionTx(ctx context.Context, tx *sqlx.Tx, args tran
 	return ops.UpdateTransactionTx(ctx, c.b, tx, args)
 }
 
-func (c *client) AddTransfers(ctx context.Context, args []transactions.CreateTransferArgs) error {
+func (c *client) AddTransfers(ctx context.Context, args []transactions.TransferArgs) error {
 	return ops.AddTransfers(ctx, c.b, args)
 }
 
-func (c *client) AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.CreateTransferArgs) error {
+func (c *client) AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
 	return ops.AddTransfersTx(ctx, c.b, tx, args)
+}
+
+func (c *client) UpdateTransfers(ctx context.Context, args []transactions.TransferArgs) error {
+	return ops.UpdateTransfers(ctx, c.b, args)
+}
+
+func (c *client) UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
+	return ops.UpdateTransfersTx(ctx, c.b, tx, args)
 }

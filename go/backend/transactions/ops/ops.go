@@ -75,9 +75,9 @@ func CreateTransaction(ctx context.Context, b Backends, args transactions.Create
 	return err
 }
 
-func updateTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transactions.UpdateTransactionArgs) error {
-	res, err := dbc.ExecContext(ctx, "UPDATE transactions SET state=$1, amount=$2, asset_code=$3, asset_scale=$4, updated_at=now() WHERE foreign_id=$5",
-		args.State, args.Amount.Value, args.Amount.Asset, args.Amount.AssetScale, args.ForeignID)
+func updateTransaction(ctx context.Context, dbc *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
+	res, err := dbc.ExecContext(ctx, "UPDATE transactions SET state=$1, amount=$2, asset_code=$3, asset_scale=$4, updated_at=now() WHERE foreign_id=$5 AND wallet_id=$6",
+		args.State, args.Amount.Value, args.Amount.Asset, args.Amount.AssetScale, args.ForeignID, args.WalletID)
 	if err != nil {
 		return fmt.Errorf("%w failed to update transaction %s", transactions.ErrInternal, err)
 	}
@@ -90,6 +90,18 @@ func updateTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transac
 		return fmt.Errorf("%w wrong number of transaciton rows updated (%d)", transactions.ErrInternal, rows)
 	}
 
+	for _, transfer := range args.UpdateTransfers {
+		tid, err := getTransactionID(ctx, dbc, transfer.ForeignID, transfer.WalletID)
+		if err != nil {
+			return err
+		}
+
+		err = updateTransfer(ctx, dbc, tid, transfer)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -99,7 +111,9 @@ func UpdateTransaction(ctx context.Context, b Backends, args transactions.Update
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	return updateTransaction(ctx, b.DB(), args)
+	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		return updateTransaction(ctx, tx, args)
+	})
 }
 
 func UpdateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
@@ -111,11 +125,12 @@ func UpdateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args tran
 	return updateTransaction(ctx, tx, args)
 }
 
-func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID string, args transactions.CreateTransferArgs) error {
+func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID string, args transactions.TransferArgs) error {
 	is := db.NewInsert("transfers").
 		Value("transaction_id", transactionID).
 		Value("foreign_id", args.ForeignID).
 		Value("type", args.Type).
+		Value("state", args.State).
 		Value("amount", args.Amount.Value).
 		Value("asset_code", args.Amount.Asset).
 		Value("asset_scale", args.Amount.AssetScale)
@@ -133,7 +148,7 @@ func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID stri
 	return nil
 }
 
-func AddTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transactions.CreateTransferArgs) error {
+func AddTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transactions.TransferArgs) error {
 	if len(args) <= 0 {
 		return nil
 	}
@@ -144,7 +159,7 @@ func AddTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transac
 	}
 
 	for _, a := range args {
-		tid, err := getTransactionID(ctx, b.DB(), a.TransactionForeignID)
+		tid, err := getTransactionID(ctx, tx, a.TransactionForeignID, a.WalletID)
 		if err != nil {
 			return err
 		}
@@ -158,7 +173,7 @@ func AddTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transac
 	return nil
 }
 
-func AddTransfers(ctx context.Context, b Backends, args []transactions.CreateTransferArgs) error {
+func AddTransfers(ctx context.Context, b Backends, args []transactions.TransferArgs) error {
 	if len(args) <= 0 {
 		return nil
 	}
@@ -170,7 +185,7 @@ func AddTransfers(ctx context.Context, b Backends, args []transactions.CreateTra
 
 	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		for _, a := range args {
-			tid, err := getTransactionID(ctx, tx, a.TransactionForeignID)
+			tid, err := getTransactionID(ctx, tx, a.TransactionForeignID, a.WalletID)
 			if err != nil {
 				return err
 			}
@@ -185,9 +200,79 @@ func AddTransfers(ctx context.Context, b Backends, args []transactions.CreateTra
 	})
 }
 
-func getTransactionID(ctx context.Context, dbc sqlx.QueryerContext, fid string) (string, error) {
+func UpdateTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transactions.TransferArgs) error {
+	if len(args) <= 0 {
+		return nil
+	}
+
+	err := b.Validator().Var(args, "dive")
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	for _, a := range args {
+		tid, err := getTransactionID(ctx, tx, a.TransactionForeignID, a.WalletID)
+		if err != nil {
+			return err
+		}
+
+		err = addTransfer(ctx, tx, tid, a)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func UpdateTransfers(ctx context.Context, b Backends, args []transactions.TransferArgs) error {
+	if len(args) <= 0 {
+		return nil
+	}
+
+	err := b.Validator().Var(args, "dive")
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+	}
+
+	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		for _, a := range args {
+			tid, err := getTransactionID(ctx, tx, a.TransactionForeignID, a.WalletID)
+			if err != nil {
+				return err
+			}
+
+			err = updateTransfer(ctx, tx, tid, a)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func updateTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID string, args transactions.TransferArgs) error {
+	res, err := dbc.ExecContext(ctx, "UPDATE transfers SET state=$1, amount=$2, asset_code=$3, asset_scale=$4, updated_at=now() WHERE foreign_id=$5 AND transaction_id=$6 AND type=$7",
+		args.State, args.Amount.Value, args.Amount.Asset, args.Amount.AssetScale, args.ForeignID, transactionID, args.Type)
+	if err != nil {
+		return fmt.Errorf("%w failed to update transfer %s", transactions.ErrInternal, err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w failed to get affected transfer rows %s", transactions.ErrInternal, err)
+	}
+	if rows != 1 {
+		return fmt.Errorf("%w wrong number of transfer rows updated (%d)", transactions.ErrInternal, rows)
+	}
+
+	return nil
+}
+
+func getTransactionID(ctx context.Context, dbc sqlx.QueryerContext, fid, walletID string) (string, error) {
 	var transID string
-	row := dbc.QueryRowxContext(ctx, "SELECT id FROM  transactions WHERE foreign_id=$1", fid)
+	row := dbc.QueryRowxContext(ctx, "SELECT id FROM  transactions WHERE foreign_id=$1 AND wallet_id=$2", fid, walletID)
 	if row.Err() != nil {
 		return "", fmt.Errorf("%w %s", transactions.ErrInternal, row.Err())
 	}

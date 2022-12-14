@@ -23,10 +23,11 @@ CREATE TABLE IF NOT EXISTS transfers
   transaction_id   UUID NOT NULL REFERENCES transactions(id),
   foreign_id       UUID NOT NULL,
   type             TEXT NOT NULL,
+  state            TEXT NOT NULL,
   amount           BIGINT NOT NULL,
   asset_code       TEXT NOT NULL,
   asset_scale      INT NOT NULL,
   created_at       TIMESTAMP NOT NULL DEFAULT now(),
   updated_at       TIMESTAMP NOT NULL DEFAULT now(),
-  CONSTRAINT transfers_transaction_id_foreign_id UNIQUE (transaction_id, foreign_id)
+  CONSTRAINT transfers_transaction_id_foreign_id_type UNIQUE (transaction_id, foreign_id, type)
 );
