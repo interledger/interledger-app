@@ -9,6 +9,7 @@ import (
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -29,7 +30,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c := &TestContainer{}
 	c.Ctx = ctx
 
-	_, c.Db = test_utils.MigrateCockroachDB(t, ctx)
+	_, c.Db = db.MigrateTestDB(t, ctx)
 
 	tbClient, err := tigerbeetle_go.NewClient(0, []string{"0.0.0.0:3000"}, 1000)
 	if err != nil {

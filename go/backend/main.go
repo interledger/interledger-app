@@ -57,7 +57,7 @@ import (
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
-	pacioli_migrations "gitlab.com/fynbos/pacioli/migrations"
+	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -313,7 +313,7 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	err = pacioli_migrations.Migrate(args.PacioliDbConnectionString)
+	err = pacioli_db.Migrate(context.Background(), args.PacioliDbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}

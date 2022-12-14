@@ -20,6 +20,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	pacioli_utils "gitlab.com/fynbos/pacioli/utils"
 )
 
@@ -114,7 +115,7 @@ func SetupPacioli(t *testing.T, ctx context.Context) pacioli.Client {
 		t.Fatal("Could not get directory path for utils/testing.")
 	}
 
-	connString, db := pacioli_utils.MigrateCockroachDB(t, ctx)
+	connString, db := pacioli_db.MigrateTestDB(t, ctx)
 	err := pacioli_utils.SeedTigerbeetle(t, moduleDir, "0.0.0.0:3000", connString)
 	if err != nil {
 		t.Fatal(err)

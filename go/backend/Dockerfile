@@ -32,5 +32,6 @@ WORKDIR /dist
 COPY --from=builder /bin/grpc_health_probe ./grpc_health_probe
 COPY --from=builder /bin/atlas /bin/atlas
 COPY --from=builder /build/backend/db/schema.hcl /build/backend/db/schema.hcl
+COPY --from=builder /build/pacioli/db/schema.hcl /build/pacioli/db/schema.hcl
 COPY --from=builder /build/main .
 ENTRYPOINT ["/dist/main"]
