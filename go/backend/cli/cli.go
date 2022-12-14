@@ -20,7 +20,7 @@ type MigrationArgs struct {
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
-	dbUrl := os.Getenv("DB_URL")
+	dbUrl := os.Getenv("DB_URL_WITH_CERTS")
 	if dbUrl == "" {
 		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
@@ -108,7 +108,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	if openPaymentsPort == "" {
 		openPaymentsPort = "8081"
 	}
-	dbUrl := os.Getenv("DB_URL")
+	dbUrl := os.Getenv("DB_URL_WITH_CERTS")
 	if dbUrl == "" {
 		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
