@@ -45,6 +45,10 @@ type testBackends struct {
 	tx       transactions.Client
 }
 
+func (b testBackends) External() external.Client {
+	return b.machnet.External()
+}
+
 func (b testBackends) LinkedAccounts() linkedaccounts.Client {
 	return b.linked
 }

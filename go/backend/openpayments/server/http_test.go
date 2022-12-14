@@ -38,7 +38,7 @@ func TestGetHandler(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -116,7 +116,7 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -222,7 +222,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -360,7 +360,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, nil)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {

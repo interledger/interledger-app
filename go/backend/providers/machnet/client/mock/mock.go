@@ -247,10 +247,10 @@ func (mr *MockClientMockRecorder) StartWalletTopup(ctx, args interface{}) *gomoc
 }
 
 // WithdrawFromWallet mocks base method.
-func (m *MockClient) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
+func (m *MockClient) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (machnet.Await, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithdrawFromWallet", ctx, args)
-	ret0, _ := ret[0].(*machnet.WalletWithdrawal)
+	ret0, _ := ret[0].(machnet.Await)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

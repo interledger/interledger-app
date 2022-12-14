@@ -10,7 +10,6 @@ import type { CanSignupRequest } from "./backend";
 import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
 import type { StartMachnetWalletTopupRequest } from "./backend";
-import type { MachnetWalletWithdrawal } from "./backend";
 import type { WithdrawFromMachnetWalletRequest } from "./backend";
 import type { WalletBalance } from "./backend";
 import type { CreateWalletRequest } from "./backend";
@@ -327,9 +326,9 @@ export interface IBackendServiceClient {
      */
     getWalletBalance(input: Empty, options?: RpcOptions): UnaryCall<Empty, WalletBalance>;
     /**
-     * @generated from protobuf rpc: WithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.MachnetWalletWithdrawal);
+     * @generated from protobuf rpc: StartWithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.Empty);
      */
-    withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>;
+    startWithdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, Empty>;
     /**
      * @generated from protobuf rpc: StartMachnetWalletTopup(backend.v1.StartMachnetWalletTopupRequest) returns (backend.v1.Empty);
      */
@@ -548,11 +547,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<Empty, WalletBalance>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: WithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.MachnetWalletWithdrawal);
+     * @generated from protobuf rpc: StartWithdrawFromMachnetWallet(backend.v1.WithdrawFromMachnetWalletRequest) returns (backend.v1.Empty);
      */
-    withdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal> {
+    startWithdrawFromMachnetWallet(input: WithdrawFromMachnetWalletRequest, options?: RpcOptions): UnaryCall<WithdrawFromMachnetWalletRequest, Empty> {
         const method = this.methods[25], opt = this._transport.mergeOptions(options);
-        return stackIntercept<WithdrawFromMachnetWalletRequest, MachnetWalletWithdrawal>("unary", this._transport, method, opt, input);
+        return stackIntercept<WithdrawFromMachnetWalletRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: StartMachnetWalletTopup(backend.v1.StartMachnetWalletTopupRequest) returns (backend.v1.Empty);

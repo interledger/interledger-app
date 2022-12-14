@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -392,67 +394,6 @@ func TestCreateAndGetWallet(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestWithdrawFromWallet(t *testing.T) {
-	t.Parallel()
-	b := NewTestBackends(t)
-	walletID := NewWallet(t, b)
-
-	externalSendUser, err := b.External().RegisterUser(context.Background(), external.User{
-		ID:   uuid.NewString(),
-		Type: external.TypeSendUser,
-	})
-	require.NoError(t, err)
-
-	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
-		WalletID:   walletID,
-		ExternalID: externalSendUser.ID,
-	})
-	require.NoError(t, err)
-
-	externalWallet, err := b.external.CreateUserWallet(context.Background(), sendUser.ID, "default")
-	require.NoError(t, err)
-
-	insert := db.NewInsert("machnet_wallets").
-		Value("id", externalWallet.ID).Returning("id").
-		Value("nickname", "default").Returning("nickname").
-		Value("send_user_id", externalWallet.UserID).Returning("send_user_id").
-		Returning("created_at").Returning("updated_at")
-	sql, values, err := insert.GetStatement()
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = b.DB().ExecContext(context.Background(), sql, values...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	walletLinkedAccountID, toLinkedAccountID := uuid.NewString(), uuid.NewString()
-	b.linkedaccounts.EXPECT().Get(gomock.Any(), walletLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
-		ID:         walletLinkedAccountID,
-		WalletID:   walletID,
-		Provider:   machnet.ProviderName,
-		ProviderID: externalWallet.ID,
-		Type:       machnet.TypeWallet,
-	}, nil).Times(1)
-	bankAccountID := uuid.NewString()
-	b.linkedaccounts.EXPECT().Get(gomock.Any(), toLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
-		ID:         toLinkedAccountID,
-		WalletID:   walletID,
-		Provider:   machnet.ProviderName,
-		ProviderID: bankAccountID,
-		Type:       machnet.TypeReceiveBankAccount,
-	}, nil).Times(1)
-
-	_, err = ops.WithdrawFromWallet(context.Background(), b, machnet.WithdrawFromWalletArgs{
-		Amount:                1000,
-		WalletLinkedAccountID: walletLinkedAccountID,
-		ToLinkedAccountID:     toLinkedAccountID,
-		IpAddress:             "10.10.10.10",
-	})
-	require.ErrorIs(t, err, machnet.ErrInternal)
-	assert.Contains(t, err.Error(), "Insufficient balance")
-}
-
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
@@ -470,6 +411,7 @@ type backends struct {
 	users          user.Client
 	kycImpl        kyc.Client
 	temporal       *mocks.Client
+	transactions   transactions.Client
 }
 
 func (b backends) Users() user.Client {
@@ -494,4 +436,8 @@ func (b backends) LinkedAccounts() linkedaccounts.Client {
 
 func (b backends) Temporal() client.Client {
 	return b.temporal
+}
+
+func (b backends) Transactions() transactions.Client {
+	return b.transactions
 }

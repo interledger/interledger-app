@@ -5,6 +5,8 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"gitlab.com/fynbos/backend/email"
@@ -27,6 +29,7 @@ type Backends interface {
 	Email() email.Client
 	Machnet() machnet.Client
 	KYC() kyc.Client
+	Transactions() transactions.Client
 }
 
 type testBackends struct {
@@ -36,6 +39,7 @@ type testBackends struct {
 	temp temporal.Client
 	em   email.Client
 	mc   machnet.Client
+	tr   transactions.Client
 }
 
 func (t testBackends) KYC() kyc.Client {
@@ -70,6 +74,10 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc}
+func (t testBackends) Transactions() transactions.Client {
+	return t.tr
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr}
 }

@@ -193,6 +193,7 @@ type (
 	}
 
 	WithdrawFromWalletArgs struct {
+		WalletID              string `validate:"uuid"`
 		Amount                uint64 `validate:"gt=0"`
 		WalletLinkedAccountID string `validate:"required,uuid"`
 		ToLinkedAccountID     string `validate:"required,uuid"`
