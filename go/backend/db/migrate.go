@@ -12,9 +12,43 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
+
+func Migrate(ctx context.Context, connString string) error {
+	_, moduleDir, _, ok := runtime.Caller(0)
+	if !ok {
+		return fmt.Errorf("Could not get directory path for utils/testing.")
+	}
+
+	_, err := exec.LookPath("atlas")
+	if err != nil {
+		return err
+	}
+	args := []string{
+		"schema",
+		"apply",
+		"--auto-approve",
+		"--dev-url",
+		connString,
+		"-u",
+		connString,
+		"-f",
+		filepath.Join(moduleDir, "../schema.hcl"),
+	}
+
+	out, err := exec.CommandContext(ctx, "atlas", args...).CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
+
+	return nil
+}
 
 func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 	_, moduleDir, _, ok := runtime.Caller(0)

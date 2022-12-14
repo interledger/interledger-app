@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"gitlab.com/fynbos/backend/migrations"
 )
 
 type MigrationArgs struct {
@@ -21,20 +20,11 @@ type MigrationArgs struct {
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
-	baseDbUrl := os.Getenv("DB_URL")
-	if baseDbUrl == "" {
-		baseDbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&max_conns=20&max_idle_conns=4"
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
-
-	connString, err := migrations.InlineSslCreds(
-		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.backend.key",
-		"/cockroach-certs/client.backend.crt",
-		"/cockroach-certs/ca.crt",
-	)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	pacioliConnectionString := strings.Replace(dbUrl, "/backend?", "/pacioli?", -1)
 
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
@@ -47,18 +37,6 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
 	if logOutputPath == "" {
 		logOutputPath = "stderr"
-	}
-
-	pacioliConnectionString := strings.Replace(baseDbUrl, "backend", "pacioli", -1)             // change user and database to pacioli
-	pacioliConnectionString = strings.Replace(pacioliConnectionString, "pacioli", "backend", 1) // change user back to backend
-	pacioliConnectionString, err = migrations.InlineSslCreds(
-		strings.Replace(pacioliConnectionString, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.backend.key",
-		"/cockroach-certs/client.backend.crt",
-		"/cockroach-certs/ca.crt",
-	)
-	if err != nil {
-		log.Fatalln(err)
 	}
 
 	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
@@ -76,7 +54,7 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	}
 
 	return &MigrationArgs{
-		ConnectionString:          connString,
+		ConnectionString:          dbUrl,
 		PacioliDbConnectionString: pacioliConnectionString,
 		UsdLedgerID:               uint32(usdLedgerID),
 		KratosUrl:                 kratosUrl,
@@ -130,10 +108,12 @@ func ParseStartArgs() (*StartArgs, error) {
 	if openPaymentsPort == "" {
 		openPaymentsPort = "8081"
 	}
-	baseDbUrl := os.Getenv("DB_URL")
-	if baseDbUrl == "" {
-		baseDbUrl = "cockroach://pacioli@cockroachdb-public:26257/pacioli?sslmode=verify-full&max_conns=20&max_idle_conns=4"
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
+	pacioliConnectionString := strings.Replace(dbUrl, "/backend?", "/pacioli?", -1)
+
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
 		kratosUrl = "http://localhost:4433"
@@ -159,25 +139,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	if err != nil {
 		return nil, errors.New("USD_LEDGER_ID must be a uint16.")
 	}
-
-	connString, err := migrations.InlineSslCreds(
-		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.backend.key",
-		"/cockroach-certs/client.backend.crt",
-		"/cockroach-certs/ca.crt",
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	pacioliConnectionString := strings.Replace(baseDbUrl, "backend", "pacioli", -1)             // change user and database to pacioli
-	pacioliConnectionString = strings.Replace(pacioliConnectionString, "pacioli", "backend", 1) // change user back to backend
-	pacioliConnectionString, err = migrations.InlineSslCreds(
-		strings.Replace(pacioliConnectionString, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.backend.key",
-		"/cockroach-certs/client.backend.crt",
-		"/cockroach-certs/ca.crt",
-	)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -220,7 +181,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	return &StartArgs{
 		Port:                      port,
 		OpenPaymentsPort:          openPaymentsPort,
-		DbConnectionString:        connString,
+		DbConnectionString:        dbUrl,
 		KratosUrl:                 kratosUrl,
 		KratosAdminUrl:            kratosAdminUrl,
 		PacioliDbConnectionString: pacioliConnectionString,
