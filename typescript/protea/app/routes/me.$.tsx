@@ -30,7 +30,7 @@ export async function loader({ request, params }: LoaderArgs) {
     return redirect(paymentPointer.url)
 
   let editable = false
-  const isUser = await hasUserSession(request)
+  const isUser = hasUserSession(request)
   if (isUser) {
     const walletPaymentPointer = await getWalletPaymentPointer(request)
     if (walletPaymentPointer.formatted == paymentPointer.formatted)
