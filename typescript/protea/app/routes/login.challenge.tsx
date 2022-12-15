@@ -4,17 +4,17 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Layouts, Snackbar, TextField } from '~/components'
 import {
   getCsrfTokenFromFlow,
+  getUserSession,
   handleFlowError,
   KRATOS_URL,
-  kratosErrorMapping,
-  requireUserSession
+  kratosErrorMapping
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  const session = await getUserSession(request)
   await requireFlow(request, flowType.PasswordChallenge)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')

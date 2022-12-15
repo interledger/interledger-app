@@ -21,6 +21,8 @@ import {
   RetryInfo
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
+import { redirect } from '@remix-run/node'
+import { route } from 'routes-gen'
 
 const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend:443'
 
@@ -73,7 +75,7 @@ function isGrpcError(res: any): res is GrpcError {
 }
 
 /**
- * This function is intended to deserialise and parse the RpcError
+ * This function is intended to deserialize and parse the RpcError
  * returned by grpcClient functions. It will return the error message
  * in the same shape of successful rpc calls, with the error message in the response.
  * @param err The error received from a grpc call.
@@ -85,6 +87,11 @@ function StatusError(err: RpcError): GrpcError {
   if (!err.meta) {
     // return null
     throw new Error('No meta on error')
+  }
+
+  switch (codeMapping(err.code)) {
+    case Code.UNAUTHENTICATED:
+      throw redirect(route('/login'))
   }
 
   if (err.meta['grpc-status-details-bin']) {
