@@ -21,14 +21,14 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 import { useCallback } from 'react'
 import type { Address } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getClientIP } from '~/lib/ip.server'
 import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  const session = await getUserSession(request)
   let flow = await requireFlow(request, flowType.PersonalDetails)
 
   return json({

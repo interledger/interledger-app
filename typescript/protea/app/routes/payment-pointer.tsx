@@ -11,13 +11,10 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { route } from 'routes-gen'
-import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar, flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const hasSession = await hasUserSession(request)
-  if (!hasSession) return redirect('/signup')
-
   let response = await openPaymentsClient
     .listWalletPaymentPointers(
       {},

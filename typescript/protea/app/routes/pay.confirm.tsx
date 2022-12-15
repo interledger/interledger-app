@@ -10,13 +10,13 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 import { randomUUID } from 'crypto'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  const session = await getUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
   const { linkedAccounts } = await getLinkedAccounts(request)
   return json({

@@ -2,7 +2,6 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Icon, Layouts, Snackbar, TextField } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -18,7 +17,6 @@ import { useState } from 'react'
 import { KycStatus } from '~/routes/index'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
   const paymentPointer = await getWalletPaymentPointer(request)
   const { kycStatus } = await getKycStatus(request)

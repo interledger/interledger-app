@@ -7,15 +7,13 @@ import {
   getCsrfTokenFromFlow,
   handleFlowError,
   KRATOS_URL,
-  kratosErrorMapping,
-  requireUserSession
+  kratosErrorMapping
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
