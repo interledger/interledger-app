@@ -5,6 +5,10 @@ import (
 	"testing"
 	"time"
 
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+
+	"github.com/golang/mock/gomock"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,8 +23,11 @@ func TestCreateIncomingPayment(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	tc := transactions_mock.NewMockClient(ctrl)
+	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, tc)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 

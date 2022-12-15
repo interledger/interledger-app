@@ -27,7 +27,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	b := NewTestBackends(t,
 		db.MigrateTestDB(t, context.Background()),
 		nil,
-		la_mock)
+		la_mock, nil)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()

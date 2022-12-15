@@ -98,23 +98,33 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 		FundTX:              uuid.NewString(),
 	}
 
+	txWallets := TransactionWalletIDs{
+		FromWalletID: uuid.NewString(),
+		ToWalletID:   uuid.NewString(),
+	}
+
 	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
+	env.OnActivity(a.GetTransactionsWallets, mock.Anything, mock.Anything).Return(&txWallets, nil)
 	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
 			ID:     fundTrx.FundTX,
 			Status: external.TransactionProcessed,
 		})
 	}, time.Minute)
+	env.OnActivity(a.UpdateTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
 	env.OnActivity(a.StartWalletTransfer, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
 			ID:     trxID,
 			Status: external.TransactionProcessed,
 		})
 	}, time.Minute*2)
+	env.OnActivity(a.UpdateTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
 
 	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
 		FromForeignID:       uuid.NewString(),
@@ -188,12 +198,14 @@ func TestCreateWalletTopupWorkflow(t *testing.T) {
 	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.AddTransaction, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
 			ID:     fundTrx.FundTX,
 			Status: external.TransactionProcessed,
 		})
 	}, time.Minute)
+	env.OnActivity(a.UpdateTransactionState, mock.Anything, mock.Anything).Return(nil)
 
 	env.ExecuteWorkflow(CreateWalletTopupWorkflow, machnet.StartWalletTopupArgs{
 		WalletLinkedAccountID: walletLinkedAccountID,

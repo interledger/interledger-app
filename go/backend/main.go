@@ -38,6 +38,7 @@ import (
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
+	"gitlab.com/fynbos/backend/migrations"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/fakecash"
@@ -49,6 +50,8 @@ import (
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
+	"gitlab.com/fynbos/backend/transactions"
+	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
@@ -216,6 +219,8 @@ func start(args *cli.StartArgs) {
 
 	b.openpayments = openpayments_client.New(b)
 
+	b.transactions = transactions_client.New(b)
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -382,6 +387,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.openpayments = openpayments_client.New(b)
 
+	b.transactions = transactions_client.New(b)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -416,6 +423,11 @@ type backends struct {
 	kyc            kyc.Client
 	email          email.Client
 	openpayments   openpayments.Client
+	transactions   transactions.Client
+}
+
+func (b backends) Transactions() transactions.Client {
+	return b.transactions
 }
 
 func (b backends) KYC() kyc.Client {

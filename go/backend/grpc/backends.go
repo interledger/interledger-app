@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
@@ -38,4 +39,5 @@ type Backends interface {
 	Waitlist() waitlist.Client
 	KYC() kyc.Client
 	Email() email.Client
+	Transactions() transactions.Client
 }

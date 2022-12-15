@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/kyc/address"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
 )
@@ -12,8 +11,7 @@ import (
 var _ transactions.Client = &client{}
 
 type client struct {
-	b   ops.Backends
-	val address.Validator
+	b ops.Backends
 }
 
 func New(b ops.Backends) transactions.Client {

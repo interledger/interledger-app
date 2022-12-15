@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/db"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 
@@ -29,7 +31,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -230,7 +232,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -281,7 +283,7 @@ func TestValidatePaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil)
 
 	cases := []struct {
 		name   string
@@ -389,7 +391,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()
@@ -510,8 +512,11 @@ func TestCreateQuote(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	laClient := linked_account_mock.NewMockClient(ctrl)
 	mClient := machnet_mock_client.NewMockClient(ctrl)
+	txClient := transactions_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db, laClient, mClient)
+	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	b := ops.NewTestBackends(t, db, laClient, mClient, txClient)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 

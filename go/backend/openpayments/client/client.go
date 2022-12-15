@@ -21,5 +21,5 @@ func New(b ops.Backends) openpayments.Client {
 }
 
 func (c client) ListTransactions(ctx context.Context, walletID string, pagination db.Pagination) ([]openpayments.Transaction, error) {
-	return ops.ListTransactions(ctx, c.b, walletID, pagination)
+	return nil, nil
 }

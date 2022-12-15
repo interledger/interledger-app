@@ -4,6 +4,10 @@ import (
 	"log"
 	"os"
 
+	transactions_client "gitlab.com/fynbos/backend/transactions/client"
+
+	"gitlab.com/fynbos/backend/transactions"
+
 	"github.com/go-playground/validator/v10"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/jmoiron/sqlx"
@@ -100,9 +104,17 @@ type backends struct {
 	twilio         twilio.Service
 	user           user.Client
 	val            *validator.Validate
+	transactions   transactions.Client
 }
 
-func (b backends) DB() *sqlx.DB {
+func (b *backends) Transactions() transactions.Client {
+	if b.transactions == nil {
+		b.transactions = transactions_client.New(b)
+	}
+	return b.transactions
+}
+
+func (b *backends) DB() *sqlx.DB {
 	if b.db == nil {
 		db, err := sqlx.Connect("postgres", "postgres://roach:roach@localhost:26257/backend")
 		if err != nil {
@@ -114,7 +126,7 @@ func (b backends) DB() *sqlx.DB {
 	return b.db
 }
 
-func (b backends) Kratos() *kratos.APIClient {
+func (b *backends) Kratos() *kratos.APIClient {
 	if b.kratos == nil {
 		b.kratos = kratos.NewAPIClient(&kratos.Configuration{
 			Servers: kratos.ServerConfigurations{
@@ -132,7 +144,7 @@ func (b backends) Kratos() *kratos.APIClient {
 	return b.kratos
 }
 
-func (b backends) Validator() *validator.Validate {
+func (b *backends) Validator() *validator.Validate {
 	if b.val == nil {
 		b.val = validator.New()
 	}
@@ -153,7 +165,7 @@ func (b *backends) Signup() signup.Client {
 	return b.signup
 }
 
-func (b backends) Twilio() twilio.Service {
+func (b *backends) Twilio() twilio.Service {
 	if b.twilio == nil {
 		tw, err := twilio.NewService(&twilio.ServiceArgs{
 			AccountSid:   "dev",
@@ -180,7 +192,7 @@ func (b *backends) Machnet() machnet.Client {
 	return b.machnet
 }
 
-func (b backends) MachnetExternal() machnet_external.Client {
+func (b *backends) MachnetExternal() machnet_external.Client {
 	return b.Machnet().External()
 }
 
@@ -202,7 +214,7 @@ func (b *backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
 }
 
-func (b backends) Temporal() temporal.Client {
+func (b *backends) Temporal() temporal.Client {
 	if b.temporal == nil {
 		tm, err := temporal_client.NewTemporalClient("localhost:7233")
 		if err != nil {

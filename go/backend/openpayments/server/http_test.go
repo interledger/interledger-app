@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+
 	"github.com/stretchr/testify/mock"
 
 	"gitlab.com/fynbos/backend/db"
@@ -116,7 +118,11 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil, nil)
+	ctrl := gomock.NewController(t)
+	tc := transactions_mock.NewMockClient(ctrl)
+	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	b := NewTestBackends(t, db, nil, nil, nil, tc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -221,8 +227,11 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	tc := transactions_mock.NewMockClient(ctrl)
+	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, tc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -356,11 +365,13 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
+	tc := transactions_mock.NewMockClient(ctrl)
+	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, nil, nil)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, nil, tc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {

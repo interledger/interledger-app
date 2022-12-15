@@ -364,7 +364,6 @@ func TestRpcService_GetWalletBalance(t *testing.T) {
 }
 
 func TestWithdrawFromMachnetWallet(t *testing.T) {
-	t.Parallel()
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
@@ -401,20 +400,14 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 			nil,
 		).Times(1)
 
-		withdrawalID := uuid.NewString()
 		c.machnet.EXPECT().WithdrawFromWallet(gomock.Any(), machnet.WithdrawFromWalletArgs{
 			WalletLinkedAccountID: walletLinkedAccountID,
 			Amount:                1000,
 			ToLinkedAccountID:     toLinkedAccountID,
 			IpAddress:             "10.10.10.10",
-		}).Return(&machnet.WalletWithdrawal{
-			ID:                withdrawalID,
-			Amount:            1000,
-			ToLinkedAccountID: toLinkedAccountID,
-			Status:            "PROCESSING",
-		}, nil).Times(1)
+		}).Return(nil, nil).Times(1)
 
-		withdrawal, err := client.WithdrawFromMachnetWallet(
+		_, err = client.StartWithdrawFromMachnetWallet(
 			user_mock.ActingAsContext(st, context.Background(), user),
 			&backendv1.WithdrawFromMachnetWalletRequest{
 				ToLinkedAccountId: toLinkedAccountID,
@@ -423,14 +416,10 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 			},
 		)
 		require.NoError(st, err)
-		assert.Equal(st, "PROCESSING", withdrawal.Status)
-		assert.Equal(st, toLinkedAccountID, withdrawal.ToLinkedAccountId)
-		assert.Equal(st, uint64(1000), withdrawal.Amount)
-		assert.Equal(st, withdrawalID, withdrawal.Id)
 	})
 
 	t.Run("validates request", func(st *testing.T) {
-		_, err := client.WithdrawFromMachnetWallet(
+		_, err := client.StartWithdrawFromMachnetWallet(
 			user_mock.ActingAsContext(st, context.Background(), user),
 			&backendv1.WithdrawFromMachnetWalletRequest{
 				ToLinkedAccountId: "asd",
@@ -452,7 +441,6 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 }
 
 func TestStartMachnetWalletTopup(t *testing.T) {
-	t.Parallel()
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
@@ -491,6 +479,7 @@ func TestStartMachnetWalletTopup(t *testing.T) {
 		).Times(1)
 
 		c.machnet.EXPECT().StartWalletTopup(gomock.Any(), machnet.StartWalletTopupArgs{
+			WalletID:              wallet.ID,
 			FromLinkedAccountID:   fromLinkedAccountID,
 			Amount:                1000,
 			WalletLinkedAccountID: walletLinkedAccountID,
