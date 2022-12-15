@@ -2,20 +2,15 @@ package grpc
 
 import (
 	"fmt"
-	"gitlab.com/fynbos/backend/email"
 	"net"
 	"testing"
+
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/kyc"
 
 	"github.com/jmoiron/sqlx"
-
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/signup"
-	test_utils "gitlab.com/fynbos/backend/utils"
-	backendv1 "gitlab.com/fynbos/proto/backend/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -27,40 +22,48 @@ import (
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/providers/fakecash"
 	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
+	"gitlab.com/fynbos/backend/signup"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_mock "gitlab.com/fynbos/backend/waitlist/client/mock"
+	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type TestContainer struct {
-	HealthService     healthcheck.Service
-	AgreementsService *agreements_mock.MockClient
-	CountriesService  *country_mock.MockClient
-	AdminAuthService  auth.Service
-	UserService       user.Client
-	fakecash          *fakecash_mock.MockClient
-	linkedaccounts    *linked_accounts_mock.MockClient
-	machnet           *machnet_mock.MockClient
-	TwilioService     *twilio.MockService
-	SignupService     *signup_mock.MockClient
-	WaitlistClient    *waitlist_mock.MockClient
-	TemporalImpl      *mocks.Client
-	TicketClient      *support_mock.MockClient
-	KYCClient         *kyc_mock.MockClient
-	EmailClient       *email_mock.MockClient
+	HealthService      healthcheck.Service
+	AgreementsService  *agreements_mock.MockClient
+	CountriesService   *country_mock.MockClient
+	AdminAuthService   auth.Service
+	UserService        user.Client
+	fakecash           *fakecash_mock.MockClient
+	linkedaccounts     *linked_accounts_mock.MockClient
+	machnet            *machnet_mock.MockClient
+	TwilioService      *twilio.MockService
+	SignupService      *signup_mock.MockClient
+	WaitlistClient     *waitlist_mock.MockClient
+	TemporalImpl       *mocks.Client
+	TicketClient       *support_mock.MockClient
+	KYCClient          *kyc_mock.MockClient
+	EmailClient        *email_mock.MockClient
+	TransactionsClient *transactions_mock.MockClient
 }
 
 func (t TestContainer) Email() email.Client {
@@ -131,6 +134,10 @@ func (t TestContainer) Waitlist() waitlist.Client {
 	return t.WaitlistClient
 }
 
+func (t TestContainer) Transactions() transactions.Client {
+	return t.TransactionsClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -142,20 +149,21 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		t.Fatal(err)
 	}
 	c := &TestContainer{
-		HealthService:     hs,
-		AgreementsService: agreements_mock.NewMockClient(ctrl),
-		CountriesService:  country_mock.NewMockClient(ctrl),
-		AdminAuthService:  auth.NewMockService(),
-		UserService:       user_mock.NewMock(),
-		fakecash:          fakecash_mock.NewMockClient(ctrl),
-		linkedaccounts:    linked_accounts_mock.NewMockClient(ctrl),
-		machnet:           machnet_mock.NewMockClient(ctrl),
-		TwilioService:     twilio.NewMockService(ctrl),
-		SignupService:     signup_mock.NewMockClient(ctrl),
-		WaitlistClient:    waitlist_mock.NewMockClient(ctrl),
-		TicketClient:      support_mock.NewMockClient(ctrl),
-		TemporalImpl:      &mocks.Client{},
-		KYCClient:         kyc_mock.NewMockClient(ctrl),
+		HealthService:      hs,
+		AgreementsService:  agreements_mock.NewMockClient(ctrl),
+		CountriesService:   country_mock.NewMockClient(ctrl),
+		AdminAuthService:   auth.NewMockService(),
+		UserService:        user_mock.NewMock(),
+		fakecash:           fakecash_mock.NewMockClient(ctrl),
+		linkedaccounts:     linked_accounts_mock.NewMockClient(ctrl),
+		machnet:            machnet_mock.NewMockClient(ctrl),
+		TwilioService:      twilio.NewMockService(ctrl),
+		SignupService:      signup_mock.NewMockClient(ctrl),
+		WaitlistClient:     waitlist_mock.NewMockClient(ctrl),
+		TicketClient:       support_mock.NewMockClient(ctrl),
+		TemporalImpl:       &mocks.Client{},
+		KYCClient:          kyc_mock.NewMockClient(ctrl),
+		TransactionsClient: transactions_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

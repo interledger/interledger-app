@@ -35,10 +35,11 @@ type testBackends struct {
 	t   temporal.Client
 	la  linkedaccounts.Client
 	em  email.Client
+	tx  transactions.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
-	return nil
+	return t.tx
 }
 
 func (t testBackends) Machnet() machnet.Client {
@@ -48,6 +49,7 @@ func (t testBackends) Machnet() machnet.Client {
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {
 	return t.la
 }
+
 func (t testBackends) Email() email.Client {
 	return t.em
 }
@@ -68,6 +70,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), t: temp, la: la}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx}
 }

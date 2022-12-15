@@ -104,6 +104,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 func (s *AdminRpcService) ListWalletTransactions(ctx context.Context, req *adminv1.ListWalletTransactionsRequest) (*adminv1.ListWalletTransactionsResponse, error) {
 	page := db.FromAdminPB(req.Page)
 
+	// TODO: move to transactions service
 	trxs, err := s.b.OpenPayments().ListTransactions(ctx, req.WalletID, db.Pagination{})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())

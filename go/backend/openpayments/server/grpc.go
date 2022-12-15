@@ -423,67 +423,13 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 }
 
 func (g *grpcServer) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
-	_, err := g.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("no login found")
-	}
-
-	wallet, err := g.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
 	page := db.PaginationFromPB(req)
-	tl, err := ops.ListTransactions(ctx, g.b, wallet.ID, page)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
 
-	resp := make([]*pb.Transaction, len(tl))
-
-	for i, t := range tl {
-		resp[i] = &pb.Transaction{
-			Id:          t.ID,
-			Type:        string(t.Type),
-			Amount:      toAmountPB(&t.Amount),
-			Source:      t.Source,
-			Destination: t.Destination,
-			Timestamp:   timestamppb.New(t.Timestamp),
-		}
-	}
-
-	return &pb.ListTransactionsResponse{Transactions: resp, Page: page.ToPB(len(resp))}, nil
+	return &pb.ListTransactionsResponse{Transactions: nil, Page: page.ToPB(0)}, nil
 }
 
 func (g *grpcServer) ListPendingTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
-	_, err := g.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("no login found")
-	}
-
-	wallet, err := g.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
 	page := db.PaginationFromPB(req)
-	tl, err := ops.ListPendingTransactions(ctx, g.b, wallet.ID, page)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
 
-	resp := make([]*pb.Transaction, len(tl))
-
-	for i, t := range tl {
-		resp[i] = &pb.Transaction{
-			Id:          t.ID,
-			Type:        string(t.Type),
-			Amount:      toAmountPB(&t.Amount),
-			Source:      t.Source,
-			Destination: t.Destination,
-			Timestamp:   timestamppb.New(t.Timestamp),
-		}
-	}
-
-	return &pb.ListTransactionsResponse{Transactions: resp, Page: page.ToPB(len(resp))}, nil
+	return &pb.ListTransactionsResponse{Transactions: nil, Page: page.ToPB(0)}, nil
 }

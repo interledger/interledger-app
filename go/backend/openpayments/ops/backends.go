@@ -30,7 +30,7 @@ type testBackends struct {
 }
 
 func (t testBackends) Transactions() transactions.Client {
-	return nil
+	return t.tc
 }
 
 func (t testBackends) Machnet() machnet.Client {
@@ -49,6 +49,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, mc machnet.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), la: la, mc: mc}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, mc machnet.Client, tc transactions.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), la: la, mc: mc, tc: tc}
 }

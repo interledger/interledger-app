@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -25,8 +27,10 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
 
+	txClient := transactions_mock.NewMockClient(ctrl)
+	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
-	b := NewTestBackends(t, db, nil, la_mock)
+	b := NewTestBackends(t, db, nil, la_mock, txClient)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
