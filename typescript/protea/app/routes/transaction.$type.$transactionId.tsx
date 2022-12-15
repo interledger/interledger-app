@@ -2,12 +2,12 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useParams } from '@remix-run/react'
 import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 import { getTransaction } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  const session = await getUserSession(request)
   const transaction = await getTransaction(
     request,
     params.type as string,

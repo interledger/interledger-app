@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useSearchParams
+} from '@remix-run/react'
 import {
   Button,
   HomeShapes,
@@ -49,12 +54,12 @@ export async function loader({ request }: LoaderArgs) {
     )
     flow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(flow, 'login')
-    return redirect(`/login?flow=${flow.id}`, {
+    url.searchParams.set('flow', flow.id)
+    return redirect(`/login?${url.searchParams}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
   return json({
-    flow,
     csrfToken: getCsrfTokenFromFlow(flow),
     isSignupGated: IS_SIGNUP_GATED
   })
@@ -66,7 +71,8 @@ export const handle = {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, csrfToken, isSignupGated } = useLoaderData<typeof loader>()
+  const { csrfToken, isSignupGated } = useLoaderData<typeof loader>()
+  const searchParams = useSearchParams()
 
   const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
@@ -101,7 +107,7 @@ export default function Page() {
       </p>
       <Form
         id='login'
-        action={`/login?flow=${flow.id}`}
+        action={`/login?${searchParams[0]}`}
         method='post'
         className='hidden'
       />

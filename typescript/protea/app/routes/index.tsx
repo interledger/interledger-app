@@ -12,7 +12,7 @@ import {
   Snackbar,
   WalletGrid
 } from '~/components'
-import { hasUserSession, requireUserSession } from '~/lib/kratos.server'
+import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import type { Transaction } from '~/lib/wallet.server'
 import {
   getKycStatus,
@@ -37,7 +37,7 @@ export enum KycStatus {
 }
 
 export async function loader({ request }: LoaderArgs) {
-  const isUser = await hasUserSession(request)
+  const isUser = hasUserSession(request)
 
   let data = {
     isUser: isUser,
@@ -78,7 +78,7 @@ export async function loader({ request }: LoaderArgs) {
       linkedAccounts,
       snackbar
     ] = await Promise.all([
-      requireUserSession(request),
+      getUserSession(request),
       getWalletPaymentPointer(request),
       getWalletBalance(request),
       getPendingTransactions(request),

@@ -4,12 +4,10 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { HomeShapes, Icon, Layouts, Router, WalletGrid } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
 import type { Transaction } from '~/lib/wallet.server'
 import { getPendingTransactions, getTransactions } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
