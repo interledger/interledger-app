@@ -914,3 +914,28 @@ func NewBucketReadWriteDeleteAccessPolicy(ctx *pulumi.Context, bucketARN string)
 
 	return readWritePolicy, nil
 }
+
+func NewBucketReadOnlyAccessPolicy(ctx *pulumi.Context, bucketARN string) (*iam.GetPolicyDocumentResult, error) {
+	readOnlyPolicy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+		Version: utils.StringPtr("2012-10-17"),
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Sid:       utils.StringPtr("ListObjectsInBucket"),
+				Effect:    utils.StringPtr("Allow"),
+				Actions:   []string{"s3:ListBucket"},
+				Resources: []string{bucketARN},
+			},
+			{
+				Sid:       utils.StringPtr("AllObjectActions"),
+				Effect:    utils.StringPtr("Allow"),
+				Actions:   []string{"s3:GetObject"},
+				Resources: []string{fmt.Sprintf("%s/*", bucketARN)},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return readOnlyPolicy, nil
+}
