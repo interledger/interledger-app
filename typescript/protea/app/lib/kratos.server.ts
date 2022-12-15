@@ -10,12 +10,6 @@ import type {
 import type { TypedResponse } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
-import {
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -37,39 +31,11 @@ export const getCsrfTokenFromFlow = (
 }
 
 /**
- * getUserSession allows fetching a user session.
- * Should only be used where requireUserSession can not be.
- * requireUserSession should be preferred where gating is required.
+ * getUserSession allows fetching a user's kratos session.
  * @param request Request received in a loader function.
  * @returns boolean - if the user has a session.
  */
 export async function getUserSession(request: Request): Promise<Session> {
-  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-    headers: request.headers
-  })
-
-  return session.json()
-}
-/**
- * hasUserSession allows determining whether there is a user, but not gate them.
- * requireUserSession should be preferred where gating is required.
- * @param request Request received in a loader function.
- * @returns boolean - if the user has a session.
- */
-export async function hasUserSession(request: Request): Promise<boolean> {
-  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-    headers: request.headers
-  })
-
-  return session.status == 200
-}
-
-/**
- * requireUserSession allows gating loader functions that require a user to be authenticated.
- * @param request Request received in a loader function.
- * @returns the session if the user has a session or else a redirect.
- */
-export async function requireUserSession(request: Request): Promise<Session> {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
@@ -83,24 +49,16 @@ export async function requireUserSession(request: Request): Promise<Session> {
       throw redirect(route('/login') + '?aal=aal2')
   }
 
-  let response = await openPaymentsClient
-    .listWalletPaymentPointers(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  } else if (response.response.pointers.length == 0) {
-    throw redirect(route('/payment-pointer'))
-  }
-
   return session.json()
+}
+
+/**
+ * hasUserSession allows determining whether the user has a valid kratos session cookie.
+ * @param request Request received in a loader function.
+ * @returns boolean - if the user has a session cookie.
+ */
+export function hasUserSession(request: Request): boolean {
+  return String(request.headers.get('cookie')).includes('ory_kratos_session')
 }
 
 /**
@@ -109,6 +67,9 @@ export async function requireUserSession(request: Request): Promise<Session> {
  * @returns void
  */
 export async function requireNoUserSession(request: Request): Promise<void> {
+  // Can immediately assume no session if there's no cookie
+  if (!hasUserSession(request)) return
+
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })

@@ -14,11 +14,9 @@ import {
 } from '~/lib/proto.server'
 import { DateTime } from 'luxon'
 import { getLinkedAccounts, getWalletPaymentPointer } from '~/lib/wallet.server'
-import { requireUserSession } from '~/lib/kratos.server'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
   const { linkedAccounts } = await getLinkedAccounts(request)
   return json({

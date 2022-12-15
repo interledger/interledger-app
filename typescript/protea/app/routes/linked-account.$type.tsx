@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useParams } from '@remix-run/react'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 import type { RadioGroupOption } from '~/components'
 import { Button, Layouts, RadioGroup, Shape } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
@@ -9,7 +9,7 @@ import { useState } from 'react'
 import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
+  await getUserSession(request)
   return null
 }
 

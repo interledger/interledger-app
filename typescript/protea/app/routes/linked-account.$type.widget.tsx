@@ -3,7 +3,6 @@ import { json } from '@remix-run/node'
 import { useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import { useCallback, useEffect } from 'react'
 import { useScript } from '~/lib/useScript'
-import { requireUserSession } from '~/lib/kratos.server'
 import {
   grpcClient,
   httpMapping,
@@ -16,8 +15,6 @@ import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  await requireUserSession(request)
-
   const linkedAccounts = await getLinkedAccounts(request)
   if (params.type == 'card') {
     await requireFlow(request, flowType.LinkCardAccount)

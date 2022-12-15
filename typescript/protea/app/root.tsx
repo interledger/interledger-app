@@ -82,7 +82,7 @@ function Document({
 }
 
 export async function loader({ request }: LoaderArgs) {
-  const isUser = await hasUserSession(request)
+  const isUser = hasUserSession(request)
   return json({ isUser, isSignupGated: IS_SIGNUP_GATED })
 }
 

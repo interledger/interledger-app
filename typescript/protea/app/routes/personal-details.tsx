@@ -1,13 +1,11 @@
 import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { requireUserSession } from '~/lib/kratos.server'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import { Button, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { Form } from '@remix-run/react'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   await requireFlow(request, flowType.PersonalDetails)
   return json({})
 }
