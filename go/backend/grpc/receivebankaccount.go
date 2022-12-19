@@ -8,7 +8,7 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (s rpcService) ListBanks(ctx context.Context, args *backendv1.Empty) (*backendv1.ListBanksResponse, error) {
+func (s *rpcService) ListBanks(ctx context.Context, args *backendv1.Empty) (*backendv1.ListBanksResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -57,7 +57,7 @@ type validateCreateReceiveBankAccount struct {
 	Name          string `validate:"required"`
 }
 
-func (s rpcService) CreateReceiveBankAccount(
+func (s *rpcService) CreateReceiveBankAccount(
 	ctx context.Context, req *backendv1.CreateReceiveBankAccountRequest,
 ) (*backendv1.LinkedAccount, error) {
 	_, err := s.b.Users().UserForContext(ctx)

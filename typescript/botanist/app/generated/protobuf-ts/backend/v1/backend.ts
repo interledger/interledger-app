@@ -71,6 +71,14 @@ export interface Transaction {
      * @generated from protobuf field: google.protobuf.Timestamp timestamp = 6;
      */
     timestamp?: Timestamp;
+    /**
+     * @generated from protobuf field: string state = 7;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: repeated backend.v1.Transfer transfers = 8;
+     */
+    transfers: Transfer[];
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -421,6 +429,27 @@ export interface PaymentPointer {
  * @generated from protobuf message backend.v1.Empty
  */
 export interface Empty {
+}
+/**
+ * @generated from protobuf message backend.v1.Transfer
+ */
+export interface Transfer {
+    /**
+     * @generated from protobuf field: string type = 1;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: string state = 2;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp timestamp = 3;
+     */
+    timestamp?: Timestamp;
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 4;
+     */
+    amount?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.GetStatementsResponse
@@ -1239,11 +1268,13 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 3, name: "amount", kind: "message", T: () => Amount },
             { no: 4, name: "source", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "timestamp", kind: "message", T: () => Timestamp }
+            { no: 6, name: "timestamp", kind: "message", T: () => Timestamp },
+            { no: 7, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "transfers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transfer }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "" };
+        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -1271,6 +1302,12 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* google.protobuf.Timestamp timestamp */ 6:
                     message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                case /* string state */ 7:
+                    message.state = reader.string();
+                    break;
+                case /* repeated backend.v1.Transfer transfers */ 8:
+                    message.transfers.push(Transfer.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1302,6 +1339,12 @@ class Transaction$Type extends MessageType<Transaction> {
         /* google.protobuf.Timestamp timestamp = 6; */
         if (message.timestamp)
             Timestamp.internalBinaryWrite(message.timestamp, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* string state = 7; */
+        if (message.state !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.state);
+        /* repeated backend.v1.Transfer transfers = 8; */
+        for (let i = 0; i < message.transfers.length; i++)
+            Transfer.internalBinaryWrite(message.transfers[i], writer.tag(8, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2473,6 +2516,74 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Transfer$Type extends MessageType<Transfer> {
+    constructor() {
+        super("backend.v1.Transfer", [
+            { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "timestamp", kind: "message", T: () => Timestamp },
+            { no: 4, name: "amount", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<Transfer>): Transfer {
+        const message = { type: "", state: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Transfer>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Transfer): Transfer {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string type */ 1:
+                    message.type = reader.string();
+                    break;
+                case /* string state */ 2:
+                    message.state = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp timestamp */ 3:
+                    message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                case /* backend.v1.Amount amount */ 4:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Transfer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string type = 1; */
+        if (message.type !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.type);
+        /* string state = 2; */
+        if (message.state !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.state);
+        /* google.protobuf.Timestamp timestamp = 3; */
+        if (message.timestamp)
+            Timestamp.internalBinaryWrite(message.timestamp, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount amount = 4; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Transfer
+ */
+export const Transfer = new Transfer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetStatementsResponse$Type extends MessageType<GetStatementsResponse> {
     constructor() {
@@ -5240,5 +5351,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty },
-    { name: "IsMugAvailable", options: {}, I: IsMugAvailableRequest, O: IsMugAvailableResponse }
+    { name: "IsMugAvailable", options: {}, I: IsMugAvailableRequest, O: IsMugAvailableResponse },
+    { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse }
 ]);

@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
@@ -50,4 +52,8 @@ func (c *client) UpdateTransfers(ctx context.Context, args []transactions.Transf
 
 func (c *client) UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
 	return ops.UpdateTransfersTx(ctx, c.b, tx, args)
+}
+
+func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	return ops.ListTransactions(ctx, c.b, walletID, page)
 }

@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	db "gitlab.com/fynbos/backend/db"
 	transactions "gitlab.com/fynbos/backend/transactions"
 )
 
@@ -90,6 +91,21 @@ func (m *MockClient) CreateTransactionTx(ctx context.Context, tx *sqlx.Tx, args 
 func (mr *MockClientMockRecorder) CreateTransactionTx(ctx, tx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransactionTx", reflect.TypeOf((*MockClient)(nil).CreateTransactionTx), ctx, tx, args)
+}
+
+// ListTransactions mocks base method.
+func (m *MockClient) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTransactions", ctx, page, walletID)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTransactions indicates an expected call of ListTransactions.
+func (mr *MockClientMockRecorder) ListTransactions(ctx, page, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactions", reflect.TypeOf((*MockClient)(nil).ListTransactions), ctx, page, walletID)
 }
 
 // UpdateTransaction mocks base method.

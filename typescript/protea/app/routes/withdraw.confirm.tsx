@@ -91,7 +91,7 @@ export async function action({ request }: ActionArgs) {
   const clientIpAddress = getClientIP(request)
 
   const response = await grpcClient
-    .withdrawFromMachnetWallet(
+    .startWithdrawFromMachnetWallet(
       {
         toLinkedAccountId: flow.data.toLinkedAccountId,
         amount: flow.data.receiveAmount,

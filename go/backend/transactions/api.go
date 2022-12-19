@@ -3,6 +3,8 @@ package transactions
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,4 +17,6 @@ type Client interface {
 	AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []TransferArgs) error
 	UpdateTransfers(ctx context.Context, args []TransferArgs) error
 	UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []TransferArgs) error
+
+	ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
 }

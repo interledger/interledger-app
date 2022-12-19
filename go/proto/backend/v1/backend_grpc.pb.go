@@ -32,6 +32,7 @@ type OpenPaymentServiceClient interface {
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
+	//deprecated
 	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	ListPendingTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 }
@@ -166,6 +167,7 @@ type OpenPaymentServiceServer interface {
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
 	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
+	//deprecated
 	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	ListPendingTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 }
@@ -539,6 +541,8 @@ type BackendServiceClient interface {
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
 	SetSignupComplete(ctx context.Context, in *SetSignupCompleteRequest, opts ...grpc.CallOption) (*Empty, error)
 	IsMugAvailable(ctx context.Context, in *IsMugAvailableRequest, opts ...grpc.CallOption) (*IsMugAvailableResponse, error)
+	//Transactions
+	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 }
 
 type backendServiceClient struct {
@@ -828,6 +832,15 @@ func (c *backendServiceClient) IsMugAvailable(ctx context.Context, in *IsMugAvai
 	return out, nil
 }
 
+func (c *backendServiceClient) ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
+	out := new(ListTransactionsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListTransactions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -869,6 +882,8 @@ type BackendServiceServer interface {
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
 	SetSignupComplete(context.Context, *SetSignupCompleteRequest) (*Empty, error)
 	IsMugAvailable(context.Context, *IsMugAvailableRequest) (*IsMugAvailableResponse, error)
+	//Transactions
+	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -967,6 +982,9 @@ func (UnimplementedBackendServiceServer) SetSignupComplete(context.Context, *Set
 }
 func (UnimplementedBackendServiceServer) IsMugAvailable(context.Context, *IsMugAvailableRequest) (*IsMugAvailableResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsMugAvailable not implemented")
+}
+func (UnimplementedBackendServiceServer) ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTransactions not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1538,6 +1556,24 @@ func _BackendService_IsMugAvailable_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListTransactions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListTransactions(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1668,6 +1704,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsMugAvailable",
 			Handler:    _BackendService_IsMugAvailable_Handler,
+		},
+		{
+			MethodName: "ListTransactions",
+			Handler:    _BackendService_ListTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS transactions
   foreign_id    UUID NOT NULL,
   type          TEXT NOT NULL,
   state         TEXT NOT NULL,
+  provider      TEXT NOT NULL,
   source        TEXT,
   destination   TEXT,
   note          TEXT,
