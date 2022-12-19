@@ -1,5 +1,7 @@
 package transactions
 
+import "time"
+
 type TransactionType string
 
 const (
@@ -67,4 +69,26 @@ type TransferArgs struct {
 	Type                 TransferType `validate:"required"`
 	Amount               Amount
 	State                State `validate:"required"`
+}
+
+// Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.
+// This is used for listing transactions for the frontend
+type Transaction struct {
+	Source      string
+	Destination string
+	Note        string
+	Type        TransactionType
+	Timestamp   time.Time
+	Provider    Provider
+	State       State
+	Amount      Amount
+	Transfers   []Transfer
+}
+
+// Transfer is the underlying transfers that make up a single Transactions
+type Transfer struct {
+	Type      TransferType
+	Amount    Amount
+	State     State
+	Timestamp time.Time
 }

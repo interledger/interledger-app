@@ -4,6 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"gitlab.com/fynbos/backend/db"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/transactions"
@@ -186,6 +190,152 @@ func TestUpdateTransfers(t *testing.T) {
 			tc.update.WalletID = wallet.ID
 			err = ops.UpdateTransfers(ctx, b, []transactions.TransferArgs{tc.update})
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestListTransaction(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := test_utils.MigrateCockroachDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+
+	cases := []struct {
+		name string
+		args transactions.CreateTransactionArgs
+		len  int
+	}{
+		{
+			name: "no transfers",
+			len:  1,
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: transactions.Amount{
+					Value:      1000,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+			},
+		},
+		{
+			name: "ignore incoming openpayments pending",
+			len:  0,
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: transactions.Amount{
+					Value:      1000,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+			},
+		},
+		{
+			name: "with transfers",
+			len:  1,
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: transactions.Amount{
+					Value:      1000,
+					Asset:      "USD",
+					AssetScale: 2,
+				},
+				Transfers: []transactions.TransferArgs{
+					{
+						ForeignID: uuid.NewString(),
+						Type:      transactions.TransferTypeDebitCard,
+						State:     transactions.StateCompleted,
+						Amount: transactions.Amount{
+							Value:      1000,
+							Asset:      "USD",
+							AssetScale: 2,
+						},
+					},
+					{
+						ForeignID: uuid.NewString(),
+						Type:      transactions.TransferTypeCreditMachnetWallet,
+						State:     transactions.StateFailed,
+						Amount: transactions.Amount{
+							Value:      1000,
+							Asset:      "USD",
+							AssetScale: 2,
+						},
+					},
+					{
+						ForeignID: uuid.NewString(),
+						Type:      transactions.TransferTypeDebitMachnetWallet,
+						State:     transactions.StateFailed,
+						Amount: transactions.Amount{
+							Value:      1000,
+							Asset:      "USD",
+							AssetScale: 2,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+
+			err = ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			txs, err := ops.ListTransactions(ctx, b, wallet.ID, db.Pagination{})
+			require.NoError(t, err)
+			require.Len(t, txs, tc.len)
+
+			if len(txs) == 0 {
+				return
+			}
+
+			for _, tx := range txs {
+				assert.Equal(t, tc.args.State, tx.State)
+				assert.Equal(t, tc.args.Provider, tx.Provider)
+				assert.Equal(t, tc.args.ForeignType, tx.Type)
+				assert.Equal(t, tc.args.Source, tx.Source)
+				assert.Equal(t, tc.args.Destination, tx.Destination)
+				assert.Equal(t, tc.args.Note, tx.Note)
+				for _, tr := range tx.Transfers {
+					var found bool
+					for _, etr := range tc.args.Transfers {
+						if etr.State == tr.State && etr.Type == tr.Type {
+							found = true
+							break
+						}
+					}
+					assert.True(t, found)
+				}
+			}
 		})
 	}
 }

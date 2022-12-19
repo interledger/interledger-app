@@ -31,6 +31,8 @@ service OpenPaymentService {
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
+
+  //deprecated
   rpc ListTransactions(PaginationRequest) returns (ListTransactionsResponse);
   rpc ListPendingTransactions(PaginationRequest) returns (ListTransactionsResponse);
 }
@@ -42,6 +44,8 @@ message Transaction {
   string source = 4;
   string destination = 5;
   google.protobuf.Timestamp timestamp = 6;
+  string state = 7;
+  repeated Transfer transfers = 8;
 }
 
 message ListTransactionsResponse {
@@ -202,6 +206,16 @@ service BackendService {
   rpc CanSignup(CanSignupRequest) returns(CanSignupResponse);
   rpc SetSignupComplete(SetSignupCompleteRequest) returns(Empty);
   rpc IsMugAvailable(IsMugAvailableRequest) returns(IsMugAvailableResponse);
+
+  //Transactions
+  rpc ListTransactions(PaginationRequest) returns (ListTransactionsResponse);
+}
+
+message Transfer {
+  string type = 1;
+  string state = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  Amount amount = 4;
 }
 
 message GetStatementsResponse {

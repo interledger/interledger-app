@@ -2,7 +2,9 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -20,6 +22,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transac
 		Value("foreign_id", args.ForeignID).
 		Value("type", args.ForeignType).
 		Value("state", args.State).
+		Value("provider", args.Provider).
 		Value("amount", args.Amount.Value).
 		Value("asset_code", args.Amount.Asset).
 		Value("asset_scale", args.Amount.AssetScale)
@@ -282,4 +285,102 @@ func getTransactionID(ctx context.Context, dbc sqlx.QueryerContext, fid, walletI
 	}
 
 	return transID, nil
+}
+
+const (
+	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, updated_at `
+	transferCols    = ` foreign_id, type, state, amount, asset_scale, asset_code, updated_at `
+)
+
+type dbTransaction struct {
+	ID          string                       `db:"id"`
+	ForeignID   string                       `db:"foreign_id"`
+	Type        transactions.TransactionType `db:"type"`
+	State       transactions.State           `db:"state"`
+	Provider    transactions.Provider        `db:"provider"`
+	Note        sql.NullString               `db:"note"`
+	Source      sql.NullString               `db:"source"`
+	Destination sql.NullString               `db:"destination"`
+	Amount      uint64                       `db:"amount"`
+	Scale       int                          `db:"asset_scale"`
+	Asset       string                       `db:"asset_code"`
+	Timestamp   time.Time                    `db:"updated_at"`
+}
+
+func ListTransactions(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
+	var txs []dbTransaction
+	err := b.DB().SelectContext(ctx, &txs,
+		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2,$3) or (state=$4 and type<>$5)) ORDER BY updated_at DESC %s", transactionCols, page.SQL()),
+		walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	if len(txs) == 0 {
+		return nil, nil
+	}
+
+	resp := make([]transactions.Transaction, len(txs))
+
+	for i, t := range txs {
+		trs, err := getTransfers(ctx, b, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		resp[i] = transactions.Transaction{
+			Source:      t.Source.String,
+			Destination: t.Destination.String,
+			Type:        t.Type,
+			Timestamp:   t.Timestamp,
+			Note:        t.Note.String,
+			State:       t.State,
+			Provider:    t.Provider,
+			Amount: transactions.Amount{
+				Value:      t.Amount,
+				Asset:      t.Asset,
+				AssetScale: t.Scale,
+			},
+			Transfers: trs,
+		}
+	}
+
+	return resp, err
+}
+
+type dbTransfer struct {
+	TransactionID string                    `db:"transaction_id"`
+	ForeignID     string                    `db:"foreign_id"`
+	Type          transactions.TransferType `db:"type"`
+	State         transactions.State        `db:"state"`
+	Amount        uint64                    `db:"amount"`
+	Scale         int                       `db:"asset_scale"`
+	Asset         string                    `db:"asset_code"`
+	Timestamp     time.Time                 `db:"updated_at"`
+}
+
+func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.Transfer, error) {
+	var trs []dbTransfer
+	err := b.DB().SelectContext(ctx, &trs, fmt.Sprintf("SELECT %s FROM transfers WHERE transaction_id=$1", transferCols), txID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	if len(trs) == 0 {
+		return nil, nil
+	}
+
+	res := make([]transactions.Transfer, len(trs))
+	for i, t := range trs {
+		res[i] = transactions.Transfer{
+			Type: t.Type,
+			Amount: transactions.Amount{
+				Value:      t.Amount,
+				Asset:      t.Asset,
+				AssetScale: t.Scale,
+			},
+			State: t.State,
+		}
+	}
+
+	return res, nil
 }

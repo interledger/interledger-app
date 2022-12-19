@@ -109,6 +109,8 @@ export interface IOpenPaymentServiceClient {
      */
     lookupOutgoingPayment(input: LookupOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<LookupOutgoingPaymentRequest, OutgoingPayment>;
     /**
+     * deprecated
+     *
      * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
@@ -197,6 +199,8 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<LookupOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
     }
     /**
+     * deprecated
+     *
      * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
@@ -351,6 +355,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: IsMugAvailable(backend.v1.IsMugAvailableRequest) returns (backend.v1.IsMugAvailableResponse);
      */
     isMugAvailable(input: IsMugAvailableRequest, options?: RpcOptions): UnaryCall<IsMugAvailableRequest, IsMugAvailableResponse>;
+    /**
+     * Transactions
+     *
+     * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
+     */
+    listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -589,5 +599,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     isMugAvailable(input: IsMugAvailableRequest, options?: RpcOptions): UnaryCall<IsMugAvailableRequest, IsMugAvailableResponse> {
         const method = this.methods[30], opt = this._transport.mergeOptions(options);
         return stackIntercept<IsMugAvailableRequest, IsMugAvailableResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Transactions
+     *
+     * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
+     */
+    listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
+        const method = this.methods[31], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
 }
