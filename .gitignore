@@ -15,3 +15,5 @@
 *.code-workspace
 
 .fynbos/**
+
+typescript/**/node_modules
