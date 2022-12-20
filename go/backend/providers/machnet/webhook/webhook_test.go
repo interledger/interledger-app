@@ -32,7 +32,7 @@ func TestHandleUserKYCEvent(t *testing.T) {
 
 	kycEvent := external.Event{
 		ID:             uuid.NewString(),
-		EventName:      external.UserKYCInProgress,
+		EventName:      external.UserKYCInProgressEvent,
 		UserID:         mu.ID,
 		SubscriptionID: uuid.NewString(),
 		Timestamp:      time.Now().UTC().Format(time.RFC3339),
@@ -48,19 +48,24 @@ func TestHandleUserKYCEvent(t *testing.T) {
 		ActivityName:  "ActivityName",
 	})
 	require.NoError(t, err)
-	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.UserEventsChannel, kycEvent).Return(nil)
+
+	exMu, err := b.external.GetUserByID(context.Background(), mu.ID)
+	require.NoError(t, err)
+
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.UserEventsChannel, exMu).Return(nil)
 
 	err = webhook.HandleUserKYCEvent(context.Background(), b, kycEvent)
 	require.NoError(t, err)
 
+	// Event doesn't do anything if the source of truth differs
 	u, err := ops.GetUserByID(context.Background(), b, mu.ID)
 	require.NoError(t, err)
-	assert.Equal(t, machnet.KYCStatusInProgress, u.KYCStatus)
+	assert.Equal(t, machnet.KYCStatusUnknown, u.KYCStatus)
 
 	// User Not Found
 	kycEvent = external.Event{
 		ID:             uuid.NewString(),
-		EventName:      external.UserKYCInProgress,
+		EventName:      external.UserKYCInProgressEvent,
 		UserID:         uuid.NewString(),
 		SubscriptionID: uuid.NewString(),
 		Timestamp:      time.Now().UTC().Format(time.RFC3339),
@@ -73,14 +78,20 @@ func TestHandleUserKYCEvent(t *testing.T) {
 	// User Verified
 	kycEvent = external.Event{
 		ID:             uuid.NewString(),
-		EventName:      external.UserKYCVerified,
+		EventName:      external.UserKYCVerifiedEvent,
 		UserID:         mu.ID,
 		SubscriptionID: uuid.NewString(),
 		Timestamp:      time.Now().UTC().Format(time.RFC3339),
 		Payload:        []byte("{}"),
 	}
 
-	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.UserEventsChannel, kycEvent).Return(nil)
+	_, err = b.external.InitiateKYC(context.Background(), exMu.ID)
+	require.NoError(t, err)
+
+	exMu, err = b.external.GetUserByID(context.Background(), exMu.ID)
+	require.NoError(t, err)
+
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.UserEventsChannel, exMu).Return(nil)
 
 	err = webhook.HandleUserKYCEvent(context.Background(), b, kycEvent)
 	require.NoError(t, err)
@@ -193,21 +204,26 @@ func TestValidateWebhook(t *testing.T) {
 
 func TestTransactionEventWebhook(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 	b := newTestBackends(t)
 	walletID := newWallet(t, b)
+	mu := newMachnetUser(t, b, walletID)
+
+	tx, err := b.external.CreateTransaction(ctx, external.CreateTransactionArgs{
+		FromUserID: mu.ID,
+	})
+	require.NoError(t, err)
+
 	e := external.Event{
 		ID:         uuid.NewString(),
 		EventName:  external.TransactionProcessedEvent,
-		ResourceID: uuid.NewString(),
-		UserID:     uuid.NewString(),
+		ResourceID: tx.ID,
+		UserID:     tx.UserID,
 	}
+
 	workflowID := uuid.NewString()
 	worklflowRunID := uuid.NewString()
-	_, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
-		WalletID:   walletID,
-		ExternalID: e.UserID,
-	})
-	require.NoError(t, err)
+
 	_, err = ops.CreateTransactionWorkflowRef(context.Background(), b, machnet.CreateTransactionWorkflowRefArgs{
 		ID:            e.ResourceID,
 		SendUserID:    e.UserID,
@@ -215,7 +231,7 @@ func TestTransactionEventWebhook(t *testing.T) {
 		WorkflowRunID: worklflowRunID,
 	})
 	require.NoError(t, err)
-	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.TransactionEventsChannel, e).Return(nil)
+	b.temporal.On("SignalWorkflow", context.Background(), workflowID, worklflowRunID, ops.TransactionEventsChannel, tx).Return(nil)
 
 	err = webhook.HandleEvent(context.Background(), b, e)
 	require.NoError(t, err)

@@ -41,7 +41,7 @@ func (c Client) RegisterUser(ctx context.Context, user external.User) (*external
 
 	ret := user
 	ret.ID = uuid.NewString()
-	ret.Status = external.StatusUnverified
+	ret.Status = external.UserKYCUnverified
 	if user.Type == external.TypeReceiveUser {
 		sendUser, err := c.GetUserByID(ctx, user.SendUserID)
 		if err != nil {
@@ -97,12 +97,12 @@ func (c Client) InitiateKYC(ctx context.Context, userID string) (*external.Initi
 		return nil, external.ErrNotFound
 	}
 
-	user.Status = external.StatusVerified
+	user.Status = external.UserKYCVerified
 	c.users[userID] = user
 
 	return &external.InitiateKycResponse{
 		Success: true,
-		Status:  external.StatusVerified,
+		Status:  external.UserKYCVerified,
 	}, nil
 }
 
@@ -234,6 +234,7 @@ func (c Client) CreateTransaction(
 		FundingsourceType: args.FundingSourceType,
 		DeliveryStatus:    external.DeliveryStatusNone,
 		To:                args.To,
+		Status:            external.TransactionProcessed,
 	}
 
 	c.transactions[trx.ID] = trx

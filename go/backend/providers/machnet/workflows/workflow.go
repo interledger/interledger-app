@@ -54,27 +54,27 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 		return "", err
 	}
 
-	trxChan := workflow.GetSignalChannel(ctx, ops.UserEventsChannel)
+	userChan := workflow.GetSignalChannel(ctx, ops.UserEventsChannel)
 	for {
-		var kycEvent external.Event
-		trxChan.Receive(ctx, &kycEvent)
-		logger.Info("status event: external user ID=", kycEvent.UserID, "status=", kycEvent.EventName)
-		if kycEvent.UserID != externalUserID { // not for this user
+		var user external.User
+		userChan.Receive(ctx, &user)
+		logger.Info("status event: external user ID=", user.ID, "status=", user.Status)
+		if user.ID != externalUserID { // not for this user
 			logger.Error("Received notification for different user.")
 			continue
 		}
 
-		if external.UserKYCVerified == kycEvent.EventName {
+		if external.UserKYCVerified == user.Status {
 			break
 		}
 
-		if kycEvent.EventName == external.UserKYCRetry ||
-			kycEvent.EventName == external.UserKYCSuspended {
+		if user.Status == external.UserKYCRetry ||
+			user.Status == external.UserKYCSuspended {
 			err = workflow.ExecuteActivity(ctx, a.CompleteUserWorkflowRef, workflowArgs).Get(ctx, nil)
 			if err != nil {
 				logger.Error("CompleteUserWorkflowRef Activity failed for failed KYC event.", "Error", err)
 			}
-			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("user (%s) KYC failed (%s)", externalUserID, kycEvent.EventName), "ErrInternal", external.ErrInternal)
+			return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("user (%s) KYC failed (%s)", externalUserID, user.Status), "ErrInternal", external.ErrInternal)
 		}
 	}
 
@@ -154,23 +154,23 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			})
 
 			selector.AddReceive(trxChan, func(c workflow.ReceiveChannel, _ bool) {
-				var transactionEvent external.Event
-				trxChan.Receive(ctx, &transactionEvent)
-				logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
-				if transactionEvent.ResourceID != fundWalletTX.FundTX { // not for this transaction
+				var transaction external.Transaction
+				trxChan.Receive(ctx, &transaction)
+				logger.Info("status event: transactionID=", transaction.ID, "status=", transaction.Status)
+				if transaction.ID != fundWalletTX.FundTX { // not for this transaction
 					logger.Error("Received notification for different transaction.")
 					return
 				}
 
-				if external.TransactionProcessedEvent == transactionEvent.EventName {
+				if external.TransactionProcessed == transaction.Status {
 					doBreak = true
 					return
 				}
 
-				if transactionEvent.EventName == external.TransactionFailedEvent ||
-					transactionEvent.EventName == external.TransactionCancelledEvent {
+				if transaction.Status == external.TransactionFailed ||
+					transaction.Status == external.TransactionCancelled {
 					doBreak = true
-					errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
+					errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transaction.Status), "ErrInternal", external.ErrInternal)
 				}
 			})
 
@@ -230,23 +230,23 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		})
 
 		selector.AddReceive(trxChan, func(c workflow.ReceiveChannel, _ bool) {
-			var transactionEvent external.Event
-			trxChan.Receive(ctx, &transactionEvent)
-			logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
-			if transactionEvent.ResourceID != transferID { // not for this transaction
+			var transaction external.Transaction
+			trxChan.Receive(ctx, &transaction)
+			logger.Info("status event: transactionID=", transaction.ID, "status=", transaction.Status)
+			if transaction.ID != transferID { // not for this transaction
 				logger.Error("Received notification for different transaction.")
 				return
 			}
 
-			if external.TransactionProcessedEvent == transactionEvent.EventName {
+			if external.TransactionProcessed == transaction.Status {
 				doBreak = true
 				return
 			}
 
-			if transactionEvent.EventName == external.TransactionFailedEvent ||
-				transactionEvent.EventName == external.TransactionCancelledEvent {
+			if transaction.Status == external.TransactionFailed ||
+				transaction.Status == external.TransactionCancelled {
 				doBreak = true
-				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet transfer failed failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
+				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("wallet transfer failed failed event(%s)", transaction.Status), "ErrInternal", external.ErrInternal)
 			}
 		})
 
@@ -365,23 +365,23 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 		})
 
 		selector.AddReceive(trxChan, func(c workflow.ReceiveChannel, _ bool) {
-			var transactionEvent external.Event
-			trxChan.Receive(ctx, &transactionEvent)
-			logger.Info("status event: transactionID=", transactionEvent.ResourceID, "status=", transactionEvent.EventName)
-			if transactionEvent.ResourceID != fundWalletTX.FundTX { // not for this transaction
+			var transaction external.Transaction
+			trxChan.Receive(ctx, &transaction)
+			logger.Info("status event: transactionID=", transaction.ID, "status=", transaction.Status)
+			if transaction.ID != fundWalletTX.FundTX { // not for this transaction
 				logger.Error("Received notification for different transaction.")
 				return
 			}
 
-			if external.TransactionProcessedEvent == transactionEvent.EventName {
+			if external.TransactionProcessed == transaction.Status {
 				doBreak = true
 				return
 			}
 
-			if transactionEvent.EventName == external.TransactionFailedEvent ||
-				transactionEvent.EventName == external.TransactionCancelledEvent {
+			if transaction.Status == external.TransactionFailed ||
+				transaction.Status == external.TransactionCancelled {
 				doBreak = true
-				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transactionEvent.EventName), "ErrInternal", external.ErrInternal)
+				errToReturn = temporal.NewNonRetryableApplicationError(fmt.Sprintf("fund user wallet transaction failed event(%s)", transaction.Status), "ErrInternal", external.ErrInternal)
 			}
 		})
 
