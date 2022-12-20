@@ -582,7 +582,7 @@ func TestActivity_WithdrawFromWallet(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnetExt).AnyTimes()
 	b := testBackends{
-		db:      test_utils.MigrateCockroachDB(t, context.Background()),
+		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,

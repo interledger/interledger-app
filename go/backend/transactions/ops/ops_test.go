@@ -13,13 +13,12 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
 	users_client "gitlab.com/fynbos/backend/user/client"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestCreateTransaction(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -118,7 +117,7 @@ func TestCreateTransaction(t *testing.T) {
 func TestUpdateTransfers(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -197,7 +196,7 @@ func TestUpdateTransfers(t *testing.T) {
 func TestListTransaction(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	dbc := test_utils.MigrateCockroachDB(t, ctx)
+	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
