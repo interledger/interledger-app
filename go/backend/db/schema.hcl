@@ -1,0 +1,1204 @@
+table "agreement_signatures" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "agreement_id" {
+    null = false
+    type = text
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "ip_address" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_agreement" {
+    columns     = [column.agreement_id]
+    ref_columns = [table.agreements.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "user_id_ind" {
+    columns = [column.user_id]
+  }
+}
+table "agreements" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = text
+  }
+  column "name" {
+    null = false
+    type = text
+  }
+  column "version" {
+    null = false
+    type = text
+  }
+  column "content" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+table "countries" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "name" {
+    null = false
+    type = text
+  }
+  column "alpha_2" {
+    null = false
+    type = character(2)
+  }
+  column "alpha_3" {
+    null = false
+    type = character(3)
+  }
+  column "numeric_code" {
+    null = false
+    type = smallint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "alpha_2_uniq" {
+    unique  = true
+    columns = [column.alpha_2]
+  }
+}
+table "individual_kyc_details" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "revision" {
+    null = false
+    type = bigint
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "country_code" {
+    null = false
+    type = text
+  }
+  column "first_name" {
+    null = false
+    type = text
+  }
+  column "last_name" {
+    null = false
+    type = text
+  }
+  column "gender" {
+    null = false
+    type = bigint
+  }
+  column "date_of_birth" {
+    null = true
+    type = date
+  }
+  column "ip_address" {
+    null = false
+    type = text
+  }
+  column "address" {
+    null = true
+    type = jsonb
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_individual_kyc_details_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "wallet_id_ind" {
+    columns = [column.wallet_id]
+  }
+  index "wallet_id_revision_uniq" {
+    unique  = true
+    columns = [column.wallet_id, column.revision]
+  }
+}
+table "linked_accounts" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "name" {
+    null = false
+    type = text
+  }
+  column "mask" {
+    null = false
+    type = text
+  }
+  column "provider" {
+    null = false
+    type = text
+  }
+  column "provider_id" {
+    null = false
+    type = text
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "deleted_at" {
+    null = true
+    type = timestamp
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id_provider_provider_id_uniq" {
+    unique  = true
+    columns = [column.wallet_id, column.provider, column.provider_id]
+  }
+}
+table "machnet_receive_bank_accounts" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "account_number" {
+    null = false
+    type = text
+  }
+  column "bank_id" {
+    null = false
+    type = bigint
+  }
+  column "branch_id" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "account_type" {
+    null    = false
+    type    = bigint
+    default = sql("0:::INT8")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_wallet_id_ref_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "machnet_receive_user_bank_accounts" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "receive_bank_account_id" {
+    null = false
+    type = uuid
+  }
+  column "receive_user_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_receive_bank_account_id_ref_machnet_receive_bank_accounts" {
+    columns     = [column.receive_bank_account_id]
+    ref_columns = [table.machnet_receive_bank_accounts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_receive_user_id_ref_machnet_receive_users" {
+    columns     = [column.receive_user_id]
+    ref_columns = [table.machnet_receive_users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "receive_bank_account_id_ind" {
+    columns = [column.receive_bank_account_id]
+  }
+  index "receive_user_id_receive_bank_account_id_uniq" {
+    unique  = true
+    columns = [column.receive_bank_account_id, column.receive_user_id]
+  }
+}
+table "machnet_receive_users" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "receive_wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "send_user_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_receive_wallet_id_ref_wallets" {
+    columns     = [column.receive_wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_send_user_id_ref_machnet_users" {
+    columns     = [column.send_user_id]
+    ref_columns = [table.machnet_users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "receive_wallet_id_ind" {
+    columns = [column.receive_wallet_id]
+  }
+  index "send_user_id_receive_wallet_id_uniq" {
+    unique  = true
+    columns = [column.receive_wallet_id, column.send_user_id]
+  }
+}
+table "machnet_transactions_workflow_ref" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+  }
+  column "send_user_id" {
+    null = false
+    type = uuid
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "workflow_run_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "activity_name" {
+    null = true
+    type = text
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_send_user_id_ref_machnet_users" {
+    columns     = [column.send_user_id]
+    ref_columns = [table.machnet_users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "machnet_users" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "kyc_status" {
+    null    = false
+    type    = bigint
+    default = sql("0:::INT8")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_wallet_id_ref_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "machnet_users_workflow_ref" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "workflow_run_id" {
+    null = false
+    type = text
+  }
+  column "activity_name" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null    = false
+    type    = boolean
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_user_id_ref_machnet_users" {
+    columns     = [column.user_id]
+    ref_columns = [table.machnet_users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "user_id_ind" {
+    columns = [column.user_id]
+  }
+}
+table "machnet_wallets" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+  }
+  column "send_user_id" {
+    null = false
+    type = uuid
+  }
+  column "nickname" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_send_user_id_ref_machnet_users" {
+    columns     = [column.send_user_id]
+    ref_columns = [table.machnet_users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "send_user_id_nickname_uniq" {
+    unique  = true
+    columns = [column.send_user_id, column.nickname]
+  }
+}
+table "machnet_webhook" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "event_name" {
+    null = false
+    type = text
+  }
+  column "resource_id" {
+    null = false
+    type = text
+  }
+  column "subscription_id" {
+    null = false
+    type = text
+  }
+  column "payload" {
+    null = true
+    type = jsonb
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_user_id_ref_machnet_users" {
+    columns     = [column.user_id]
+    ref_columns = [table.machnet_users.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "mx_accounts" {
+  schema = schema.public
+  column "guid" {
+    null = false
+    type = text
+  }
+  column "user_guid" {
+    null = false
+    type = text
+  }
+  column "member_guid" {
+    null = false
+    type = text
+  }
+  column "account_id" {
+    null = false
+    type = uuid
+  }
+  column "fundingsource_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.guid, column.account_id]
+  }
+}
+table "openpayments_incoming_payment" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_pointer_id" {
+    null = true
+    type = uuid
+  }
+  column "asset_code" {
+    null = true
+    type = text
+  }
+  column "asset_scale" {
+    null = true
+    type = bigint
+  }
+  column "incoming_amount" {
+    null = false
+    type = bigint
+  }
+  column "received_amount" {
+    null = false
+    type = bigint
+  }
+  column "completed" {
+    null    = true
+    type    = boolean
+    default = false
+  }
+  column "expires_at" {
+    null = true
+    type = timestamp
+  }
+  column "external_ref" {
+    null = true
+    type = text
+  }
+  column "ilp_stream_id" {
+    null = true
+    type = text
+  }
+  column "ilp_address" {
+    null = true
+    type = text
+  }
+  column "ilp_shared_secret" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "from_payment_pointer_id" {
+    null = true
+    type = uuid
+  }
+  column "description" {
+    null = true
+    type = text
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_from_payment_pointer_id_ref_payment_pointers" {
+    columns     = [column.from_payment_pointer_id]
+    ref_columns = [table.payment_pointers.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_payment_pointer_id_ref_payment_pointers" {
+    columns     = [column.payment_pointer_id]
+    ref_columns = [table.payment_pointers.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "openpayments_outgoing_payment" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "quote_id" {
+    null = false
+    type = uuid
+  }
+  column "failed" {
+    null    = false
+    type    = boolean
+    default = false
+  }
+  column "description" {
+    null = false
+    type = text
+  }
+  column "sent_amount" {
+    null = false
+    type = bigint
+  }
+  column "sent_asset" {
+    null = false
+    type = text
+  }
+  column "sent_scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "to_payment_pointer_id" {
+    null = true
+    type = uuid
+  }
+  column "completed" {
+    null    = false
+    type    = boolean
+    default = false
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_quote_id_ref_openpayments_quotes" {
+    columns     = [column.quote_id]
+    ref_columns = [table.openpayments_quotes.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_to_payment_pointer_id_ref_payment_pointers" {
+    columns     = [column.to_payment_pointer_id]
+    ref_columns = [table.payment_pointers.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "openpayments_quotes" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "send_payment_pointer_id" {
+    null = false
+    type = uuid
+  }
+  column "recv_payment_pointer_id" {
+    null = false
+    type = uuid
+  }
+  column "incoming_payment_id" {
+    null = false
+    type = uuid
+  }
+  column "send_amount" {
+    null = false
+    type = bigint
+  }
+  column "send_asset" {
+    null = false
+    type = text
+  }
+  column "send_scale" {
+    null = false
+    type = bigint
+  }
+  column "recv_amount" {
+    null = false
+    type = bigint
+  }
+  column "recv_asset" {
+    null = false
+    type = text
+  }
+  column "recv_scale" {
+    null = false
+    type = bigint
+  }
+  column "expires_at" {
+    null = false
+    type = timestamp
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "send_linked_acc_id" {
+    null = true
+    type = uuid
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_incoming_payment_id_ref_openpayments_incoming_payment" {
+    columns     = [column.incoming_payment_id]
+    ref_columns = [table.openpayments_incoming_payment.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_recv_payment_pointer_id_ref_payment_pointers" {
+    columns     = [column.recv_payment_pointer_id]
+    ref_columns = [table.payment_pointers.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_send_linked_acc_id_ref_linked_accounts" {
+    columns     = [column.send_linked_acc_id]
+    ref_columns = [table.linked_accounts.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_send_payment_pointer_id_ref_payment_pointers" {
+    columns     = [column.send_payment_pointer_id]
+    ref_columns = [table.payment_pointers.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "openpayments_transactions" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "foreign_id" {
+    null = false
+    type = uuid
+  }
+  column "foreign_type" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = bigint
+  }
+  column "source" {
+    null = true
+    type = text
+  }
+  column "destination" {
+    null = true
+    type = text
+  }
+  column "note" {
+    null = true
+    type = text
+  }
+  column "amount" {
+    null = false
+    type = bigint
+  }
+  column "asset_code" {
+    null = false
+    type = text
+  }
+  column "asset_scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_wallet_id_ref_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "openpayments_transactions_foreign_id" {
+    unique  = true
+    columns = [column.foreign_id]
+  }
+  index "openpayments_transactions_wallet_id_state" {
+    columns = [column.wallet_id, column.state]
+  }
+}
+table "payment_pointers" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "url" {
+    null = false
+    type = text
+  }
+  column "alias" {
+    null = true
+    type = text
+  }
+  column "asset" {
+    null = false
+    type = text
+  }
+  column "scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_payment_pointer_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "wallet_id_ind" {
+    columns = [column.wallet_id]
+  }
+
+  index "payment_pointers_url_lower" {
+    on {
+      expr = "lower(url)"
+    }
+    unique = true
+  }
+}
+table "rafiki_identifiers" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = text
+  }
+  column "account_id" {
+    null = false
+    type = uuid
+  }
+  column "asset_code" {
+    null = false
+    type = text
+  }
+  column "asset_scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+table "schema_lock" {
+  schema = schema.public
+  column "lock_id" {
+    null = false
+    type = bigint
+  }
+  primary_key {
+    columns = [column.lock_id]
+  }
+}
+table "schema_migrations" {
+  schema = schema.public
+  column "version" {
+    null = false
+    type = bigint
+  }
+  column "dirty" {
+    null = false
+    type = boolean
+  }
+  primary_key {
+    columns = [column.version]
+  }
+}
+table "signups" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "first_name" {
+    null = true
+    type = text
+  }
+  column "last_name" {
+    null = true
+    type = text
+  }
+  column "country_code" {
+    null = true
+    type = character_varying(2)
+  }
+  column "email" {
+    null = true
+    type = text
+  }
+  column "mobile_number" {
+    null = true
+    type = text
+  }
+  column "user_id" {
+    null = true
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+table "user_wallets" {
+  schema = schema.public
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  primary_key {
+    columns = [column.user_id, column.wallet_id]
+  }
+  foreign_key "fk_user_wallets_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "waitlist_signups" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "email" {
+    null = false
+    type = text
+  }
+  column "country_code" {
+    null = false
+    type = character(2)
+  }
+  column "full_name" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "notified_at" {
+    null = true
+    type = timestamp
+  }
+  column "notified_count" {
+    null = true
+    type = bigint
+  }
+  column "beta_opt_in" {
+    null    = false
+    type    = boolean
+    default = false
+  }
+  column "mug_id" {
+    null = true
+    type = text
+  }
+  column "can_signup" {
+    null    = false
+    type    = boolean
+    default = false
+  }
+  column "user_id" {
+    null = true
+    type = uuid
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "email_country_code" {
+    unique  = true
+    columns = [column.email, column.country_code]
+  }
+  index "waitlist_signups_mug_id" {
+    unique  = true
+    columns = [column.mug_id]
+  }
+}
+table "wallets" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "name" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+schema "public" {
+}

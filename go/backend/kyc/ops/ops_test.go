@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/db"
 	user_client "gitlab.com/fynbos/backend/user/client"
 
 	"github.com/google/uuid"
@@ -12,12 +13,11 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db)
 

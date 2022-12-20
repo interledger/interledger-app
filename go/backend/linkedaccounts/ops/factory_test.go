@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
@@ -11,7 +12,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	test_utils "gitlab.com/fynbos/backend/utils"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +39,7 @@ func (t TestContainer) Users() user.Client {
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	c.Db = db
 
 	logger, err := zap.NewDevelopment()

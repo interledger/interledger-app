@@ -1,1 +1,0 @@
-ALTER TABLE machnet_receive_bank_accounts ADD COLUMN account_type INT NOT NULL DEFAULT 0;

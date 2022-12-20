@@ -9,16 +9,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	users_client "gitlab.com/fynbos/backend/user/client"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestCreateIncomingPayment(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 

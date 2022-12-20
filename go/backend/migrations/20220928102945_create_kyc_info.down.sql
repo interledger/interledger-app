@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS individual_kyc_details;

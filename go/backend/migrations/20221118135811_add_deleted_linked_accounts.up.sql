@@ -1,1 +1,0 @@
-ALTER TABLE linked_accounts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;

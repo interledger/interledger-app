@@ -1,1 +1,0 @@
-ALTER TABLE machnet_receive_bank_accounts DROP COLUMN account_type;

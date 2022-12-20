@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli"
+	"gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/pacioli/ledger/tigerroach"
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 )
@@ -15,7 +16,7 @@ import (
 func TestConfigureAccounts(t *testing.T) {
 	ctx := context.Background()
 
-	_, db := test_utils.MigrateCockroachDB(t, ctx)
+	_, db := db.MigrateTestDB(t, ctx)
 	b := test_utils.NewBackends(t, db, nil)
 
 	// Configure Ledger

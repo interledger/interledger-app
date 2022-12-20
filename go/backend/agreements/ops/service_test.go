@@ -10,13 +10,13 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/agreements/migrations"
 	"gitlab.com/fynbos/backend/agreements/ops"
-	test_utils "gitlab.com/fynbos/backend/utils"
+	"gitlab.com/fynbos/backend/db"
 )
 
 func TestSignAgreements(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestSignAgreements(t *testing.T) {
 func TestAgreementSigns(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestAgreementSigns(t *testing.T) {
 func TestGetAgreement(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
 		t.Fatal(err)
 	}

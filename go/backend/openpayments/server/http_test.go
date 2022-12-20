@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -30,13 +31,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	test_utils "gitlab.com/fynbos/backend/utils"
 )
 
 func TestGetHandler(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := NewTestBackends(t, db, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -114,7 +114,7 @@ func TestGetHandler(t *testing.T) {
 func TestHTTPCreateQuoteGet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := NewTestBackends(t, db, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -220,7 +220,7 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 
 	b := NewTestBackends(t, db, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -354,7 +354,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := test_utils.MigrateCockroachDB(t, ctx)
+	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)

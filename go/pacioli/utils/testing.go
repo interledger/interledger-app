@@ -4,18 +4,13 @@ package test_utils
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
-	"runtime"
-	"strings"
 	"testing"
 	"time"
 
 	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/testcontainers/testcontainers-go"
@@ -23,67 +18,6 @@ import (
 	cli "gitlab.com/fynbos/pacioli/cli"
 	"gitlab.com/fynbos/pacioli/seed"
 )
-
-const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
-
-func MigrateCockroachDB(t *testing.T, ctx context.Context) (URI string, db *sqlx.DB) {
-	_, moduleDir, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("Could not get directory path for utils/testing.")
-	}
-
-	dbName := "pacioli_test_" + strings.Replace(uuid.NewString(), "-", "", 4)
-	connString := os.Getenv("DB_URL")
-	if connString == "" {
-		connString = testingCrdbConnectionString
-	}
-	connString = fmt.Sprintf(connString, dbName)
-	db, err := sqlx.Connect("postgres", connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	query := fmt.Sprintf("CREATE DATABASE %s;", dbName)
-	_, err = db.ExecContext(ctx, query)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	migrationsPath := filepath.Join(filepath.Dir(moduleDir), "../migrations")
-	m, err := migrate.New(
-		"file://"+migrationsPath,
-		strings.Replace(connString, "postgres", "cockroach", 1),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// The expected behaviour is for it to return ErrNoChange
-	if err := m.Up(); err != nil {
-		t.Fatal(err)
-	}
-
-	t.Cleanup(func() {
-		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
-		_, err := db.ExecContext(ctx, cleanupQuery)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err = db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	})
-
-	return connString, db
-}
-
-func TruncateDb(ctx context.Context, db *sqlx.DB) error {
-	fmt.Println("Truncating all tables.")
-	const query = `SELECT 'TRUNCATE TABLE ' + Table_Schema + '.' + Table_Name from INFORMATION_SCHEMA.tables where table_type = 'base table'`
-	_, err := db.ExecContext(ctx, query)
-	return err
-}
 
 type TigerBeetleContainer struct {
 	testcontainers.Container

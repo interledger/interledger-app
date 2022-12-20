@@ -3,13 +3,10 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
-
-	"gitlab.com/fynbos/pacioli/migrations"
 )
 
 type InitArgs struct {
@@ -22,18 +19,9 @@ type InitArgs struct {
 // We choose to specify the ledger's for the consuming services here so that
 // it can be configured from deploy config.
 func ParseInitArgs() (*InitArgs, error) {
-	baseDbUrl := os.Getenv("DB_URL")
-	if baseDbUrl == "" {
-		baseDbUrl = "cockroach://pacioli@cockroachdb-public:26257/pacioli?sslmode=verify-full&max_conns=20&max_idle_conns=4"
-	}
-	connString, err := migrations.InlineSslCreds(
-		strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-		"/cockroach-certs/client.pacioli.key",
-		"/cockroach-certs/client.pacioli.crt",
-		"/cockroach-certs/ca.crt",
-	)
-	if err != nil {
-		return nil, err
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		dbUrl = "cockroach://backend@cockroachdb-public:26257/pacioli?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslkey=/cockroach-certs/client.backend.key&sslcert=/cockroach-certs/client.backend.crt&max_conns=20&max_idle_conns=4"
 	}
 
 	tbUrl := os.Getenv("TB_URL")
@@ -62,7 +50,7 @@ func ParseInitArgs() (*InitArgs, error) {
 	}
 
 	return &InitArgs{
-		DbConnectionString: connString,
+		DbConnectionString: dbUrl,
 		TbUrls:             tbUrls,
 		TbClusterID:        uint32(parsedTbClusterID),
 		TbSeedFile:         tbSeedFile,
@@ -83,9 +71,9 @@ func ParseStartArgs() (*StartArgs, error) {
 	if port == "" {
 		port = "443" // default port for grpc
 	}
-	baseDbUrl := os.Getenv("DB_URL")
-	if baseDbUrl == "" {
-		baseDbUrl = "cockroach://pacioli@cockroachdb-public:26257/pacioli?sslmode=verify-full&max_conns=20&max_idle_conns=4"
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		dbUrl = "cockroach://backend@cockroachdb-public:26257/pacioli?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslkey=/cockroach-certs/client.backend.key&sslcert=/cockroach-certs/client.backend.crt&max_conns=20&max_idle_conns=4"
 	}
 	tbUrl := os.Getenv("TB_URL")
 	if tbUrl == "" {
@@ -117,22 +105,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, err
 	}
 
-	connString := baseDbUrl
-	if os.Getenv("ENV") != "testing" {
-		connString, err = migrations.InlineSslCreds(
-			strings.Replace(baseDbUrl, "cockroach", "postgres", 1), // replace cockroach protocol with postgres so that we can use pq driver.
-			"/cockroach-certs/client.pacioli.key",
-			"/cockroach-certs/client.pacioli.crt",
-			"/cockroach-certs/ca.crt",
-		)
-	}
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	return &StartArgs{
 		Port:               port,
-		DbConnectionString: connString,
+		DbConnectionString: dbUrl,
 		TbUrls:             tbUrls,
 		TbClusterID:        uint32(parsedTbClusterID),
 		LogLevel:           logLevel,

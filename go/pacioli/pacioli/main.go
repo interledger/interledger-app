@@ -20,9 +20,9 @@ import (
 	_ "github.com/lib/pq"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli/cli"
+	"gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/pacioli/healthcheck"
 	"gitlab.com/fynbos/pacioli/ledger"
-	"gitlab.com/fynbos/pacioli/migrations"
 	"gitlab.com/fynbos/pacioli/rpcserver"
 	"gitlab.com/fynbos/pacioli/seed"
 )
@@ -59,7 +59,7 @@ func main() {
 
 func runInit(args *cli.InitArgs) {
 	// run migrations
-	err := migrations.Migrate(args.DbConnectionString)
+	err := db.Migrate(context.Background(), args.DbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}

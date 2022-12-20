@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"fmt"
 	"net"
@@ -13,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"github.com/go-chi/chi/v5"
@@ -38,7 +38,6 @@ import (
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/migrations"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/fakecash"
@@ -58,7 +57,7 @@ import (
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
-	pacioli_migrations "gitlab.com/fynbos/pacioli/migrations"
+	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -66,9 +65,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
-
-//go:embed migrations/*.sql
-var fs embed.FS
 
 func main() {
 	if len(os.Args) < 2 {
@@ -292,27 +288,32 @@ func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
 }
 
 func migrate(args *cli.MigrationArgs) {
-	err := migrations.MigrateFromEmbeddedFiles(args.ConnectionString, fs)
+	err := db.Migrate(context.Background(), args.ConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	db, err := sqlx.Connect("postgres", args.ConnectionString)
+	dbConn, err := sqlx.Connect("postgres", args.ConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer func() {
-		if err := db.Close(); err != nil {
+		if err := dbConn.Close(); err != nil {
 			log.Fatalln(err)
 		}
 	}()
 
-	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), db)
+	err = db.SeedCountries(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = pacioli_migrations.Migrate(args.PacioliDbConnectionString)
+	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = pacioli_db.Migrate(context.Background(), args.PacioliDbConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
