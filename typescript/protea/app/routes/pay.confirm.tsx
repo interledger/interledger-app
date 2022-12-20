@@ -48,6 +48,12 @@ export default function Page() {
             {flow?.data.paymentPointer.formatted}
           </span>
         </div>
+        <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+          <span className='text-sm'>Beneficiary Name</span>
+          <span className='text-sm font-medium text-strong'>
+            {flow?.data.paymentPointer.legalName}
+          </span>
+        </div>
 
         <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
           <span className='text-sm'>From</span>
