@@ -3,6 +3,8 @@ package server
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/kyc"
+
 	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"gitlab.com/fynbos/backend/email"
@@ -24,6 +26,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Email() email.Client
 	Machnet() machnet.Client
+	KYC() kyc.Client
 }
 
 type testBackends struct {
@@ -33,6 +36,10 @@ type testBackends struct {
 	temp temporal.Client
 	em   email.Client
 	mc   machnet.Client
+}
+
+func (t testBackends) KYC() kyc.Client {
+	return nil
 }
 
 func (t testBackends) Machnet() machnet.Client {

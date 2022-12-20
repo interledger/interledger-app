@@ -157,6 +157,7 @@ message PaymentPointer {
   string alias = 4;
   string walletID = 5;
   string formatted = 6;
+  string legalName = 7;
 }
 
 message Empty {}
