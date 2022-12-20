@@ -5,6 +5,11 @@ import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getTransaction } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
+import {
+  isGrpcError,
+  openPaymentsClient,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -13,10 +18,23 @@ export async function loader({ request, params }: LoaderArgs) {
     params.type as string,
     params.transactionId as string
   )
+
+  let beneficiaryName = ''
+  const response = await openPaymentsClient
+    .getPaymentPointer({ url: transaction.paymentPointer })
+    .then((v) => v)
+    .catch(StatusError)
+
+  // Silently fail if it can't be found for now
+  if (!isGrpcError(response)) {
+    beneficiaryName = response.response.legalName
+  }
+
   return json({
     // Always go to /transactions with back button even if we've just done a payment flow
     backTo: route('/transactions'),
     transaction,
+    beneficiaryName,
     traits: session.identity.traits
   })
 }
@@ -26,7 +44,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { transaction } = useLoaderData<typeof loader>()
+  const { transaction, beneficiaryName } = useLoaderData<typeof loader>()
   const params = useParams()
 
   return (
@@ -53,6 +71,12 @@ export default function Page() {
             {transaction.paymentPointer}
           </span>
         </div>
+        {beneficiaryName != '' && (
+          <div className='mt-6 flex w-full flex-col space-y-1'>
+            <span className='text-sm'>Beneficiary name</span>
+            <span className='text-sm text-strong'>{beneficiaryName}</span>
+          </div>
+        )}
         <div className='mt-6 flex w-full justify-between'>
           <span className='text-sm'>
             {params.type == 'outgoing' && 'You pay'}
@@ -95,8 +119,8 @@ export default function Page() {
       <div className='mt-6 flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
         <h2 className='font-display font-medium text-strong'>Support</h2>
         <span className='mt-4 text-sm'>
-          Our telephone support lines are open Monday to Friday between 9am and
-          5pm PST.
+          If you have any questions, issues, or complaints, please first contact
+          Fynbos at:
         </span>
         <div className='mt-3 flex items-center space-x-2 text-medium'>
           <Icon>call</Icon>
@@ -117,12 +141,30 @@ export default function Page() {
           </AnchorRouter>
         </div>
         <span className='mt-4 text-sm'>
-          The banking services of the Fynbos are powered by Machnet. Machnet is
-          a financial technology company and not a bank. Banking services are
-          provided by Machnet's partner banks who are Member FDIC. Machnet
-          provides the Bank services through its banking software provider,
-          Synapse. To report a complaint relating to the bank services,
-          email&nbsp;
+          Our contact hours are Monday to Friday between 9am and 5pm EST.
+        </span>
+        <span className='mt-4 text-sm'>
+          In case your grievances are not addressed by Fynbos or for any
+          escalation purposes, please contact Machnet either through email&nbsp;
+          <AnchorRouter
+            to='mailto:help@machnetinc.com'
+            className='text-sm text-primary'
+          >
+            help@machnetinc.com
+          </AnchorRouter>
+          &nbsp;or call{' '}
+          <AnchorRouter
+            to='tel:+1 (408) 539-6455'
+            className='text-sm text-primary'
+          >
+            +1 (408) 539-6455
+          </AnchorRouter>
+          .
+        </span>
+        <span className='mt-4 text-sm'>
+          Bank services are provided by Evolve Bank & Trust, Member FDIC,
+          through our banking software provider, SynapseFI. To report a
+          complaint relating to the bank services, email&nbsp;
           <AnchorRouter
             to='mailto:help@synapsefi.com'
             className='text-sm text-primary'
