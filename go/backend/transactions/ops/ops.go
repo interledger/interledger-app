@@ -328,6 +328,7 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 			return nil, err
 		}
 		resp[i] = transactions.Transaction{
+			ForeignID:   t.ForeignID,
 			Source:      t.Source.String,
 			Destination: t.Destination.String,
 			Type:        t.Type,
@@ -372,7 +373,8 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 	res := make([]transactions.Transfer, len(trs))
 	for i, t := range trs {
 		res[i] = transactions.Transfer{
-			Type: t.Type,
+			Type:      t.Type,
+			ForeignID: t.ForeignID,
 			Amount: transactions.Amount{
 				Value:      t.Amount,
 				Asset:      t.Asset,

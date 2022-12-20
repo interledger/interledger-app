@@ -46,6 +46,7 @@ message Transaction {
   google.protobuf.Timestamp timestamp = 6;
   string state = 7;
   repeated Transfer transfers = 8;
+  string foreignId = 9;
 }
 
 message ListTransactionsResponse {
@@ -216,6 +217,7 @@ message Transfer {
   string state = 2;
   google.protobuf.Timestamp timestamp = 3;
   Amount amount = 4;
+  string foreignId = 5;
 }
 
 message GetStatementsResponse {
