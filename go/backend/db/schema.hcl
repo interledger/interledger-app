@@ -1200,5 +1200,131 @@ table "wallets" {
     columns = [column.id]
   }
 }
+table "transactions" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "foreign_id" {
+    null = false
+    type = uuid
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "provider" {
+    null = false
+    type = text
+  }
+  column "source" {
+    null = true
+    type = text
+  }
+  column "destination" {
+    null = true
+    type = text
+  }
+  column "note" {
+    null = true
+    type = text
+  }
+  column "amount" {
+    null = false
+    type = bigint
+  }
+  column "asset_code" {
+    null = false
+    type = text
+  }
+  column "asset_scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_transactions_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "transfers" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "transaction_id" {
+    null = false
+    type = uuid
+  }
+  column "foreign_id" {
+    null = false
+    type = uuid
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "amount" {
+    null = false
+    type = bigint
+  }
+  column "asset_code" {
+    null = false
+    type = text
+  }
+  column "asset_scale" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_transfers_wallets" {
+    columns     = [column.transaction_id]
+    ref_columns = [table.transactions.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
 schema "public" {
 }

@@ -79,6 +79,10 @@ export interface Transaction {
      * @generated from protobuf field: repeated backend.v1.Transfer transfers = 8;
      */
     transfers: Transfer[];
+    /**
+     * @generated from protobuf field: string foreignId = 9;
+     */
+    foreignId: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -450,6 +454,10 @@ export interface Transfer {
      * @generated from protobuf field: backend.v1.Amount amount = 4;
      */
     amount?: Amount;
+    /**
+     * @generated from protobuf field: string foreignId = 5;
+     */
+    foreignId: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetStatementsResponse
@@ -1270,11 +1278,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 5, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "timestamp", kind: "message", T: () => Timestamp },
             { no: 7, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "transfers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transfer }
+            { no: 8, name: "transfers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transfer },
+            { no: 9, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [] };
+        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -1308,6 +1317,9 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* repeated backend.v1.Transfer transfers */ 8:
                     message.transfers.push(Transfer.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string foreignId */ 9:
+                    message.foreignId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1345,6 +1357,9 @@ class Transaction$Type extends MessageType<Transaction> {
         /* repeated backend.v1.Transfer transfers = 8; */
         for (let i = 0; i < message.transfers.length; i++)
             Transfer.internalBinaryWrite(message.transfers[i], writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* string foreignId = 9; */
+        if (message.foreignId !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.foreignId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2523,11 +2538,12 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 1, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "timestamp", kind: "message", T: () => Timestamp },
-            { no: 4, name: "amount", kind: "message", T: () => Amount }
+            { no: 4, name: "amount", kind: "message", T: () => Amount },
+            { no: 5, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { type: "", state: "" };
+        const message = { type: "", state: "", foreignId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -2549,6 +2565,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* backend.v1.Amount amount */ 4:
                     message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                case /* string foreignId */ 5:
+                    message.foreignId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2574,6 +2593,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* backend.v1.Amount amount = 4; */
         if (message.amount)
             Amount.internalBinaryWrite(message.amount, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string foreignId = 5; */
+        if (message.foreignId !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.foreignId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
