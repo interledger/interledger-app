@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
 	"github.com/stretchr/testify/mock"
@@ -136,10 +138,10 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 				SendPaymentPointer:    "https://fynbos.me/paysend",
 				ReceivePaymentPointer: "https://fynbos.me/payrecv",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: currency.USD,
+					Scale:    2,
 				}},
 			statusCode: http.StatusCreated,
 		},
@@ -169,16 +171,16 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 			URL:        tc.args.SendPaymentPointer,
 			Alias:      "alias",
 			WalletID:   sendWallet.ID,
-			Asset:      tc.args.SendAmount.Asset,
-			AssetScale: tc.args.SendAmount.AssetScale,
+			Asset:      tc.args.SendAmount.Currency,
+			AssetScale: tc.args.SendAmount.Scale,
 		})
 		require.NoError(t, err)
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.ReceivePaymentPointer,
 			Alias:      "alias",
 			WalletID:   recvWallet.ID,
-			Asset:      tc.args.SendAmount.Asset,
-			AssetScale: tc.args.SendAmount.AssetScale,
+			Asset:      tc.args.SendAmount.Currency,
+			AssetScale: tc.args.SendAmount.Scale,
 		})
 		require.NoError(t, err)
 
@@ -197,8 +199,8 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 
 		assert.Equal(t, tc.args.SendPaymentPointer, q.PaymentPointer)
 		assert.Equal(t, tc.args.SendAmount.Value, q.SendAmount.Value)
-		assert.Equal(t, tc.args.SendAmount.Asset, q.SendAmount.Asset)
-		assert.Equal(t, tc.args.SendAmount.AssetScale, q.SendAmount.AssetScale)
+		assert.Equal(t, tc.args.SendAmount.Currency, q.SendAmount.Currency)
+		assert.Equal(t, tc.args.SendAmount.Scale, q.SendAmount.Scale)
 
 		// Do a get and get the same values
 		req, err = http.NewRequest(http.MethodGet, q.ID, nil)
@@ -218,8 +220,8 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 
 		assert.Equal(t, tc.args.SendPaymentPointer, lq.PaymentPointer)
 		assert.Equal(t, tc.args.SendAmount.Value, lq.SendAmount.Value)
-		assert.Equal(t, tc.args.SendAmount.Asset, lq.SendAmount.Asset)
-		assert.Equal(t, tc.args.SendAmount.AssetScale, lq.SendAmount.AssetScale)
+		assert.Equal(t, tc.args.SendAmount.Currency, lq.SendAmount.Currency)
+		assert.Equal(t, tc.args.SendAmount.Scale, lq.SendAmount.Scale)
 	}
 }
 
@@ -244,10 +246,10 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer:     "https://fynbos.me/moneyplease",
 				FromPaymentPointer: "https://fynbos.me/sendmoney",
-				IncomingAmount: &openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				IncomingAmount: &currency.Amount{
+					Value:    100,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 				ExternalRef: "External",
 				ExpiresAt:   time.Now().Add(time.Hour),
@@ -285,11 +287,11 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		// Setup the payment pointers
-		asset := "USD"
+		asset := currency.USD
 		assetScale := 2
 		if tc.args.IncomingAmount != nil {
-			asset = tc.args.IncomingAmount.Asset
-			assetScale = tc.args.IncomingAmount.AssetScale
+			asset = tc.args.IncomingAmount.Currency
+			assetScale = tc.args.IncomingAmount.Scale
 		}
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.PaymentPointer,
@@ -324,8 +326,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
 		if tc.args.IncomingAmount != nil {
 			assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
-			assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
-			assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
+			assert.Equal(t, tc.args.IncomingAmount.Currency, ip.IncomingAmount.Currency)
+			assert.Equal(t, tc.args.IncomingAmount.Scale, ip.IncomingAmount.Scale)
 		} else {
 			assert.Nil(t, ip.IncomingAmount)
 		}
@@ -351,8 +353,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		assert.Equal(t, tc.args.PaymentPointer, lip.PaymentPointer)
 		if tc.args.IncomingAmount != nil {
 			assert.Equal(t, tc.args.IncomingAmount.Value, lip.IncomingAmount.Value)
-			assert.Equal(t, tc.args.IncomingAmount.Asset, lip.IncomingAmount.Asset)
-			assert.Equal(t, tc.args.IncomingAmount.AssetScale, lip.IncomingAmount.AssetScale)
+			assert.Equal(t, tc.args.IncomingAmount.Currency, lip.IncomingAmount.Currency)
+			assert.Equal(t, tc.args.IncomingAmount.Scale, lip.IncomingAmount.Scale)
 		} else {
 			assert.Nil(t, lip.IncomingAmount)
 		}
@@ -386,10 +388,10 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 				SendPaymentPointer:    "https://fynbos.me/paysend",
 				ReceivePaymentPointer: "https://fynbos.me/payrecv",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: currency.USD,
+					Scale:    2,
 				}},
 			opArgs: openpayments.CreateOutgoingPaymentArgs{
 				Description: "description",
@@ -423,16 +425,16 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 			URL:        tc.quoteArgs.SendPaymentPointer,
 			Alias:      "alias",
 			WalletID:   sendWallet.ID,
-			Asset:      tc.quoteArgs.SendAmount.Asset,
-			AssetScale: tc.quoteArgs.SendAmount.AssetScale,
+			Asset:      tc.quoteArgs.SendAmount.Currency,
+			AssetScale: tc.quoteArgs.SendAmount.Scale,
 		})
 		require.NoError(t, err)
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.quoteArgs.ReceivePaymentPointer,
 			Alias:      "alias",
 			WalletID:   recvWallet.ID,
-			Asset:      tc.quoteArgs.SendAmount.Asset,
-			AssetScale: tc.quoteArgs.SendAmount.AssetScale,
+			Asset:      tc.quoteArgs.SendAmount.Currency,
+			AssetScale: tc.quoteArgs.SendAmount.Scale,
 		})
 		require.NoError(t, err)
 
@@ -451,8 +453,8 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 
 		assert.Equal(t, tc.quoteArgs.SendPaymentPointer, q.PaymentPointer)
 		assert.Equal(t, tc.quoteArgs.SendAmount.Value, q.SendAmount.Value)
-		assert.Equal(t, tc.quoteArgs.SendAmount.Asset, q.SendAmount.Asset)
-		assert.Equal(t, tc.quoteArgs.SendAmount.AssetScale, q.SendAmount.AssetScale)
+		assert.Equal(t, tc.quoteArgs.SendAmount.Currency, q.SendAmount.Currency)
+		assert.Equal(t, tc.quoteArgs.SendAmount.Scale, q.SendAmount.Scale)
 
 		// Create outgoing payment
 

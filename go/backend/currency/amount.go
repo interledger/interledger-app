@@ -45,7 +45,7 @@ var currencyScale = map[Currency]int{
 }
 
 var currencyFormat = map[Currency]string{
-	USD: "$%s",
+	USD: "$ %s",
 }
 
 type Amount struct {

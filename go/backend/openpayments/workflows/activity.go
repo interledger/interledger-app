@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -102,11 +101,6 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		sendAccID = sendAcc.ID
 	}
 
-	amnt := float64(op.SendAmount.Value)
-	if op.SendAmount.AssetScale > 0 {
-		amnt /= math.Pow(10, float64(op.SendAmount.AssetScale))
-	}
-
 	return &machnet.CreateTransactionArgs{
 		FromForeignID:       outgoingID,
 		ToForeignID:         incomingID,
@@ -114,8 +108,8 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		ToPaymentPointer:    op.ToPaymentPointer,
 		FromLinkedAccountID: sendAccID,
 		ToLinkedAccountID:   recvAcc.ID,
-		Amount:              amnt,
-		Currency:            op.SendAmount.Asset,
+		Amount:              op.SendAmount.Float64(),
+		Currency:            op.SendAmount.Currency.String(),
 	}, nil
 }
 
@@ -162,19 +156,13 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID st
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceiptTemplateID, map[string]interface{}{
 		"transactionID":      op.ID,
 		"paymentDate":        op.UpdatedAt.Format(time.RFC1123),
-		"sendAmount":         formatMoney(op.SentAmount),
+		"sendAmount":         op.SentAmount.Format(),
 		"fees":               "$ 0.00",
-		"receiveAmount":      formatMoney(op.ReceiveAmount),
+		"receiveAmount":      op.ReceiveAmount.Format(),
 		"note":               op.Description,
 		"toPaymentPointer":   op.ToPaymentPointer,
 		"fromPaymentPointer": op.PaymentPointer,
 	})
 
 	return err
-}
-
-func formatMoney(amount openpayments.Amount) string {
-	value := fmt.Sprintf("%d", amount.Value)
-	length := len(value)
-	return "$ " + value[0:length-amount.AssetScale] + "." + value[length-amount.AssetScale:]
 }

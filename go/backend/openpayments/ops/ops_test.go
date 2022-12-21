@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
@@ -131,7 +132,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 				URL:        tc.url,
 				WalletID:   wallet.ID,
 				Alias:      tc.alias,
-				Asset:      tc.assetCode,
+				Asset:      currency.ParseCurrency(tc.assetCode),
 				AssetScale: tc.scale,
 			})
 			if tc.duplicate {
@@ -140,7 +141,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 					URL:        tc.url,
 					WalletID:   wallet.ID,
 					Alias:      tc.alias,
-					Asset:      tc.assetCode,
+					Asset:      currency.ParseCurrency(tc.assetCode),
 					AssetScale: tc.scale,
 				})
 			}
@@ -534,10 +535,10 @@ func TestCreateQuote(t *testing.T) {
 				ReceivePaymentPointer: "http://fynbos.me/payrecv",
 				Description:           "IncomingPayment",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 			},
 		},
@@ -549,10 +550,10 @@ func TestCreateQuote(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend1",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv2",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 			},
 		},
@@ -563,10 +564,10 @@ func TestCreateQuote(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend3",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv4",
 				ExpiresAt:             time.Now().Add(time.Hour * -1),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "ZAR",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 			},
 		},
@@ -576,10 +577,10 @@ func TestCreateQuote(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend5",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv6",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "ZAR",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 				LinkedAccID: "4153f92e-158a-46dc-b298-4b71635c2093",
 			},
@@ -592,10 +593,10 @@ func TestCreateQuote(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend7",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv8",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      1000,
-					Asset:      "ZAR",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    1000,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 				LinkedAccID: "b1e5d317-0d28-4310-8512-4e9606f13627",
 			},
@@ -620,20 +621,20 @@ func TestCreateQuote(t *testing.T) {
 				URL:        tc.args.SendPaymentPointer,
 				WalletID:   sendWallet.ID,
 				Alias:      "Alias",
-				Asset:      tc.args.SendAmount.Asset,
-				AssetScale: tc.args.SendAmount.AssetScale,
+				Asset:      tc.args.SendAmount.Currency,
+				AssetScale: tc.args.SendAmount.Scale,
 			})
 			require.NoError(t, err)
-			recvAsset := tc.args.SendAmount.Asset
+			recvAsset := tc.args.SendAmount.Currency
 			if tc.recvAsset != "" {
-				recvAsset = tc.recvAsset
+				recvAsset = currency.ParseCurrency(tc.recvAsset)
 			}
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.args.ReceivePaymentPointer,
 				WalletID:   recvWallet.ID,
 				Alias:      "Alias",
 				Asset:      recvAsset,
-				AssetScale: tc.args.SendAmount.AssetScale,
+				AssetScale: tc.args.SendAmount.Scale,
 			})
 			require.NoError(t, err)
 
@@ -672,11 +673,11 @@ func TestCreateQuote(t *testing.T) {
 			assert.Equal(t, tc.args.ExpiresAt.Second(), q.ExpiresAt.Second())
 			assert.Equal(t, tc.args.SendPaymentPointer, q.PaymentPointer)
 			assert.Equal(t, tc.args.SendAmount.Value, q.ReceiveAmount.Value)
-			assert.Equal(t, tc.args.SendAmount.Asset, q.ReceiveAmount.Asset)
-			assert.Equal(t, tc.args.SendAmount.AssetScale, q.ReceiveAmount.AssetScale)
+			assert.Equal(t, tc.args.SendAmount.Currency, q.ReceiveAmount.Currency)
+			assert.Equal(t, tc.args.SendAmount.Scale, q.ReceiveAmount.Scale)
 			assert.Equal(t, tc.args.SendAmount.Value, q.SendAmount.Value)
-			assert.Equal(t, tc.args.SendAmount.Asset, q.SendAmount.Asset)
-			assert.Equal(t, tc.args.SendAmount.AssetScale, q.SendAmount.AssetScale)
+			assert.Equal(t, tc.args.SendAmount.Currency, q.SendAmount.Currency)
+			assert.Equal(t, tc.args.SendAmount.Scale, q.SendAmount.Scale)
 		})
 	}
 }

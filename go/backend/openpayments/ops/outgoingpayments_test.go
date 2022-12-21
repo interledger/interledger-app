@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/currency"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
 	"github.com/google/uuid"
@@ -43,10 +44,10 @@ func TestCreateOutgoingPayment(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: "USD",
+					Scale:    2,
 				},
 			},
 			opArgs: openpayments.CreateOutgoingPaymentArgs{
@@ -73,8 +74,8 @@ func TestCreateOutgoingPayment(t *testing.T) {
 				URL:        tc.quoteArgs.SendPaymentPointer,
 				WalletID:   sendWallet.ID,
 				Alias:      "Alias",
-				Asset:      tc.quoteArgs.SendAmount.Asset,
-				AssetScale: tc.quoteArgs.SendAmount.AssetScale,
+				Asset:      tc.quoteArgs.SendAmount.Currency,
+				AssetScale: tc.quoteArgs.SendAmount.Scale,
 			})
 			require.NoError(t, err)
 
@@ -82,8 +83,8 @@ func TestCreateOutgoingPayment(t *testing.T) {
 				URL:        tc.quoteArgs.ReceivePaymentPointer,
 				WalletID:   recvWallet.ID,
 				Alias:      "Alias",
-				Asset:      tc.quoteArgs.SendAmount.Asset,
-				AssetScale: tc.quoteArgs.SendAmount.AssetScale,
+				Asset:      tc.quoteArgs.SendAmount.Currency,
+				AssetScale: tc.quoteArgs.SendAmount.Scale,
 			})
 			require.NoError(t, err)
 
