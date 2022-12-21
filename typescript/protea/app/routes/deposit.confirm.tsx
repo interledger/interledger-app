@@ -47,7 +47,7 @@ export default function Page() {
           </span>
         </div>
         <div className='mt-6 flex w-full justify-between'>
-          <span className='text-sm'>You pay</span>
+          <span className='text-sm'>Top up amount</span>
           <span className='text-sm font-medium text-strong'>
             {flow?.data.displaySendAmount || '$ 0.00'}
           </span>
@@ -59,7 +59,7 @@ export default function Page() {
           </span>
         </div>
         <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>They receive</span>
+          <span className='text-sm'>You receive</span>
           <span className='text-sm text-2xl font-medium text-strong'>
             {flow?.data.displayReceiveAmount || '$ 0.00'}
           </span>
