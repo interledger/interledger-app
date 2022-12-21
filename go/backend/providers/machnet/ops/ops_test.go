@@ -18,7 +18,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
-	"gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/mocks"
@@ -55,71 +54,6 @@ func TestCreateAndGetUser(t *testing.T) {
 	noUserByID, err := ops.GetUserByID(context.Background(), b, uuid.NewString())
 	assert.Nil(t, noUserByID)
 	assert.ErrorIs(t, err, machnet.ErrNotFound)
-}
-
-func TestGetUserKYC(t *testing.T) {
-	t.Parallel()
-	b := NewTestBackends(t)
-	ctx := context.Background()
-
-	//b.external.UpdateUser()
-	cases := []struct {
-		name           string
-		externalStatus string
-		status         machnet.KYCStatus
-		failed         []string
-	}{
-		{
-			name:           "verified",
-			externalStatus: external.UserKYCVerified,
-			status:         machnet.KYCStatusVerified,
-		},
-		{
-			name:           "retry",
-			externalStatus: external.UserKYCRetry,
-			status:         machnet.KYCStatusRetry,
-			failed:         []string{"address", "lastName", "firstName", "gender", "email"},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			walletID := NewWallet(t, b)
-
-			externalUser, err := b.External().RegisterUser(context.Background(), external.User{
-				Type: external.TypeSendUser,
-			})
-			require.NoError(t, err)
-
-			args := machnet.CreateArgs{
-				WalletID:   walletID,
-				ExternalID: externalUser.ID,
-			}
-			user, err := ops.CreateUser(ctx, b, args)
-			require.NoError(t, err)
-			require.Equal(t, args.ExternalID, user.ID)
-			require.Equal(t, walletID, user.WalletID)
-			require.Equal(t, machnet.KYCStatusInProgress, user.KYCStatus)
-
-			err = webhook.HandleUserKYCEvent(ctx, b, external.Event{UserID: user.ID, EventName: tc.externalStatus})
-			require.NoError(t, err)
-
-			uk, err := ops.GetKYCStatus(ctx, b, args.WalletID)
-			require.NoError(t, err)
-			assert.Equal(t, tc.status, uk.User.KYCStatus)
-
-			if len(tc.failed) == 0 {
-				return
-			}
-
-			_, err = b.external.UpdateUser(ctx, user.ID, external.User{Status: external.StatusFailed})
-			require.NoError(t, err)
-
-			uk, err = ops.GetKYCStatus(ctx, b, args.WalletID)
-			require.NoError(t, err)
-			assert.ElementsMatch(t, tc.failed, uk.FailedFields)
-		})
-	}
 }
 
 func TestGetWidgetToken(t *testing.T) {

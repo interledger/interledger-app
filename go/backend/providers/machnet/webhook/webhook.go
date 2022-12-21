@@ -83,7 +83,7 @@ func HandleEvent(ctx context.Context, b ops.Backends, event external.Event) erro
 		err = HandleUserCardAddedEvent(ctx, b, event)
 	case external.UserBankAdded:
 		err = HandleBankAccountAddedEvent(ctx, b, event)
-	case external.UserKYCInProgress, external.UserKYCSuspended, external.UserKYCRetry, external.UserKYCVerified, external.UserKYCReviewPending:
+	case external.UserKYCInProgressEvent, external.UserKYCSuspendedEvent, external.UserKYCRetryEvent, external.UserKYCVerifiedEvent, external.UserKYCReviewPendingEvent:
 		err = HandleUserKYCEvent(ctx, b, event)
 	case external.TransactionPendingEvent, external.TransactionProcessingEvent, external.TransactionHoldEvent,
 		external.TransactionProcessedEvent, external.TransactionCancelledEvent, external.TransactionFailedEvent,
@@ -128,8 +128,14 @@ func HandleUserKYCEvent(ctx context.Context, b ops.Backends, event external.Even
 		return err
 	}
 
+	// KYC event occurred, check latest status against API
+	u, err := b.External().GetUserByID(ctx, event.UserID)
+	if err != nil {
+		return err
+	}
+
 	var newStatus machnet.KYCStatus
-	switch event.EventName {
+	switch u.Status {
 	case external.UserKYCInProgress:
 		newStatus = machnet.KYCStatusInProgress
 	case external.UserKYCSuspended:
@@ -153,7 +159,7 @@ func HandleUserKYCEvent(ctx context.Context, b ops.Backends, event external.Even
 	}
 
 	for _, ref := range refs {
-		err = b.Temporal().SignalWorkflow(ctx, ref.WorkflowID, ref.WorkflowRunID, ops.UserEventsChannel, event)
+		err = b.Temporal().SignalWorkflow(ctx, ref.WorkflowID, ref.WorkflowRunID, ops.UserEventsChannel, u)
 		if err != nil {
 			return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 		}
@@ -222,7 +228,12 @@ func HandleTransactionEvent(ctx context.Context, b ops.Backends, event external.
 		return err
 	}
 
-	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, ops.TransactionEventsChannel, event)
+	exTrx, err := b.External().GetUserTransaction(ctx, event.UserID, event.ResourceID)
+	if err != nil {
+		return err
+	}
+
+	err = b.Temporal().SignalWorkflow(ctx, trx.WorkflowID, trx.WorkflowRunID, ops.TransactionEventsChannel, exTrx)
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
