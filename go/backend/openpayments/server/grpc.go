@@ -83,9 +83,10 @@ func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPo
 		return nil, toGRPCError(err)
 	}
 
+	legalName := ""
 	kycInfo, err := g.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
-	if err != nil {
-		return nil, toGRPCError(err)
+	if err == nil {
+		legalName = kycInfo.FirstName + " " + kycInfo.LastName
 	}
 
 	return &pb.PaymentPointer{
@@ -95,7 +96,7 @@ func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPo
 		Alias:      pp.Alias,
 		WalletID:   pp.WalletID,
 		Formatted:  formattedPP,
-		LegalName:  kycInfo.FirstName + " " + kycInfo.LastName,
+		LegalName:  legalName,
 	}, nil
 }
 
@@ -115,9 +116,10 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 		return nil, toGRPCError(err)
 	}
 
+	legalName := ""
 	kycInfo, err := g.b.KYC().GetIndividualDetails(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
+	if err == nil {
+		legalName = kycInfo.FirstName + " " + kycInfo.LastName
 	}
 
 	resp := make([]*pb.PaymentPointer, len(pp))
@@ -133,7 +135,7 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 			Alias:      p.Alias,
 			WalletID:   p.WalletID,
 			Formatted:  formattedPP,
-			LegalName:  kycInfo.FirstName + " " + kycInfo.LastName,
+			LegalName:  legalName,
 		}
 	}
 
