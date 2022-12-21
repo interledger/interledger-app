@@ -10,6 +10,9 @@ import (
 
 	"gitlab.com/fynbos/backend/openpayments"
 
+	"gitlab.com/fynbos/backend/currency"
+
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 )
@@ -55,7 +58,7 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		return nil, err
 	}
 
-	if payment.IncomingAmount != nil && pp.Asset != payment.IncomingAmount.Asset {
+	if payment.IncomingAmount != nil && pp.Asset != payment.IncomingAmount.Currency {
 		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
 	}
 
@@ -66,8 +69,8 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		Value("received_amount", 0).
 		Value("from_payment_pointer_id", fromPP.ID)
 	if payment.IncomingAmount != nil {
-		ib.Value("asset_code", payment.IncomingAmount.Asset).
-			Value("asset_scale", payment.IncomingAmount.AssetScale).
+		ib.Value("asset_code", payment.IncomingAmount.Currency).
+			Value("asset_scale", payment.IncomingAmount.Scale).
 			Value("incoming_amount", payment.IncomingAmount.Value)
 	} else {
 		ib.Value("incoming_amount", 0)
@@ -139,17 +142,17 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 		Description:        payment.Description.String,
 	}
 	if payment.IncomingAmount > 0 {
-		resp.IncomingAmount = &openpayments.Amount{
-			Value:      payment.IncomingAmount,
-			Asset:      payment.AssetCode.String,
-			AssetScale: int(payment.AssetScale.Int32),
+		resp.IncomingAmount = &currency.Amount{
+			Value:    payment.IncomingAmount,
+			Currency: currency.Currency(payment.AssetCode.String),
+			Scale:    int(payment.AssetScale.Int32),
 		}
 	}
 	if payment.ReceivedAmount > 0 {
-		resp.ReceivedAmount = &openpayments.Amount{
-			Value:      payment.ReceivedAmount,
-			Asset:      payment.AssetCode.String,
-			AssetScale: int(payment.AssetScale.Int32),
+		resp.ReceivedAmount = &currency.Amount{
+			Value:    payment.ReceivedAmount,
+			Currency: currency.Currency(payment.AssetCode.String),
+			Scale:    int(payment.AssetScale.Int32),
 		}
 	}
 

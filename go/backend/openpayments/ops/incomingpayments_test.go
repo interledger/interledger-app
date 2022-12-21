@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
 	"github.com/golang/mock/gomock"
@@ -42,10 +44,10 @@ func TestCreateIncomingPayment(t *testing.T) {
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer:     "http://fynbos.me/moneyplease",
 				FromPaymentPointer: "http://fynbos.me/sendingmoney",
-				IncomingAmount: &openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				IncomingAmount: &currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 				ExternalRef: "external",
 				Description: "Desc Incoming Payment",
@@ -68,10 +70,10 @@ func TestCreateIncomingPayment(t *testing.T) {
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer:     "http://fynbos.me/moneyplease2",
 				FromPaymentPointer: "http://fynbos.me/sendingmoney2",
-				IncomingAmount: &openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				IncomingAmount: &currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 				ExternalRef: "external",
 				ExpiresAt:   time.Now().Add(time.Hour),
@@ -83,10 +85,10 @@ func TestCreateIncomingPayment(t *testing.T) {
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer:     "http://fynbos.me/moneyplease3",
 				FromPaymentPointer: "http://fynbos.me/sendingmoney3",
-				IncomingAmount: &openpayments.Amount{
-					Value:      100,
-					Asset:      "USD",
-					AssetScale: 2,
+				IncomingAmount: &currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
 				},
 				ExternalRef: "external",
 				ExpiresAt:   time.Now().Add(time.Hour * -1),
@@ -107,14 +109,14 @@ func TestCreateIncomingPayment(t *testing.T) {
 			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
 			require.NoError(t, err)
 
-			asset := "USD"
+			asset := currency.USD
 			assetScale := 2
 			if tc.args.IncomingAmount != nil {
-				asset = tc.args.IncomingAmount.Asset
-				assetScale = tc.args.IncomingAmount.AssetScale
+				asset = tc.args.IncomingAmount.Currency
+				assetScale = tc.args.IncomingAmount.Scale
 			}
 			if tc.ppAsset != "" {
-				asset = tc.ppAsset
+				asset = currency.ParseCurrency(tc.ppAsset)
 			}
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.args.PaymentPointer,
@@ -144,8 +146,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 			assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
 			assert.Equal(t, tc.args.Description, ip.Description)
 			if tc.args.IncomingAmount != nil {
-				assert.Equal(t, tc.args.IncomingAmount.Asset, ip.IncomingAmount.Asset)
-				assert.Equal(t, tc.args.IncomingAmount.AssetScale, ip.IncomingAmount.AssetScale)
+				assert.Equal(t, tc.args.IncomingAmount.Currency, ip.IncomingAmount.Currency)
+				assert.Equal(t, tc.args.IncomingAmount.Scale, ip.IncomingAmount.Scale)
 				assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
 			}
 		})

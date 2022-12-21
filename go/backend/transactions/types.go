@@ -1,6 +1,10 @@
 package transactions
 
-import "time"
+import (
+	"time"
+
+	"gitlab.com/fynbos/backend/currency"
+)
 
 type TransactionType string
 
@@ -35,12 +39,6 @@ const (
 	TransferTypeCreditBankAccount   TransferType = "credit_bank_acc"
 )
 
-type Amount struct {
-	Value      uint64 `validate:"gt=0"`
-	Asset      string `validate:"iso4217"`
-	AssetScale int    `validate:"gt=0"`
-}
-
 type CreateTransactionArgs struct {
 	WalletID    string          `validate:"uuid"` // Fynbos wallet ID
 	ForeignID   string          `validate:"uuid"`
@@ -50,7 +48,7 @@ type CreateTransactionArgs struct {
 	Note        string
 	Source      string // Usually the sending payment pointer
 	Destination string // Usually the receiving payment pointer
-	Amount      Amount
+	Amount      currency.Amount
 	Transfers   []TransferArgs `validate:"omitempty,dive"`
 }
 
@@ -58,7 +56,7 @@ type UpdateTransactionArgs struct {
 	WalletID        string `validate:"uuid"` // Fynbos wallet ID
 	ForeignID       string `validate:"uuid"`
 	State           State  `validate:"required"`
-	Amount          Amount
+	Amount          currency.Amount
 	UpdateTransfers []TransferArgs `validate:"omitempty,dive"`
 }
 
@@ -68,7 +66,7 @@ type TransferArgs struct {
 	LinkedAccountID      string       `validate:"omitempty,uuid"`
 	ForeignID            string       `validate:"uuid"`
 	Type                 TransferType `validate:"required"`
-	Amount               Amount
+	Amount               currency.Amount
 	State                State `validate:"required"`
 }
 
@@ -83,7 +81,7 @@ type Transaction struct {
 	Timestamp   time.Time
 	Provider    Provider
 	State       State
-	Amount      Amount
+	Amount      currency.Amount
 	Transfers   []Transfer
 }
 
@@ -92,7 +90,7 @@ type Transfer struct {
 	LinkedAccountID string
 	ForeignID       string
 	Type            TransferType
-	Amount          Amount
+	Amount          currency.Amount
 	State           State
 	Timestamp       time.Time
 }

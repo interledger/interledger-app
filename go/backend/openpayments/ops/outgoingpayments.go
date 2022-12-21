@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -105,10 +107,10 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			State:       transactions.StatePending,
 			Source:      fromPP.URL,
 			Destination: toPP.URL,
-			Amount: transactions.Amount{
-				Value:      q.SendAmount,
-				Asset:      q.SendAsset,
-				AssetScale: q.SendAssetScale,
+			Amount: currency.Amount{
+				Value:    q.SendAmount,
+				Currency: currency.ParseCurrency(q.SendAsset),
+				Scale:    q.SendAssetScale,
 			},
 		})
 	})
@@ -165,10 +167,10 @@ func transformOutgoingPayment(ctx context.Context, b Backends, op dbOutgoingPaym
 		Receiver:          q.IncomingPayment,
 		SendAmount:        q.SendAmount,
 		ReceiveAmount:     q.ReceiveAmount,
-		SentAmount: openpayments.Amount{
-			Value:      op.SentAmount,
-			Asset:      op.AssetCode,
-			AssetScale: op.AssetScale,
+		SentAmount: currency.Amount{
+			Value:    op.SentAmount,
+			Currency: currency.ParseCurrency(op.AssetCode),
+			Scale:    op.AssetScale,
 		},
 		Description: op.Description,
 		CreatedAt:   op.CreatedAt,
@@ -245,7 +247,7 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 
 	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		res, err := tx.ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET updated_at=now(), completed=true, sent_amount=$1, sent_asset=$2, sent_scale=$3 WHERE id=$4 AND failed=false",
-			args.SentAmount.Value, args.SentAmount.Asset, args.SentAmount.AssetScale, opID)
+			args.SentAmount.Value, args.SentAmount.Currency, args.SentAmount.Scale, opID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
@@ -261,18 +263,14 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			WalletID:  fromPP.WalletID,
 			ForeignID: opID,
 			State:     transactions.StateCompleted,
-			Amount: transactions.Amount{
-				Value:      args.SentAmount.Value,
-				Asset:      args.SentAmount.Asset,
-				AssetScale: args.SentAmount.AssetScale,
-			},
+			Amount:    args.SentAmount,
 		})
 		if err != nil {
 			return err
 		}
 
 		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET updated_at=now(), received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4 AND received_amount<=$1",
-			args.SentAmount.Value, args.SentAmount.Asset, args.SentAmount.AssetScale, ipID)
+			args.SentAmount.Value, args.SentAmount.Currency, args.SentAmount.Scale, ipID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
@@ -288,10 +286,7 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			WalletID:  toPP.WalletID,
 			ForeignID: ipID,
 			State:     transactions.StateCompleted,
-			Amount: transactions.Amount{
-				Value:      args.SentAmount.Value,
-				Asset:      args.SentAmount.Asset,
-				AssetScale: args.SentAmount.AssetScale},
+			Amount:    args.SentAmount,
 		})
 	})
 }

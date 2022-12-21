@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"github.com/google/uuid"
@@ -264,7 +265,7 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, err
 	}
 
-	if sendPP.Asset != recvPP.Asset || recvPP.Asset != args.SendAmount.Asset {
+	if sendPP.Asset != recvPP.Asset || recvPP.Asset != args.SendAmount.Currency {
 		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
 	}
 
@@ -317,11 +318,11 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("recv_payment_pointer_id", recvPP.ID).
 		Value("incoming_payment_id", ip.ID[strings.LastIndex(ip.ID, "/")+1:]).
 		Value("send_amount", args.SendAmount.Value).
-		Value("send_asset", args.SendAmount.Asset).
-		Value("send_scale", args.SendAmount.AssetScale).
+		Value("send_asset", args.SendAmount.Currency).
+		Value("send_scale", args.SendAmount.Scale).
 		Value("recv_amount", args.SendAmount.Value).
-		Value("recv_asset", args.SendAmount.Asset).
-		Value("recv_scale", args.SendAmount.AssetScale).
+		Value("recv_asset", args.SendAmount.Currency).
+		Value("recv_scale", args.SendAmount.Scale).
 		Value("expires_at", args.ExpiresAt).Value("send_linked_acc_id", sql.NullString{
 		String: args.LinkedAccID,
 		Valid:  args.LinkedAccID != "",
@@ -381,10 +382,10 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	amount := openpayments.Amount{
-		Value:      dbq.SendAmount,
-		Asset:      dbq.SendAsset,
-		AssetScale: dbq.SendAssetScale,
+	amount := currency.Amount{
+		Value:    dbq.SendAmount,
+		Currency: currency.ParseCurrency(dbq.SendAsset),
+		Scale:    dbq.SendAssetScale,
 	}
 	return &openpayments.Quote{
 		ID:                fmt.Sprintf("%s/quotes/%s", sendPP.URL, dbq.ID),

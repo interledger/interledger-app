@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/db"
 
 	"gitlab.com/fynbos/backend/openpayments/workflows"
@@ -26,17 +28,6 @@ func NewGRPCServer(b Backends) pb.OpenPaymentServiceServer {
 	return &grpcServer{b: b}
 }
 
-func toAmountPB(amount *openpayments.Amount) *pb.Amount {
-	if amount == nil {
-		return nil
-	}
-	return &pb.Amount{
-		Amount:     amount.Value,
-		Asset:      amount.Asset,
-		AssetScale: int32(amount.AssetScale),
-	}
-}
-
 func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePaymentPointerRequest) (*pb.Empty, error) {
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -52,7 +43,7 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 		URL:        ops.StandardisePaymentPointer(req.Url),
 		WalletID:   wallet.ID,
 		Alias:      req.Alias,
-		Asset:      req.Asset,
+		Asset:      currency.ParseCurrency(req.Asset),
 		AssetScale: int(req.AssetScale),
 	}
 
@@ -91,7 +82,7 @@ func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPo
 
 	return &pb.PaymentPointer{
 		Url:        pp.URL,
-		Asset:      pp.Asset,
+		Asset:      pp.Asset.String(),
 		AssetScale: int32(pp.AssetScale),
 		Alias:      pp.Alias,
 		WalletID:   pp.WalletID,
@@ -130,7 +121,7 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 		}
 		resp[i] = &pb.PaymentPointer{
 			Url:        p.URL,
-			Asset:      p.Asset,
+			Asset:      p.Asset.String(),
 			AssetScale: int32(p.AssetScale),
 			Alias:      p.Alias,
 			WalletID:   p.WalletID,
@@ -157,16 +148,13 @@ func (g *grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPo
 }
 
 func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest) (*pb.Quote, error) {
+	amount := currency.FromPB(req.Amount)
 	args := openpayments.CreateQuoteArgs{
 		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
 		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
 		ExpiresAt:             req.ExpiresAt.AsTime(),
-		SendAmount: openpayments.Amount{
-			Value:      req.GetAmount().GetAmount(),
-			Asset:      req.GetAmount().GetAsset(),
-			AssetScale: int(req.GetAmount().GetAssetScale()),
-		},
-		LinkedAccID: req.GetSendLinkedAccount(),
+		SendAmount:            amount,
+		LinkedAccID:           req.GetSendLinkedAccount(),
 	}
 
 	_, err := g.b.Users().UserForContext(ctx)
@@ -205,22 +193,12 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		return nil, toGRPCError(err)
 	}
 
-	sendAmt := &pb.Amount{
-		Amount:     q.SendAmount.Value,
-		Asset:      q.SendAmount.Asset,
-		AssetScale: int32(q.SendAmount.AssetScale),
-	}
-	recvAmt := &pb.Amount{
-		Amount:     q.ReceiveAmount.Value,
-		Asset:      q.ReceiveAmount.Asset,
-		AssetScale: int32(q.ReceiveAmount.AssetScale),
-	}
 	return &pb.Quote{
 		Id:             q.ID,
 		PaymentPointer: q.PaymentPointer,
 		Receiver:       q.IncomingPayment,
-		SendAmount:     sendAmt,
-		ReceiveAmount:  recvAmt,
+		SendAmount:     q.SendAmount.ToPB(),
+		ReceiveAmount:  q.ReceiveAmount.ToPB(),
 		ExpiresAt:      timestamppb.New(q.ExpiresAt),
 		CreatedAt:      timestamppb.New(q.CreatedAt),
 	}, nil
@@ -242,14 +220,12 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 		return nil, toGRPCError(err)
 	}
 
-	sendAmt := toAmountPB(&q.SendAmount)
-	recvAmt := toAmountPB(&q.ReceiveAmount)
 	return &pb.Quote{
 		Id:             q.ID,
 		PaymentPointer: q.PaymentPointer,
 		Receiver:       q.IncomingPayment,
-		SendAmount:     sendAmt,
-		ReceiveAmount:  recvAmt,
+		SendAmount:     q.SendAmount.ToPB(),
+		ReceiveAmount:  q.ReceiveAmount.ToPB(),
 		ExpiresAt:      timestamppb.New(q.ExpiresAt),
 		CreatedAt:      timestamppb.New(q.CreatedAt),
 	}, nil
@@ -262,11 +238,8 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 		ExpiresAt:      req.ExpiresAt.AsTime(),
 	}
 	if req.Amount != nil {
-		args.IncomingAmount = &openpayments.Amount{
-			Value:      req.Amount.Amount,
-			Asset:      req.Amount.Asset,
-			AssetScale: int(req.Amount.AssetScale),
-		}
+		amt := currency.FromPB(req.GetAmount())
+		args.IncomingAmount = &amt
 	}
 
 	_, err := g.b.Users().UserForContext(ctx)
@@ -307,14 +280,12 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 		return nil, toGRPCError(err)
 	}
 
-	incomingAmt := toAmountPB(ip.IncomingAmount)
-	recvAmt := toAmountPB(ip.ReceivedAmount)
 	return &pb.IncomingPayment{
 		Id:                 ip.ID,
 		PaymentPointer:     ip.PaymentPointer,
 		FromPaymentPointer: ip.FromPaymentPointer,
-		IncomingAmount:     incomingAmt,
-		ReceivedAmount:     recvAmt,
+		IncomingAmount:     ip.IncomingAmount.ToPB(),
+		ReceivedAmount:     ip.ReceivedAmount.ToPB(),
 		Completed:          ip.Completed,
 		ExternalRef:        ip.ExternalRef,
 		ExpiresAt:          timestamppb.New(ip.ExpiresAt),
@@ -339,14 +310,12 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 		return nil, toGRPCError(err)
 	}
 
-	incomingAmt := toAmountPB(ip.IncomingAmount)
-	recvAmt := toAmountPB(ip.ReceivedAmount)
 	return &pb.IncomingPayment{
 		Id:                 ip.ID,
 		PaymentPointer:     ip.PaymentPointer,
 		FromPaymentPointer: ip.FromPaymentPointer,
-		IncomingAmount:     incomingAmt,
-		ReceivedAmount:     recvAmt,
+		IncomingAmount:     ip.IncomingAmount.ToPB(),
+		ReceivedAmount:     ip.ReceivedAmount.ToPB(),
 		Completed:          ip.Completed,
 		ExternalRef:        ip.ExternalRef,
 		ExpiresAt:          timestamppb.New(ip.ExpiresAt),
@@ -394,9 +363,9 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		ToPaymentPointer: op.ToPaymentPointer,
 		Failed:           op.Failed,
 		Receiver:         op.Receiver,
-		SendAmount:       toAmountPB(&op.SendAmount),
-		ReceiveAmount:    toAmountPB(&op.ReceiveAmount),
-		SentAmount:       toAmountPB(&op.SentAmount),
+		SendAmount:       op.SendAmount.ToPB(),
+		ReceiveAmount:    op.ReceiveAmount.ToPB(),
+		SentAmount:       op.SentAmount.ToPB(),
 		Description:      op.Description,
 		CreatedAt:        timestamppb.New(op.CreatedAt),
 		UpdatedAt:        timestamppb.New(op.UpdatedAt),
@@ -415,9 +384,9 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 		ToPaymentPointer: op.ToPaymentPointer,
 		Failed:           op.Failed,
 		Receiver:         op.Receiver,
-		SendAmount:       toAmountPB(&op.SendAmount),
-		ReceiveAmount:    toAmountPB(&op.ReceiveAmount),
-		SentAmount:       toAmountPB(&op.SentAmount),
+		SendAmount:       op.SendAmount.ToPB(),
+		ReceiveAmount:    op.ReceiveAmount.ToPB(),
+		SentAmount:       op.SentAmount.ToPB(),
 		Description:      op.Description,
 		CreatedAt:        timestamppb.New(op.CreatedAt),
 		UpdatedAt:        timestamppb.New(op.UpdatedAt),

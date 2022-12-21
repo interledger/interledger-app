@@ -1,59 +1,39 @@
 package openpayments
 
 import (
-	"fmt"
-	"math"
-	"strconv"
 	"time"
+
+	"gitlab.com/fynbos/backend/currency"
 )
 
 type PaymentPointer struct {
-	ID         string `db:"id" json:"-"`
-	URL        string `db:"url" json:"id"`
-	WalletID   string `db:"wallet_id" validate:"uuid4" json:"-"`
-	Alias      string `db:"alias" json:"publicName"`
-	Asset      string `db:"asset" validate:"iso4217"  json:"assetCode"`
-	AssetScale int    `db:"scale" validate:"gt=0" json:"assetScale"`
+	ID         string            `db:"id" json:"-"`
+	URL        string            `db:"url" json:"id"`
+	WalletID   string            `db:"wallet_id" validate:"uuid4" json:"-"`
+	Alias      string            `db:"alias" json:"publicName"`
+	Asset      currency.Currency `db:"asset" validate:"iso4217"  json:"assetCode"`
+	AssetScale int               `db:"scale" validate:"gt=0" json:"assetScale"`
 }
 
 type CreateQuoteArgs struct {
 	SendPaymentPointer    string `validate:"url"`
 	ReceivePaymentPointer string `json:"receiver" validate:"url"`
 	ExpiresAt             time.Time
-	SendAmount            Amount `json:"sendAmount"`
+	SendAmount            currency.Amount `json:"sendAmount"`
 	Reference             string
 	Description           string
 	LinkedAccID           string
 }
 
-type Amount struct {
-	Value      uint64 `validate:"gt=0" json:"value,string"`
-	Asset      string `validate:"iso4217"  json:"assetCode"`
-	AssetScale int    `validate:"gt=0" json:"assetScale"`
-}
-
-func (a Amount) Format() string {
-	return fmt.Sprintf("%s %s", strconv.FormatFloat(a.FormatAmount(), 'f', a.AssetScale, 64), a.Asset)
-}
-
-func (a Amount) FormatAmount() float64 {
-	amnt := float64(a.Value)
-	if a.AssetScale > 0 {
-		amnt /= math.Pow(10, float64(a.AssetScale))
-	}
-
-	return amnt
-}
-
 type Quote struct {
-	ID                string    `json:"id"`
-	PaymentPointer    string    `json:"paymentPointer"`
-	IncomingPayment   string    `json:"receiver"`
-	ReceiveAmount     Amount    `json:"receiveAmount"`
-	SendAmount        Amount    `json:"sendAmount"`
-	ExpiresAt         time.Time `json:"expiresAt"`
-	CreatedAt         time.Time `json:"createdAt"`
-	FromLinkedAccount string    `json:"-"`
+	ID                string          `json:"id"`
+	PaymentPointer    string          `json:"paymentPointer"`
+	IncomingPayment   string          `json:"receiver"`
+	ReceiveAmount     currency.Amount `json:"receiveAmount"`
+	SendAmount        currency.Amount `json:"sendAmount"`
+	ExpiresAt         time.Time       `json:"expiresAt"`
+	CreatedAt         time.Time       `json:"createdAt"`
+	FromLinkedAccount string          `json:"-"`
 }
 
 type ILPConnection struct {
@@ -67,24 +47,24 @@ type ILPConnection struct {
 type CreateIncomingPaymentArgs struct {
 	PaymentPointer     string
 	FromPaymentPointer string
-	IncomingAmount     *Amount
+	IncomingAmount     *currency.Amount
 	ExternalRef        string
 	ExpiresAt          time.Time
 	Description        string
 }
 
 type IncomingPayment struct {
-	ID                 string    `json:"id"`
-	PaymentPointer     string    `json:"paymentPointer"`
-	FromPaymentPointer string    `json:"from"`
-	IncomingAmount     *Amount   `json:"incomingAmount,omitempty"`
-	ReceivedAmount     *Amount   `json:"receivedAmount,omitempty"`
-	Completed          bool      `json:"completed"`
-	ExternalRef        string    `json:"externalRef"`
-	Description        string    `json:"description"`
-	ExpiresAt          time.Time `json:"expiresAt"`
-	CreatedAt          time.Time `json:"createdAt"`
-	UpdatedAt          time.Time `json:"updatedAt"`
+	ID                 string           `json:"id"`
+	PaymentPointer     string           `json:"paymentPointer"`
+	FromPaymentPointer string           `json:"from"`
+	IncomingAmount     *currency.Amount `json:"incomingAmount,omitempty"`
+	ReceivedAmount     *currency.Amount `json:"receivedAmount,omitempty"`
+	Completed          bool             `json:"completed"`
+	ExternalRef        string           `json:"externalRef"`
+	Description        string           `json:"description"`
+	ExpiresAt          time.Time        `json:"expiresAt"`
+	CreatedAt          time.Time        `json:"createdAt"`
+	UpdatedAt          time.Time        `json:"updatedAt"`
 }
 
 type CreateOutgoingPaymentArgs struct {
@@ -95,23 +75,23 @@ type CreateOutgoingPaymentArgs struct {
 }
 
 type OutgoingPayment struct {
-	ID                string    `json:"id"`
-	PaymentPointer    string    `json:"paymentPointer"`
-	ToPaymentPointer  string    `json:"to"`
-	Failed            bool      `json:"failed"`
-	Receiver          string    `json:"receiver"`
-	SendAmount        Amount    `json:"sendAmount"`
-	ReceiveAmount     Amount    `json:"receiveAmount"`
-	SentAmount        Amount    `json:"sentAmount"`
-	Description       string    `json:"description"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
-	FromLinkedAccount string    `json:"-"`
+	ID                string          `json:"id"`
+	PaymentPointer    string          `json:"paymentPointer"`
+	ToPaymentPointer  string          `json:"to"`
+	Failed            bool            `json:"failed"`
+	Receiver          string          `json:"receiver"`
+	SendAmount        currency.Amount `json:"sendAmount"`
+	ReceiveAmount     currency.Amount `json:"receiveAmount"`
+	SentAmount        currency.Amount `json:"sentAmount"`
+	Description       string          `json:"description"`
+	CreatedAt         time.Time       `json:"createdAt"`
+	UpdatedAt         time.Time       `json:"updatedAt"`
+	FromLinkedAccount string          `json:"-"`
 }
 
 type CompleteOutgoingPaymentArgs struct {
 	ID         string
-	SentAmount Amount
+	SentAmount currency.Amount
 }
 
 type TransactionType string
@@ -130,5 +110,5 @@ type Transaction struct {
 	Note        string
 	Type        TransactionType
 	Timestamp   time.Time
-	Amount      Amount
+	Amount      currency.Amount
 }
