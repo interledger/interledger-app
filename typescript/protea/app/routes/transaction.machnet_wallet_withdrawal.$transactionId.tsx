@@ -1,0 +1,145 @@
+import type { LoaderArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
+import { requireUserSession } from '~/lib/kratos.server'
+import { getLinkedAccount, getTransaction } from '~/lib/wallet.server'
+import { route } from 'routes-gen'
+
+export async function loader({ request, params }: LoaderArgs) {
+  await requireUserSession(request)
+  const transaction = await getTransaction(
+    request,
+    params.type as string,
+    params.transactionId as string
+  )
+
+  let linkedAccountName = ''
+  if (transaction.transfers.length > 0) {
+    const linkedAccountId = transaction.transfers.filter(
+      (trf) => trf.type == 'credit_bank_acc'
+    )[0]?.linkedAccountId
+    if (linkedAccountId) {
+      const linkedAccount = await getLinkedAccount(request, linkedAccountId)
+      linkedAccountName = linkedAccount.name
+    }
+  }
+
+  return json({
+    // Always go to /transactions with back button even if we've just done a payment flow
+    backTo: route('/transactions'),
+    transaction,
+    linkedAccountName
+  })
+}
+
+export const handle = {
+  layout: Layouts.FocusLayout
+}
+
+export default function Page() {
+  const { transaction, linkedAccountName } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+        <div className='flex justify-between'>
+          <span className='font-display text-2xl font-medium capitalize'>
+            Withdrawal
+          </span>
+          {transaction.status == 'Completed' && (
+            <Chip color={ChipColor.green}>Complete</Chip>
+          )}
+          {transaction.status == 'Pending' && (
+            <Chip color={ChipColor.yellow}>Pending</Chip>
+          )}
+          {transaction.status == 'Failed' && (
+            <Chip color={ChipColor.orange}>Failed</Chip>
+          )}
+        </div>
+        <div className='mt-8 flex w-full justify-between'>
+          <span className='text-sm'>Withdraw to:</span>
+          <span className='text-sm font-medium text-strong'>
+            {linkedAccountName}
+          </span>
+        </div>
+        <div className='mt-6 flex w-full justify-between'>
+          <span className='text-sm'>Withdraw amount</span>
+          <span className='text-sm font-medium text-strong'>
+            {transaction.subTotal || '$ 0.00'}
+          </span>
+        </div>
+        <div className='mt-2 flex w-full justify-between'>
+          <span className='text-sm'>Total fees</span>
+          <span className='text-sm font-medium text-strong'>
+            {transaction.fees || '$ 0.00'}
+          </span>
+        </div>
+        <div className='mt-2 flex w-full justify-between'>
+          <span className='text-sm'>You receive</span>
+          <span className='text-sm text-2xl font-medium text-strong'>
+            {transaction.total || '$ 0.00'}
+          </span>
+        </div>
+      </div>
+      <div className='mt-6 flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+        <h2 className='font-display font-medium text-strong'>Support</h2>
+        <span className='mt-4 text-sm'>
+          If you have any questions, issues, or complaints, please first contact
+          Fynbos at:
+        </span>
+        <div className='mt-3 flex items-center space-x-2 text-medium'>
+          <Icon>call</Icon>
+          <AnchorRouter
+            to='tel:+1 (856) 249-3067'
+            className='text-sm text-primary'
+          >
+            +1 (856) 249-3067
+          </AnchorRouter>
+        </div>
+        <div className='mt-2 flex items-center space-x-2 text-medium'>
+          <Icon>mail</Icon>
+          <AnchorRouter
+            to='mailto:support@fynbos.app'
+            className='text-sm text-primary'
+          >
+            support@fynbos.app
+          </AnchorRouter>
+        </div>
+        <span className='mt-4 text-sm'>
+          Our contact hours are Monday to Friday between 9am and 5pm EST.
+        </span>
+        <span className='mt-4 text-sm'>
+          In case your grievances are not addressed by Fynbos or for any
+          escalation purposes, please contact Machnet either through email&nbsp;
+          <AnchorRouter
+            to='mailto:help@machnetinc.com'
+            className='text-sm text-primary'
+          >
+            help@machnetinc.com
+          </AnchorRouter>
+          &nbsp;or call{' '}
+          <AnchorRouter
+            to='tel:+1 (408) 539-6455'
+            className='text-sm text-primary'
+          >
+            +1 (408) 539-6455
+          </AnchorRouter>
+          .
+        </span>
+        <span className='mt-4 text-sm'>
+          Bank services are provided by Evolve Bank & Trust, Member FDIC,
+          through our banking software provider, SynapseFI. To report a
+          complaint relating to the bank services, email&nbsp;
+          <AnchorRouter
+            to='mailto:help@synapsefi.com'
+            className='text-sm text-primary'
+          >
+            help@synapsefi.com
+          </AnchorRouter>
+          .
+        </span>
+      </div>
+    </>
+  )
+}
