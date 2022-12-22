@@ -132,6 +132,7 @@ func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID stri
 	is := db.NewInsert("transfers").
 		Value("transaction_id", transactionID).
 		Value("foreign_id", args.ForeignID).
+		Value("linked_acc_id", args.LinkedAccountID).
 		Value("type", args.Type).
 		Value("state", args.State).
 		Value("amount", args.Amount.Value).
@@ -289,7 +290,7 @@ func getTransactionID(ctx context.Context, dbc sqlx.QueryerContext, fid, walletI
 
 const (
 	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, updated_at `
-	transferCols    = ` foreign_id, type, state, amount, asset_scale, asset_code, updated_at `
+	transferCols    = ` foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
 type dbTransaction struct {
@@ -349,14 +350,15 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 }
 
 type dbTransfer struct {
-	TransactionID string                    `db:"transaction_id"`
-	ForeignID     string                    `db:"foreign_id"`
-	Type          transactions.TransferType `db:"type"`
-	State         transactions.State        `db:"state"`
-	Amount        uint64                    `db:"amount"`
-	Scale         int                       `db:"asset_scale"`
-	Asset         string                    `db:"asset_code"`
-	Timestamp     time.Time                 `db:"updated_at"`
+	TransactionID   string                    `db:"transaction_id"`
+	ForeignID       string                    `db:"foreign_id"`
+	LinkedAccountID sql.NullString            `db:"linked_acc_id"`
+	Type            transactions.TransferType `db:"type"`
+	State           transactions.State        `db:"state"`
+	Amount          uint64                    `db:"amount"`
+	Scale           int                       `db:"asset_scale"`
+	Asset           string                    `db:"asset_code"`
+	Timestamp       time.Time                 `db:"updated_at"`
 }
 
 func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.Transfer, error) {
@@ -373,8 +375,9 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 	res := make([]transactions.Transfer, len(trs))
 	for i, t := range trs {
 		res[i] = transactions.Transfer{
-			Type:      t.Type,
-			ForeignID: t.ForeignID,
+			Type:            t.Type,
+			ForeignID:       t.ForeignID,
+			LinkedAccountID: t.LinkedAccountID.String,
 			Amount: transactions.Amount{
 				Value:      t.Amount,
 				Asset:      t.Asset,

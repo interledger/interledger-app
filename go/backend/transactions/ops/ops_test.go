@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"gitlab.com/fynbos/backend/db"
+	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
 	users_client "gitlab.com/fynbos/backend/user/client"
@@ -22,6 +23,7 @@ func TestCreateTransaction(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
 		name string
@@ -62,9 +64,10 @@ func TestCreateTransaction(t *testing.T) {
 				},
 				Transfers: []transactions.TransferArgs{
 					{
-						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeDebitCard,
-						State:     transactions.StateCompleted,
+						ForeignID:       uuid.NewString(),
+						LinkedAccountID: uuid.NewString(),
+						Type:            transactions.TransferTypeDebitCard,
+						State:           transactions.StateCompleted,
 						Amount: transactions.Amount{
 							Value:      1000,
 							Asset:      "USD",
@@ -72,9 +75,10 @@ func TestCreateTransaction(t *testing.T) {
 						},
 					},
 					{
-						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeCreditMachnetWallet,
-						State:     transactions.StateFailed,
+						ForeignID:       uuid.NewString(),
+						LinkedAccountID: uuid.NewString(),
+						Type:            transactions.TransferTypeCreditMachnetWallet,
+						State:           transactions.StateFailed,
 						Amount: transactions.Amount{
 							Value:      1000,
 							Asset:      "USD",
@@ -82,9 +86,10 @@ func TestCreateTransaction(t *testing.T) {
 						},
 					},
 					{
-						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeDebitMachnetWallet,
-						State:     transactions.StateFailed,
+						ForeignID:       uuid.NewString(),
+						LinkedAccountID: uuid.NewString(),
+						Type:            transactions.TransferTypeDebitMachnetWallet,
+						State:           transactions.StateFailed,
 						Amount: transactions.Amount{
 							Value:      1000,
 							Asset:      "USD",
@@ -106,7 +111,20 @@ func TestCreateTransaction(t *testing.T) {
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
 
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
 			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
 
 			err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
@@ -121,6 +139,7 @@ func TestUpdateTransfers(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
 		name   string
@@ -182,6 +201,20 @@ func TestUpdateTransfers(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
 
 			err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
@@ -200,6 +233,7 @@ func TestListTransaction(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
 		name string
@@ -305,6 +339,20 @@ func TestListTransaction(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
 
 			err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)

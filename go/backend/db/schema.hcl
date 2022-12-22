@@ -1282,6 +1282,10 @@ table "transfers" {
     null = false
     type = uuid
   }
+  column "linked_acc_id" {
+    null = true
+    type = uuid
+  }
   column "foreign_id" {
     null = false
     type = uuid
@@ -1322,6 +1326,12 @@ table "transfers" {
   foreign_key "fk_transfers_wallets" {
     columns     = [column.transaction_id]
     ref_columns = [table.transactions.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_transfers_linked_accounts" {
+    columns     = [column.linked_acc_id]
+    ref_columns = [table.linked_accounts.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }

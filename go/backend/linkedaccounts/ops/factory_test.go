@@ -50,7 +50,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	c.Us = user_client.New(c, "kratosURL", "kratosAdminURL")
 
-	c.LinkedAccounts = linked_account_client.New(c, logger)
+	c.LinkedAccounts = linked_account_client.New(c)
 
 	return c, nil
 }

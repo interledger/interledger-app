@@ -6,27 +6,26 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/linkedaccounts/ops"
+	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
 var _ linkedaccounts.Client = client{}
 
 type client struct {
-	logger *zap.Logger
-	b      ops.Backends
+	b ops.Backends
 }
 
-func New(b ops.Backends, logger *zap.Logger) linkedaccounts.Client {
+func New(b ops.Backends) linkedaccounts.Client {
 	return &client{
-		b:      b,
-		logger: logger.With(zap.String("ops", "linked-accounts")),
+		b: b,
 	}
 }
 
 func (c client) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			c.logger.Error(
+			log.Error(
 				"Failed to create linked account.",
 				zap.Int64("took", time.Since(begin).Milliseconds()),
 				zap.String("msg", err.Error()),
@@ -34,7 +33,7 @@ func (c client) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (fs
 			return
 		}
 
-		c.logger.Debug(
+		log.Debug(
 			"Created linked account.",
 			zap.Int64("took", time.Since(begin).Milliseconds()),
 		)
@@ -46,7 +45,7 @@ func (c client) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (fs
 func (c client) Get(ctx context.Context, id string) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			c.logger.Error(
+			log.Error(
 				"Failed to get linked account.",
 				zap.String("id", id),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -55,7 +54,7 @@ func (c client) Get(ctx context.Context, id string) (fs *linkedaccounts.LinkedAc
 			return
 		}
 
-		c.logger.Debug(
+		log.Debug(
 			"Got linked account.",
 			zap.String("id", fs.ID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -68,7 +67,7 @@ func (c client) Get(ctx context.Context, id string) (fs *linkedaccounts.LinkedAc
 func (c client) GetByProviderID(ctx context.Context, args linkedaccounts.GetByProviderIDArgs) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			c.logger.Error(
+			log.Error(
 				"Failed to get linked account by provider id.",
 				zap.String("provider_id", args.ProviderID),
 				zap.String("provider", args.Provider),
@@ -79,7 +78,7 @@ func (c client) GetByProviderID(ctx context.Context, args linkedaccounts.GetByPr
 			return
 		}
 
-		c.logger.Debug(
+		log.Debug(
 			"Got linked account by provider id.",
 			zap.String("id", fs.ID),
 			zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -92,7 +91,7 @@ func (c client) GetByProviderID(ctx context.Context, args linkedaccounts.GetByPr
 func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
-			c.logger.Error(
+			log.Error(
 				"Failed to get linked accounts.",
 				zap.String("walletId", walletId),
 				zap.Int64("took", time.Since(begin).Milliseconds()),
@@ -101,7 +100,7 @@ func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []link
 			return
 		}
 
-		c.logger.Debug(
+		log.Debug(
 			"Got linked accounts.",
 			// zap.String("id", fs[0]),
 			zap.Int64("took", time.Since(begin).Milliseconds()),

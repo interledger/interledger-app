@@ -29,7 +29,6 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
 	temporal "go.temporal.io/sdk/client"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -205,11 +204,7 @@ func (b *backends) KYC() kyc.Client {
 
 func (b *backends) LinkedAccounts() linkedaccounts.Client {
 	if b.linkedaccounts == nil {
-		logger, err := zap.NewDevelopment()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		b.linkedaccounts = linkedaccounts_client.New(b, logger)
+		b.linkedaccounts = linkedaccounts_client.New(b)
 	}
 	return b.linkedaccounts
 }

@@ -33,10 +33,11 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 		trs := make([]*pb.Transfer, len(tx.Transfers))
 		for y, tr := range tx.Transfers {
 			trs[y] = &pb.Transfer{
-				ForeignId: tr.ForeignID,
-				Type:      string(tr.Type),
-				State:     string(tr.State),
-				Timestamp: timestamppb.New(tr.Timestamp),
+				ForeignId:       tr.ForeignID,
+				LinkedAccountId: tr.LinkedAccountID,
+				Type:            string(tr.Type),
+				State:           string(tr.State),
+				Timestamp:       timestamppb.New(tr.Timestamp),
 				Amount: &pb.Amount{
 					Amount:     tr.Amount.Value,
 					Asset:      tr.Amount.Asset,

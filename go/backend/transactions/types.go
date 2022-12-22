@@ -65,6 +65,7 @@ type UpdateTransactionArgs struct {
 type TransferArgs struct {
 	WalletID             string       `validate:"omitempty,uuid"` // Fynbos wallet ID
 	TransactionForeignID string       `validate:"omitempty,uuid"`
+	LinkedAccountID      string       `validate:"omitempty,uuid"`
 	ForeignID            string       `validate:"uuid"`
 	Type                 TransferType `validate:"required"`
 	Amount               Amount
@@ -88,9 +89,10 @@ type Transaction struct {
 
 // Transfer is the underlying transfers that make up a single Transactions
 type Transfer struct {
-	ForeignID string
-	Type      TransferType
-	Amount    Amount
-	State     State
-	Timestamp time.Time
+	LinkedAccountID string
+	ForeignID       string
+	Type            TransferType
+	Amount          Amount
+	State           State
+	Timestamp       time.Time
 }
