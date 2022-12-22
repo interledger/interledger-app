@@ -41,6 +41,8 @@ type WidgetToken struct {
 type CreateTransactionArgs struct {
 	FromForeignID       string // ID against which to create transfers
 	ToForeignID         string // ID against which to create transfers
+	FromPaymentPointer  string // Fully qualified payment pointer
+	ToPaymentPointer    string // Fully qualified payment pointer
 	FromLinkedAccountID string
 	ToLinkedAccountID   string
 	Amount              float64

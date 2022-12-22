@@ -8,12 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/transactions"
+
+	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/db"
 )
 
 const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at`
@@ -89,32 +87,7 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err = tx.ExecContext(ctx, stmt, args...)
-		if err != nil {
-			return err
-		}
-
-		targs := transactions.CreateTransactionArgs{
-			WalletID:    pp.WalletID,
-			ForeignID:   id,
-			ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
-			Provider:    transactions.ProviderOpenPayments,
-			Note:        payment.Description,
-			State:       transactions.StatePending,
-			Source:      payment.FromPaymentPointer,
-			Destination: payment.PaymentPointer,
-		}
-		if payment.IncomingAmount != nil {
-			targs.Amount = transactions.Amount{
-				Value:      payment.IncomingAmount.Value,
-				Asset:      payment.IncomingAmount.Asset,
-				AssetScale: payment.IncomingAmount.AssetScale,
-			}
-		}
-
-		return b.Transactions().CreateTransactionTx(ctx, tx, targs)
-	})
+	_, err = b.DB().ExecContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}

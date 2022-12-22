@@ -40,6 +40,8 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	mArgs := machnet.CreateTransactionArgs{
 		FromForeignID:       uuid.NewString(),
 		ToForeignID:         uuid.NewString(),
+		FromPaymentPointer:  uuid.NewString(),
+		ToPaymentPointer:    uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		ToLinkedAccountID:   uuid.NewString(),
 		Amount:              10.5,

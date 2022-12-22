@@ -302,6 +302,7 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		FromPaymentPointer: sendPP.URL,
 		ExternalRef:        args.Reference,
 		Description:        args.Description,
+		IncomingAmount:     &args.SendAmount,
 	})
 	if err != nil {
 		return nil, err

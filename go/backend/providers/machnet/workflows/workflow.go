@@ -293,14 +293,31 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			Amount:               transactionAmount,
 			State:                transactions.StatePending,
 		},
-		{
-			WalletID:             transactionWallets.ToWalletID,
-			TransactionForeignID: args.ToForeignID,
-			ForeignID:            transferID,
-			LinkedAccountID:      args.ToLinkedAccountID,
-			Type:                 transactions.TransferTypeCreditMachnetWallet,
-			Amount:               transactionAmount,
-			State:                transactions.StatePending,
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("AddTransaction Activity failed.", "Error", err)
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		WalletID:    transactionWallets.ToWalletID,
+		ForeignID:   args.ToForeignID,
+		ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
+		Provider:    transactions.ProviderOpenPayments,
+		State:       transactions.StatePending,
+		Source:      args.FromPaymentPointer,
+		Destination: args.ToPaymentPointer,
+		Amount:      transactionAmount,
+		Transfers: []transactions.TransferArgs{
+			{
+				WalletID:             transactionWallets.ToWalletID,
+				TransactionForeignID: args.ToForeignID,
+				ForeignID:            transferID,
+				LinkedAccountID:      args.ToLinkedAccountID,
+				Type:                 transactions.TransferTypeCreditMachnetWallet,
+				Amount:               transactionAmount,
+				State:                transactions.StatePending,
+			},
 		},
 	}).Get(ctx, nil)
 	if err != nil {
