@@ -331,6 +331,7 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 			return nil, err
 		}
 		resp[i] = transactions.Transaction{
+			ID:          t.ID,
 			ForeignID:   t.ForeignID,
 			Source:      t.Source.String,
 			Destination: t.Destination.String,
@@ -349,6 +350,39 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 	}
 
 	return resp, err
+}
+
+func GetTransaction(ctx context.Context, b Backends, walletID string, trxID string) (*transactions.Transaction, error) {
+	var tx dbTransaction
+	err := b.DB().GetContext(ctx, &tx,
+		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and id=$2 and (state in ($3,$4) or (state=$5 and type<>$6))", transactionCols),
+		walletID, trxID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	trs, err := getTransfers(ctx, b, tx.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &transactions.Transaction{
+		ID:          tx.ID,
+		ForeignID:   tx.ForeignID,
+		Source:      tx.Source.String,
+		Destination: tx.Destination.String,
+		Type:        tx.Type,
+		Timestamp:   tx.Timestamp,
+		Note:        tx.Note.String,
+		State:       tx.State,
+		Provider:    tx.Provider,
+		Amount: transactions.Amount{
+			Value:      tx.Amount,
+			Asset:      tx.Asset,
+			AssetScale: tx.Scale,
+		},
+		Transfers: trs,
+	}, nil
 }
 
 type dbTransfer struct {

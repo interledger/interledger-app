@@ -93,6 +93,21 @@ func (mr *MockClientMockRecorder) CreateTransactionTx(ctx, tx, args interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransactionTx", reflect.TypeOf((*MockClient)(nil).CreateTransactionTx), ctx, tx, args)
 }
 
+// GetTransaction mocks base method.
+func (m *MockClient) GetTransaction(ctx context.Context, walletID, transactionID string) (*transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransaction", ctx, walletID, transactionID)
+	ret0, _ := ret[0].(*transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransaction indicates an expected call of GetTransaction.
+func (mr *MockClientMockRecorder) GetTransaction(ctx, walletID, transactionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, walletID, transactionID)
+}
+
 // ListTransactions mocks base method.
 func (m *MockClient) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
 	m.ctrl.T.Helper()
