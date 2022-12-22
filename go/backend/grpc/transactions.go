@@ -38,22 +38,14 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 				Type:            string(tr.Type),
 				State:           string(tr.State),
 				Timestamp:       timestamppb.New(tr.Timestamp),
-				Amount: &pb.Amount{
-					Amount:     tr.Amount.Value,
-					Asset:      tr.Amount.Asset,
-					AssetScale: int32(tr.Amount.AssetScale),
-				},
+				Amount: tr.Amount.ToPB(),
 			}
 		}
 
 		res[i] = &pb.Transaction{
-			ForeignId: tx.ForeignID,
-			Type:      string(tx.Type),
-			Amount: &pb.Amount{
-				Amount:     tx.Amount.Value,
-				Asset:      tx.Amount.Asset,
-				AssetScale: int32(tx.Amount.AssetScale),
-			},
+			ForeignId:   tx.ForeignID,
+			Type:        string(tx.Type),
+			Amount:      tx.Amount.ToPB(),
 			Source:      tx.Source,
 			Destination: tx.Destination,
 			Timestamp:   timestamppb.New(tx.Timestamp),

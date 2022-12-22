@@ -7,6 +7,8 @@ import (
 	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
@@ -40,10 +42,10 @@ func TestCreateTransaction(t *testing.T) {
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 			},
 		},
@@ -57,43 +59,40 @@ func TestCreateTransaction(t *testing.T) {
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 				Transfers: []transactions.TransferArgs{
 					{
-						ForeignID:       uuid.NewString(),
-						LinkedAccountID: uuid.NewString(),
-						Type:            transactions.TransferTypeDebitCard,
-						State:           transactions.StateCompleted,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						ForeignID: uuid.NewString(),
+						Type:      transactions.TransferTypeDebitCard,
+						State:     transactions.StateCompleted,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 					},
 					{
-						ForeignID:       uuid.NewString(),
-						LinkedAccountID: uuid.NewString(),
-						Type:            transactions.TransferTypeCreditMachnetWallet,
-						State:           transactions.StateFailed,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						ForeignID: uuid.NewString(),
+						Type:      transactions.TransferTypeCreditMachnetWallet,
+						State:     transactions.StateFailed,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 					},
 					{
-						ForeignID:       uuid.NewString(),
-						LinkedAccountID: uuid.NewString(),
-						Type:            transactions.TransferTypeDebitMachnetWallet,
-						State:           transactions.StateFailed,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						ForeignID: uuid.NewString(),
+						Type:      transactions.TransferTypeDebitMachnetWallet,
+						State:     transactions.StateFailed,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 					},
 				},
@@ -157,19 +156,19 @@ func TestUpdateTransfers(t *testing.T) {
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 				Transfers: []transactions.TransferArgs{
 					{
 						ForeignID: "0e4b5b26-a712-42e0-b7ea-f7870ca1b363",
 						Type:      transactions.TransferTypeDebitCard,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 						State: transactions.StatePending,
 					},
@@ -180,10 +179,10 @@ func TestUpdateTransfers(t *testing.T) {
 				TransactionForeignID: "8ba075f3-f819-48bb-8e47-4f973acd4e72",
 				ForeignID:            "0e4b5b26-a712-42e0-b7ea-f7870ca1b363",
 				Type:                 transactions.TransferTypeDebitCard,
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 				State: transactions.StateCompleted,
 			},
@@ -251,10 +250,10 @@ func TestListTransaction(t *testing.T) {
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 			},
 		},
@@ -269,10 +268,10 @@ func TestListTransaction(t *testing.T) {
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 			},
 		},
@@ -287,40 +286,40 @@ func TestListTransaction(t *testing.T) {
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
-				Amount: transactions.Amount{
-					Value:      1000,
-					Asset:      "USD",
-					AssetScale: 2,
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
 				},
 				Transfers: []transactions.TransferArgs{
 					{
 						ForeignID: uuid.NewString(),
 						Type:      transactions.TransferTypeDebitCard,
 						State:     transactions.StateCompleted,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 					},
 					{
 						ForeignID: uuid.NewString(),
 						Type:      transactions.TransferTypeCreditMachnetWallet,
 						State:     transactions.StateFailed,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 					},
 					{
 						ForeignID: uuid.NewString(),
 						Type:      transactions.TransferTypeDebitMachnetWallet,
 						State:     transactions.StateFailed,
-						Amount: transactions.Amount{
-							Value:      1000,
-							Asset:      "USD",
-							AssetScale: 2,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
 						},
 					},
 				},
