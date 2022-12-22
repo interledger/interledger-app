@@ -288,14 +288,14 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			WalletID:             transactionWallets.FromWalletID,
 			TransactionForeignID: args.FromForeignID,
 			ForeignID:            transferID,
-			LinkedAccountID:      fundWalletTX.FromWalletLinkedAcc,
+			LinkedAccountID:      trxRefFromId,
 			Type:                 transactions.TransferTypeDebitMachnetWallet,
 			Amount:               transactionAmount,
 			State:                transactions.StatePending,
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("AddTransaction Activity failed.", "Error", err)
+		logger.Error("AddTransactionTransfer Activity failed.", "Error", err)
 		return "", err
 	}
 
