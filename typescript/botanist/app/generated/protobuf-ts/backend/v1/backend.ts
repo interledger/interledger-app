@@ -458,6 +458,10 @@ export interface Transfer {
      * @generated from protobuf field: string foreignId = 5;
      */
     foreignId: string;
+    /**
+     * @generated from protobuf field: string linkedAccountId = 6;
+     */
+    linkedAccountId: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetStatementsResponse
@@ -2539,11 +2543,12 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "timestamp", kind: "message", T: () => Timestamp },
             { no: 4, name: "amount", kind: "message", T: () => Amount },
-            { no: 5, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "linkedAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { type: "", state: "", foreignId: "" };
+        const message = { type: "", state: "", foreignId: "", linkedAccountId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -2568,6 +2573,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* string foreignId */ 5:
                     message.foreignId = reader.string();
+                    break;
+                case /* string linkedAccountId */ 6:
+                    message.linkedAccountId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2596,6 +2604,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* string foreignId = 5; */
         if (message.foreignId !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.foreignId);
+        /* string linkedAccountId = 6; */
+        if (message.linkedAccountId !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.linkedAccountId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

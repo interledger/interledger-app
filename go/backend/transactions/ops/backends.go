@@ -5,16 +5,22 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/user"
 )
 
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	Users() user.Client
 }
 
 type testBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate
+}
+
+func (t testBackends) Users() user.Client {
+	return nil
 }
 
 func (t testBackends) Validator() *validator.Validate {

@@ -218,6 +218,7 @@ message Transfer {
   google.protobuf.Timestamp timestamp = 3;
   Amount amount = 4;
   string foreignId = 5;
+  string linkedAccountId = 6;
 }
 
 message GetStatementsResponse {

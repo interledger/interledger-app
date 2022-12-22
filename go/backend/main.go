@@ -170,7 +170,7 @@ func start(args *cli.StartArgs) {
 	}
 	b.twilio = twilioService
 
-	b.linkedaccounts = linked_account_client.New(b, logger)
+	b.linkedaccounts = linked_account_client.New(b)
 
 	b.signup = signup_client.New(b)
 
@@ -378,7 +378,7 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	b.linkedaccounts = linked_account_client.New(b, logger)
+	b.linkedaccounts = linked_account_client.New(b)
 
 	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
