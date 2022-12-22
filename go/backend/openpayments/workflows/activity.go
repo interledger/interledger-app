@@ -110,6 +110,8 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 	return &machnet.CreateTransactionArgs{
 		FromForeignID:       outgoingID,
 		ToForeignID:         incomingID,
+		FromPaymentPointer:  op.PaymentPointer,
+		ToPaymentPointer:    op.ToPaymentPointer,
 		FromLinkedAccountID: sendAccID,
 		ToLinkedAccountID:   recvAcc.ID,
 		Amount:              amnt,

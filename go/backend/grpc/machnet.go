@@ -267,6 +267,7 @@ func (s *rpcService) StartWithdrawFromMachnetWallet(
 	}
 
 	_, err = s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
+		WalletID:              wallet.ID,
 		Amount:                req.GetAmount(),
 		WalletLinkedAccountID: linkedWallet.ID,
 		ToLinkedAccountID:     req.GetToLinkedAccountId(),

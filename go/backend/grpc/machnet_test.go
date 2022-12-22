@@ -401,6 +401,7 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 		).Times(1)
 
 		c.machnet.EXPECT().WithdrawFromWallet(gomock.Any(), machnet.WithdrawFromWalletArgs{
+			WalletID:              wallet.ID,
 			WalletLinkedAccountID: walletLinkedAccountID,
 			Amount:                1000,
 			ToLinkedAccountID:     toLinkedAccountID,
