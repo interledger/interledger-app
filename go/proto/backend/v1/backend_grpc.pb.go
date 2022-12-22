@@ -543,6 +543,7 @@ type BackendServiceClient interface {
 	IsMugAvailable(ctx context.Context, in *IsMugAvailableRequest, opts ...grpc.CallOption) (*IsMugAvailableResponse, error)
 	//Transactions
 	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
+	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
 }
 
 type backendServiceClient struct {
@@ -841,6 +842,15 @@ func (c *backendServiceClient) ListTransactions(ctx context.Context, in *Paginat
 	return out, nil
 }
 
+func (c *backendServiceClient) LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error) {
+	out := new(Transaction)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/LookupTransaction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -884,6 +894,7 @@ type BackendServiceServer interface {
 	IsMugAvailable(context.Context, *IsMugAvailableRequest) (*IsMugAvailableResponse, error)
 	//Transactions
 	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
+	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -985,6 +996,9 @@ func (UnimplementedBackendServiceServer) IsMugAvailable(context.Context, *IsMugA
 }
 func (UnimplementedBackendServiceServer) ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTransactions not implemented")
+}
+func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LookupTransaction not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1574,6 +1588,24 @@ func _BackendService_ListTransactions_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_LookupTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LookupTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).LookupTransaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/LookupTransaction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).LookupTransaction(ctx, req.(*LookupTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1708,6 +1740,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTransactions",
 			Handler:    _BackendService_ListTransactions_Handler,
+		},
+		{
+			MethodName: "LookupTransaction",
+			Handler:    _BackendService_LookupTransaction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

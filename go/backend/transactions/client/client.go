@@ -57,3 +57,7 @@ func (c *client) UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []tran
 func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
 	return ops.ListTransactions(ctx, c.b, walletID, page)
 }
+
+func (c *client) GetTransaction(ctx context.Context, walletID string, txID string) (*transactions.Transaction, error) {
+	return ops.GetTransaction(ctx, c.b, walletID, txID)
+}
