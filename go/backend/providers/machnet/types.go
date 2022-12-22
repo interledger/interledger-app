@@ -195,6 +195,7 @@ type (
 	}
 
 	WithdrawFromWalletArgs struct {
+		IdempotencyKey        string
 		WalletID              string `validate:"uuid"`
 		Amount                uint64 `validate:"gt=0"`
 		WalletLinkedAccountID string `validate:"required,uuid"`
@@ -210,6 +211,7 @@ type (
 	}
 
 	StartWalletTopupArgs struct {
+		IdempotencyKey        string
 		WalletID              string `validate:"uuid"`
 		Amount                uint64 `validate:"gt=0"`
 		WalletLinkedAccountID string `validate:"required,uuid"`

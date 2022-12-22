@@ -68,10 +68,11 @@ type IncomingPayment struct {
 }
 
 type CreateOutgoingPaymentArgs struct {
-	QuoteID     string `json:"quoteId" validate:"required"`
-	Description string `json:"description"`
-	ExternalRef string `json:"externalRef"`
-	IPAddress   string `json:"-" validate:"ip_addr"`
+	IdempotencyKey string `json:"-" validate:"omitempty,uuid"`
+	QuoteID        string `json:"quoteId" validate:"required"`
+	Description    string `json:"description"`
+	ExternalRef    string `json:"externalRef"`
+	IPAddress      string `json:"-" validate:"ip_addr"`
 }
 
 type OutgoingPayment struct {

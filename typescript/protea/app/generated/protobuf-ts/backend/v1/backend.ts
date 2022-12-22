@@ -192,6 +192,10 @@ export interface CreateOutgoingPaymentRequest {
      * @generated from protobuf field: string ipAddress = 4;
      */
     ipAddress: string;
+    /**
+     * @generated from protobuf field: string idempotencyKey = 5;
+     */
+    idempotencyKey: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupIncomingPaymentRequest
@@ -1134,6 +1138,10 @@ export interface WithdrawFromMachnetWalletRequest {
      * @generated from protobuf field: string ipAddress = 3;
      */
     ipAddress: string;
+    /**
+     * @generated from protobuf field: string idempotencyKey = 4;
+     */
+    idempotencyKey: string;
 }
 /**
  * @generated from protobuf message backend.v1.StartMachnetWalletTopupRequest
@@ -1155,6 +1163,10 @@ export interface StartMachnetWalletTopupRequest {
      * @generated from protobuf field: string currency = 4;
      */
     currency: string;
+    /**
+     * @generated from protobuf field: string idempotencyKey = 5;
+     */
+    idempotencyKey: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupTransactionRequest
@@ -1669,11 +1681,12 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
             { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "externalRef", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentRequest>): CreateOutgoingPaymentRequest {
-        const message = { quoteID: "", description: "", externalRef: "", ipAddress: "" };
+        const message = { quoteID: "", description: "", externalRef: "", ipAddress: "", idempotencyKey: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateOutgoingPaymentRequest>(this, message, value);
@@ -1695,6 +1708,9 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                     break;
                 case /* string ipAddress */ 4:
                     message.ipAddress = reader.string();
+                    break;
+                case /* string idempotencyKey */ 5:
+                    message.idempotencyKey = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1720,6 +1736,9 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string ipAddress = 4; */
         if (message.ipAddress !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.ipAddress);
+        /* string idempotencyKey = 5; */
+        if (message.idempotencyKey !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.idempotencyKey);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5219,11 +5238,12 @@ class WithdrawFromMachnetWalletRequest$Type extends MessageType<WithdrawFromMach
         super("backend.v1.WithdrawFromMachnetWalletRequest", [
             { no: 1, name: "toLinkedAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
-            { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WithdrawFromMachnetWalletRequest>): WithdrawFromMachnetWalletRequest {
-        const message = { toLinkedAccountId: "", amount: "0", ipAddress: "" };
+        const message = { toLinkedAccountId: "", amount: "0", ipAddress: "", idempotencyKey: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WithdrawFromMachnetWalletRequest>(this, message, value);
@@ -5242,6 +5262,9 @@ class WithdrawFromMachnetWalletRequest$Type extends MessageType<WithdrawFromMach
                     break;
                 case /* string ipAddress */ 3:
                     message.ipAddress = reader.string();
+                    break;
+                case /* string idempotencyKey */ 4:
+                    message.idempotencyKey = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5264,6 +5287,9 @@ class WithdrawFromMachnetWalletRequest$Type extends MessageType<WithdrawFromMach
         /* string ipAddress = 3; */
         if (message.ipAddress !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.ipAddress);
+        /* string idempotencyKey = 4; */
+        if (message.idempotencyKey !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.idempotencyKey);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5281,11 +5307,12 @@ class StartMachnetWalletTopupRequest$Type extends MessageType<StartMachnetWallet
             { no: 1, name: "fromLinkedAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<StartMachnetWalletTopupRequest>): StartMachnetWalletTopupRequest {
-        const message = { fromLinkedAccountId: "", amount: "0", ipAddress: "", currency: "" };
+        const message = { fromLinkedAccountId: "", amount: "0", ipAddress: "", currency: "", idempotencyKey: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<StartMachnetWalletTopupRequest>(this, message, value);
@@ -5307,6 +5334,9 @@ class StartMachnetWalletTopupRequest$Type extends MessageType<StartMachnetWallet
                     break;
                 case /* string currency */ 4:
                     message.currency = reader.string();
+                    break;
+                case /* string idempotencyKey */ 5:
+                    message.idempotencyKey = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5332,6 +5362,9 @@ class StartMachnetWalletTopupRequest$Type extends MessageType<StartMachnetWallet
         /* string currency = 4; */
         if (message.currency !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.currency);
+        /* string idempotencyKey = 5; */
+        if (message.idempotencyKey !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.idempotencyKey);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

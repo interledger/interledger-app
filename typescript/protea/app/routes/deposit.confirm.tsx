@@ -12,6 +12,7 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
+import { randomUUID } from 'crypto'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.TopUp)
@@ -134,6 +135,7 @@ export async function action({ request }: ActionArgs) {
   const response = await grpcClient
     .startMachnetWalletTopup(
       {
+        idempotencyKey: flow.data.idempotencyKey || '',
         fromLinkedAccountId: flow.data.toLinkedAccountId,
         amount: flow.data.receiveAmount,
         ipAddress: clientIpAddress,

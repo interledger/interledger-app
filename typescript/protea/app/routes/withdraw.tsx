@@ -6,6 +6,7 @@ import { Button, Icon, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import { getLinkedAccounts, getWalletBalance } from '~/lib/wallet.server'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function loader({ request }: LoaderArgs) {
   const { canWithdraw, linkedAccounts } = await getLinkedAccounts(request)
@@ -172,7 +173,10 @@ export async function action({ request }: ActionArgs) {
     toLinkedAccountId,
     displayFee: formatMoney(fee),
     receiveAmount,
-    displayReceiveAmount: formatMoney(parseFloat(receiveAmount as string) / 100)
+    displayReceiveAmount: formatMoney(
+      parseFloat(receiveAmount as string) / 100
+    ),
+    idempotencyKey: uuidv4()
   }
 
   await updateFlow(request, flowType.Withdraw, data)

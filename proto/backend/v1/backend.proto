@@ -83,6 +83,7 @@ message CreateOutgoingPaymentRequest {
   string description = 2;
   string externalRef = 3;
   string ipAddress = 4;
+  string idempotencyKey = 5;
 }
 
 message LookupIncomingPaymentRequest {
@@ -470,6 +471,7 @@ message WithdrawFromMachnetWalletRequest {
   string toLinkedAccountId = 1;
   uint64 amount = 2;  
   string ipAddress = 3;
+  string idempotencyKey = 4;
 }
 
 message StartMachnetWalletTopupRequest {
@@ -477,6 +479,7 @@ message StartMachnetWalletTopupRequest {
   uint64 amount = 2;
   string ipAddress = 3;
   string currency = 4;
+  string idempotencyKey = 5;
 }
 
 message LookupTransactionRequest {

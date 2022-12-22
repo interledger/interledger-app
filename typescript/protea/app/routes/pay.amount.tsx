@@ -15,6 +15,7 @@ import {
 import { DateTime } from 'luxon'
 import { getLinkedAccounts, getWalletPaymentPointer } from '~/lib/wallet.server'
 import { requireUserSession } from '~/lib/kratos.server'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserSession(request)
@@ -250,7 +251,8 @@ export async function action({ request }: ActionArgs) {
       parseFloat(receiveAmount as string) / 100
     ),
     receivePaymentPointer,
-    sendPaymentPointer: sendPaymentPointer.url
+    sendPaymentPointer: sendPaymentPointer.url,
+    idempotencyKey: uuidv4()
   }
 
   await updateFlow(request, flowType.Pay, data)

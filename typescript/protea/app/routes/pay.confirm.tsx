@@ -13,6 +13,7 @@ import {
 import { requireUserSession } from '~/lib/kratos.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
+import { randomUUID } from 'crypto'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await requireUserSession(request)
@@ -156,6 +157,7 @@ export async function action({ request }: ActionArgs) {
   const response = await openPaymentsClient
     .createOutgoingPayment(
       {
+        idempotencyKey: flow.data.idempotencyKey || '',
         quoteID: flow.data.quoteID,
         description: flow.data.note,
         externalRef: '',

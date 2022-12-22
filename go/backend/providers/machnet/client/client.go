@@ -164,9 +164,14 @@ func (c client) GetWallet(ctx context.Context, id string) (*machnet.Wallet, erro
 }
 
 func (c client) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (machnet.Await, error) {
+	idempotencyKey := args.IdempotencyKey
+	if idempotencyKey == "" {
+		idempotencyKey = uuid.NewString()
+	}
 	workflowOptions := temporal.StartWorkflowOptions{
-		ID:        "machnet_withdraw_from_wallet_" + args.WalletLinkedAccountID,
-		TaskQueue: "backend",
+		ID:                    "machnet_withdraw_from_wallet_" + idempotencyKey,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
 	wf, err := c.t.ExecuteWorkflow(ctx, workflowOptions, workflows.CreateWalletWithdrawalWorkflow, args)
@@ -198,10 +203,15 @@ func (c client) DeleteFundSource(ctx context.Context, linkedAccID string) (machn
 }
 
 func (c client) StartWalletTopup(ctx context.Context, args machnet.StartWalletTopupArgs) (machnet.Await, error) {
+	idempotencyKey := args.IdempotencyKey
+	if idempotencyKey == "" {
+		idempotencyKey = uuid.NewString()
+	}
 	opts := temporal.StartWorkflowOptions{
-		ID:                       "machnet_create_wallet_topup_" + uuid.NewString(), // TODO: get id from transaction
+		ID:                       "machnet_create_wallet_topup_" + idempotencyKey,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour * 24 * 7, // Workflow has 7 days to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 	topupWorkflow, err := c.b.Temporal().ExecuteWorkflow(ctx, opts, workflows.CreateWalletTopupWorkflow, args)
 	if err != nil {
