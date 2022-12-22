@@ -12,7 +12,6 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 )
