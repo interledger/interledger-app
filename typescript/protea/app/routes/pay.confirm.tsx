@@ -171,12 +171,6 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
 
-  const transactionId = response.response.id.split('/').at(-1) as string
   await exitFlow(request, flowType.Pay)
-  return redirect(
-    route('/transaction/:type/:transactionId', {
-      type: 'outgoing',
-      transactionId
-    })
-  )
+  return redirect(route('/'))
 }

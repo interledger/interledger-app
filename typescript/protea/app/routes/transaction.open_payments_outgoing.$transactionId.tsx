@@ -1,11 +1,12 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useLoaderData, useParams } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
 import { getTransaction } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
 import {
+  httpMapping,
   isGrpcError,
   openPaymentsClient,
   StatusError
@@ -19,9 +20,27 @@ export async function loader({ request, params }: LoaderArgs) {
     params.transactionId as string
   )
 
+  const cookie = String(request.headers.get('cookie'))
+  const outgoingPayment = await openPaymentsClient
+    .lookupOutgoingPayment(
+      { id: transaction.foreignId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(outgoingPayment)) {
+    throw json({}, httpMapping(outgoingPayment.code))
+  }
+
+  // For now handle just incoming & outgoing payments
   let beneficiaryName = ''
   const response = await openPaymentsClient
-    .getPaymentPointer({ url: transaction.paymentPointer })
+    .getPaymentPointer({ url: outgoingPayment.response.toPaymentPointer })
     .then((v) => v)
     .catch(StatusError)
 
@@ -35,6 +54,8 @@ export async function loader({ request, params }: LoaderArgs) {
     backTo: route('/transactions'),
     transaction,
     beneficiaryName,
+    paymentPointer: outgoingPayment.response.toPaymentPointer,
+    note: outgoingPayment.response.description,
     traits: session.identity.traits
   })
 }
@@ -44,16 +65,15 @@ export const handle = {
 }
 
 export default function Page() {
-  const { transaction, beneficiaryName } = useLoaderData<typeof loader>()
-  const params = useParams()
+  const { transaction, beneficiaryName, paymentPointer, note } =
+    useLoaderData<typeof loader>()
 
   return (
     <>
       <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium capitalize'>
-            {params.type == 'outgoing' && 'Sent'}
-            {params.type == 'incoming' && 'Received'}
+            Sent
           </span>
           {transaction.status != 'Pending' && (
             <Chip color={ChipColor.green}>Complete</Chip>
@@ -63,13 +83,8 @@ export default function Page() {
           )}
         </div>
         <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>
-            {params.type == 'outgoing' && 'To'}
-            {params.type == 'incoming' && 'From'}
-          </span>
-          <span className='text-sm text-strong'>
-            {transaction.paymentPointer}
-          </span>
+          <span className='text-sm'>To</span>
+          <span className='text-sm text-strong'>{paymentPointer}</span>
         </div>
         {beneficiaryName != '' && (
           <div className='mt-6 flex w-full flex-col space-y-1'>
@@ -78,10 +93,7 @@ export default function Page() {
           </div>
         )}
         <div className='mt-6 flex w-full justify-between'>
-          <span className='text-sm'>
-            {params.type == 'outgoing' && 'You pay'}
-            {params.type == 'incoming' && 'They sent'}
-          </span>
+          <span className='text-sm'>You pay</span>
           <span className='text-sm font-medium text-strong'>
             {transaction.subTotal || '$ 0.00'}
           </span>
@@ -93,10 +105,7 @@ export default function Page() {
           </span>
         </div>
         <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>
-            {params.type == 'outgoing' && 'They receive'}
-            {params.type == 'incoming' && 'You receive'}
-          </span>
+          <span className='text-sm'>They receive</span>
           <span className='text-sm text-2xl font-medium text-strong'>
             {transaction.total || '$ 0.00'}
           </span>
@@ -105,10 +114,10 @@ export default function Page() {
           <span className='text-sm'>Payment date</span>
           <span className='text-sm text-strong'>{transaction.date}</span>
         </div>
-        {transaction.note && (
+        {note && (
           <div className='mt-6 flex w-full flex-col space-y-2'>
             <span className='text-sm'>Note</span>
-            <span className='text-sm text-strong'>{transaction.note}</span>
+            <span className='text-sm text-strong'>{note}</span>
           </div>
         )}
         <div className='mt-6 flex w-full flex-col space-y-1'>
