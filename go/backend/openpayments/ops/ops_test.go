@@ -161,7 +161,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 			assert.Equal(t, tc.alias, pp.Alias)
 			assert.Equal(t, wallet.ID, pp.WalletID)
 			assert.Equal(t, tc.url, pp.URL)
-			assert.Equal(t, tc.assetCode, pp.Asset)
+			assert.Equal(t, tc.assetCode, pp.Asset.String())
 			assert.Equal(t, tc.scale, pp.AssetScale)
 		})
 	}
@@ -269,11 +269,11 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	for _, p := range pp {
 		if p.URL == "http://fynbos.me/payp1" {
 			assert.Equal(t, "Alias1", p.Alias)
-			assert.Equal(t, "USD", p.Asset)
+			assert.Equal(t, "USD", p.Asset.String())
 			assert.Equal(t, 2, p.AssetScale)
 		} else {
 			assert.Equal(t, "Alias2", p.Alias)
-			assert.Equal(t, "ZAR", p.Asset)
+			assert.Equal(t, "ZAR", p.Asset.String())
 			assert.Equal(t, 2, p.AssetScale)
 		}
 	}
