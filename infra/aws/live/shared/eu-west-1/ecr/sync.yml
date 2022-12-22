@@ -2,11 +2,6 @@ docker.io:
   images:
     "cockroachdb/cockroach":
       - "latest-v21.2"
+      - "v22.2.0"
     "oryd/kratos":
       - "v0.8.2-alpha.1"
-ghcr.io:
-  images:
-    "matdehaast/tigerbeetle":
-      - "patch-1"
-    "coilhq/tigerbeetle":
-      - "sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977"
