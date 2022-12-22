@@ -3,6 +3,7 @@ package workflows
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/openpayments"
@@ -55,11 +56,16 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		span.RecordError(err)
 		return nil, err
 	}
+	idxSlash := strings.LastIndex(id, "/")
+	if idxSlash > 0 {
+		id = id[idxSlash+1:]
+	}
 
 	workflowOptions := temporal_client.StartWorkflowOptions{
 		ID:                       "openpayments_execute_outgoing_payment_" + id,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
 	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id, args.IPAddress)

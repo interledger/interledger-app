@@ -326,10 +326,11 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 	args := openpayments.CreateOutgoingPaymentArgs{
-		QuoteID:     req.QuoteID,
-		Description: req.Description,
-		ExternalRef: req.ExternalRef,
-		IPAddress:   req.IpAddress,
+		IdempotencyKey: req.IdempotencyKey,
+		QuoteID:        req.QuoteID,
+		Description:    req.Description,
+		ExternalRef:    req.ExternalRef,
+		IPAddress:      req.IpAddress,
 	}
 
 	err := g.b.Validator().Struct(args)

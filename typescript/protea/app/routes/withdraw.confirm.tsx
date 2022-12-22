@@ -12,6 +12,7 @@ import {
 } from '~/lib/proto.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
+import { randomUUID } from 'crypto'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Withdraw)
@@ -93,6 +94,7 @@ export async function action({ request }: ActionArgs) {
   const response = await grpcClient
     .startWithdrawFromMachnetWallet(
       {
+        idempotencyKey: flow.data.idempotencyKey || '',
         toLinkedAccountId: flow.data.toLinkedAccountId,
         amount: flow.data.receiveAmount,
         ipAddress: clientIpAddress

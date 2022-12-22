@@ -8,12 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -59,7 +60,10 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		args.Description = ip.Description
 	}
 
-	id := uuid.NewString()
+	id := args.IdempotencyKey
+	if id == "" {
+		id = uuid.NewString()
+	}
 
 	stmt, qargs, err := db.NewInsert("openpayments_outgoing_payment").
 		Value("id", id).

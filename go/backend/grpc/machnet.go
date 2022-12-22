@@ -267,6 +267,7 @@ func (s *rpcService) StartWithdrawFromMachnetWallet(
 	}
 
 	_, err = s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
+		IdempotencyKey:        req.IdempotencyKey,
 		WalletID:              wallet.ID,
 		Amount:                req.GetAmount(),
 		WalletLinkedAccountID: linkedWallet.ID,
@@ -336,6 +337,7 @@ func (s *rpcService) StartMachnetWalletTopup(
 	}
 
 	_, err = s.b.Machnet().StartWalletTopup(ctx, machnet.StartWalletTopupArgs{
+		IdempotencyKey:        req.IdempotencyKey,
 		WalletID:              wallet.ID,
 		Amount:                req.GetAmount(),
 		WalletLinkedAccountID: linkedWallet.ID,
