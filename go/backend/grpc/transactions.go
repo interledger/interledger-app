@@ -38,7 +38,7 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 				Type:            string(tr.Type),
 				State:           string(tr.State),
 				Timestamp:       timestamppb.New(tr.Timestamp),
-				Amount: tr.Amount.ToPB(),
+				Amount:          tr.Amount.ToPB(),
 			}
 		}
 
