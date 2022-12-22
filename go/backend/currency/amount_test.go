@@ -130,7 +130,7 @@ func TestAmount_Format(t *testing.T) {
 				Currency: currency.USD,
 				Scale:    2,
 			},
-			out: "$10.00",
+			out: "$ 10.00",
 		},
 		{
 			name: "scale omitted",
@@ -138,7 +138,7 @@ func TestAmount_Format(t *testing.T) {
 				Value:    1000,
 				Currency: currency.USD,
 			},
-			out: "$10.00",
+			out: "$ 10.00",
 		},
 		{
 			name: "currency without a format",
@@ -179,14 +179,14 @@ func TestFromFloat(t *testing.T) {
 			name:    "10 USD",
 			in:      10.00,
 			inCC:    "USD",
-			format:  "$10.00",
+			format:  "$ 10.00",
 			float64: 10.00,
 		},
 		{
 			name:    "too many decimals",
 			in:      10.0012,
 			inCC:    "USD",
-			format:  "$10.00",
+			format:  "$ 10.00",
 			float64: 10.00,
 		},
 		{
