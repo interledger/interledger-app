@@ -651,10 +651,7 @@ function AppPage() {
                 </span>
               )}
               <Router
-                to={route('/transaction/:type/:transactionId', {
-                  type: transaction.type,
-                  transactionId: transaction.id
-                })}
+                to={`/transaction/${transaction.type}/:transactionId`}
                 className='mt-2 flex w-full justify-between'
               >
                 <div className='flex space-x-1'>

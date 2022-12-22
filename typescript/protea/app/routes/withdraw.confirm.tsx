@@ -46,7 +46,7 @@ export default function Page() {
         <div className='mt-6 flex w-full justify-between'>
           <span className='text-sm'>You withdraw </span>
           <span className='text-sm font-medium text-strong'>
-            {flow?.data.displaySendAmount || '$ 0.00'}
+            {flow?.data.displayReceiveAmount || '$ 0.00'}
           </span>
         </div>
         <div className='mt-2 flex w-full justify-between'>

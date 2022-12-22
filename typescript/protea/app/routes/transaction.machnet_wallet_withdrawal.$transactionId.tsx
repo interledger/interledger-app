@@ -1,41 +1,35 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useLoaderData, useParams } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
 import { requireUserSession } from '~/lib/kratos.server'
-import { getTransaction } from '~/lib/wallet.server'
+import { getLinkedAccount, getTransaction } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
-import {
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  await requireUserSession(request)
   const transaction = await getTransaction(
     request,
     params.type as string,
     params.transactionId as string
   )
 
-  let beneficiaryName = ''
-  const response = await openPaymentsClient
-    .getPaymentPointer({ url: transaction.paymentPointer })
-    .then((v) => v)
-    .catch(StatusError)
-
-  // Silently fail if it can't be found for now
-  if (!isGrpcError(response)) {
-    beneficiaryName = response.response.legalName
+  let linkedAccountName = ''
+  if (transaction.transfers.length > 0) {
+    const linkedAccountId = transaction.transfers.filter(
+      (trf) => trf.type == 'credit_bank_acc'
+    )[0]?.linkedAccountId
+    if (linkedAccountId) {
+      const linkedAccount = await getLinkedAccount(request, linkedAccountId)
+      linkedAccountName = linkedAccount.name
+    }
   }
 
   return json({
     // Always go to /transactions with back button even if we've just done a payment flow
     backTo: route('/transactions'),
     transaction,
-    beneficiaryName,
-    traits: session.identity.traits
+    linkedAccountName
   })
 }
 
@@ -44,44 +38,33 @@ export const handle = {
 }
 
 export default function Page() {
-  const { transaction, beneficiaryName } = useLoaderData<typeof loader>()
-  const params = useParams()
+  const { transaction, linkedAccountName } = useLoaderData<typeof loader>()
 
   return (
     <>
       <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium capitalize'>
-            {params.type == 'outgoing' && 'Sent'}
-            {params.type == 'incoming' && 'Received'}
+            Withdrawal
           </span>
-          {transaction.status != 'Pending' && (
+          {transaction.status == 'Completed' && (
             <Chip color={ChipColor.green}>Complete</Chip>
           )}
           {transaction.status == 'Pending' && (
             <Chip color={ChipColor.yellow}>Pending</Chip>
           )}
+          {transaction.status == 'Failed' && (
+            <Chip color={ChipColor.orange}>Failed</Chip>
+          )}
         </div>
-        <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>
-            {params.type == 'outgoing' && 'To'}
-            {params.type == 'incoming' && 'From'}
-          </span>
-          <span className='text-sm text-strong'>
-            {transaction.paymentPointer}
+        <div className='mt-8 flex w-full justify-between'>
+          <span className='text-sm'>Withdraw to:</span>
+          <span className='text-sm font-medium text-strong'>
+            {linkedAccountName}
           </span>
         </div>
-        {beneficiaryName != '' && (
-          <div className='mt-6 flex w-full flex-col space-y-1'>
-            <span className='text-sm'>Beneficiary name</span>
-            <span className='text-sm text-strong'>{beneficiaryName}</span>
-          </div>
-        )}
         <div className='mt-6 flex w-full justify-between'>
-          <span className='text-sm'>
-            {params.type == 'outgoing' && 'You pay'}
-            {params.type == 'incoming' && 'They sent'}
-          </span>
+          <span className='text-sm'>Withdraw amount</span>
           <span className='text-sm font-medium text-strong'>
             {transaction.subTotal || '$ 0.00'}
           </span>
@@ -93,27 +76,10 @@ export default function Page() {
           </span>
         </div>
         <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>
-            {params.type == 'outgoing' && 'They receive'}
-            {params.type == 'incoming' && 'You receive'}
-          </span>
+          <span className='text-sm'>You receive</span>
           <span className='text-sm text-2xl font-medium text-strong'>
             {transaction.total || '$ 0.00'}
           </span>
-        </div>
-        <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>Payment date</span>
-          <span className='text-sm text-strong'>{transaction.date}</span>
-        </div>
-        {transaction.note && (
-          <div className='mt-6 flex w-full flex-col space-y-2'>
-            <span className='text-sm'>Note</span>
-            <span className='text-sm text-strong'>{transaction.note}</span>
-          </div>
-        )}
-        <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>Transaction ID</span>
-          <span className='text-sm text-strong'>{transaction.id}</span>
         </div>
       </div>
       <div className='mt-6 flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>

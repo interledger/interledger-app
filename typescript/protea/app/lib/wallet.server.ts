@@ -9,8 +9,10 @@ import { json } from '@remix-run/node'
 import type {
   Amount,
   KYCStatusResponse,
+  LinkedAccount,
   PaginationRequest,
-  PaymentPointer
+  PaymentPointer,
+  Transaction as GrpcTransaction
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { DateTime } from 'luxon'
@@ -102,6 +104,34 @@ type LinkedAccountsResponse = {
   }>
   canTopUp: boolean
   canWithdraw: boolean
+}
+
+export async function getLinkedAccount(
+  request: Request,
+  id: string
+): Promise<LinkedAccount> {
+  const cookie = String(request.headers.get('cookie'))
+  console.log('query id', id)
+  const response = await grpcClient
+    .getLinkedAccount(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    console.log(response)
+    throw json({}, httpMapping(response.code))
+  }
+
+  console.log('linkedAccount', response.response)
+  return response.response
 }
 
 export async function getLinkedAccounts(
@@ -206,12 +236,42 @@ export async function getPendingTransactions(
     })
 }
 
+function transactionIcon(type: string): string {
+  switch (type) {
+    case 'open_payments_outgoing':
+      return 'north_east'
+    case 'open_payments_incoming':
+      return 'south_west'
+    case 'machnet_wallet_topup':
+      return 'credit_card'
+    case 'machnet_wallet_withdrawal':
+      return 'account_balance'
+    default:
+      return ''
+  }
+}
+
+function transactionTitle(trx: GrpcTransaction): string {
+  switch (trx.type) {
+    case 'open_payments_outgoing':
+      return trx.destination
+    case 'open_payments_incoming':
+      return trx.source
+    case 'machnet_wallet_topup':
+      return 'Top up'
+    case 'machnet_wallet_withdrawal':
+      return 'Withdrawal'
+    default:
+      return ''
+  }
+}
+
 export async function getTransactions(
   request: Request,
   input: PaginationRequest = { page: 1, pageSize: 20 }
 ): Promise<Transaction[]> {
   const cookie = String(request.headers.get('cookie'))
-  return openPaymentsClient
+  return grpcClient
     .listTransactions(input, {
       meta: {
         cookies: cookie || ''
@@ -221,8 +281,8 @@ export async function getTransactions(
       response.response.transactions.map((trx) => ({
         id: trx.id,
         type: trx.type,
-        icon: trx.type == 'outgoing' ? 'north_east' : 'south_west',
-        title: trx.type == 'outgoing' ? trx.destination : trx.source,
+        icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
+        title: transactionTitle(trx),
         total: formatAmount(trx.amount),
         time: DateTime.fromSeconds(
           parseInt(trx.timestamp?.seconds ?? '')
@@ -243,13 +303,19 @@ export async function getTransactions(
 
 export type DetailedTransaction = {
   id: string
+  type: string
+  foreignId: string
   status: string
-  paymentPointer: string
   subTotal: string
   fees: string
   total: string
   date: string
-  note: string
+  transfers: Array<DetailedTransfer>
+}
+
+export type DetailedTransfer = {
+  linkedAccountId: string
+  type: string
 }
 
 export async function getTransaction(
@@ -258,74 +324,65 @@ export async function getTransaction(
   id: string
 ): Promise<DetailedTransaction> {
   const cookie = String(request.headers.get('cookie'))
-  if (type == 'outgoing') {
-    return openPaymentsClient
-      .lookupOutgoingPayment(
-        { id },
-        {
-          meta: {
-            cookies: cookie || ''
-          }
-        }
-      )
-      .then((response) => {
-        const status =
-          response.response.sentAmount?.amount ==
-          response.response.sendAmount?.amount
-            ? 'Sent'
-            : 'Pending'
 
-        return {
-          id: response.response.id.split('/').at(-1) as string,
-          status,
-          paymentPointer: response.response.toPaymentPointer,
-          subTotal: formatAmount(response.response.sendAmount),
-          fees: '$ 0.00',
-          total: formatAmount(response.response.sendAmount),
-          date: DateTime.fromSeconds(
-            parseInt(response.response.updatedAt?.seconds ?? '')
-          ).toLocaleString(DateTime.DATETIME_FULL),
-          note: response.response.description
+  return grpcClient
+    .lookupTransaction(
+      { id },
+      {
+        meta: {
+          cookies: cookie || ''
         }
-      })
-      .catch((error) => {
-        const status = StatusError(error)
-        if (isGrpcError(status)) {
-          throw json({}, httpMapping(status.code))
-        }
-        throw json({}, { status: 404, statusText: "Can't find transaction." })
-      })
-  } else if (type == 'incoming') {
-    return openPaymentsClient
-      .lookupIncomingPayment(
-        { id },
-        {
-          meta: {
-            cookies: cookie || ''
+      }
+    )
+    .then((resp) => {
+      return {
+        id: resp.response.id,
+        type: resp.response.type,
+        foreignId: resp.response.foreignId,
+        status: resp.response.state,
+        subTotal: formatAmount(resp.response.amount),
+        fees: '$ 0.00',
+        total: formatAmount(resp.response.amount),
+        date: DateTime.fromSeconds(
+          parseInt(resp.response.timestamp?.seconds ?? '')
+        ).toLocaleString(DateTime.DATETIME_FULL),
+        transfers: resp.response.transfers.map((transfer) => {
+          return {
+            linkedAccountId: transfer.linkedAccountId,
+            type: transfer.type
           }
-        }
-      )
-      .then((response) => {
-        return {
-          id: response.response.id.split('/').at(-1) as string,
-          status: 'Received',
-          paymentPointer: response.response.fromPaymentPointer,
-          subTotal: formatAmount(response.response.receivedAmount),
-          fees: '$ 0.00',
-          total: formatAmount(response.response.receivedAmount),
-          date: DateTime.fromSeconds(
-            parseInt(response.response.updatedAt?.seconds ?? '')
-          ).toLocaleString(DateTime.DATETIME_FULL),
-          note: response.response.externalRef
-        }
-      })
-      .catch((error) => {
-        const status = StatusError(error)
-        if (isGrpcError(status)) {
-          throw json({}, httpMapping(status.code))
-        }
-        throw json({}, { status: 404, statusText: "Can't find transaction." })
-      })
-  } else
-    throw json({}, { status: 400, statusText: 'Invalid transaction type.' })
+        })
+      }
+    })
+
+  //   return openPaymentsClient
+  //     .lookupIncomingPayment(
+  //       { id },
+  //       {
+  //         meta: {
+  //           cookies: cookie || ''
+  //         }
+  //       }
+  //     )
+  //     .then((response) => {
+  //       return {
+  //         id: response.response.id.split('/').at(-1) as string,
+  //         status: 'Received',
+  //         paymentPointer: response.response.fromPaymentPointer,
+  //         subTotal: formatAmount(response.response.receivedAmount),
+  //         fees: '$ 0.00',
+  //         total: formatAmount(response.response.receivedAmount),
+  //         date: DateTime.fromSeconds(
+  //           parseInt(response.response.updatedAt?.seconds ?? '')
+  //         ).toLocaleString(DateTime.DATETIME_FULL),
+  //         note: response.response.externalRef
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       const status = StatusError(error)
+  //       if (isGrpcError(status)) {
+  //         throw json({}, httpMapping(status.code))
+  //       }
+  //       throw json({}, { status: 404, statusText: "Can't find transaction." })
+  //     })
 }

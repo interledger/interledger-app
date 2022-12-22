@@ -73,10 +73,7 @@ export default function Page() {
           {transactionGroup.map((transaction) => (
             <Fragment key={transaction.id}>
               <Router
-                to={route('/transaction/:type/:transactionId', {
-                  type: transaction.type,
-                  transactionId: transaction.id
-                })}
+                to={`/transaction/${transaction.type}/:transactionId`}
                 className='mt-4 flex w-full justify-between'
               >
                 <div className='flex space-x-1'>
