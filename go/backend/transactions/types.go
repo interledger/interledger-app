@@ -73,6 +73,7 @@ type TransferArgs struct {
 // Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.
 // This is used for listing transactions for the frontend
 type Transaction struct {
+	ID          string
 	ForeignID   string
 	Source      string
 	Destination string

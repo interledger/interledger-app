@@ -1156,6 +1156,15 @@ export interface StartMachnetWalletTopupRequest {
      */
     currency: string;
 }
+/**
+ * @generated from protobuf message backend.v1.LookupTransactionRequest
+ */
+export interface LookupTransactionRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -5333,6 +5342,53 @@ class StartMachnetWalletTopupRequest$Type extends MessageType<StartMachnetWallet
  * @generated MessageType for protobuf message backend.v1.StartMachnetWalletTopupRequest
  */
 export const StartMachnetWalletTopupRequest = new StartMachnetWalletTopupRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LookupTransactionRequest$Type extends MessageType<LookupTransactionRequest> {
+    constructor() {
+        super("backend.v1.LookupTransactionRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LookupTransactionRequest>): LookupTransactionRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LookupTransactionRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LookupTransactionRequest): LookupTransactionRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LookupTransactionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.LookupTransactionRequest
+ */
+export const LookupTransactionRequest = new LookupTransactionRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -5385,5 +5441,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty },
     { name: "IsMugAvailable", options: {}, I: IsMugAvailableRequest, O: IsMugAvailableResponse },
-    { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse }
+    { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
+    { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction }
 ]);
