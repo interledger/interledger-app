@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/google/uuid"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -24,8 +26,8 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transac
 		Value("state", args.State).
 		Value("provider", args.Provider).
 		Value("amount", args.Amount.Value).
-		Value("asset_code", args.Amount.Asset).
-		Value("asset_scale", args.Amount.AssetScale)
+		Value("asset_code", args.Amount.Currency).
+		Value("asset_scale", args.Amount.Scale)
 	if args.Source != "" {
 		is.Value("source", args.Source)
 	}
@@ -80,7 +82,7 @@ func CreateTransaction(ctx context.Context, b Backends, args transactions.Create
 
 func updateTransaction(ctx context.Context, dbc *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
 	res, err := dbc.ExecContext(ctx, "UPDATE transactions SET state=$1, amount=$2, asset_code=$3, asset_scale=$4, updated_at=now() WHERE foreign_id=$5 AND wallet_id=$6",
-		args.State, args.Amount.Value, args.Amount.Asset, args.Amount.AssetScale, args.ForeignID, args.WalletID)
+		args.State, args.Amount.Value, args.Amount.Currency, args.Amount.Scale, args.ForeignID, args.WalletID)
 	if err != nil {
 		return fmt.Errorf("%w failed to update transaction %s", transactions.ErrInternal, err)
 	}
@@ -136,8 +138,8 @@ func addTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID stri
 		Value("type", args.Type).
 		Value("state", args.State).
 		Value("amount", args.Amount.Value).
-		Value("asset_code", args.Amount.Asset).
-		Value("asset_scale", args.Amount.AssetScale)
+		Value("asset_code", args.Amount.Currency).
+		Value("asset_scale", args.Amount.Scale)
 
 	stmt, qargs, err := is.GetStatement()
 	if err != nil {
@@ -260,7 +262,7 @@ func UpdateTransfers(ctx context.Context, b Backends, args []transactions.Transf
 
 func updateTransfer(ctx context.Context, dbc sqlx.ExecerContext, transactionID string, args transactions.TransferArgs) error {
 	res, err := dbc.ExecContext(ctx, "UPDATE transfers SET state=$1, amount=$2, asset_code=$3, asset_scale=$4, updated_at=now() WHERE foreign_id=$5 AND transaction_id=$6 AND type=$7",
-		args.State, args.Amount.Value, args.Amount.Asset, args.Amount.AssetScale, args.ForeignID, transactionID, args.Type)
+		args.State, args.Amount.Value, args.Amount.Currency, args.Amount.Scale, args.ForeignID, transactionID, args.Type)
 	if err != nil {
 		return fmt.Errorf("%w failed to update transfer %s", transactions.ErrInternal, err)
 	}
@@ -339,10 +341,10 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 			Note:        t.Note.String,
 			State:       t.State,
 			Provider:    t.Provider,
-			Amount: transactions.Amount{
-				Value:      t.Amount,
-				Asset:      t.Asset,
-				AssetScale: t.Scale,
+			Amount: currency.Amount{
+				Value:    t.Amount,
+				Currency: currency.ParseCurrency(t.Asset),
+				Scale:    t.Scale,
 			},
 			Transfers: trs,
 		}
@@ -380,10 +382,10 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 			Type:            t.Type,
 			ForeignID:       t.ForeignID,
 			LinkedAccountID: t.LinkedAccountID.String,
-			Amount: transactions.Amount{
-				Value:      t.Amount,
-				Asset:      t.Asset,
-				AssetScale: t.Scale,
+			Amount: currency.Amount{
+				Value:    t.Amount,
+				Currency: currency.ParseCurrency(t.Asset),
+				Scale:    t.Scale,
 			},
 			State: t.State,
 		}

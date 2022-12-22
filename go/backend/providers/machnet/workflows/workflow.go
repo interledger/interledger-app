@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
@@ -121,11 +123,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
-	transactionAmount := transactions.Amount{
-		Value:      uint64(args.Amount * 100), // TODO: scale
-		Asset:      args.Currency,
-		AssetScale: 2, // TODO: Asset scale
-	}
+	transactionAmount := currency.FromFloat(args.Amount, currency.ParseCurrency(args.Currency))
 
 	// The fund wallet has 7 days to complete
 	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*8)
@@ -489,10 +487,11 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 		return "", err
 	}
 
-	transactionAmount := transactions.Amount{
-		Value:      args.Amount,
-		Asset:      args.Currency,
-		AssetScale: 2, // TODO: Asset scale
+	transactionCurrency := currency.ParseCurrency(args.Currency)
+	transactionAmount := currency.Amount{
+		Value:    args.Amount,
+		Currency: transactionCurrency,
+		Scale:    transactionCurrency.Scale(),
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
@@ -642,10 +641,10 @@ func CreateWalletWithdrawalWorkflow(ctx workflow.Context, args machnet.WithdrawF
 		return "", err
 	}
 
-	transactionAmount := transactions.Amount{
-		Value:      args.Amount,
-		Asset:      "USD",
-		AssetScale: 2, // TODO: Asset scale
+	transactionAmount := currency.Amount{
+		Value:    args.Amount,
+		Currency: currency.USD,
+		Scale:    currency.USD.Scale(),
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
