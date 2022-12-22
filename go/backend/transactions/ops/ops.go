@@ -157,7 +157,8 @@ func AddTransfersTx(ctx context.Context, b Backends, tx *sqlx.Tx, args []transac
 		return nil
 	}
 
-	err := b.Validator().Struct(args)
+	// Run validation
+	err := b.Validator().Var(args, "dive")
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
@@ -182,7 +183,8 @@ func AddTransfers(ctx context.Context, b Backends, args []transactions.TransferA
 		return nil
 	}
 
-	err := b.Validator().Struct(args)
+	// Run validation
+	err := b.Validator().Var(args, "dive")
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
