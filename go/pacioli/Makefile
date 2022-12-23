@@ -4,8 +4,7 @@ IMAGE_HASH := latest
 
 pull:
 	@echo "Pulling required images"
-	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1
-	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977
+	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:v22.2.0
 	@echo "Pull complete"
 
 testci: 

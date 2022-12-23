@@ -6,7 +6,6 @@ pull:
 	@echo "Pulling required images"
 	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1
 	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/kratos:v0.8.2-alpha.1
-	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/tigerbeetle@sha256:b1fe98356a0db183b56b555eac17c5a43f4b61305f5ac711ea741d5085a2f977
 	make -C ../pacioli build
 	@echo "Pull complete"
 
