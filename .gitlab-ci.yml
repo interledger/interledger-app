@@ -1,10 +1,10 @@
 # this will switch between branch and merge request pipelines
 # https://docs.gitlab.com/ee/ci/yaml/index.html#workflowrules-templates
 include:
-  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
-  - template: 'Workflows/MergeRequest-Pipelines.gitlab-ci.yml'
+  - template: "Workflows/Branch-Pipelines.gitlab-ci.yml"
+  - template: "Workflows/MergeRequest-Pipelines.gitlab-ci.yml"
   - local: /.gitlab-refs.yaml
-  - local: go/**/.gitlab-ci.yml
+  - local: go/backend/.gitlab-ci.yml
   - local: go/.gitlab-ci.yml
   - local: typescript/**/.gitlab-ci.yml
 
@@ -25,11 +25,10 @@ workflow:
 trigger_deploy_dev_eu1:
   tags:
     - k8s
-  environment: !reference [ .dev_eu1_environment, environment ]
+  environment: !reference [.dev_eu1_environment, environment]
   needs:
     - build_backend
     - build_protea
-    - build_pacioli
   when: manual
   variables:
     GIT_STRATEGY: none
@@ -51,17 +50,15 @@ trigger_deploy_dev_eu1:
     - git commit -am "Dev EU1 image update for ${CI_COMMIT_SHORT_SHA}"
     - git push -o merge_request.create -o merge_request.target=main -o merge_request.title="Deploy dev-eu1 $CI_COMMIT_SHORT_SHA" -o merge_request.assign="$GITLAB_USER_ID" -o merge_request.remove_source_branch --set-upstream origin gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
 
-
 trigger_deploy_prod_use2:
   tags:
     - k8s
-  environment: !reference [ .prod_use2_environment, environment ]
+  environment: !reference [.prod_use2_environment, environment]
   only:
     - main
   needs:
     - build_backend
     - build_protea
-    - build_pacioli
   when: manual
   variables:
     GIT_STRATEGY: none
