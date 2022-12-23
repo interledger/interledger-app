@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -49,6 +50,18 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
+	}
+
+	// Check if we have already created this outgoing transaction and just return it.
+	if args.IdempotencyKey != "" {
+		existing, err := ops.GetOutgoingPayment(ctx, b, args.IdempotencyKey)
+		if err != nil && !errors.Is(err, openpayments.ErrNotFound) {
+			span.RecordError(err)
+			return nil, err
+		}
+		if existing != nil {
+			return existing, nil
+		}
 	}
 
 	id, err := ops.CreateOutgoingPayment(ctx, b, args)
