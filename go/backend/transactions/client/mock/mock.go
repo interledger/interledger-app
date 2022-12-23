@@ -123,6 +123,20 @@ func (mr *MockClientMockRecorder) ListTransactions(ctx, page, walletID interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactions", reflect.TypeOf((*MockClient)(nil).ListTransactions), ctx, page, walletID)
 }
 
+// UpdateForeignIDs mocks base method.
+func (m *MockClient) UpdateForeignIDs(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateForeignIDs", ctx, args)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateForeignIDs indicates an expected call of UpdateForeignIDs.
+func (mr *MockClientMockRecorder) UpdateForeignIDs(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateForeignIDs", reflect.TypeOf((*MockClient)(nil).UpdateForeignIDs), ctx, args)
+}
+
 // UpdateTransaction mocks base method.
 func (m *MockClient) UpdateTransaction(ctx context.Context, args transactions.UpdateTransactionArgs) error {
 	m.ctrl.T.Helper()
@@ -137,20 +151,6 @@ func (mr *MockClientMockRecorder) UpdateTransaction(ctx, args interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransaction", reflect.TypeOf((*MockClient)(nil).UpdateTransaction), ctx, args)
 }
 
-// UpdateTransactionForeignID mocks base method.
-func (m *MockClient) UpdateTransactionForeignID(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTransactionForeignID", ctx, args)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateTransactionForeignID indicates an expected call of UpdateTransactionForeignID.
-func (mr *MockClientMockRecorder) UpdateTransactionForeignID(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransactionForeignID", reflect.TypeOf((*MockClient)(nil).UpdateTransactionForeignID), ctx, args)
-}
-
 // UpdateTransactionTx mocks base method.
 func (m *MockClient) UpdateTransactionTx(ctx context.Context, tx *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
 	m.ctrl.T.Helper()
@@ -163,20 +163,6 @@ func (m *MockClient) UpdateTransactionTx(ctx context.Context, tx *sqlx.Tx, args 
 func (mr *MockClientMockRecorder) UpdateTransactionTx(ctx, tx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransactionTx", reflect.TypeOf((*MockClient)(nil).UpdateTransactionTx), ctx, tx, args)
-}
-
-// UpdateTransferForeignID mocks base method.
-func (m *MockClient) UpdateTransferForeignID(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTransferForeignID", ctx, args)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateTransferForeignID indicates an expected call of UpdateTransferForeignID.
-func (mr *MockClientMockRecorder) UpdateTransferForeignID(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransferForeignID", reflect.TypeOf((*MockClient)(nil).UpdateTransferForeignID), ctx, args)
 }
 
 // UpdateTransfers mocks base method.

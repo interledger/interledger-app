@@ -385,3 +385,141 @@ func TestListTransaction(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateForeignIDs(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
+
+	cases := []struct {
+		name string
+		args transactions.CreateTransactionArgs
+		len  int
+	}{
+		{
+			name: "no transfers",
+			len:  1,
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+		},
+		{
+			name: "with transfers",
+			len:  1,
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   "d724818e-d63c-4294-b1f9-4ca4398dc597",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+				Transfers: []transactions.TransferArgs{
+					{
+						ForeignID: "d724818e-d63c-4294-b1f9-4ca4398dc597",
+						Type:      transactions.TransferTypeDebitCard,
+						State:     transactions.StateCompleted,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
+						},
+					},
+					{
+						ForeignID: "d724818e-d63c-4294-b1f9-4ca4398dc597",
+						Type:      transactions.TransferTypeCreditMachnetWallet,
+						State:     transactions.StateFailed,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
+						},
+					},
+					{
+						ForeignID: "d724818e-d63c-4294-b1f9-4ca4398dc597",
+						Type:      transactions.TransferTypeDebitMachnetWallet,
+						State:     transactions.StateFailed,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
+
+			err = ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			newID := uuid.NewString()
+			err = ops.UpdateForeignIDs(ctx, b, transactions.UpdateForeignIDArgs{
+				OldForeignID: tc.args.ForeignID,
+				NewForeignID: newID,
+			})
+			require.NoError(t, err)
+
+			txs, err := ops.ListTransactions(ctx, b, wallet.ID, db.Pagination{})
+			require.NoError(t, err)
+			require.Len(t, txs, tc.len)
+
+			if len(txs) == 0 {
+				return
+			}
+
+			for _, tx := range txs {
+				assert.Equal(t, tx.ForeignID, newID)
+				for _, tr := range tx.Transfers {
+					assert.Equal(t, tr.ForeignID, newID)
+				}
+			}
+		})
+	}
+}

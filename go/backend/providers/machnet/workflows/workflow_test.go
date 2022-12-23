@@ -172,7 +172,7 @@ func TestDeleteAccountWorkflow(t *testing.T) {
 	require.NoError(t, env.GetWorkflowResult(nil))
 }
 
-func TestCreateWalletTopupWorkflow(t *testing.T) {
+func TestExecuteWalletTopupWorkflow(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
@@ -201,7 +201,7 @@ func TestCreateWalletTopupWorkflow(t *testing.T) {
 	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
-	env.OnActivity(a.AddTransaction, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.UpdateTransactionForeignIDs, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
 			ID:     fundTrx.FundTX,
@@ -210,7 +210,7 @@ func TestCreateWalletTopupWorkflow(t *testing.T) {
 	}, time.Minute)
 	env.OnActivity(a.UpdateTransactionState, mock.Anything, mock.Anything).Return(nil)
 
-	env.ExecuteWorkflow(CreateWalletTopupWorkflow, machnet.StartWalletTopupArgs{
+	env.ExecuteWorkflow(ExecuteWalletTopupWorkflow, uuid.NewString(), machnet.StartWalletTopupArgs{
 		WalletLinkedAccountID: walletLinkedAccountID,
 		FromLinkedAccountID:   fromLinkedAccountID,
 		Amount:                200,
