@@ -524,7 +524,6 @@ type BackendServiceClient interface {
 	DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
-	LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	//Machnet
 	GetMachnetWidgetToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MachnetWidgetToken, error)
 	ListBanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListBanksResponse, error)
@@ -692,15 +691,6 @@ func (c *backendServiceClient) CreateSupportTicket(ctx context.Context, in *Crea
 func (c *backendServiceClient) GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error) {
 	out := new(GetCountriesResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetCountries", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) LinkCashAccount(ctx context.Context, in *LinkCashAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
-	out := new(LinkedAccount)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/LinkCashAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -875,7 +865,6 @@ type BackendServiceServer interface {
 	DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
-	LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error)
 	//Machnet
 	GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error)
 	ListBanks(context.Context, *Empty) (*ListBanksResponse, error)
@@ -948,9 +937,6 @@ func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *C
 }
 func (UnimplementedBackendServiceServer) GetCountries(context.Context, *Empty) (*GetCountriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCountries not implemented")
-}
-func (UnimplementedBackendServiceServer) LinkCashAccount(context.Context, *LinkCashAccountRequest) (*LinkedAccount, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LinkCashAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMachnetWidgetToken not implemented")
@@ -1296,24 +1282,6 @@ func _BackendService_GetCountries_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).GetCountries(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_LinkCashAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LinkCashAccountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).LinkCashAccount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/LinkCashAccount",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).LinkCashAccount(ctx, req.(*LinkCashAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1676,10 +1644,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCountries",
 			Handler:    _BackendService_GetCountries_Handler,
-		},
-		{
-			MethodName: "LinkCashAccount",
-			Handler:    _BackendService_LinkCashAccount_Handler,
 		},
 		{
 			MethodName: "GetMachnetWidgetToken",

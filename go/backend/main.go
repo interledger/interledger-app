@@ -40,7 +40,6 @@ import (
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
-	"gitlab.com/fynbos/backend/providers/fakecash"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
@@ -57,9 +56,6 @@ import (
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
-	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -148,17 +144,6 @@ func start(args *cli.StartArgs) {
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 
 	b.countries = country_client.New(b)
-
-	pacioliDb, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("pacioli"))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer func() {
-		if err := pacioliDb.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-	b.pacioli = newLocalPacioliClient(pacioliDb)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -316,11 +301,6 @@ func migrate(args *cli.MigrationArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	err = pacioli_db.Migrate(context.Background(), args.PacioliDbConnectionString)
-	if err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func startWorker(args *cli.StartArgs) {
@@ -408,12 +388,10 @@ type backends struct {
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	countries      country.Client
-	fakecash       fakecash.Client
 	linkedaccounts linkedaccounts.Client
 	machnet        machnet.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
-	pacioli        pacioli.Client
 	supportTickets supporttickets.Client
 	temporal       client.Client
 	twilio         _twilio.Service
@@ -449,10 +427,6 @@ func (b backends) Agreements() agreements.Client {
 	return b.agreements
 }
 
-func (b backends) FakeCash() fakecash.Client {
-	return b.fakecash
-}
-
 func (b backends) SupportTickets() supporttickets.Client {
 	return b.supportTickets
 }
@@ -473,10 +447,6 @@ func (b backends) Countries() country.Client {
 	return b.countries
 }
 
-func (b backends) Pacioli() pacioli.Client {
-	return b.pacioli
-}
-
 func (b backends) DB() *sqlx.DB {
 	return b.db
 }
@@ -488,10 +458,6 @@ func (b backends) Validator() *validator.Validate {
 func (b backends) Twilio() _twilio.Service {
 	return b.twilio
 }
-
-//func (b backends) MX() _mx.Client {
-//	return b.mxProvider
-//}
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
@@ -507,13 +473,4 @@ func (b backends) Email() email.Client {
 
 func (b backends) OpenPayments() openpayments.Client {
 	return b.openpayments
-}
-
-func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {
-	b := backends{
-		db:  db,
-		val: validator.New(),
-	}
-
-	return pacioli_client.NewLocal(b)
 }

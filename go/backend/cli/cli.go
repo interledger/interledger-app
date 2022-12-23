@@ -5,18 +5,16 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type MigrationArgs struct {
-	ConnectionString          string
-	PacioliDbConnectionString string
-	UsdLedgerID               uint32
-	KratosUrl                 string
-	LogLevel                  string
-	LogOutputPath             string
+	ConnectionString string
+	UsdLedgerID      uint32
+	KratosUrl        string
+	LogLevel         string
+	LogOutputPath    string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
@@ -24,7 +22,6 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	if dbUrl == "" {
 		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
-	pacioliConnectionString := strings.Replace(dbUrl, "/backend?", "/pacioli?", -1)
 
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
@@ -54,40 +51,38 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	}
 
 	return &MigrationArgs{
-		ConnectionString:          dbUrl,
-		PacioliDbConnectionString: pacioliConnectionString,
-		UsdLedgerID:               uint32(usdLedgerID),
-		KratosUrl:                 kratosUrl,
-		LogLevel:                  logLevel,
-		LogOutputPath:             logOutputPath,
+		ConnectionString: dbUrl,
+		UsdLedgerID:      uint32(usdLedgerID),
+		KratosUrl:        kratosUrl,
+		LogLevel:         logLevel,
+		LogOutputPath:    logOutputPath,
 	}, nil
 }
 
 type StartArgs struct {
-	Port                      string
-	OpenPaymentsPort          string
-	DbConnectionString        string
-	KratosUrl                 string
-	KratosAdminUrl            string
-	PacioliDbConnectionString string
-	UsdLedgerID               uint32
-	LogLevel                  string
-	LogOutputPath             string
-	MachnetClientID           string
-	MachnetClientSecret       string
-	MachnetWebhookSecret      string
-	RafikiGraphqlUrl          string
-	TemporalUrl               string
-	TwilioSid                 string
-	TwilioSecret              string
-	TwilioServiceSid          string
-	ZendeskUser               string
-	ZendeskToken              string
-	AdminPolicyAud            string
-	AdminTeamDomain           string
-	SendgridAPIKey            string
-	SmartyAuthID              string
-	SmartyAuthToken           string
+	Port                 string
+	OpenPaymentsPort     string
+	DbConnectionString   string
+	KratosUrl            string
+	KratosAdminUrl       string
+	UsdLedgerID          uint32
+	LogLevel             string
+	LogOutputPath        string
+	MachnetClientID      string
+	MachnetClientSecret  string
+	MachnetWebhookSecret string
+	RafikiGraphqlUrl     string
+	TemporalUrl          string
+	TwilioSid            string
+	TwilioSecret         string
+	TwilioServiceSid     string
+	ZendeskUser          string
+	ZendeskToken         string
+	AdminPolicyAud       string
+	AdminTeamDomain      string
+	SendgridAPIKey       string
+	SmartyAuthID         string
+	SmartyAuthToken      string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -112,7 +107,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	if dbUrl == "" {
 		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
-	pacioliConnectionString := strings.Replace(dbUrl, "/backend?", "/pacioli?", -1)
 
 	kratosUrl := os.Getenv("KRATOS_URL")
 	if kratosUrl == "" {
@@ -179,29 +173,28 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	return &StartArgs{
-		Port:                      port,
-		OpenPaymentsPort:          openPaymentsPort,
-		DbConnectionString:        dbUrl,
-		KratosUrl:                 kratosUrl,
-		KratosAdminUrl:            kratosAdminUrl,
-		PacioliDbConnectionString: pacioliConnectionString,
-		UsdLedgerID:               uint32(usdLedgerID),
-		LogLevel:                  logLevel,
-		LogOutputPath:             logOutputPath,
-		MachnetClientID:           os.Getenv("MACHNET_CLIENT_ID"),
-		MachnetClientSecret:       os.Getenv("MACHNET_CLIENT_SECRET"),
-		MachnetWebhookSecret:      os.Getenv("MACHNET_WEBHOOK_SECRET"),
-		RafikiGraphqlUrl:          rafikiGraphqlUrl,
-		TemporalUrl:               temporalUrl,
-		TwilioSid:                 TwilioSid,
-		TwilioSecret:              TwilioSecret,
-		TwilioServiceSid:          twilioServiceSid,
-		ZendeskUser:               zendeskUser,
-		ZendeskToken:              zendeskToken,
-		AdminPolicyAud:            os.Getenv("ADMIN_POLICY_AUD"),
-		AdminTeamDomain:           os.Getenv("ADMIN_TEAM_DOMAIN"),
-		SendgridAPIKey:            os.Getenv("SENDGRID_API_KEY"),
-		SmartyAuthID:              os.Getenv("SMARTY_AUTH_ID"),
-		SmartyAuthToken:           os.Getenv("SMARTY_AUTH_TOKEN"),
+		Port:                 port,
+		OpenPaymentsPort:     openPaymentsPort,
+		DbConnectionString:   dbUrl,
+		KratosUrl:            kratosUrl,
+		KratosAdminUrl:       kratosAdminUrl,
+		UsdLedgerID:          uint32(usdLedgerID),
+		LogLevel:             logLevel,
+		LogOutputPath:        logOutputPath,
+		MachnetClientID:      os.Getenv("MACHNET_CLIENT_ID"),
+		MachnetClientSecret:  os.Getenv("MACHNET_CLIENT_SECRET"),
+		MachnetWebhookSecret: os.Getenv("MACHNET_WEBHOOK_SECRET"),
+		RafikiGraphqlUrl:     rafikiGraphqlUrl,
+		TemporalUrl:          temporalUrl,
+		TwilioSid:            TwilioSid,
+		TwilioSecret:         TwilioSecret,
+		TwilioServiceSid:     twilioServiceSid,
+		ZendeskUser:          zendeskUser,
+		ZendeskToken:         zendeskToken,
+		AdminPolicyAud:       os.Getenv("ADMIN_POLICY_AUD"),
+		AdminTeamDomain:      os.Getenv("ADMIN_TEAM_DOMAIN"),
+		SendgridAPIKey:       os.Getenv("SENDGRID_API_KEY"),
+		SmartyAuthID:         os.Getenv("SMARTY_AUTH_ID"),
+		SmartyAuthToken:      os.Getenv("SMARTY_AUTH_TOKEN"),
 	}, nil
 }

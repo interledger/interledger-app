@@ -189,7 +189,6 @@ service BackendService {
   rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
-  rpc LinkCashAccount(LinkCashAccountRequest) returns (LinkedAccount);
 
   //Machnet
   rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
@@ -399,10 +398,6 @@ message Country {
 
 message GetCountriesResponse {
   repeated Country countries = 1;
-}
-
-message LinkCashAccountRequest {
-  string name = 1;
 }
 
 message MachnetWidgetToken {
