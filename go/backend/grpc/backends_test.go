@@ -24,8 +24,6 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/fakecash"
-	fakecash_mock "gitlab.com/fynbos/backend/providers/fakecash/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/signup"
@@ -53,7 +51,6 @@ type TestContainer struct {
 	CountriesService   *country_mock.MockClient
 	AdminAuthService   auth.Service
 	UserService        user.Client
-	fakecash           *fakecash_mock.MockClient
 	linkedaccounts     *linked_accounts_mock.MockClient
 	machnet            *machnet_mock.MockClient
 	TwilioService      *twilio.MockService
@@ -88,10 +85,6 @@ func (t TestContainer) Agreements() agreements.Client {
 
 func (t TestContainer) Countries() country.Client {
 	return t.CountriesService
-}
-
-func (t TestContainer) FakeCash() fakecash.Client {
-	return t.fakecash
 }
 
 func (t TestContainer) LinkedAccounts() linkedaccounts.Client {
@@ -154,7 +147,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		CountriesService:   country_mock.NewMockClient(ctrl),
 		AdminAuthService:   auth.NewMockService(),
 		UserService:        user_mock.NewMock(),
-		fakecash:           fakecash_mock.NewMockClient(ctrl),
 		linkedaccounts:     linked_accounts_mock.NewMockClient(ctrl),
 		machnet:            machnet_mock.NewMockClient(ctrl),
 		TwilioService:      twilio.NewMockService(ctrl),

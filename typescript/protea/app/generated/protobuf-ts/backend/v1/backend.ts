@@ -950,15 +950,6 @@ export interface GetCountriesResponse {
     countries: Country[];
 }
 /**
- * @generated from protobuf message backend.v1.LinkCashAccountRequest
- */
-export interface LinkCashAccountRequest {
-    /**
-     * @generated from protobuf field: string name = 1;
-     */
-    name: string;
-}
-/**
  * @generated from protobuf message backend.v1.MachnetWidgetToken
  */
 export interface MachnetWidgetToken {
@@ -4524,53 +4515,6 @@ class GetCountriesResponse$Type extends MessageType<GetCountriesResponse> {
  */
 export const GetCountriesResponse = new GetCountriesResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class LinkCashAccountRequest$Type extends MessageType<LinkCashAccountRequest> {
-    constructor() {
-        super("backend.v1.LinkCashAccountRequest", [
-            { no: 1, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<LinkCashAccountRequest>): LinkCashAccountRequest {
-        const message = { name: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<LinkCashAccountRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkCashAccountRequest): LinkCashAccountRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string name */ 1:
-                    message.name = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: LinkCashAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string name = 1; */
-        if (message.name !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.name);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.LinkCashAccountRequest
- */
-export const LinkCashAccountRequest = new LinkCashAccountRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class MachnetWidgetToken$Type extends MessageType<MachnetWidgetToken> {
     constructor() {
         super("backend.v1.MachnetWidgetToken", [
@@ -5459,7 +5403,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "DeleteLinkedAccount", options: {}, I: DeleteLinkedAccountRequest, O: Empty },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
     { name: "GetCountries", options: {}, I: Empty, O: GetCountriesResponse },
-    { name: "LinkCashAccount", options: {}, I: LinkCashAccountRequest, O: LinkedAccount },
     { name: "GetMachnetWidgetToken", options: {}, I: Empty, O: MachnetWidgetToken },
     { name: "ListBanks", options: {}, I: Empty, O: ListBanksResponse },
     { name: "CreateReceiveBankAccount", options: {}, I: CreateReceiveBankAccountRequest, O: LinkedAccount },
