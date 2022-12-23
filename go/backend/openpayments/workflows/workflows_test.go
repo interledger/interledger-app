@@ -53,6 +53,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs).Return("external_id", nil)
 	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, "external_id").Return(nil)
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, "external_id").Return(nil)
+	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)
 
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, "198.0.0.3")
 

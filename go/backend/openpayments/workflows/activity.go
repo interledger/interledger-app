@@ -166,3 +166,38 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID st
 
 	return err
 }
+
+func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID string) error {
+	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	ip, err := ops.GetIncomingPayment(ctx, a.b, op.Receiver)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	pp, err := ops.GetPaymentPointer(ctx, a.b, ip.PaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceivedReceiptTemplateID, map[string]interface{}{
+		"fromPaymentPointer": ip.FromPaymentPointer,
+		"toPaymentPointer":   ip.PaymentPointer,
+		"transactionID":      ip.ID,
+		"paymentDate":        ip.UpdatedAt.Format(time.RFC1123),
+		"receiveAmount":      ip.ReceivedAmount.Format(),
+		"note":               ip.Description,
+		"subject":            "Fynbos payment received.",
+	})
+
+	return err
+}
