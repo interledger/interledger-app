@@ -22,10 +22,6 @@ func (a *Activity) UpdateTransactionState(ctx context.Context, args transactions
 	return a.b.Transactions().UpdateTransaction(ctx, args)
 }
 
-func (a *Activity) UpdateTransactionForeignID(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
-	return a.b.Transactions().UpdateTransactionForeignID(ctx, args)
-}
-
-func (a *Activity) UpdateTransferForeignID(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
-	return a.b.Transactions().UpdateTransferForeignID(ctx, args)
+func (a *Activity) UpdateTransactionForeignIDs(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
+	return a.b.Transactions().UpdateForeignIDs(ctx, args)
 }
