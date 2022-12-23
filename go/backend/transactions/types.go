@@ -60,6 +60,11 @@ type UpdateTransactionArgs struct {
 	UpdateTransfers []TransferArgs `validate:"omitempty,dive"`
 }
 
+type UpdateForeignIDArgs struct {
+	OldForeignID string `validate:"uuid"`
+	NewForeignID string `validate:"uuid"`
+}
+
 type TransferArgs struct {
 	WalletID             string       `validate:"omitempty,uuid"` // Fynbos wallet ID
 	TransactionForeignID string       `validate:"omitempty,uuid"`
