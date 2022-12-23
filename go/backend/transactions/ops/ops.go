@@ -427,3 +427,23 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 
 	return res, nil
 }
+
+func UpdateTransactionForeignID(ctx context.Context, b Backends, args transactions.UpdateForeignIDArgs) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET foreign_id=$1 WHERE foreign_id=$2",
+		args.NewForeignID, args.OldForeignID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func UpdateTransferForeignID(ctx context.Context, b Backends, args transactions.UpdateForeignIDArgs) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE transfers SET foreign_id=$1 WHERE foreign_id=$2",
+		args.NewForeignID, args.OldForeignID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return nil
+}

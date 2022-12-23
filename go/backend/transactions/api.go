@@ -17,6 +17,8 @@ type Client interface {
 	AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []TransferArgs) error
 	UpdateTransfers(ctx context.Context, args []TransferArgs) error
 	UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []TransferArgs) error
+	UpdateTransactionForeignID(ctx context.Context, args UpdateForeignIDArgs) error
+	UpdateTransferForeignID(ctx context.Context, args UpdateForeignIDArgs) error
 
 	ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
 	GetTransaction(ctx context.Context, walletID string, transactionID string) (*Transaction, error)
