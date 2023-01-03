@@ -5,10 +5,8 @@ import { route } from 'routes-gen'
 import { Icon, Layouts, Router, WalletGrid } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/index'
-import { requireUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const { linkedAccounts, canTopUp, canWithdraw } = await getLinkedAccounts(
     request
   )

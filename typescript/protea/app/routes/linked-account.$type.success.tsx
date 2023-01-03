@@ -3,11 +3,9 @@ import { route } from 'routes-gen'
 import { useLoaderData, useParams } from '@remix-run/react'
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { requireUserSession } from '~/lib/kratos.server'
 import { flowType, requireFlow } from '~/lib/flows.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  await requireUserSession(request)
   let flow
   if (params.type == 'card') {
     flow = await requireFlow(request, flowType.LinkCardAccount)

@@ -11,11 +11,9 @@ import {
   Snackbar,
   WalletGrid
 } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireUserSession(request)
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')

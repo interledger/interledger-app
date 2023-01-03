@@ -9,10 +9,10 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await requireUserSession(request)
+  const session = await getUserSession(request)
   let flow = await requireFlow(request, flowType.PersonalDetails)
 
   return json({

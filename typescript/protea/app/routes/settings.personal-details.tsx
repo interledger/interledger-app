@@ -4,7 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
-import { requireUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import {
   grpcClient,
@@ -19,7 +19,7 @@ export async function loader({ request }: LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
-  const session = await requireUserSession(request)
+  const session = await getUserSession(request)
   let countries = await grpcClient
     .getCountries({})
     .then((v) => v)
