@@ -16,12 +16,11 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transactions.CreateTransactionArgs) error {
+func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transactions.CreateTransactionArgs) (string, error) {
 	transID := uuid.NewString()
 	is := db.NewInsert("transactions").
 		Value("id", transID).
 		Value("wallet_id", args.WalletID).
-		Value("foreign_id", args.ForeignID).
 		Value("type", args.ForeignType).
 		Value("state", args.State).
 		Value("provider", args.Provider).
@@ -37,47 +36,56 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transac
 	if args.Note != "" {
 		is.Value("note", args.Note)
 	}
+	if args.ForeignID != "" {
+		is.Value("foreign_id", args.ForeignID)
+	}
 
 	stmt, qargs, err := is.GetStatement()
 	if err != nil {
-		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
 	_, err = dbc.ExecContext(ctx, stmt, qargs...)
 	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
 	for _, transfer := range args.Transfers {
 		err = addTransfer(ctx, dbc, transID, transfer)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
-	return nil
+	return transID, nil
 }
 
-func CreateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.CreateTransactionArgs) error {
+func CreateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args transactions.CreateTransactionArgs) (string, error) {
 	err := b.Validator().Struct(args)
 	if err != nil {
-		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+		return "", fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
 	return createTransaction(ctx, tx, args)
 }
 
-func CreateTransaction(ctx context.Context, b Backends, args transactions.CreateTransactionArgs) error {
+func CreateTransaction(ctx context.Context, b Backends, args transactions.CreateTransactionArgs) (string, error) {
 	err := b.Validator().Struct(args)
 	if err != nil {
-		return fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
+		return "", fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
+	var trxID = ""
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		return createTransaction(ctx, tx, args)
+		id, err := createTransaction(ctx, tx, args)
+		trxID = id
+		return err
 	})
+	if err != nil {
+		return "", err
+	}
 
-	return err
+	return trxID, nil
 }
 
 func updateTransaction(ctx context.Context, dbc *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
@@ -299,7 +307,7 @@ const (
 
 type dbTransaction struct {
 	ID          string                       `db:"id"`
-	ForeignID   string                       `db:"foreign_id"`
+	ForeignID   sql.NullString               `db:"foreign_id"`
 	Type        transactions.TransactionType `db:"type"`
 	State       transactions.State           `db:"state"`
 	Provider    transactions.Provider        `db:"provider"`
@@ -334,7 +342,7 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 		}
 		resp[i] = transactions.Transaction{
 			ID:          t.ID,
-			ForeignID:   t.ForeignID,
+			ForeignID:   t.ForeignID.String,
 			Source:      t.Source.String,
 			Destination: t.Destination.String,
 			Type:        t.Type,
@@ -370,7 +378,7 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 
 	return &transactions.Transaction{
 		ID:          tx.ID,
-		ForeignID:   tx.ForeignID,
+		ForeignID:   tx.ForeignID.String,
 		Source:      tx.Source.String,
 		Destination: tx.Destination.String,
 		Type:        tx.Type,
@@ -426,6 +434,16 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 	}
 
 	return res, nil
+}
+
+func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreignID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET foreign_id=$1 WHERE id=$2",
+		foreignID, ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return nil
 }
 
 func UpdateForeignIDs(ctx context.Context, b Backends, args transactions.UpdateForeignIDArgs) error {

@@ -514,8 +514,8 @@ func TestCreateQuote(t *testing.T) {
 	laClient := linked_account_mock.NewMockClient(ctrl)
 	mClient := machnet_mock_client.NewMockClient(ctrl)
 	txClient := transactions_mock.NewMockClient(ctrl)
-
-	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	txID := uuid.NewString()
+	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
 	b := ops.NewTestBackends(t, db, laClient, mClient, txClient)
 

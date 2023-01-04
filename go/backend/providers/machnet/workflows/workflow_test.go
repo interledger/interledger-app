@@ -118,7 +118,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.StartWalletTransfer, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
 	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
-	env.OnActivity(a.AddTransaction, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.AddTransaction, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
 			ID:     trxID,

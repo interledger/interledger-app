@@ -50,6 +50,22 @@ func TestCreateTransaction(t *testing.T) {
 			},
 		},
 		{
+			name: "success without foreignID",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+		},
+		{
 			name: "success with transfers",
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
@@ -125,7 +141,7 @@ func TestCreateTransaction(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			err = ops.CreateTransaction(ctx, b, tc.args)
+			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 		})
 	}
@@ -215,7 +231,7 @@ func TestUpdateTransfers(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			err = ops.CreateTransaction(ctx, b, tc.args)
+			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
 			tc.update.WalletID = wallet.ID
@@ -353,7 +369,7 @@ func TestListTransaction(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			err = ops.CreateTransaction(ctx, b, tc.args)
+			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
 			txs, err := ops.ListTransactions(ctx, b, wallet.ID, db.Pagination{})
@@ -496,7 +512,7 @@ func TestUpdateForeignIDs(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			err = ops.CreateTransaction(ctx, b, tc.args)
+			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
 			newID := uuid.NewString()
@@ -520,6 +536,83 @@ func TestUpdateForeignIDs(t *testing.T) {
 					assert.Equal(t, tr.ForeignID, newID)
 				}
 			}
+		})
+	}
+}
+
+func TestSetTransactionForeignIDs(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
+
+	cases := []struct {
+		name      string
+		args      transactions.CreateTransactionArgs
+		foreignID string
+	}{
+		{
+			name: "success",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+			foreignID: "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
+
+			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+			require.Empty(t, tx.ForeignID)
+
+			err = ops.SetTransactionForeignID(ctx, b, trxID, tc.foreignID)
+			require.NoError(t, err)
+
+			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, tx.ForeignID, tc.foreignID)
 		})
 	}
 }

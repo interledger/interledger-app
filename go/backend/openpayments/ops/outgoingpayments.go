@@ -102,7 +102,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
 
-		return b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
+		_, err = b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:    fromPP.WalletID,
 			ForeignID:   id,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
@@ -117,6 +117,8 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 				Scale:    q.SendAssetScale,
 			},
 		})
+
+		return err
 	})
 	if err != nil {
 		return "", err

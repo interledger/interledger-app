@@ -30,7 +30,8 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	txClient := transactions_mock.NewMockClient(ctrl)
-	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	txID := uuid.NewString()
+	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	b := NewTestBackends(t, db, nil, la_mock, txClient)
 
