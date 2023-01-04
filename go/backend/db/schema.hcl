@@ -1212,7 +1212,7 @@ table "transactions" {
     type = uuid
   }
   column "foreign_id" {
-    null = false
+    null = true
     type = uuid
   }
   column "type" {

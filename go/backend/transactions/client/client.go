@@ -22,11 +22,11 @@ func New(b ops.Backends) transactions.Client {
 	}
 }
 
-func (c *client) CreateTransaction(ctx context.Context, args transactions.CreateTransactionArgs) error {
+func (c *client) CreateTransaction(ctx context.Context, args transactions.CreateTransactionArgs) (string, error) {
 	return ops.CreateTransaction(ctx, c.b, args)
 }
 
-func (c *client) CreateTransactionTx(ctx context.Context, tx *sqlx.Tx, args transactions.CreateTransactionArgs) error {
+func (c *client) CreateTransactionTx(ctx context.Context, tx *sqlx.Tx, args transactions.CreateTransactionArgs) (string, error) {
 	return ops.CreateTransactionTx(ctx, c.b, tx, args)
 }
 
@@ -56,6 +56,10 @@ func (c *client) UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []tran
 
 func (c *client) UpdateForeignIDs(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
 	return ops.UpdateForeignIDs(ctx, c.b, args)
+}
+
+func (c *client) SetTransactionForeignID(ctx context.Context, ID string, foreignID string) error {
+	return ops.SetTransactionForeignID(ctx, c.b, ID, foreignID)
 }
 
 func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {

@@ -27,7 +27,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
 	tc := transactions_mock.NewMockClient(ctrl)
-	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	txID := uuid.NewString()
+	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
 	b := ops.NewTestBackends(t, db, nil, nil, tc)
 

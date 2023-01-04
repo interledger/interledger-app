@@ -6,7 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-func (a *Activity) AddTransaction(ctx context.Context, args transactions.CreateTransactionArgs) error {
+func (a *Activity) AddTransaction(ctx context.Context, args transactions.CreateTransactionArgs) (string, error) {
 	return a.b.Transactions().CreateTransaction(ctx, args)
 }
 
