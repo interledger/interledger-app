@@ -30,3 +30,8 @@ docker push localhost:5005/temporalio/admin-tools
 docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/server:1.18.5
 docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/server:1.18.5 localhost:5005/temporalio/server
 docker push localhost:5005/temporalio/server
+
+# Pull and push cert watcher
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/certwatcher:3.17.0
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/certwatcher:3.17.0 localhost:5005/certwatcher
+docker push localhost:5005/certwatcher
