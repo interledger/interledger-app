@@ -45,6 +45,7 @@ require (
 
 require (
 	ariga.io/atlas v0.8.3 // indirect
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.8.2 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
