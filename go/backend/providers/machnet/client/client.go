@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"time"
 
+	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/google/uuid"
@@ -27,6 +28,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ machnet.Client = client{}
+
 type Backends interface {
 	DB() *sqlx.DB
 	Users() user.Client
@@ -34,6 +37,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Transactions() transactions.Client
+	Statements() statements.Client
 }
 
 type opsBackends struct {
@@ -219,4 +223,8 @@ func (c client) StartWalletTopup(ctx context.Context, args machnet.StartWalletTo
 	}
 
 	return topupWorkflow.Get, nil
+}
+
+func (c client) GetStatement(ctx context.Context, args machnet.GetStatementArgs) ([]byte, error) {
+	return ops.GetStatement(ctx, c.b, args)
 }

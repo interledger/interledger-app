@@ -19,6 +19,8 @@ import (
 	external_client "gitlab.com/fynbos/backend/providers/machnet/external/client/inmemory"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"gitlab.com/fynbos/backend/providers/machnet/webhook"
+	"gitlab.com/fynbos/backend/statements"
+	statements_mock "gitlab.com/fynbos/backend/statements/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
@@ -336,6 +338,7 @@ type testBackends struct {
 	users          user.Client
 	kycImpl        kyc.Client
 	temporal       *mocks.Client
+	statements     *statements_mock.MockClient
 }
 
 func (b testBackends) Machnet() machnet.Client {
@@ -368,4 +371,8 @@ func (b testBackends) Temporal() client.Client {
 
 func (b testBackends) Transactions() transactions.Client {
 	return nil
+}
+
+func (b testBackends) Statements() statements.Client {
+	return b.statements
 }
