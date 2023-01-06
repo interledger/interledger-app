@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -568,4 +569,31 @@ func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 	}
 
 	return nil
+}
+
+func GetStatement(ctx context.Context, b Backends, args machnet.GetStatementArgs) ([]byte, error) {
+	if err := validator.New().StructCtx(ctx, args); err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInvalidArgument, err)
+	}
+
+	wallet, err := GetWallet(ctx, b, args.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: get transactions by date range
+	trxs, err := b.Transactions().ListTransactions(ctx, db.Pagination{
+		Page:     1,
+		PageSize: 50,
+	}, args.WalletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, wallet, trxs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return pdf, nil
 }

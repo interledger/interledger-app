@@ -2,9 +2,10 @@ package machnet
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/transactions"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/transactions"
 )
 
 const (
@@ -226,3 +227,9 @@ type (
 		IpAddress             string          `validate:"ip_addr"`
 	}
 )
+
+type GetStatementArgs struct {
+	WalletID  string `validate:"uuid"`
+	StartDate time.Time
+	EndDate   time.Time `validate:"gtefield=StartDate"`
+}
