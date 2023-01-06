@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/99designs/gqlgen v0.17.2
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.8.2
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38
