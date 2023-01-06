@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"gitlab.com/fynbos/backend/statements"
+	statements_mock "gitlab.com/fynbos/backend/statements/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/golang/mock/gomock"
@@ -410,6 +412,7 @@ type backends struct {
 	linkedaccounts *linkedaccounts_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
+	statements     *statements_mock.MockClient
 	temporal       *mocks.Client
 	transactions   transactions.Client
 }
@@ -440,4 +443,8 @@ func (b backends) Temporal() client.Client {
 
 func (b backends) Transactions() transactions.Client {
 	return b.transactions
+}
+
+func (b backends) Statements() statements.Client {
+	return b.statements
 }

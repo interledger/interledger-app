@@ -156,6 +156,21 @@ func (mr *MockClientMockRecorder) GetKYCStatus(ctx, walletID interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKYCStatus", reflect.TypeOf((*MockClient)(nil).GetKYCStatus), ctx, walletID)
 }
 
+// GetStatement mocks base method.
+func (m *MockClient) GetStatement(ctx context.Context, args machnet.GetStatementArgs) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatement", ctx, args)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatement indicates an expected call of GetStatement.
+func (mr *MockClientMockRecorder) GetStatement(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatement", reflect.TypeOf((*MockClient)(nil).GetStatement), ctx, args)
+}
+
 // GetUserByID mocks base method.
 func (m *MockClient) GetUserByID(ctx context.Context, id string) (*machnet.User, error) {
 	m.ctrl.T.Helper()

@@ -23,4 +23,5 @@ type Client interface {
 	WithdrawFromWallet(ctx context.Context, args WithdrawFromWalletArgs) (Await, error)
 	StartWalletTopup(ctx context.Context, args StartWalletTopupArgs) (Await, error)
 	DeleteFundSource(ctx context.Context, linkedAccID string) (Await, error)
+	GetStatement(ctx context.Context, args GetStatementArgs) ([]byte, error)
 }
