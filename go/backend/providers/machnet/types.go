@@ -2,6 +2,7 @@ package machnet
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 )
@@ -220,3 +221,9 @@ type (
 		IpAddress             string          `validate:"ip_addr"`
 	}
 )
+
+type GetStatementArgs struct {
+	WalletID  string `validate:"uuid"`
+	StartDate time.Time
+	EndDate   time.Time `validate:"gtefield=StartDate"`
+}
