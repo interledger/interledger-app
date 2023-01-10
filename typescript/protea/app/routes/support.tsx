@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Layouts, TextArea } from '~/components'
+import { Button, HomeShapes, Layouts, TextArea, WalletGrid } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -17,60 +17,67 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.FocusLayout
+  layout: Layouts.WalletLayout
 }
 
 export default function Page() {
   const { traits } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-      <span className='font-display text-2xl font-medium'>Contact us</span>
-      <span className='mt-6 text-medium'>
-        Get in touch and let us know how we can help.
-      </span>
-      <Form
-        id='support-form'
-        action='/contact'
-        method='post'
-        className='hidden'
-      />
-      <input
-        defaultValue={traits.firstName}
-        name='firstName'
-        form='support-form'
-        type='hidden'
-      />
-      <input
-        defaultValue={traits.lastName}
-        name='lastName'
-        form='support-form'
-        type='hidden'
-      />
-      <input
-        defaultValue={traits.email}
-        name='email'
-        form='support-form'
-        type='hidden'
-      />
+    <WalletGrid>
+      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='mt-2'>
+          <HomeShapes />
+        </div>
+        <span className='mt-6 font-display text-2xl font-medium'>
+          Contact us
+        </span>
+        <span className='mt-6 text-medium'>
+          Get in touch and let us know how we can help.
+        </span>
+        <Form
+          id='support-form'
+          action='/contact'
+          method='post'
+          className='hidden'
+        />
+        <input
+          defaultValue={traits.firstName}
+          name='firstName'
+          form='support-form'
+          type='hidden'
+        />
+        <input
+          defaultValue={traits.lastName}
+          name='lastName'
+          form='support-form'
+          type='hidden'
+        />
+        <input
+          defaultValue={traits.email}
+          name='email'
+          form='support-form'
+          type='hidden'
+        />
 
-      <TextArea
-        id='description'
-        form='support-form'
-        label='Details / comments'
-        name='description'
-        className='mt-1'
-        aria-invalid={Boolean(actionData?.errors.description) || undefined}
-        aria-describedby={
-          actionData?.errors.description ? 'description-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors.description}
-      />
-      <Button className='mt-12' form='support-form' type='submit'>
-        Submit
-      </Button>
-    </div>
+        <TextArea
+          id='description'
+          form='support-form'
+          label='Your message'
+          name='description'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors.description) || undefined}
+          aria-describedby={
+            actionData?.errors.description ? 'description-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.description}
+        />
+        <Button className='mt-12' form='support-form' type='submit'>
+          Submit
+        </Button>
+      </div>
+    </WalletGrid>
   )
 }
 
