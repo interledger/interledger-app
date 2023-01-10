@@ -222,6 +222,6 @@ func (c client) StartWalletTopup(ctx context.Context, args machnet.StartWalletTo
 	return topupWorkflow.Get, nil
 }
 
-func (c client) GetStatement(ctx context.Context, args machnet.GetStatementArgs) ([]byte, error) {
-	return ops.GetStatement(ctx, c.b, args)
+func (c client) GetCurrentStatement(ctx context.Context, walletID string) ([]byte, error) {
+	return ops.GetCurrentStatement(ctx, c.b, walletID)
 }

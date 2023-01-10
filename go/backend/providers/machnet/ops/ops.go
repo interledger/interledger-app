@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -572,22 +572,20 @@ func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 	return nil
 }
 
-func GetStatement(ctx context.Context, b Backends, args machnet.GetStatementArgs) ([]byte, error) {
-	if err := validator.New().StructCtx(ctx, args); err != nil {
-		return nil, fmt.Errorf("%w %s", machnet.ErrInvalidArgument, err)
-	}
-
-	wallet, err := GetWallet(ctx, b, args.WalletID)
+func GetCurrentStatement(ctx context.Context, b Backends, walletID string) ([]byte, error) {
+	wallet, err := GetWallet(ctx, b, walletID)
 	if err != nil {
 		return nil, err
 	}
 
+	now := time.Now()
+
 	trxs, err := b.Transactions().ListTransactionsInRange(
 		ctx,
-		args.WalletID,
+		walletID,
 		transactions.TransactionRangeFilter{
-			StartTimestamp: args.StartDate,
-			EndTimestamp:   args.EndDate,
+			StartTimestamp: now.Add(31 * 24 * time.Hour), // +- 1 month
+			EndTimestamp:   now,
 		})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
