@@ -3,7 +3,7 @@ import type { FC } from 'react'
 import { Fragment } from 'react'
 import { Icon } from '.'
 
-type SelectOptions = {
+export type SelectOptions = {
   id: string
   name: string
 }

@@ -4,7 +4,7 @@ import {
   Form,
   useActionData,
   useLoaderData,
-  useTransition
+  useNavigation
 } from '@remix-run/react'
 import { Button, Layouts, Snackbar, TextField } from '~/components'
 import {
@@ -63,14 +63,14 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, snackbar, csrfToken } = useLoaderData<typeof loader>()
 
-  const transition = useTransition()
+  const navigation = useNavigation()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   useEffect(() => {
-    if (transition.state == 'idle' && transition.type == 'idle') {
+    if (navigation.state == 'idle') {
       setSnackbar(snackbar.show ?? false)
     }
-  }, [transition.type, transition.state, snackbar.show])
+  }, [navigation.state, snackbar.show])
 
   return (
     <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>

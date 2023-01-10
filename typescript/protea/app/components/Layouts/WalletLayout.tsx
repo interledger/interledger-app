@@ -30,7 +30,7 @@ export function WalletLayout() {
             <NavDrawer.ListItem to={route('/settings')}>
               Settings
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/contact')}>
+            <NavDrawer.ListItem to={route('/support')}>
               Contact
             </NavDrawer.ListItem>
           </NavDrawer.List>
@@ -87,7 +87,7 @@ export function WalletLayout() {
             <NavDrawer.ListItem to={route('/settings')}>
               Settings
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/contact')}>
+            <NavDrawer.ListItem to={route('/support')}>
               Contact
             </NavDrawer.ListItem>
           </NavDrawer.List>

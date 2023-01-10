@@ -1,8 +1,9 @@
-import type { FC } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
+import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
-import type { AnimationProps } from 'framer-motion'
-import { motion } from 'framer-motion'
+import type { MotionProps } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export type Radius =
   | 'rounded-none'
@@ -16,200 +17,43 @@ export type Radius =
   | 'rounded-l-full'
   | 'rounded-r-full'
 
-export type ShapeProps = {
+interface MotionShapeProps extends MotionProps {
+  children?: ReactNode
   width?: string
-  radius: Radius
-  color: string
+  radius?: Radius
+  color?: string
   flex?: 'flex-1' | 'flex-auto' | 'flex-initial' | 'flex-none'
-  animation?: AnimationProps
 }
 
-export const Shape: FC<ShapeProps> = ({
-  children,
-  width,
-  radius,
-  color,
-  flex = 'flex-initial',
-  animation
-}) => {
-  return (
-    <motion.div
-      {...animation}
-      className={clsx(
-        'flex aspect-square items-center justify-center',
-        flex,
-        width || 'w-full',
-        radius,
-        color
-      )}
-    >
-      {children}
-    </motion.div>
-  )
-}
+export const Shape = forwardRef<any, MotionShapeProps>(
+  (
+    { children, width, radius, color, flex = 'flex-initial', ...motionProps },
+    ref
+  ) => {
+    return (
+      <motion.div
+        ref={ref}
+        {...motionProps}
+        className={clsx(
+          'flex aspect-square items-center justify-center',
+          flex,
+          width || 'w-full',
+          radius,
+          color
+        )}
+      >
+        {children}
+      </motion.div>
+    )
+  }
+)
 
-export function HomeShapes() {
-  const shapes: ShapeProps[][] = [
-    [
-      {
-        radius: 'rounded-tl-full',
-        color: 'bg-slate-600'
-      },
-      {
-        radius: 'rounded-full',
-        color: 'bg-transparent'
-      },
-      {
-        radius: 'rounded-tr-full',
-        color: 'bg-yellow-400'
-      },
-      {
-        radius: 'rounded-tl-full',
-        color: 'bg-rose-300'
-      },
-      {
-        radius: 'rounded-full',
-        color: 'bg-lime-400',
-        animation: {
-          animate: { x: 0 },
-          initial: { x: '100%', perspective: 1200 },
-          transition: { ease: 'easeIn', delay: 0.2 }
-        }
-      },
-      {
-        radius: 'rounded-b-full',
-        color: 'bg-transparent'
-      },
-      {
-        radius: 'rounded-full',
-        color: 'bg-rose-500'
-      },
-      {
-        radius: 'rounded-tr-full',
-        color: 'bg-lime-300'
-      },
-      {
-        radius: 'rounded-b-full',
-        color: 'bg-transparent'
-      },
-      {
-        radius: 'rounded-b-full',
-        color: 'bg-transparent'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-tr-full',
-        color: 'bg-lime-500'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-b-full',
-        color: 'bg-transparent'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-b-full',
-        color: 'bg-transparent'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-tl-full',
-        color: 'bg-rose-400'
-      }
-    ],
-    [
-      {
-        radius: 'rounded-tl-full',
-        color: 'bg-transparent'
-      },
-      {
-        radius: 'rounded-full',
-        color: 'bg-rose-400',
-        animation: {
-          animate: { x: 0 },
-          initial: { x: '-100%', perspective: 1200 },
-          transition: { ease: 'easeIn', delay: 0.1 }
-        }
-      },
-      {
-        radius: 'rounded-bl-full',
-        color: 'bg-lime-500'
-      },
-      {
-        radius: 'rounded-tl-full',
-        color: 'bg-transparent'
-      },
-      {
-        radius: 'rounded-tl-full',
-        color: 'bg-slate-300'
-      },
-      {
-        radius: 'rounded-tl-full',
-        color: 'bg-yellow-200'
-      },
-      {
-        radius: 'rounded-br-full',
-        color: 'bg-slate-500'
-      },
-      {
-        radius: 'rounded-tr-full',
-        color: 'bg-transparent'
-      },
-      {
-        radius: 'rounded-full',
-        color: 'bg-rose-100',
-        animation: {
-          animate: { x: 0 },
-          initial: { x: '-100%', perspective: 1200 },
-          transition: { ease: 'easeIn', delay: 0.3 }
-        }
-      },
-      {
-        radius: 'rounded-bl-full',
-        color: 'bg-rose-300'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-bl-full',
-        color: 'bg-yellow-200'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-full',
-        color: 'bg-lime-400',
-        animation: {
-          animate: { scale: 1, opacity: 1 },
-          initial: { scale: 0.5, opacity: 0, perspective: 1200 },
-          transition: { ease: 'easeIn', delay: 0.5 }
-        }
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-tr-full',
-        color: 'bg-yellow-400'
-      },
-      {
-        width: 'w-0 lg:w-full',
-        radius: 'rounded-tl-full',
-        color: 'bg-transparent'
-      }
-    ]
-  ]
-  return (
-    <div>
-      {shapes.map((shapeRow, outerIndex) => (
-        <div className='flex' key={`shapeRow${outerIndex}`}>
-          {shapeRow.map((shape, index) => (
-            <Shape key={`shape${outerIndex}${index}`} {...shape} />
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-}
+Shape.displayName = 'Shape'
+
+export const MotionShape = motion(Shape, { forwardMotionProps: true })
 
 export function SuccessShapes() {
-  const shapes: ShapeProps[][] = [
+  const shapes: MotionShapeProps[][] = [
     [
       {
         width: 'w-14',
@@ -225,21 +69,17 @@ export function SuccessShapes() {
         width: 'w-14',
         radius: 'rounded-tl-full',
         color: 'bg-slate-100',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 1.2, delay: 0 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 1.2, delay: 0 }
       },
       {
         width: 'w-14',
         radius: 'rounded-br-full',
         color: 'bg-green-50',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
       },
       {
         width: 'w-14',
@@ -252,51 +92,41 @@ export function SuccessShapes() {
         width: 'w-14',
         radius: 'rounded-full',
         color: 'bg-slate-50',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
       },
       {
         width: 'w-14',
         radius: 'rounded-full',
         color: 'bg-green-200',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
       },
       {
         width: 'w-14',
         radius: 'rounded-full',
         color: 'bg-green-500',
-        animation: {
-          animate: { opacity: 1, scale: 1 },
-          initial: { opacity: 0, scale: 0.5 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
-        }
+        animate: { opacity: 1, scale: 1 },
+        initial: { opacity: 0, scale: 0.5 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
       },
       {
         width: 'w-14',
         radius: 'rounded-tl-full',
         color: 'bg-green-100',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
       },
       {
         width: 'w-14',
         radius: 'rounded-tr-full',
         color: 'bg-slate-50',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 1.2 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 1.2 }
       }
     ],
     [
@@ -309,31 +139,25 @@ export function SuccessShapes() {
         width: 'w-14',
         radius: 'rounded-l-full',
         color: 'bg-green-50',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.3 }
       },
       {
         width: 'w-14',
         radius: 'rounded-none',
         color: 'bg-green-50',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 0.6, delay: 0.6 }
       },
       {
         width: 'w-14',
         radius: 'rounded-br-full',
         color: 'bg-green-200',
-        animation: {
-          animate: { opacity: 1 },
-          initial: { opacity: 0 },
-          transition: { ease: 'easeInOut', duration: 1.2, delay: 0.6 }
-        }
+        animate: { opacity: 1 },
+        initial: { opacity: 0 },
+        transition: { ease: 'easeInOut', duration: 1.2, delay: 0.6 }
       },
       {
         width: 'w-14',
@@ -347,12 +171,12 @@ export function SuccessShapes() {
       {shapes.map((shapeRow, outerIndex, outerArray) => (
         <div className='flex justify-center' key={`shapeRow${outerIndex}`}>
           {shapeRow.map((shape, index, array) => (
-            <Shape key={`shape${outerIndex}${index}`} {...shape}>
+            <MotionShape key={`shape${outerIndex}${index}`} {...shape}>
               {Math.floor(outerArray.length / 2) == outerIndex &&
                 Math.floor(array.length / 2) == index && (
                   <Icon className='text-white'>check</Icon>
                 )}
-            </Shape>
+            </MotionShape>
           ))}
         </div>
       ))}
@@ -360,44 +184,140 @@ export function SuccessShapes() {
   )
 }
 
-export function AlmostThereShapes() {
-  const container = {
-    visible: {
-      transition: {
-        staggerChildren: 0.3
-      }
-    }
-  }
+type HomeShapesProps = {
+  // Whether or not to animate the shapes in and out after initial load
+  animate?: boolean
+}
 
-  const item = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1
+export function HomeShapes({ animate }: HomeShapesProps) {
+  const radii: Radius[] = [
+    'rounded-full',
+    'rounded-tl-full',
+    'rounded-tr-full',
+    'rounded-bl-full',
+    'rounded-br-full'
+    // 'rounded-t-full',
+    // 'rounded-b-full',
+    // 'rounded-l-full',
+    // 'rounded-r-full'
+  ]
+  const colours = [
+    'bg-slate-600',
+    'bg-rose-300',
+    'bg-lime-400',
+    'bg-rose-500',
+    'bg-lime-300',
+    'bg-lime-500',
+    'bg-rose-400',
+    'bg-slate-300',
+    'bg-yellow-200',
+    'bg-slate-500',
+    'bg-rose-100',
+    'bg-yellow-400'
+  ]
+  const [shapes, setShapes] = useState<(MotionShapeProps | null)[][]>(
+    Array(2)
+      .fill(Array(12).fill({}))
+      .map((row) =>
+        row.map((shape: MotionShapeProps, index: number) => {
+          const width = index >= 10 ? 'w-0 lg:w-full' : 'w-full'
+          if (Math.random() > 0.2) {
+            const colourIndex = Math.floor(Math.random() * colours.length)
+            const radiiIndex = Math.floor(Math.random() * radii.length)
+            return {
+              color: colours[colourIndex],
+              radius: radii[radiiIndex],
+              width,
+              animate: { opacity: 1, scale: 1 },
+              initial: { opacity: 0, scale: 0.5 },
+              exit: {
+                opacity: 0,
+                scale: 0.5,
+                transition: {
+                  duration: 0.2
+                }
+              },
+              transition: {
+                type: 'spring',
+                stiffness: 400,
+                damping: 11,
+                duration: 0.3
+              }
+            }
+          } else
+            return {
+              color: 'bg-transparent',
+              width,
+              animate: { opacity: 1, scale: 1 },
+              initial: { opacity: 0, scale: 0.5 },
+              exit: { opacity: 0, scale: 0.5 }
+            }
+        })
+      )
+  )
+
+  useEffect(() => {
+    if (animate) {
+      const interval: NodeJS.Timeout = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          const colourIndex = Math.floor(Math.random() * colours.length)
+          const radiiIndex = Math.floor(Math.random() * radii.length)
+          const firstIndex = Math.floor(Math.random() * 2)
+          const secondIndex = Math.floor(Math.random() * 11)
+          const width = secondIndex >= 10 ? 'w-0 lg:w-full' : 'w-full'
+          const newShapes = [...shapes]
+          if (newShapes[firstIndex][secondIndex]?.color == 'bg-transparent') {
+            newShapes[firstIndex][secondIndex] = {
+              color: colours[colourIndex],
+              radius: radii[radiiIndex],
+              width,
+              animate: { opacity: 1, scale: 1 },
+              initial: { opacity: 0, scale: 0.5 },
+              exit: {
+                opacity: 0,
+                scale: 0.5,
+                transition: {
+                  duration: 0.2
+                }
+              },
+              transition: {
+                type: 'spring',
+                stiffness: 400,
+                damping: 11,
+                duration: 0.3
+              }
+            }
+          } else
+            newShapes[firstIndex][secondIndex] = {
+              color: 'bg-transparent',
+              width,
+              animate: { opacity: 1, scale: 1 },
+              initial: { opacity: 0, scale: 0.5 },
+              exit: { opacity: 0, scale: 0.5 }
+            }
+          setShapes(newShapes)
+        }
+      }, 600)
+
+      return () => clearInterval(interval)
     }
-  }
+  }, [shapes, animate, colours, radii])
+
   return (
-    <motion.div
-      variants={container}
-      initial='hidden'
-      animate='visible'
-      transition={{ repeat: Infinity, repeatType: 'loop' }}
-      className='flex justify-center py-14'
-    >
-      {[0, 1, 2].map((index) => (
-        <motion.div
-          key={index}
-          className='flex aspect-square w-14 rounded-full bg-slate-100'
-          transition={{
-            ease: 'easeInOut',
-            repeat: Infinity,
-            repeatDelay: 0.7,
-            duration: 0.3,
-            repeatType: 'mirror'
-          }}
-          variants={item}
-        />
+    <div>
+      {shapes.map((shapeRow, outerIndex) => (
+        <div className='flex justify-center' key={`shapeRow${outerIndex}`}>
+          <AnimatePresence mode='popLayout'>
+            {shapeRow.map((shape, index) => (
+              <MotionShape
+                key={`shape${outerIndex}${index}${shape?.color}`}
+                {...shape}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
       ))}
-    </motion.div>
+    </div>
   )
 }
 
@@ -407,7 +327,7 @@ export const BlogShapes: FC<{ slug: string; large?: boolean }> = ({
 }) => {
   if (typeof blogShapes[slug] == 'undefined')
     throw new Error(`Shapes for ${slug} blog post not found`)
-  const shapes: ShapeProps[][] = blogShapes[slug]
+  const shapes: MotionShapeProps[][] = blogShapes[slug]
   return (
     <div>
       {shapes.map((shapeRow, outerIndex) => (
@@ -426,7 +346,7 @@ export const BlogShapes: FC<{ slug: string; large?: boolean }> = ({
 }
 
 const blogShapes: {
-  [key: string]: ShapeProps[][]
+  [key: string]: MotionShapeProps[][]
 } = {
   'connecting-the-internet-economy': [
     [
