@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react'
+import type { ChangeEventHandler, InputHTMLAttributes } from 'react'
 import { forwardRef, Fragment, useCallback, useRef, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { AsYouType, getCountryCallingCode } from 'libphonenumber-js'
@@ -47,7 +47,7 @@ export const PhoneTextField = forwardRef<
       ) as PhoneAutocompleteOptions
     )
 
-    const _onChangeInput = useCallback(
+    const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
       (event) => {
         const formatter = new AsYouType(country.id)
         formatter.input(event.target.value)
@@ -68,7 +68,7 @@ export const PhoneTextField = forwardRef<
     )
 
     const _onChangeCountry = useCallback(
-      (newCountry) => {
+      (newCountry: PhoneAutocompleteOptions) => {
         const currentNumber = inputRef.current.value
 
         if (currentNumber.startsWith('+')) {

@@ -10,13 +10,7 @@ type SwitchProps = {
   onChange: any
 }
 
-export const Switch: FC<SwitchProps> = ({
-  children,
-  className,
-  checked,
-  disabled,
-  onChange
-}) => {
+export const Switch: FC<SwitchProps> = ({ checked, disabled, onChange }) => {
   return (
     <HeadlessSwitch
       checked={checked}
