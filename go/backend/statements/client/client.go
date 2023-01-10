@@ -1,12 +1,12 @@
 package client
 
 import (
-	"bytes"
 	"context"
-	"embed"
-	"html/template"
+	"fmt"
+	"io"
+	"net/http"
 
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
+	"github.com/signintech/gopdf"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
@@ -20,50 +20,67 @@ func New() *client {
 	return &client{}
 }
 
-//go:embed templates/*.html
-var templates embed.FS
-
 func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.Wallet, transactions []transactions.Transaction) ([]byte, error) {
-	tmpl, err := template.ParseFS(templates, "templates/walletstatement.html")
+
+	pdf := gopdf.GoPdf{}
+	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4}) //595.28, 841.89 = A4
+	pdf.AddPage()
+
+	// TODO: add hosted font
+	err := pdf.AddTTFFont("Roboto", "./Roboto-Regular.ttf")
 	if err != nil {
 		return nil, err
 	}
 
-	data := struct {
-		AvailableBalance uint64
-	}{
-		AvailableBalance: wallet.AvailableBalance,
-	}
-	var html bytes.Buffer
-	err = tmpl.Execute(&html, data)
+	err = pdf.SetFont("Roboto", "", 14)
 	if err != nil {
 		return nil, err
 	}
 
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+	logo, err := getLogoImageHolder()
 	if err != nil {
 		return nil, err
 	}
 
-	page := wkhtmltopdf.NewPageReader(bytes.NewReader(html.Bytes()))
+	err = pdf.ImageByHolder(logo, 0, 0, nil)
+	if err != nil {
+		return nil, err
+	}
+	pdf.Br(20)
 
-	// enable this if the HTML file contains local references such as images, CSS, etc.
-	page.EnableLocalFileAccess.Set(true)
+	err = pdf.Cell(nil, fmt.Sprintf("Balance: %d", wallet.AvailableBalance))
+	if err != nil {
+		return nil, err
+	}
+	pdf.Br(20)
 
-	// add the page to your generator
-	pdfg.AddPage(page)
+	for _, trx := range transactions {
+		err = pdf.Cell(nil, fmt.Sprintf("%s: %s", trx.Timestamp.Format("2006-02-01"), trx.Amount.FormatAmount()))
+		if err != nil {
+			return nil, err
+		}
+		pdf.Br(20)
+	}
 
-	// manipulate page attributes as needed
-	pdfg.MarginLeft.Set(0)
-	pdfg.MarginRight.Set(0)
-	pdfg.Dpi.Set(300)
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-	pdfg.Orientation.Set(wkhtmltopdf.OrientationLandscape)
+	return pdf.GetBytesPdfReturnErr()
+}
 
-	err = pdfg.Create()
+func getLogoImageHolder() (gopdf.ImageHolder, error) {
+	resp, err := http.Get("https://cdn.fynbos.workers.dev/logos/32px.png")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	imageBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return pdfg.Bytes(), nil
+	holder, err := gopdf.ImageHolderByBytes(imageBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return holder, nil
 }
