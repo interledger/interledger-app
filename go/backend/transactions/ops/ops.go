@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -317,6 +318,53 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 	err := b.DB().SelectContext(ctx, &txs,
 		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2,$3) or (state=$4 and type<>$5)) ORDER BY updated_at DESC %s", transactionCols, page.SQL()),
 		walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	if len(txs) == 0 {
+		return nil, nil
+	}
+
+	resp := make([]transactions.Transaction, len(txs))
+
+	for i, t := range txs {
+		trs, err := getTransfers(ctx, b, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		resp[i] = transactions.Transaction{
+			ID:          t.ID,
+			ForeignID:   t.ForeignID,
+			Source:      t.Source.String,
+			Destination: t.Destination.String,
+			Type:        t.Type,
+			Timestamp:   t.Timestamp,
+			Note:        t.Note.String,
+			State:       t.State,
+			Provider:    t.Provider,
+			Amount: currency.Amount{
+				Value:    t.Amount,
+				Currency: currency.ParseCurrency(t.Asset),
+				Scale:    t.Scale,
+			},
+			Transfers: trs,
+		}
+	}
+
+	return resp, err
+}
+
+func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, inRange transactions.TransactionRangeFilter) ([]transactions.Transaction, error) {
+	selectByWallet := fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1", transactionCols)
+	andByState := "and (state in ($2,$3) or (state=$4 and type<>$5))"
+	andByDateRange := "and ($6 <= updated_at and updated_at <= $7)"
+	orderAndPaginate := "ORDER BY updated_at DESC"
+	query := strings.Join([]string{selectByWallet, andByState, andByDateRange, orderAndPaginate}, " ")
+
+	var txs []dbTransaction
+	err := b.DB().SelectContext(ctx, &txs, query,
+		walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming, inRange.StartTimestamp, inRange.EndTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
