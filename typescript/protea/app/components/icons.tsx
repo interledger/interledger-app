@@ -1,7 +1,8 @@
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 
 type IconProps = {
+  children?: ReactNode
   className?: string
 }
 

@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
 import type { AnimationProps } from 'framer-motion'
@@ -17,6 +17,7 @@ export type Radius =
   | 'rounded-r-full'
 
 export type ShapeProps = {
+  children?: ReactNode
   width?: string
   radius: Radius
   color: string

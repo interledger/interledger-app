@@ -1,8 +1,9 @@
 import { Transition, Dialog as HeadlessDialog } from '@headlessui/react'
-import type { Dispatch, FC, SetStateAction } from 'react'
+import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
 import { Fragment } from 'react'
 
 type DialogProps = {
+  children?: ReactNode
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
 }

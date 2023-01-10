@@ -3,7 +3,7 @@ import type { FC } from 'react'
 import { Fragment } from 'react'
 import { Icon } from '.'
 
-type AutocompleteOptions = {
+export type AutocompleteOptions = {
   id: string
   name: string
 }

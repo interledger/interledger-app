@@ -1,7 +1,9 @@
+import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
+import type { SelectOptions } from '~/components'
 import { Button, Icon, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
@@ -38,11 +40,11 @@ export default function Page() {
     name: string
   }>(linkedAccounts[0])
 
-  const _onChangeLinkedAccount = useCallback((event) => {
+  const _onChangeLinkedAccount = useCallback((event: SelectOptions) => {
     setLinkedAccount(event)
   }, [])
 
-  const _onChangeInput = useCallback(
+  const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       let amount = event.target.value
       fetcher.submit(
