@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { SelectOptions } from '~/components'
 import { Button, Layouts, Select, Shape, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -51,7 +52,7 @@ export default function Page() {
     }
   )
 
-  const _onChangeGender = useCallback((event) => {
+  const _onChangeGender = useCallback((event: SelectOptions) => {
     setGender(event)
   }, [])
 
