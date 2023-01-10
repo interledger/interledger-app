@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/transactions"
 )
 
 const (
@@ -581,11 +582,13 @@ func GetStatement(ctx context.Context, b Backends, args machnet.GetStatementArgs
 		return nil, err
 	}
 
-	// TODO: get transactions by date range
-	trxs, err := b.Transactions().ListTransactions(ctx, db.Pagination{
-		Page:     1,
-		PageSize: 50,
-	}, args.WalletID)
+	trxs, err := b.Transactions().ListTransactionsInRange(
+		ctx,
+		args.WalletID,
+		transactions.TransactionRangeFilter{
+			StartTimestamp: args.StartDate,
+			EndTimestamp:   args.EndDate,
+		})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
