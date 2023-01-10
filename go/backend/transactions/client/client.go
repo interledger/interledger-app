@@ -58,6 +58,10 @@ func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walle
 	return ops.ListTransactions(ctx, c.b, walletID, page)
 }
 
+func (c *client) ListTransactionsInRange(ctx context.Context, walletID string, inRange transactions.TransactionRangeFilter) ([]transactions.Transaction, error) {
+	return ops.ListTransactionsInRange(ctx, c.b, walletID, inRange)
+}
+
 func (c *client) GetTransaction(ctx context.Context, walletID string, txID string) (*transactions.Transaction, error) {
 	return ops.GetTransaction(ctx, c.b, walletID, txID)
 }

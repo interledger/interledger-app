@@ -95,3 +95,9 @@ type Transfer struct {
 	State           State
 	Timestamp       time.Time
 }
+
+// Filters to use when listing transactions.
+type TransactionRangeFilter struct {
+	StartTimestamp time.Time
+	EndTimestamp   time.Time
+}
