@@ -1,3 +1,4 @@
+import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -72,7 +73,7 @@ export default function Page() {
   const { username, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
-  const _onChangeInput = useCallback(
+  const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       const username = event.target.value
       if (username?.length >= 3) {

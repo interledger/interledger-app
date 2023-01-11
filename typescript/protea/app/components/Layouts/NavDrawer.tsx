@@ -1,9 +1,10 @@
 import { Transition, Dialog } from '@headlessui/react'
-import { NavLink, useTransition } from '@remix-run/react'
-import type { Dispatch, FC, SetStateAction } from 'react'
+import { NavLink, useNavigation, useNavigationType } from '@remix-run/react'
+import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
 
 type ListItemProps = {
+  children?: ReactNode
   to: string
 }
 
@@ -29,13 +30,21 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
 
 ListItem.displayName = 'ListItem'
 
-const List: FC = ({ children }) => {
+type ListProps = {
+  children?: ReactNode
+}
+
+const List: FC<ListProps> = ({ children }) => {
   return <ul className='flex w-full flex-col'>{children}</ul>
 }
 
 List.displayName = 'List'
 
-const NavDrawerRoot: FC = ({ children }) => {
+type NavDrawerRootProps = {
+  children?: ReactNode
+}
+
+const NavDrawerRoot: FC<NavDrawerRootProps> = ({ children }) => {
   return (
     <ul className='flex h-full min-w-max select-none flex-col justify-between bg-app py-4 px-3 lg:h-screen lg:bg-app'>
       {children}
@@ -46,17 +55,18 @@ const NavDrawerRoot: FC = ({ children }) => {
 NavDrawerRoot.displayName = 'NavDrawerRoot'
 
 type ModalProps = {
+  children?: ReactNode
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
 }
 
 const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
-  const transition = useTransition()
+  const navigation = useNavigation()
+  const navigationType = useNavigationType()
 
   useEffect(() => {
-    if (transition.state == 'loading' && transition.type == 'normalLoad')
-      setOpen(false)
-  }, [transition.type, setOpen, transition.state])
+    if (navigation.state == 'loading') setOpen(false)
+  }, [setOpen, navigation.state])
 
   return (
     <Transition.Root show={open} as={Fragment}>

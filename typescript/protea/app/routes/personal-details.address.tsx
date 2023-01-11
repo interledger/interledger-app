@@ -6,6 +6,7 @@ import {
   useFetcher,
   useLoaderData
 } from '@remix-run/react'
+import type { AutocompleteOptions } from '~/components'
 import {
   Autocomplete,
   Button,
@@ -49,7 +50,7 @@ export default function Page() {
   const geocodeFetcher = useFetcher()
 
   const _onQueryChange = useCallback(
-    (query) => {
+    (query: string) => {
       if (query.length > 0) {
         // TODO debounce this: https://developers.google.com/maps/documentation/places/web-service/autocomplete#cost_best_practices
         placeAutocompleteFetcher.load(
@@ -61,7 +62,7 @@ export default function Page() {
   )
 
   const _onPlaceChange = useCallback(
-    (place) => {
+    (place: AutocompleteOptions) => {
       if (place.id)
         geocodeFetcher.load(`/api/maps/geocode?place-id=${place.id}`)
     },

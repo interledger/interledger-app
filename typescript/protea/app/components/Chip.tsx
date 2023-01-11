@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 
 export enum ChipColor {
@@ -10,6 +10,7 @@ export enum ChipColor {
 }
 
 export type ChipProps = {
+  children?: ReactNode
   color: ChipColor
 }
 
