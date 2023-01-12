@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/db"
 
@@ -30,36 +31,36 @@ func (c *client) CreateTransactionTx(ctx context.Context, tx *sqlx.Tx, args tran
 	return ops.CreateTransactionTx(ctx, c.b, tx, args)
 }
 
-func (c *client) UpdateTransaction(ctx context.Context, args transactions.UpdateTransactionArgs) error {
-	return ops.UpdateTransaction(ctx, c.b, args)
+func (c *client) AddTransfers(ctx context.Context, trxID string, args []transactions.TransferArgs) error {
+	return ops.AddTransfers(ctx, c.b, trxID, args)
 }
 
-func (c *client) UpdateTransactionTx(ctx context.Context, tx *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
-	return ops.UpdateTransactionTx(ctx, c.b, tx, args)
-}
-
-func (c *client) AddTransfers(ctx context.Context, args []transactions.TransferArgs) error {
-	return ops.AddTransfers(ctx, c.b, args)
-}
-
-func (c *client) AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
-	return ops.AddTransfersTx(ctx, c.b, tx, args)
-}
-
-func (c *client) UpdateTransfers(ctx context.Context, args []transactions.TransferArgs) error {
-	return ops.UpdateTransfers(ctx, c.b, args)
-}
-
-func (c *client) UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
-	return ops.UpdateTransfersTx(ctx, c.b, tx, args)
-}
-
-func (c *client) UpdateForeignIDs(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
-	return ops.UpdateForeignIDs(ctx, c.b, args)
+func (c *client) AddTransfersTx(ctx context.Context, tx *sqlx.Tx, trxID string, args []transactions.TransferArgs) error {
+	return ops.AddTransfersTx(ctx, c.b, tx, trxID, args)
 }
 
 func (c *client) SetTransactionForeignID(ctx context.Context, ID string, foreignID string) error {
 	return ops.SetTransactionForeignID(ctx, c.b, ID, foreignID)
+}
+
+func (c *client) SetTransferForeignID(ctx context.Context, ID string, foreignID string) error {
+	return ops.SetTransferForeignID(ctx, c.b, ID, foreignID)
+}
+
+func (c *client) SetTransactionState(ctx context.Context, ID string, state transactions.State) error {
+	return ops.SetTransactionState(ctx, c.b, ID, state)
+}
+
+func (c *client) SetTransactionStateTx(ctx context.Context, tx *sqlx.Tx, ID string, state transactions.State) error {
+	return ops.SetTransactionStateTx(ctx, c.b, tx, ID, state)
+}
+
+func (c *client) SetTransferState(ctx context.Context, ID string, state transactions.State) error {
+	return ops.SetTransferState(ctx, c.b, ID, state)
+}
+
+func (c *client) SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error {
+	return ops.SetTransactionAmountTx(ctx, c.b, tx, ID, amount)
 }
 
 func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
@@ -68,4 +69,8 @@ func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walle
 
 func (c *client) GetTransaction(ctx context.Context, walletID string, txID string) (*transactions.Transaction, error) {
 	return ops.GetTransaction(ctx, c.b, walletID, txID)
+}
+
+func (c *client) GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {
+	return ops.GetTransactionByForeignID(ctx, c.b, walletID, foreignID)
 }

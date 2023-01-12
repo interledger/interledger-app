@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 
 	"go.temporal.io/api/enums/v1"
@@ -102,7 +101,7 @@ func CreateSendUserWorkflow(ctx workflow.Context, walletID string) (string, erro
 	return externalUserID, nil
 }
 
-func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransactionArgs) (string, error) {
+func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransactionArgs, trxID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Minute,
@@ -128,14 +127,6 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 
 	transactionAmount := currency.FromFloat(args.Amount, currency.ParseCurrency(args.Currency))
 
-	// The fund wallet has 7 days to complete
-	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*8)
-
-	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
-
-	var doBreak bool
-	var errToReturn error
-
 	var fundWalletTX FundWalletResponse
 	if fundWallet {
 		err = workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, FundWalletArgs{
@@ -159,30 +150,34 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			return "", err
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, []transactions.TransferArgs{
+		err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, trxID, []transactions.TransferArgs{
 			{
-				WalletID:             transactionWallets.FromWalletID,
-				TransactionForeignID: args.FromForeignID,
-				LinkedAccountID:      args.FromLinkedAccountID,
-				ForeignID:            fundWalletTX.FundTX,
-				Type:                 transactions.TransferTypeDebitCard,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				LinkedAccountID: args.FromLinkedAccountID,
+				ForeignID:       fundWalletTX.FundTX,
+				Type:            transactions.TransferTypeDebitCard,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 			{
-				WalletID:             transactionWallets.FromWalletID,
-				TransactionForeignID: args.FromForeignID,
-				LinkedAccountID:      fundWalletTX.FromWalletLinkedAcc,
-				ForeignID:            fundWalletTX.FundTX,
-				Type:                 transactions.TransferTypeCreditMachnetWallet,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				LinkedAccountID: fundWalletTX.FromWalletLinkedAcc,
+				ForeignID:       fundWalletTX.FundTX,
+				Type:            transactions.TransferTypeCreditMachnetWallet,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 		}).Get(ctx, nil)
 		if err != nil {
 			logger.Error("AddTransaction Activity failed.", "Error", err)
 			return "", err
 		}
+
+		// The fund wallet has 7 days to complete
+		timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*8)
+
+		trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
+
+		var doBreak bool
+		var errToReturn error
 
 		for {
 			if doBreak {
@@ -225,24 +220,14 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 			transactionState = transactions.StateFailed
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.UpdateTransactionTransfer, []transactions.TransferArgs{{
-			WalletID:             transactionWallets.FromWalletID,
-			TransactionForeignID: args.FromForeignID,
-			ForeignID:            fundWalletTX.FundTX,
-			Type:                 transactions.TransferTypeDebitCard,
-			Amount:               transactionAmount,
-			State:                transactionState,
-		}, {
-			WalletID:             transactionWallets.FromWalletID,
-			TransactionForeignID: args.FromForeignID,
-			ForeignID:            fundWalletTX.FundTX,
-			Type:                 transactions.TransferTypeCreditMachnetWallet,
-			Amount:               transactionAmount,
-			State:                transactionState,
-		},
-		}).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, trxID, transactionWallets.FromWalletID, transactions.TransferTypeDebitCard, transactionState).Get(ctx, nil)
 		if err != nil {
-			logger.Error("UpdateTransactionTransfer Activity failed.", "Error", err)
+			logger.Error("failed to update transaction state", "error", err, "state", transactionState)
+			return "", err
+		}
+		err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, trxID, transactionWallets.FromWalletID, transactions.TransferTypeCreditMachnetWallet, transactionState).Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to update transaction state", "error", err, "state", transactionState)
 			return "", err
 		}
 
@@ -285,15 +270,13 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, []transactions.TransferArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, trxID, []transactions.TransferArgs{
 		{
-			WalletID:             transactionWallets.FromWalletID,
-			TransactionForeignID: args.FromForeignID,
-			ForeignID:            transferID,
-			LinkedAccountID:      trxRefFromId,
-			Type:                 transactions.TransferTypeDebitMachnetWallet,
-			Amount:               transactionAmount,
-			State:                transactions.StatePending,
+			ForeignID:       transferID,
+			LinkedAccountID: trxRefFromId,
+			Type:            transactions.TransferTypeDebitMachnetWallet,
+			Amount:          transactionAmount,
+			State:           transactions.StatePending,
 		},
 	}).Get(ctx, nil)
 	if err != nil {
@@ -301,6 +284,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return "", err
 	}
 
+	var recvTrxID string
 	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
 		WalletID:    transactionWallets.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -312,20 +296,24 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		Amount:      transactionAmount,
 		Transfers: []transactions.TransferArgs{
 			{
-				WalletID:             transactionWallets.ToWalletID,
-				TransactionForeignID: args.ToForeignID,
-				ForeignID:            transferID,
-				LinkedAccountID:      args.ToLinkedAccountID,
-				Type:                 transactions.TransferTypeCreditMachnetWallet,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				ForeignID:       transferID,
+				LinkedAccountID: args.ToLinkedAccountID,
+				Type:            transactions.TransferTypeCreditMachnetWallet,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 		},
-	}).Get(ctx, nil)
+	}).Get(ctx, &recvTrxID)
 	if err != nil {
 		logger.Error("AddTransaction Activity failed.", "Error", err)
 		return "", err
 	}
+
+	// The fund wallet has 7 days to complete
+	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*8)
+	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
+	var doBreak bool
+	var errToReturn error
 
 	// Wait for webhook to say if transfer is successful
 	doBreak = false
@@ -369,26 +357,15 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		transactionState = transactions.StateFailed
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionTransfer, []transactions.TransferArgs{
-		{
-			WalletID:             transactionWallets.FromWalletID,
-			TransactionForeignID: args.FromForeignID,
-			ForeignID:            transferID,
-			Type:                 transactions.TransferTypeDebitMachnetWallet,
-			Amount:               transactionAmount,
-			State:                transactionState,
-		},
-		{
-			WalletID:             transactionWallets.ToWalletID,
-			TransactionForeignID: args.ToForeignID,
-			ForeignID:            transferID,
-			Type:                 transactions.TransferTypeCreditMachnetWallet,
-			Amount:               transactionAmount,
-			State:                transactionState,
-		},
-	}).Get(ctx, nil)
+	// update send and receive transaction state.
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, trxID, transactionWallets.FromWalletID, transactions.TransferTypeDebitMachnetWallet, transactionState).Get(ctx, nil)
 	if err != nil {
-		logger.Error("UpdateTransactionTransfer Activity failed.", "Error", err)
+		logger.Error("failed to update transaction state", "error", err, "state", transactionState)
+		return "", err
+	}
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, recvTrxID, transactionWallets.ToWalletID, transactions.TransferTypeCreditMachnetWallet, transactionState).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update transaction state", "error", err, "state", transactionState)
 		return "", err
 	}
 
@@ -437,15 +414,6 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateWalletTopupWorkflow workflow started", "From", args.FromLinkedAccountID, "To Wallet", args.WalletLinkedAccountID, "Amount", args.Amount)
 
-	var randomForeignID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return rand.Intn(100)
-	}).Get(&randomForeignID)
-	if err != nil {
-		logger.Error("Side effect failed.", "Error", err)
-		return "", err
-	}
-
 	transactionCurrency := currency.ParseCurrency(args.Currency)
 	transactionAmount := currency.Amount{
 		Value:    args.Amount,
@@ -453,58 +421,52 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 		Scale:    transactionCurrency.Scale(),
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	var trxID string
+	err := workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
 		WalletID:    args.WalletID,
-		ForeignID:   randomForeignID,
 		ForeignType: transactions.TransactionTypeMachnetWalletTopUp,
 		Provider:    transactions.ProviderMachnet,
 		State:       transactions.StatePending,
 		Amount:      transactionAmount,
 		Transfers: []transactions.TransferArgs{
 			{
-				WalletID:             args.WalletID,
-				TransactionForeignID: randomForeignID,
-				ForeignID:            randomForeignID,
-				LinkedAccountID:      args.FromLinkedAccountID,
-				Type:                 transactions.TransferTypeDebitCard,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				LinkedAccountID: args.FromLinkedAccountID,
+				Type:            transactions.TransferTypeDebitCard,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 			{
-				WalletID:             args.WalletID,
-				TransactionForeignID: randomForeignID,
-				ForeignID:            randomForeignID,
-				LinkedAccountID:      args.WalletLinkedAccountID,
-				Type:                 transactions.TransferTypeCreditMachnetWallet,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				LinkedAccountID: args.WalletLinkedAccountID,
+				Type:            transactions.TransferTypeCreditMachnetWallet,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 		},
-	}).Get(ctx, nil)
+	}).Get(ctx, &trxID)
 	if err != nil {
 		logger.Error("AddTransaction Activity failed.", "Error", err)
 		return "", err
 	}
 
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
-		WorkflowID:            "execute_wallet_top_up" + randomForeignID,
+		WorkflowID:            "execute_wallet_top_up" + trxID,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 
 	var we workflow.Execution
-	err = workflow.ExecuteChildWorkflow(ctx, ExecuteWalletTopupWorkflow, randomForeignID, args).GetChildWorkflowExecution().Get(ctx, &we)
+	err = workflow.ExecuteChildWorkflow(ctx, ExecuteWalletTopupWorkflow, trxID, args).GetChildWorkflowExecution().Get(ctx, &we)
 	if err != nil {
 		logger.Error("ExecuteChildWorkflow failed to start", "Error", err)
 		return "", err
 	}
 	// Child workflow execution has started. We can return
 
-	return randomForeignID, nil
+	return trxID, nil
 }
 
-func ExecuteWalletTopupWorkflow(ctx workflow.Context, randomForeignID string, args machnet.StartWalletTopupArgs) (string, error) {
+func ExecuteWalletTopupWorkflow(ctx workflow.Context, trxID string, args machnet.StartWalletTopupArgs) (string, error) {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -535,18 +497,18 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, randomForeignID string, ar
 		return "", err
 	}
 	if !fundWallet {
+		// TODO: This should be a permanent error...
 		err = fmt.Errorf("Cannot fund wallet from linked account. (id=%s)", args.FromLinkedAccountID)
 		logger.Error(err.Error(), "Error", err)
 		return "", err
 	}
 
-	// The fund wallet has 7 days to complete
-	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*7)
-
-	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
-
-	var doBreak bool
-	var errToReturn error
+	var trx transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.GetTransaction, args.WalletID, trxID).Get(ctx, &trx)
+	if err != nil {
+		logger.Error("error getting transaction.", "Error", err)
+		return "", err
+	}
 
 	var fundWalletTX FundWalletResponse
 	err = workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, FundWalletArgs{
@@ -556,7 +518,8 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, randomForeignID string, ar
 			Amount:              transactionAmount.Float64(),
 			Currency:            args.Currency,
 		},
-		WorkflowID: workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowID:  workflow.GetInfo(ctx).WorkflowExecution.ID,
+		Transaction: trx,
 	}).Get(ctx, &fundWalletTX)
 	if err != nil {
 		logger.Error("FundUserWalletFromCard Activity failed.", "Error", err)
@@ -575,14 +538,12 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, randomForeignID string, ar
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionForeignIDs, transactions.UpdateForeignIDArgs{
-		OldForeignID: randomForeignID,
-		NewForeignID: fundWalletTX.FundTX,
-	}).Get(ctx, nil)
-	if err != nil {
-		logger.Error("UpdateTransactionForeignID Activity failed.", "Error", err)
-		return "", err
-	}
+	// The fund wallet has 7 days to complete
+	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*7)
+	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
+
+	var doBreak bool
+	var errToReturn error
 
 	for {
 		if doBreak {
@@ -625,34 +586,20 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, randomForeignID string, ar
 		transactionState = transactions.StateFailed
 	}
 
-	transactionArgs := transactions.UpdateTransactionArgs{
-		WalletID:  args.WalletID,
-		ForeignID: fundWalletTX.FundTX,
-		State:     transactionState,
-		Amount:    transactionAmount,
-		UpdateTransfers: []transactions.TransferArgs{{
-			TransactionForeignID: fundWalletTX.FundTX,
-			ForeignID:            fundWalletTX.FundTX,
-			WalletID:             args.WalletID,
-			Type:                 transactions.TransferTypeDebitCard,
-			State:                transactionState,
-			Amount:               transactionAmount,
-		}, {
-			TransactionForeignID: fundWalletTX.FundTX,
-			ForeignID:            fundWalletTX.FundTX,
-			WalletID:             args.WalletID,
-			Type:                 transactions.TransferTypeCreditMachnetWallet,
-			State:                transactionState,
-			Amount:               transactionAmount,
-		}},
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, transactionArgs).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, trx.ID, transactionState).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update transaction state", "error", err, "state", transactionState)
 		return "", err
 	}
+	for _, tfr := range trx.Transfers {
+		err = workflow.ExecuteActivity(ctx, a.UpdateTransferState, tfr.ID, transactionState).Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to update transaction state", "error", err, "state", transactionState)
+			return "", err
+		}
+	}
 
+	// TODO: Don't fail
 	if errToReturn != nil {
 		return "", errToReturn
 	}
@@ -672,75 +619,59 @@ func CreateWalletWithdrawalWorkflow(ctx workflow.Context, args machnet.WithdrawF
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateWalletWithdrawalWorkflow workflow started", "From Wallet", args.WalletLinkedAccountID, "To ", args.ToLinkedAccountID, "Amount", args.Amount)
 
-	var randomForeignID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return rand.Intn(100)
-	}).Get(&randomForeignID)
-	if err != nil {
-		logger.Error("Side effect failed.", "Error", err)
-		return "", err
-	}
-
 	transactionAmount := currency.Amount{
 		Value:    args.Amount,
 		Currency: currency.USD,
 		Scale:    currency.USD.Scale(),
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	var trxID string
+	err := workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
 		WalletID:    args.WalletID,
-		ForeignID:   randomForeignID,
 		ForeignType: transactions.TransactionTypeMachnetWalletWithdrawal,
 		Provider:    transactions.ProviderMachnet,
 		State:       transactions.StatePending,
 		Amount:      transactionAmount,
 		Transfers: []transactions.TransferArgs{
 			{
-				WalletID:             args.WalletID,
-				TransactionForeignID: randomForeignID,
-				ForeignID:            randomForeignID,
-				LinkedAccountID:      args.WalletLinkedAccountID,
-				Type:                 transactions.TransferTypeDebitMachnetWallet,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				LinkedAccountID: args.WalletLinkedAccountID,
+				Type:            transactions.TransferTypeDebitMachnetWallet,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 			{
-				WalletID:             args.WalletID,
-				TransactionForeignID: randomForeignID,
-				ForeignID:            randomForeignID,
-				LinkedAccountID:      args.ToLinkedAccountID,
-				Type:                 transactions.TransferTypeCreditBankAccount,
-				Amount:               transactionAmount,
-				State:                transactions.StatePending,
+				LinkedAccountID: args.ToLinkedAccountID,
+				Type:            transactions.TransferTypeCreditBankAccount,
+				Amount:          transactionAmount,
+				State:           transactions.StatePending,
 			},
 		},
-	}).Get(ctx, nil)
+	}).Get(ctx, &trxID)
 	if err != nil {
 		logger.Error("AddTransaction Activity failed.", "Error", err)
 		return "", err
 	}
 
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
-		WorkflowID:            "execute_wallet_withdrawal_" + randomForeignID,
+		WorkflowID:            "execute_wallet_withdrawal_" + trxID,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 
 	var we workflow.Execution
-	err = workflow.ExecuteChildWorkflow(ctx, ExecuteWalletWithdrawalWorkflow, randomForeignID, args).GetChildWorkflowExecution().Get(ctx, &we)
+	err = workflow.ExecuteChildWorkflow(ctx, ExecuteWalletWithdrawalWorkflow, trxID, args).GetChildWorkflowExecution().Get(ctx, &we)
 	if err != nil {
 		logger.Error("ExecuteChildWorkflow failed to start", "Error", err)
 		return "", err
 	}
 	// Child workflow execution has started. We can return
 
-	return randomForeignID, nil
+	return trxID, nil
 }
 
-func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, randomForeignID string, args machnet.WithdrawFromWalletArgs) (string, error) {
+func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, trxID string, args machnet.WithdrawFromWalletArgs) (string, error) {
 	var a *Activity
-
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Minute,
 	}
@@ -749,26 +680,19 @@ func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, randomForeignID strin
 	logger := workflow.GetLogger(ctx)
 	logger.Info("ExecuteWalletWithdrawalWorkflow workflow started", "From Wallet", args.WalletLinkedAccountID, "To ", args.ToLinkedAccountID, "Amount", args.Amount)
 
-	transactionAmount := currency.Amount{
-		Value:    args.Amount,
-		Currency: currency.USD,
-		Scale:    currency.USD.Scale(),
+	var trx transactions.Transaction
+	err := workflow.ExecuteActivity(ctx, a.GetTransaction, args.WalletID, trxID).Get(ctx, &trx)
+	if err != nil {
+		logger.Error("error getting transaction.", "Error", err)
+		return "", err
 	}
 
-	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
-
-	var doBreak bool
-	var errToReturn error
-
 	var withdrawal machnet.WalletWithdrawal
-	err := workflow.ExecuteActivity(ctx, a.WithdrawFromWallet, args).Get(ctx, &withdrawal)
+	err = workflow.ExecuteActivity(ctx, a.WithdrawFromWallet, trx, args).Get(ctx, &withdrawal)
 	if err != nil {
 		logger.Error("WithdrawFromWallet Activity failed.", "Error", err)
 		return "", err
 	}
-
-	// The fund wallet has 4 days to complete
-	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*4)
 
 	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
 		FromLinkedAccountID:   args.WalletLinkedAccountID,
@@ -782,14 +706,12 @@ func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, randomForeignID strin
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionForeignIDs, transactions.UpdateForeignIDArgs{
-		OldForeignID: randomForeignID,
-		NewForeignID: withdrawal.ID,
-	}).Get(ctx, nil)
-	if err != nil {
-		logger.Error("UpdateTransactionForeignID Activity failed.", "Error", err)
-		return "", err
-	}
+	trxChan := workflow.GetSignalChannel(ctx, ops.TransactionEventsChannel)
+	var doBreak bool
+	var errToReturn error
+
+	// The fund wallet has 4 days to complete
+	timeoutFuture := workflow.NewTimer(ctx, time.Hour*24*4)
 
 	for {
 		if doBreak {
@@ -832,32 +754,17 @@ func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, randomForeignID strin
 		transactionState = transactions.StateFailed
 	}
 
-	transactionArgs := transactions.UpdateTransactionArgs{
-		WalletID:  args.WalletID,
-		ForeignID: withdrawal.ID,
-		State:     transactionState,
-		Amount:    transactionAmount,
-		UpdateTransfers: []transactions.TransferArgs{{
-			TransactionForeignID: withdrawal.ID,
-			ForeignID:            withdrawal.ID,
-			WalletID:             args.WalletID,
-			Type:                 transactions.TransferTypeDebitMachnetWallet,
-			State:                transactionState,
-			Amount:               transactionAmount,
-		}, {
-			TransactionForeignID: withdrawal.ID,
-			ForeignID:            withdrawal.ID,
-			WalletID:             args.WalletID,
-			Type:                 transactions.TransferTypeCreditBankAccount,
-			State:                transactionState,
-			Amount:               transactionAmount,
-		}},
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, transactionArgs).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, trx.ID, transactionState).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update transaction state", "error", err, "state", transactionState)
 		return "", err
+	}
+	for _, tfr := range trx.Transfers {
+		err = workflow.ExecuteActivity(ctx, a.UpdateTransferState, tfr.ID, transactionState).Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to update transfer state", "error", err, "state", transactionState)
+			return "", err
+		}
 	}
 
 	if errToReturn != nil {

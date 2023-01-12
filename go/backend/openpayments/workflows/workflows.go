@@ -64,7 +64,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		}
 	}
 
-	id, err := ops.CreateOutgoingPayment(ctx, b, args)
+	id, trxID, err := ops.CreateOutgoingPayment(ctx, b, args)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
@@ -81,7 +81,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id, args.IPAddress)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, OutgoingTransactionWorkflow, id, trxID, args.IPAddress)
 	if err != nil {
 		err = fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		span.RecordError(err)
@@ -91,7 +91,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	return ops.GetOutgoingPayment(ctx, b, id)
 }
 
-func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress string) (string, error) {
+func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddress string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -100,7 +100,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress str
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("OutgoingTransactionWorkflow workflow started", "outgoingID", outgoingID)
+	logger.Info("OutgoingTransactionWorkflow workflow started", "outgoingID", outgoingID, "trxID", trxID)
 
 	var tArgs machnet.CreateTransactionArgs
 	err := workflow.ExecuteActivity(ctx, a.GetProviderArgs, outgoingID).Get(ctx, &tArgs)
@@ -122,7 +122,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, ipAddress str
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 
 	var extID string
-	err = workflow.ExecuteChildWorkflow(ctx, machnet_workflows.CreateTransactionWorkflow, tArgs).Get(ctx, &extID)
+	err = workflow.ExecuteChildWorkflow(ctx, machnet_workflows.CreateTransactionWorkflow, tArgs, trxID).Get(ctx, &extID)
 	if err != nil {
 		logger.Error("CreateTransactionWorkflow child workflow failed.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {

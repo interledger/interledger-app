@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/transactions"
 	"regexp"
 	"strings"
 
@@ -228,7 +229,8 @@ type FundWalletResponse struct {
 
 type FundWalletArgs struct {
 	machnet.CreateTransactionArgs
-	WorkflowID string
+	WorkflowID  string
+	Transaction transactions.Transaction
 }
 
 func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletArgs) (*FundWalletResponse, error) {
@@ -294,13 +296,24 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 		return nil, err
 	}
 
+	err = a.b.Transactions().SetTransactionForeignID(ctx, args.Transaction.ID, fundResp.ID)
+	if err != nil {
+		return nil, err
+	}
+	for _, tfr := range args.Transaction.Transfers {
+		err = a.b.Transactions().SetTransferForeignID(ctx, tfr.ID, fundResp.ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &FundWalletResponse{
 		FromWalletLinkedAcc: found.ID,
 		FundTX:              fundResp.ID,
 	}, nil
 }
 
-func (a *Activity) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
+func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Transaction, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
 	linkedWallet, err := a.b.LinkedAccounts().Get(ctx, args.WalletLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("linked wallet account not found", "ErrNotFound", err)
@@ -333,6 +346,17 @@ func (a *Activity) WithdrawFromWallet(ctx context.Context, args machnet.Withdraw
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	err = a.b.Transactions().SetTransactionForeignID(ctx, trx.ID, withdrawal.ID)
+	if err != nil {
+		return nil, err
+	}
+	for _, tfr := range trx.Transfers {
+		err = a.b.Transactions().SetTransferForeignID(ctx, tfr.ID, withdrawal.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &machnet.WalletWithdrawal{

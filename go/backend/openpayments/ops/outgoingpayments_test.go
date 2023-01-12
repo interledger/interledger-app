@@ -92,7 +92,7 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.opArgs.QuoteID = q.ID
-			opID, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
+			opID, _, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
 			require.NoError(t, err)
 
 			op, err := ops.GetOutgoingPayment(ctx, b, opID)

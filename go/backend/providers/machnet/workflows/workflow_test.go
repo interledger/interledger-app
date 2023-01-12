@@ -2,6 +2,8 @@ package workflows
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/transactions"
 	"testing"
 	"time"
 
@@ -114,10 +116,10 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 			Status: external.TransactionProcessed,
 		})
 	}, time.Minute)
-	env.OnActivity(a.UpdateTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.UpdateTransferStateByType, mock.Anything, mock.Anything).Return(nil)
 	env.OnActivity(a.StartWalletTransfer, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
-	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	env.OnActivity(a.AddTransaction, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
@@ -125,7 +127,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 			Status: external.TransactionProcessed,
 		})
 	}, time.Minute*2)
-	env.OnActivity(a.UpdateTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.UpdateTransferStateByType, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	env.ExecuteWorkflow(CreateTransactionWorkflow, machnet.CreateTransactionArgs{
 		FromForeignID:       uuid.NewString(),
@@ -136,7 +138,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 		ToLinkedAccountID:   uuid.NewString(),
 		Amount:              200,
 		Currency:            "USD",
-	})
+	}, trxID)
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -197,18 +199,31 @@ func TestExecuteWalletTopupWorkflow(t *testing.T) {
 		FromWalletLinkedAcc: walletLinkedAccountID,
 		FundTX:              trxID,
 	}
+	trx := transactions.Transaction{
+		ID:          uuid.NewString(),
+		ForeignID:   uuid.NewString(),
+		Source:      "",
+		Destination: "",
+		Note:        "",
+		Type:        transactions.TransactionTypeMachnetWalletTopUp,
+		Timestamp:   time.Time{},
+		Provider:    transactions.ProviderMachnet,
+		State:       transactions.StatePending,
+		Amount:      currency.Amount{},
+		Transfers:   nil,
+	}
 
 	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
+	env.OnActivity(a.GetTransaction, mock.Anything, mock.Anything, mock.Anything).Return(trx, nil)
 	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
-	env.OnActivity(a.UpdateTransactionForeignIDs, mock.Anything, mock.Anything).Return(nil)
 	env.RegisterDelayedCallback(func() {
 		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
 			ID:     fundTrx.FundTX,
 			Status: external.TransactionProcessed,
 		})
 	}, time.Minute)
-	env.OnActivity(a.UpdateTransactionState, mock.Anything, mock.Anything).Return(nil)
+	env.OnActivity(a.UpdateTransactionState, mock.Anything, trx.ID, transactions.StateCompleted).Return(nil)
 
 	env.ExecuteWorkflow(ExecuteWalletTopupWorkflow, uuid.NewString(), machnet.StartWalletTopupArgs{
 		WalletLinkedAccountID: walletLinkedAccountID,

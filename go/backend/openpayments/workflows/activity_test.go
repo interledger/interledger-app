@@ -103,7 +103,7 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.opArgs.QuoteID = q.ID
-			opID, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
+			opID, _, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
 			require.NoError(t, err)
 
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
