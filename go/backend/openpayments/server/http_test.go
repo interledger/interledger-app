@@ -75,6 +75,7 @@ func TestGetHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			req, err := http.NewRequest(http.MethodGet, tc.getPath, nil)
+			req.Header.Add("X-Forwarded-For", "8.8.8.8")
 			require.NoError(t, err)
 
 			// Setup the payment pointer
@@ -421,6 +422,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/quotes", tc.quoteArgs.SendPaymentPointer), bytes.NewReader(body))
+		req.Header.Add("X-Forwarded-For", "8.8.8.8")
 		require.NoError(t, err)
 
 		// Setup the payment pointers
@@ -477,7 +479,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		}, nil).Times(2)
 
 		ipAddress := "198.0.0.8"
-		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything, ipAddress).Return(nil, nil)
+		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, ipAddress).Return(nil, nil)
 
 		tc.opArgs.QuoteID = q.ID
 

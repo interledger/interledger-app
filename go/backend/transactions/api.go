@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/db"
 
@@ -11,16 +12,20 @@ import (
 type Client interface {
 	CreateTransaction(ctx context.Context, args CreateTransactionArgs) (string, error)
 	CreateTransactionTx(ctx context.Context, tx *sqlx.Tx, args CreateTransactionArgs) (string, error)
-	UpdateTransaction(ctx context.Context, args UpdateTransactionArgs) error
-	UpdateTransactionTx(ctx context.Context, tx *sqlx.Tx, args UpdateTransactionArgs) error
-	AddTransfers(ctx context.Context, args []TransferArgs) error
-	AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []TransferArgs) error
-	UpdateTransfers(ctx context.Context, args []TransferArgs) error
-	UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []TransferArgs) error
-	UpdateForeignIDs(ctx context.Context, args UpdateForeignIDArgs) error
+
+	AddTransfers(ctx context.Context, trxID string, args []TransferArgs) error
+	AddTransfersTx(ctx context.Context, tx *sqlx.Tx, trxID string, args []TransferArgs) error
 
 	SetTransactionForeignID(ctx context.Context, ID string, foreignID string) error
+	SetTransferForeignID(ctx context.Context, ID string, foreignID string) error
+
+	SetTransactionState(ctx context.Context, ID string, state State) error
+	SetTransactionStateTx(ctx context.Context, tx *sqlx.Tx, ID string, state State) error
+	SetTransferState(ctx context.Context, ID string, state State) error
+
+	SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error
 
 	ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
-	GetTransaction(ctx context.Context, walletID string, transactionID string) (*Transaction, error)
+	GetTransaction(ctx context.Context, walletID string, trxID string) (*Transaction, error)
+	GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*Transaction, error)
 }

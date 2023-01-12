@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	sqlx "github.com/jmoiron/sqlx"
+	currency "gitlab.com/fynbos/backend/currency"
 	db "gitlab.com/fynbos/backend/db"
 	transactions "gitlab.com/fynbos/backend/transactions"
 )
@@ -38,31 +39,31 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddTransfers mocks base method.
-func (m *MockClient) AddTransfers(ctx context.Context, args []transactions.TransferArgs) error {
+func (m *MockClient) AddTransfers(ctx context.Context, trxID string, args []transactions.TransferArgs) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddTransfers", ctx, args)
+	ret := m.ctrl.Call(m, "AddTransfers", ctx, trxID, args)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddTransfers indicates an expected call of AddTransfers.
-func (mr *MockClientMockRecorder) AddTransfers(ctx, args interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) AddTransfers(ctx, trxID, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTransfers", reflect.TypeOf((*MockClient)(nil).AddTransfers), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTransfers", reflect.TypeOf((*MockClient)(nil).AddTransfers), ctx, trxID, args)
 }
 
 // AddTransfersTx mocks base method.
-func (m *MockClient) AddTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
+func (m *MockClient) AddTransfersTx(ctx context.Context, tx *sqlx.Tx, trxID string, args []transactions.TransferArgs) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddTransfersTx", ctx, tx, args)
+	ret := m.ctrl.Call(m, "AddTransfersTx", ctx, tx, trxID, args)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddTransfersTx indicates an expected call of AddTransfersTx.
-func (mr *MockClientMockRecorder) AddTransfersTx(ctx, tx, args interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) AddTransfersTx(ctx, tx, trxID, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTransfersTx", reflect.TypeOf((*MockClient)(nil).AddTransfersTx), ctx, tx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTransfersTx", reflect.TypeOf((*MockClient)(nil).AddTransfersTx), ctx, tx, trxID, args)
 }
 
 // CreateTransaction mocks base method.
@@ -96,18 +97,33 @@ func (mr *MockClientMockRecorder) CreateTransactionTx(ctx, tx, args interface{})
 }
 
 // GetTransaction mocks base method.
-func (m *MockClient) GetTransaction(ctx context.Context, walletID, transactionID string) (*transactions.Transaction, error) {
+func (m *MockClient) GetTransaction(ctx context.Context, walletID, trxID string) (*transactions.Transaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransaction", ctx, walletID, transactionID)
+	ret := m.ctrl.Call(m, "GetTransaction", ctx, walletID, trxID)
 	ret0, _ := ret[0].(*transactions.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTransaction indicates an expected call of GetTransaction.
-func (mr *MockClientMockRecorder) GetTransaction(ctx, walletID, transactionID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetTransaction(ctx, walletID, trxID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, walletID, transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, walletID, trxID)
+}
+
+// GetTransactionByForeignID mocks base method.
+func (m *MockClient) GetTransactionByForeignID(ctx context.Context, walletID, foreignID string) (*transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactionByForeignID", ctx, walletID, foreignID)
+	ret0, _ := ret[0].(*transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactionByForeignID indicates an expected call of GetTransactionByForeignID.
+func (mr *MockClientMockRecorder) GetTransactionByForeignID(ctx, walletID, foreignID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionByForeignID", reflect.TypeOf((*MockClient)(nil).GetTransactionByForeignID), ctx, walletID, foreignID)
 }
 
 // ListTransactions mocks base method.
@@ -125,6 +141,20 @@ func (mr *MockClientMockRecorder) ListTransactions(ctx, page, walletID interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactions", reflect.TypeOf((*MockClient)(nil).ListTransactions), ctx, page, walletID)
 }
 
+// SetTransactionAmountTx mocks base method.
+func (m *MockClient) SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTransactionAmountTx", ctx, tx, ID, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTransactionAmountTx indicates an expected call of SetTransactionAmountTx.
+func (mr *MockClientMockRecorder) SetTransactionAmountTx(ctx, tx, ID, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionAmountTx", reflect.TypeOf((*MockClient)(nil).SetTransactionAmountTx), ctx, tx, ID, amount)
+}
+
 // SetTransactionForeignID mocks base method.
 func (m *MockClient) SetTransactionForeignID(ctx context.Context, ID, foreignID string) error {
 	m.ctrl.T.Helper()
@@ -139,72 +169,58 @@ func (mr *MockClientMockRecorder) SetTransactionForeignID(ctx, ID, foreignID int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionForeignID", reflect.TypeOf((*MockClient)(nil).SetTransactionForeignID), ctx, ID, foreignID)
 }
 
-// UpdateForeignIDs mocks base method.
-func (m *MockClient) UpdateForeignIDs(ctx context.Context, args transactions.UpdateForeignIDArgs) error {
+// SetTransactionState mocks base method.
+func (m *MockClient) SetTransactionState(ctx context.Context, ID string, state transactions.State) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateForeignIDs", ctx, args)
+	ret := m.ctrl.Call(m, "SetTransactionState", ctx, ID, state)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateForeignIDs indicates an expected call of UpdateForeignIDs.
-func (mr *MockClientMockRecorder) UpdateForeignIDs(ctx, args interface{}) *gomock.Call {
+// SetTransactionState indicates an expected call of SetTransactionState.
+func (mr *MockClientMockRecorder) SetTransactionState(ctx, ID, state interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateForeignIDs", reflect.TypeOf((*MockClient)(nil).UpdateForeignIDs), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionState", reflect.TypeOf((*MockClient)(nil).SetTransactionState), ctx, ID, state)
 }
 
-// UpdateTransaction mocks base method.
-func (m *MockClient) UpdateTransaction(ctx context.Context, args transactions.UpdateTransactionArgs) error {
+// SetTransactionStateTx mocks base method.
+func (m *MockClient) SetTransactionStateTx(ctx context.Context, tx *sqlx.Tx, ID string, state transactions.State) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTransaction", ctx, args)
+	ret := m.ctrl.Call(m, "SetTransactionStateTx", ctx, tx, ID, state)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateTransaction indicates an expected call of UpdateTransaction.
-func (mr *MockClientMockRecorder) UpdateTransaction(ctx, args interface{}) *gomock.Call {
+// SetTransactionStateTx indicates an expected call of SetTransactionStateTx.
+func (mr *MockClientMockRecorder) SetTransactionStateTx(ctx, tx, ID, state interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransaction", reflect.TypeOf((*MockClient)(nil).UpdateTransaction), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionStateTx", reflect.TypeOf((*MockClient)(nil).SetTransactionStateTx), ctx, tx, ID, state)
 }
 
-// UpdateTransactionTx mocks base method.
-func (m *MockClient) UpdateTransactionTx(ctx context.Context, tx *sqlx.Tx, args transactions.UpdateTransactionArgs) error {
+// SetTransferForeignID mocks base method.
+func (m *MockClient) SetTransferForeignID(ctx context.Context, ID, foreignID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTransactionTx", ctx, tx, args)
+	ret := m.ctrl.Call(m, "SetTransferForeignID", ctx, ID, foreignID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateTransactionTx indicates an expected call of UpdateTransactionTx.
-func (mr *MockClientMockRecorder) UpdateTransactionTx(ctx, tx, args interface{}) *gomock.Call {
+// SetTransferForeignID indicates an expected call of SetTransferForeignID.
+func (mr *MockClientMockRecorder) SetTransferForeignID(ctx, ID, foreignID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransactionTx", reflect.TypeOf((*MockClient)(nil).UpdateTransactionTx), ctx, tx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransferForeignID", reflect.TypeOf((*MockClient)(nil).SetTransferForeignID), ctx, ID, foreignID)
 }
 
-// UpdateTransfers mocks base method.
-func (m *MockClient) UpdateTransfers(ctx context.Context, args []transactions.TransferArgs) error {
+// SetTransferState mocks base method.
+func (m *MockClient) SetTransferState(ctx context.Context, ID string, state transactions.State) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTransfers", ctx, args)
+	ret := m.ctrl.Call(m, "SetTransferState", ctx, ID, state)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateTransfers indicates an expected call of UpdateTransfers.
-func (mr *MockClientMockRecorder) UpdateTransfers(ctx, args interface{}) *gomock.Call {
+// SetTransferState indicates an expected call of SetTransferState.
+func (mr *MockClientMockRecorder) SetTransferState(ctx, ID, state interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransfers", reflect.TypeOf((*MockClient)(nil).UpdateTransfers), ctx, args)
-}
-
-// UpdateTransfersTx mocks base method.
-func (m *MockClient) UpdateTransfersTx(ctx context.Context, tx *sqlx.Tx, args []transactions.TransferArgs) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTransfersTx", ctx, tx, args)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateTransfersTx indicates an expected call of UpdateTransfersTx.
-func (mr *MockClientMockRecorder) UpdateTransfersTx(ctx, tx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransfersTx", reflect.TypeOf((*MockClient)(nil).UpdateTransfersTx), ctx, tx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransferState", reflect.TypeOf((*MockClient)(nil).SetTransferState), ctx, ID, state)
 }
