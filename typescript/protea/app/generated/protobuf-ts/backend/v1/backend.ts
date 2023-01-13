@@ -472,44 +472,31 @@ export interface Transfer {
  */
 export interface ListStatementsResponse {
     /**
-     * @generated from protobuf field: repeated backend.v1.ListStatementsResponse.Statement statements = 1;
+     * @generated from protobuf field: repeated string periods = 1;
      */
-    statements: ListStatementsResponse_Statement[];
+    periods: string[];
     /**
      * @generated from protobuf field: backend.v1.PaginationResponse page = 2;
      */
     page?: PaginationResponse;
 }
 /**
- * @generated from protobuf message backend.v1.ListStatementsResponse.Statement
+ * @generated from protobuf message backend.v1.GetStatementPDFRequest
  */
-export interface ListStatementsResponse_Statement {
+export interface GetStatementPDFRequest {
     /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: string period = 2;
+     * @generated from protobuf field: string period = 1;
      */
     period: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetStatementURLRequest
+ * @generated from protobuf message backend.v1.StatementPDF
  */
-export interface GetStatementURLRequest {
+export interface StatementPDF {
     /**
-     * @generated from protobuf field: string statementId = 1;
+     * @generated from protobuf field: bytes chunks = 1;
      */
-    statementId: string;
-}
-/**
- * @generated from protobuf message backend.v1.GetStatementURLResponse
- */
-export interface GetStatementURLResponse {
-    /**
-     * @generated from protobuf field: string url = 1;
-     */
-    url: string;
+    chunks: Uint8Array;
 }
 /**
  * @generated from protobuf message backend.v1.CreateSupportTicketRequest
@@ -2636,12 +2623,12 @@ export const Transfer = new Transfer$Type();
 class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
     constructor() {
         super("backend.v1.ListStatementsResponse", [
-            { no: 1, name: "statements", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ListStatementsResponse_Statement },
+            { no: 1, name: "periods", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
         ]);
     }
     create(value?: PartialMessage<ListStatementsResponse>): ListStatementsResponse {
-        const message = { statements: [] };
+        const message = { periods: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListStatementsResponse>(this, message, value);
@@ -2652,8 +2639,8 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.ListStatementsResponse.Statement statements */ 1:
-                    message.statements.push(ListStatementsResponse_Statement.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated string periods */ 1:
+                    message.periods.push(reader.string());
                     break;
                 case /* backend.v1.PaginationResponse page */ 2:
                     message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
@@ -2670,9 +2657,9 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
         return message;
     }
     internalBinaryWrite(message: ListStatementsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.ListStatementsResponse.Statement statements = 1; */
-        for (let i = 0; i < message.statements.length; i++)
-            ListStatementsResponse_Statement.internalBinaryWrite(message.statements[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated string periods = 1; */
+        for (let i = 0; i < message.periods.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.periods[i]);
         /* backend.v1.PaginationResponse page = 2; */
         if (message.page)
             PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
@@ -2687,29 +2674,25 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
  */
 export const ListStatementsResponse = new ListStatementsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListStatementsResponse_Statement$Type extends MessageType<ListStatementsResponse_Statement> {
+class GetStatementPDFRequest$Type extends MessageType<GetStatementPDFRequest> {
     constructor() {
-        super("backend.v1.ListStatementsResponse.Statement", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "period", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("backend.v1.GetStatementPDFRequest", [
+            { no: 1, name: "period", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<ListStatementsResponse_Statement>): ListStatementsResponse_Statement {
-        const message = { id: "", period: "" };
+    create(value?: PartialMessage<GetStatementPDFRequest>): GetStatementPDFRequest {
+        const message = { period: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<ListStatementsResponse_Statement>(this, message, value);
+            reflectionMergePartial<GetStatementPDFRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListStatementsResponse_Statement): ListStatementsResponse_Statement {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetStatementPDFRequest): GetStatementPDFRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string period */ 2:
+                case /* string period */ 1:
                     message.period = reader.string();
                     break;
                 default:
@@ -2723,13 +2706,10 @@ class ListStatementsResponse_Statement$Type extends MessageType<ListStatementsRe
         }
         return message;
     }
-    internalBinaryWrite(message: ListStatementsResponse_Statement, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string period = 2; */
+    internalBinaryWrite(message: GetStatementPDFRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string period = 1; */
         if (message.period !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.period);
+            writer.tag(1, WireType.LengthDelimited).string(message.period);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2737,30 +2717,30 @@ class ListStatementsResponse_Statement$Type extends MessageType<ListStatementsRe
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.ListStatementsResponse.Statement
+ * @generated MessageType for protobuf message backend.v1.GetStatementPDFRequest
  */
-export const ListStatementsResponse_Statement = new ListStatementsResponse_Statement$Type();
+export const GetStatementPDFRequest = new GetStatementPDFRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetStatementURLRequest$Type extends MessageType<GetStatementURLRequest> {
+class StatementPDF$Type extends MessageType<StatementPDF> {
     constructor() {
-        super("backend.v1.GetStatementURLRequest", [
-            { no: 1, name: "statementId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("backend.v1.StatementPDF", [
+            { no: 1, name: "chunks", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
-    create(value?: PartialMessage<GetStatementURLRequest>): GetStatementURLRequest {
-        const message = { statementId: "" };
+    create(value?: PartialMessage<StatementPDF>): StatementPDF {
+        const message = { chunks: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetStatementURLRequest>(this, message, value);
+            reflectionMergePartial<StatementPDF>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetStatementURLRequest): GetStatementURLRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StatementPDF): StatementPDF {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string statementId */ 1:
-                    message.statementId = reader.string();
+                case /* bytes chunks */ 1:
+                    message.chunks = reader.bytes();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2773,10 +2753,10 @@ class GetStatementURLRequest$Type extends MessageType<GetStatementURLRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetStatementURLRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string statementId = 1; */
-        if (message.statementId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.statementId);
+    internalBinaryWrite(message: StatementPDF, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bytes chunks = 1; */
+        if (message.chunks.length)
+            writer.tag(1, WireType.LengthDelimited).bytes(message.chunks);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2784,56 +2764,9 @@ class GetStatementURLRequest$Type extends MessageType<GetStatementURLRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetStatementURLRequest
+ * @generated MessageType for protobuf message backend.v1.StatementPDF
  */
-export const GetStatementURLRequest = new GetStatementURLRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class GetStatementURLResponse$Type extends MessageType<GetStatementURLResponse> {
-    constructor() {
-        super("backend.v1.GetStatementURLResponse", [
-            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<GetStatementURLResponse>): GetStatementURLResponse {
-        const message = { url: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetStatementURLResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetStatementURLResponse): GetStatementURLResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string url */ 1:
-                    message.url = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetStatementURLResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string url = 1; */
-        if (message.url !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.url);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.GetStatementURLResponse
- */
-export const GetStatementURLResponse = new GetStatementURLResponse$Type();
+export const StatementPDF = new StatementPDF$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateSupportTicketRequest$Type extends MessageType<CreateSupportTicketRequest> {
     constructor() {
@@ -5409,5 +5342,5 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "ListStatements", options: {}, I: PaginationRequest, O: ListStatementsResponse },
-    { name: "GetStatementURL", options: {}, I: GetStatementURLRequest, O: GetStatementURLResponse }
+    { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF }
 ]);
