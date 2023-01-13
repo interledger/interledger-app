@@ -546,7 +546,7 @@ type BackendServiceClient interface {
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
 	//Statements
 	ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error)
-	GetStatementURL(ctx context.Context, in *GetStatementURLRequest, opts ...grpc.CallOption) (*GetStatementURLResponse, error)
+	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
 }
 
 type backendServiceClient struct {
@@ -863,9 +863,9 @@ func (c *backendServiceClient) ListStatements(ctx context.Context, in *Paginatio
 	return out, nil
 }
 
-func (c *backendServiceClient) GetStatementURL(ctx context.Context, in *GetStatementURLRequest, opts ...grpc.CallOption) (*GetStatementURLResponse, error) {
-	out := new(GetStatementURLResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementURL", in, out, opts...)
+func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error) {
+	out := new(StatementPDF)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -918,7 +918,7 @@ type BackendServiceServer interface {
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
 	//Statements
 	ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error)
-	GetStatementURL(context.Context, *GetStatementURLRequest) (*GetStatementURLResponse, error)
+	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1027,8 +1027,8 @@ func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *Loo
 func (UnimplementedBackendServiceServer) ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStatements not implemented")
 }
-func (UnimplementedBackendServiceServer) GetStatementURL(context.Context, *GetStatementURLRequest) (*GetStatementURLResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStatementURL not implemented")
+func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1654,20 +1654,20 @@ func _BackendService_ListStatements_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetStatementURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetStatementURLRequest)
+func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatementPDFRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).GetStatementURL(ctx, in)
+		return srv.(BackendServiceServer).GetStatementPDF(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetStatementURL",
+		FullMethod: "/backend.v1.BackendService/GetStatementPDF",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetStatementURL(ctx, req.(*GetStatementURLRequest))
+		return srv.(BackendServiceServer).GetStatementPDF(ctx, req.(*GetStatementPDFRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1816,8 +1816,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_ListStatements_Handler,
 		},
 		{
-			MethodName: "GetStatementURL",
-			Handler:    _BackendService_GetStatementURL_Handler,
+			MethodName: "GetStatementPDF",
+			Handler:    _BackendService_GetStatementPDF_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

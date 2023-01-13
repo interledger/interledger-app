@@ -2,8 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
-import type { GetStatementURLResponse } from "./backend";
-import type { GetStatementURLRequest } from "./backend";
+import type { StatementPDF } from "./backend";
+import type { GetStatementPDFRequest } from "./backend";
 import type { ListStatementsResponse } from "./backend";
 import type { Transaction } from "./backend";
 import type { LookupTransactionRequest } from "./backend";
@@ -377,9 +377,9 @@ export interface IBackendServiceClient {
      */
     listStatements(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListStatementsResponse>;
     /**
-     * @generated from protobuf rpc: GetStatementURL(backend.v1.GetStatementURLRequest) returns (backend.v1.GetStatementURLResponse);
+     * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
-    getStatementURL(input: GetStatementURLRequest, options?: RpcOptions): UnaryCall<GetStatementURLRequest, GetStatementURLResponse>;
+    getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -645,10 +645,10 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<PaginationRequest, ListStatementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: GetStatementURL(backend.v1.GetStatementURLRequest) returns (backend.v1.GetStatementURLResponse);
+     * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
-    getStatementURL(input: GetStatementURLRequest, options?: RpcOptions): UnaryCall<GetStatementURLRequest, GetStatementURLResponse> {
+    getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF> {
         const method = this.methods[34], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetStatementURLRequest, GetStatementURLResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<GetStatementPDFRequest, StatementPDF>("unary", this._transport, method, opt, input);
     }
 }
