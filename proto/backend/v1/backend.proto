@@ -215,7 +215,7 @@ service BackendService {
 
   //Statements
   rpc ListStatements(PaginationRequest) returns (ListStatementsResponse);
-  rpc GetStatementURL(GetStatementURLRequest) returns (GetStatementURLResponse);
+  rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
 }
 
 message Transfer {
@@ -228,21 +228,16 @@ message Transfer {
 }
 
 message ListStatementsResponse {
-  message Statement {
-    string id = 1;
-    string period = 2;
-  }
-
-  repeated Statement statements = 1;
+  repeated string periods = 1;
   PaginationResponse page = 2;
 }
 
-message GetStatementURLRequest {
-  string statementId = 1;
+message GetStatementPDFRequest {
+  string period = 1;
 }
 
-message GetStatementURLResponse {
-  string url = 1;
+message StatementPDF {
+  bytes chunks = 1;
 }
 
 message CreateSupportTicketRequest {
