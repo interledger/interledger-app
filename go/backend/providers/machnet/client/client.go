@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 
@@ -222,6 +223,10 @@ func (c client) StartWalletTopup(ctx context.Context, args machnet.StartWalletTo
 	return topupWorkflow.Get, nil
 }
 
-func (c client) GetCurrentStatement(ctx context.Context, walletID string) ([]byte, error) {
-	return ops.GetCurrentStatement(ctx, c.b, walletID)
+func (c client) ListStatementPeriods(ctx context.Context, page db.Pagination, walletID string) ([]string, error) {
+	return ops.ListStatementPeriods(ctx, c.b, page, walletID)
+}
+
+func (c client) GetStatement(ctx context.Context, walletID, period string) ([]byte, error) {
+	return ops.GetStatement(ctx, c.b, walletID, period)
 }
