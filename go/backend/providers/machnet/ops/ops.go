@@ -559,6 +559,7 @@ func GetWallet(ctx context.Context, b Backends, id string) (*machnet.Wallet, err
 		Nickname:         wallet.Nickname,
 		AvailableBalance: uint64(externalWallet.Balance.AvailableBalance * float64(100)),
 		Balance:          uint64(externalWallet.Balance.Balance * float64(100)),
+		CreatedAt:        wallet.CreatedAt,
 	}, nil
 }
 
@@ -572,20 +573,23 @@ func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 	return nil
 }
 
-func GetCurrentStatement(ctx context.Context, b Backends, walletID string) ([]byte, error) {
+func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]byte, error) {
 	wallet, err := GetWallet(ctx, b, walletID)
 	if err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
+	periodStart, err := time.Parse("2006-01-02", fmt.Sprintf("%s-01", period))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
 
 	trxs, err := b.Transactions().ListTransactionsInRange(
 		ctx,
 		walletID,
 		transactions.TransactionRangeFilter{
-			StartTimestamp: now.Add(31 * 24 * time.Hour), // +- 1 month
-			EndTimestamp:   now,
+			StartTimestamp: periodStart,
+			EndTimestamp:   periodStart.AddDate(0, 1, 0),
 		})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -597,4 +601,53 @@ func GetCurrentStatement(ctx context.Context, b Backends, walletID string) ([]by
 	}
 
 	return pdf, nil
+}
+
+func ListStatementPeriods(ctx context.Context, b Backends, page db.Pagination, walletID string) ([]string, error) {
+	wallet, err := GetWallet(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	start, err := time.Parse(time.RFC3339, wallet.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	years := now.Year() - start.Year()
+	if (now.Month() - start.Month()) < 0 {
+		years--
+	}
+	months := int(0)
+	if now.Month() == start.Month() {
+		months = 1
+	} else {
+		months += 12 - int(start.Month())
+		months += int(now.Month())
+	}
+	numPeriods := years*12 + months
+
+	if numPeriods < 1 {
+		return nil, fmt.Errorf("%w Got less than 1 statement period start=%s now=%s", machnet.ErrInternal, start, now)
+	}
+
+	pageStart := page.Page * page.PageSize
+	if pageStart > numPeriods {
+		return nil, nil
+	}
+
+	pageEnd := (page.Page + 1) * page.PageSize
+	if pageEnd > numPeriods {
+		pageEnd = numPeriods
+	}
+
+	// TODO: optimize
+	periods := make([]string, numPeriods)
+	for i := range periods {
+		periods[i] = start.Format("2006-01-02")[0:7]
+		start = start.AddDate(0, 1, 0)
+	}
+
+	return periods[pageStart:pageEnd], nil
 }

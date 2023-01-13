@@ -188,6 +188,7 @@ type (
 		Nickname         string
 		AvailableBalance uint64
 		Balance          uint64
+		CreatedAt        string
 	}
 
 	CreateWalletArgs struct {
