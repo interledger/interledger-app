@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -60,7 +59,7 @@ func New() *client {
 func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.Wallet, transactions []transactions.Transaction) ([]byte, error) {
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
-	pdf.SetMargins(xLeftMargin, yTopMargin, gopdf.PageSizeA4.W-xLeftMargin, gopdf.PageSize10x14.H-yTopMargin)
+	pdf.SetMargins(xLeftMargin, yTopMargin, gopdf.PageSizeA4.W-xLeftMargin, gopdf.PageSizeA4.H-yTopMargin)
 	err := loadFont(&pdf, fontDisplay, fontDisplayUrl)
 	if err != nil {
 		return nil, err
@@ -79,7 +78,6 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.
 	}
 
 	startNewPage(&pdf)
-	pdf.SetXY(pdf.MarginLeft(), pdf.MarginTop())
 	err = addWalletStatementHeader(&pdf, statementHeader{
 		Name:          "Alice Smith",
 		AccountID:     "19964",
@@ -104,12 +102,14 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.
 		Headers: tableRow{
 			FontSize:   float64(8),
 			TextColour: textColourMedium,
+			TextAlign:  gopdf.Middle,
 			Entries:    []string{"Date", "Receipt number", "Description", "Date"},
 		},
 		Rows: []tableRow{
 			{
 				FontSize:   float64(8),
 				TextColour: textColourStrong,
+				TextAlign:  gopdf.Middle,
 				Entries:    []string{"Jan 10 2022", "4051-8073", "Payment to cash balance", "$10.00"},
 			},
 			{
@@ -133,12 +133,12 @@ type rgbColour struct {
 	B uint8
 }
 
-type cellInfo struct {
-	FontSize   float64
-	Align      int
-	TextColour rgbColour
-	Text       string
-}
+// type cellInfo struct {
+// 	FontSize   float64
+// 	Align      int
+// 	TextColour rgbColour
+// 	Text       string
+// }
 
 type tableFromRowsArgs struct {
 	RowHeight float64
@@ -159,7 +159,7 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 	// check table structure
 	for i, row := range args.Rows {
 		if len(row.Entries) != len(args.ColWidths) {
-			return errors.New(fmt.Sprintf("pdf error: row %d does not have %d columns.", i, len(args.ColWidths)))
+			return fmt.Errorf(fmt.Sprintf("pdf error: row %d does not have %d columns.", i, len(args.ColWidths)))
 		}
 	}
 
@@ -168,16 +168,20 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 		return err
 	}
 
-	pdf.SetX(pdf.MarginLeft())
-	err = addRow(pdf, args.RowHeight, args.ColWidths, tableEvenRowBackground, args.Rows[0])
-	if err != nil {
-		return err
-	}
+	for _, row := range args.Rows {
+		if pdf.GetY()+args.RowHeight > pdf.MarginBottom() {
+			startNewPage(pdf)
+			err := addRow(pdf, args.RowHeight, args.ColWidths, tableOddRowBackground, args.Headers)
+			if err != nil {
+				return err
+			}
+		}
 
-	pdf.SetX(pdf.MarginLeft())
-	err = addRow(pdf, args.RowHeight, args.ColWidths, tableOddRowBackground, args.Rows[1])
-	if err != nil {
-		return err
+		pdf.SetX(pdf.MarginLeft())
+		err = addRow(pdf, args.RowHeight, args.ColWidths, tableEvenRowBackground, row)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -212,8 +216,9 @@ func addRow(pdf *gopdf.GoPdf, rowHeight float64, colWidths []float64, fill rgbCo
 
 func startNewPage(pdf *gopdf.GoPdf) {
 	pdf.AddPage()
-	template := pdf.ImportPage("walletStatementA4.pdf", pdf.GetNumberOfPages(), "/MediaBox")
+	template := pdf.ImportPage("walletStatementA4.pdf", 1, "/MediaBox")
 	pdf.UseImportedTemplate(template, 0, 0, 0, 0)
+	pdf.SetXY(pdf.MarginLeft(), pdf.MarginTop())
 }
 
 func loadFont(pdf *gopdf.GoPdf, name, url string) error {
@@ -330,6 +335,9 @@ func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
 	pdf.SetX(pdf.MarginLeft())
 	pdf.SetTextColor(textColourMedium.R, textColourMedium.G, textColourMedium.B)
 	err = pdf.SetFont(fontInter, "", 8)
+	if err != nil {
+		return err
+	}
 	err = pdf.CellWithOption(&gopdf.Rect{
 		H: cellHeight,
 		W: cellWidth,
@@ -344,6 +352,9 @@ func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
 	pdf.SetX(pdf.MarginLeft())
 	pdf.SetTextColor(textColourStrong.R, textColourStrong.G, textColourStrong.B)
 	err = pdf.SetFont(fontInterMedium, "", 8)
+	if err != nil {
+		return err
+	}
 	err = pdf.CellWithOption(&gopdf.Rect{
 		H: cellHeight,
 		W: cellWidth,
