@@ -3,7 +3,9 @@ package client
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/signintech/gopdf"
@@ -13,6 +15,8 @@ import (
 var _ statements.Client = client{}
 
 var (
+	walletStatementUrl = "https://cdn.fynbos.workers.dev/pdfs/statement-plain-A4.pdf"
+
 	fontDisplay    = "font-display"
 	fontDisplayUrl = "https://cdn.fynbos.app/fonts/poppins/v20/400/Regular.ttf"
 
@@ -76,7 +80,11 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 		return nil, err
 	}
 
-	startNewPage(&pdf)
+	err = startNewPage(&pdf)
+	if err != nil {
+		return nil, err
+	}
+
 	periodStart, err := time.Parse("2006-01-02", args.Period)
 	if err != nil {
 		return nil, err
@@ -162,7 +170,11 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 
 	for _, row := range args.Rows {
 		if pdf.GetY()+args.RowHeight > pdf.MarginBottom() {
-			startNewPage(pdf)
+			err = startNewPage(pdf)
+			if err != nil {
+				return err
+			}
+
 			err := addRow(pdf, args.RowHeight, args.ColWidths, tableOddRowBackground, args.Headers)
 			if err != nil {
 				return err
@@ -206,11 +218,35 @@ func addRow(pdf *gopdf.GoPdf, rowHeight float64, colWidths []float64, fill rgbCo
 	return nil
 }
 
-func startNewPage(pdf *gopdf.GoPdf) {
+func startNewPage(pdf *gopdf.GoPdf) error {
 	pdf.AddPage()
-	template := pdf.ImportPage("walletStatementA4.pdf", 1, "/MediaBox")
+	resp, err := http.Get(walletStatementUrl)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	// hack for now. Can't get ImportPageStream to work
+	file, err := os.Create("/tmp/walletStatementA4.pdf")
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(body)
+	if err != nil {
+		return err
+	}
+
+	template := pdf.ImportPage("/tmp/walletStatementA4.pdf", 1, "/MediaBox")
 	pdf.UseImportedTemplate(template, 0, 0, 0, 0)
 	pdf.SetXY(pdf.MarginLeft(), pdf.MarginTop())
+
+	return nil
 }
 
 func loadFont(pdf *gopdf.GoPdf, name, url string) error {
