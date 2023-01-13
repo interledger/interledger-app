@@ -5,26 +5,26 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/statements/client"
-	"gitlab.com/fynbos/backend/transactions"
 )
 
 func TestGenerateWalletStatement(t *testing.T) {
-	statements := client.New()
-
-	pdf, err := statements.GenerateWalletStatementPDF(context.Background(), &machnet.Wallet{
-		AvailableBalance: 1000,
-	}, []transactions.Transaction{
-		{
-			Amount: currency.Amount{
-				Value:    10,
-				Currency: currency.Currency("USD"),
+	client := client.New()
+	pdf, err := client.GenerateWalletStatementPDF(context.Background(), statements.GenerateWalletStatementArgs{
+		Name:        "Alice Smith",
+		AccountID:   "19964",
+		Period:      "2022-01-01",
+		BalanceDate: "Jan 31 2022",
+		Balance:     "$100.00",
+		Transactions: []statements.TransactionTableRow{
+			{
+				Date:        "Jan 10 2022",
+				Description: "Payment to cash balance",
+				Amount:      "$10.00",
+				RecieptID:   "4051-8073",
 			},
-			Timestamp: time.Now(),
 		},
 	})
 	if err != nil {
