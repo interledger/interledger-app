@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/signintech/gopdf"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/statements"
-	"gitlab.com/fynbos/backend/transactions"
 )
 
 var _ statements.Client = client{}
@@ -56,7 +55,7 @@ func New() *client {
 	return &client{}
 }
 
-func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.Wallet, transactions []transactions.Transaction) ([]byte, error) {
+func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.GenerateWalletStatementArgs) ([]byte, error) {
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
 	pdf.SetMargins(xLeftMargin, yTopMargin, gopdf.PageSizeA4.W-xLeftMargin, gopdf.PageSizeA4.H-yTopMargin)
@@ -78,12 +77,16 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.
 	}
 
 	startNewPage(&pdf)
+	periodStart, err := time.Parse("2006-01-02", args.Period)
+	if err != nil {
+		return nil, err
+	}
 	err = addWalletStatementHeader(&pdf, statementHeader{
-		Name:          "Alice Smith",
-		AccountID:     "19964",
-		Balance:       "$100.00",
-		Period:        "Jan 1 2022 - Jan 31 2022",
-		StatementDate: "Jan 31 2022",
+		Name:          args.Name,
+		AccountID:     args.AccountID,
+		Balance:       args.Balance,
+		Period:        fmt.Sprintf("%s -%s", periodStart.Format(time.RFC1123)[4:16], periodStart.AddDate(0, 1, 0).Format(time.RFC1123)[4:16]),
+		StatementDate: args.BalanceDate,
 	})
 	if err != nil {
 		return nil, err
@@ -96,6 +99,15 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.
 		return nil, err
 	}
 	pdf.SetX(pdf.MarginLeft())
+	rows := make([]tableRow, len(args.Transactions))
+	for i, trx := range args.Transactions {
+		rows[i] = tableRow{
+			FontSize:   float64(8),
+			TextColour: textColourStrong,
+			TextAlign:  gopdf.Middle,
+			Entries:    []string{trx.Date, trx.RecieptID, trx.Description, trx.Amount},
+		}
+	}
 	err = tableFromRows(&pdf, tableFromRowsArgs{
 		RowHeight: yunit(40),
 		ColWidths: []float64{xunit(160), xunit(260), xunit(380), xunit(144)},
@@ -105,20 +117,7 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.
 			TextAlign:  gopdf.Middle,
 			Entries:    []string{"Date", "Receipt number", "Description", "Date"},
 		},
-		Rows: []tableRow{
-			{
-				FontSize:   float64(8),
-				TextColour: textColourStrong,
-				TextAlign:  gopdf.Middle,
-				Entries:    []string{"Jan 10 2022", "4051-8073", "Payment to cash balance", "$10.00"},
-			},
-			{
-				FontSize:   float64(8),
-				TextColour: textColourStrong,
-				Entries:    []string{"Jan 10 2022", "4051-8073", "Payment to cash balance", "$10.00"},
-				TextAlign:  gopdf.Middle,
-			},
-		},
+		Rows: rows,
 	})
 	if err != nil {
 		return nil, err
@@ -132,13 +131,6 @@ type rgbColour struct {
 	G uint8
 	B uint8
 }
-
-// type cellInfo struct {
-// 	FontSize   float64
-// 	Align      int
-// 	TextColour rgbColour
-// 	Text       string
-// }
 
 type tableFromRowsArgs struct {
 	RowHeight float64
