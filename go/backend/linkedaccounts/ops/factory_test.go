@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"testing"
 
 	"gitlab.com/fynbos/backend/db"
@@ -22,6 +24,7 @@ type TestContainer struct {
 	Us             user.Client
 	LinkedAccounts linkedaccounts.Client
 	ValidatorImpl  *validator.Validate
+	Nf             notify.Client
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -34,6 +37,10 @@ func (t TestContainer) DB() *sqlx.DB {
 
 func (t TestContainer) Users() user.Client {
 	return t.Us
+}
+
+func (t TestContainer) Notify() notify.Client {
+	return t.Nf
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -51,6 +58,8 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Us = user_client.New(c, "kratosURL", "kratosAdminURL")
 
 	c.LinkedAccounts = linked_account_client.New(c)
+
+	c.Nf = notify_client.New(c, "")
 
 	return c, nil
 }

@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -45,6 +48,11 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeLinkedAccount)
+	if err != nil {
+		log.Error("notify failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
 	}
 
 	return &linkedAccount, nil
