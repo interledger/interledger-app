@@ -18,8 +18,14 @@ var (
 	fontDisplay    = "font-display"
 	fontDisplayUrl = "https://cdn.fynbos.app/fonts/poppins/v20/400/Regular.ttf"
 
+	fontDisplayMedium    = "font-display-medium"
+	fontDisplayMediumUrl = "https://cdn.fynbos.app/fonts/poppins/v20/500/Medium.ttf"
+
 	fontInter    = "font-inter"
-	fontInterUrl = "https://cdn.fynbos.app/fonts/inter/v12/Regular.ttf"
+	fontInterUrl = "https://cdn.fynbos.app/fonts/inter/v12/Medium.ttf"
+
+	fontInterMedium    = "font-inter"
+	fontInterMediumUrl = "https://cdn.fynbos.app/fonts/inter/v12/Regular.ttf"
 
 	xPixelWidth  = 1190.00    // see figma
 	yPixelHeight = 1684.00    // see figma
@@ -41,6 +47,10 @@ func yunit(value float64) float64 {
 	return value * gopdf.PageSizeA4.H / yPixelHeight
 }
 
+func pxToPt(value float64) float64 {
+	return value * 0.75
+}
+
 type client struct{}
 
 func New() *client {
@@ -55,17 +65,39 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.
 	if err != nil {
 		return nil, err
 	}
+	err = loadFont(&pdf, fontDisplayMedium, fontDisplayMediumUrl)
+	if err != nil {
+		return nil, err
+	}
 	err = loadFont(&pdf, fontInter, fontInterUrl)
+	if err != nil {
+		return nil, err
+	}
+	err = loadFont(&pdf, fontInterMedium, fontInterMediumUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	startNewPage(&pdf)
-	pdf.SetX(pdf.MarginLeft())
+	pdf.SetXY(pdf.MarginLeft(), pdf.MarginTop())
+	err = addWalletStatementHeader(&pdf, statementHeader{
+		Name:          "Alice Smith",
+		AccountID:     "19964",
+		Balance:       "$100.00",
+		Period:        "Jan 1 2022 - Jan 31 2022",
+		StatementDate: "Jan 31 2022",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	pdf.Br(20)
+
 	err = pdf.SetFont(fontInter, "", 14)
 	if err != nil {
 		return nil, err
 	}
+	pdf.SetX(pdf.MarginLeft())
 	err = tableFromRows(&pdf, tableFromRowsArgs{
 		RowHeight: yunit(40),
 		ColWidths: []float64{xunit(160), xunit(260), xunit(380), xunit(144)},
@@ -192,6 +224,133 @@ func loadFont(pdf *gopdf.GoPdf, name, url string) error {
 	defer resp.Body.Close()
 
 	err = pdf.AddTTFFontByReader(name, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type statementHeader struct {
+	Name          string
+	AccountID     string
+	Balance       string
+	Period        string
+	StatementDate string
+}
+
+func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
+	pdf.SetTextColor(textColourStrong.R, textColourStrong.G, textColourStrong.B)
+	err := pdf.SetFont(fontDisplayMedium, "", pxToPt(18))
+	if err != nil {
+		return err
+	}
+
+	cellWidth := (gopdf.PageSizeA4.W - 2*xLeftMargin) / 3
+	cellHeight := yunit(40)
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, header.Name, gopdf.CellOption{
+		Align: gopdf.Middle,
+		Float: gopdf.Right,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, "", gopdf.CellOption{
+		Align: gopdf.Bottom,
+		Float: gopdf.Right,
+	})
+	if err != nil {
+		return err
+	}
+
+	pdf.SetTextColor(textColourMedium.R, textColourMedium.G, textColourMedium.B)
+	err = pdf.SetFont(fontInter, "", 8)
+	if err != nil {
+		return err
+	}
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, fmt.Sprintf("Cash balance as at %s", header.StatementDate), gopdf.CellOption{
+		Align: gopdf.Bottom,
+		Float: gopdf.Bottom,
+	})
+	if err != nil {
+		return err
+	}
+
+	pdf.SetX(pdf.MarginLeft())
+	pdf.SetTextColor(textColourStrong.R, textColourStrong.G, textColourStrong.B)
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, fmt.Sprintf("AccountID: %s", header.AccountID), gopdf.CellOption{
+		Align: gopdf.Top,
+		Float: gopdf.Right,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, "", gopdf.CellOption{
+		Align: gopdf.Bottom,
+		Float: gopdf.Right,
+	})
+	if err != nil {
+		return err
+	}
+
+	pdf.SetTextColor(textColourStrong.R, textColourStrong.G, textColourStrong.B)
+	err = pdf.SetFont(fontDisplayMedium, "", pxToPt(18))
+	if err != nil {
+		return err
+	}
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, header.Balance, gopdf.CellOption{
+		Align: gopdf.Middle,
+		Float: gopdf.Bottom,
+	})
+	if err != nil {
+		return err
+	}
+
+	pdf.Br(10)
+	pdf.SetX(pdf.MarginLeft())
+	pdf.SetTextColor(textColourMedium.R, textColourMedium.G, textColourMedium.B)
+	err = pdf.SetFont(fontInter, "", 8)
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, "Statement summary", gopdf.CellOption{
+		Align: gopdf.Bottom,
+		Float: gopdf.Bottom,
+	})
+	if err != nil {
+		return err
+	}
+
+	pdf.SetX(pdf.MarginLeft())
+	pdf.SetTextColor(textColourStrong.R, textColourStrong.G, textColourStrong.B)
+	err = pdf.SetFont(fontInterMedium, "", 8)
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: cellHeight,
+		W: cellWidth,
+	}, header.Period, gopdf.CellOption{
+		Align: gopdf.Middle,
+		Float: gopdf.Bottom,
+	})
 	if err != nil {
 		return err
 	}
