@@ -41,6 +41,8 @@ import (
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client"
 	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/signup"
@@ -205,6 +207,8 @@ func start(args *cli.StartArgs) {
 
 	b.transactions = transactions_client.New(b)
 
+	b.notify = notify_client.New(b, args.PusherAddr)
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -368,6 +372,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.transactions = transactions_client.New(b)
 
+	b.notify = notify_client.New(b, args.PusherAddr)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -401,6 +407,7 @@ type backends struct {
 	email          email.Client
 	openpayments   openpayments.Client
 	transactions   transactions.Client
+	notify         notify.Client
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -473,4 +480,17 @@ func (b backends) Email() email.Client {
 
 func (b backends) OpenPayments() openpayments.Client {
 	return b.openpayments
+}
+
+func (b backends) Notify() notify.Client {
+	return b.notify
+}
+
+func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {
+	b := backends{
+		db:  db,
+		val: validator.New(),
+	}
+
+	return pacioli_client.NewLocal(b)
 }

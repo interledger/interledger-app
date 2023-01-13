@@ -1,6 +1,8 @@
 package main
 
 import (
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"log"
 	"os"
 
@@ -102,6 +104,7 @@ type backends struct {
 	temporal       temporal.Client
 	twilio         twilio.Service
 	user           user.Client
+	notify         notify.Client
 	val            *validator.Validate
 	transactions   transactions.Client
 }
@@ -162,6 +165,14 @@ func (b *backends) Signup() signup.Client {
 		b.signup = signup_client.New(b)
 	}
 	return b.signup
+}
+
+func (b *backends) Notify() notify.Client {
+	if b.notify == nil {
+		b.notify = notify_client.New(b, "")
+	}
+
+	return b.notify
 }
 
 func (b *backends) Twilio() twilio.Service {

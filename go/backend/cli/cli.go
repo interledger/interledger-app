@@ -83,6 +83,7 @@ type StartArgs struct {
 	SendgridAPIKey       string
 	SmartyAuthID         string
 	SmartyAuthToken      string
+	PusherAddr                string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -196,5 +197,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		SendgridAPIKey:       os.Getenv("SENDGRID_API_KEY"),
 		SmartyAuthID:         os.Getenv("SMARTY_AUTH_ID"),
 		SmartyAuthToken:      os.Getenv("SMARTY_AUTH_TOKEN"),
+		PusherAddr:                os.Getenv("PUSHER_ADDR"),
 	}, nil
 }

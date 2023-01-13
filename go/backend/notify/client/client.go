@@ -1,0 +1,41 @@
+package client
+
+import (
+	"context"
+	"github.com/pusher/pusher-http-go/v5"
+	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/notify/ops"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+)
+
+var _ notify.Client = client{}
+
+type client struct {
+	b ops.Backends
+}
+
+func New(b Backends, pusherClientUrl string) notify.Client {
+
+	var pc *pusher.Client
+	if pusherClientUrl != "" {
+		pc, err := pusher.ClientFromURL(pusherClientUrl)
+		if err != nil {
+			log.Error("error creating pusher client", zap.Error(err))
+		}
+		pc.Secure = true
+	}
+
+	ob := &opsBackends{
+		Backends: b,
+		pusher:   pc,
+	}
+
+	return &client{
+		b: ob,
+	}
+}
+
+func (c client) NotifyWallet(ctx context.Context, walletId string, event notify.NotificationType) error {
+	return ops.NotifyWallet(ctx, c.b, walletId, event)
+}
