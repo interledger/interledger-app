@@ -8,10 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 )
 
@@ -579,6 +581,11 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		return nil, err
 	}
 
+	user, err := b.KYC().GetIndividualDetails(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
 	periodStart, err := time.Parse("2006-01-02", fmt.Sprintf("%s-01", period))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -595,12 +602,53 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
-	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, wallet, trxs)
+	var statementRows []statements.TransactionTableRow
+	for _, trx := range trxs {
+		if trx.State == transactions.StateFailed {
+			continue
+		}
+		statementRows = append(statementRows, mapToStatementRows(trx)...)
+	}
+
+	statementBalance := currency.Amount{
+		Value:    wallet.AvailableBalance,
+		Currency: "USD",
+	}
+	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, statements.GenerateWalletStatementArgs{
+		Name:         fmt.Sprintf("%s %s", user.FirstName, user.LastName),
+		Period:       period,
+		BalanceDate:  time.Now().Format(time.RFC1123)[4:16],
+		Balance:      statementBalance.FormatAmount(),
+		Transactions: statementRows,
+		AccountID:    wallet.ID,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
 	return pdf, nil
+}
+
+func mapToStatementRows(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeCreditMachnetWallet:
+			description = fmt.Sprintf("Payment from %s", trx.Source)
+		case transactions.TransferTypeDebitMachnetWallet:
+			description = fmt.Sprintf("Payment to %s", trx.Destination)
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format(time.RFC1123)[4:16],
+			Description: description,
+			Amount:      transfer.Amount.FormatAmount(),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
 }
 
 func ListStatementPeriods(ctx context.Context, b Backends, page db.Pagination, walletID string) ([]string, error) {
