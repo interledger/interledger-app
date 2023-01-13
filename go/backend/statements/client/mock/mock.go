@@ -9,8 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	machnet "gitlab.com/fynbos/backend/providers/machnet"
-	transactions "gitlab.com/fynbos/backend/transactions"
+	statements "gitlab.com/fynbos/backend/statements"
 )
 
 // MockClient is a mock of Client interface.
@@ -37,16 +36,16 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // GenerateWalletStatementPDF mocks base method.
-func (m *MockClient) GenerateWalletStatementPDF(ctx context.Context, wallet *machnet.Wallet, transactions []transactions.Transaction) ([]byte, error) {
+func (m *MockClient) GenerateWalletStatementPDF(ctx context.Context, args statements.GenerateWalletStatementArgs) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateWalletStatementPDF", ctx, wallet, transactions)
+	ret := m.ctrl.Call(m, "GenerateWalletStatementPDF", ctx, args)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateWalletStatementPDF indicates an expected call of GenerateWalletStatementPDF.
-func (mr *MockClientMockRecorder) GenerateWalletStatementPDF(ctx, wallet, transactions interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GenerateWalletStatementPDF(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateWalletStatementPDF", reflect.TypeOf((*MockClient)(nil).GenerateWalletStatementPDF), ctx, wallet, transactions)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateWalletStatementPDF", reflect.TypeOf((*MockClient)(nil).GenerateWalletStatementPDF), ctx, args)
 }
