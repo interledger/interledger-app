@@ -14,7 +14,7 @@ import (
 )
 
 type Client interface {
-	SendTemplate(ctx context.Context, subject string, to []Email, templateID string, templateData map[string]interface{}) error
+	SendTemplate(ctx context.Context, subject string, to []Email, templateID string, templateData map[string]interface{}, attachments []mail.Attachment) error
 }
 
 type Email mail.Email
@@ -36,7 +36,7 @@ func NewClient(apiKey string) Client {
 	}
 }
 
-func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, templateID string, templateData map[string]interface{}) error {
+func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, templateID string, templateData map[string]interface{}, attachments []mail.Attachment) error {
 	msg := new(mail.SGMailV3)
 	msg.SetFrom(c.from)
 	msg.Subject = subject
@@ -47,6 +47,10 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 		p.DynamicTemplateData = templateData
 		p.AddTos(mail.NewEmail(t.Name, t.Address))
 		msg.AddPersonalizations(p)
+	}
+
+	for _, attachment := range attachments {
+		msg.AddAttachment(&attachment)
 	}
 
 	_, err := c.mailer.SendWithContext(ctx, msg)
