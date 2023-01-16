@@ -108,12 +108,27 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 	}
 	pdf.SetX(pdf.MarginLeft())
 	rows := make([]tableRow, len(args.Transactions))
+	var prevReceiptID string
+	rowBackgroundColours := []rgbColour{
+		tableOddRowBackground,
+		tableEvenRowBackground,
+	}
+	rowColour := 0
 	for i, trx := range args.Transactions {
+		entries := []string{trx.Date, trx.RecieptID, trx.Description, trx.Amount}
+		if prevReceiptID == trx.RecieptID {
+			entries[0] = ""
+			entries[1] = ""
+		} else {
+			rowColour++
+		}
+		prevReceiptID = trx.RecieptID
 		rows[i] = tableRow{
-			FontSize:   float64(8),
-			TextColour: textColourStrong,
-			TextAlign:  gopdf.Middle,
-			Entries:    []string{trx.Date, trx.RecieptID, trx.Description, trx.Amount},
+			FontSize:         float64(8),
+			TextColour:       textColourStrong,
+			TextAlign:        gopdf.Middle,
+			Entries:          entries,
+			BackgroundColour: rowBackgroundColours[rowColour%2],
 		}
 	}
 	err = tableFromRows(&pdf, tableFromRowsArgs{
@@ -153,6 +168,7 @@ type tableRow struct {
 	TextAlign        int
 	FontSize         float64
 	LinkedToPrevious bool
+	BackgroundColour rgbColour
 }
 
 func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
@@ -175,14 +191,14 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 				return err
 			}
 
-			err := addRow(pdf, args.RowHeight, args.ColWidths, tableOddRowBackground, args.Headers)
+			err := addRow(pdf, args.RowHeight, args.ColWidths, row.BackgroundColour, args.Headers)
 			if err != nil {
 				return err
 			}
 		}
 
 		pdf.SetX(pdf.MarginLeft())
-		err = addRow(pdf, args.RowHeight, args.ColWidths, tableEvenRowBackground, row)
+		err = addRow(pdf, args.RowHeight, args.ColWidths, row.BackgroundColour, row)
 		if err != nil {
 			return err
 		}
@@ -203,6 +219,10 @@ func addRow(pdf *gopdf.GoPdf, rowHeight float64, colWidths []float64, fill rgbCo
 			carriagePosition = gopdf.Bottom
 		}
 
+		pdf.SetLineWidth(0.1)
+		pdf.SetFillColor(fill.R, fill.G, fill.B)
+		pdf.RectFromUpperLeftWithStyle(pdf.GetX(), pdf.GetY(), colWidths[i], rowHeight, "F")
+		pdf.SetFillColor(0, 0, 0)
 		err = pdf.CellWithOption(&gopdf.Rect{
 			H: rowHeight,
 			W: colWidths[i],
