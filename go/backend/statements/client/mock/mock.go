@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	email "gitlab.com/fynbos/backend/email"
+	statements "gitlab.com/fynbos/backend/statements"
 )
 
 // MockClient is a mock of Client interface.
@@ -35,16 +35,17 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// SendMailTemplate mocks base method.
-func (m *MockClient) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, personalization map[string]interface{}, attachments []email.Attachment) error {
+// GenerateWalletStatementPDF mocks base method.
+func (m *MockClient) GenerateWalletStatementPDF(ctx context.Context, args statements.GenerateWalletStatementArgs) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMailTemplate", ctx, walletID, template, personalization, attachments)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "GenerateWalletStatementPDF", ctx, args)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// SendMailTemplate indicates an expected call of SendMailTemplate.
-func (mr *MockClientMockRecorder) SendMailTemplate(ctx, walletID, template, personalization, attachments interface{}) *gomock.Call {
+// GenerateWalletStatementPDF indicates an expected call of GenerateWalletStatementPDF.
+func (mr *MockClientMockRecorder) GenerateWalletStatementPDF(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMailTemplate", reflect.TypeOf((*MockClient)(nil).SendMailTemplate), ctx, walletID, template, personalization, attachments)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateWalletStatementPDF", reflect.TypeOf((*MockClient)(nil).GenerateWalletStatementPDF), ctx, args)
 }
