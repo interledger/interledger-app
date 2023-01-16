@@ -2,10 +2,11 @@ package workflows
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/transactions"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -90,6 +91,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflow(ExecuteWalletTopupWorkflow)
 
 	trxID := uuid.NewString()
 
@@ -107,16 +109,9 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 
 	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.GetTransactionsWallets, mock.Anything, mock.Anything).Return(&txWallets, nil)
-	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
-	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
-	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything).Return(nil)
-	env.RegisterDelayedCallback(func() {
-		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
-			ID:     fundTrx.FundTX,
-			Status: external.TransactionProcessed,
-		})
-	}, time.Minute)
-	env.OnActivity(a.UpdateTransferStateByType, mock.Anything, mock.Anything).Return(nil)
+
+	env.OnWorkflow(ExecuteWalletTopupWorkflow, mock.Anything, mock.Anything).Return(fundTrx.FundTX, nil)
+
 	env.OnActivity(a.StartWalletTransfer, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
 	env.OnActivity(a.AddTransactionTransfer, mock.Anything, mock.Anything, mock.Anything).Return(nil)
@@ -136,8 +131,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 		ToPaymentPointer:    uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		ToLinkedAccountID:   uuid.NewString(),
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.ParseCurrency("USD")),
 	}, trxID)
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -225,11 +219,10 @@ func TestExecuteWalletTopupWorkflow(t *testing.T) {
 	}, time.Minute)
 	env.OnActivity(a.UpdateTransactionState, mock.Anything, trx.ID, transactions.StateCompleted).Return(nil)
 
-	env.ExecuteWorkflow(ExecuteWalletTopupWorkflow, uuid.NewString(), machnet.StartWalletTopupArgs{
-		WalletLinkedAccountID: walletLinkedAccountID,
-		FromLinkedAccountID:   fromLinkedAccountID,
-		Amount:                200,
-		Currency:              "USD",
+	env.ExecuteWorkflow(ExecuteWalletTopupWorkflow, ExecuteTopupArgs{
+		WalletID:            uuid.NewString(),
+		FromLinkedAccountID: fromLinkedAccountID,
+		Amount:              currency.FromFloat64(200, currency.ParseCurrency("USD")),
 	})
 
 	require.True(t, env.IsWorkflowCompleted())

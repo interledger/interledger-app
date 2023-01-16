@@ -2,6 +2,7 @@ package actions
 
 import (
 	"github.com/urfave/cli/v2"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -49,8 +50,7 @@ func MakeMachnetTransaction(b Backends) cli.ActionFunc {
 		await, err := b.Machnet().CreateTransaction(ctx, machnet.CreateTransactionArgs{
 			FromLinkedAccountID: from.ID,
 			ToLinkedAccountID:   to.ID,
-			Amount:              cCtx.Float64("amount"),
-			Currency:            cCtx.String("currency"),
+			Amount:              currency.FromFloat64(cCtx.Float64("amount"), currency.ParseCurrency(cCtx.String("currency"))),
 		})
 		if err != nil {
 			return err

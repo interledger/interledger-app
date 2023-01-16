@@ -200,7 +200,7 @@ func TestFromFloat(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			a := currency.FromFloat(tc.in, currency.ParseCurrency(tc.inCC))
+			a := currency.FromFloat64(tc.in, currency.ParseCurrency(tc.inCC))
 
 			assert.Equal(t, tc.float64, a.Float64())
 			assert.Equal(t, tc.format, a.Format())

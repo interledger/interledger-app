@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/db"
 	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
 
@@ -45,8 +47,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 		ToPaymentPointer:    uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		ToLinkedAccountID:   uuid.NewString(),
-		Amount:              10.5,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(10.5, currency.ParseCurrency("USD")),
 		IPAddress:           "198.0.0.3",
 	}
 
