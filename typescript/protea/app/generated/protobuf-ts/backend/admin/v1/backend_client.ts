@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { EmailWalletStatementRequest } from "./backend";
 import type { ListWalletTransactionsResponse } from "./backend";
 import type { ListWalletTransactionsRequest } from "./backend";
 import type { WalletDetails } from "./backend";
@@ -41,6 +42,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ListWalletTransactions(backend.admin.v1.ListWalletTransactionsRequest) returns (backend.admin.v1.ListWalletTransactionsResponse);
      */
     listWalletTransactions(input: ListWalletTransactionsRequest, options?: RpcOptions): UnaryCall<ListWalletTransactionsRequest, ListWalletTransactionsResponse>;
+    /**
+     * @generated from protobuf rpc: EmailWalletStatement(backend.admin.v1.EmailWalletStatementRequest) returns (backend.admin.v1.Empty);
+     */
+    emailWalletStatement(input: EmailWalletStatementRequest, options?: RpcOptions): UnaryCall<EmailWalletStatementRequest, Empty$>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -85,5 +90,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     listWalletTransactions(input: ListWalletTransactionsRequest, options?: RpcOptions): UnaryCall<ListWalletTransactionsRequest, ListWalletTransactionsResponse> {
         const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListWalletTransactionsRequest, ListWalletTransactionsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: EmailWalletStatement(backend.admin.v1.EmailWalletStatementRequest) returns (backend.admin.v1.Empty);
+     */
+    emailWalletStatement(input: EmailWalletStatementRequest, options?: RpcOptions): UnaryCall<EmailWalletStatementRequest, Empty$> {
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        return stackIntercept<EmailWalletStatementRequest, Empty$>("unary", this._transport, method, opt, input);
     }
 }

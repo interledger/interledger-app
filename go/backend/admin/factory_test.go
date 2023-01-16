@@ -7,7 +7,11 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/admin"
@@ -41,6 +45,8 @@ type TestContainer struct {
 	ValidatorImpl *validator.Validate
 	Auth          auth.Service
 	WaitlistImpl  *waitlist_mock.MockClient
+	email         *email_mock.MockClient
+	machnet       *machnet_mock.MockClient
 }
 
 func (c *TestContainer) Users() user.Client {
@@ -73,6 +79,14 @@ func (c *TestContainer) Validator() *validator.Validate {
 
 func (c *TestContainer) DB() *sqlx.DB {
 	return c.Db
+}
+
+func (c *TestContainer) Email() email.Client {
+	return c.email
+}
+
+func (c *TestContainer) Machnet() machnet.Client {
+	return c.machnet
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {

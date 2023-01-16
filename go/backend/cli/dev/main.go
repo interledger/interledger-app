@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/statements"
+	statements_client "gitlab.com/fynbos/backend/statements/client"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 
 	"gitlab.com/fynbos/backend/transactions"
@@ -104,6 +106,7 @@ type backends struct {
 	user           user.Client
 	val            *validator.Validate
 	transactions   transactions.Client
+	statements     statements.Client
 }
 
 func (b *backends) Transactions() transactions.Client {
@@ -218,4 +221,11 @@ func (b *backends) Temporal() temporal.Client {
 		b.temporal = tm
 	}
 	return b.temporal
+}
+
+func (b *backends) Statements() statements.Client {
+	if b.statements == nil {
+		return statements_client.New()
+	}
+	return b.statements
 }
