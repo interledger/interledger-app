@@ -434,7 +434,7 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 	resp := external.WalletTransfer{
 		ID:         uuid.NewString(),
 		UserID:     sendWallet.UserID,
-		Amount:     args.Amount,
+		Amount:     args.Amount.Float64(),
 		Currency:   args.Currency,
 		FromFundID: recvWallet.ID,
 		Status:     external.TransactionProcessed,
@@ -446,12 +446,12 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		Type: "TRANSFER",
 	}
 
-	recvWallet.Balance.AvailableBalance += args.Amount
-	recvWallet.Balance.Balance += args.Amount
+	recvWallet.Balance.AvailableBalance += args.Amount.Float64()
+	recvWallet.Balance.Balance += args.Amount.Float64()
 	c.wallets[recvWallet.ID] = *recvWallet
 
-	sendWallet.Balance.Balance -= args.Amount
-	sendWallet.Balance.AvailableBalance -= args.Amount
+	sendWallet.Balance.Balance -= args.Amount.Float64()
+	sendWallet.Balance.AvailableBalance -= args.Amount.Float64()
 	c.wallets[sendWallet.ID] = *sendWallet
 
 	return &resp, nil

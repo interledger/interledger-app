@@ -125,8 +125,8 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 			err = argsEnc.Get(&args)
 			require.NoError(t, err)
 
-			assert.Equal(t, 1.00, args.Amount)
-			assert.Equal(t, "USD", args.Currency)
+			assert.Equal(t, 1.00, args.Amount.Float64())
+			assert.Equal(t, "USD", args.Amount.Currency.String())
 		})
 	}
 }

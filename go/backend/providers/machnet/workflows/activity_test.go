@@ -2,13 +2,14 @@ package workflows
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/transactions"
-	trx_client "gitlab.com/fynbos/backend/transactions/client"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/transactions"
+	trx_client "gitlab.com/fynbos/backend/transactions/client"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -249,8 +250,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	toEnc, err := env.ExecuteActivity(a.GetOrCreateReceiveUser, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
 		FromLinkedAccountID: fromLinkedAccID,
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.USD),
 	})
 	require.NoError(t, err)
 
@@ -339,8 +339,7 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 
 	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		FromLinkedAccountID: linkedAccID,
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.USD),
 	}, TransactionTo{
 		ReceiveUserID: uuid.NewString(),
 		ReceiveFundID: uuid.NewString(),
@@ -424,8 +423,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
 		FromLinkedAccountID: fromLinkedAccID,
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.USD),
 	}, TransactionTo{
 		ReceiveUserID: uuid.NewString(),
 		ReceiveFundID: uuid.NewString(),
@@ -463,8 +461,6 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 
 	fromLinkedAccID := uuid.NewString()
 	fromUserID := uuid.NewString()
-	toLinkedAccID := uuid.NewString()
-
 	// Create Signup
 	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), fromUserID)
 	require.NoError(t, err)
@@ -526,11 +522,11 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	}, nil).AnyTimes()
 
 	trxIDEnc, err := env.ExecuteActivity(a.FundUserWalletFromCard, FundWalletArgs{
-		CreateTransactionArgs: machnet.CreateTransactionArgs{
-			ToLinkedAccountID:   toLinkedAccID,
+		ExecuteTopupArgs: ExecuteTopupArgs{
+			TransactionID:       trx.ID,
+			UpdateTransaction:   true,
+			Amount:              currency.FromFloat64(20, currency.USD),
 			FromLinkedAccountID: fromLinkedAccID,
-			Amount:              20,
-			Currency:            "USD",
 			IPAddress:           "197.0.2.8",
 		},
 		WorkflowID:  "",
@@ -554,11 +550,11 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	_ = b.db.MustExec("INSERT INTO machnet_transactions_workflow_ref (id, send_user_id, workflow_id, workflow_run_id, activity_name) VALUES ($1, $2, $3, $4, $5)", uuid.NewString(), externalMachnetUser.ID, workflowID, uuid.NewString(), "FundUserWalletFromCard")
 
 	trxIDEnc, err = env.ExecuteActivity(a.FundUserWalletFromCard, FundWalletArgs{
-		CreateTransactionArgs: machnet.CreateTransactionArgs{
-			ToLinkedAccountID:   toLinkedAccID,
+		ExecuteTopupArgs: ExecuteTopupArgs{
+			TransactionID:       trx.ID,
+			UpdateTransaction:   true,
+			Amount:              currency.FromFloat64(20, currency.USD),
 			FromLinkedAccountID: fromLinkedAccID,
-			Amount:              20,
-			Currency:            "USD",
 			IPAddress:           "197.0.2.8",
 		},
 		WorkflowID:  workflowID,

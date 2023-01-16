@@ -596,8 +596,8 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		To        external.TransactionTo `json:"to"`
 	}{
 		Type:      "TRANSFER",
-		Amount:    args.Amount,
-		Currency:  args.Currency,
+		Amount:    args.Amount.Float64(),
+		Currency:  args.Amount.Currency.String(),
 		IPAddress: FormatIPAddress(args.IPAddress),
 		To: external.TransactionTo{
 			ID:     args.RecvUserID,

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"go.temporal.io/api/enums/v1"
 
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
@@ -344,11 +346,10 @@ func (s *rpcService) StartMachnetWalletTopup(
 	await, err := s.b.Machnet().StartWalletTopup(ctx, machnet.StartWalletTopupArgs{
 		IdempotencyKey:        req.IdempotencyKey,
 		WalletID:              wallet.ID,
-		Amount:                req.GetAmount(),
+		Amount:                currency.FromUInt64(req.GetAmount(), currency.ParseCurrency(req.GetCurrency())),
 		WalletLinkedAccountID: linkedWallet.ID,
 		FromLinkedAccountID:   fromLinkedAcc.ID,
 		IpAddress:             req.GetIpAddress(),
-		Currency:              req.GetCurrency(),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

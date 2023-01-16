@@ -4,21 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/transactions"
 	"regexp"
 	"strings"
 
-	"gitlab.com/fynbos/backend/user"
-
-	"gitlab.com/fynbos/backend/linkedaccounts"
-
-	"go.temporal.io/sdk/temporal"
-
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
 )
 
 type Activity struct {
@@ -182,8 +179,9 @@ func (a *Activity) CreateWallet(ctx context.Context, externalID string) error {
 }
 
 type TransactionWalletIDs struct {
-	FromWalletID string
-	ToWalletID   string
+	FromWalletID        string
+	FromWalletLinkedAcc string
+	ToWalletID          string
 }
 
 func (a *Activity) GetTransactionsWallets(ctx context.Context, args machnet.CreateTransactionArgs) (*TransactionWalletIDs, error) {
@@ -197,16 +195,22 @@ func (a *Activity) GetTransactionsWallets(ctx context.Context, args machnet.Crea
 		return nil, err
 	}
 
+	walletLA, err := getWalletLinkedAcc(ctx, a.b, fromAcc.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &TransactionWalletIDs{
-		FromWalletID: fromAcc.WalletID,
-		ToWalletID:   toAcc.WalletID,
+		FromWalletID:        fromAcc.WalletID,
+		FromWalletLinkedAcc: walletLA.ID,
+		ToWalletID:          toAcc.WalletID,
 	}, nil
 }
 
-func (a *Activity) ShouldFundWallet(ctx context.Context, args machnet.CreateTransactionArgs) (bool, error) {
-	fromAcc, err := getLinkedAccount(ctx, a.b, args.FromLinkedAccountID)
+func (a *Activity) ShouldFundWallet(ctx context.Context, linkedAccID string) (bool, error) {
+	fromAcc, err := getLinkedAccount(ctx, a.b, linkedAccID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return false, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to find linked account (%s)", args.FromLinkedAccountID), "ErrInternal", err)
+		return false, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to find linked account (%s)", linkedAccID), "ErrInternal", err)
 	}
 	if err != nil {
 		return false, err
@@ -228,7 +232,7 @@ type FundWalletResponse struct {
 }
 
 type FundWalletArgs struct {
-	machnet.CreateTransactionArgs
+	ExecuteTopupArgs
 	WorkflowID  string
 	Transaction transactions.Transaction
 }
@@ -246,23 +250,9 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("from linked account (%s) invalid type (%s)", args.FromLinkedAccountID, fromCard.Type), "ErrInvalidArgument", machnet.ErrInvalidArgument)
 	}
 
-	accs, err := a.b.LinkedAccounts().ListByWalletId(ctx, fromCard.WalletID)
+	toWallet, err := getWalletLinkedAcc(ctx, a.b, fromCard.WalletID)
 	if err != nil {
 		return nil, err
-	}
-
-	var found *linkedaccounts.LinkedAccount
-	for _, la := range accs {
-		if la.Provider != machnet.ProviderName || la.Type != machnet.TypeWallet {
-			continue
-		}
-		// NOTE: Breaking is important as the loop will reassign `la` which is a pointer and `found` is the same pointer
-		found = &la
-		break
-	}
-
-	if found == nil {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("could not find linked account for type (%s) on walletID (%s)", machnet.TypeWallet, fromCard.WalletID), "ErrNotFound", machnet.ErrNotFound)
 	}
 
 	existingWorkflowRef, err := ops.GetWorkflowRef(ctx, a.b, args.WorkflowID, "FundUserWalletFromCard")
@@ -271,7 +261,7 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 	}
 	if existingWorkflowRef != nil { // this activity has been run successfully before from the same or different workflow run
 		return &FundWalletResponse{
-			FromWalletLinkedAcc: found.ID,
+			FromWalletLinkedAcc: toWallet.ID,
 			FundTX:              existingWorkflowRef.ID,
 		}, nil
 	}
@@ -284,23 +274,30 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 	fundResp, err := a.b.External().FundUserWallet(ctx, external.FundWalletArgs{
 		UserID:       mu.ID,
 		SourceFundID: fromCard.ProviderID,
-		WalletID:     found.ProviderID,
-		Amount:       args.Amount,
-		Currency:     args.Currency,
+		WalletID:     toWallet.ProviderID,
+		Amount:       args.Amount.Float64(),
+		Currency:     args.Amount.Currency.String(),
 		IPAddress:    args.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to fund machnet user wallet (%s) from card (%s)", found.ProviderID, fromCard.ProviderID), "ErrInternal", err)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to fund machnet user wallet (%s) from card (%s)", toWallet.ProviderID, fromCard.ProviderID), "ErrInternal", err)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.b.Transactions().SetTransactionForeignID(ctx, args.Transaction.ID, fundResp.ID)
-	if err != nil {
-		return nil, err
+	if args.UpdateTransaction {
+		err = a.b.Transactions().SetTransactionForeignID(ctx, args.Transaction.ID, fundResp.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	for _, tfr := range args.Transaction.Transfers {
+		// Ignore transfers that aren't related to the top-up.
+		if tfr.Type != transactions.TransferTypeDebitCard &&
+			tfr.Type != transactions.TransferTypeCreditMachnetWallet {
+			continue
+		}
 		err = a.b.Transactions().SetTransferForeignID(ctx, tfr.ID, fundResp.ID)
 		if err != nil {
 			return nil, err
@@ -308,9 +305,26 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 	}
 
 	return &FundWalletResponse{
-		FromWalletLinkedAcc: found.ID,
+		FromWalletLinkedAcc: toWallet.ID,
 		FundTX:              fundResp.ID,
 	}, nil
+}
+
+func getWalletLinkedAcc(ctx context.Context, b ops.Backends, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	accs, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, la := range accs {
+		if la.Provider != machnet.ProviderName || la.Type != machnet.TypeWallet {
+			continue
+		}
+		return &la, nil
+	}
+
+	return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("could not find linked account for type (%s) on walletID (%s)", machnet.TypeWallet, walletID), "ErrNotFound", machnet.ErrNotFound)
+
 }
 
 func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Transaction, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
@@ -370,7 +384,6 @@ func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Tran
 type StartWalletTransferArgs struct {
 	machnet.CreateTransactionArgs
 	WorkflowID string
-	FundingTx  FundWalletResponse
 }
 
 func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTransferArgs) (string, error) {
@@ -382,14 +395,16 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTran
 		return existingWorkflowRef.ID, nil
 	}
 
-	sendAccIO := args.CreateTransactionArgs.FromLinkedAccountID
-	if args.FundingTx.FromWalletLinkedAcc != "" {
-		sendAccIO = args.FundingTx.FromWalletLinkedAcc
-	}
-
-	sendLA, err := a.b.LinkedAccounts().Get(ctx, sendAccIO)
+	sendLA, err := a.b.LinkedAccounts().Get(ctx, args.CreateTransactionArgs.FromLinkedAccountID)
 	if err != nil {
 		return "", err
+	}
+
+	if sendLA.Type != machnet.TypeWallet {
+		sendLA, err = getWalletLinkedAcc(ctx, a.b, sendLA.WalletID)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	recvLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
@@ -413,7 +428,6 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTran
 		RecvUserID: recvUser.ID,
 		RecvFundID: recvLA.ProviderID,
 		Amount:     args.Amount,
-		Currency:   args.Currency,
 		IPAddress:  args.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
@@ -640,9 +654,9 @@ func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.Cr
 		FromUserID:        mu.ID,
 		FromFundID:        la.ProviderID,
 		FundingSourceType: external.FundingSourceTypeCard,
-		FromAmount:        trx.Amount,
-		FromCurrency:      trx.Currency,
-		ToCurrency:        trx.Currency,
+		FromAmount:        trx.Amount.Float64(),
+		FromCurrency:      trx.Amount.Currency.String(),
+		ToCurrency:        trx.Amount.Currency.String(),
 		ExchangeRate:      1,
 		Purpose:           external.PurposePersonalTransfer,
 		To: external.TransactionTo{
