@@ -1,7 +1,7 @@
 import { Outlet } from '@remix-run/react'
-import { route } from 'routes-gen'
 import { useState } from 'react'
-import { Icon, IconButton, Logo, Router } from '~/components'
+import { route } from 'routes-gen'
+import { IconButton, Logo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
 export function WalletLayout() {
@@ -17,6 +17,7 @@ export function WalletLayout() {
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/statements')}>Statements</NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>
@@ -59,6 +60,7 @@ export function WalletLayout() {
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/statements')}>Statements</NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>

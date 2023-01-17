@@ -10,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/statements"
+	statements_mock "gitlab.com/fynbos/backend/statements/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
@@ -24,6 +26,7 @@ type Backends interface {
 	Machnet() machnet.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
+	Statements() statements.Client
 }
 
 type opsBackends struct {
@@ -36,13 +39,14 @@ func (b opsBackends) External() external.Client {
 }
 
 type testBackends struct {
-	db       *sqlx.DB
-	users    user.Client
-	kycImpl  *kyc_mock.MockClient
-	linked   *linkedaccounts_mock.MockClient
-	machnet  *machnet_mock.MockClient
-	temporal *mocks.Client
-	tx       transactions.Client
+	db         *sqlx.DB
+	users      user.Client
+	kycImpl    *kyc_mock.MockClient
+	linked     *linkedaccounts_mock.MockClient
+	machnet    *machnet_mock.MockClient
+	temporal   *mocks.Client
+	tx         transactions.Client
+	statements *statements_mock.MockClient
 }
 
 func (b testBackends) External() external.Client {
@@ -79,4 +83,8 @@ func (b testBackends) Temporal() client.Client {
 
 func (b testBackends) Transactions() transactions.Client {
 	return b.tx
+}
+
+func (b testBackends) Statements() statements.Client {
+	return b.statements
 }

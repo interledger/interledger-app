@@ -2,6 +2,7 @@ package machnet
 
 import (
 	"context"
+	"time"
 )
 
 const (
@@ -187,6 +188,7 @@ type (
 		Nickname         string
 		AvailableBalance uint64
 		Balance          uint64
+		CreatedAt        string
 	}
 
 	CreateWalletArgs struct {
@@ -220,3 +222,9 @@ type (
 		Currency              string `validate:"iso4217"`
 	}
 )
+
+type GetStatementArgs struct {
+	WalletID  string `validate:"uuid"`
+	StartDate time.Time
+	EndDate   time.Time `validate:"gtefield=StartDate"`
+}

@@ -6,6 +6,7 @@ import (
 
 	"go.temporal.io/api/enums/v1"
 
+	"gitlab.com/fynbos/backend/db"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -350,4 +351,50 @@ func (s *rpcService) StartMachnetWalletTopup(
 	}
 
 	return &backendv1.Empty{}, nil
+}
+
+func (s *rpcService) ListStatements(
+	ctx context.Context, req *backendv1.PaginationRequest,
+) (*backendv1.ListStatementsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	statementPeriods, err := s.b.Machnet().ListStatementPeriods(ctx, db.PaginationFromPB(req), wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.ListStatementsResponse{
+		Periods: statementPeriods,
+	}, nil
+}
+
+func (s *rpcService) GetStatementPDF(
+	ctx context.Context, req *backendv1.GetStatementPDFRequest,
+) (*backendv1.StatementPDF, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	pdf, err := s.b.Machnet().GetStatement(ctx, wallet.ID, req.GetPeriod())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.StatementPDF{
+		Chunks: pdf,
+	}, nil
 }

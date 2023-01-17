@@ -123,6 +123,21 @@ func (mr *MockClientMockRecorder) ListTransactions(ctx, page, walletID interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactions", reflect.TypeOf((*MockClient)(nil).ListTransactions), ctx, page, walletID)
 }
 
+// ListTransactionsInRange mocks base method.
+func (m *MockClient) ListTransactionsInRange(ctx context.Context, walletID string, inRange transactions.TransactionRangeFilter) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTransactionsInRange", ctx, walletID, inRange)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTransactionsInRange indicates an expected call of ListTransactionsInRange.
+func (mr *MockClientMockRecorder) ListTransactionsInRange(ctx, walletID, inRange interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactionsInRange", reflect.TypeOf((*MockClient)(nil).ListTransactionsInRange), ctx, walletID, inRange)
+}
+
 // UpdateTransaction mocks base method.
 func (m *MockClient) UpdateTransaction(ctx context.Context, args transactions.UpdateTransactionArgs) error {
 	m.ctrl.T.Helper()
