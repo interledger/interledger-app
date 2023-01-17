@@ -2,6 +2,8 @@ package machnet
 
 import (
 	"context"
+
+	"gitlab.com/fynbos/backend/currency"
 )
 
 const (
@@ -45,8 +47,7 @@ type CreateTransactionArgs struct {
 	ToPaymentPointer    string // Fully qualified payment pointer
 	FromLinkedAccountID string
 	ToLinkedAccountID   string
-	Amount              float64
-	Currency            string
+	Amount              currency.Amount
 	IPAddress           string
 }
 
@@ -212,11 +213,10 @@ type (
 
 	StartWalletTopupArgs struct {
 		IdempotencyKey        string
-		WalletID              string `validate:"uuid"`
-		Amount                uint64 `validate:"gt=0"`
-		WalletLinkedAccountID string `validate:"required,uuid"`
-		FromLinkedAccountID   string `validate:"required,uuid"`
-		IpAddress             string `validate:"ip_addr"`
-		Currency              string `validate:"iso4217"`
+		WalletID              string          `validate:"uuid"`
+		Amount                currency.Amount `validate:"required"`
+		WalletLinkedAccountID string          `validate:"required,uuid"`
+		FromLinkedAccountID   string          `validate:"required,uuid"`
+		IpAddress             string          `validate:"ip_addr"`
 	}
 )

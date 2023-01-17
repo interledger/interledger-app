@@ -1,6 +1,10 @@
 package external
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"gitlab.com/fynbos/backend/currency"
+)
 
 const (
 	StatusVerified   = "VERIFIED"
@@ -298,7 +302,7 @@ type (
 		SendFundID string
 		RecvUserID string
 		RecvFundID string
-		Amount     float64
+		Amount     currency.Amount
 		Currency   string
 		IPAddress  string
 	}

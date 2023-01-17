@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
@@ -33,10 +34,26 @@ func TestCreateTransaction(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "success",
+			name: "success with foreign id",
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+		},
+		{
+			name: "success without foreignID",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 				Provider:    transactions.ProviderMachnet,
 				State:       transactions.StatePending,
@@ -125,101 +142,7 @@ func TestCreateTransaction(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			err = ops.CreateTransaction(ctx, b, tc.args)
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestUpdateTransfers(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	dbc := db.MigrateTestDB(t, ctx)
-
-	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
-	laClient := linkedaccounts_client.New(b)
-
-	cases := []struct {
-		name   string
-		args   transactions.CreateTransactionArgs
-		update transactions.TransferArgs
-		err    error
-	}{
-		{
-			name: "success",
-			args: transactions.CreateTransactionArgs{
-				WalletID:    uuid.NewString(),
-				ForeignID:   "8ba075f3-f819-48bb-8e47-4f973acd4e72",
-				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
-				State:       transactions.StatePending,
-				Source:      "$fynbos.me/alice",
-				Destination: "$fynbos.me/bob",
-				Amount: currency.Amount{
-					Value:    1000,
-					Currency: currency.USD,
-					Scale:    2,
-				},
-				Transfers: []transactions.TransferArgs{
-					{
-						ForeignID: "0e4b5b26-a712-42e0-b7ea-f7870ca1b363",
-						Type:      transactions.TransferTypeDebitCard,
-						Amount: currency.Amount{
-							Value:    1000,
-							Currency: currency.USD,
-							Scale:    2,
-						},
-						State: transactions.StatePending,
-					},
-				},
-			},
-			update: transactions.TransferArgs{
-				WalletID:             uuid.NewString(),
-				TransactionForeignID: "8ba075f3-f819-48bb-8e47-4f973acd4e72",
-				ForeignID:            "0e4b5b26-a712-42e0-b7ea-f7870ca1b363",
-				Type:                 transactions.TransferTypeDebitCard,
-				Amount: currency.Amount{
-					Value:    1000,
-					Currency: currency.USD,
-					Scale:    2,
-				},
-				State: transactions.StateCompleted,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
-			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
-			require.NoError(t, err)
-
-			tc.args.WalletID = wallet.ID
-			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
-				Name:       "test",
-				Mask:       "ladida",
-				Provider:   "machnet",
-				ProviderID: uuid.NewString(),
-				Type:       "test",
-			})
-			require.NoError(t, err)
-
-			tc.args.WalletID = wallet.ID
-			for i := range tc.args.Transfers {
-				tc.args.Transfers[i].LinkedAccountID = la.ID
-			}
-
-			err = ops.CreateTransaction(ctx, b, tc.args)
-			require.NoError(t, err)
-
-			tc.update.WalletID = wallet.ID
-			err = ops.UpdateTransfers(ctx, b, []transactions.TransferArgs{tc.update})
+			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 		})
 	}
@@ -353,7 +276,7 @@ func TestListTransaction(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			err = ops.CreateTransaction(ctx, b, tc.args)
+			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
 			txs, err := ops.ListTransactions(ctx, b, wallet.ID, db.Pagination{})
@@ -382,6 +305,342 @@ func TestListTransaction(t *testing.T) {
 					assert.True(t, found)
 				}
 			}
+		})
+	}
+}
+
+func TestSetTransactionForeignIDs(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
+
+	cases := []struct {
+		name      string
+		args      transactions.CreateTransactionArgs
+		foreignID string
+	}{
+		{
+			name: "success",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+			foreignID: "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
+
+			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+			require.Empty(t, tx.ForeignID)
+
+			err = ops.SetTransactionForeignID(ctx, b, trxID, tc.foreignID)
+			require.NoError(t, err)
+
+			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, tx.ForeignID, tc.foreignID)
+		})
+	}
+}
+
+func TestSetTransferForeignID(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
+
+	cases := []struct {
+		name      string
+		args      transactions.CreateTransactionArgs
+		foreignID string
+	}{
+		{
+			name: "success",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+				Transfers: []transactions.TransferArgs{
+					{
+						Type:  transactions.TransferTypeDebitCard,
+						State: transactions.StatePending,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
+						},
+					},
+				},
+			},
+			foreignID: "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
+
+			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+			require.Empty(t, tx.ForeignID)
+
+			tfr := tx.Transfers[0]
+			require.Empty(t, tfr.ForeignID)
+
+			fmt.Println(tfr.ID)
+			err = ops.SetTransferForeignID(ctx, b, tfr.ID, tc.foreignID)
+			require.NoError(t, err)
+
+			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, tx.Transfers[0].ForeignID, tc.foreignID)
+		})
+	}
+}
+
+func TestSetTransactionState(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
+
+	cases := []struct {
+		name  string
+		args  transactions.CreateTransactionArgs
+		state transactions.State
+	}{
+		{
+			name: "success",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+			state: transactions.StateCompleted,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
+
+			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+			require.Equal(t, tx.State, tc.args.State)
+
+			err = ops.SetTransactionState(ctx, b, trxID, tc.state)
+			require.NoError(t, err)
+
+			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, tx.State, tc.state)
+		})
+	}
+}
+
+func TestSetTransferState(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	laClient := linkedaccounts_client.New(b)
+
+	cases := []struct {
+		name  string
+		args  transactions.CreateTransactionArgs
+		state transactions.State
+	}{
+		{
+			name: "success",
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+				Transfers: []transactions.TransferArgs{
+					{
+						Type:  transactions.TransferTypeDebitCard,
+						State: transactions.StatePending,
+						Amount: currency.Amount{
+							Value:    1000,
+							Currency: currency.USD,
+							Scale:    2,
+						},
+					},
+				},
+			},
+			state: transactions.StateCompleted,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "test",
+				Mask:       "ladida",
+				Provider:   "machnet",
+				ProviderID: uuid.NewString(),
+				Type:       "test",
+			})
+			require.NoError(t, err)
+
+			tc.args.WalletID = wallet.ID
+			for i := range tc.args.Transfers {
+				tc.args.Transfers[i].LinkedAccountID = la.ID
+			}
+
+			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
+			require.NoError(t, err)
+
+			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+			tfr := tx.Transfers[0]
+			require.Equal(t, tfr.State, tc.args.Transfers[0].State)
+
+			err = ops.SetTransferState(ctx, b, tfr.ID, tc.state)
+			require.NoError(t, err)
+
+			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, tx.Transfers[0].State, tc.state)
 		})
 	}
 }

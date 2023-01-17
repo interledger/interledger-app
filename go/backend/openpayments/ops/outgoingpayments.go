@@ -35,7 +35,7 @@ type dbOutgoingPayments struct {
 	UpdatedAt          time.Time `db:"updated_at"`
 }
 
-func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (string, error) {
+func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (string, string, error) {
 	qid := args.QuoteID
 	idxSlash := strings.LastIndex(qid, "/")
 	if idxSlash > 0 {
@@ -44,16 +44,16 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 
 	q, err := getDBQuote(ctx, b, "id=$1", qid)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if q.ExpiresAt.Before(time.Now()) {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, "quote has expired")
+		return "", "", fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, "quote has expired")
 	}
 
 	ip, err := GetIncomingPayment(ctx, b, q.IncomingPaymentID)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	if args.Description == "" {
@@ -75,19 +75,20 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		Value("sent_asset", q.SendAsset).
 		Value("sent_scale", q.SendAssetScale).GetStatement()
 	if err != nil {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		return "", "", fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
 	toPP, err := getPaymentPointerByID(ctx, b, q.ReceivePaymentPointer)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	fromPP, err := getPaymentPointerByID(ctx, b, q.SendPaymentPointer)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
+	var trxID string
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(ctx, stmt, qargs...)
 		if err != nil {
@@ -102,7 +103,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
 
-		return b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
+		id, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:    fromPP.WalletID,
 			ForeignID:   id,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
@@ -117,12 +118,19 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 				Scale:    q.SendAssetScale,
 			},
 		})
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+
+		trxID = id
+
+		return nil
 	})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return fmt.Sprintf("%s/outgoing-payments/%s", fromPP.URL, id), nil
+	return fmt.Sprintf("%s/outgoing-payments/%s", fromPP.URL, id), trxID, nil
 }
 
 func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpayments.OutgoingPayment, error) {
@@ -212,11 +220,12 @@ func FailOutgoingPayment(ctx context.Context, b Backends, id string) error {
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, id)
 		}
 
-		return b.Transactions().UpdateTransactionTx(ctx, tx, transactions.UpdateTransactionArgs{
-			WalletID:  pp.WalletID,
-			ForeignID: id,
-			State:     transactions.StateFailed,
-		})
+		trx, err := b.Transactions().GetTransactionByForeignID(ctx, pp.WalletID, id)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+
+		return b.Transactions().SetTransactionState(ctx, trx.ID, transactions.StateFailed)
 	})
 }
 
@@ -263,12 +272,15 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, opID)
 		}
 
-		err = b.Transactions().UpdateTransactionTx(ctx, tx, transactions.UpdateTransactionArgs{
-			WalletID:  fromPP.WalletID,
-			ForeignID: opID,
-			State:     transactions.StateCompleted,
-			Amount:    args.SentAmount,
-		})
+		fromTrx, err := b.Transactions().GetTransactionByForeignID(ctx, fromPP.WalletID, opID)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+		err = b.Transactions().SetTransactionStateTx(ctx, tx, fromTrx.ID, transactions.StateCompleted)
+		if err != nil {
+			return err
+		}
+		err = b.Transactions().SetTransactionAmountTx(ctx, tx, fromTrx.ID, args.SentAmount)
 		if err != nil {
 			return err
 		}
@@ -286,11 +298,19 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w incoming payment (%s) not found", openpayments.ErrNotFound, ipID)
 		}
 
-		return b.Transactions().UpdateTransactionTx(ctx, tx, transactions.UpdateTransactionArgs{
-			WalletID:  toPP.WalletID,
-			ForeignID: ipID,
-			State:     transactions.StateCompleted,
-			Amount:    args.SentAmount,
-		})
+		toTrx, err := b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
+		err = b.Transactions().SetTransactionStateTx(ctx, tx, toTrx.ID, transactions.StateCompleted)
+		if err != nil {
+			return err
+		}
+		err = b.Transactions().SetTransactionAmountTx(ctx, tx, toTrx.ID, args.SentAmount)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 }

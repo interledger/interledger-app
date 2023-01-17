@@ -1212,7 +1212,7 @@ table "transactions" {
     type = uuid
   }
   column "foreign_id" {
-    null = false
+    null = true
     type = uuid
   }
   column "type" {
@@ -1270,6 +1270,12 @@ table "transactions" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
+  index "wallet_id_ind" {
+    columns = [column.wallet_id]
+  }
+  index "wallet_id_state_ind" {
+    columns = [column.wallet_id, column.state]
+  }
 }
 table "transfers" {
   schema = schema.public
@@ -1287,7 +1293,7 @@ table "transfers" {
     type = uuid
   }
   column "foreign_id" {
-    null = false
+    null = true
     type = uuid
   }
   column "type" {

@@ -108,8 +108,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		ToPaymentPointer:    op.ToPaymentPointer,
 		FromLinkedAccountID: sendAccID,
 		ToLinkedAccountID:   recvAcc.ID,
-		Amount:              op.SendAmount.Float64(),
-		Currency:            op.SendAmount.Currency.String(),
+		Amount:              op.SendAmount,
 	}, nil
 }
 

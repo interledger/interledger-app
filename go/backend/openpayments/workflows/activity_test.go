@@ -30,7 +30,8 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	txClient := transactions_mock.NewMockClient(ctrl)
-	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	txID := uuid.NewString()
+	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	b := NewTestBackends(t, db, nil, la_mock, txClient)
 
@@ -102,7 +103,7 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.opArgs.QuoteID = q.ID
-			opID, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
+			opID, _, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
 			require.NoError(t, err)
 
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
@@ -124,8 +125,8 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 			err = argsEnc.Get(&args)
 			require.NoError(t, err)
 
-			assert.Equal(t, 1.00, args.Amount)
-			assert.Equal(t, "USD", args.Currency)
+			assert.Equal(t, 1.00, args.Amount.Float64())
+			assert.Equal(t, "USD", args.Amount.Currency.String())
 		})
 	}
 }

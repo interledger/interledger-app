@@ -124,11 +124,19 @@ func FromPB(a *pb.Amount) Amount {
 	}
 }
 
-func FromFloat(f float64, cc Currency) Amount {
+func FromFloat64(f float64, cc Currency) Amount {
 	amt := uint64(f * math.Pow(10, float64(cc.Scale())))
 
 	return Amount{
 		Value:    amt,
+		Currency: cc,
+		Scale:    cc.Scale(),
+	}
+}
+
+func FromUInt64(i uint64, cc Currency) Amount {
+	return Amount{
+		Value:    i,
 		Currency: cc,
 		Scale:    cc.Scale(),
 	}
