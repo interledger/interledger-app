@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"net"
 	"net/http"
 	"os"
@@ -38,11 +40,11 @@ import (
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/machnet"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
 	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/signup"
@@ -297,6 +299,11 @@ func migrate(args *cli.MigrationArgs) {
 	}()
 
 	err = db.SeedCountries(context.Background(), dbConn)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = db.CreateExpIndex(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
 	}
