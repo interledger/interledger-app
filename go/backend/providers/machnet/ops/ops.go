@@ -581,7 +581,7 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		return nil, err
 	}
 
-	user, err := b.KYC().GetIndividualDetails(ctx, walletID)
+	user, err := b.External().GetUserByID(ctx, wallet.SendUserID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
