@@ -133,7 +133,7 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 			FontSize:   float64(8),
 			TextColour: textColourMedium,
 			TextAlign:  gopdf.Middle,
-			Entries:    []string{"Date", "Receipt number", "Description", "Date"},
+			Entries:    []string{"Date", "Receipt number", "Description", "Amount"},
 		},
 		Rows: rows,
 	})
