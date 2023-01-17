@@ -10,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/user"
@@ -33,20 +35,21 @@ import (
 )
 
 type TestContainer struct {
-	Ctx           context.Context
-	Ctrl          *gomock.Controller
-	Db            *sqlx.DB
-	Hs            healthcheck.Service
-	Cs            country.Client
-	Tp            *mocks.Client
-	AdminConn     *grpc.ClientConn
-	AdminClient   adminv1.BackendClient
-	AdminServer   *grpc.Server
-	ValidatorImpl *validator.Validate
-	Auth          auth.Service
-	WaitlistImpl  *waitlist_mock.MockClient
-	email         *email_mock.MockClient
-	machnet       *machnet_mock.MockClient
+	Ctx            context.Context
+	Ctrl           *gomock.Controller
+	Db             *sqlx.DB
+	Hs             healthcheck.Service
+	Cs             country.Client
+	Tp             *mocks.Client
+	AdminConn      *grpc.ClientConn
+	AdminClient    adminv1.BackendClient
+	AdminServer    *grpc.Server
+	ValidatorImpl  *validator.Validate
+	Auth           auth.Service
+	WaitlistImpl   *waitlist_mock.MockClient
+	email          *email_mock.MockClient
+	machnet        *machnet_mock.MockClient
+	linkedaccounts *linkedaccounts_mock.MockClient
 }
 
 func (c *TestContainer) Users() user.Client {
@@ -87,6 +90,10 @@ func (c *TestContainer) Email() email.Client {
 
 func (c *TestContainer) Machnet() machnet.Client {
 	return c.machnet
+}
+
+func (c *TestContainer) LinkedAccounts() linkedaccounts.Client {
+	return c.linkedaccounts
 }
 
 func (c *TestContainer) Cleanup(ctx context.Context) error {
