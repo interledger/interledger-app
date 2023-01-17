@@ -984,13 +984,6 @@ table "payment_pointers" {
   index "wallet_id_ind" {
     columns = [column.wallet_id]
   }
-
-  index "payment_pointers_url_lower" {
-    on {
-      expr = "lower(url)"
-    }
-    unique = true
-  }
 }
 table "rafiki_identifiers" {
   schema = schema.public

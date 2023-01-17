@@ -3,17 +3,16 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
-
-	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 )
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
@@ -36,16 +35,29 @@ func Migrate(ctx context.Context, connString string) error {
 		connString,
 		"-u",
 		connString,
+		"--exclude",
+		"public.payment_pointers.payment_pointers_url_lower",
 		"-f",
 		filepath.Join(moduleDir, "../schema.hcl"),
 	}
 
 	out, err := exec.CommandContext(ctx, "atlas", args...).CombinedOutput()
 	if err != nil {
+		log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
+		log.Error("error migrating", zap.Error(err))
 		return err
 	}
 
 	log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
+
+	return nil
+}
+
+func CreateExpIndex(ctx context.Context, db *sqlx.DB) error {
+	_, err := db.ExecContext(ctx, ppExpIndex)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -98,7 +110,10 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
-	cmd := exec.CommandContext(ctx, "atlas", "schema", "apply", "--auto-approve", "-u", connString, "-f", filepath.Join(moduleDir, "../schema.hcl"))
+	cmd := exec.CommandContext(ctx,
+		"atlas", "schema", "apply", "--auto-approve", "-u", connString,
+		"--exclude", "public.payment_pointers.payment_pointers_url_lower",
+		"-f", filepath.Join(moduleDir, "../schema.hcl"))
 	if err = cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -108,8 +123,17 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
+	_, err = db.ExecContext(ctx, ppExpIndex)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return db
 }
+
+const ppExpIndex = `
+CREATE UNIQUE INDEX IF NOT EXISTS "payment_pointers_url_lower" ON "public"."payment_pointers" (lower(url));
+`
 
 const insertCountries = `
 INSERT INTO countries (
