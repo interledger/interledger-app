@@ -370,7 +370,8 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 				Currency: currency.ParseCurrency(t.Asset),
 				Scale:    t.Scale,
 			},
-			State: t.State,
+			State:     t.State,
+			Timestamp: t.Timestamp,
 		}
 	}
 
