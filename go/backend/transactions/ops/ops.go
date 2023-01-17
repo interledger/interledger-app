@@ -223,8 +223,8 @@ func ListTransactions(ctx context.Context, b Backends, walletID string, page db.
 func GetTransaction(ctx context.Context, b Backends, walletID string, trxID string) (*transactions.Transaction, error) {
 	var tx dbTransaction
 	err := b.DB().GetContext(ctx, &tx,
-		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and id=$2 and (state in ($3,$4) or (state=$5 and type<>$6))", transactionCols),
-		walletID, trxID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming)
+		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and id=$2", transactionCols),
+		walletID, trxID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
