@@ -1,6 +1,9 @@
 package ops
 
 import (
+	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -12,11 +15,13 @@ type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Users() user.Client
+	Notify() notify.Client
 }
 
 type testBackends struct {
-	db  *sqlx.DB
-	val *validator.Validate
+	db     *sqlx.DB
+	val    *validator.Validate
+	notify notify.Client
 }
 
 func (t testBackends) Users() user.Client {
@@ -31,6 +36,13 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB) Backends {
-	return &testBackends{db: db, val: validator.New()}
+func (t testBackends) Notify() notify.Client {
+	return t.notify
+}
+
+func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
+	ctrl := gomock.NewController(t)
+	nc := notify_client.NewMockClient(ctrl)
+	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	return &testBackends{db: db, val: validator.New(), notify: nc}
 }
