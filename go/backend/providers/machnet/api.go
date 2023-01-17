@@ -3,6 +3,7 @@ package machnet
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 )
@@ -23,4 +24,6 @@ type Client interface {
 	WithdrawFromWallet(ctx context.Context, args WithdrawFromWalletArgs) (Await, error)
 	StartWalletTopup(ctx context.Context, args StartWalletTopupArgs) (Await, error)
 	DeleteFundSource(ctx context.Context, linkedAccID string) (Await, error)
+	GetStatement(ctx context.Context, walletID, period string) ([]byte, error)
+	ListStatementPeriods(ctx context.Context, page db.Pagination, walletID string) ([]string, error)
 }

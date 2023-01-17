@@ -26,6 +26,7 @@ type Client interface {
 	SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error
 
 	ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
+	ListTransactionsInRange(ctx context.Context, walletID string, inRange TransactionRangeFilter) ([]Transaction, error)
 	GetTransaction(ctx context.Context, walletID string, trxID string) (*Transaction, error)
 	GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*Transaction, error)
 }
