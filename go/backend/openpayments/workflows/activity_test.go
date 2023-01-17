@@ -34,9 +34,11 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
-	b := NewTestBackends(t, db, nil, la_mock, txClient)
+
 	mc := machnet_mock.NewMockClient(ctrl)
 	mc.EXPECT().GetUserByWalletID(gomock.Any(), gomock.Any()).Return(&machnet.User{KYCStatus: machnet.KYCStatusVerified}, nil).AnyTimes()
+
+	b := NewTestBackends(t, db, nil, la_mock, txClient, mc)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()

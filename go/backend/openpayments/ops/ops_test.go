@@ -588,10 +588,10 @@ func TestCreateQuote(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend5",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv6",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "ZAR",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: "ZAR",
+					Scale:    2,
 				},
 			},
 		},
@@ -604,10 +604,10 @@ func TestCreateQuote(t *testing.T) {
 				SendPaymentPointer:    "http://fynbos.me/paysend7",
 				ReceivePaymentPointer: "http://fynbos.me/payrecv8",
 				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: openpayments.Amount{
-					Value:      100,
-					Asset:      "ZAR",
-					AssetScale: 2,
+				SendAmount: currency.Amount{
+					Value:    100,
+					Currency: "ZAR",
+					Scale:    2,
 				},
 			},
 		},

@@ -71,10 +71,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func (t testBackends) Machnet() machnet.Client {
-	return t.mc
-}
-
-func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, mc machnet.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, mc: mc}
 }
