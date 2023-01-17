@@ -49,7 +49,7 @@ func (s *AdminRpcService) EmailWalletStatement(
 		return nil, toGRPCError(err)
 	}
 
-	periodStart, err := time.Parse("2006-01-02", req.GetPeriod())
+	periodStart, err := time.Parse("2006-01", req.GetPeriod())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
