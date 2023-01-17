@@ -2,13 +2,15 @@ package ops
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/email/sendgrid"
 )
 
-func SendMailTemplate(ctx context.Context, b Backends, walletID string, template email.TemplateID, templateData map[string]interface{}) error {
+func SendMailTemplate(ctx context.Context, b Backends, walletID string, template email.TemplateID, templateData map[string]interface{}, attachments []email.Attachment) error {
 	if !template.IsValid() {
 		return fmt.Errorf("%w %s is not a known template ID", email.ErrInvalidTemplate, template)
 	}
@@ -34,7 +36,17 @@ func SendMailTemplate(ctx context.Context, b Backends, walletID string, template
 		})
 	}
 
-	err = b.External().SendTemplate(ctx, template.Subject(), emails, template.String(), templateData)
+	mailAttachments := make([]mail.Attachment, len(attachments))
+	for i, attachment := range attachments {
+		mailAttachments[i] = mail.Attachment{
+			Content:     base64.StdEncoding.EncodeToString(attachment.Content),
+			Type:        attachment.ContentType,
+			Filename:    attachment.Name,
+			Disposition: "attachment",
+		}
+	}
+
+	err = b.External().SendTemplate(ctx, template.Subject(), emails, template.String(), templateData, mailAttachments)
 	if err != nil {
 		return fmt.Errorf("%w %s", email.ErrInternal, err)
 	}
