@@ -468,52 +468,35 @@ export interface Transfer {
     linkedAccountId: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetStatementsResponse
+ * @generated from protobuf message backend.v1.ListStatementsResponse
  */
-export interface GetStatementsResponse {
+export interface ListStatementsResponse {
     /**
-     * @generated from protobuf field: repeated backend.v1.GetStatementsResponse.Statement statements = 1;
+     * @generated from protobuf field: repeated string periods = 1;
      */
-    statements: GetStatementsResponse_Statement[];
-}
-/**
- * @generated from protobuf message backend.v1.GetStatementsResponse.Statement
- */
-export interface GetStatementsResponse_Statement {
+    periods: string[];
     /**
-     * @generated from protobuf field: string id = 1;
+     * @generated from protobuf field: backend.v1.PaginationResponse page = 2;
      */
-    id: string;
-    /**
-     * @generated from protobuf field: string period = 2;
-     */
-    period: string;
-    /**
-     * @generated from protobuf field: string accountId = 3;
-     */
-    accountId: string;
+    page?: PaginationResponse;
 }
 /**
  * @generated from protobuf message backend.v1.GetStatementPDFRequest
  */
 export interface GetStatementPDFRequest {
     /**
-     * @generated from protobuf field: string statementId = 1;
+     * @generated from protobuf field: string period = 1;
      */
-    statementId: string;
+    period: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetStatementPDFResponse
+ * @generated from protobuf message backend.v1.StatementPDF
  */
-export interface GetStatementPDFResponse {
+export interface StatementPDF {
     /**
-     * @generated from protobuf field: string id = 1;
+     * @generated from protobuf field: bytes chunks = 1;
      */
-    id: string;
-    /**
-     * @generated from protobuf field: bytes statementPdf = 2;
-     */
-    statementPdf: Uint8Array;
+    chunks: Uint8Array;
 }
 /**
  * @generated from protobuf message backend.v1.CreateSupportTicketRequest
@@ -2646,26 +2629,30 @@ class Transfer$Type extends MessageType<Transfer> {
  */
 export const Transfer = new Transfer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetStatementsResponse$Type extends MessageType<GetStatementsResponse> {
+class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
     constructor() {
-        super("backend.v1.GetStatementsResponse", [
-            { no: 1, name: "statements", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => GetStatementsResponse_Statement }
+        super("backend.v1.ListStatementsResponse", [
+            { no: 1, name: "periods", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
         ]);
     }
-    create(value?: PartialMessage<GetStatementsResponse>): GetStatementsResponse {
-        const message = { statements: [] };
+    create(value?: PartialMessage<ListStatementsResponse>): ListStatementsResponse {
+        const message = { periods: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetStatementsResponse>(this, message, value);
+            reflectionMergePartial<ListStatementsResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetStatementsResponse): GetStatementsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListStatementsResponse): ListStatementsResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.GetStatementsResponse.Statement statements */ 1:
-                    message.statements.push(GetStatementsResponse_Statement.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated string periods */ 1:
+                    message.periods.push(reader.string());
+                    break;
+                case /* backend.v1.PaginationResponse page */ 2:
+                    message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2678,10 +2665,13 @@ class GetStatementsResponse$Type extends MessageType<GetStatementsResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetStatementsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.GetStatementsResponse.Statement statements = 1; */
-        for (let i = 0; i < message.statements.length; i++)
-            GetStatementsResponse_Statement.internalBinaryWrite(message.statements[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: ListStatementsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string periods = 1; */
+        for (let i = 0; i < message.periods.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.periods[i]);
+        /* backend.v1.PaginationResponse page = 2; */
+        if (message.page)
+            PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2689,79 +2679,18 @@ class GetStatementsResponse$Type extends MessageType<GetStatementsResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetStatementsResponse
+ * @generated MessageType for protobuf message backend.v1.ListStatementsResponse
  */
-export const GetStatementsResponse = new GetStatementsResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class GetStatementsResponse_Statement$Type extends MessageType<GetStatementsResponse_Statement> {
-    constructor() {
-        super("backend.v1.GetStatementsResponse.Statement", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "period", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "accountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<GetStatementsResponse_Statement>): GetStatementsResponse_Statement {
-        const message = { id: "", period: "", accountId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetStatementsResponse_Statement>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetStatementsResponse_Statement): GetStatementsResponse_Statement {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string period */ 2:
-                    message.period = reader.string();
-                    break;
-                case /* string accountId */ 3:
-                    message.accountId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetStatementsResponse_Statement, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string period = 2; */
-        if (message.period !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.period);
-        /* string accountId = 3; */
-        if (message.accountId !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.accountId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.GetStatementsResponse.Statement
- */
-export const GetStatementsResponse_Statement = new GetStatementsResponse_Statement$Type();
+export const ListStatementsResponse = new ListStatementsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetStatementPDFRequest$Type extends MessageType<GetStatementPDFRequest> {
     constructor() {
         super("backend.v1.GetStatementPDFRequest", [
-            { no: 1, name: "statementId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "period", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetStatementPDFRequest>): GetStatementPDFRequest {
-        const message = { statementId: "" };
+        const message = { period: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetStatementPDFRequest>(this, message, value);
@@ -2772,8 +2701,8 @@ class GetStatementPDFRequest$Type extends MessageType<GetStatementPDFRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string statementId */ 1:
-                    message.statementId = reader.string();
+                case /* string period */ 1:
+                    message.period = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2787,9 +2716,9 @@ class GetStatementPDFRequest$Type extends MessageType<GetStatementPDFRequest> {
         return message;
     }
     internalBinaryWrite(message: GetStatementPDFRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string statementId = 1; */
-        if (message.statementId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.statementId);
+        /* string period = 1; */
+        if (message.period !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.period);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2801,30 +2730,26 @@ class GetStatementPDFRequest$Type extends MessageType<GetStatementPDFRequest> {
  */
 export const GetStatementPDFRequest = new GetStatementPDFRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetStatementPDFResponse$Type extends MessageType<GetStatementPDFResponse> {
+class StatementPDF$Type extends MessageType<StatementPDF> {
     constructor() {
-        super("backend.v1.GetStatementPDFResponse", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "statementPdf", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+        super("backend.v1.StatementPDF", [
+            { no: 1, name: "chunks", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
         ]);
     }
-    create(value?: PartialMessage<GetStatementPDFResponse>): GetStatementPDFResponse {
-        const message = { id: "", statementPdf: new Uint8Array(0) };
+    create(value?: PartialMessage<StatementPDF>): StatementPDF {
+        const message = { chunks: new Uint8Array(0) };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetStatementPDFResponse>(this, message, value);
+            reflectionMergePartial<StatementPDF>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetStatementPDFResponse): GetStatementPDFResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StatementPDF): StatementPDF {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* bytes statementPdf */ 2:
-                    message.statementPdf = reader.bytes();
+                case /* bytes chunks */ 1:
+                    message.chunks = reader.bytes();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2837,13 +2762,10 @@ class GetStatementPDFResponse$Type extends MessageType<GetStatementPDFResponse> 
         }
         return message;
     }
-    internalBinaryWrite(message: GetStatementPDFResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* bytes statementPdf = 2; */
-        if (message.statementPdf.length)
-            writer.tag(2, WireType.LengthDelimited).bytes(message.statementPdf);
+    internalBinaryWrite(message: StatementPDF, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bytes chunks = 1; */
+        if (message.chunks.length)
+            writer.tag(1, WireType.LengthDelimited).bytes(message.chunks);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2851,9 +2773,9 @@ class GetStatementPDFResponse$Type extends MessageType<GetStatementPDFResponse> 
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetStatementPDFResponse
+ * @generated MessageType for protobuf message backend.v1.StatementPDF
  */
-export const GetStatementPDFResponse = new GetStatementPDFResponse$Type();
+export const StatementPDF = new StatementPDF$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateSupportTicketRequest$Type extends MessageType<CreateSupportTicketRequest> {
     constructor() {
@@ -5475,5 +5397,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty },
     { name: "IsMugAvailable", options: {}, I: IsMugAvailableRequest, O: IsMugAvailableResponse },
     { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
-    { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction }
+    { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
+    { name: "ListStatements", options: {}, I: PaginationRequest, O: ListStatementsResponse },
+    { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF }
 ]);

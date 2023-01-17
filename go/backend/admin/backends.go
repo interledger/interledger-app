@@ -4,8 +4,11 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 )
@@ -18,4 +21,7 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	OpenPayments() openpayments.Client
+	Machnet() machnet.Client
+	Email() email.Client
+	LinkedAccounts() linkedaccounts.Client
 }
