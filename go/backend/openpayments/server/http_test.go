@@ -131,7 +131,7 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, nil, tc)
+	b := NewTestBackends(t, db, nil, nil, mc, tc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -384,7 +384,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, nil, tc)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
