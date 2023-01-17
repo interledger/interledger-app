@@ -439,7 +439,7 @@ func TestListStatementPeriods(t *testing.T) {
 	periods, err := ops.ListStatementPeriods(context.Background(), b, db.Pagination{Page: 0, PageSize: 10}, externalWalletID)
 	require.NoError(t, err)
 
-	assert.Equal(t, []string{time.Now().Format("2006-01-02")[0:7]}, periods)
+	assert.Equal(t, []string{time.Now().Format("2006-01")}, periods)
 }
 
 func NewTestBackends(t *testing.T) backends {

@@ -616,8 +616,8 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 	}
 	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, statements.GenerateWalletStatementArgs{
 		Name:         fmt.Sprintf("%s %s", user.FirstName, user.LastName),
-		Period:       period,
-		BalanceDate:  time.Now().Format(time.RFC1123)[4:16],
+		Period:       fmt.Sprintf("%s-%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, 0).Format("02 Jan 2006")),
+		BalanceDate:  time.Now().Format("02 Jan 2006"),
 		Balance:      statementBalance.FormatAmount(),
 		Transactions: statementRows,
 		AccountID:    wallet.ID,
