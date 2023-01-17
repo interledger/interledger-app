@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/pacioli"
-	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"net"
 	"net/http"
 	"os"
@@ -491,13 +489,4 @@ func (b backends) OpenPayments() openpayments.Client {
 
 func (b backends) Notify() notify.Client {
 	return b.notify
-}
-
-func newLocalPacioliClient(db *sqlx.DB) pacioli.Client {
-	b := backends{
-		db:  db,
-		val: validator.New(),
-	}
-
-	return pacioli_client.NewLocal(b)
 }

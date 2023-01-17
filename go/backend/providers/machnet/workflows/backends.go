@@ -7,6 +7,7 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -24,6 +25,7 @@ type Backends interface {
 	Machnet() machnet.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
+	Notify() notify.Client
 }
 
 type opsBackends struct {
@@ -43,6 +45,7 @@ type testBackends struct {
 	machnet  *machnet_mock.MockClient
 	temporal *mocks.Client
 	tx       transactions.Client
+	notify   notify.Client
 }
 
 func (b testBackends) External() external.Client {
@@ -79,4 +82,8 @@ func (b testBackends) Temporal() client.Client {
 
 func (b testBackends) Transactions() transactions.Client {
 	return b.tx
+}
+
+func (b testBackends) Notify() notify.Client {
+	return b.notify
 }
