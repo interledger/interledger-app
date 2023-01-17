@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/statements/client"
 )
@@ -23,7 +24,7 @@ func TestGenerateWalletStatement(t *testing.T) {
 				Date:        "Jan 10 2022",
 				Description: "Payment to cash balance",
 				Amount:      "$10.00",
-				RecieptID:   "4051-8073",
+				RecieptID:   uuid.NewString(),
 			},
 		},
 	})
