@@ -28,6 +28,6 @@ func New(b Backends, sendgridAPIKey string) email.Client {
 	}
 }
 
-func (c *client) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, templateData map[string]interface{}) error {
-	return ops.SendMailTemplate(ctx, c.b, walletID, template, templateData)
+func (c *client) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, templateData map[string]interface{}, attachments []email.Attachment) error {
+	return ops.SendMailTemplate(ctx, c.b, walletID, template, templateData, attachments)
 }
