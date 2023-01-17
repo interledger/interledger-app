@@ -36,15 +36,15 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // SendMailTemplate mocks base method.
-func (m *MockClient) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, personalization map[string]interface{}) error {
+func (m *MockClient) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, personalization map[string]interface{}, attachments []email.Attachment) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMailTemplate", ctx, walletID, template, personalization)
+	ret := m.ctrl.Call(m, "SendMailTemplate", ctx, walletID, template, personalization, attachments)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMailTemplate indicates an expected call of SendMailTemplate.
-func (mr *MockClientMockRecorder) SendMailTemplate(ctx, walletID, template, personalization interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SendMailTemplate(ctx, walletID, template, personalization, attachments interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMailTemplate", reflect.TypeOf((*MockClient)(nil).SendMailTemplate), ctx, walletID, template, personalization)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMailTemplate", reflect.TypeOf((*MockClient)(nil).SendMailTemplate), ctx, walletID, template, personalization, attachments)
 }
