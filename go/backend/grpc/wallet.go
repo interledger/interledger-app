@@ -1,0 +1,25 @@
+package grpc
+
+import (
+	"context"
+	"errors"
+	"gitlab.com/fynbos/backend/user"
+	pb "gitlab.com/fynbos/proto/backend/v1"
+)
+
+func (s *rpcService) GetCurrentWallet(ctx context.Context, req *pb.Empty) (*pb.GetCurrentWalletResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	w, err := s.b.Users().WalletForContext(ctx)
+
+	if w == nil {
+		return nil, NotFoundError("wallet not found")
+	}
+
+	return &pb.GetCurrentWalletResponse{
+		Id: w.ID,
+	}, toGRPCError(err)
+}
