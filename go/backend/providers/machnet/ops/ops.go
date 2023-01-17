@@ -581,7 +581,12 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		return nil, err
 	}
 
-	user, err := b.External().GetUserByID(ctx, wallet.SendUserID)
+	machnetUser, err := GetUserByID(ctx, b, wallet.SendUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	userDetails, err := b.KYC().GetIndividualDetails(ctx, machnetUser.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
@@ -593,7 +598,7 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 
 	trxs, err := b.Transactions().ListTransactionsInRange(
 		ctx,
-		walletID,
+		machnetUser.WalletID, // fynbos wallet
 		transactions.TransactionRangeFilter{
 			StartTimestamp: periodStart,
 			EndTimestamp:   periodStart.AddDate(0, 1, 0),
@@ -604,7 +609,7 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 
 	var statementRows []statements.TransactionTableRow
 	for _, trx := range trxs {
-		if trx.State == transactions.StateFailed {
+		if trx.State != transactions.StateCompleted {
 			continue
 		}
 		statementRows = append(statementRows, mapToStatementRows(trx)...)
@@ -615,7 +620,7 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		Currency: "USD",
 	}
 	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, statements.GenerateWalletStatementArgs{
-		Name:         fmt.Sprintf("%s %s", user.FirstName, user.LastName),
+		Name:         fmt.Sprintf("%s %s", userDetails.FirstName, userDetails.LastName),
 		Period:       fmt.Sprintf("%s-%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, 0).Format("02 Jan 2006")),
 		BalanceDate:  time.Now().Format("02 Jan 2006"),
 		Balance:      statementBalance.FormatAmount(),
