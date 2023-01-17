@@ -189,6 +189,7 @@ service BackendService {
   rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
+  rpc GetCurrentWallet(Empty) returns (GetCurrentWalletResponse);
 
   //Machnet
   rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
@@ -478,5 +479,9 @@ message StartMachnetWalletTopupRequest {
 }
 
 message LookupTransactionRequest {
+  string id = 1;
+}
+
+message GetCurrentWalletResponse {
   string id = 1;
 }
