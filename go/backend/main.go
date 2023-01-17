@@ -14,6 +14,8 @@ import (
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/statements"
+	statements_client "gitlab.com/fynbos/backend/statements/client"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -209,6 +211,8 @@ func start(args *cli.StartArgs) {
 
 	b.notify = notify_client.New(b, args.PusherAddr)
 
+	b.statements = statements_client.New()
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -379,6 +383,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.notify = notify_client.New(b, args.PusherAddr)
 
+	b.statements = statements_client.New()
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -413,6 +419,7 @@ type backends struct {
 	openpayments   openpayments.Client
 	transactions   transactions.Client
 	notify         notify.Client
+	statements     statements.Client
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -489,4 +496,8 @@ func (b backends) OpenPayments() openpayments.Client {
 
 func (b backends) Notify() notify.Client {
 	return b.notify
+}
+
+func (b backends) Statements() statements.Client {
+	return b.statements
 }

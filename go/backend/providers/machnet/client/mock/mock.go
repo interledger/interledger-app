@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	db "gitlab.com/fynbos/backend/db"
 	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
 	machnet "gitlab.com/fynbos/backend/providers/machnet"
 	external "gitlab.com/fynbos/backend/providers/machnet/external"
@@ -156,6 +157,21 @@ func (mr *MockClientMockRecorder) GetKYCStatus(ctx, walletID interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKYCStatus", reflect.TypeOf((*MockClient)(nil).GetKYCStatus), ctx, walletID)
 }
 
+// GetStatement mocks base method.
+func (m *MockClient) GetStatement(ctx context.Context, walletID, period string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatement", ctx, walletID, period)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatement indicates an expected call of GetStatement.
+func (mr *MockClientMockRecorder) GetStatement(ctx, walletID, period interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatement", reflect.TypeOf((*MockClient)(nil).GetStatement), ctx, walletID, period)
+}
+
 // GetUserByID mocks base method.
 func (m *MockClient) GetUserByID(ctx context.Context, id string) (*machnet.User, error) {
 	m.ctrl.T.Helper()
@@ -214,6 +230,21 @@ func (m *MockClient) GetWidgetToken(ctx context.Context, walletID string) (*mach
 func (mr *MockClientMockRecorder) GetWidgetToken(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetToken", reflect.TypeOf((*MockClient)(nil).GetWidgetToken), ctx, walletID)
+}
+
+// ListStatementPeriods mocks base method.
+func (m *MockClient) ListStatementPeriods(ctx context.Context, page db.Pagination, walletID string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListStatementPeriods", ctx, page, walletID)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListStatementPeriods indicates an expected call of ListStatementPeriods.
+func (mr *MockClientMockRecorder) ListStatementPeriods(ctx, page, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListStatementPeriods", reflect.TypeOf((*MockClient)(nil).ListStatementPeriods), ctx, page, walletID)
 }
 
 // StartSendUserKYC mocks base method.
