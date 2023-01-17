@@ -119,7 +119,7 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 		}
 		prevReceiptID = trx.RecieptID
 		rows[i] = tableRow{
-			FontSize:         float64(8),
+			FontSize:         pxToPt(8),
 			TextColour:       textColourStrong,
 			TextAlign:        gopdf.Middle,
 			Entries:          entries,
@@ -130,7 +130,7 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 		RowHeight: yunit(40),
 		ColWidths: []float64{xunit(160), xunit(260), xunit(380), xunit(144)},
 		Headers: tableRow{
-			FontSize:   float64(8),
+			FontSize:   pxToPt(8),
 			TextColour: textColourMedium,
 			TextAlign:  gopdf.Middle,
 			Entries:    []string{"Date", "Receipt number", "Description", "Amount"},
@@ -319,7 +319,7 @@ func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
 	}
 
 	pdf.SetTextColor(textColourMedium.R, textColourMedium.G, textColourMedium.B)
-	err = pdf.SetFont(fontInter, "", 8)
+	err = pdf.SetFont(fontInter, "", pxToPt(8))
 	if err != nil {
 		return err
 	}
@@ -377,7 +377,7 @@ func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
 	pdf.Br(10)
 	pdf.SetX(pdf.MarginLeft())
 	pdf.SetTextColor(textColourMedium.R, textColourMedium.G, textColourMedium.B)
-	err = pdf.SetFont(fontInter, "", 8)
+	err = pdf.SetFont(fontInter, "", pxToPt(8))
 	if err != nil {
 		return err
 	}
@@ -394,7 +394,7 @@ func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
 
 	pdf.SetX(pdf.MarginLeft())
 	pdf.SetTextColor(textColourStrong.R, textColourStrong.G, textColourStrong.B)
-	err = pdf.SetFont(fontInterMedium, "", 8)
+	err = pdf.SetFont(fontInterMedium, "", pxToPt(8))
 	if err != nil {
 		return err
 	}
