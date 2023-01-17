@@ -5,5 +5,5 @@ import (
 )
 
 type Client interface {
-	SendMailTemplate(ctx context.Context, walletID string, template TemplateID, personalization map[string]interface{}) error
+	SendMailTemplate(ctx context.Context, walletID string, template TemplateID, personalization map[string]interface{}, attachments []Attachment) error
 }

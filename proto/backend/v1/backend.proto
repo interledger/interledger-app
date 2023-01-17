@@ -211,6 +211,10 @@ service BackendService {
   //Transactions
   rpc ListTransactions(PaginationRequest) returns (ListTransactionsResponse);
   rpc LookupTransaction(LookupTransactionRequest) returns (Transaction);
+
+  //Statements
+  rpc ListStatements(PaginationRequest) returns (ListStatementsResponse);
+  rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
 }
 
 message Transfer {
@@ -222,23 +226,17 @@ message Transfer {
   string linkedAccountId = 6;
 }
 
-message GetStatementsResponse {
-  message Statement {
-    string id = 1;
-    string period = 2;
-    string accountId = 3;
-  }
-
-  repeated Statement statements = 1;
+message ListStatementsResponse {
+  repeated string periods = 1;
+  PaginationResponse page = 2;
 }
 
 message GetStatementPDFRequest {
-  string statementId = 1;
+  string period = 1;
 }
 
-message GetStatementPDFResponse {
-  string id = 1;
-  bytes statementPdf = 2;
+message StatementPDF {
+  bytes chunks = 1;
 }
 
 message CreateSupportTicketRequest {
