@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/signintech/gopdf"
 	"gitlab.com/fynbos/backend/statements"
@@ -85,15 +84,11 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 		return nil, err
 	}
 
-	periodStart, err := time.Parse("2006-01-02", args.Period)
-	if err != nil {
-		return nil, err
-	}
 	err = addWalletStatementHeader(&pdf, statementHeader{
 		Name:          args.Name,
 		AccountID:     args.AccountID,
 		Balance:       args.Balance,
-		Period:        fmt.Sprintf("%s -%s", periodStart.Format(time.RFC1123)[4:16], periodStart.AddDate(0, 1, 0).Format(time.RFC1123)[4:16]),
+		Period:        args.Period,
 		StatementDate: args.BalanceDate,
 	})
 	if err != nil {
