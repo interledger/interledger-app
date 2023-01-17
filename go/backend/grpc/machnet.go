@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"go.temporal.io/api/enums/v1"
 
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
@@ -266,7 +268,7 @@ func (s *rpcService) StartWithdrawFromMachnetWallet(
 		return nil, toGRPCError(errors.New("Machnet wallet not found."))
 	}
 
-	_, err = s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
+	await, err := s.b.Machnet().WithdrawFromWallet(ctx, machnet.WithdrawFromWalletArgs{
 		IdempotencyKey:        req.IdempotencyKey,
 		WalletID:              wallet.ID,
 		Amount:                req.GetAmount(),
@@ -274,6 +276,11 @@ func (s *rpcService) StartWithdrawFromMachnetWallet(
 		ToLinkedAccountID:     req.GetToLinkedAccountId(),
 		IpAddress:             req.GetIpAddress(),
 	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = await(ctx, nil)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -336,15 +343,19 @@ func (s *rpcService) StartMachnetWalletTopup(
 		return nil, toGRPCError(errors.New("Machnet wallet not found."))
 	}
 
-	_, err = s.b.Machnet().StartWalletTopup(ctx, machnet.StartWalletTopupArgs{
+	await, err := s.b.Machnet().StartWalletTopup(ctx, machnet.StartWalletTopupArgs{
 		IdempotencyKey:        req.IdempotencyKey,
 		WalletID:              wallet.ID,
-		Amount:                req.GetAmount(),
+		Amount:                currency.FromUInt64(req.GetAmount(), currency.ParseCurrency(req.GetCurrency())),
 		WalletLinkedAccountID: linkedWallet.ID,
 		FromLinkedAccountID:   fromLinkedAcc.ID,
 		IpAddress:             req.GetIpAddress(),
-		Currency:              req.GetCurrency(),
 	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = await(ctx, nil)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

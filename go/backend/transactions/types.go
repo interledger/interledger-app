@@ -41,7 +41,7 @@ const (
 
 type CreateTransactionArgs struct {
 	WalletID    string          `validate:"uuid"` // Fynbos wallet ID
-	ForeignID   string          `validate:"uuid"`
+	ForeignID   string          `validate:"omitempty,uuid"`
 	ForeignType TransactionType `validate:"required"`
 	Provider    Provider        `validate:"required"`
 	State       State           `validate:"required"`
@@ -60,14 +60,17 @@ type UpdateTransactionArgs struct {
 	UpdateTransfers []TransferArgs `validate:"omitempty,dive"`
 }
 
+type UpdateForeignIDArgs struct {
+	OldForeignID string `validate:"uuid"`
+	NewForeignID string `validate:"uuid"`
+}
+
 type TransferArgs struct {
-	WalletID             string       `validate:"omitempty,uuid"` // Fynbos wallet ID
-	TransactionForeignID string       `validate:"omitempty,uuid"`
-	LinkedAccountID      string       `validate:"omitempty,uuid"`
-	ForeignID            string       `validate:"uuid"`
-	Type                 TransferType `validate:"required"`
-	Amount               currency.Amount
-	State                State `validate:"required"`
+	LinkedAccountID string       `validate:"omitempty,uuid"`
+	ForeignID       string       `validate:"omitempty,uuid"`
+	Type            TransferType `validate:"required"`
+	Amount          currency.Amount
+	State           State `validate:"required"`
 }
 
 // Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.
@@ -88,6 +91,7 @@ type Transaction struct {
 
 // Transfer is the underlying transfers that make up a single Transactions
 type Transfer struct {
+	ID              string
 	LinkedAccountID string
 	ForeignID       string
 	Type            TransferType

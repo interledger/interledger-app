@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/api/serviceerror"
 
@@ -406,7 +408,9 @@ func TestWithdrawFromMachnetWallet(t *testing.T) {
 			Amount:                1000,
 			ToLinkedAccountID:     toLinkedAccountID,
 			IpAddress:             "10.10.10.10",
-		}).Return(nil, nil).Times(1)
+		}).Return(func(ctx context.Context, in interface{}) error {
+			return nil
+		}, nil).Times(1)
 
 		_, err = client.StartWithdrawFromMachnetWallet(
 			user_mock.ActingAsContext(st, context.Background(), user),
@@ -482,11 +486,12 @@ func TestStartMachnetWalletTopup(t *testing.T) {
 		c.machnet.EXPECT().StartWalletTopup(gomock.Any(), machnet.StartWalletTopupArgs{
 			WalletID:              wallet.ID,
 			FromLinkedAccountID:   fromLinkedAccountID,
-			Amount:                1000,
+			Amount:                currency.FromFloat64(10, currency.ParseCurrency("USD")),
 			WalletLinkedAccountID: walletLinkedAccountID,
 			IpAddress:             "10.10.10.10",
-			Currency:              "USD",
-		}).Return(nil, nil)
+		}).Return(func(ctx context.Context, in interface{}) error {
+			return nil
+		}, nil)
 
 		_, err = client.StartMachnetWalletTopup(
 			user_mock.ActingAsContext(st, context.Background(), user),

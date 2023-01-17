@@ -7,6 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/transactions"
+	trx_client "gitlab.com/fynbos/backend/transactions/client"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -246,8 +250,7 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	toEnc, err := env.ExecuteActivity(a.GetOrCreateReceiveUser, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
 		FromLinkedAccountID: fromLinkedAccID,
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.USD),
 	})
 	require.NoError(t, err)
 
@@ -336,8 +339,7 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 
 	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		FromLinkedAccountID: linkedAccID,
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.USD),
 	}, TransactionTo{
 		ReceiveUserID: uuid.NewString(),
 		ReceiveFundID: uuid.NewString(),
@@ -421,8 +423,7 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
 		ToLinkedAccountID:   toLinkedAccID,
 		FromLinkedAccountID: fromLinkedAccID,
-		Amount:              200,
-		Currency:            "USD",
+		Amount:              currency.FromFloat64(200, currency.USD),
 	}, TransactionTo{
 		ReceiveUserID: uuid.NewString(),
 		ReceiveFundID: uuid.NewString(),
@@ -451,6 +452,7 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+	b.tx = trx_client.New(b)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
@@ -459,8 +461,6 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 
 	fromLinkedAccID := uuid.NewString()
 	fromUserID := uuid.NewString()
-	toLinkedAccID := uuid.NewString()
-
 	// Create Signup
 	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), fromUserID)
 	require.NoError(t, err)
@@ -486,6 +486,22 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	trxID, err := b.tx.CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:    fromWallet.ID,
+		ForeignType: transactions.TransactionTypeMachnetWalletTopUp,
+		Provider:    transactions.ProviderMachnet,
+		State:       transactions.StatePending,
+		Amount: currency.Amount{
+			Value:    100,
+			Currency: currency.USD,
+			Scale:    2,
+		},
+		Transfers: nil,
+	})
+	require.NoError(t, err)
+	trx, err := b.tx.GetTransaction(ctx, fromWallet.ID, trxID)
+	require.NoError(t, err)
+
 	b.linked.EXPECT().Get(gomock.Any(), fromLinkedAccID).Return(&linkedaccounts.LinkedAccount{
 		ID:         fromLinkedAccID,
 		WalletID:   fromWallet.ID,
@@ -506,14 +522,15 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	}, nil).AnyTimes()
 
 	trxIDEnc, err := env.ExecuteActivity(a.FundUserWalletFromCard, FundWalletArgs{
-		CreateTransactionArgs: machnet.CreateTransactionArgs{
-			ToLinkedAccountID:   toLinkedAccID,
+		ExecuteTopupArgs: ExecuteTopupArgs{
+			TransactionID:       trx.ID,
+			UpdateTransaction:   true,
+			Amount:              currency.FromFloat64(20, currency.USD),
 			FromLinkedAccountID: fromLinkedAccID,
-			Amount:              20,
-			Currency:            "USD",
 			IPAddress:           "197.0.2.8",
 		},
-		WorkflowID: "",
+		WorkflowID:  "",
+		Transaction: *trx,
 	})
 	require.NoError(t, err)
 	var fundResp FundWalletResponse
@@ -533,14 +550,15 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	_ = b.db.MustExec("INSERT INTO machnet_transactions_workflow_ref (id, send_user_id, workflow_id, workflow_run_id, activity_name) VALUES ($1, $2, $3, $4, $5)", uuid.NewString(), externalMachnetUser.ID, workflowID, uuid.NewString(), "FundUserWalletFromCard")
 
 	trxIDEnc, err = env.ExecuteActivity(a.FundUserWalletFromCard, FundWalletArgs{
-		CreateTransactionArgs: machnet.CreateTransactionArgs{
-			ToLinkedAccountID:   toLinkedAccID,
+		ExecuteTopupArgs: ExecuteTopupArgs{
+			TransactionID:       trx.ID,
+			UpdateTransaction:   true,
+			Amount:              currency.FromFloat64(20, currency.USD),
 			FromLinkedAccountID: fromLinkedAccID,
-			Amount:              20,
-			Currency:            "USD",
 			IPAddress:           "197.0.2.8",
 		},
-		WorkflowID: workflowID,
+		WorkflowID:  workflowID,
+		Transaction: *trx,
 	})
 	require.NoError(t, err)
 	err = trxIDEnc.Get(&fundResp)
@@ -574,6 +592,7 @@ func TestStripEmailPlus(t *testing.T) {
 	}
 }
 
+// TODO: This test current fails with insufficient balance but passes
 func TestActivity_WithdrawFromWallet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -588,6 +607,7 @@ func TestActivity_WithdrawFromWallet(t *testing.T) {
 		machnet: mockMachnet,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+	b.tx = trx_client.New(b)
 
 	userID := uuid.NewString()
 	// Create Signup
@@ -630,6 +650,21 @@ func TestActivity_WithdrawFromWallet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	trxID, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:    wallet.ID,
+		ForeignType: transactions.TransactionTypeMachnetWalletWithdrawal,
+		Provider:    transactions.ProviderMachnet,
+		State:       transactions.StatePending,
+		Amount: currency.Amount{
+			Value:    1000,
+			Currency: currency.USD,
+			Scale:    2,
+		},
+		Transfers: nil,
+	})
+	require.NoError(t, err)
+	trx, err := b.Transactions().GetTransaction(ctx, wallet.ID, trxID)
+	require.NoError(t, err)
 
 	walletLinkedAccountID, toLinkedAccountID := uuid.NewString(), uuid.NewString()
 	b.linked.EXPECT().Get(gomock.Any(), walletLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
@@ -648,7 +683,7 @@ func TestActivity_WithdrawFromWallet(t *testing.T) {
 		Type:       machnet.TypeReceiveBankAccount,
 	}, nil).Times(1)
 
-	_, err = env.ExecuteActivity(a.WithdrawFromWallet, machnet.WithdrawFromWalletArgs{
+	_, err = env.ExecuteActivity(a.WithdrawFromWallet, *trx, machnet.WithdrawFromWalletArgs{
 		Amount:                1000,
 		WalletID:              wallet.ID,
 		WalletLinkedAccountID: walletLinkedAccountID,
