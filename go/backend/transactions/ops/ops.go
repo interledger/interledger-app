@@ -248,7 +248,7 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 		}
 		resp[i] = transactions.Transaction{
 			ID:          t.ID,
-			ForeignID:   t.ForeignID,
+			ForeignID:   t.ForeignID.String,
 			Source:      t.Source.String,
 			Destination: t.Destination.String,
 			Type:        t.Type,
