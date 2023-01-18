@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -17,7 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transactions.CreateTransactionArgs) (string, error) {
+func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Client, args transactions.CreateTransactionArgs) (string, error) {
 	transID := uuid.NewString()
 	is := db.NewInsert("transactions").
 		Value("id", transID).
@@ -58,6 +61,11 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, args transac
 		}
 	}
 
+	err = nc.NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Error("notify error", zap.Error(err))
+	}
+
 	return transID, nil
 }
 
@@ -67,7 +75,7 @@ func CreateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args tran
 		return "", fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	return createTransaction(ctx, tx, args)
+	return createTransaction(ctx, tx, b.Notify(), args)
 }
 
 func CreateTransaction(ctx context.Context, b Backends, args transactions.CreateTransactionArgs) (string, error) {
@@ -78,7 +86,7 @@ func CreateTransaction(ctx context.Context, b Backends, args transactions.Create
 
 	var trxID = ""
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		id, err := createTransaction(ctx, tx, args)
+		id, err := createTransaction(ctx, tx, b.Notify(), args)
 		trxID = id
 		return err
 	})
@@ -403,10 +411,16 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 }
 
 func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreignID string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET foreign_id=$1, updated_at=now() WHERE id=$2",
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "UPDATE transactions SET foreign_id=$1, updated_at=now() WHERE id=$2 returning wallet_id",
 		foreignID, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Error("error sending notification", zap.Error(err))
 	}
 
 	return nil
@@ -423,20 +437,31 @@ func SetTransferForeignID(ctx context.Context, b Backends, ID string, foreignID 
 }
 
 func SetTransactionState(ctx context.Context, b Backends, ID string, state transactions.State) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2",
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2 returning wallet_id",
 		state, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Error("error sending notification", zap.Error(err))
+	}
 	return nil
 }
 
 func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID string, state transactions.State) error {
-	_, err := tx.ExecContext(ctx, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2",
+	var walletID string
+	err := tx.GetContext(ctx, &walletID, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2 returning wallet_id",
 		state, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Error("error sending notification", zap.Error(err))
 	}
 
 	return nil
@@ -453,10 +478,16 @@ func SetTransferState(ctx context.Context, b Backends, ID string, state transact
 }
 
 func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID string, amount currency.Amount) error {
-	_, err := tx.ExecContext(ctx, "UPDATE transactions SET amount=$1, asset_code=$2, asset_scale=$3, updated_at=now() WHERE id=$4",
+	var walletID string
+	err := tx.GetContext(ctx, &walletID, "UPDATE transactions SET amount=$1, asset_code=$2, asset_scale=$3, updated_at=now() WHERE id=$4 returning wallet_id",
 		amount.Value, amount.Currency.String(), amount.Scale, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Error("error sending notification", zap.Error(err))
 	}
 
 	return nil

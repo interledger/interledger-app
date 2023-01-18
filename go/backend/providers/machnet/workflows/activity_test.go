@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"reflect"
 	"strings"
 	"testing"
@@ -276,12 +277,15 @@ func TestActivity_CreateExternalTransaction(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
+	mockNotify := notify_client.NewMockClient(ctrl)
+	mockNotify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	b := testBackends{
 		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		users:   user_mock.NewMock(),
 		machnet: mockMachnet,
+		notify:  mockNotify,
 	}
 
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -357,11 +361,14 @@ func TestActivity_CreateUserFundingsource(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
+	mockNotify := notify_client.NewMockClient(ctrl)
+	mockNotify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	b := testBackends{
 		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
+		notify:  mockNotify,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -445,11 +452,14 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 	machnetExt := machnet_external_inmem.New()
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnetExt).AnyTimes()
+	mockNotify := notify_client.NewMockClient(ctrl)
+	mockNotify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	b := testBackends{
 		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
+		notify:  mockNotify,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 	b.tx = trx_client.New(b)
@@ -600,11 +610,14 @@ func TestActivity_WithdrawFromWallet(t *testing.T) {
 	machnetExt := machnet_external_inmem.New()
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnetExt).AnyTimes()
+	mockNotify := notify_client.NewMockClient(ctrl)
+	mockNotify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any())
 	b := testBackends{
 		db:      db.MigrateTestDB(t, context.Background()),
 		kycImpl: kyc_mock.NewMockClient(ctrl),
 		linked:  linkedaccounts_mock.NewMockClient(ctrl),
 		machnet: mockMachnet,
+		notify:  mockNotify,
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 	b.tx = trx_client.New(b)
