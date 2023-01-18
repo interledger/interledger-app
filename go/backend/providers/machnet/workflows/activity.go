@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -750,6 +751,32 @@ func (a *Activity) DeleteLinkedAccount(ctx context.Context, linkedAccID string) 
 
 	// Deleting is idempotent
 	return a.b.LinkedAccounts().Delete(ctx, linkedAccID)
+}
+
+func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID string, trxType transactions.TransactionType) error {
+	logger := activity.GetLogger(ctx)
+	logger.Info("SendMailTemplate", "walletID", walletID, "trxType", trxType)
+
+	user, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
+	if errors.Is(err, external.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("kyc details for wallet (%s) not found", walletID), "ErrNotFound", err)
+	}
+
+	trxTypeName := ""
+	switch trxType {
+	case transactions.TransactionTypeMachnetWalletTopUp:
+		trxTypeName = "top up"
+	default:
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid transaction type (%s) for failed transaction", trxType), "ErrInternal", err)
+	}
+
+	personalisations := map[string]interface{}{
+		"name":            user.FirstName,
+		"transactionType": trxType,
+		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), trxTypeName),
+	}
+
+	return a.b.Mail().SendMailTemplate(ctx, walletID, email.FailedTransactionTemplateID, personalisations, []email.Attachment{})
 }
 
 // StripEmailPlus Parse email to remove + due to Machnet not able to handle

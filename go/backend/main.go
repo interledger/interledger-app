@@ -407,6 +407,7 @@ type backends struct {
 	countries      country.Client
 	linkedaccounts linkedaccounts.Client
 	machnet        machnet.Client
+	mail           email.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
 	supportTickets supporttickets.Client
@@ -500,4 +501,8 @@ func (b backends) Notify() notify.Client {
 
 func (b backends) Statements() statements.Client {
 	return b.statements
+}
+
+func (b backends) Mail() email.Client {
+	return b.mail
 }

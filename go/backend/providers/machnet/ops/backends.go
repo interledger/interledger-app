@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -17,6 +18,7 @@ type Backends interface {
 	KYC() kyc.Client
 	External() external.Client
 	LinkedAccounts() linkedaccounts.Client
+	Mail() email.Client
 	Statements() statements.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
