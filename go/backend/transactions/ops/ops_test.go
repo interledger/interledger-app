@@ -279,7 +279,7 @@ func TestListTransaction(t *testing.T) {
 			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			txs, err := ops.ListTransactions(ctx, b, wallet.ID, db.Pagination{})
+			txs, err := ops.ListWithPending(ctx, b, wallet.ID, db.Pagination{})
 			require.NoError(t, err)
 			require.Len(t, txs, tc.len)
 

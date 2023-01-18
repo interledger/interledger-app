@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/db"
@@ -63,8 +64,16 @@ func (c *client) SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID str
 	return ops.SetTransactionAmountTx(ctx, c.b, tx, ID, amount)
 }
 
-func (c *client) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
-	return ops.ListTransactions(ctx, c.b, walletID, page)
+func (c *client) List(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	return ops.List(ctx, c.b, walletID, page)
+}
+
+func (c *client) ListCompleted(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	return ops.ListCompleted(ctx, c.b, walletID, page)
+}
+
+func (c *client) ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	return ops.ListWithPending(ctx, c.b, walletID, page)
 }
 
 func (c *client) ListTransactionsInRange(ctx context.Context, walletID string, inRange transactions.TransactionRangeFilter) ([]transactions.Transaction, error) {

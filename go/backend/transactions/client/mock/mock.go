@@ -126,19 +126,49 @@ func (mr *MockClientMockRecorder) GetTransactionByForeignID(ctx, walletID, forei
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionByForeignID", reflect.TypeOf((*MockClient)(nil).GetTransactionByForeignID), ctx, walletID, foreignID)
 }
 
-// ListTransactions mocks base method.
-func (m *MockClient) ListTransactions(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+// List mocks base method.
+func (m *MockClient) List(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTransactions", ctx, page, walletID)
+	ret := m.ctrl.Call(m, "List", ctx, page, walletID)
 	ret0, _ := ret[0].([]transactions.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListTransactions indicates an expected call of ListTransactions.
-func (mr *MockClientMockRecorder) ListTransactions(ctx, page, walletID interface{}) *gomock.Call {
+// List indicates an expected call of List.
+func (mr *MockClientMockRecorder) List(ctx, page, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactions", reflect.TypeOf((*MockClient)(nil).ListTransactions), ctx, page, walletID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, page, walletID)
+}
+
+// ListCompleted mocks base method.
+func (m *MockClient) ListCompleted(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCompleted", ctx, page, walletID)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListCompleted indicates an expected call of ListCompleted.
+func (mr *MockClientMockRecorder) ListCompleted(ctx, page, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCompleted", reflect.TypeOf((*MockClient)(nil).ListCompleted), ctx, page, walletID)
+}
+
+// ListWithPending mocks base method.
+func (m *MockClient) ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListWithPending", ctx, page, walletID)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListWithPending indicates an expected call of ListWithPending.
+func (mr *MockClientMockRecorder) ListWithPending(ctx, page, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithPending", reflect.TypeOf((*MockClient)(nil).ListWithPending), ctx, page, walletID)
 }
 
 // ListTransactionsInRange mocks base method.

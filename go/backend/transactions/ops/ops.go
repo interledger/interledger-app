@@ -179,11 +179,35 @@ type dbTransaction struct {
 	Timestamp   time.Time                    `db:"updated_at"`
 }
 
-func ListTransactions(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
+func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
+
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 ORDER BY updated_at DESC %s"
+	sqlArgs := []interface{}{walletID}
+
+	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
+}
+
+func ListCompleted(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
+
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and state=$2 ORDER BY updated_at DESC %s"
+	sqlArgs := []interface{}{walletID, transactions.StateCompleted}
+
+	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
+}
+
+func ListWithPending(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
+
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2,$3) or (state=$4 and type<>$5)) ORDER BY updated_at DESC %s"
+	sqlArgs := []interface{}{walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming}
+
+	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
+}
+
+func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStmt string, sqlArgs []interface{}) ([]transactions.Transaction, error) {
 	var txs []dbTransaction
 	err := b.DB().SelectContext(ctx, &txs,
-		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2,$3) or (state=$4 and type<>$5)) ORDER BY updated_at DESC %s", transactionCols, page.SQL()),
-		walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming)
+		fmt.Sprintf(sqlStmt, transactionCols, page.SQL()),
+		sqlArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
