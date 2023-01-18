@@ -435,7 +435,7 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		ID:         uuid.NewString(),
 		UserID:     sendWallet.UserID,
 		Amount:     args.Amount.Float64(),
-		Currency:   args.Currency,
+		Currency:   args.Amount.Currency.String(),
 		FromFundID: recvWallet.ID,
 		Status:     external.TransactionProcessed,
 		IPAddress:  args.IPAddress,
