@@ -718,35 +718,6 @@ func (a *Activity) CompleteUserWorkflowRef(ctx context.Context, args CreateUserW
 	return nil
 }
 
-func (a *Activity) DeliverTransaction(ctx context.Context, fromLinkedAccID, transactionID string) error {
-	logger := activity.GetLogger(ctx)
-	logger.Info("DeliverTransaction_Activity", "from", fromLinkedAccID, "transactions_id", transactionID)
-
-	la, err := getLinkedAccount(ctx, a.b, fromLinkedAccID)
-	if err != nil {
-		return err
-	}
-
-	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletID)
-	if errors.Is(err, machnet.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user id (%s) not found", la.WalletID), "ErrNotFound", err)
-	}
-	if err != nil {
-		return err
-	}
-
-	err = a.b.External().UpdateDeliveryRequest(ctx, external.DeliveryRequest{
-		Status:        external.DeliveryStatusRequested,
-		TransactionID: transactionID,
-		UserID:        mu.ID,
-	})
-	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
-	}
-
-	return err
-}
-
 func (a *Activity) DeleteUserFundSource(ctx context.Context, linkedAccID string) error {
 	logger := activity.GetLogger(ctx)
 	logger.Info("DeleteUserFundSource", "linkedAccID", linkedAccID)

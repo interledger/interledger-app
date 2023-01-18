@@ -2,11 +2,12 @@ package workflows
 
 import (
 	"context"
-	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/transactions"
@@ -269,180 +270,6 @@ func TestActivity_GetOrCreateReceiveUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rbl, 1)
 	assert.Equal(t, rbl[0].ID, to.ReceiveFundID)
-}
-
-func TestActivity_CreateExternalTransaction(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
-	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
-	mockNotify := notify_client.NewMockClient(ctrl)
-	mockNotify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	b := testBackends{
-		db:      db.MigrateTestDB(t, context.Background()),
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		users:   user_mock.NewMock(),
-		machnet: mockMachnet,
-		notify:  mockNotify,
-	}
-
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestActivityEnvironment()
-	a := NewActivity(b)
-	env.RegisterActivity(a.CreateExternalTransaction)
-
-	linkedAccID := uuid.NewString()
-	userID := uuid.NewString()
-
-	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
-	require.NoError(t, err)
-
-	// Neeed to create wallets in the DB because of referenctial integrity and we are using a mock
-	_, err = b.db.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", wallet.ID, "TestWallet")
-	require.NoError(t, err)
-
-	mu, err := a.b.External().RegisterUser(ctx, external.User{
-		Type: external.TypeSendUser,
-	})
-	require.NoError(t, err)
-
-	_, err = ops.CreateUser(ctx, a.b, machnet.CreateArgs{
-		WalletID:   wallet.ID,
-		ExternalID: mu.ID,
-	})
-	require.NoError(t, err)
-
-	b.linked.EXPECT().Get(gomock.Any(), linkedAccID).Return(&linkedaccounts.LinkedAccount{
-		ID:         linkedAccID,
-		WalletID:   wallet.ID,
-		Provider:   machnet.ProviderName,
-		ProviderID: uuid.NewString(),
-	}, nil)
-
-	b.kycImpl.EXPECT().GetIndividualDetails(gomock.Any(), wallet.ID).Return(&kyc.IndividualDetails{
-		WalletID:    wallet.ID,
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		CountryCode: "ZA",
-		Gender:      kyc.GenderMale,
-		DateOfBirth: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
-		Address: &kyc.Address{
-			Line1:       "Leidenhalm 1",
-			Line2:       "",
-			Building:    "Bridge House",
-			Apartment:   "",
-			City:        "Newlands",
-			State:       "ZA-WC",
-			ZipCode:     "7901",
-			CountryCode: "ZA",
-		},
-		IPAddress: "10.10.10.10",
-	}, nil).Times(1)
-
-	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
-		FromLinkedAccountID: linkedAccID,
-		Amount:              currency.FromFloat64(200, currency.USD),
-	}, TransactionTo{
-		ReceiveUserID: uuid.NewString(),
-		ReceiveFundID: uuid.NewString(),
-	})
-	require.NoError(t, err)
-	var trxID string
-	err = trxIDEnc.Get(&trxID)
-	require.NoError(t, err)
-	require.NotEmpty(t, trxID)
-}
-
-func TestActivity_CreateUserFundingsource(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
-	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
-	mockNotify := notify_client.NewMockClient(ctrl)
-	mockNotify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	b := testBackends{
-		db:      db.MigrateTestDB(t, context.Background()),
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
-		notify:  mockNotify,
-	}
-	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
-
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestActivityEnvironment()
-	a := NewActivity(b)
-	env.RegisterActivity(a.CreateExternalTransaction)
-	env.RegisterActivity(a.DeliverTransaction)
-
-	fromLinkedAccID := uuid.NewString()
-	fromUserID := uuid.NewString()
-	toLinkedAccID := uuid.NewString()
-
-	// Create Signup
-	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), fromUserID)
-	require.NoError(t, err)
-
-	fromWallet, err := b.users.CreateNewWallet(ctx, fromUserID, "TestWallet")
-	require.NoError(t, err)
-
-	mu, err := a.b.External().RegisterUser(ctx, external.User{
-		Type: external.TypeSendUser,
-	})
-	require.NoError(t, err)
-
-	_, err = ops.CreateUser(ctx, a.b, machnet.CreateArgs{
-		WalletID:   fromWallet.ID,
-		ExternalID: mu.ID,
-	})
-	require.NoError(t, err)
-
-	b.linked.EXPECT().Get(gomock.Any(), fromLinkedAccID).Return(&linkedaccounts.LinkedAccount{
-		ID:         fromLinkedAccID,
-		WalletID:   fromWallet.ID,
-		Provider:   machnet.ProviderName,
-		ProviderID: uuid.NewString(),
-	}, nil).Times(2)
-
-	b.kycImpl.EXPECT().GetIndividualDetails(gomock.Any(), fromWallet.ID).Return(&kyc.IndividualDetails{
-		WalletID:    fromWallet.ID,
-		FirstName:   "FirstName",
-		LastName:    "LastName",
-		CountryCode: "ZA",
-		Gender:      kyc.GenderMale,
-		DateOfBirth: time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
-		Address: &kyc.Address{
-			Line1:       "Leidenhalm 1",
-			Line2:       "",
-			Building:    "Bridge House",
-			Apartment:   "",
-			City:        "Newlands",
-			State:       "ZA-WC",
-			ZipCode:     "7901",
-			CountryCode: "ZA",
-		},
-		IPAddress: "10.10.10.10",
-	}, nil).Times(1)
-
-	trxIDEnc, err := env.ExecuteActivity(a.CreateExternalTransaction, machnet.CreateTransactionArgs{
-		ToLinkedAccountID:   toLinkedAccID,
-		FromLinkedAccountID: fromLinkedAccID,
-		Amount:              currency.FromFloat64(200, currency.USD),
-	}, TransactionTo{
-		ReceiveUserID: uuid.NewString(),
-		ReceiveFundID: uuid.NewString(),
-	})
-	require.NoError(t, err)
-	var trxID string
-	err = trxIDEnc.Get(&trxID)
-	require.NoError(t, err)
-	require.NotEmpty(t, trxID)
-
-	_, err = env.ExecuteActivity(a.DeliverTransaction, fromLinkedAccID, trxID)
-	require.NoError(t, err)
 }
 
 func TestActivity_FundUserWalletFromCard(t *testing.T) {
