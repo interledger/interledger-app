@@ -19,7 +19,7 @@ func (t TemplateID) Subject() string {
 	if !env.IsProd() {
 		envStr = " [" + env.GetEnv() + "]"
 	}
-	return fmt.Sprintf(sub, envStr)
+	return fmt.Sprintf("%s%s", sub, envStr)
 }
 
 func (t TemplateID) String() string {
@@ -31,6 +31,7 @@ const (
 	ReceivedReceiptTemplateID TemplateID = `d-57a7764bedd8488bb0a65d8f2c79df10`
 	DepositSuccessTemplateID  TemplateID = `d-c945aa33f30a4f238a46498c1dba837a`
 	WithdrawalInitiated       TemplateID = `d-17430f64081a423c86afa15396df9ee4`
+	StatementTemplateID       TemplateID = `d-d1acf02459324ee9aefbeae818354ad5`
 )
 
 var templateSubjects = map[TemplateID]string{
@@ -38,4 +39,11 @@ var templateSubjects = map[TemplateID]string{
 	ReceivedReceiptTemplateID: "You received a payment.",
 	DepositSuccessTemplateID:  "Deposit received.",
 	WithdrawalInitiated:       "You've initiated a withdrawal.",
+	StatementTemplateID:       "Your monthly statement.",
+}
+
+type Attachment struct {
+	Content     []byte
+	ContentType string
+	Name        string
 }

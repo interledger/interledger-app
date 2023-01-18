@@ -6,11 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/statements"
+	"gitlab.com/fynbos/backend/transactions"
 )
 
 const (
@@ -557,6 +561,7 @@ func GetWallet(ctx context.Context, b Backends, id string) (*machnet.Wallet, err
 		Nickname:         wallet.Nickname,
 		AvailableBalance: uint64(externalWallet.Balance.AvailableBalance * float64(100)),
 		Balance:          uint64(externalWallet.Balance.Balance * float64(100)),
+		CreatedAt:        wallet.CreatedAt,
 	}, nil
 }
 
@@ -568,4 +573,216 @@ func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 	}
 
 	return nil
+}
+
+func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]byte, error) {
+	wallet, err := GetWallet(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	machnetUser, err := GetUserByID(ctx, b, wallet.SendUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	userDetails, err := b.KYC().GetIndividualDetails(ctx, machnetUser.WalletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	periodStart, err := time.Parse("2006-01", period)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	trxs, err := b.Transactions().ListTransactionsInRange(
+		ctx,
+		machnetUser.WalletID, // fynbos wallet
+		transactions.TransactionRangeFilter{
+			StartTimestamp: periodStart,
+			EndTimestamp:   periodStart.AddDate(0, 1, -1), // to the end of the month
+		})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var statementRows []statements.TransactionTableRow
+	for _, trx := range trxs {
+		if trx.State != transactions.StateCompleted {
+			continue
+		}
+		statementRows = append(statementRows, mapToStatementRows(trx)...)
+	}
+
+	statementBalance := currency.Amount{
+		Value:    wallet.AvailableBalance,
+		Currency: "USD",
+	}
+	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, statements.GenerateWalletStatementArgs{
+		Name:         fmt.Sprintf("%s %s", userDetails.FirstName, userDetails.LastName),
+		Period:       fmt.Sprintf("%s-%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, -1).Format("02 Jan 2006")),
+		BalanceDate:  time.Now().Format("02 Jan 2006"),
+		Balance:      statementBalance.Format(),
+		Transactions: statementRows,
+		AccountID:    wallet.ID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return pdf, nil
+}
+
+func mapToStatementRows(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	switch trx.Type {
+	case transactions.TransactionTypeMachnetWalletWithdrawal:
+		ret = append(ret, mapWalletWithdrawalToStatementRow(trx)...)
+	case transactions.TransactionTypeMachnetWalletTopUp:
+		ret = append(ret, mapWalletTopupToStatementRow(trx)...)
+	case transactions.TransactionTypeOpenOutgoingPayment:
+		ret = append(ret, mapOutgoingPaymentToStatementRow(trx)...)
+	case transactions.TransactionTypeOpenPaymentIncoming:
+		ret = append(ret, mapIncomingPaymentToStatementRow(trx)...)
+	}
+
+	return ret
+}
+
+func mapIncomingPaymentToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeCreditMachnetWallet:
+			description = fmt.Sprintf("Payment from %s", trx.Source)
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      transfer.Amount.Format(),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func mapOutgoingPaymentToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeDebitMachnetWallet:
+			description = fmt.Sprintf("Payment to %s", trx.Destination)
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      fmt.Sprintf("-%s", transfer.Amount.Format()),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func mapWalletTopupToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeCreditMachnetWallet:
+			description = "Payment to cash balance"
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      transfer.Amount.Format(),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func mapWalletWithdrawalToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeDebitMachnetWallet:
+			description = "Withdrawal from cash balance"
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      fmt.Sprintf("-%s", transfer.Amount.Format()),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func ListStatementPeriods(ctx context.Context, b Backends, page db.Pagination, walletID string) ([]string, error) {
+	wallet, err := GetWallet(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	start, err := time.Parse(time.RFC3339, wallet.CreatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	years := now.Year() - start.Year()
+	if (now.Month() - start.Month()) < 0 {
+		years--
+	}
+	months := int(0)
+	if now.Month() == start.Month() {
+		months = 1
+	} else {
+		months += 12 - int(start.Month())
+		months += int(now.Month())
+	}
+	numPeriods := years*12 + months
+
+	if numPeriods < 1 {
+		return nil, fmt.Errorf("%w Got less than 1 statement period start=%s now=%s", machnet.ErrInternal, start, now)
+	}
+
+	pageStart := page.Page * page.PageSize
+	if pageStart > numPeriods {
+		return nil, nil
+	}
+
+	pageEnd := (page.Page + 1) * page.PageSize
+	if pageEnd > numPeriods {
+		pageEnd = numPeriods
+	}
+
+	// TODO: optimize
+	periods := make([]string, numPeriods)
+	for i := range periods {
+		periods[i] = start.Format("2006-01")
+		start = start.AddDate(0, 1, 0)
+	}
+
+	return periods[pageStart:pageEnd], nil
 }

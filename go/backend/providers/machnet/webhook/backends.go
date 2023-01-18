@@ -5,6 +5,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
+	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
@@ -15,6 +16,7 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	Statements() statements.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
 }
