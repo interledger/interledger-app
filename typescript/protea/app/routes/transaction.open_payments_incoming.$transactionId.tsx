@@ -1,7 +1,14 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { AnchorRouter, Chip, ChipColor, Icon, Layouts } from '~/components'
+import {
+  AnchorRouter,
+  Card,
+  Chip,
+  ChipColor,
+  Icon,
+  Layouts
+} from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import { getTransaction } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
@@ -70,56 +77,68 @@ export default function Page() {
 
   return (
     <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium capitalize'>
             Received
           </span>
-          {transaction.status != 'Pending' && (
+        </div>
+        <Card.Item className='mt-6' variant='col'>
+          <span className='text-sm'>From</span>
+          <span className='text-sm text-strong'>{paymentPointer}</span>
+        </Card.Item>
+        {beneficiaryName != '' && (
+          <Card.Item className='mt-6' variant='col'>
+            <span className='text-sm'>Sender name</span>
+            <span className='text-sm text-strong'>{beneficiaryName}</span>
+          </Card.Item>
+        )}
+        <Card.Item className='mt-6'>
+          <span className='text-sm'>They sent</span>
+          <span className='text-sm font-medium text-strong'>
+            {transaction.subTotal || '$ 0.00'}
+          </span>
+        </Card.Item>
+        <Card.Item className='mt-2'>
+          <span className='text-sm'>Total fees</span>
+          <span className='text-sm font-medium text-strong'>
+            {transaction.fees || '$ 0.00'}
+          </span>
+        </Card.Item>
+        <Card.Item className='mt-2'>
+          <span className='text-sm'>You received</span>
+          <span className='text-sm text-2xl font-medium text-strong'>
+            {transaction.total || '$ 0.00'}
+          </span>
+        </Card.Item>
+      </Card>
+      <Card className='mt-6'>
+        <Card.Item>
+          <span className='text-sm text-medium'>Payment date</span>
+          <span className='text-sm text-strong'>
+            {transaction.date || 'Pending'}
+          </span>
+        </Card.Item>
+        <Card.Item className='mt-4 items-center'>
+          <span className='text-sm text-medium'>Status</span>
+          {transaction.status == 'Completed' && (
             <Chip color={ChipColor.green}>Complete</Chip>
           )}
           {transaction.status == 'Pending' && (
             <Chip color={ChipColor.yellow}>Pending</Chip>
           )}
-        </div>
-        <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>From</span>
-          <span className='text-sm text-strong'>{paymentPointer}</span>
-        </div>
-        {beneficiaryName != '' && (
-          <div className='mt-6 flex w-full flex-col space-y-1'>
-            <span className='text-sm'>Sender name</span>
-            <span className='text-sm text-strong'>{beneficiaryName}</span>
-          </div>
-        )}
-        <div className='mt-6 flex w-full justify-between'>
-          <span className='text-sm'>They sent</span>
-          <span className='text-sm font-medium text-strong'>
-            {transaction.subTotal || '$ 0.00'}
-          </span>
-        </div>
-        <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>Total fees</span>
-          <span className='text-sm font-medium text-strong'>
-            {transaction.fees || '$ 0.00'}
-          </span>
-        </div>
-        <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>You received</span>
-          <span className='text-sm text-2xl font-medium text-strong'>
-            {transaction.total || '$ 0.00'}
-          </span>
-        </div>
-        <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>Payment date</span>
-          <span className='text-sm text-strong'>{transaction.date}</span>
-        </div>
-        <div className='mt-6 flex w-full flex-col space-y-1'>
-          <span className='text-sm'>Transaction ID</span>
+          {transaction.status == 'Failed' && (
+            <Chip color={ChipColor.orange}>Failed</Chip>
+          )}
+        </Card.Item>
+      </Card>
+      <Card className='mt-6'>
+        <Card.Item variant='col'>
+          <span className='text-sm text-medium'>Transaction ID</span>
           <span className='text-sm text-strong'>{transaction.id}</span>
-        </div>
-      </div>
-      <div className='mt-6 flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+        </Card.Item>
+      </Card>
+      <Card className='mt-6'>
         <h2 className='font-display font-medium text-strong'>Support</h2>
         <span className='mt-4 text-sm'>
           If you have any questions, issues, or complaints, please first contact
@@ -176,7 +195,7 @@ export default function Page() {
           </AnchorRouter>
           .
         </span>
-      </div>
+      </Card>
     </>
   )
 }
