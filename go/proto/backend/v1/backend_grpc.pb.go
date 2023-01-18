@@ -544,6 +544,9 @@ type BackendServiceClient interface {
 	//Transactions
 	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
+	//Statements
+	ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error)
+	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
 }
 
 type backendServiceClient struct {
@@ -851,6 +854,24 @@ func (c *backendServiceClient) LookupTransaction(ctx context.Context, in *Lookup
 	return out, nil
 }
 
+func (c *backendServiceClient) ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error) {
+	out := new(ListStatementsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListStatements", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error) {
+	out := new(StatementPDF)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -895,6 +916,9 @@ type BackendServiceServer interface {
 	//Transactions
 	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
+	//Statements
+	ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error)
+	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -999,6 +1023,12 @@ func (UnimplementedBackendServiceServer) ListTransactions(context.Context, *Pagi
 }
 func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupTransaction not implemented")
+}
+func (UnimplementedBackendServiceServer) ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStatements not implemented")
+}
+func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1606,6 +1636,42 @@ func _BackendService_LookupTransaction_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListStatements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListStatements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListStatements",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListStatements(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatementPDFRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetStatementPDF(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetStatementPDF",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetStatementPDF(ctx, req.(*GetStatementPDFRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1744,6 +1810,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LookupTransaction",
 			Handler:    _BackendService_LookupTransaction_Handler,
+		},
+		{
+			MethodName: "ListStatements",
+			Handler:    _BackendService_ListStatements_Handler,
+		},
+		{
+			MethodName: "GetStatementPDF",
+			Handler:    _BackendService_GetStatementPDF_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -16,9 +16,15 @@ service Backend {
   rpc ListWallets(PaginationRequest) returns (ListWalletsResponse);
   rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
   rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
+  rpc EmailWalletStatement(EmailWalletStatementRequest) returns (Empty);
 }
 
 message Empty {}
+
+message EmailWalletStatementRequest {
+  string walletID = 1;
+  string period = 2;
+}
 
 message ListWalletTransactionsRequest {
   string walletID = 1;

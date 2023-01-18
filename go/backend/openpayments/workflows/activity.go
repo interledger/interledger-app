@@ -161,7 +161,7 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID st
 		"note":               op.Description,
 		"toPaymentPointer":   op.ToPaymentPointer,
 		"fromPaymentPointer": op.PaymentPointer,
-	})
+	}, []email.Attachment{})
 
 	return err
 }
@@ -196,7 +196,7 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID st
 		"receiveAmount":      ip.ReceivedAmount.Format(),
 		"note":               ip.Description,
 		"subject":            "Fynbos payment received.",
-	})
+	}, []email.Attachment{})
 
 	return err
 }

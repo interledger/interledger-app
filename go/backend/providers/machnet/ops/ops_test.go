@@ -4,7 +4,10 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
+	"gitlab.com/fynbos/backend/statements"
+	statements_mock "gitlab.com/fynbos/backend/statements/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/golang/mock/gomock"
@@ -394,6 +397,51 @@ func TestCreateAndGetWallet(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestListStatementPeriods(t *testing.T) {
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+
+	externalSendUser, err := b.External().RegisterUser(context.Background(), external.User{
+		ID:   uuid.NewString(),
+		Type: external.TypeSendUser,
+	})
+	require.NoError(t, err)
+
+	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: externalSendUser.ID,
+	})
+	require.NoError(t, err)
+
+	linkedAccountID := uuid.NewString()
+	var externalWalletID string
+	b.linkedaccounts.EXPECT().Create(context.Background(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
+			externalWalletID = args.ProviderID
+			return &linkedaccounts.LinkedAccount{
+				ID:         linkedAccountID,
+				WalletID:   walletID,
+				Name:       args.Name,
+				Mask:       args.Mask,
+				Provider:   args.Provider,
+				ProviderID: args.ProviderID,
+				Type:       args.Type,
+			}, nil
+		},
+	).Times(1)
+
+	_, err = ops.CreateWallet(context.Background(), b, machnet.CreateWalletArgs{
+		Nickname:   "fynesse",
+		SendUserID: sendUser.ID,
+	})
+	require.NoError(t, err)
+
+	periods, err := ops.ListStatementPeriods(context.Background(), b, db.Pagination{Page: 0, PageSize: 10}, externalWalletID)
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{time.Now().Format("2006-01")}, periods)
+}
+
 func NewTestBackends(t *testing.T) backends {
 	ctrl := gomock.NewController(t)
 	return backends{
@@ -410,6 +458,7 @@ type backends struct {
 	linkedaccounts *linkedaccounts_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
+	statements     *statements_mock.MockClient
 	temporal       *mocks.Client
 	transactions   transactions.Client
 }
@@ -440,4 +489,8 @@ func (b backends) Temporal() client.Client {
 
 func (b backends) Transactions() transactions.Client {
 	return b.transactions
+}
+
+func (b backends) Statements() statements.Client {
+	return b.statements
 }

@@ -22,6 +22,7 @@ require (
 	github.com/riandyrn/otelchi v0.4.0
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
+	github.com/signintech/gopdf v0.15.1
 	github.com/smartystreets/smartystreets-go-sdk v1.15.1
 	github.com/stretchr/testify v1.8.1
 	github.com/testcontainers/testcontainers-go v0.12.0
@@ -51,6 +52,7 @@ require (
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
+	github.com/phpdave11/gofpdi v1.0.12 // indirect
 	github.com/vektah/gqlparser/v2 v2.4.5 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opentelemetry.io/contrib v1.0.0 // indirect
