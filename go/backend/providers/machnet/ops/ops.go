@@ -601,7 +601,7 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		machnetUser.WalletID, // fynbos wallet
 		transactions.TransactionRangeFilter{
 			StartTimestamp: periodStart,
-			EndTimestamp:   periodStart.AddDate(0, 1, 0),
+			EndTimestamp:   periodStart.AddDate(0, 1, -1), // to the end of the month
 		})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -621,9 +621,9 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 	}
 	pdf, err := b.Statements().GenerateWalletStatementPDF(ctx, statements.GenerateWalletStatementArgs{
 		Name:         fmt.Sprintf("%s %s", userDetails.FirstName, userDetails.LastName),
-		Period:       fmt.Sprintf("%s-%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, 0).Format("02 Jan 2006")),
+		Period:       fmt.Sprintf("%s-%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, -1).Format("02 Jan 2006")),
 		BalanceDate:  time.Now().Format("02 Jan 2006"),
-		Balance:      statementBalance.FormatAmount(),
+		Balance:      statementBalance.Format(),
 		Transactions: statementRows,
 		AccountID:    wallet.ID,
 	})
@@ -664,7 +664,7 @@ func mapIncomingPaymentToStatementRow(trx transactions.Transaction) []statements
 		ret = append(ret, statements.TransactionTableRow{
 			Date:        transfer.Timestamp.Format("02 Jan 2006"),
 			Description: description,
-			Amount:      transfer.Amount.FormatAmount(),
+			Amount:      transfer.Amount.Format(),
 			RecieptID:   trx.ID,
 		})
 	}
@@ -686,7 +686,7 @@ func mapOutgoingPaymentToStatementRow(trx transactions.Transaction) []statements
 		ret = append(ret, statements.TransactionTableRow{
 			Date:        transfer.Timestamp.Format("02 Jan 2006"),
 			Description: description,
-			Amount:      fmt.Sprintf("-%s", transfer.Amount.FormatAmount()),
+			Amount:      fmt.Sprintf("-%s", transfer.Amount.Format()),
 			RecieptID:   trx.ID,
 		})
 	}
@@ -708,7 +708,7 @@ func mapWalletTopupToStatementRow(trx transactions.Transaction) []statements.Tra
 		ret = append(ret, statements.TransactionTableRow{
 			Date:        transfer.Timestamp.Format("02 Jan 2006"),
 			Description: description,
-			Amount:      transfer.Amount.FormatAmount(),
+			Amount:      transfer.Amount.Format(),
 			RecieptID:   trx.ID,
 		})
 	}
@@ -730,7 +730,7 @@ func mapWalletWithdrawalToStatementRow(trx transactions.Transaction) []statement
 		ret = append(ret, statements.TransactionTableRow{
 			Date:        transfer.Timestamp.Format("02 Jan 2006"),
 			Description: description,
-			Amount:      fmt.Sprintf("-%s", transfer.Amount.FormatAmount()),
+			Amount:      fmt.Sprintf("-%s", transfer.Amount.Format()),
 			RecieptID:   trx.ID,
 		})
 	}
