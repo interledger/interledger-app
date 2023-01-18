@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
@@ -163,12 +165,22 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		}
 	}
 
+	var idempotencyKey string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&idempotencyKey)
+	if err != nil {
+		logger.Error("error generating idempotency key", "Error", err)
+		return nil, err
+	}
+
 	var transferID string
 	err = workflow.ExecuteActivity(
 		ctx,
 		a.StartWalletTransfer,
 		StartWalletTransferArgs{
 			CreateTransactionArgs: args,
+			IdempotencyKey:        idempotencyKey,
 			WorkflowID:            workflow.GetInfo(ctx).WorkflowExecution.ID,
 		},
 	).Get(ctx, &transferID)
@@ -385,9 +397,19 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 		return "", err
 	}
 
+	var idempotencyKey string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&idempotencyKey)
+	if err != nil {
+		logger.Error("error generating idempotency key", "Error", err)
+		return "", err
+	}
+
 	var fundWalletTX FundWalletResponse
 	err = workflow.ExecuteActivity(ctx, a.FundUserWalletFromCard, FundWalletArgs{
 		ExecuteTopupArgs: args,
+		IdempotencyKey:   idempotencyKey,
 		WorkflowID:       workflow.GetInfo(ctx).WorkflowExecution.ID,
 		Transaction:      trx,
 	}).Get(ctx, &fundWalletTX)
@@ -511,6 +533,18 @@ func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, trxID string, args ma
 	if err != nil {
 		logger.Error("error getting transaction.", "Error", err)
 		return "", err
+	}
+
+	if args.IdempotencyKey == "" {
+		var idempotencyKey string
+		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+			return uuid.NewString()
+		}).Get(&idempotencyKey)
+		if err != nil {
+			logger.Error("error generating idempotency key", "Error", err)
+			return "", err
+		}
+		args.IdempotencyKey = idempotencyKey
 	}
 
 	var withdrawal machnet.WalletWithdrawal

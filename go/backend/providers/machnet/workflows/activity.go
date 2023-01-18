@@ -233,8 +233,9 @@ type FundWalletResponse struct {
 
 type FundWalletArgs struct {
 	ExecuteTopupArgs
-	WorkflowID  string
-	Transaction transactions.Transaction
+	IdempotencyKey string
+	WorkflowID     string
+	Transaction    transactions.Transaction
 }
 
 func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletArgs) (*FundWalletResponse, error) {
@@ -272,12 +273,13 @@ func (a *Activity) FundUserWalletFromCard(ctx context.Context, args FundWalletAr
 	}
 
 	fundResp, err := a.b.External().FundUserWallet(ctx, external.FundWalletArgs{
-		UserID:       mu.ID,
-		SourceFundID: fromCard.ProviderID,
-		WalletID:     toWallet.ProviderID,
-		Amount:       args.Amount.Float64(),
-		Currency:     args.Amount.Currency.String(),
-		IPAddress:    args.IPAddress,
+		IdempotencyKey: args.IdempotencyKey,
+		UserID:         mu.ID,
+		SourceFundID:   fromCard.ProviderID,
+		WalletID:       toWallet.ProviderID,
+		Amount:         args.Amount.Float64(),
+		Currency:       args.Amount.Currency.String(),
+		IPAddress:      args.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to fund machnet user wallet (%s) from card (%s)", toWallet.ProviderID, fromCard.ProviderID), "ErrInternal", err)
@@ -344,13 +346,14 @@ func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Tran
 	}
 
 	withdrawal, err := a.b.External().WithdrawFromUserWallet(ctx, external.WithdrawFromUserWalletArgs{
-		UserID:    wallet.SendUserID,
-		WalletID:  wallet.ID,
-		ToFundID:  toAccount.ProviderID,
-		Amount:    float64(args.Amount) / float64(100),
-		FeeAmount: 0,
-		Currency:  "USD",
-		IPAddress: args.IpAddress,
+		IdempotencyKey: args.IdempotencyKey,
+		UserID:         wallet.SendUserID,
+		WalletID:       wallet.ID,
+		ToFundID:       toAccount.ProviderID,
+		Amount:         float64(args.Amount) / float64(100),
+		FeeAmount:      0,
+		Currency:       "USD",
+		IPAddress:      args.IpAddress,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
@@ -377,7 +380,8 @@ func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Tran
 
 type StartWalletTransferArgs struct {
 	machnet.CreateTransactionArgs
-	WorkflowID string
+	WorkflowID     string
+	IdempotencyKey string
 }
 
 func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTransferArgs) (string, error) {
@@ -417,12 +421,13 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTran
 	}
 
 	transfer, err := a.b.External().CreateWalletTransfer(ctx, external.WalletTransferArgs{
-		SendUserID: sendUser.ID,
-		SendFundID: sendLA.ProviderID,
-		RecvUserID: recvUser.ID,
-		RecvFundID: recvLA.ProviderID,
-		Amount:     args.Amount,
-		IPAddress:  args.IPAddress,
+		IdempotencyKey: args.IdempotencyKey,
+		SendUserID:     sendUser.ID,
+		SendFundID:     sendLA.ProviderID,
+		RecvUserID:     recvUser.ID,
+		RecvFundID:     recvLA.ProviderID,
+		Amount:         args.Amount,
+		IPAddress:      args.IPAddress,
 	})
 	if errors.Is(err, external.ErrNotFound) || errors.Is(err, external.ErrInvalidArgument) {
 		return "", temporal.NewNonRetryableApplicationError("failed to initiate machnet wallet transfer", "ErrInternal", err)
@@ -614,61 +619,6 @@ func addReceiveUserBankAccount(ctx context.Context, b ops.Backends, extSendUserI
 	}
 
 	return ba.ID, nil
-}
-
-func (a *Activity) CreateExternalTransaction(ctx context.Context, trx machnet.CreateTransactionArgs, to TransactionTo) (string, error) {
-	logger := activity.GetLogger(ctx)
-	logger.Info("CreateExternalTransaction_Activity", "from", trx.FromLinkedAccountID, "to", trx.ToLinkedAccountID)
-
-	la, err := getLinkedAccount(ctx, a.b, trx.FromLinkedAccountID)
-	if err != nil {
-		return "", err
-	}
-
-	mu, err := ops.GetUserByWalletID(ctx, a.b, la.WalletID)
-	if errors.Is(err, machnet.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("external user not found for linked acc (%s) wallet id (%s)", trx.FromLinkedAccountID, la.WalletID), "ErrNotFound", err)
-	}
-	if err != nil {
-		return "", err
-	}
-
-	indvKYC, err := a.b.KYC().GetIndividualDetails(ctx, la.WalletID)
-	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return "", temporal.NewNonRetryableApplicationError("no KYC information for sender", "KYC", err)
-	}
-	if err != nil {
-		return "", err
-	}
-	if indvKYC.IPAddress == "" {
-		return "", temporal.NewNonRetryableApplicationError("incomplete KYC information for sender. Require IPAddress.", "KYC", kyc.ErrNoKYCInfo)
-	}
-
-	extTrx, err := a.b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
-		FromUserID:        mu.ID,
-		FromFundID:        la.ProviderID,
-		FundingSourceType: external.FundingSourceTypeCard,
-		FromAmount:        trx.Amount.Float64(),
-		FromCurrency:      trx.Amount.Currency.String(),
-		ToCurrency:        trx.Amount.Currency.String(),
-		ExchangeRate:      1,
-		Purpose:           external.PurposePersonalTransfer,
-		To: external.TransactionTo{
-			CalculationMode: external.CalculationModeSenderAmount,
-			ID:              to.ReceiveUserID,
-			FundID:          to.ReceiveFundID,
-			PayoutMethod:    external.PayoutMethodBankDeposit,
-		},
-		IPAddress: indvKYC.IPAddress,
-	})
-	if errors.Is(err, external.ErrInvalidArgument) || errors.Is(err, external.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError(err.Error(), "External", err)
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return extTrx.ID, nil
 }
 
 type CreateTransactionWorkflowRefArgs struct {

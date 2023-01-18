@@ -350,6 +350,10 @@ func (c Client) CreateTransaction(ctx context.Context, trx external.CreateTransa
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
+	if trx.IdempotencyKey != "" {
+		req.Header.Set("X-Idempotency-Key", trx.IdempotencyKey)
+	}
+
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -566,6 +570,10 @@ func (c Client) FundUserWallet(ctx context.Context, args external.FundWalletArgs
 		return nil, fmt.Errorf("%w failed to create fund wallet http req (%s)", external.ErrInternal, err)
 	}
 
+	if args.IdempotencyKey != "" {
+		req.Header.Set("X-Idempotency-Key", args.IdempotencyKey)
+	}
+
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w failed to do fund wallet http req (%s)", external.ErrInternal, err)
@@ -615,6 +623,10 @@ func (c Client) CreateWalletTransfer(ctx context.Context, args external.WalletTr
 		return nil, fmt.Errorf("%w failed to create wallet transfer http req (%s)", external.ErrInternal, err)
 	}
 
+	if args.IdempotencyKey != "" {
+		req.Header.Set("X-Idempotency-Key", args.IdempotencyKey)
+	}
+
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w failed to do wallet transfer http req (%s)", external.ErrInternal, err)
@@ -660,6 +672,10 @@ func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.Withdr
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, postUrl, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	if args.IdempotencyKey != "" {
+		req.Header.Set("X-Idempotency-Key", args.IdempotencyKey)
 	}
 
 	resp, err := c.api.Do(req)

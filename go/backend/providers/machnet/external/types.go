@@ -62,6 +62,7 @@ const (
 )
 
 type CreateTransactionArgs struct {
+	IdempotencyKey    string            `json:"-"`
 	FromUserID        string            `json:"-"`
 	FromFundID        string            `json:"from_fund_id,omitempty"`
 	FundingSourceType FundingSourceType `json:"funding_source_type,omitempty"`
@@ -298,13 +299,13 @@ type (
 	}
 
 	WalletTransferArgs struct {
-		SendUserID string
-		SendFundID string
-		RecvUserID string
-		RecvFundID string
-		Amount     currency.Amount
-		Currency   string
-		IPAddress  string
+		IdempotencyKey string `json:"-"`
+		SendUserID     string
+		SendFundID     string
+		RecvUserID     string
+		RecvFundID     string
+		Amount         currency.Amount
+		IPAddress      string
 	}
 
 	WalletTransfer struct {
@@ -321,12 +322,13 @@ type (
 	}
 
 	FundWalletArgs struct {
-		UserID       string
-		SourceFundID string
-		WalletID     string
-		Amount       float64
-		Currency     string
-		IPAddress    string
+		IdempotencyKey string `json:"-"`
+		UserID         string
+		SourceFundID   string
+		WalletID       string
+		Amount         float64
+		Currency       string
+		IPAddress      string
 	}
 
 	FundWalletResponse struct {
@@ -361,12 +363,13 @@ type (
 	}
 
 	WithdrawFromUserWalletArgs struct {
-		UserID    string
-		ToFundID  string
-		WalletID  string
-		Amount    float64
-		FeeAmount float64
-		Currency  string
-		IPAddress string
+		IdempotencyKey string `json:"-"`
+		UserID         string
+		ToFundID       string
+		WalletID       string
+		Amount         float64
+		FeeAmount      float64
+		Currency       string
+		IPAddress      string
 	}
 )
