@@ -5397,6 +5397,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SetSignupComplete", options: {}, I: SetSignupCompleteRequest, O: Empty },
     { name: "IsMugAvailable", options: {}, I: IsMugAvailableRequest, O: IsMugAvailableResponse },
     { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
+    { name: "ListTransactionsCompleted", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
+    { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "ListStatements", options: {}, I: PaginationRequest, O: ListStatementsResponse },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF }

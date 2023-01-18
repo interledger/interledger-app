@@ -543,6 +543,8 @@ type BackendServiceClient interface {
 	IsMugAvailable(ctx context.Context, in *IsMugAvailableRequest, opts ...grpc.CallOption) (*IsMugAvailableResponse, error)
 	//Transactions
 	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
+	ListTransactionsCompleted(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
+	ListTransactionsWithPending(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
 	//Statements
 	ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error)
@@ -845,6 +847,24 @@ func (c *backendServiceClient) ListTransactions(ctx context.Context, in *Paginat
 	return out, nil
 }
 
+func (c *backendServiceClient) ListTransactionsCompleted(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
+	out := new(ListTransactionsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListTransactionsCompleted", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) ListTransactionsWithPending(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
+	out := new(ListTransactionsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListTransactionsWithPending", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error) {
 	out := new(Transaction)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/LookupTransaction", in, out, opts...)
@@ -915,6 +935,8 @@ type BackendServiceServer interface {
 	IsMugAvailable(context.Context, *IsMugAvailableRequest) (*IsMugAvailableResponse, error)
 	//Transactions
 	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
+	ListTransactionsCompleted(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
+	ListTransactionsWithPending(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
 	//Statements
 	ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error)
@@ -1020,6 +1042,12 @@ func (UnimplementedBackendServiceServer) IsMugAvailable(context.Context, *IsMugA
 }
 func (UnimplementedBackendServiceServer) ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTransactions not implemented")
+}
+func (UnimplementedBackendServiceServer) ListTransactionsCompleted(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTransactionsCompleted not implemented")
+}
+func (UnimplementedBackendServiceServer) ListTransactionsWithPending(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTransactionsWithPending not implemented")
 }
 func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupTransaction not implemented")
@@ -1618,6 +1646,42 @@ func _BackendService_ListTransactions_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListTransactionsCompleted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListTransactionsCompleted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListTransactionsCompleted",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListTransactionsCompleted(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_ListTransactionsWithPending_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListTransactionsWithPending(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListTransactionsWithPending",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListTransactionsWithPending(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_LookupTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LookupTransactionRequest)
 	if err := dec(in); err != nil {
@@ -1806,6 +1870,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTransactions",
 			Handler:    _BackendService_ListTransactions_Handler,
+		},
+		{
+			MethodName: "ListTransactionsCompleted",
+			Handler:    _BackendService_ListTransactionsCompleted_Handler,
+		},
+		{
+			MethodName: "ListTransactionsWithPending",
+			Handler:    _BackendService_ListTransactionsWithPending_Handler,
 		},
 		{
 			MethodName: "LookupTransaction",
