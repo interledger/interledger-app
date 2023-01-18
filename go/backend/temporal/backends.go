@@ -21,6 +21,7 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	Mail() email.Client
 	Machnet() machnet.Client
 	Email() email.Client
 	Transactions() transactions.Client

@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -335,6 +337,7 @@ type testBackends struct {
 	db             *sqlx.DB
 	external       *external_client.Client
 	linkedaccounts *linkedaccounts_mock.MockClient
+	mail           *email_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
 	temporal       *mocks.Client
@@ -363,6 +366,10 @@ func (b testBackends) External() external.Client {
 
 func (b testBackends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
+}
+
+func (b testBackends) Mail() email.Client {
+	return b.mail
 }
 
 func (b testBackends) Temporal() client.Client {

@@ -239,3 +239,71 @@ func TestExecuteWalletTopupWorkflow(t *testing.T) {
 	require.Equal(t, result.ExternalID, trxID)
 	env.AssertExpectations(t)
 }
+
+func TestExecuteWalletTopupSendsFailedEmail(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
+	b := testBackends{
+		db:      nil,
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
+	}
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	a := NewActivity(b)
+
+	trxID := uuid.NewString()
+	walletID := uuid.NewString()
+	walletLinkedAccountID := uuid.NewString()
+	fromLinkedAccountID := uuid.NewString()
+	fundTrx := FundWalletResponse{
+		FromWalletLinkedAcc: walletLinkedAccountID,
+		FundTX:              trxID,
+	}
+	trx := transactions.Transaction{
+		ID:          uuid.NewString(),
+		ForeignID:   uuid.NewString(),
+		Source:      "",
+		Destination: "",
+		Note:        "",
+		Type:        transactions.TransactionTypeMachnetWalletTopUp,
+		Timestamp:   time.Time{},
+		Provider:    transactions.ProviderMachnet,
+		State:       transactions.StatePending,
+		Amount:      currency.Amount{},
+		Transfers:   nil,
+	}
+
+	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
+	env.OnActivity(a.GetTransaction, mock.Anything, mock.Anything, mock.Anything).Return(trx, nil)
+	env.OnActivity(a.FundUserWalletFromCard, mock.Anything, mock.Anything).Return(&fundTrx, nil)
+	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.RegisterDelayedCallback(func() {
+		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
+			ID:     fundTrx.FundTX,
+			Status: external.TransactionFailed,
+		})
+	}, time.Minute)
+	env.OnActivity(a.UpdateTransactionState, mock.Anything, trx.ID, transactions.StateFailed).Return(nil)
+	env.OnActivity(a.SendFailedTransactionMail, mock.Anything, walletID, transactions.TransactionTypeMachnetWalletTopUp).Return(nil)
+
+	env.ExecuteWorkflow(ExecuteWalletTopupWorkflow, ExecuteTopupArgs{
+		WalletID:            walletID,
+		FromLinkedAccountID: fromLinkedAccountID,
+		Amount:              currency.FromFloat64(200, currency.ParseCurrency("USD")),
+		UpdateTransaction:   true,
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result string
+	require.NoError(t, env.GetWorkflowResult(&result))
+	require.Equal(t, result, trxID)
+	env.AssertExpectations(t)
+}

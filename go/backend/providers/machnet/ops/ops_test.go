@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/statements"
 	statements_mock "gitlab.com/fynbos/backend/statements/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
@@ -456,6 +458,7 @@ type backends struct {
 	db             *sqlx.DB
 	external       *external_client.Client
 	linkedaccounts *linkedaccounts_mock.MockClient
+	mail           *email_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
 	statements     *statements_mock.MockClient
@@ -481,6 +484,10 @@ func (b backends) External() external.Client {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
+}
+
+func (b backends) Mail() email.Client {
+	return b.mail
 }
 
 func (b backends) Temporal() client.Client {

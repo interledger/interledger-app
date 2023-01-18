@@ -456,6 +456,13 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (*m
 		}
 	}
 
+	if transactionState == transactions.StateFailed {
+		err = workflow.ExecuteActivity(ctx, a.SendFailedTransactionMail, args.WalletID, transactions.TransactionTypeMachnetWalletTopUp).Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to send failed top up email", "error", err)
+		}
+	}
+
 	logger.Info("ExecuteWalletTopupWorkflow completed.", "fund_transfer_id", fundWalletTX.FundTX, "transaction_state", transactionState)
 
 	return &machnet.CreateTransactionResponse{

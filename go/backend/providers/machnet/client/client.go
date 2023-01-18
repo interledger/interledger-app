@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 
@@ -37,6 +38,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
+	Mail() email.Client
 	Transactions() transactions.Client
 	Statements() statements.Client
 }

@@ -3,6 +3,8 @@ package workflows
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -25,6 +27,7 @@ type Backends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
+	Mail() email.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
 	Notify() notify.Client
@@ -46,6 +49,7 @@ type testBackends struct {
 	kycImpl    *kyc_mock.MockClient
 	linked     *linkedaccounts_mock.MockClient
 	machnet    *machnet_mock.MockClient
+	mail       *email_mock.MockClient
 	temporal   *mocks.Client
 	tx         transactions.Client
 	notify     notify.Client
@@ -78,6 +82,10 @@ func (b testBackends) Validator() *validator.Validate {
 
 func (b testBackends) Machnet() machnet.Client {
 	return b.machnet
+}
+
+func (b testBackends) Mail() email.Client {
+	return b.mail
 }
 
 func (b testBackends) Temporal() client.Client {

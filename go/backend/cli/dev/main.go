@@ -1,10 +1,13 @@
 package main
 
 import (
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"log"
 	"os"
+
+	"gitlab.com/fynbos/backend/email"
+	email_client "gitlab.com/fynbos/backend/email/client"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client"
 
 	"gitlab.com/fynbos/backend/statements"
 	statements_client "gitlab.com/fynbos/backend/statements/client"
@@ -102,6 +105,7 @@ type backends struct {
 	kyc            kyc.Client
 	linkedaccounts linkedaccounts.Client
 	machnet        machnet.Client
+	mail           email.Client
 	signup         signup.Client
 	temporal       temporal.Client
 	twilio         twilio.Service
@@ -239,4 +243,12 @@ func (b *backends) Statements() statements.Client {
 		return statements_client.New()
 	}
 	return b.statements
+}
+
+func (b *backends) Mail() email.Client {
+	if b.mail == nil {
+		return email_client.New(b, os.Getenv("SENDGRID_API_KEY"))
+	}
+
+	return b.mail
 }
