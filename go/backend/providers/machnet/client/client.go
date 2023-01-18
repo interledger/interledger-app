@@ -141,10 +141,7 @@ func (c client) CreateTransaction(ctx context.Context, args machnet.CreateTransa
 		return nil, err
 	}
 
-	return func(ctx context.Context, out interface{}) error {
-		// Wait for the Workflow to complete.
-		return wf.Get(ctx, &out)
-	}, nil
+	return wf.Get, nil
 }
 
 func (c client) CreateReceiveBankAccount(ctx context.Context, args machnet.CreateReceiveBankAccountArgs) (*machnet.ReceiveBankAccount, error) {

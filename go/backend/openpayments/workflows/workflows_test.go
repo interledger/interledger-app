@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/db"
@@ -52,7 +54,10 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	}
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
-	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return("external_id", nil)
+	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
+		TransactionState: transactions.StateCompleted,
+		ExternalID:       "external_id",
+	}, nil)
 	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, "external_id").Return(nil)
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, "external_id").Return(nil)
 	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)

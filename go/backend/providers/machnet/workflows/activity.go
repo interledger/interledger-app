@@ -328,10 +328,7 @@ func getWalletLinkedAcc(ctx context.Context, b ops.Backends, walletID string) (*
 }
 
 func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Transaction, args machnet.WithdrawFromWalletArgs) (*machnet.WalletWithdrawal, error) {
-	linkedWallet, err := a.b.LinkedAccounts().Get(ctx, args.WalletLinkedAccountID)
-	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("linked wallet account not found", "ErrNotFound", err)
-	}
+	linkedWallet, err := getLinkedAccount(ctx, a.b, args.WalletLinkedAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -341,10 +338,7 @@ func (a *Activity) WithdrawFromWallet(ctx context.Context, trx transactions.Tran
 		return nil, err
 	}
 
-	toAccount, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
-	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("destination linked account not found", "ErrNotFound", err)
-	}
+	toAccount, err := getLinkedAccount(ctx, a.b, args.ToLinkedAccountID)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +401,7 @@ func (a *Activity) StartWalletTransfer(ctx context.Context, args StartWalletTran
 		}
 	}
 
-	recvLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
+	recvLA, err := getLinkedAccount(ctx, a.b, args.ToLinkedAccountID)
 	if err != nil {
 		return "", err
 	}

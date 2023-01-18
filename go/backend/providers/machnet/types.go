@@ -2,6 +2,7 @@ package machnet
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/currency"
 )
@@ -49,6 +50,11 @@ type CreateTransactionArgs struct {
 	ToLinkedAccountID   string
 	Amount              currency.Amount
 	IPAddress           string
+}
+
+type CreateTransactionResponse struct {
+	TransactionState transactions.State
+	ExternalID       string
 }
 
 type (

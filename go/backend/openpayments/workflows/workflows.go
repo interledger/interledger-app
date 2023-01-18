@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -121,8 +123,8 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 
-	var extID string
-	err = workflow.ExecuteChildWorkflow(ctx, machnet_workflows.CreateTransactionWorkflow, tArgs, trxID).Get(ctx, &extID)
+	var resp machnet.CreateTransactionResponse
+	err = workflow.ExecuteChildWorkflow(ctx, machnet_workflows.CreateTransactionWorkflow, tArgs, trxID).Get(ctx, &resp)
 	if err != nil {
 		logger.Error("CreateTransactionWorkflow child workflow failed.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
@@ -133,15 +135,23 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		}
 		return "", err
 	}
+	if resp.TransactionState == transactions.StateFailed {
+		err = workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("FailOutgoingPayment Activity failed for failed transaction state.", "Error", err)
+			return "", err
+		}
+		return "", nil
+	}
 
 	// Update Outgoing payment
-	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, extID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.ExternalID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, extID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.ExternalID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
 		return "", err
@@ -153,5 +163,5 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		return "", err
 	}
 
-	return extID, nil
+	return resp.ExternalID, nil
 }
