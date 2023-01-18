@@ -283,12 +283,12 @@ type CreateNodeGroupArgs struct {
 func createGeneralNodeGroup(ctx *pulumi.Context, args CreateNodeGroupArgs) error {
 	instanceUserData := `
 [settings.kubernetes]
-max-pods = 20
+max-pods = 40
 `
 	// Launch template is required to set values in the user data field. This
 	// is merged with the default values from the EKS Node group to create
 	// a new launch template
-	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-general-template", &ec2.LaunchTemplateArgs{
+	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-general-template-1", &ec2.LaunchTemplateArgs{
 		UserData: pulumi.String(b64.StdEncoding.EncodeToString([]byte(instanceUserData))),
 		BlockDeviceMappings: ec2.LaunchTemplateBlockDeviceMappingArray{
 			ec2.LaunchTemplateBlockDeviceMappingArgs{
@@ -315,8 +315,8 @@ max-pods = 20
 		return err
 	}
 
-	_, err = eks.NewNodeGroup(ctx, "managed-general", &eks.NodeGroupArgs{
-		NodeGroupName: pulumi.String("managed-general"),
+	_, err = eks.NewNodeGroup(ctx, "managed-general-1", &eks.NodeGroupArgs{
+		NodeGroupName: pulumi.String("managed-general-1"),
 		ClusterName:   args.Cluster.Name,
 		ScalingConfig: eks.NodeGroupScalingConfigArgs{
 			DesiredSize: pulumi.Int(3),
