@@ -203,41 +203,6 @@ export type Transaction = {
   date: string
 }
 
-export async function getPendingTransactions(
-  request: Request
-): Promise<Transaction[]> {
-  const cookie = String(request.headers.get('cookie'))
-  return openPaymentsClient
-    .listPendingTransactions(
-      { page: 1, pageSize: 20 },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((response) =>
-      response.response.transactions.map((trx) => ({
-        id: trx.id,
-        type: trx.type,
-        icon: 'schedule',
-        title: trx.type == 'outgoing' ? trx.destination : trx.source,
-        total: formatAmount(trx.amount),
-        time: 'Pending',
-        date: DateTime.fromSeconds(
-          parseInt(trx.timestamp?.seconds ?? '')
-        ).toFormat('dd MMM yyyy')
-      }))
-    )
-    .catch((error) => {
-      const status = StatusError(error)
-      if (isGrpcError(status)) {
-        throw json({}, httpMapping(status.code))
-      }
-      return []
-    })
-}
-
 function transactionIcon(type: string): string {
   switch (type) {
     case 'open_payments_outgoing':
@@ -268,13 +233,13 @@ function transactionTitle(trx: GrpcTransaction): string {
   }
 }
 
-export async function getTransactions(
+export async function getTransactionsWithPending(
   request: Request,
   input: PaginationRequest = { page: 1, pageSize: 20 }
 ): Promise<Transaction[]> {
   const cookie = String(request.headers.get('cookie'))
   return grpcClient
-    .listTransactions(input, {
+    .listTransactionsWithPending(input, {
       meta: {
         cookies: cookie || ''
       }

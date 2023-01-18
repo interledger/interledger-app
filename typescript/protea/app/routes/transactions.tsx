@@ -1,25 +1,17 @@
 import { Fragment } from 'react'
 import type { LoaderArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { HomeShapes, Icon, Layouts, Router, WalletGrid } from '~/components'
 import type { Transaction } from '~/lib/wallet.server'
-import { getPendingTransactions, getTransactions } from '~/lib/wallet.server'
+import { getTransactionsWithPending } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const url = new URL(request.url)
-
-  const flowId = url.searchParams.get('flow')
-  if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
-
-  const [pendingTransactions, transactions] = await Promise.all([
-    getPendingTransactions(request),
-    getTransactions(request)
-  ])
+  const transactions = await getTransactionsWithPending(request)
 
   const dateGroupedTransactions = Object.values(
-    [...pendingTransactions, ...transactions].reduce<{
+    [...transactions].reduce<{
       [date: string]: Transaction[]
     }>((prev, current) => {
       prev[current.date] = prev[current.date] || []
@@ -27,6 +19,7 @@ export async function loader({ request }: LoaderArgs) {
       return prev
     }, Object.create(null))
   )
+
   return json({
     transactions: dateGroupedTransactions
   })
