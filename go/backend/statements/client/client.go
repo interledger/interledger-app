@@ -28,10 +28,12 @@ var (
 	fontInterMedium    = "font-inter"
 	fontInterMediumUrl = "https://cdn.fynbos.app/fonts/inter/v12/Regular.ttf"
 
-	xPixelWidth  = 1190.00    // see figma
-	yPixelHeight = 1684.00    // see figma
-	xLeftMargin  = xunit(124) // see figma
-	yTopMargin   = yunit(150) // see figma
+	xPixelWidth   = 1190.00    // see figma
+	yPixelHeight  = 1684.00    // see figma
+	xLeftMargin   = xunit(124) // see figma
+	xRightMargin  = gopdf.PageSizeA4.W - xunit(124)
+	yTopMargin    = yunit(150)                     // see figma
+	yBottomMargin = gopdf.PageSizeA4.H - yunit(60) // see figma
 
 	textColourMedium = rgbColour{R: 51, G: 65, B: 85}
 	textColourStrong = rgbColour{R: 15, G: 23, B: 42}
@@ -61,7 +63,7 @@ func New() *client {
 func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.GenerateWalletStatementArgs) ([]byte, error) {
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
-	pdf.SetMargins(xLeftMargin, yTopMargin, gopdf.PageSizeA4.W-xLeftMargin, gopdf.PageSizeA4.H-yTopMargin)
+	pdf.SetMargins(xLeftMargin, yTopMargin, xRightMargin, yBottomMargin)
 	err := loadFont(&pdf, fontDisplay, fontDisplayUrl)
 	if err != nil {
 		return nil, err
@@ -186,7 +188,7 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 				return err
 			}
 
-			err := addRow(pdf, args.RowHeight, args.ColWidths, row.BackgroundColour, args.Headers)
+			err := addRow(pdf, args.RowHeight, args.ColWidths, tableOddRowBackground, args.Headers)
 			if err != nil {
 				return err
 			}
@@ -259,6 +261,25 @@ func startNewPage(pdf *gopdf.GoPdf) error {
 
 	template := pdf.ImportPage(file.Name(), 1, "/MediaBox")
 	pdf.UseImportedTemplate(template, 0, 0, 0, 0)
+
+	// write page number
+	pdf.SetXY(pdf.MarginLeft(), pdf.MarginBottom())
+	err = pdf.SetFont(fontInter, "", pxToPt(8))
+	if err != nil {
+		return err
+	}
+	err = pdf.CellWithOption(&gopdf.Rect{
+		H: yunit(40),
+		W: pdf.MarginRight() - pdf.MarginLeft(),
+	}, fmt.Sprintf("%d", pdf.GetNumberOfPages()), gopdf.CellOption{
+		Align: gopdf.Middle | gopdf.Center,
+		Float: gopdf.Right,
+	})
+	if err != nil {
+		return err
+	}
+
+	// reset to top left
 	pdf.SetXY(pdf.MarginLeft(), pdf.MarginTop())
 
 	return nil
@@ -294,7 +315,7 @@ func addWalletStatementHeader(pdf *gopdf.GoPdf, header statementHeader) error {
 		return err
 	}
 
-	cellWidth := (gopdf.PageSizeA4.W - 2*xLeftMargin) / 3
+	cellWidth := (gopdf.PageSizeA4.W - xLeftMargin) / 3
 	cellHeight := yunit(40)
 	err = pdf.CellWithOption(&gopdf.Rect{
 		H: cellHeight,
