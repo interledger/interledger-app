@@ -19,7 +19,7 @@ func (t TemplateID) Subject() string {
 	if !env.IsProd() {
 		envStr = " [" + env.GetEnv() + "]"
 	}
-	return fmt.Sprintf(sub, envStr)
+	return fmt.Sprintf("%s%s", sub, envStr)
 }
 
 func (t TemplateID) String() string {
