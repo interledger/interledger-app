@@ -16,11 +16,10 @@ import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import type { Transaction } from '~/lib/wallet.server'
 import {
   getKycStatus,
-  getPendingTransactions,
-  getTransactions,
   getWalletBalance,
   getWalletPaymentPointer,
-  getLinkedAccounts
+  getLinkedAccounts,
+  getTransactionsWithPending
 } from '~/lib/wallet.server'
 import { Fragment, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
@@ -72,7 +71,6 @@ export async function loader({ request }: LoaderArgs) {
       session,
       paymentPointer,
       balance,
-      pendingTransactions,
       transactions,
       kycStatus,
       linkedAccounts,
@@ -81,8 +79,7 @@ export async function loader({ request }: LoaderArgs) {
       getUserSession(request),
       getWalletPaymentPointer(request),
       getWalletBalance(request),
-      getPendingTransactions(request),
-      getTransactions(request, { page: 1, pageSize: 3 }),
+      getTransactionsWithPending(request, { page: 1, pageSize: 3 }),
       getKycStatus(request),
       getLinkedAccounts(request),
       getSnackbar(request)
@@ -93,7 +90,7 @@ export async function loader({ request }: LoaderArgs) {
       firstName: session.identity.traits.firstName,
       paymentPointer,
       balance,
-      transactions: [...pendingTransactions, ...transactions],
+      transactions: transactions,
       kycStatus: kycStatus.kycStatus,
       canTopUp: linkedAccounts.canTopUp,
       canWithdraw: linkedAccounts.canWithdraw,
