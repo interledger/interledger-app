@@ -636,19 +636,101 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 
 func mapToStatementRows(trx transactions.Transaction) []statements.TransactionTableRow {
 	var ret []statements.TransactionTableRow
+	switch trx.Type {
+	case transactions.TransactionTypeMachnetWalletWithdrawal:
+		ret = append(ret, mapWalletWithdrawalToStatementRow(trx)...)
+	case transactions.TransactionTypeMachnetWalletTopUp:
+		ret = append(ret, mapWalletTopupToStatementRow(trx)...)
+	case transactions.TransactionTypeOpenOutgoingPayment:
+		ret = append(ret, mapOutgoingPaymentToStatementRow(trx)...)
+	case transactions.TransactionTypeOpenPaymentIncoming:
+		ret = append(ret, mapIncomingPaymentToStatementRow(trx)...)
+	}
+
+	return ret
+}
+
+func mapIncomingPaymentToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
 	for _, transfer := range trx.Transfers {
 		var description string
 		switch transfer.Type {
 		case transactions.TransferTypeCreditMachnetWallet:
 			description = fmt.Sprintf("Payment from %s", trx.Source)
-		case transactions.TransferTypeDebitMachnetWallet:
-			description = fmt.Sprintf("Payment to %s", trx.Destination)
+		default:
+			continue
 		}
 
 		ret = append(ret, statements.TransactionTableRow{
-			Date:        transfer.Timestamp.Format(time.RFC1123)[4:16],
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
 			Description: description,
 			Amount:      transfer.Amount.FormatAmount(),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func mapOutgoingPaymentToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeDebitMachnetWallet:
+			description = fmt.Sprintf("Payment to %s", trx.Destination)
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      fmt.Sprintf("-%s", transfer.Amount.FormatAmount()),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func mapWalletTopupToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeCreditMachnetWallet:
+			description = "Top up cash balance"
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      transfer.Amount.FormatAmount(),
+			RecieptID:   trx.ID,
+		})
+	}
+
+	return ret
+}
+
+func mapWalletWithdrawalToStatementRow(trx transactions.Transaction) []statements.TransactionTableRow {
+	var ret []statements.TransactionTableRow
+	for _, transfer := range trx.Transfers {
+		var description string
+		switch transfer.Type {
+		case transactions.TransferTypeDebitMachnetWallet:
+			description = "Withdrawal from cash balance"
+		default:
+			continue
+		}
+
+		ret = append(ret, statements.TransactionTableRow{
+			Date:        transfer.Timestamp.Format("02 Jan 2006"),
+			Description: description,
+			Amount:      fmt.Sprintf("-%s", transfer.Amount.FormatAmount()),
 			RecieptID:   trx.ID,
 		})
 	}
