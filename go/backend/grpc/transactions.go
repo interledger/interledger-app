@@ -3,6 +3,8 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"gitlab.com/fynbos/backend/db"
@@ -23,11 +25,57 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 
 	page := db.PaginationFromPB(req)
 
-	txs, err := s.b.Transactions().ListTransactions(ctx, page, wallet.ID)
+	txs, err := s.b.Transactions().List(ctx, page, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
+	return transformTransactions(txs, page)
+}
+
+func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	page := db.PaginationFromPB(req)
+
+	txs, err := s.b.Transactions().ListCompleted(ctx, page, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformTransactions(txs, page)
+}
+
+func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	page := db.PaginationFromPB(req)
+
+	txs, err := s.b.Transactions().ListWithPending(ctx, page, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformTransactions(txs, page)
+}
+
+func transformTransactions(txs []transactions.Transaction, page db.Pagination) (*pb.ListTransactionsResponse, error) {
 	res := make([]*pb.Transaction, len(txs))
 	for i, tx := range txs {
 		trs := make([]*pb.Transfer, len(tx.Transfers))

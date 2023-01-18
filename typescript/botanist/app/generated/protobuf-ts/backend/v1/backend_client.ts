@@ -367,6 +367,14 @@ export interface IBackendServiceClient {
      */
     listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
     /**
+     * @generated from protobuf rpc: ListTransactionsCompleted(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
+     */
+    listTransactionsCompleted(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
+    /**
+     * @generated from protobuf rpc: ListTransactionsWithPending(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
+     */
+    listTransactionsWithPending(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
+    /**
      * @generated from protobuf rpc: LookupTransaction(backend.v1.LookupTransactionRequest) returns (backend.v1.Transaction);
      */
     lookupTransaction(input: LookupTransactionRequest, options?: RpcOptions): UnaryCall<LookupTransactionRequest, Transaction>;
@@ -629,10 +637,24 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: ListTransactionsCompleted(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
+     */
+    listTransactionsCompleted(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
+        const method = this.methods[32], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListTransactionsWithPending(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
+     */
+    listTransactionsWithPending(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
+        const method = this.methods[33], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * @generated from protobuf rpc: LookupTransaction(backend.v1.LookupTransactionRequest) returns (backend.v1.Transaction);
      */
     lookupTransaction(input: LookupTransactionRequest, options?: RpcOptions): UnaryCall<LookupTransactionRequest, Transaction> {
-        const method = this.methods[32], opt = this._transport.mergeOptions(options);
+        const method = this.methods[34], opt = this._transport.mergeOptions(options);
         return stackIntercept<LookupTransactionRequest, Transaction>("unary", this._transport, method, opt, input);
     }
     /**
