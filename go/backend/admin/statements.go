@@ -56,8 +56,7 @@ func (s *AdminRpcService) EmailWalletStatement(
 
 	err = s.b.Email().SendMailTemplate(ctx, req.GetWalletID(), email.StatementTemplateID,
 		map[string]interface{}{
-			"period":  fmt.Sprintf("%s -%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, 0).Format("02 Jan 2006")),
-			"subject": email.StatementTemplateID.Subject(),
+			"period": fmt.Sprintf("%s -%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, -1).Format("02 Jan 2006")),
 		},
 		[]email.Attachment{
 			{
