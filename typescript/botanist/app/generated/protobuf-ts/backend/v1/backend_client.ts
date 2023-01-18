@@ -663,14 +663,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListStatements(backend.v1.PaginationRequest) returns (backend.v1.ListStatementsResponse);
      */
     listStatements(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListStatementsResponse> {
-        const method = this.methods[33], opt = this._transport.mergeOptions(options);
+        const method = this.methods[35], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListStatementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
     getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF> {
-        const method = this.methods[34], opt = this._transport.mergeOptions(options);
+        const method = this.methods[36], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetStatementPDFRequest, StatementPDF>("unary", this._transport, method, opt, input);
     }
 }
