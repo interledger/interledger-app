@@ -4,6 +4,12 @@ import (
 	"os"
 )
 
+const (
+	ProdUrl  = "https://fynbos.app"
+	DevUrl   = "https://eu1.fynbos.dev"
+	LocalUrl = "http://fynbos.test"
+)
+
 var allowedEnvs = []string{
 	"prod",    // Live production environment
 	"sandbox", // Semi public testing env
