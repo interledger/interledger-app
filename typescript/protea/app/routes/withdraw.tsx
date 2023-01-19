@@ -111,7 +111,7 @@ export default function Page() {
         <div className='mt-4 flex w-full justify-between'>
           <span className='text-sm'>Total fees</span>
           <span className='text-sm font-medium text-strong'>
-            free <sup>*</sup>
+            Free<sup>*</sup>
           </span>
         </div>
         <div className='mt-4 flex w-full justify-between'>
