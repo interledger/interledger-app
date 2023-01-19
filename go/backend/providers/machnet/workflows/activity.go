@@ -766,6 +766,8 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 	switch trxType {
 	case transactions.TransactionTypeMachnetWalletTopUp:
 		trxTypeName = "top up"
+	case transactions.TransactionTypeMachnetWalletWithdrawal:
+		trxTypeName = "withdrawal"
 	default:
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid transaction type (%s) for failed transaction", trxType), "ErrInternal", err)
 	}

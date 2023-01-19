@@ -595,6 +595,13 @@ func ExecuteWalletWithdrawalWorkflow(ctx workflow.Context, trxID string, args ma
 		}
 	}
 
+	if transactionState == transactions.StateFailed {
+		err = workflow.ExecuteActivity(ctx, a.SendFailedTransactionMail, args.WalletID, transactions.TransactionTypeMachnetWalletWithdrawal).Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to send failed withdrawal email", "error", err)
+		}
+	}
+
 	logger.Info("CreateWalletWithdrawalWorkflow completed.", "withdrawal_id", withdrawal.ID)
 
 	return withdrawal.ID, nil

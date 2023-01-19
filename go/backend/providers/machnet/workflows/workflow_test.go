@@ -307,3 +307,72 @@ func TestExecuteWalletTopupSendsFailedEmail(t *testing.T) {
 	require.Equal(t, result, trxID)
 	env.AssertExpectations(t)
 }
+
+func TestExecuteWalletWithdrawalSendsFailedEmail(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
+	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
+	b := testBackends{
+		db:      nil,
+		kycImpl: kyc_mock.NewMockClient(ctrl),
+		linked:  linkedaccounts_mock.NewMockClient(ctrl),
+		machnet: mockMachnet,
+	}
+	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
+	a := NewActivity(b)
+
+	trxID := uuid.NewString()
+	walletID := uuid.NewString()
+	walletLinkedAccountID := uuid.NewString()
+	toLinkedAccountID := uuid.NewString()
+	withdrawTrx := machnet.WalletWithdrawal{
+		ID:     uuid.NewString(),
+		Status: external.TransactionFailed,
+	}
+
+	trx := transactions.Transaction{
+		ID:          uuid.NewString(),
+		ForeignID:   uuid.NewString(),
+		Source:      "",
+		Destination: "",
+		Note:        "",
+		Type:        transactions.TransactionTypeMachnetWalletTopUp,
+		Timestamp:   time.Time{},
+		Provider:    transactions.ProviderMachnet,
+		State:       transactions.StatePending,
+		Amount:      currency.Amount{},
+		Transfers:   nil,
+	}
+
+	env.OnActivity(a.GetTransaction, mock.Anything, mock.Anything, mock.Anything).Return(trx, nil)
+	env.OnActivity(a.WithdrawFromWallet, mock.Anything, mock.Anything, mock.Anything).Return(&withdrawTrx, nil)
+	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
+	env.RegisterDelayedCallback(func() {
+		env.SignalWorkflow(ops.TransactionEventsChannel, external.Transaction{
+			ID:     withdrawTrx.ID,
+			Status: external.TransactionFailed,
+		})
+	}, time.Minute)
+	env.OnActivity(a.UpdateTransactionState, mock.Anything, trx.ID, transactions.StateFailed).Return(nil)
+	env.OnActivity(a.SendFailedTransactionMail, mock.Anything, walletID, transactions.TransactionTypeMachnetWalletWithdrawal).Return(nil)
+
+	env.ExecuteWorkflow(ExecuteWalletWithdrawalWorkflow, trxID, machnet.WithdrawFromWalletArgs{
+		WalletID:              walletID,
+		WalletLinkedAccountID: walletLinkedAccountID,
+		ToLinkedAccountID:     toLinkedAccountID,
+		IpAddress:             "0.0.0.0",
+		Amount:                1000,
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	var result string
+	require.NoError(t, env.GetWorkflowResult(&result))
+	require.Equal(t, result, withdrawTrx.ID)
+	env.AssertExpectations(t)
+}
