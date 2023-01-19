@@ -1160,6 +1160,44 @@ export interface GetCurrentWalletResponse {
      */
     id: string;
 }
+/**
+ * @generated from protobuf message backend.v1.GetUserLimitsResponse
+ */
+export interface GetUserLimitsResponse {
+    /**
+     * @generated from protobuf field: backend.v1.Limit FundWallet = 1 [json_name = "FundWallet"];
+     */
+    fundWallet?: Limit;
+    /**
+     * @generated from protobuf field: backend.v1.Limit Withdrawal = 2 [json_name = "Withdrawal"];
+     */
+    withdrawal?: Limit;
+    /**
+     * @generated from protobuf field: backend.v1.Limit Transfer = 3 [json_name = "Transfer"];
+     */
+    transfer?: Limit;
+}
+/**
+ * @generated from protobuf message backend.v1.Limit
+ */
+export interface Limit {
+    /**
+     * @generated from protobuf field: backend.v1.Amount Annual = 1 [json_name = "Annual"];
+     */
+    annual?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount Daily = 2 [json_name = "Daily"];
+     */
+    daily?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount Monthly = 3 [json_name = "Monthly"];
+     */
+    monthly?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount WalletHold = 4 [json_name = "WalletHold"];
+     */
+    walletHold?: Amount;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -5344,6 +5382,135 @@ class GetCurrentWalletResponse$Type extends MessageType<GetCurrentWalletResponse
  * @generated MessageType for protobuf message backend.v1.GetCurrentWalletResponse
  */
 export const GetCurrentWalletResponse = new GetCurrentWalletResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetUserLimitsResponse$Type extends MessageType<GetUserLimitsResponse> {
+    constructor() {
+        super("backend.v1.GetUserLimitsResponse", [
+            { no: 1, name: "FundWallet", kind: "message", jsonName: "FundWallet", T: () => Limit },
+            { no: 2, name: "Withdrawal", kind: "message", jsonName: "Withdrawal", T: () => Limit },
+            { no: 3, name: "Transfer", kind: "message", jsonName: "Transfer", T: () => Limit }
+        ]);
+    }
+    create(value?: PartialMessage<GetUserLimitsResponse>): GetUserLimitsResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetUserLimitsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetUserLimitsResponse): GetUserLimitsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Limit FundWallet = 1 [json_name = "FundWallet"];*/ 1:
+                    message.fundWallet = Limit.internalBinaryRead(reader, reader.uint32(), options, message.fundWallet);
+                    break;
+                case /* backend.v1.Limit Withdrawal = 2 [json_name = "Withdrawal"];*/ 2:
+                    message.withdrawal = Limit.internalBinaryRead(reader, reader.uint32(), options, message.withdrawal);
+                    break;
+                case /* backend.v1.Limit Transfer = 3 [json_name = "Transfer"];*/ 3:
+                    message.transfer = Limit.internalBinaryRead(reader, reader.uint32(), options, message.transfer);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetUserLimitsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Limit FundWallet = 1 [json_name = "FundWallet"]; */
+        if (message.fundWallet)
+            Limit.internalBinaryWrite(message.fundWallet, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Limit Withdrawal = 2 [json_name = "Withdrawal"]; */
+        if (message.withdrawal)
+            Limit.internalBinaryWrite(message.withdrawal, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Limit Transfer = 3 [json_name = "Transfer"]; */
+        if (message.transfer)
+            Limit.internalBinaryWrite(message.transfer, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetUserLimitsResponse
+ */
+export const GetUserLimitsResponse = new GetUserLimitsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Limit$Type extends MessageType<Limit> {
+    constructor() {
+        super("backend.v1.Limit", [
+            { no: 1, name: "Annual", kind: "message", jsonName: "Annual", T: () => Amount },
+            { no: 2, name: "Daily", kind: "message", jsonName: "Daily", T: () => Amount },
+            { no: 3, name: "Monthly", kind: "message", jsonName: "Monthly", T: () => Amount },
+            { no: 4, name: "WalletHold", kind: "message", jsonName: "WalletHold", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<Limit>): Limit {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Limit>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Limit): Limit {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Amount Annual = 1 [json_name = "Annual"];*/ 1:
+                    message.annual = Amount.internalBinaryRead(reader, reader.uint32(), options, message.annual);
+                    break;
+                case /* backend.v1.Amount Daily = 2 [json_name = "Daily"];*/ 2:
+                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                    break;
+                case /* backend.v1.Amount Monthly = 3 [json_name = "Monthly"];*/ 3:
+                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                    break;
+                case /* backend.v1.Amount WalletHold = 4 [json_name = "WalletHold"];*/ 4:
+                    message.walletHold = Amount.internalBinaryRead(reader, reader.uint32(), options, message.walletHold);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Limit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Amount Annual = 1 [json_name = "Annual"]; */
+        if (message.annual)
+            Amount.internalBinaryWrite(message.annual, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount Daily = 2 [json_name = "Daily"]; */
+        if (message.daily)
+            Amount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount Monthly = 3 [json_name = "Monthly"]; */
+        if (message.monthly)
+            Amount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount WalletHold = 4 [json_name = "WalletHold"]; */
+        if (message.walletHold)
+            Amount.internalBinaryWrite(message.walletHold, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Limit
+ */
+export const Limit = new Limit$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -5400,6 +5567,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactionsCompleted", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
+    { name: "GetUserLimits", options: {}, I: Empty, O: GetUserLimitsResponse },
     { name: "ListStatements", options: {}, I: PaginationRequest, O: ListStatementsResponse },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF }
 ]);

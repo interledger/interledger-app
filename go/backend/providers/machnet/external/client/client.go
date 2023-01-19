@@ -232,6 +232,31 @@ func (c Client) GetVerificationStatus(ctx context.Context, userID string) (*exte
 	return &kycStatus, nil
 }
 
+func (c Client) GetUserLimits(ctx context.Context, userID string) ([]external.UserLimit, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/limits", c.baseUrl, userID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	body, err := parseResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var limits []external.UserLimit
+	err = json.Unmarshal(body, &limits)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return limits, nil
+}
+
 func (c Client) GetReceiveUserList(ctx context.Context, userID string) ([]external.User, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/users/%s/receive-users", c.baseUrl, userID), nil)
 	if err != nil {

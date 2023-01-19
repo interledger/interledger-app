@@ -202,6 +202,21 @@ func (mr *MockClientMockRecorder) GetUserByWalletID(ctx, walletID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByWalletID", reflect.TypeOf((*MockClient)(nil).GetUserByWalletID), ctx, walletID)
 }
 
+// GetUserLimits mocks base method.
+func (m *MockClient) GetUserLimits(ctx context.Context, walletID string) (*machnet.UserLimits, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserLimits", ctx, walletID)
+	ret0, _ := ret[0].(*machnet.UserLimits)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserLimits indicates an expected call of GetUserLimits.
+func (mr *MockClientMockRecorder) GetUserLimits(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserLimits", reflect.TypeOf((*MockClient)(nil).GetUserLimits), ctx, walletID)
+}
+
 // GetWallet mocks base method.
 func (m *MockClient) GetWallet(ctx context.Context, id string) (*machnet.Wallet, error) {
 	m.ctrl.T.Helper()

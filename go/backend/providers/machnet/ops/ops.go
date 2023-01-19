@@ -786,3 +786,36 @@ func ListStatementPeriods(ctx context.Context, b Backends, page db.Pagination, w
 
 	return periods[pageStart:pageEnd], nil
 }
+
+func GetUserLimits(ctx context.Context, b Backends, walletID string) (*machnet.UserLimits, error) {
+	user, err := GetUserByWalletID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	ul, err := b.External().GetUserLimits(ctx, user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	var resp machnet.UserLimits
+	for _, l := range ul {
+		remaining := machnet.RemainingLimit{
+			Annual:     currency.FromFloat64(l.Remaining.Annual, currency.USD),
+			Daily:      currency.FromFloat64(l.Remaining.Daily, currency.USD),
+			Monthly:    currency.FromFloat64(l.Remaining.Monthly, currency.USD),
+			WalletHold: currency.FromFloat64(l.Remaining.WalletHold, currency.USD),
+		}
+		if l.Type == external.LimitTypeLoad {
+			resp.FundWallet = remaining
+		}
+		if l.Type == external.LimitTypeWithdraw {
+			resp.FundWallet = remaining
+		}
+		if l.Type == external.LimitTypeTransfer {
+			resp.Transfer = remaining
+		}
+	}
+
+	return &resp, nil
+}

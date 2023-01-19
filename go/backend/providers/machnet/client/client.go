@@ -232,3 +232,7 @@ func (c client) ListStatementPeriods(ctx context.Context, page db.Pagination, wa
 func (c client) GetStatement(ctx context.Context, walletID, period string) ([]byte, error) {
 	return ops.GetStatement(ctx, c.b, walletID, period)
 }
+
+func (c client) GetUserLimits(ctx context.Context, walletID string) (*machnet.UserLimits, error) {
+	return ops.GetUserLimits(ctx, c.b, walletID)
+}

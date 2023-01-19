@@ -546,6 +546,8 @@ type BackendServiceClient interface {
 	ListTransactionsCompleted(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	ListTransactionsWithPending(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
+	// Limits
+	GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error)
 	//Statements
 	ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error)
 	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
@@ -874,6 +876,15 @@ func (c *backendServiceClient) LookupTransaction(ctx context.Context, in *Lookup
 	return out, nil
 }
 
+func (c *backendServiceClient) GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error) {
+	out := new(GetUserLimitsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetUserLimits", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error) {
 	out := new(ListStatementsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListStatements", in, out, opts...)
@@ -938,6 +949,8 @@ type BackendServiceServer interface {
 	ListTransactionsCompleted(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	ListTransactionsWithPending(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
+	// Limits
+	GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error)
 	//Statements
 	ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error)
 	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
@@ -1051,6 +1064,9 @@ func (UnimplementedBackendServiceServer) ListTransactionsWithPending(context.Con
 }
 func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupTransaction not implemented")
+}
+func (UnimplementedBackendServiceServer) GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserLimits not implemented")
 }
 func (UnimplementedBackendServiceServer) ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStatements not implemented")
@@ -1700,6 +1716,24 @@ func _BackendService_LookupTransaction_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetUserLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetUserLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetUserLimits",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetUserLimits(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_ListStatements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PaginationRequest)
 	if err := dec(in); err != nil {
@@ -1882,6 +1916,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LookupTransaction",
 			Handler:    _BackendService_LookupTransaction_Handler,
+		},
+		{
+			MethodName: "GetUserLimits",
+			Handler:    _BackendService_GetUserLimits_Handler,
 		},
 		{
 			MethodName: "ListStatements",

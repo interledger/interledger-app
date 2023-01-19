@@ -215,6 +215,9 @@ service BackendService {
   rpc ListTransactionsWithPending(PaginationRequest) returns (ListTransactionsResponse);
   rpc LookupTransaction(LookupTransactionRequest) returns (Transaction);
 
+  // Limits
+  rpc GetUserLimits(Empty) returns (GetUserLimitsResponse);
+
   //Statements
   rpc ListStatements(PaginationRequest) returns (ListStatementsResponse);
   rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
@@ -484,4 +487,17 @@ message LookupTransactionRequest {
 
 message GetCurrentWalletResponse {
   string id = 1;
+}
+
+message GetUserLimitsResponse {
+  Limit FundWallet = 1;
+  Limit Withdrawal = 2;
+  Limit Transfer = 3;
+}
+
+message Limit {
+  Amount Annual = 1;
+  Amount Daily = 2;
+  Amount Monthly = 3;
+  Amount WalletHold = 4;
 }

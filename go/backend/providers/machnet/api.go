@@ -13,6 +13,7 @@ type Client interface {
 	GetKYCStatus(ctx context.Context, walletID string) (*UserKYC, error)
 	GetUserByWalletID(ctx context.Context, walletID string) (*User, error)
 	GetUserByID(ctx context.Context, id string) (*User, error)
+	GetUserLimits(ctx context.Context, walletID string) (*UserLimits, error)
 	CreateUser(ctx context.Context, args CreateArgs) (*User, error)
 	GetWidgetToken(ctx context.Context, walletID string) (*WidgetToken, error)
 	CreateTransaction(ctx context.Context, args CreateTransactionArgs) (Await, error)
