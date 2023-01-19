@@ -200,3 +200,34 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID st
 
 	return err
 }
+
+func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID string) error {
+	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	pp, err := ops.GetPaymentPointer(ctx, a.b, op.PaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	user, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
+	if errors.Is(err, openpayments.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.FailedTransactionTemplateID, map[string]interface{}{
+		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
+		"transactionType": "payment",
+		"name":            user.FirstName,
+	}, []email.Attachment{})
+
+	return err
+}

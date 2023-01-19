@@ -3,6 +3,7 @@ package workflows
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/email"
@@ -22,6 +23,7 @@ type Backends interface {
 	DB() *sqlx.DB
 	Validator() *validator.Validate
 	Users() user.Client
+	KYC() kyc.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Email() email.Client
@@ -37,6 +39,7 @@ type testBackends struct {
 	em  email.Client
 	mc  machnet.Client
 	tx  transactions.Client
+	kyc kyc.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -71,6 +74,10 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, mc machnet.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, mc: mc}
+func (t testBackends) KYC() kyc.Client {
+	return t.kyc
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, mc machnet.Client, kyc kyc.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, mc: mc, kyc: kyc}
 }
