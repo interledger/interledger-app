@@ -1,7 +1,12 @@
 import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 
+// TODO: refactor children to use label prop rather.
 type IconProps = {
+  /**
+   * The name of the material icon:
+   * https://fonts.google.com/icons
+   */
   children?: ReactNode
   className?: string
 }

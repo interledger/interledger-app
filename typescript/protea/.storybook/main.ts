@@ -1,5 +1,6 @@
 import type { StorybookConfig } from '@storybook/builder-vite'
 import { mergeConfig } from 'vite'
+
 const config: StorybookConfig = {
   stories: ['../app/**/*.stories.mdx', '../app/**/*.stories.@(ts|tsx)'],
   addons: [
@@ -18,7 +19,7 @@ const config: StorybookConfig = {
     return mergeConfig(config, {})
   },
   docs: {
-    autodocs: false
+    autodocs: true
   }
 }
 export default config
