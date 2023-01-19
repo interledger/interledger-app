@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -130,6 +132,21 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 		}
 
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	return linkedAccounts, nil
+}
+
+func ListMachnetWallets(ctx context.Context, b Backends) ([]linkedaccounts.LinkedAccount, error) {
+	var linkedAccounts []linkedaccounts.LinkedAccount
+	err := b.DB().SelectContext(
+		ctx,
+		&linkedAccounts,
+		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;",
+		machnet.ProviderName, machnet.TypeWallet,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
 	}
 
 	return linkedAccounts, nil

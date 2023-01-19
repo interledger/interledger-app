@@ -113,3 +113,7 @@ func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []link
 func (c client) Delete(ctx context.Context, id string) error {
 	return ops.Delete(ctx, c.b, id)
 }
+
+func (c client) ListMachnetWallets(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
+	return ops.ListMachnetWallets(ctx, c.b)
+}
