@@ -74,6 +74,7 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 	var result string
 	require.NoError(t, env.GetWorkflowResult(&result))
 	require.Equal(t, externalUserID, result)
+	env.AssertExpectations(t)
 }
 
 func TestCreateTransactionWorkflow(t *testing.T) {
@@ -110,7 +111,10 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.ShouldFundWallet, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.GetTransactionsWallets, mock.Anything, mock.Anything).Return(&txWallets, nil)
 
-	env.OnWorkflow(ExecuteWalletTopupWorkflow, mock.Anything, mock.Anything).Return(fundTrx.FundTX, nil)
+	env.OnWorkflow(ExecuteWalletTopupWorkflow, mock.Anything, mock.Anything).Return(&machnet.CreateTransactionResponse{
+		TransactionState: transactions.StateCompleted,
+		ExternalID:       fundTrx.FundTX,
+	}, nil)
 
 	env.OnActivity(a.StartWalletTransfer, mock.Anything, mock.Anything).Return(trxID, nil)
 	env.OnActivity(a.CreateTransactionWorkflowRef, mock.Anything, mock.Anything).Return(nil)
@@ -139,6 +143,7 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	var result machnet.CreateTransactionResponse
 	require.NoError(t, env.GetWorkflowResult(&result))
 	require.Equal(t, result.ExternalID, trxID)
+	env.AssertExpectations(t)
 }
 
 func TestDeleteAccountWorkflow(t *testing.T) {
@@ -166,6 +171,7 @@ func TestDeleteAccountWorkflow(t *testing.T) {
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 	require.NoError(t, env.GetWorkflowResult(nil))
+	env.AssertExpectations(t)
 }
 
 func TestExecuteWalletTopupWorkflow(t *testing.T) {
@@ -221,13 +227,15 @@ func TestExecuteWalletTopupWorkflow(t *testing.T) {
 
 	env.ExecuteWorkflow(ExecuteWalletTopupWorkflow, ExecuteTopupArgs{
 		WalletID:            uuid.NewString(),
+		UpdateTransaction:   true,
 		FromLinkedAccountID: fromLinkedAccountID,
 		Amount:              currency.FromFloat64(200, currency.ParseCurrency("USD")),
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
-	var result string
+	var result machnet.CreateTransactionResponse
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, result, trxID)
+	require.Equal(t, result.ExternalID, trxID)
+	env.AssertExpectations(t)
 }
