@@ -98,13 +98,15 @@ export async function getWalletBalance(request: Request): Promise<string> {
   })
 }
 
+type FormattedLinkedAccount = {
+  id: string
+  name: string
+  type: string
+  icon: string
+}
+
 type LinkedAccountsResponse = {
-  linkedAccounts: Array<{
-    id: string
-    name: string
-    type: string
-    icon: string
-  }>
+  linkedAccounts: Array<FormattedLinkedAccount>
   canTopUp: boolean
   canWithdraw: boolean
 }
@@ -112,7 +114,7 @@ type LinkedAccountsResponse = {
 export async function getLinkedAccount(
   request: Request,
   id: string
-): Promise<LinkedAccount> {
+): Promise<FormattedLinkedAccount> {
   const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
     .getLinkedAccount(
@@ -128,12 +130,10 @@ export async function getLinkedAccount(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    console.log(response)
     throw json({}, httpMapping(response.code))
   }
 
-  console.log('linkedAccount', response.response)
-  return response.response
+  return formatLinkedAccount(response.response)
 }
 
 export async function getLinkedAccounts(
@@ -155,41 +155,44 @@ export async function getLinkedAccounts(
     throw json({}, httpMapping(response.code))
   }
 
-  const linkedAccounts = response.response.linkedAccounts.map(
-    (linkedAccount) => {
-      let type = '',
-        name = '',
-        icon = ''
-      switch (linkedAccount.type) {
-        case 'sendCard':
-          type = 'card'
-          name = `Card ending ${linkedAccount.mask}`
-          icon = 'credit_card'
-          break
-        case 'bankAccount':
-          type = 'bank'
-          name = `${linkedAccount.name} ${linkedAccount.mask}`
-          icon = 'account_balance'
-          break
-        case 'wallet':
-          type = 'wallet'
-          name = 'Cash balance'
-          icon = 'wallet'
-          break
-      }
-      return {
-        id: linkedAccount.id,
-        name,
-        type,
-        icon
-      }
-    }
-  )
+  const linkedAccounts =
+    response.response.linkedAccounts.map(formatLinkedAccount)
 
   return {
     linkedAccounts,
     canTopUp: linkedAccounts.filter(({ type }) => type == 'card').length > 0,
     canWithdraw: linkedAccounts.filter(({ type }) => type == 'bank').length > 0
+  }
+}
+
+const formatLinkedAccount = (
+  linkedAccount: LinkedAccount
+): FormattedLinkedAccount => {
+  let type = '',
+    name = '',
+    icon = ''
+  switch (linkedAccount.type) {
+    case 'sendCard':
+      type = 'card'
+      name = `Card ending ${linkedAccount.mask}`
+      icon = 'credit_card'
+      break
+    case 'bankAccount':
+      type = 'bank'
+      name = `${linkedAccount.name} ${linkedAccount.mask}`
+      icon = 'account_balance'
+      break
+    case 'wallet':
+      type = 'wallet'
+      name = 'Cash balance'
+      icon = 'wallet'
+      break
+  }
+  return {
+    id: linkedAccount.id,
+    name,
+    type,
+    icon
   }
 }
 
@@ -318,6 +321,8 @@ export type DetailedTransaction = {
 export type DetailedTransfer = {
   linkedAccountId: string
   type: string
+  amount: string
+  status: string
 }
 
 export async function getTransaction(
@@ -351,7 +356,9 @@ export async function getTransaction(
         transfers: resp.response.transfers.map((transfer) => {
           return {
             linkedAccountId: transfer.linkedAccountId,
-            type: transfer.type
+            type: transfer.type,
+            amount: formatAmount(transfer.amount),
+            status: transfer.state
           }
         })
       }

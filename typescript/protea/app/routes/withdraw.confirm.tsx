@@ -13,6 +13,7 @@ import {
 import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 import { randomUUID } from 'crypto'
+import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Withdraw)
@@ -53,7 +54,7 @@ export default function Page() {
         <div className='mt-2 flex w-full justify-between'>
           <span className='text-sm'>Total fees</span>
           <span className='text-sm font-medium text-strong'>
-            free <sup>*</sup>
+            Free<sup>*</sup>
           </span>
         </div>
         <div className='mt-2 flex w-full justify-between'>
@@ -111,5 +112,12 @@ export async function action({ request }: ActionArgs) {
     throw json({}, httpMapping(response.code))
   }
   await exitFlow(request, flowType.Withdraw)
-  return redirect(route('/'))
+  return redirect(route('/'), {
+    headers: {
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'Withdrawal created successfully.',
+        icon: 'close'
+      })
+    }
+  })
 }
