@@ -141,6 +141,12 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 			logger.Error("FailOutgoingPayment Activity failed for failed transaction state.", "Error", err)
 			return "", err
 		}
+
+		err = workflow.ExecuteActivity(ctx, a.SendFailedOutgoingPaymentMail, outgoingID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("SendFailedOutgoingPaymentMail Activity failed.", "Error", err)
+			return "", err
+		}
 		return "", nil
 	}
 
