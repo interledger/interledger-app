@@ -409,3 +409,35 @@ func (s *rpcService) GetStatementPDF(
 		Chunks: pdf,
 	}, nil
 }
+
+func (s *rpcService) GetUserLimits(ctx context.Context, _ *backendv1.Empty) (*backendv1.GetUserLimitsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	ul, err := s.b.Machnet().GetUserLimits(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	transform := func(limits machnet.RemainingLimit) *backendv1.Limit {
+		return &backendv1.Limit{
+			Annual:     limits.Annual.ToPB(),
+			Daily:      limits.Daily.ToPB(),
+			Monthly:    limits.Monthly.ToPB(),
+			WalletHold: limits.WalletHold.ToPB(),
+		}
+	}
+
+	return &backendv1.GetUserLimitsResponse{
+		FundWallet: transform(ul.FundWallet),
+		Withdrawal: transform(ul.Withdrawal),
+		Transfer:   transform(ul.Transfer),
+	}, nil
+}

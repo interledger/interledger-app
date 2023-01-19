@@ -498,3 +498,33 @@ func (c Client) WithdrawFromUserWallet(ctx context.Context, args external.Withdr
 		},
 	}, nil
 }
+
+func (c Client) GetUserLimits(_ context.Context, _ string) ([]external.UserLimit, error) {
+	return []external.UserLimit{
+		{
+			Type: external.LimitTypeWithdraw,
+			Remaining: external.RemainingLimit{
+				Annual:  10000,
+				Daily:   200,
+				Monthly: 5000,
+			},
+		},
+		{
+			Type: external.LimitTypeLoad,
+			Remaining: external.RemainingLimit{
+				Annual:     10000,
+				Daily:      200,
+				Monthly:    5000,
+				WalletHold: 20000,
+			},
+		},
+		{
+			Type: external.LimitTypeTransfer,
+			Remaining: external.RemainingLimit{
+				Annual:  10000,
+				Daily:   100,
+				Monthly: 4000,
+			},
+		},
+	}, nil
+}

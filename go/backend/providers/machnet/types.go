@@ -234,3 +234,18 @@ type GetStatementArgs struct {
 	StartDate time.Time
 	EndDate   time.Time `validate:"gtefield=StartDate"`
 }
+
+type (
+	UserLimits struct {
+		FundWallet RemainingLimit
+		Withdrawal RemainingLimit
+		Transfer   RemainingLimit
+	}
+
+	RemainingLimit struct {
+		Annual     currency.Amount
+		Daily      currency.Amount
+		Monthly    currency.Amount
+		WalletHold currency.Amount
+	}
+)

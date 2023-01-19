@@ -373,3 +373,23 @@ type (
 		IPAddress      string
 	}
 )
+
+type (
+	UserLimit struct {
+		Type      string         `json:"type"`
+		Remaining RemainingLimit `json:"remaining_limit"`
+	}
+
+	RemainingLimit struct {
+		Annual     float64 `json:"annual_limit"`
+		Daily      float64 `json:"daily_limit"`
+		Monthly    float64 `json:"monthly_limit"`
+		WalletHold float64 `json:"wallet_hold_limit"`
+	}
+)
+
+const (
+	LimitTypeLoad     = "LOAD"
+	LimitTypeWithdraw = "UNLOAD"
+	LimitTypeTransfer = "TRANSFER"
+)

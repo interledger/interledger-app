@@ -5,6 +5,7 @@ import { BackendService } from "./backend";
 import type { StatementPDF } from "./backend";
 import type { GetStatementPDFRequest } from "./backend";
 import type { ListStatementsResponse } from "./backend";
+import type { GetUserLimitsResponse } from "./backend";
 import type { Transaction } from "./backend";
 import type { LookupTransactionRequest } from "./backend";
 import type { IsMugAvailableResponse } from "./backend";
@@ -379,6 +380,12 @@ export interface IBackendServiceClient {
      */
     lookupTransaction(input: LookupTransactionRequest, options?: RpcOptions): UnaryCall<LookupTransactionRequest, Transaction>;
     /**
+     * Limits
+     *
+     * @generated from protobuf rpc: GetUserLimits(backend.v1.Empty) returns (backend.v1.GetUserLimitsResponse);
+     */
+    getUserLimits(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetUserLimitsResponse>;
+    /**
      * Statements
      *
      * @generated from protobuf rpc: ListStatements(backend.v1.PaginationRequest) returns (backend.v1.ListStatementsResponse);
@@ -658,19 +665,28 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<LookupTransactionRequest, Transaction>("unary", this._transport, method, opt, input);
     }
     /**
+     * Limits
+     *
+     * @generated from protobuf rpc: GetUserLimits(backend.v1.Empty) returns (backend.v1.GetUserLimitsResponse);
+     */
+    getUserLimits(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetUserLimitsResponse> {
+        const method = this.methods[35], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetUserLimitsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Statements
      *
      * @generated from protobuf rpc: ListStatements(backend.v1.PaginationRequest) returns (backend.v1.ListStatementsResponse);
      */
     listStatements(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListStatementsResponse> {
-        const method = this.methods[35], opt = this._transport.mergeOptions(options);
+        const method = this.methods[36], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListStatementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
     getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF> {
-        const method = this.methods[36], opt = this._transport.mergeOptions(options);
+        const method = this.methods[37], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetStatementPDFRequest, StatementPDF>("unary", this._transport, method, opt, input);
     }
 }
