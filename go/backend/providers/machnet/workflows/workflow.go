@@ -123,7 +123,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return nil, err
 	}
 
-	var topupTX string
+	var topupTX machnet.CreateTransactionResponse
 	if fundWallet {
 		err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, trxID, []transactions.TransferArgs{
 			{
@@ -162,6 +162,10 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		if err != nil {
 			logger.Error("ExecuteChildWorkflow failed to start for wallet top up", "Error", err)
 			return nil, err
+		}
+
+		if topupTX.TransactionState == transactions.StateFailed {
+			return &topupTX, nil
 		}
 	}
 
@@ -261,7 +265,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 		return nil, err
 	}
 
-	logger.Info("CreateTransactionWorkflow completed.", "fund_transfer_id", topupTX, "external_transfer_id", transferID, "transaction_state", transactionState)
+	logger.Info("CreateTransactionWorkflow completed.", "topup_transaction_id", topupTX.ExternalID, "external_transfer_id", transferID, "transaction_state", transactionState)
 
 	return &machnet.CreateTransactionResponse{
 		TransactionState: transactionState,
@@ -366,7 +370,7 @@ type ExecuteTopupArgs struct {
 	IPAddress           string
 }
 
-func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (string, error) {
+func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (*machnet.CreateTransactionResponse, error) {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -381,20 +385,20 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 	err := workflow.ExecuteActivity(ctx, a.ShouldFundWallet, args.FromLinkedAccountID).Get(ctx, &fundWallet)
 	if err != nil {
 		logger.Error("ShouldFundWallet Activity failed.", "Error", err)
-		return "", err
+		return nil, err
 	}
 	if !fundWallet {
 		// TODO: This should be a permanent error...
 		err = fmt.Errorf("cannot fund wallet from linked account. (id=%s)", args.FromLinkedAccountID)
 		logger.Error(err.Error(), "Error", err)
-		return "", err
+		return nil, err
 	}
 
 	var trx transactions.Transaction
 	err = workflow.ExecuteActivity(ctx, a.GetTransaction, args.WalletID, args.TransactionID).Get(ctx, &trx)
 	if err != nil {
 		logger.Error("error getting transaction.", "Error", err)
-		return "", err
+		return nil, err
 	}
 
 	var idempotencyKey string
@@ -403,7 +407,7 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 	}).Get(&idempotencyKey)
 	if err != nil {
 		logger.Error("error generating idempotency key", "Error", err)
-		return "", err
+		return nil, err
 	}
 
 	var fundWalletTX FundWalletResponse
@@ -415,7 +419,7 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 	}).Get(ctx, &fundWalletTX)
 	if err != nil {
 		logger.Error("FundUserWalletFromCard Activity failed.", "Error", err)
-		return "", err
+		return nil, err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CreateTransactionWorkflowRef, CreateTransactionWorkflowRefArgs{
@@ -427,7 +431,7 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("CreateTransactionWorkflowRef Activity failed.", "Error", err)
-		return "", err
+		return nil, err
 	}
 
 	transactionState := awaitTransactionState(ctx, time.Hour*24*7, fundWalletTX.FundTX)
@@ -436,7 +440,7 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 		err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, trx.ID, transactionState).Get(ctx, nil)
 		if err != nil {
 			logger.Error("failed to update transaction state", "error", err, "state", transactionState)
-			return "", err
+			return nil, err
 		}
 	}
 	for _, tfr := range trx.Transfers {
@@ -448,13 +452,16 @@ func ExecuteWalletTopupWorkflow(ctx workflow.Context, args ExecuteTopupArgs) (st
 		err = workflow.ExecuteActivity(ctx, a.UpdateTransferState, tfr.ID, transactionState).Get(ctx, nil)
 		if err != nil {
 			logger.Error("failed to update transaction state", "error", err, "state", transactionState)
-			return "", err
+			return nil, err
 		}
 	}
 
 	logger.Info("ExecuteWalletTopupWorkflow completed.", "fund_transfer_id", fundWalletTX.FundTX, "transaction_state", transactionState)
 
-	return fundWalletTX.FundTX, nil
+	return &machnet.CreateTransactionResponse{
+		TransactionState: transactionState,
+		ExternalID:       fundWalletTX.FundTX,
+	}, nil
 }
 
 func CreateWalletWithdrawalWorkflow(ctx workflow.Context, args machnet.WithdrawFromWalletArgs) (string, error) {
