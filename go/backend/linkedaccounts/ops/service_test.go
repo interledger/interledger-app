@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -147,4 +148,35 @@ func TestDelete(t *testing.T) {
 
 	_, err = c.LinkedAccounts.Get(ctx, la.ID)
 	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
+}
+
+func TestListMachnetWallets(t *testing.T) {
+	ctx := context.Background()
+	c, err := NewTestContainer(ctx, t)
+	require.NoError(t, err)
+
+	userId := uuid.NewString()
+	// Create Signup
+	_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
+	require.NoError(t, err)
+	// Create Wallet
+	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID: wallet.ID,
+		Name:     "Test",
+		Mask:     "1234",
+		Provider: machnet.ProviderName,
+		Type:     machnet.TypeWallet,
+	})
+	require.NoError(t, err)
+
+	machnetWallets, err := c.LinkedAccounts.ListMachnetWallets(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, len(machnetWallets))
+	assert.Equal(t, linkedAccount.ID, machnetWallets[0].ID)
 }
