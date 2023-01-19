@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -205,8 +205,8 @@ func ListCompleted(ctx context.Context, b Backends, walletID string, page db.Pag
 
 func ListWithPending(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
 
-	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2,$3) or (state=$4 and type<>$5)) ORDER BY updated_at DESC %s"
-	sqlArgs := []interface{}{walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming}
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2) or (state=$3 and type<>$4)) ORDER BY updated_at DESC %s"
+	sqlArgs := []interface{}{walletID, transactions.StateCompleted, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming}
 
 	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
 }
