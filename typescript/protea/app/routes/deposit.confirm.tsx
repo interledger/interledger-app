@@ -13,6 +13,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { randomUUID } from 'crypto'
+import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.TopUp)
@@ -153,5 +154,13 @@ export async function action({ request }: ActionArgs) {
     throw json({}, httpMapping(response.code))
   }
   await exitFlow(request, flowType.TopUp)
-  return redirect(route('/'))
+
+  return redirect(route('/'), {
+    headers: {
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'Top up created successfully.',
+        icon: 'close'
+      })
+    }
+  })
 }
