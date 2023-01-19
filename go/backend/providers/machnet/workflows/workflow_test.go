@@ -302,9 +302,9 @@ func TestExecuteWalletTopupSendsFailedEmail(t *testing.T) {
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
-	var result string
+	var result machnet.CreateTransactionResponse
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, result, trxID)
+	require.Equal(t, result.ExternalID, trxID)
 	env.AssertExpectations(t)
 }
 
