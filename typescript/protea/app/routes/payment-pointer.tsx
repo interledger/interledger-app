@@ -15,6 +15,8 @@ import { route } from 'routes-gen'
 import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar, flashSnackbar } from '~/lib/snackbar.server'
 
+const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE || 'fynbos.me'
+
 export async function loader({ request }: LoaderArgs) {
   let response = await openPaymentsClient
     .listWalletPaymentPointers(
@@ -41,7 +43,7 @@ export async function loader({ request }: LoaderArgs) {
   while (!usernameIsValid && attempts < 5) {
     let response = await openPaymentsClient
       .paymentPointerExists({
-        url: 'https://fynbos.me/' + username
+        url: `https://${PAYMENT_POINTER_BASE}/` + username
       })
       .then((v) => v)
       .catch(StatusError)
@@ -117,7 +119,7 @@ export default function Page() {
         form='payment-pointer'
         label='Payment pointer'
         name='username'
-        prefix='$fynbos.me/'
+        prefix={`$${PAYMENT_POINTER_BASE}/`}
         appendIcon={
           username == '' &&
           typeof fetcher.data == 'undefined' ? undefined : fetcher.data?.errors
@@ -191,7 +193,7 @@ export async function action({ request }: ActionArgs) {
 
   let response = await openPaymentsClient
     .paymentPointerExists({
-      url: 'https://fynbos.me/' + username
+      url: `https://${PAYMENT_POINTER_BASE}/` + username
     })
     .then((v) => v)
     .catch(StatusError)
@@ -223,7 +225,7 @@ export async function action({ request }: ActionArgs) {
     let response = await openPaymentsClient
       .createPaymentPointer(
         {
-          url: 'https://fynbos.me/' + username,
+          url: `https://${PAYMENT_POINTER_BASE}/` + username,
           asset: 'USD',
           assetScale: 2,
           alias: 'default'
