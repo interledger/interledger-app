@@ -28,7 +28,7 @@ func (a *Activity) UpdateTransactionState(ctx context.Context, trxID string, sta
 }
 
 func (a *Activity) UpdateTransferState(ctx context.Context, tfrID string, state transactions.State) error {
-	return a.b.Transactions().SetTransactionState(ctx, tfrID, state)
+	return a.b.Transactions().SetTransferState(ctx, tfrID, state)
 }
 
 func (a *Activity) UpdateTransferStateByType(ctx context.Context, trxID string, walletID string, tfsType transactions.TransferType, state transactions.State) error {
