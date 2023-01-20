@@ -458,7 +458,7 @@ type backends struct {
 	db             *sqlx.DB
 	external       *external_client.Client
 	linkedaccounts *linkedaccounts_mock.MockClient
-	mail           *email_mock.MockClient
+	email          *email_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
 	statements     *statements_mock.MockClient
@@ -486,8 +486,8 @@ func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
 }
 
-func (b backends) Mail() email.Client {
-	return b.mail
+func (b backends) Email() email.Client {
+	return b.email
 }
 
 func (b backends) Temporal() client.Client {

@@ -105,7 +105,7 @@ type backends struct {
 	kyc            kyc.Client
 	linkedaccounts linkedaccounts.Client
 	machnet        machnet.Client
-	mail           email.Client
+	email          email.Client
 	signup         signup.Client
 	temporal       temporal.Client
 	twilio         twilio.Service
@@ -245,10 +245,10 @@ func (b *backends) Statements() statements.Client {
 	return b.statements
 }
 
-func (b *backends) Mail() email.Client {
-	if b.mail == nil {
+func (b *backends) Email() email.Client {
+	if b.email == nil {
 		return email_client.New(b, os.Getenv("SENDGRID_API_KEY"))
 	}
 
-	return b.mail
+	return b.email
 }
