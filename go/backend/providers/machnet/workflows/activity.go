@@ -782,7 +782,7 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 
 	personalisations := map[string]interface{}{
 		"name":            user.FirstName,
-		"transactionType": trxType,
+		"transactionType": trxTypeName,
 		"actionUrl":       ctaUrl,
 		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), trxTypeName),
 	}
