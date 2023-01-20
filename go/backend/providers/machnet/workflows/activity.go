@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 )
@@ -755,19 +756,23 @@ func (a *Activity) DeleteLinkedAccount(ctx context.Context, linkedAccID string) 
 
 func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID string, trxType transactions.TransactionType) error {
 	logger := activity.GetLogger(ctx)
-	logger.Info("SendMailTemplate", "walletID", walletID, "trxType", trxType)
+	logger.Info("SendFailedTransactionMail", "walletID", walletID, "trxType", trxType)
 
 	user, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, external.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("kyc details for wallet (%s) not found", walletID), "ErrNotFound", err)
 	}
 
+	ctaUrl := ""
 	trxTypeName := ""
 	switch trxType {
 	case transactions.TransactionTypeMachnetWalletTopUp:
 		trxTypeName = "top up"
+		// TODO: update to go 1.19 and use url.JoinPath
+		ctaUrl = strings.Join([]string{env.GetUrl(), "deposit"}, "/")
 	case transactions.TransactionTypeMachnetWalletWithdrawal:
 		trxTypeName = "withdrawal"
+		ctaUrl = strings.Join([]string{env.GetUrl(), "withdraw"}, "/")
 	default:
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid transaction type (%s) for failed transaction", trxType), "ErrInternal", err)
 	}
@@ -775,6 +780,7 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 	personalisations := map[string]interface{}{
 		"name":            user.FirstName,
 		"transactionType": trxType,
+		"actionUrl":       ctaUrl,
 		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), trxTypeName),
 	}
 

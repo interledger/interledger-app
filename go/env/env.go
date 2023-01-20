@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	ProdUrl  = "https://fynbos.app"
-	DevUrl   = "https://eu1.fynbos.dev"
-	LocalUrl = "http://fynbos.test"
+	prodUrl  = "https://fynbos.app"
+	devUrl   = "https://eu1.fynbos.dev"
+	localUrl = "http://fynbos.test"
 )
 
 var allowedEnvs = []string{
@@ -56,4 +56,16 @@ func IsSandbox() bool {
 // IsProd returns true if the environment is set up for the full public production environment
 func IsProd() bool {
 	return GetEnv() == "prod"
+}
+
+func GetUrl() string {
+	if IsLocal() {
+		return localUrl
+	}
+
+	if IsSandbox() || IsDev() {
+		return devUrl
+	}
+
+	return prodUrl
 }
