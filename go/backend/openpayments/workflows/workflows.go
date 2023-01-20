@@ -48,7 +48,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	}
 
 	// Check that the sending payment pointer has the provider types
-	_, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
+	sendLA, err := getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
@@ -74,6 +74,27 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	idxSlash := strings.LastIndex(id, "/")
 	if idxSlash > 0 {
 		id = id[idxSlash+1:]
+	}
+
+	limits, err := b.Machnet().GetUserLimits(ctx, sendLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if limits.FundWallet.Annual.Value < q.SendAmount.Value ||
+		limits.Transfer.Annual.Value < q.SendAmount.Value {
+		return nil, machnet.ErrUserAnnualLimit
+	}
+	if limits.FundWallet.Monthly.Value < q.SendAmount.Value ||
+		limits.Transfer.Monthly.Value < q.SendAmount.Value {
+		return nil, machnet.ErrUserMonthlyLimit
+	}
+	if limits.FundWallet.Daily.Value < q.SendAmount.Value ||
+		limits.Transfer.Daily.Value < q.SendAmount.Value {
+		return nil, machnet.ErrUserDailyLimit
+	}
+	if limits.FundWallet.WalletHold.Value < q.SendAmount.Value {
+		return nil, machnet.ErrUserHoldLimit
 	}
 
 	workflowOptions := temporal_client.StartWorkflowOptions{

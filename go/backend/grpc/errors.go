@@ -3,6 +3,7 @@ package grpc
 import (
 	"errors"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/signup"
 
@@ -23,6 +24,10 @@ var errorStatus = map[error]error{
 	twilio.ErrInvalidOTP:             NewValidationError("OTP", "Could not validate OTP"),
 	user.ErrDuplicateWallet:          status.Error(codes.AlreadyExists, "Wallet already exists"),
 	machnet.ErrUserHasExistingWallet: status.Error(codes.AlreadyExists, "Machnet wallet already exists"),
+	machnet.ErrUserAnnualLimit:       status.Error(codes.ResourceExhausted, "Annual limit exceeded"),
+	machnet.ErrUserMonthlyLimit:      status.Error(codes.ResourceExhausted, "Monthly limit exceeded"),
+	machnet.ErrUserDailyLimit:        status.Error(codes.ResourceExhausted, "Daily limit exceeded"),
+	machnet.ErrUserHoldLimit:         status.Error(codes.ResourceExhausted, "Wallet max balance limit exceeded"),
 	linkedaccounts.ErrNotFound:       NotFoundError("linked account not found"),
 	signup.ErrDuplicatePhone:         status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
 }

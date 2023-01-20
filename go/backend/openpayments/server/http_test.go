@@ -381,6 +381,24 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 
 	mc := machnet_mock.NewMockClient(ctrl)
 	mc.EXPECT().GetUserByWalletID(gomock.Any(), gomock.Any()).Return(&machnet.User{KYCStatus: machnet.KYCStatusVerified}, nil).AnyTimes()
+	mc.EXPECT().GetUserLimits(gomock.Any(), gomock.Any()).Return(&machnet.UserLimits{
+		FundWallet: machnet.RemainingLimit{
+			Annual:     currency.FromFloat64(1100, currency.USD),
+			Daily:      currency.FromFloat64(1100, currency.USD),
+			Monthly:    currency.FromFloat64(1100, currency.USD),
+			WalletHold: currency.FromFloat64(1100, currency.USD),
+		},
+		Withdrawal: machnet.RemainingLimit{
+			Annual:  currency.FromFloat64(1100, currency.USD),
+			Daily:   currency.FromFloat64(1100, currency.USD),
+			Monthly: currency.FromFloat64(1100, currency.USD),
+		},
+		Transfer: machnet.RemainingLimit{
+			Annual:  currency.FromFloat64(1100, currency.USD),
+			Daily:   currency.FromFloat64(1100, currency.USD),
+			Monthly: currency.FromFloat64(1100, currency.USD),
+		},
+	}, nil)
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 

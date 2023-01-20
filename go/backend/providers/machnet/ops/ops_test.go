@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/statements"
@@ -442,6 +443,33 @@ func TestListStatementPeriods(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, []string{time.Now().Format("2006-01")}, periods)
+}
+
+func TestGetUserLimits(t *testing.T) {
+	t.Parallel()
+	b := NewTestBackends(t)
+	walletID := NewWallet(t, b)
+
+	externalSendUser, err := b.External().RegisterUser(context.Background(), external.User{
+		ID:   uuid.NewString(),
+		Type: external.TypeSendUser,
+	})
+	require.NoError(t, err)
+
+	_, err = ops.CreateUser(context.Background(), b, machnet.CreateArgs{
+		WalletID:   walletID,
+		ExternalID: externalSendUser.ID,
+	})
+	require.NoError(t, err)
+
+	limits, err := ops.GetUserLimits(context.Background(), b, walletID)
+	require.NoError(t, err)
+
+	assert.Equal(t, limits.Transfer.Monthly.Value, uint64(400000))
+	assert.Equal(t, limits.Transfer.Monthly.Currency, currency.USD)
+
+	assert.Equal(t, limits.Transfer.Annual.Value, uint64(1000000))
+	assert.Equal(t, limits.Transfer.Annual.Currency, currency.USD)
 }
 
 func NewTestBackends(t *testing.T) backends {
