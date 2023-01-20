@@ -27,15 +27,10 @@ test_backend:
         - go/backend/**/*
         - go/proto/**/*
   tags:
-    - k8s
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
-  extends:
-    - .go-cache-backend
-  needs:
-    - job: go-mod
-      optional: true
+    - hetzner
+  image: registry.gitlab.com/fynbos/fynbos/debian-runner-base
   services:
-    - name: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.2
+    - name: cockroachdb/cockroach:latest-v21.2
       alias: crdb
       command: ["start-single-node", "--insecure", "--store=type=mem,size=641MiB"]
   interruptible: true
@@ -47,19 +42,12 @@ test_backend:
 build_backend:
   interruptible: true
   tags:
-    - k8s
-  needs:
-    - job: test_backend
-      optional: true
+    - hetzner
   image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base
+    entrypoint: [ '' ]
+  before_script:
+    - echo "changing directory to $BOTANIST_PROJECT_PATH"
+    - cd $BACKEND_PATH/../
   script:
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --context "${BACKEND_PATH}/../"
-      --dockerfile "${BACKEND_PATH}/Dockerfile"
-      --destination "823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:${BACKEND_IMAGE_HASH}"
-      --cache=true
-      --cache-repo="${CI_REGISTRY}/fynbos/fynbos/backend-cache"
+    - docker build -t "823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:${BACKEND_IMAGE_HASH}" -f backend/Dockerfile .
