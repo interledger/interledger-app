@@ -27,7 +27,7 @@ type Backends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
-	Mail() email.Client
+	Email() email.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
 	Notify() notify.Client
@@ -49,7 +49,7 @@ type testBackends struct {
 	kycImpl    *kyc_mock.MockClient
 	linked     *linkedaccounts_mock.MockClient
 	machnet    *machnet_mock.MockClient
-	mail       *email_mock.MockClient
+	email      *email_mock.MockClient
 	temporal   *mocks.Client
 	tx         transactions.Client
 	notify     notify.Client
@@ -84,8 +84,8 @@ func (b testBackends) Machnet() machnet.Client {
 	return b.machnet
 }
 
-func (b testBackends) Mail() email.Client {
-	return b.mail
+func (b testBackends) Email() email.Client {
+	return b.email
 }
 
 func (b testBackends) Temporal() client.Client {

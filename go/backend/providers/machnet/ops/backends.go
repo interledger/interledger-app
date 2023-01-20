@@ -18,7 +18,7 @@ type Backends interface {
 	KYC() kyc.Client
 	External() external.Client
 	LinkedAccounts() linkedaccounts.Client
-	Mail() email.Client
+	Email() email.Client
 	Statements() statements.Client
 	Temporal() client.Client
 	Transactions() transactions.Client

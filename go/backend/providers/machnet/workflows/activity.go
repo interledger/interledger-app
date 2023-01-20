@@ -762,6 +762,9 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 	if errors.Is(err, external.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("kyc details for wallet (%s) not found", walletID), "ErrNotFound", err)
 	}
+	if err != nil {
+		return err
+	}
 
 	ctaUrl := ""
 	trxTypeName := ""
@@ -784,7 +787,7 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), trxTypeName),
 	}
 
-	return a.b.Mail().SendMailTemplate(ctx, walletID, email.FailedTransactionTemplateID, personalisations, []email.Attachment{})
+	return a.b.Email().SendMailTemplate(ctx, walletID, email.FailedTransactionTemplateID, personalisations, []email.Attachment{})
 }
 
 // StripEmailPlus Parse email to remove + due to Machnet not able to handle
