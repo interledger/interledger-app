@@ -1,0 +1,9 @@
+build_runner_image:
+  interruptible: true
+  tags:
+    - hetzner-shell
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: ['']
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
