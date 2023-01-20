@@ -1,0 +1,33 @@
+include:
+  - //.gitlab-refs.yaml
+
+# 👇 Adds Chromatic as a job
+chromatic_publish:
+  rules:
+    - changes:
+        - typescript/protea/**/*
+    # we need to configure this pipeline to run on merge requests
+    # https://gitlab.com/gitlab-org/gitlab/-/merge_requests/25611/diffs
+  #    - if: $CI_MERGE_REQUEST_ID
+  tags:
+    - k8s
+  variables:
+    PROJECT_PATH: $CI_PROJECT_DIR/typescript/protea
+    PROTEA_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
+  # Sets the docker image for the job
+  image: public.ecr.aws/docker/library/node:16
+
+  # Cache the dependencies
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - ./.yarn/cache
+
+  before_script:
+    - echo "changing directory to $PROJECT_PATH"
+    - cd $PROJECT_PATH
+    - echo "Installing dependencies"
+    - yarn install --immutable
+
+  script:
+    - yarn chromatic --project-token=$CHROMATIC_PROJECT_TOKEN
