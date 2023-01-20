@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -227,6 +228,8 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
 		"transactionType": "payment",
 		"name":            user.FirstName,
+		// TODO: upgrade to go1.19 and use url.JoinPath
+		"actionUrl": strings.Join([]string{env.GetUrl(), "pay"}, "/"),
 	}, []email.Attachment{})
 
 	return err
