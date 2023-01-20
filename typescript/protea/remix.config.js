@@ -7,7 +7,12 @@ module.exports = {
   assetsBuildDirectory: 'public/build',
   publicPath: '/build/',
   devServerPort: 8002,
-  ignoredRouteFiles: ['.*', '**/*.draft.mdx'],
+  ignoredRouteFiles: [
+    '.*',
+    '**/*.draft.mdx',
+    '**/*.stories.tsx',
+    '**/*.test.{ts,tsx}'
+  ],
   sourcemap: true,
   mdx: async (filename) => {
     const [rehypePrism] = await Promise.all([
