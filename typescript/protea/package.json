@@ -15,10 +15,11 @@
     "precommit": "yarn format && yarn lint && yarn routes-gen && yarn build",
     "storybook": "run-p \"storybook:*\" dev:css",
     "storybook:dev": "storybook dev -p 6006 --no-open",
-    "build:storybook": "storybook build",
+    "build-storybook": "storybook build",
     "test:integration": "playwright test",
     "test:unit": "vitest",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "chromatic": "chromatic --exit-zero-on-changes"
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.3.26",
@@ -77,6 +78,7 @@
     "@types/uuid": "^9.0.0",
     "@vitejs/plugin-react": "^3.0.1",
     "autoprefixer": "latest",
+    "chromatic": "^6.14.0",
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-storybook": "^0.6.10",
@@ -96,5 +98,6 @@
   "engines": {
     "node": ">=14"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "_id": "protea@0.1.0"
 }
