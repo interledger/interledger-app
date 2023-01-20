@@ -168,6 +168,21 @@ func (c client) GetWallet(ctx context.Context, id string) (*machnet.Wallet, erro
 }
 
 func (c client) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (machnet.Await, error) {
+	limits, err := c.GetUserLimits(ctx, args.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if limits.Withdrawal.Annual.Value < args.Amount {
+		return nil, machnet.ErrUserAnnualLimit
+	}
+	if limits.Withdrawal.Monthly.Value < args.Amount {
+		return nil, machnet.ErrUserMonthlyLimit
+	}
+	if limits.Withdrawal.Daily.Value < args.Amount {
+		return nil, machnet.ErrUserDailyLimit
+	}
+
 	idempotencyKey := args.IdempotencyKey
 	if idempotencyKey == "" {
 		idempotencyKey = uuid.NewString()
@@ -207,6 +222,24 @@ func (c client) DeleteFundSource(ctx context.Context, linkedAccID string) (machn
 }
 
 func (c client) StartWalletTopup(ctx context.Context, args machnet.StartWalletTopupArgs) (machnet.Await, error) {
+	limits, err := c.GetUserLimits(ctx, args.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if limits.FundWallet.Annual.Value < args.Amount.Value {
+		return nil, machnet.ErrUserAnnualLimit
+	}
+	if limits.FundWallet.Monthly.Value < args.Amount.Value {
+		return nil, machnet.ErrUserMonthlyLimit
+	}
+	if limits.FundWallet.Daily.Value < args.Amount.Value {
+		return nil, machnet.ErrUserDailyLimit
+	}
+	if limits.FundWallet.WalletHold.Value < args.Amount.Value {
+		return nil, machnet.ErrUserHoldLimit
+	}
+
 	idempotencyKey := args.IdempotencyKey
 	if idempotencyKey == "" {
 		idempotencyKey = uuid.NewString()

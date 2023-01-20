@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/providers/machnet"
+
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"github.com/go-playground/validator/v10"
@@ -22,6 +24,10 @@ var errorStatus = map[error]error{
 	openpayments.ErrPaymentPointerCannotSend: status.Error(codes.FailedPrecondition, "Payment pointer is not enabled to send"),
 	openpayments.ErrPaymentPointerCannotRecv: status.Error(codes.FailedPrecondition, "Payment pointer is not enabled to receive"),
 	openpayments.ErrInsufficientBalance:      NewValidationError("amount", "Insufficient wallet balance"),
+	machnet.ErrUserAnnualLimit:               status.Error(codes.ResourceExhausted, "Annual limit exceeded"),
+	machnet.ErrUserMonthlyLimit:              status.Error(codes.ResourceExhausted, "Monthly limit exceeded"),
+	machnet.ErrUserDailyLimit:                status.Error(codes.ResourceExhausted, "Daily limit exceeded"),
+	machnet.ErrUserHoldLimit:                 status.Error(codes.ResourceExhausted, "Wallet max balance limit exceeded"),
 }
 
 func validationDesc(fe validator.FieldError) string {
