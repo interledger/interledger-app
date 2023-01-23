@@ -338,16 +338,11 @@ type testBackends struct {
 	db             *sqlx.DB
 	external       *external_client.Client
 	linkedaccounts *linkedaccounts_mock.MockClient
-	email          *email_mock.MockClient
 	users          user.Client
 	kycImpl        kyc.Client
 	temporal       *mocks.Client
 	statements     *statements_mock.MockClient
 	email          *email_mock.MockClient
-}
-
-func (b testBackends) Email() email.Client {
-	return b.email
 }
 
 func (b testBackends) Machnet() machnet.Client {

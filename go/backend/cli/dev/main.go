@@ -105,7 +105,6 @@ type backends struct {
 	kyc            kyc.Client
 	linkedaccounts linkedaccounts.Client
 	machnet        machnet.Client
-	email          email.Client
 	signup         signup.Client
 	temporal       temporal.Client
 	twilio         twilio.Service
