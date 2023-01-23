@@ -14,8 +14,7 @@ import {
 import { route } from 'routes-gen'
 import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar, flashSnackbar } from '~/lib/snackbar.server'
-
-const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE || 'fynbos.me'
+import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 
 export async function loader({ request }: LoaderArgs) {
   let response = await openPaymentsClient
@@ -43,7 +42,7 @@ export async function loader({ request }: LoaderArgs) {
   while (!usernameIsValid && attempts < 5) {
     let response = await openPaymentsClient
       .paymentPointerExists({
-        url: `https://${PAYMENT_POINTER_BASE}/` + username
+        url: `https://${PAYMENT_POINTER_BASE}/${username}`
       })
       .then((v) => v)
       .catch(StatusError)
@@ -63,7 +62,11 @@ export async function loader({ request }: LoaderArgs) {
 
   const snackbar = await getSnackbar(request)
 
-  return json({ username: username.toLowerCase(), snackbar })
+  return json({
+    paymentPointerBase: PAYMENT_POINTER_BASE,
+    username: username.toLowerCase(),
+    snackbar
+  })
 }
 
 export const handle = {
@@ -72,7 +75,8 @@ export const handle = {
 
 export default function Page() {
   const fetcher = useFetcher()
-  const { username, snackbar } = useLoaderData<typeof loader>()
+  const { paymentPointerBase, username, snackbar } =
+    useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
@@ -119,7 +123,7 @@ export default function Page() {
         form='payment-pointer'
         label='Payment pointer'
         name='username'
-        prefix={`$${PAYMENT_POINTER_BASE}/`}
+        prefix={`$${paymentPointerBase}/`}
         appendIcon={
           username == '' &&
           typeof fetcher.data == 'undefined' ? undefined : fetcher.data?.errors
@@ -193,7 +197,7 @@ export async function action({ request }: ActionArgs) {
 
   let response = await openPaymentsClient
     .paymentPointerExists({
-      url: `https://${PAYMENT_POINTER_BASE}/` + username
+      url: `https://${PAYMENT_POINTER_BASE}/${username}`
     })
     .then((v) => v)
     .catch(StatusError)
@@ -225,7 +229,7 @@ export async function action({ request }: ActionArgs) {
     let response = await openPaymentsClient
       .createPaymentPointer(
         {
-          url: `https://${PAYMENT_POINTER_BASE}/` + username,
+          url: `https://${PAYMENT_POINTER_BASE}/${username}`,
           asset: 'USD',
           assetScale: 2,
           alias: 'default'
