@@ -17,6 +17,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(machnet_workflows.ExecuteWalletWithdrawalWorkflow)
 	w.RegisterWorkflow(machnet_workflows.ExecuteWalletTopupWorkflow)
 	w.RegisterWorkflow(machnet_workflows.DeleteAccountWorkflow)
+	w.RegisterWorkflow(machnet_workflows.EmailStatements)
 
 	w.RegisterActivity(openpayments_workflows.NewActivity(b))
 	w.RegisterWorkflow(openpayments_workflows.OutgoingTransactionWorkflow)

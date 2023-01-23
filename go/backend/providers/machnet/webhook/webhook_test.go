@@ -330,6 +330,7 @@ func newTestBackends(t *testing.T) testBackends {
 		external:       external_client.New(),
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
 		temporal:       &mocks.Client{},
+		email:          email_mock.NewMockClient(ctrl),
 	}
 }
 
@@ -342,6 +343,11 @@ type testBackends struct {
 	kycImpl        kyc.Client
 	temporal       *mocks.Client
 	statements     *statements_mock.MockClient
+	email          *email_mock.MockClient
+}
+
+func (b testBackends) Email() email.Client {
+	return b.email
 }
 
 func (b testBackends) Machnet() machnet.Client {
