@@ -8,4 +8,5 @@ type Client interface {
 	Delete(ctx context.Context, id string) error
 	GetByProviderID(ctx context.Context, args GetByProviderIDArgs) (*LinkedAccount, error)
 	ListByWalletId(ctx context.Context, walletId string) ([]LinkedAccount, error)
+	ListMachnetWallets(ctx context.Context) ([]LinkedAccount, error)
 }

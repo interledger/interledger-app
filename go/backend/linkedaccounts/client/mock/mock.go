@@ -108,3 +108,18 @@ func (mr *MockClientMockRecorder) ListByWalletId(ctx, walletId interface{}) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWalletId", reflect.TypeOf((*MockClient)(nil).ListByWalletId), ctx, walletId)
 }
+
+// ListMachnetWallets mocks base method.
+func (m *MockClient) ListMachnetWallets(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMachnetWallets", ctx)
+	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMachnetWallets indicates an expected call of ListMachnetWallets.
+func (mr *MockClientMockRecorder) ListMachnetWallets(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMachnetWallets", reflect.TypeOf((*MockClient)(nil).ListMachnetWallets), ctx)
+}

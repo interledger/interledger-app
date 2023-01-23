@@ -114,6 +114,7 @@ type backends struct {
 	val            *validator.Validate
 	transactions   transactions.Client
 	statements     statements.Client
+	email          email.Client
 }
 
 func (b *backends) Transactions() transactions.Client {
@@ -249,6 +250,5 @@ func (b *backends) Email() email.Client {
 	if b.email == nil {
 		return email_client.New(b, os.Getenv("SENDGRID_API_KEY"))
 	}
-
 	return b.email
 }

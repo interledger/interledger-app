@@ -479,6 +479,7 @@ func NewTestBackends(t *testing.T) backends {
 		external:       external_client.New(),
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
 		temporal:       &mocks.Client{},
+		email:          email_mock.NewMockClient(ctrl),
 	}
 }
 
@@ -492,6 +493,7 @@ type backends struct {
 	statements     *statements_mock.MockClient
 	temporal       *mocks.Client
 	transactions   transactions.Client
+	email          *email_mock.MockClient
 }
 
 func (b backends) Users() user.Client {

@@ -21,6 +21,7 @@ type Backends interface {
 	Statements() statements.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
+	Email() email.Client
 }
 
 type opsBackends struct {

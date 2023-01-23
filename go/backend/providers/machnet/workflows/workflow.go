@@ -654,3 +654,52 @@ func awaitTransactionState(ctx workflow.Context, timeout time.Duration, transact
 
 	return state
 }
+
+func EmailStatements(ctx workflow.Context) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	encodedPeriod := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return time.Now().Format("2006-01")
+	})
+
+	var period string
+	err := encodedPeriod.Get(&period)
+	if err != nil {
+		return err
+	}
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("EmailStatements workflow started", "period", period)
+
+	var walletIDs []string
+	err = workflow.ExecuteActivity(ctx, a.ListWalletIDs).Get(ctx, &walletIDs)
+	if err != nil {
+		return err
+	}
+
+	results := make([]workflow.Future, len(walletIDs))
+	for i, walletID := range walletIDs {
+		future := workflow.ExecuteActivity(ctx, a.EmailStatement, walletID, period)
+		results[i] = future
+	}
+
+	var failedIDs []string
+	for i, result := range results {
+		err := result.Get(ctx, nil)
+		if err != nil {
+			failedIDs = append(failedIDs, walletIDs[i])
+		}
+	}
+
+	if len(failedIDs) > 0 {
+		errMessage := fmt.Sprintf("Failed to send out all of the monthly statements. FailedIDs=%s", failedIDs)
+		logger.Error(errMessage)
+		return fmt.Errorf(errMessage)
+	}
+
+	return nil
+}
