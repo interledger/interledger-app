@@ -30,6 +30,7 @@ type OpenPaymentServiceClient interface {
 	LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
+	CheckOutgoingPaymentLimit(ctx context.Context, in *CheckOutgoingPaymentLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error)
 	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	//deprecated
@@ -117,6 +118,15 @@ func (c *openPaymentServiceClient) LookupIncomingPayment(ctx context.Context, in
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) CheckOutgoingPaymentLimit(ctx context.Context, in *CheckOutgoingPaymentLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error) {
+	out := new(CheckMachnetTXLimitResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CheckOutgoingPaymentLimit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *openPaymentServiceClient) CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error) {
 	out := new(OutgoingPayment)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CreateOutgoingPayment", in, out, opts...)
@@ -165,6 +175,7 @@ type OpenPaymentServiceServer interface {
 	LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error)
 	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
+	CheckOutgoingPaymentLimit(context.Context, *CheckOutgoingPaymentLimitRequest) (*CheckMachnetTXLimitResponse, error)
 	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
 	//deprecated
@@ -199,6 +210,9 @@ func (UnimplementedOpenPaymentServiceServer) CreateIncomingPayment(context.Conte
 }
 func (UnimplementedOpenPaymentServiceServer) LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupIncomingPayment not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) CheckOutgoingPaymentLimit(context.Context, *CheckOutgoingPaymentLimitRequest) (*CheckMachnetTXLimitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckOutgoingPaymentLimit not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOutgoingPayment not implemented")
@@ -368,6 +382,24 @@ func _OpenPaymentService_LookupIncomingPayment_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenPaymentService_CheckOutgoingPaymentLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckOutgoingPaymentLimitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).CheckOutgoingPaymentLimit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/CheckOutgoingPaymentLimit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).CheckOutgoingPaymentLimit(ctx, req.(*CheckOutgoingPaymentLimitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OpenPaymentService_CreateOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateOutgoingPaymentRequest)
 	if err := dec(in); err != nil {
@@ -480,6 +512,10 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OpenPaymentService_LookupIncomingPayment_Handler,
 		},
 		{
+			MethodName: "CheckOutgoingPaymentLimit",
+			Handler:    _OpenPaymentService_CheckOutgoingPaymentLimit_Handler,
+		},
+		{
 			MethodName: "CreateOutgoingPayment",
 			Handler:    _OpenPaymentService_CreateOutgoingPayment_Handler,
 		},
@@ -534,7 +570,9 @@ type BackendServiceClient interface {
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
+	CheckMachnetWithdrawalLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error)
 	StartWithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*Empty, error)
+	CheckMachnetTopupLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error)
 	StartMachnetWalletTopup(ctx context.Context, in *StartMachnetWalletTopupRequest, opts ...grpc.CallOption) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
@@ -786,9 +824,27 @@ func (c *backendServiceClient) GetWalletBalance(ctx context.Context, in *Empty, 
 	return out, nil
 }
 
+func (c *backendServiceClient) CheckMachnetWithdrawalLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error) {
+	out := new(CheckMachnetTXLimitResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckMachnetWithdrawalLimit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) StartWithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartWithdrawFromMachnetWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CheckMachnetTopupLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error) {
+	out := new(CheckMachnetTXLimitResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckMachnetTopupLimit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -937,7 +993,9 @@ type BackendServiceServer interface {
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
 	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
+	CheckMachnetWithdrawalLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error)
 	StartWithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*Empty, error)
+	CheckMachnetTopupLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error)
 	StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
@@ -1035,8 +1093,14 @@ func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWa
 func (UnimplementedBackendServiceServer) GetWalletBalance(context.Context, *Empty) (*WalletBalance, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletBalance not implemented")
 }
+func (UnimplementedBackendServiceServer) CheckMachnetWithdrawalLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckMachnetWithdrawalLimit not implemented")
+}
 func (UnimplementedBackendServiceServer) StartWithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartWithdrawFromMachnetWallet not implemented")
+}
+func (UnimplementedBackendServiceServer) CheckMachnetTopupLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckMachnetTopupLimit not implemented")
 }
 func (UnimplementedBackendServiceServer) StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartMachnetWalletTopup not implemented")
@@ -1536,6 +1600,24 @@ func _BackendService_GetWalletBalance_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CheckMachnetWithdrawalLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckMachnetTXLimitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CheckMachnetWithdrawalLimit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CheckMachnetWithdrawalLimit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CheckMachnetWithdrawalLimit(ctx, req.(*CheckMachnetTXLimitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_StartWithdrawFromMachnetWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WithdrawFromMachnetWalletRequest)
 	if err := dec(in); err != nil {
@@ -1550,6 +1632,24 @@ func _BackendService_StartWithdrawFromMachnetWallet_Handler(srv interface{}, ctx
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).StartWithdrawFromMachnetWallet(ctx, req.(*WithdrawFromMachnetWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CheckMachnetTopupLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckMachnetTXLimitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CheckMachnetTopupLimit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CheckMachnetTopupLimit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CheckMachnetTopupLimit(ctx, req.(*CheckMachnetTXLimitRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1878,8 +1978,16 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetWalletBalance_Handler,
 		},
 		{
+			MethodName: "CheckMachnetWithdrawalLimit",
+			Handler:    _BackendService_CheckMachnetWithdrawalLimit_Handler,
+		},
+		{
 			MethodName: "StartWithdrawFromMachnetWallet",
 			Handler:    _BackendService_StartWithdrawFromMachnetWallet_Handler,
+		},
+		{
+			MethodName: "CheckMachnetTopupLimit",
+			Handler:    _BackendService_CheckMachnetTopupLimit_Handler,
 		},
 		{
 			MethodName: "StartMachnetWalletTopup",

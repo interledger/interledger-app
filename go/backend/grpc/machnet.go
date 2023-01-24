@@ -17,7 +17,7 @@ import (
 )
 
 func (s *rpcService) GetMachnetWidgetToken(
-	ctx context.Context, req *backendv1.Empty,
+	ctx context.Context, _ *backendv1.Empty,
 ) (*backendv1.MachnetWidgetToken, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s *rpcService) StartMachnetKYC(
 }
 
 func (s *rpcService) HasSendUser(
-	ctx context.Context, req *backendv1.Empty,
+	ctx context.Context, _ *backendv1.Empty,
 ) (*backendv1.HasSendUserResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -219,6 +219,32 @@ func (s *rpcService) GetWalletBalance(ctx context.Context, _ *backendv1.Empty) (
 	}, nil
 }
 
+func (s *rpcService) CheckMachnetWithdrawalLimit(ctx context.Context, req *backendv1.CheckMachnetTXLimitRequest) (*backendv1.CheckMachnetTXLimitResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	limits, err := s.b.Machnet().GetUserLimits(ctx, wallet.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	amt := currency.FromUInt64(req.Amount, currency.ParseCurrency(req.Currency))
+
+	exceeds, exceedType := limits.Withdrawal.Exceeds(amt, false)
+
+	return &backendv1.CheckMachnetTXLimitResponse{
+		ExceedsLimits: exceeds,
+		LimitType:     exceedType,
+	}, nil
+}
+
 type validateWithdrawFromMachnetWalletArgs struct {
 	ToLinkedAccount string `validate:"required,uuid"`
 	Amount          uint64 `validate:"gt=0"`
@@ -287,6 +313,32 @@ func (s *rpcService) StartWithdrawFromMachnetWallet(
 	}
 
 	return &backendv1.Empty{}, nil
+}
+
+func (s *rpcService) CheckMachnetTopupLimit(ctx context.Context, req *backendv1.CheckMachnetTXLimitRequest) (*backendv1.CheckMachnetTXLimitResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	limits, err := s.b.Machnet().GetUserLimits(ctx, wallet.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	amt := currency.FromUInt64(req.Amount, currency.ParseCurrency(req.Currency))
+
+	exceeds, exceedType := limits.FundWallet.Exceeds(amt, true)
+
+	return &backendv1.CheckMachnetTXLimitResponse{
+		ExceedsLimits: exceeds,
+		LimitType:     exceedType,
+	}, nil
 }
 
 type validateStartMachnetWalletTopupArgs struct {
