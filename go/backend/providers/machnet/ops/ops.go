@@ -810,7 +810,7 @@ func GetUserLimits(ctx context.Context, b Backends, walletID string) (*machnet.U
 			resp.FundWallet = remaining
 		}
 		if l.Type == external.LimitTypeWithdraw {
-			resp.FundWallet = remaining
+			resp.Withdrawal = remaining
 		}
 		if l.Type == external.LimitTypeTransfer {
 			resp.Transfer = remaining
