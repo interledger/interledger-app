@@ -17,3 +17,5 @@
 .fynbos/**
 
 typescript/**/node_modules
+
+dist
