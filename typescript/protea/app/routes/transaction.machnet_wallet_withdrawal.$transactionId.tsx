@@ -9,8 +9,13 @@ import {
   Icon,
   Layouts
 } from '~/components'
-import { getLinkedAccount, getTransaction } from '~/lib/wallet.server'
+import {
+  getLinkedAccount,
+  getTransaction,
+  getWalletId
+} from '~/lib/wallet.server'
 import { route } from 'routes-gen'
+import { usePusher } from '~/lib/pusher'
 
 export async function loader({ request, params }: LoaderArgs) {
   const transaction = await getTransaction(
@@ -18,6 +23,8 @@ export async function loader({ request, params }: LoaderArgs) {
     params.type as string,
     params.transactionId as string
   )
+
+  const walletID = await getWalletId(request)
 
   let linkedAccountName = ''
   if (transaction.transfers.length > 0) {
@@ -33,6 +40,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({
     // Always go to /transactions with back button even if we've just done a payment flow
     backTo: route('/transactions'),
+    walletID,
     transaction,
     linkedAccountName
   })
@@ -43,8 +51,10 @@ export const handle = {
 }
 
 export default function Page() {
-  const { transaction, linkedAccountName } = useLoaderData<typeof loader>()
+  const { transaction, walletID, linkedAccountName } =
+    useLoaderData<typeof loader>()
 
+  usePusher(walletID, ['transaction', 'kyc'])
   return (
     <>
       <Card>

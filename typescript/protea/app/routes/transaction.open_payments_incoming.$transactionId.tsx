@@ -10,7 +10,7 @@ import {
   Layouts
 } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
-import { getTransaction } from '~/lib/wallet.server'
+import { getTransaction, getWalletId } from '~/lib/wallet.server'
 import { route } from 'routes-gen'
 import {
   httpMapping,
@@ -18,6 +18,7 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
+import { usePusher } from '~/lib/pusher'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -26,6 +27,8 @@ export async function loader({ request, params }: LoaderArgs) {
     params.type as string,
     params.transactionId as string
   )
+
+  const walletID = await getWalletId(request)
 
   const cookie = String(request.headers.get('cookie'))
   const incomingPayment = await openPaymentsClient
@@ -60,6 +63,7 @@ export async function loader({ request, params }: LoaderArgs) {
     // Always go to /transactions with back button even if we've just done a payment flow
     backTo: route('/transactions'),
     transaction,
+    walletID,
     beneficiaryName,
     paymentPointer: incomingPayment.response.fromPaymentPointer,
     note: incomingPayment.response.externalRef,
@@ -72,9 +76,10 @@ export const handle = {
 }
 
 export default function Page() {
-  const { transaction, beneficiaryName, paymentPointer, note } =
+  const { transaction, walletID, beneficiaryName, paymentPointer, note } =
     useLoaderData<typeof loader>()
 
+  usePusher(walletID, ['transaction', 'kyc'])
   return (
     <>
       <Card>
