@@ -25,6 +25,7 @@ import { Fragment, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import { usePusher } from '~/lib/pusher'
 
 export enum KycStatus {
   Unknown,
@@ -454,6 +455,8 @@ function AppPage() {
     snackbar.show ?? false
   )
 
+  usePusher(paymentPointer.walletID, ['transaction', 'kyc'])
+
   return (
     <WalletGrid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -463,7 +466,6 @@ function AppPage() {
         <h1 className='mt-6 font-display text-2xl font-medium'>
           Welcome {firstName}
         </h1>
-
         {kycStatus != KycStatus.Verified && (
           <p className='mt-4'>Thank you for signing up to Fynbos.</p>
         )}
@@ -478,7 +480,6 @@ function AppPage() {
             Send and receive payments with your payment pointer.
           </p>
         )}
-
         {kycStatus == KycStatus.Verified && (
           <button
             type='button'

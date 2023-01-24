@@ -49,6 +49,26 @@ export async function getKycStatus(
   return response.response
 }
 
+export async function getWalletId(request: Request): Promise<string> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getCurrentWallet(
+      {},
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response.id
+}
+
 export async function getWalletPaymentPointer(
   request: Request
 ): Promise<PaymentPointer> {

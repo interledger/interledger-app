@@ -10,7 +10,11 @@ import {
   Layouts
 } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
-import { getLinkedAccount, getTransaction } from '~/lib/wallet.server'
+import {
+  getLinkedAccount,
+  getTransaction,
+  getWalletId
+} from '~/lib/wallet.server'
 import { route } from 'routes-gen'
 import {
   httpMapping,
@@ -18,6 +22,7 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
+import { usePusher } from '~/lib/pusher'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -26,6 +31,8 @@ export async function loader({ request, params }: LoaderArgs) {
     params.type as string,
     params.transactionId as string
   )
+
+  const walletID = await getWalletId(request)
 
   const cookie = String(request.headers.get('cookie'))
   const outgoingPayment = await openPaymentsClient
@@ -107,6 +114,7 @@ export async function loader({ request, params }: LoaderArgs) {
     hasTopUp,
     transfers,
     transaction,
+    walletID,
     beneficiaryName,
     paymentPointer: toPaymentPointer,
     note: outgoingPayment.response.description,
@@ -119,9 +127,16 @@ export const handle = {
 }
 
 export default function Page() {
-  const { transaction, transfers, beneficiaryName, paymentPointer, note } =
-    useLoaderData<typeof loader>()
+  const {
+    transaction,
+    transfers,
+    walletID,
+    beneficiaryName,
+    paymentPointer,
+    note
+  } = useLoaderData<typeof loader>()
 
+  usePusher(walletID, ['transaction', 'kyc'])
   return (
     <>
       <Card>
