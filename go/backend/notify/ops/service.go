@@ -13,7 +13,7 @@ func NotifyWallet(_ context.Context, b Backends, walletId string, event notify.N
 		return nil
 	}
 
-	channel := fmt.Sprintf("wallet:%s", walletId)
+	channel := fmt.Sprintf("wallet-%s", walletId)
 	err := b.Pusher().Trigger(channel, string(event), "")
 
 	return err

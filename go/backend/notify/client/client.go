@@ -17,13 +17,9 @@ type client struct {
 
 func New(b Backends, pusherClientUrl string) notify.Client {
 
-	var pc *pusher.Client
-	if pusherClientUrl != "" {
-		pc, err := pusher.ClientFromURL(pusherClientUrl)
-		if err != nil {
-			log.Error("error creating pusher client", zap.Error(err))
-		}
-		pc.Secure = true
+	pc, err := pusher.ClientFromURL(pusherClientUrl)
+	if err != nil {
+		log.Error("error creating pusher client", zap.Error(err))
 	}
 
 	ob := &opsBackends{
