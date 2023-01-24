@@ -11,15 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/openpayments/workflows"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
-	"go.uber.org/zap"
-
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	"gitlab.com/fynbos/backend/openpayments/workflows"
 	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 func OpenPaymentsHTTPHandler(b Backends) http.Handler {

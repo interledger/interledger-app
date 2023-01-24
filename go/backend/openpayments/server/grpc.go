@@ -6,16 +6,14 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
-
 	"gitlab.com/fynbos/backend/db"
-
-	"gitlab.com/fynbos/backend/openpayments/workflows"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
-
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	"gitlab.com/fynbos/backend/openpayments/workflows"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ pb.OpenPaymentServiceServer = &grpcServer{}
@@ -321,6 +319,51 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 		ExpiresAt:          timestamppb.New(ip.ExpiresAt),
 		CreatedAt:          timestamppb.New(ip.CreatedAt),
 		UpdatedAt:          timestamppb.New(ip.UpdatedAt),
+	}, nil
+}
+
+func (g *grpcServer) CheckOutgoingPaymentLimit(ctx context.Context, req *pb.CheckOutgoingPaymentLimitRequest) (*pb.CheckMachnetTXLimitResponse, error) {
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
+
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, req.QuoteID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var sendLA *linkedaccounts.LinkedAccount
+	if q.FromLinkedAccount != "" {
+		sendLA, err = g.b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+	}
+
+	limits, err := g.b.Machnet().GetUserLimits(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	// If no linked account is specified, default to card, so check the limits
+	fromCard := sendLA == nil || (sendLA != nil && sendLA.Type == machnet.TypeSendCard)
+
+	exceeds, exceedType := limits.Transfer.Exceeds(q.SendAmount, false)
+
+	if fromCard && !exceeds {
+		// Check wallet fund limits if the user hasn't already exceeded the transfer limits
+		exceeds, exceedType = limits.FundWallet.Exceeds(q.SendAmount, true)
+	}
+
+	return &pb.CheckMachnetTXLimitResponse{
+		ExceedsLimits: exceeds,
+		LimitType:     exceedType,
 	}, nil
 }
 

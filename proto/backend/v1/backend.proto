@@ -29,6 +29,7 @@ service OpenPaymentService {
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
+  rpc CheckOutgoingPaymentLimit(CheckOutgoingPaymentLimitRequest) returns (CheckMachnetTXLimitResponse);
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
 
@@ -76,6 +77,10 @@ message OutgoingPayment {
   string description = 8;
   google.protobuf.Timestamp createdAt = 9;
   google.protobuf.Timestamp updatedAt = 10;
+}
+
+message CheckOutgoingPaymentLimitRequest {
+  string quoteID = 1;
 }
 
 message CreateOutgoingPaymentRequest {
@@ -200,7 +205,9 @@ service BackendService {
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
   rpc GetWalletBalance(Empty) returns (WalletBalance);
+  rpc CheckMachnetWithdrawalLimit(CheckMachnetTXLimitRequest) returns (CheckMachnetTXLimitResponse);
   rpc StartWithdrawFromMachnetWallet(WithdrawFromMachnetWalletRequest) returns (Empty);
+  rpc CheckMachnetTopupLimit(CheckMachnetTXLimitRequest) returns (CheckMachnetTXLimitResponse);
   rpc StartMachnetWalletTopup(StartMachnetWalletTopupRequest) returns(Empty);
 
   //Waitlist
@@ -471,6 +478,16 @@ message WithdrawFromMachnetWalletRequest {
   uint64 amount = 2;  
   string ipAddress = 3;
   string idempotencyKey = 4;
+}
+
+message CheckMachnetTXLimitRequest {
+  uint64 amount = 1;
+  string currency = 2;
+}
+
+message CheckMachnetTXLimitResponse {
+  bool exceedsLimits = 1;
+  string limitType = 2; // ANNUAL, MONTHLY, DAILY, HOLD (MAX BALANCE)
 }
 
 message StartMachnetWalletTopupRequest {

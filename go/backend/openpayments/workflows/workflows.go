@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/transactions"
-
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
+	"gitlab.com/fynbos/backend/transactions"
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
@@ -48,10 +48,52 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	}
 
 	// Check that the sending payment pointer has the provider types
-	sendLA, err := getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
+	var sendLA *linkedaccounts.LinkedAccount
+	if q.FromLinkedAccount != "" {
+		sendLA, err = b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
+	} else {
+		// Default to send card if no linked account is specified
+		sendLA, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
+	}
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
+	}
+	if sendLA.Provider != machnet.ProviderName ||
+		(sendLA.Type != machnet.TypeSendCard && sendLA.Type != machnet.TypeWallet) {
+		return nil, fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrInternal, q.FromLinkedAccount)
+	}
+
+	limits, err := b.Machnet().GetUserLimits(ctx, sendLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	fromCard := sendLA.Type == machnet.TypeSendCard
+
+	exceeds, exceedsType := limits.Transfer.Exceeds(q.SendAmount, false)
+	if exceeds {
+		switch exceedsType {
+		case "ANNUAL":
+			return nil, machnet.ErrUserAnnualLimit
+		case "MONTHLY":
+			return nil, machnet.ErrUserMonthlyLimit
+		case "DAILY":
+			return nil, machnet.ErrUserDailyLimit
+		}
+	}
+	exceeds, exceedsType = limits.FundWallet.Exceeds(q.SendAmount, true)
+	if fromCard && exceeds {
+		switch exceedsType {
+		case "ANNUAL":
+			return nil, machnet.ErrUserAnnualLimit
+		case "MONTHLY":
+			return nil, machnet.ErrUserMonthlyLimit
+		case "DAILY":
+			return nil, machnet.ErrUserDailyLimit
+		case "HOLD":
+			return nil, machnet.ErrUserHoldLimit
+		}
 	}
 
 	// Check if we have already created this outgoing transaction and just return it.
@@ -74,27 +116,6 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	idxSlash := strings.LastIndex(id, "/")
 	if idxSlash > 0 {
 		id = id[idxSlash+1:]
-	}
-
-	limits, err := b.Machnet().GetUserLimits(ctx, sendLA.WalletID)
-	if err != nil {
-		return nil, err
-	}
-
-	if limits.FundWallet.Annual.Value < q.SendAmount.Value ||
-		limits.Transfer.Annual.Value < q.SendAmount.Value {
-		return nil, machnet.ErrUserAnnualLimit
-	}
-	if limits.FundWallet.Monthly.Value < q.SendAmount.Value ||
-		limits.Transfer.Monthly.Value < q.SendAmount.Value {
-		return nil, machnet.ErrUserMonthlyLimit
-	}
-	if limits.FundWallet.Daily.Value < q.SendAmount.Value ||
-		limits.Transfer.Daily.Value < q.SendAmount.Value {
-		return nil, machnet.ErrUserDailyLimit
-	}
-	if limits.FundWallet.WalletHold.Value < q.SendAmount.Value {
-		return nil, machnet.ErrUserHoldLimit
 	}
 
 	workflowOptions := temporal_client.StartWorkflowOptions{

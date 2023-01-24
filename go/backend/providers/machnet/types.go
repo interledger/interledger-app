@@ -249,3 +249,17 @@ type (
 		WalletHold currency.Amount
 	}
 )
+
+func (rl *RemainingLimit) Exceeds(amt currency.Amount, checkHold bool) (bool, string) {
+	if rl.Daily.Value < amt.Value {
+		return true, "DAILY"
+	} else if rl.Monthly.Value < amt.Value {
+		return true, "MONTHLY"
+	} else if rl.Annual.Value < amt.Value {
+		return true, "ANNUAL"
+	} else if checkHold && rl.WalletHold.Value < amt.Value {
+		return true, "HOLD"
+	}
+
+	return false, ""
+}

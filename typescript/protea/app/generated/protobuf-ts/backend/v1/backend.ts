@@ -173,6 +173,15 @@ export interface OutgoingPayment {
     updatedAt?: Timestamp;
 }
 /**
+ * @generated from protobuf message backend.v1.CheckOutgoingPaymentLimitRequest
+ */
+export interface CheckOutgoingPaymentLimitRequest {
+    /**
+     * @generated from protobuf field: string quoteID = 1;
+     */
+    quoteID: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreateOutgoingPaymentRequest
  */
 export interface CreateOutgoingPaymentRequest {
@@ -1118,6 +1127,32 @@ export interface WithdrawFromMachnetWalletRequest {
     idempotencyKey: string;
 }
 /**
+ * @generated from protobuf message backend.v1.CheckMachnetTXLimitRequest
+ */
+export interface CheckMachnetTXLimitRequest {
+    /**
+     * @generated from protobuf field: uint64 amount = 1;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string currency = 2;
+     */
+    currency: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CheckMachnetTXLimitResponse
+ */
+export interface CheckMachnetTXLimitResponse {
+    /**
+     * @generated from protobuf field: bool exceedsLimits = 1;
+     */
+    exceedsLimits: boolean;
+    /**
+     * @generated from protobuf field: string limitType = 2;
+     */
+    limitType: string; // ANNUAL, MONTHLY, DAILY, HOLD (MAX BALANCE)
+}
+/**
  * @generated from protobuf message backend.v1.StartMachnetWalletTopupRequest
  */
 export interface StartMachnetWalletTopupRequest {
@@ -1695,6 +1730,53 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
  * @generated MessageType for protobuf message backend.v1.OutgoingPayment
  */
 export const OutgoingPayment = new OutgoingPayment$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CheckOutgoingPaymentLimitRequest$Type extends MessageType<CheckOutgoingPaymentLimitRequest> {
+    constructor() {
+        super("backend.v1.CheckOutgoingPaymentLimitRequest", [
+            { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckOutgoingPaymentLimitRequest>): CheckOutgoingPaymentLimitRequest {
+        const message = { quoteID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckOutgoingPaymentLimitRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckOutgoingPaymentLimitRequest): CheckOutgoingPaymentLimitRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string quoteID */ 1:
+                    message.quoteID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckOutgoingPaymentLimitRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string quoteID = 1; */
+        if (message.quoteID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CheckOutgoingPaymentLimitRequest
+ */
+export const CheckOutgoingPaymentLimitRequest = new CheckOutgoingPaymentLimitRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymentRequest> {
     constructor() {
@@ -5214,6 +5296,114 @@ class WithdrawFromMachnetWalletRequest$Type extends MessageType<WithdrawFromMach
  */
 export const WithdrawFromMachnetWalletRequest = new WithdrawFromMachnetWalletRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CheckMachnetTXLimitRequest$Type extends MessageType<CheckMachnetTXLimitRequest> {
+    constructor() {
+        super("backend.v1.CheckMachnetTXLimitRequest", [
+            { no: 1, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 2, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckMachnetTXLimitRequest>): CheckMachnetTXLimitRequest {
+        const message = { amount: "0", currency: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckMachnetTXLimitRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckMachnetTXLimitRequest): CheckMachnetTXLimitRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* uint64 amount */ 1:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string currency */ 2:
+                    message.currency = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckMachnetTXLimitRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* uint64 amount = 1; */
+        if (message.amount !== "0")
+            writer.tag(1, WireType.Varint).uint64(message.amount);
+        /* string currency = 2; */
+        if (message.currency !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.currency);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CheckMachnetTXLimitRequest
+ */
+export const CheckMachnetTXLimitRequest = new CheckMachnetTXLimitRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CheckMachnetTXLimitResponse$Type extends MessageType<CheckMachnetTXLimitResponse> {
+    constructor() {
+        super("backend.v1.CheckMachnetTXLimitResponse", [
+            { no: 1, name: "exceedsLimits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "limitType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckMachnetTXLimitResponse>): CheckMachnetTXLimitResponse {
+        const message = { exceedsLimits: false, limitType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckMachnetTXLimitResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckMachnetTXLimitResponse): CheckMachnetTXLimitResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool exceedsLimits */ 1:
+                    message.exceedsLimits = reader.bool();
+                    break;
+                case /* string limitType */ 2:
+                    message.limitType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckMachnetTXLimitResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool exceedsLimits = 1; */
+        if (message.exceedsLimits !== false)
+            writer.tag(1, WireType.Varint).bool(message.exceedsLimits);
+        /* string limitType = 2; */
+        if (message.limitType !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.limitType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CheckMachnetTXLimitResponse
+ */
+export const CheckMachnetTXLimitResponse = new CheckMachnetTXLimitResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class StartMachnetWalletTopupRequest$Type extends MessageType<StartMachnetWalletTopupRequest> {
     constructor() {
         super("backend.v1.StartMachnetWalletTopupRequest", [
@@ -5523,6 +5713,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
+    { name: "CheckOutgoingPaymentLimit", options: {}, I: CheckOutgoingPaymentLimitRequest, O: CheckMachnetTXLimitResponse },
     { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
@@ -5557,7 +5748,9 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "CreateWallet", options: {}, I: CreateWalletRequest, O: LinkedAccount },
     { name: "GetWalletBalance", options: {}, I: Empty, O: WalletBalance },
+    { name: "CheckMachnetWithdrawalLimit", options: {}, I: CheckMachnetTXLimitRequest, O: CheckMachnetTXLimitResponse },
     { name: "StartWithdrawFromMachnetWallet", options: {}, I: WithdrawFromMachnetWalletRequest, O: Empty },
+    { name: "CheckMachnetTopupLimit", options: {}, I: CheckMachnetTXLimitRequest, O: CheckMachnetTXLimitResponse },
     { name: "StartMachnetWalletTopup", options: {}, I: StartMachnetWalletTopupRequest, O: Empty },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },
     { name: "CanSignup", options: {}, I: CanSignupRequest, O: CanSignupResponse },
