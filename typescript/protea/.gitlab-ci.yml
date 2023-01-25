@@ -19,8 +19,16 @@ build_protea:
   interruptible: true
   tags:
     - hetzner
+  variables:
+    DOCKER_AUTH_CONFIG: |
+      {
+        "credHelpers": {
+          "public.ecr.aws": "ecr-login",
+          "823058932981.dkr.ecr.eu-west-1.amazonaws.com": "ecr-login"
+        }
+      }
   image:
-    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:bf6f63da
   before_script:
     - echo "changing directory to $PROTEA_PROJECT_PATH"
     - cd $PROTEA_PROJECT_PATH
