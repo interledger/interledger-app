@@ -1,4 +1,4 @@
-import '../app/styles/app.css'
+import './app.css'
 
 export const decorators = [
   (Story) => (
