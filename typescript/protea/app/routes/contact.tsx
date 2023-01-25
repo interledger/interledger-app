@@ -138,7 +138,18 @@ export default function Page() {
             >
               help@synapsefi.com
             </AnchorRouter>
-            .
+            . In case your grievances are not addressed by Fynbos or for any escalation purposes, please contact Machnet either through email&nbsp;(
+          <AnchorRouter
+            to='mailto:help@machnetinc.com'
+            className='text-sm text-primary'
+          >
+            help@machnetinc.com
+          </AnchorRouter>) or call us at&nbsp;<AnchorRouter
+            to='tel:+1 (408) 539-6455'
+            className='text-sm text-primary'
+          >
+            +1 (408) 539-6455
+          </AnchorRouter>.
           </span>
         </div>
 
