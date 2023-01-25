@@ -7,6 +7,7 @@ include:
   - local: go/backend/.gitlab-ci.yml
   - local: go/.gitlab-ci.yml
   - local: typescript/**/.gitlab-ci.yml
+  - local: infra/gitlab/runner-image/.gitlab-ci.yml
 
 variables:
   FF_USE_FASTZIP: "true"
@@ -24,7 +25,7 @@ workflow:
 
 trigger_deploy_dev_eu1:
   tags:
-    - k8s
+    - hetzner
   environment: !reference [.dev_eu1_environment, environment]
   needs:
     - build_backend
@@ -52,7 +53,7 @@ trigger_deploy_dev_eu1:
 
 trigger_deploy_prod_use2:
   tags:
-    - k8s
+    - hetzner
   environment: !reference [.prod_use2_environment, environment]
   only:
     - main

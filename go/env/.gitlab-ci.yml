@@ -10,8 +10,8 @@ build_env:
         - go/go.mod
         - go/env/**/*
   tags:
-    - k8s
-  image: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/docker:20.10
+    - hetzner
+  image: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
   interruptible: true
   script:
     - cd $ENV_PATH
