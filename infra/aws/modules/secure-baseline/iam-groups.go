@@ -18,7 +18,7 @@ func NewCrossAccountGroup(ctx *pulumi.Context, provider *aws.Provider, name stri
 	}
 	_, err = iam.NewGroupPolicy(ctx, fmt.Sprintf("%s-policy", name), &iam.GroupPolicyArgs{
 		Group:  group.ID(),
-		Policy: pulumi.String(createCrossAccountRolePolicy(roleArn)),
+		Policy: pulumi.String(CreateCrossAccountRolePolicy(roleArn)),
 	}, pulumi.Provider(provider))
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func NewCrossAccountGroup(ctx *pulumi.Context, provider *aws.Provider, name stri
 	return group, nil
 }
 
-func createCrossAccountRolePolicy(roleArn string) string {
+func CreateCrossAccountRolePolicy(roleArn string) string {
 
 	type Statement struct {
 		Effect   string   `json:"Effect"`
