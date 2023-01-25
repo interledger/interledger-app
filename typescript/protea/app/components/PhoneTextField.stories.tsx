@@ -11,6 +11,7 @@ const meta: Meta<typeof PhoneTextField> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

@@ -10,6 +10,7 @@ const meta: Meta<typeof Logo> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

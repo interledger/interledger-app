@@ -11,6 +11,7 @@ const meta: Meta<typeof Button> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore TODO Remove once fixed
           element: <Story />
         }
       ])

@@ -11,6 +11,7 @@ const meta: Meta<typeof Checkbox> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

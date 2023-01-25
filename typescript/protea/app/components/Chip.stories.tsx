@@ -10,6 +10,7 @@ const meta: Meta<typeof Chip> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

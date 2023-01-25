@@ -31,6 +31,7 @@ let meta: Meta<typeof WalletLayout> = {
               id: 'Nested',
               path: '/login',
               handle: remix.handle,
+              // @ts-ignore
               element: <Story />
             }
           ]

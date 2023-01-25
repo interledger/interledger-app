@@ -6,11 +6,20 @@ import { Dialog } from '~/components'
 const meta: Meta<typeof Dialog> = {
   title: 'components/Dialog',
   component: Dialog,
+  parameters: {
+    docs: {
+      iframeHeight: 500,
+      iframeWidth: 700,
+      inlineStories: false
+    }
+  },
   decorators: [
     (Story) => {
       const RemixStub = createRemixStub([
         {
+          id: '',
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

@@ -10,6 +10,7 @@ const meta: Meta<typeof WalletGrid> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])
