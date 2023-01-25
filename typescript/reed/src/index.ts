@@ -1,4 +1,5 @@
 import { StreamServer } from '@interledger/stream-receiver'
+import { randomBytes } from 'crypto'
 import { deserializeIlpPacket, Errors, errorToReject, isIlpReply, serializeIlpFulfill, serializeIlpReply, Type } from "ilp-packet"
 import PluginHttp from "ilp-plugin-http"
 import koa from 'koa'
@@ -8,15 +9,15 @@ const ILP_ADDRESS = process.env.ILP_ADDRESS || "t.fynbos"
 const ASSET_CODE = process.env.ASSET_CODE || "USD"
 const ASSET_SCALE = parseInt(process.env.ASSET_SCALE || "2")
 const PEER_URL = process.env.OUTGOING_URL || "https://coil.test"
-const SERVER_SECRET = process.env.SERVER_SECRET || ""
+const SERVER_SECRET = process.env.SERVER_SECRET || randomBytes(32).toString("hex")
 const INCOMING_SECRET = process.env.INCOMING_SECRET || ""
 const OUTGOING_SECRET = process.env.OUTGOING_SECRET || ""
 const ILP_PORT = parseInt(process.env.ILP_PORT || "8080")
 const ADMIN_PORT = parseInt(process.env.ILP_PORT || "8081")
 
 const server = new StreamServer({
-	serverSecret: Buffer.from(process.env.SERVER_SECRET as string, 'hex'),
-	serverAddress: process.env.ILP_ADDRESS as string,
+	serverSecret: Buffer.from(SERVER_SECRET, 'hex'),
+	serverAddress: ILP_ADDRESS,
 })
 
 async function main() {
@@ -58,6 +59,13 @@ async function main() {
 	})
 
 	let adminServer = adminApp.listen(ADMIN_PORT)
+
+	console.log("ILP_PORT=", ILP_PORT)
+	console.log("ADMIN_PORT=", ADMIN_PORT)
+	console.log("ILP_ADDRESS=", ILP_ADDRESS)
+	console.log("PEER_URL=", PEER_URL)
+	console.log("ASSET_CODE=", ASSET_CODE)
+	console.log("ASSET_SCALE=", ASSET_SCALE)
 
 	const gracefulShutdown = async function () {
 		await plugin.disconnect()
