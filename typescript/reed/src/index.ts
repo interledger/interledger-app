@@ -45,6 +45,11 @@ async function main() {
 	let adminApp = new koa()
 	adminApp.use(bodyParser())
 	adminApp.use(function (ctx: koa.Context) {
+		if (ctx.method === "GET" && ctx.path === '/healthz') {
+			ctx.status = 200
+			return
+		}
+
 		if (!ctx.path.trim().toLowerCase().startsWith("/credentials")) {
 			ctx.throw(404)
 		}
