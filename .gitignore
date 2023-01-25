@@ -19,3 +19,5 @@
 typescript/**/node_modules
 
 dist
+
+.env

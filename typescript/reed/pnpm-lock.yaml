@@ -5,6 +5,7 @@ specifiers:
   '@types/koa': ^2.13.5
   '@types/koa-bodyparser': ^4.3.10
   '@types/node': ^18.11.18
+  dotenv: ^16.0.3
   eslint: ^8.32.0
   eslint-config-prettier: ^8.6.0
   ilp-packet: 3.1.4-alpha.2
@@ -17,6 +18,7 @@ specifiers:
 
 dependencies:
   '@interledger/stream-receiver': 0.3.3-alpha.3
+  dotenv: 16.0.3
   ilp-packet: 3.1.4-alpha.2
   ilp-plugin-http: 1.6.1
   ilp-protocol-ccp: 1.2.4-alpha.2
@@ -463,6 +465,11 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /dotenv/16.0.3:
+    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+    dev: false
 
   /ecdsa-sig-formatter/1.0.11:
     resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
