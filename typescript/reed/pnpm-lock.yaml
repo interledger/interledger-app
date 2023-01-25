@@ -11,6 +11,7 @@ specifiers:
   ilp-packet: 3.1.4-alpha.2
   ilp-plugin-http: ^1.6.1
   ilp-protocol-ccp: 1.2.4-alpha.2
+  ilp-protocol-ildcp: 2.2.4-alpha.2
   koa: ^2.14.1
   koa-bodyparser: ^4.3.0
   prettier: ^2.8.3
@@ -22,6 +23,7 @@ dependencies:
   ilp-packet: 3.1.4-alpha.2
   ilp-plugin-http: 1.6.1
   ilp-protocol-ccp: 1.2.4-alpha.2
+  ilp-protocol-ildcp: 2.2.4-alpha.2
   koa: 2.14.1
   koa-bodyparser: 4.3.0
 

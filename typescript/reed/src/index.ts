@@ -1,9 +1,10 @@
 import { StreamServer } from '@interledger/stream-receiver'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomUUID } from 'crypto'
 import dotenv from 'dotenv'
 import { deserializeIlpPacket, Errors, errorToReject, isIlpReply, serializeIlpFulfill, serializeIlpReply, Type } from "ilp-packet"
 import PluginHttp from "ilp-plugin-http"
 import { CCP_CONTROL_DESTINATION, CCP_UPDATE_DESTINATION, serializeCcpResponse } from 'ilp-protocol-ccp'
+import { serializeIldcpResponse } from 'ilp-protocol-ildcp'
 import koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 
@@ -78,7 +79,11 @@ async function main() {
 		const payload = ctx.request.body
 		ctx.assert(isConnectionDetails(payload) && payload.paymentTag !== "", 400, "incomingPaymentID is required.")
 
-		ctx.body = server.generateCredentials({ paymentTag: payload.paymentTag })
+		const creds = server.generateCredentials({ paymentTag: payload.paymentTag, asset: { code: ASSET_CODE, scale: ASSET_SCALE } })
+		ctx.body = {
+			ilpAddress: creds.ilpAddress,
+			sharedSecret: creds.sharedSecret.toString('hex')
+		}
 	})
 
 	let adminServer = adminApp.listen(ADMIN_PORT)
@@ -135,7 +140,11 @@ function handleRawPacket(server: StreamServer): (buf: Buffer) => Promise<Buffer>
 
 			// reject ildcp requests
 			if (prepare.destination === "peer.config") {
-				return errorToReject(ILP_ADDRESS, new Errors.CannotReceiveError())
+				return serializeIldcpResponse({
+					clientAddress: `${ILP_ADDRESS}.${randomUUID()}`,
+					assetScale: ASSET_SCALE,
+					assetCode: ASSET_CODE
+				})
 			} 
 
 			const moneyOrReply = server.createReply(prepare)
@@ -145,7 +154,6 @@ function handleRawPacket(server: StreamServer): (buf: Buffer) => Promise<Buffer>
 
 			// make api call to backend
 			const incomingPaymentID = server.decodePaymentTag(prepare.destination)
-			console.log("received prepare", prepare)
 
 			return serializeIlpFulfill(moneyOrReply.accept())
 		} catch (e) {
