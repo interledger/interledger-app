@@ -21,6 +21,9 @@ variables:
   DB_URL: postgres://root@crdb:26257/%s?sslmode=disable
 
 test_backend:
+  needs:
+    - job: go-mod
+      optional: true
   rules:
     - changes:
         - go/go.mod
@@ -28,7 +31,7 @@ test_backend:
         - go/proto/**/*
   tags:
     - hetzner
-  image: registry.gitlab.com/fynbos/fynbos/debian-runner-base
+  image: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
   services:
     - name: cockroachdb/cockroach:latest-v21.2
       alias: crdb
@@ -41,13 +44,15 @@ test_backend:
 
 build_backend:
   interruptible: true
+  needs:
+    - job: test_backend
+      optional: true
   tags:
     - hetzner
   image:
-    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base
-    entrypoint: [ '' ]
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
   before_script:
-    - echo "changing directory to $BOTANIST_PROJECT_PATH"
+    - docker login -u AWS -p $(aws ecr get-login-password --profile shared --region eu-west-1) 823058932981.dkr.ecr.eu-west-1.amazonaws.com
     - cd $BACKEND_PATH/../
   script:
     - docker build -t "823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:${BACKEND_IMAGE_HASH}" -f backend/Dockerfile .
