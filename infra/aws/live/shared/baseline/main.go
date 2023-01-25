@@ -63,6 +63,12 @@ func main() {
 		ctx.Export("pulumiSecretsKeyId", pulumiKey.ID())
 		ctx.Export("pulumiSecretsKeyArn", pulumiKey.Arn)
 
+		// Create Role for ECR Read and Write
+		_, err = secure_baseline.NewECRCrossAccountIamRole(ctx, securityAccountId)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }

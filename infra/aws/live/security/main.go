@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/cloudtrail"
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
@@ -90,6 +91,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+		accSharedEcrFullAccessGroup, err := secure_baseline.NewCrossAccountGroup(ctx, provider, "_account.ecr-full-access", "arn:aws:iam::823058932981:role/allow-full-ecr-access-from-other-accounts")
+		if err != nil {
+			return err
+		}
 
 		accDevFullAccessGroup, err := secure_baseline.NewCrossAccountGroup(ctx, provider, "_account.dev-full-access", "arn:aws:iam::634848879735:role/allow-full-access-from-other-accounts")
 		if err != nil {
@@ -154,6 +159,47 @@ func main() {
 			return err
 		}
 
+		err = createECRUser(ctx, accSharedEcrFullAccessGroup.Name, provider)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
+}
+
+func createECRUser(ctx *pulumi.Context, group pulumi.StringInput, provider *aws.Provider) error {
+
+	user, err := iam.NewUser(ctx, fmt.Sprintf("ecrUser"), &iam.UserArgs{
+		Name: pulumi.String("ecrUser"),
+		Path: pulumi.String("/"),
+	}, pulumi.Provider(provider))
+	if err != nil {
+		return err
+	}
+
+	accessKey, err := iam.NewAccessKey(ctx, "ecrUser", &iam.AccessKeyArgs{
+		User:   user.Name,
+		PgpKey: pulumi.String("keybase:matdehaast"),
+	}, pulumi.Provider(provider))
+	if err != nil {
+		return err
+	}
+
+	_, err = iam.NewUserGroupMembership(ctx, "ecrUserGroup", &iam.UserGroupMembershipArgs{
+		User: user.Name,
+		Groups: pulumi.StringArray{
+			group,
+		},
+	}, pulumi.Provider(provider))
+	if err != nil {
+		return err
+	}
+
+	ctx.Export(fmt.Sprintf("ecrUserAccessKey"), pulumi.Map{
+		"user":      accessKey.User,
+		"keyID":     accessKey.ID(),
+		"keySecret": accessKey.EncryptedSecret,
+	})
+	return nil
 }

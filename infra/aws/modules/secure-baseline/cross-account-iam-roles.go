@@ -11,7 +11,7 @@ func NewCrossAccountIamRoles(ctx *pulumi.Context, securityAccountId string) (*ia
 
 	role, err := iam.NewRole(ctx, "fullAccessRole", &iam.RoleArgs{
 		Name:             pulumi.String("allow-full-access-from-other-accounts"),
-		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId)),
+		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId, true)),
 		ManagedPolicyArns: pulumi.StringArray{
 			pulumi.String("arn:aws:iam::aws:policy/AdministratorAccess"),
 		},
@@ -27,7 +27,7 @@ func NewDevCrossAccountIamRole(ctx *pulumi.Context, securityAccountId string) (*
 
 	role, err := iam.NewRole(ctx, "readAccessRole", &iam.RoleArgs{
 		Name:             pulumi.String("allow-read-access-from-other-accounts"),
-		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId)),
+		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId, true)),
 		ManagedPolicyArns: pulumi.StringArray{
 			pulumi.String("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"),
 		},
@@ -39,7 +39,23 @@ func NewDevCrossAccountIamRole(ctx *pulumi.Context, securityAccountId string) (*
 	return role, nil
 }
 
-func newAssumeRolePolicy(securityAccountId string) string {
+func NewECRCrossAccountIamRole(ctx *pulumi.Context, securityAccountId string) (*iam.Role, error) {
+
+	role, err := iam.NewRole(ctx, "fullECRAccessRole", &iam.RoleArgs{
+		Name:             pulumi.String("allow-full-ecr-access-from-other-accounts"),
+		AssumeRolePolicy: pulumi.String(newAssumeRolePolicy(securityAccountId, false)),
+		ManagedPolicyArns: pulumi.StringArray{
+			pulumi.String("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func newAssumeRolePolicy(securityAccountId string, enforceMFA bool) string {
 
 	type Principal struct {
 		AWS string `json:"AWS,omitempty"`
@@ -62,6 +78,13 @@ func newAssumeRolePolicy(securityAccountId string) string {
 		Statement Statement `json:"Statement"`
 	}
 
+	condition := &Condition{}
+	if enforceMFA {
+		condition.Bool = map[string]string{
+			"aws:MultiFactorAuthPresent": "true",
+		}
+	}
+
 	rawPolicy := Policy{
 		Version: "2012-10-17",
 		Statement: Statement{
@@ -69,12 +92,8 @@ func newAssumeRolePolicy(securityAccountId string) string {
 			Principal: Principal{
 				AWS: fmt.Sprintf("arn:aws:iam::%s:root", securityAccountId),
 			},
-			Action: "sts:AssumeRole",
-			Condition: &Condition{
-				Bool: map[string]string{
-					"aws:MultiFactorAuthPresent": "true",
-				},
-			},
+			Action:    "sts:AssumeRole",
+			Condition: condition,
 		},
 	}
 
