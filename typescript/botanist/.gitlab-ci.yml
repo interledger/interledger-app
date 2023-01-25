@@ -13,28 +13,14 @@ variables:
   BOTANIST_PROJECT_PATH: $CI_PROJECT_DIR/typescript/botanist
   BOTANIST_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
 
-image: public.ecr.aws/docker/library/node:16-alpine3.11
-
-default:
-  before_script:
-    - echo "changing directory to $BOTANIST_PROJECT_PATH"
-    - cd $BOTANIST_PROJECT_PATH
-
 build_botanist:
   interruptible: true
   tags:
-    - k8s
+    - hetzner
   image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: ['']
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
+  before_script:
+    - docker login -u AWS -p $(aws ecr get-login-password --profile shared --region eu-west-1) 823058932981.dkr.ecr.eu-west-1.amazonaws.com
+    - cd $BOTANIST_PROJECT_PATH
   script:
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s"
-      "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d
-      '\n')\"}},\"credHelpers\":{\"823058932981.dkr.ecr.eu-west-1.amazonaws.com\":\"ecr-login\"}}"
-      > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor --context "${BOTANIST_PROJECT_PATH}" --dockerfile
-      "${BOTANIST_PROJECT_PATH}/Dockerfile" --destination
-      "823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:${BOTANIST_IMAGE_HASH}"
-      --cache=true --cache-repo="${CI_REGISTRY}/fynbos/fynbos/botanist-cache"
-      --snapshotMode=redo --use-new-run=true
+    - docker build -t "823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:${BOTANIST_IMAGE_HASH}" .
