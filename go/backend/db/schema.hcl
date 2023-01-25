@@ -1335,5 +1335,100 @@ table "transfers" {
     on_delete   = NO_ACTION
   }
 }
+table "authorization_clients" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+table "authorization_keys" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "client_id" {
+    null = false
+    type = uuid
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_keys_clients" {
+    columns     = [column.client_id]
+    ref_columns = [table.authorization_clients.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "authorization_grants" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "client_id" {
+    null = false
+    type = uuid
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_grants_clients" {
+    columns     = [column.client_id]
+    ref_columns = [table.authorization_clients.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "authorization_grant_access" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "grant_id" {
+    null = false
+    type = uuid
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_grant_access_grant" {
+    columns     = [column.grant_id]
+    ref_columns = [table.authorization_grants.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "authorization_access_tokens" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "grant_id" {
+    null = false
+    type = uuid
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_access_token_grant" {
+    columns     = [column.grant_id]
+    ref_columns = [table.authorization_grants.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
 schema "public" {
 }
