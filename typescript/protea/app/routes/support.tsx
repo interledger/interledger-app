@@ -1,7 +1,15 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, HomeShapes, Layouts, TextArea, WalletGrid } from '~/components'
+import {
+  AnchorRouter,
+  Button,
+  HomeShapes,
+  Icon,
+  Layouts,
+  TextArea,
+  WalletGrid
+} from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -76,6 +84,57 @@ export default function Page() {
         <Button className='mt-12' form='support-form' type='submit'>
           Submit
         </Button>
+      </div>
+      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <h2 className='font-display font-medium text-strong'>Support</h2>
+        <span className='mt-4 text-sm'>
+          Our telephone support lines are open Monday to Friday between 9am and
+          5pm PST.
+        </span>
+        <div className='mt-3 flex items-center space-x-2 text-medium'>
+          <Icon>call</Icon>
+          <AnchorRouter
+            to='tel:+1 (856) 249-3067'
+            className='text-sm text-primary'
+          >
+            +1 (856) 249-3067
+          </AnchorRouter>
+        </div>
+        <div className='mt-2 flex items-center space-x-2 text-medium'>
+          <Icon>mail</Icon>
+          <AnchorRouter
+            to='mailto:support@fynbos.app'
+            className='text-sm text-primary'
+          >
+            support@fynbos.app
+          </AnchorRouter>
+        </div>
+        <span className='mt-4 text-sm'>
+          The banking services of the Fynbos are powered by Machnet. Machnet is
+          a financial technology company and not a bank. Banking services are
+          provided by Machnet's partner banks who are Member FDIC. Machnet
+          provides the Bank services through its banking software provider,
+          Synapse. To report a complaint relating to the bank services,
+          email&nbsp;
+          <AnchorRouter
+            to='mailto:help@synapsefi.com'
+            className='text-sm text-primary'
+          >
+            help@synapsefi.com
+          </AnchorRouter>
+          . In case your grievances are not addressed by Fynbos or for any escalation purposes, please contact Machnet either through email&nbsp;(
+          <AnchorRouter
+            to='mailto:help@machnetinc.com'
+            className='text-sm text-primary'
+          >
+            help@machnetinc.com
+          </AnchorRouter>) or call us at&nbsp;<AnchorRouter
+          to='tel:+1 (408) 539-6455'
+          className='text-sm text-primary'
+        >
+            +1 (408) 539-6455
+          </AnchorRouter>.
+        </span>
       </div>
     </WalletGrid>
   )
