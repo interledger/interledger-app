@@ -2,6 +2,7 @@ import { StreamServer } from '@interledger/stream-receiver'
 import { randomBytes } from 'crypto'
 import { deserializeIlpPacket, Errors, errorToReject, isIlpReply, serializeIlpFulfill, serializeIlpReply, Type } from "ilp-packet"
 import PluginHttp from "ilp-plugin-http"
+import { CCP_CONTROL_DESTINATION, CCP_UPDATE_DESTINATION, serializeCcpResponse } from 'ilp-protocol-ccp'
 import koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 
@@ -104,10 +105,20 @@ async function handleRawPacket(buffer: Buffer): Promise<Buffer> {
 	try {
 		let packet = await deserializeIlpPacket(buffer)
 		if (packet.type !== Type.TYPE_ILP_PREPARE) {
-			return Buffer.from('')
+			return errorToReject(ILP_ADDRESS, new Errors.BadRequestError())
 		}
 
 		const prepare = packet.data
+		// fulfill ccp requests
+		if (prepare.destination === CCP_CONTROL_DESTINATION || prepare.destination === CCP_UPDATE_DESTINATION) {
+			return serializeCcpResponse()
+		}
+
+		// reject ildcp requests
+		if (prepare.destination === "peer.config") {
+			return errorToReject(ILP_ADDRESS, new Errors.CannotReceiveError())
+		} 
+
 		const moneyOrReply = server.createReply(prepare)
 		if (isIlpReply(moneyOrReply)) {
 			return serializeIlpReply(moneyOrReply)

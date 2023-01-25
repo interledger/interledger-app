@@ -9,6 +9,7 @@ specifiers:
   eslint-config-prettier: ^8.6.0
   ilp-packet: 3.1.4-alpha.2
   ilp-plugin-http: ^1.6.1
+  ilp-protocol-ccp: 1.2.4-alpha.2
   koa: ^2.14.1
   koa-bodyparser: ^4.3.0
   prettier: ^2.8.3
@@ -18,6 +19,7 @@ dependencies:
   '@interledger/stream-receiver': 0.3.3-alpha.3
   ilp-packet: 3.1.4-alpha.2
   ilp-plugin-http: 1.6.1
+  ilp-protocol-ccp: 1.2.4-alpha.2
   koa: 2.14.1
   koa-bodyparser: 4.3.0
 
@@ -810,6 +812,13 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: false
+
+  /ilp-protocol-ccp/1.2.4-alpha.2:
+    resolution: {integrity: sha512-y/86eHTILmLc0tDpaQ998lmNKJOpFdFv8gfjdvZorBTgqAJ2mkEpCDpoQZnDCGshS4NFtu/56wbV8DT2Fs66gQ==}
+    dependencies:
+      ilp-packet: 3.1.4-alpha.2
+      oer-utils: 5.1.3-alpha.2
     dev: false
 
   /ilp-protocol-ildcp/2.2.3:

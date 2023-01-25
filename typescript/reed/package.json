@@ -27,6 +27,7 @@
     "@interledger/stream-receiver": "0.3.3-alpha.3",
     "ilp-packet": "3.1.4-alpha.2",
     "ilp-plugin-http": "^1.6.1",
+    "ilp-protocol-ccp": "1.2.4-alpha.2",
     "koa": "^2.14.1",
     "koa-bodyparser": "^4.3.0"
   }
