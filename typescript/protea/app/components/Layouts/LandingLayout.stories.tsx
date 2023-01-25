@@ -33,6 +33,7 @@ let meta: Meta<typeof LandingLayout> = {
               id: 'Nested',
               path: '/login',
               handle: remix.handle,
+              // @ts-ignore
               element: <Story />
             }
           ]

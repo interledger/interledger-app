@@ -10,6 +10,7 @@ const meta: Meta<typeof Snackbar> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

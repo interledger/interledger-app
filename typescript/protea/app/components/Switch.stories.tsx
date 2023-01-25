@@ -11,6 +11,7 @@ const meta: Meta<typeof Switch> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])

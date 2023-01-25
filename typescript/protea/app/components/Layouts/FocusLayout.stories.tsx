@@ -13,6 +13,13 @@ function Home() {
 let story: Meta<typeof FocusLayout> = {
   title: 'layouts/FocusLayout',
   component: Home,
+  parameters: {
+    docs: {
+      iframeHeight: 500,
+      iframeWidth: 700,
+      inlineStories: false
+    }
+  },
   decorators: [
     (Story, { args, parameters }) => {
       let remix = parameters.remix(args)
@@ -25,6 +32,7 @@ let story: Meta<typeof FocusLayout> = {
               id: 'Nested',
               path: '/login',
               handle: remix.handle,
+              // @ts-ignore
               element: <Story />
             }
           ]

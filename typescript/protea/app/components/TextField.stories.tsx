@@ -10,6 +10,7 @@ const meta: Meta<typeof TextField> = {
       const RemixStub = createRemixStub([
         {
           path: '/',
+          // @ts-ignore
           element: <Story />
         }
       ])
