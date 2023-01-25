@@ -13,6 +13,13 @@ function Home() {
 let story: Meta<typeof FocusLayout> = {
   title: 'layouts/FocusLayout',
   component: Home,
+  parameters: {
+    docs: {
+      iframeHeight: 500,
+      iframeWidth: 700,
+      inlineStories: false
+    }
+  },
   decorators: [
     (Story, { args, parameters }) => {
       let remix = parameters.remix(args)
