@@ -33,7 +33,5 @@ build_protea:
     - echo "changing directory to $PROTEA_PROJECT_PATH"
     - cd $PROTEA_PROJECT_PATH
   script:
-    - whoami
-    - cat /root/.aws/credentials
     - docker build -t "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}" .
     - AWS_PROFILE=shared docker push "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
