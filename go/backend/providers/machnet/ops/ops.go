@@ -565,6 +565,39 @@ func GetWallet(ctx context.Context, b Backends, id string) (*machnet.Wallet, err
 	}, nil
 }
 
+func GetWalletByWalletID(ctx context.Context, b Backends, walletID string) (*machnet.Wallet, error) {
+	user, err := GetUserByWalletID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	var wallet dbWallet
+	err = b.DB().GetContext(ctx, &wallet, "SELECT id, send_user_id, nickname, created_at, updated_at FROM machnet_wallets WHERE send_user_id=$1;", user.ID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w wallet not found. fynbos wallet_id=%s", machnet.ErrNotFound, walletID)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	externalWallet, err := b.External().GetUserWallet(ctx, wallet.SendUserID, wallet.ID)
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, machnet.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
+	}
+
+	return &machnet.Wallet{
+		ID:               wallet.ID,
+		SendUserID:       wallet.SendUserID,
+		Nickname:         wallet.Nickname,
+		AvailableBalance: uint64(externalWallet.Balance.AvailableBalance * float64(100)),
+		Balance:          uint64(externalWallet.Balance.Balance * float64(100)),
+		CreatedAt:        wallet.CreatedAt,
+	}, nil
+}
+
 func SetKYCInProgress(ctx context.Context, b Backends, userID string) error {
 
 	_, err := b.DB().ExecContext(ctx, "UPDATE machnet_users SET updated_at=now(), kyc_status=$1 WHERE id=$2 AND kyc_status=$3", machnet.KYCStatusInProgress, userID, machnet.KYCStatusRetry)

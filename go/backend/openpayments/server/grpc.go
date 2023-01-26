@@ -322,7 +322,7 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 	}, nil
 }
 
-func (g *grpcServer) CheckOutgoingPaymentLimit(ctx context.Context, req *pb.CheckOutgoingPaymentLimitRequest) (*pb.CheckMachnetTXLimitResponse, error) {
+func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreCheckOutgoingPaymentRequest) (*pb.PreCheckOutgoingPaymentResponse, error) {
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no login found")
@@ -361,9 +361,21 @@ func (g *grpcServer) CheckOutgoingPaymentLimit(ctx context.Context, req *pb.Chec
 		exceeds, exceedType = limits.FundWallet.Exceeds(q.SendAmount, true)
 	}
 
-	return &pb.CheckMachnetTXLimitResponse{
-		ExceedsLimits: exceeds,
-		LimitType:     exceedType,
+	var insufficientBalance bool
+	// Check wallet balance
+	if !fromCard {
+		w, err := g.b.Machnet().GetWalletByWalletID(ctx, wallet.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		insufficientBalance = w.AvailableBalance < q.SendAmount.Value
+	}
+
+	return &pb.PreCheckOutgoingPaymentResponse{
+		ExceedsLimits:       exceeds,
+		LimitType:           exceedType,
+		InsufficientBalance: insufficientBalance,
 	}, nil
 }
 

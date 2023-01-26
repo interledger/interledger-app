@@ -17,6 +17,7 @@ import type { JoinWaitlistResponse } from "./backend";
 import type { JoinWaitlistRequest } from "./backend";
 import type { StartMachnetWalletTopupRequest } from "./backend";
 import type { WithdrawFromMachnetWalletRequest } from "./backend";
+import type { CheckMachnetTXLimitResponse } from "./backend";
 import type { CheckMachnetTXLimitRequest } from "./backend";
 import type { WalletBalance } from "./backend";
 import type { CreateWalletRequest } from "./backend";
@@ -55,8 +56,8 @@ import type { PaginationRequest } from "./backend";
 import type { LookupOutgoingPaymentRequest } from "./backend";
 import type { OutgoingPayment } from "./backend";
 import type { CreateOutgoingPaymentRequest } from "./backend";
-import type { CheckMachnetTXLimitResponse } from "./backend";
-import type { CheckOutgoingPaymentLimitRequest } from "./backend";
+import type { PreCheckOutgoingPaymentResponse } from "./backend";
+import type { PreCheckOutgoingPaymentRequest } from "./backend";
 import type { LookupIncomingPaymentRequest } from "./backend";
 import type { IncomingPayment } from "./backend";
 import type { CreateIncomingPaymentRequest } from "./backend";
@@ -110,9 +111,9 @@ export interface IOpenPaymentServiceClient {
      */
     lookupIncomingPayment(input: LookupIncomingPaymentRequest, options?: RpcOptions): UnaryCall<LookupIncomingPaymentRequest, IncomingPayment>;
     /**
-     * @generated from protobuf rpc: CheckOutgoingPaymentLimit(backend.v1.CheckOutgoingPaymentLimitRequest) returns (backend.v1.CheckMachnetTXLimitResponse);
+     * @generated from protobuf rpc: PreCheckOutgoingPayment(backend.v1.PreCheckOutgoingPaymentRequest) returns (backend.v1.PreCheckOutgoingPaymentResponse);
      */
-    checkOutgoingPaymentLimit(input: CheckOutgoingPaymentLimitRequest, options?: RpcOptions): UnaryCall<CheckOutgoingPaymentLimitRequest, CheckMachnetTXLimitResponse>;
+    preCheckOutgoingPayment(input: PreCheckOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse>;
     /**
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
@@ -198,11 +199,11 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<LookupIncomingPaymentRequest, IncomingPayment>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: CheckOutgoingPaymentLimit(backend.v1.CheckOutgoingPaymentLimitRequest) returns (backend.v1.CheckMachnetTXLimitResponse);
+     * @generated from protobuf rpc: PreCheckOutgoingPayment(backend.v1.PreCheckOutgoingPaymentRequest) returns (backend.v1.PreCheckOutgoingPaymentResponse);
      */
-    checkOutgoingPaymentLimit(input: CheckOutgoingPaymentLimitRequest, options?: RpcOptions): UnaryCall<CheckOutgoingPaymentLimitRequest, CheckMachnetTXLimitResponse> {
+    preCheckOutgoingPayment(input: PreCheckOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse> {
         const method = this.methods[8], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CheckOutgoingPaymentLimitRequest, CheckMachnetTXLimitResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
