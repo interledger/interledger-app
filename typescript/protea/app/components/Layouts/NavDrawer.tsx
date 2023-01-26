@@ -1,5 +1,5 @@
 import { Transition, Dialog } from '@headlessui/react'
-import { NavLink, useNavigation, useNavigationType } from '@remix-run/react'
+import { NavLink, useNavigation } from '@remix-run/react'
 import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
 
@@ -62,7 +62,6 @@ type ModalProps = {
 
 const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
   const navigation = useNavigation()
-  const navigationType = useNavigationType()
 
   useEffect(() => {
     if (navigation.state == 'loading') setOpen(false)

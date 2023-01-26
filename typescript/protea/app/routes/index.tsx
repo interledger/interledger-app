@@ -25,7 +25,9 @@ import { Fragment, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
-import { usePusher } from '~/lib/pusher'
+import type { PusherArgs } from '~/lib/usePusher'
+import { usePusher } from '~/lib/usePusher'
+import { getPusherArgs } from '~/lib/pusher.server'
 
 export enum KycStatus {
   Unknown,
@@ -41,6 +43,7 @@ export async function loader({ request }: LoaderArgs) {
 
   let data = {
     isUser: isUser,
+    pusherArgs: {} as PusherArgs,
     isSignupGated: IS_SIGNUP_GATED,
     firstName: '',
     paymentPointer: {
@@ -75,7 +78,8 @@ export async function loader({ request }: LoaderArgs) {
       transactions,
       kycStatus,
       linkedAccounts,
-      snackbar
+      snackbar,
+      pusherArgs
     ] = await Promise.all([
       getUserSession(request),
       getWalletPaymentPointer(request),
@@ -83,7 +87,8 @@ export async function loader({ request }: LoaderArgs) {
       getTransactionsWithPending(request, { page: 1, pageSize: 3 }),
       getKycStatus(request),
       getLinkedAccounts(request),
-      getSnackbar(request)
+      getSnackbar(request),
+      getPusherArgs(request)
     ])
 
     data = {
@@ -95,7 +100,8 @@ export async function loader({ request }: LoaderArgs) {
       kycStatus: kycStatus.kycStatus,
       canTopUp: linkedAccounts.canTopUp,
       canWithdraw: linkedAccounts.canWithdraw,
-      snackbar
+      snackbar,
+      pusherArgs
     }
 
     /**
@@ -447,7 +453,8 @@ function AppPage() {
     transactions,
     kycStatus,
     canTopUp,
-    nextStep
+    nextStep,
+    pusherArgs
   } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
@@ -455,7 +462,7 @@ function AppPage() {
     snackbar.show ?? false
   )
 
-  usePusher(paymentPointer.walletID, ['transaction', 'kyc'])
+  usePusher(pusherArgs, ['transaction', 'kyc'])
 
   return (
     <WalletGrid>

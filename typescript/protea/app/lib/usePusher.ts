@@ -3,48 +3,42 @@ import Pusher from 'pusher-js'
 import { useRevalidator } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
-// Hard-coding for now as this is required to evaluate client side.
-const PUSHER_APP_KEY = '91988d6075551d29760a'
-
 let pusherClient: Pusher
 
 declare global {
   var __pusherClient: Pusher | undefined
 }
 
-// this is needed because in development we don't want to restart
-// the server with every change, but we want to make sure we don't
-// create a new connection to the Client with every change either.
-if (process.env.NODE_ENV === 'production') {
-  pusherClient = new Pusher(PUSHER_APP_KEY, {
-    cluster: 'eu'
-  })
-} else {
+type Events = 'linkedAccount' | 'transaction' | 'kyc'
+
+export type PusherArgs = {
+  appKey: string
+  cluster: string
+  walletId: string
+}
+
+export function usePusher(args: PusherArgs, events: Events[]) {
+  const { revalidate, state } = useRevalidator()
+
   if (!global.__pusherClient) {
-    global.__pusherClient = new Pusher(PUSHER_APP_KEY, {
-      cluster: 'eu'
+    global.__pusherClient = new Pusher(args.appKey, {
+      cluster: args.cluster
     })
   }
   pusherClient = global.__pusherClient
-}
 
-type Events = 'linkedAccount' | 'transaction' | 'kyc'
+  const channel = useChannel(`wallet-${args.walletId}`)
 
-export function usePusher(walletId: string, events: Events[]) {
-  const { revalidate, state } = useRevalidator()
-
-  const channel = useChannel(`wallet-${walletId}`)
-
-  useEvent(channel, 'transaction', () => {
+  usePusherEvent(channel, 'transaction', () => {
     if (state == 'idle' && events.find((e) => e == 'transaction')) revalidate()
   })
-  useEvent(channel, 'kyc', () => {
+  usePusherEvent(channel, 'kyc', () => {
     if (state == 'idle' && events.find((e) => e == 'kyc')) revalidate()
   })
   // TODO: Maybe return connection state?
 }
 
-function useEvent<D>(
+function usePusherEvent<D>(
   channel: Channel | PresenceChannel | undefined,
   eventName: string,
   callback: (data?: D, metadata?: { user_id: string }) => void

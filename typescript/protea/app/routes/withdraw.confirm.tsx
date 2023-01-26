@@ -12,7 +12,6 @@ import {
 } from '~/lib/proto.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
-import { randomUUID } from 'crypto'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
