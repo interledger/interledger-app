@@ -1335,5 +1335,45 @@ table "transfers" {
     on_delete   = NO_ACTION
   }
 }
+
+table "ilp_packets" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "peer" {
+    null = false
+    type = text
+  }
+  column "payment_tag" {
+    null = false
+    type = text
+  }
+  column "amount" {
+    null = false
+    type = character(2)
+  }
+  column "asset_scale" {
+    null = false
+    type = smallint
+  }
+  column "asset_code" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+}
+
 schema "public" {
 }
