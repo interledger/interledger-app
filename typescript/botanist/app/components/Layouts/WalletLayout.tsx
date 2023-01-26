@@ -17,7 +17,15 @@ export function WalletLayout() {
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/statements')}>Statements</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/statements')}>
+              Statements
+            </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/waitlist')}>
+              Waitlist
+            </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/wallets')}>
+              Wallets
+            </NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>
@@ -60,7 +68,15 @@ export function WalletLayout() {
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/statements')}>Statements</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/statements')}>
+              Statements
+            </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/waitlist')}>
+              Waitlist
+            </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/wallets')}>
+              Wallets
+            </NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>
