@@ -1,6 +1,8 @@
 import { StreamServer } from '@interledger/stream-receiver'
 import { deserializeIlpPacket, Errors, errorToReject, isIlpReply, serializeIlpFulfill, serializeIlpReply, Type } from "ilp-packet"
 import PluginHttp from "ilp-plugin-http"
+import koa from 'koa'
+import bodyParser from 'koa-bodyparser'
 
 const ILP_ADDRESS = process.env.ILP_ADDRESS || "t.fynbos"
 const ASSET_CODE = process.env.ASSET_CODE || "USD"
@@ -9,6 +11,8 @@ const PEER_URL = process.env.OUTGOING_URL || "https://coil.test"
 const SERVER_SECRET = process.env.SERVER_SECRET || ""
 const INCOMING_SECRET = process.env.INCOMING_SECRET || ""
 const OUTGOING_SECRET = process.env.OUTGOING_SECRET || ""
+const ILP_PORT = parseInt(process.env.ILP_PORT || "8080")
+const ADMIN_PORT = parseInt(process.env.ILP_PORT || "8081")
 
 const server = new StreamServer({
 	serverSecret: Buffer.from(process.env.SERVER_SECRET as string, 'hex'),
@@ -18,12 +22,12 @@ const server = new StreamServer({
 async function main() {
 	let plugin = new PluginHttp({
 		incoming: {
-			port: 8080,
-			secret: INCOMING_SECRET,
+			port: ILP_PORT,
+			secretToken: INCOMING_SECRET,
 		},
 		outgoing: {
 			url: PEER_URL,
-			secret: OUTGOING_SECRET,
+			secretToken: OUTGOING_SECRET,
 		},
 		ildcp: {
 			assetCode: ASSET_CODE,
@@ -36,12 +40,57 @@ async function main() {
 
 	await plugin.connect()
 
+	let adminApp = new koa()
+	adminApp.use(bodyParser())
+	adminApp.use(function (ctx: koa.Context) {
+		if (!ctx.path.trim().toLowerCase().startsWith("/credentials")) {
+			ctx.throw(404)
+		}
+
+		if (ctx.method !== "POST") {
+			ctx.throw(405)
+		}
+
+		const payload = ctx.request.body
+		ctx.assert(isConnectionDetails(payload) && payload.paymentTag !== "", 400, "incomingPaymentID is required.")
+
+		ctx.body = server.generateCredentials({ paymentTag: payload.paymentTag })
+	})
+
+	let adminServer = adminApp.listen(ADMIN_PORT)
+
+	const gracefulShutdown = async function () {
+		await plugin.disconnect()
+		adminServer.close()
+		await new Promise(resolve => {
+			setTimeout(() => {
+				adminServer.closeAllConnections()
+			}, 1000)
+		})
+	}
+
 	process.on("SIGINT", async () => {
 		console.log("received SIGINT. shutting down...")
-		await plugin.disconnect()
+		await gracefulShutdown()
+	})
+
+	process.on("SIGKILL", async () => {
+		console.log("received SIGKILL. shutting down...")
+		await gracefulShutdown()
 	})
 }
 
+type GenerateCredentialsPayload = {
+	paymentTag: string
+}
+
+function isConnectionDetails(data: unknown): data is GenerateCredentialsPayload {
+	if (typeof data === "object" && data !== null) {
+		return typeof (data as any).paymentTag === "string"
+	}
+
+	return false
+}
 
 async function handleRawPacket(buffer: Buffer): Promise<Buffer> {
 	try {
