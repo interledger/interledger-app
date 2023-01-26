@@ -6,6 +6,8 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string
   // The label value.
   label?: string
+  // Appended text to the label (Footer notes)
+  labelSuffix?: string
   // The message from errors produced by form validation.
   errorMessage?: string
   // Any success messages produced by form validation.
@@ -22,6 +24,7 @@ export const TextField = forwardRef<any, TextFieldProps>(
     {
       className,
       label,
+      labelSuffix,
       errorMessage,
       successMessage,
       prefix,
@@ -37,12 +40,12 @@ export const TextField = forwardRef<any, TextFieldProps>(
           htmlFor={inputProps.id}
           className='ml-2 block text-sm font-medium text-medium'
         >
-          {label}
+          {label} {labelSuffix && <sup>{labelSuffix}</sup>}
         </label>
         <div className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
           <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
             {prefixIcon && (
-              <div className='-mr-4 flex h-full items-center px-4'>
+              <div className='-mr-3 flex h-full items-center px-3'>
                 {prefixIcon}
               </div>
             )}
@@ -57,7 +60,7 @@ export const TextField = forwardRef<any, TextFieldProps>(
               className='z-0 h-full w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'
             />
             {appendIcon && (
-              <div className='-ml-4 flex h-full items-center px-4'>
+              <div className='-ml-3 flex h-full items-center px-3'>
                 {appendIcon}
               </div>
             )}
