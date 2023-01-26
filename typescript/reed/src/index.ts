@@ -77,9 +77,14 @@ async function main() {
 		}
 
 		const payload = ctx.request.body
-		ctx.assert(isConnectionDetails(payload) && payload.paymentTag !== "", 400, "incomingPaymentID is required.")
+		ctx.assert(
+			isConnectionDetails(payload) && 
+			payload.paymentTag !== "" && payload.asset.code !== "" && payload.asset.scale > 0,
+			400, 
+			"paymentTag and asset are required.",
+		)
 
-		const creds = server.generateCredentials({ paymentTag: payload.paymentTag, asset: { code: ASSET_CODE, scale: ASSET_SCALE } })
+		const creds = server.generateCredentials({ paymentTag: payload.paymentTag, asset: payload.asset })
 		ctx.body = {
 			ilpAddress: creds.ilpAddress,
 			sharedSecret: creds.sharedSecret.toString('hex')
@@ -111,11 +116,23 @@ async function main() {
 
 type GenerateCredentialsPayload = {
 	paymentTag: string
+	asset: {
+		code: string
+		scale: number
+	}
 }
 
 function isConnectionDetails(data: unknown): data is GenerateCredentialsPayload {
 	if (typeof data === "object" && data !== null) {
-		return typeof (data as any).paymentTag === "string"
+		return typeof (data as any).paymentTag === "string" && isAsset((data as any).asset)
+	}
+
+	return false
+}
+
+function isAsset(data: unknown): data is { code: string, scale: number } {
+	if (typeof data === "object" && data !== null) {
+		return typeof (data as any).code === "string" && typeof (data as any).scale === "number"
 	}
 
 	return false
