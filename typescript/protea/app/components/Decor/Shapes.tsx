@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useState } from 'react'
 import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
@@ -191,31 +191,37 @@ type HomeShapesProps = {
 }
 
 export function HomeShapes({ animate, rows = 2 }: HomeShapesProps) {
-  const radii: Radius[] = [
-    'rounded-full',
-    'rounded-tl-full',
-    'rounded-tr-full',
-    'rounded-bl-full',
-    'rounded-br-full',
-    'rounded-t-full',
-    'rounded-b-full',
-    'rounded-l-full',
-    'rounded-r-full'
-  ]
-  const colours = [
-    'bg-slate-600',
-    'bg-rose-300',
-    'bg-lime-400',
-    'bg-rose-500',
-    'bg-lime-300',
-    'bg-lime-500',
-    'bg-rose-400',
-    'bg-slate-300',
-    'bg-yellow-200',
-    'bg-slate-500',
-    'bg-rose-100',
-    'bg-yellow-400'
-  ]
+  const radii: Radius[] = useMemo(
+    () => [
+      'rounded-full',
+      'rounded-tl-full',
+      'rounded-tr-full',
+      'rounded-bl-full',
+      'rounded-br-full',
+      'rounded-t-full',
+      'rounded-b-full',
+      'rounded-l-full',
+      'rounded-r-full'
+    ],
+    []
+  )
+  const colours = useMemo(
+    () => [
+      'bg-slate-600',
+      'bg-rose-300',
+      'bg-lime-400',
+      'bg-rose-500',
+      'bg-lime-300',
+      'bg-lime-500',
+      'bg-rose-400',
+      'bg-slate-300',
+      'bg-yellow-200',
+      'bg-slate-500',
+      'bg-rose-100',
+      'bg-yellow-400'
+    ],
+    []
+  )
   const [shapes, setShapes] = useState<(MotionShapeProps | null)[][]>(
     Array(rows)
       .fill(Array(12).fill({}))
@@ -303,7 +309,7 @@ export function HomeShapes({ animate, rows = 2 }: HomeShapesProps) {
 
       return () => clearInterval(interval)
     }
-  }, [shapes, animate, colours, radii])
+  }, [shapes, animate, colours, radii, rows])
 
   return (
     <div>

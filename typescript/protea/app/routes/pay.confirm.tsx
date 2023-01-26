@@ -13,7 +13,6 @@ import {
 import { getUserSession } from '~/lib/kratos.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
-import { randomUUID } from 'crypto'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
