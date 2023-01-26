@@ -30,7 +30,7 @@ type OpenPaymentServiceClient interface {
 	LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
-	CheckOutgoingPaymentLimit(ctx context.Context, in *CheckOutgoingPaymentLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error)
+	PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error)
 	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	//deprecated
@@ -118,9 +118,9 @@ func (c *openPaymentServiceClient) LookupIncomingPayment(ctx context.Context, in
 	return out, nil
 }
 
-func (c *openPaymentServiceClient) CheckOutgoingPaymentLimit(ctx context.Context, in *CheckOutgoingPaymentLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error) {
-	out := new(CheckMachnetTXLimitResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CheckOutgoingPaymentLimit", in, out, opts...)
+func (c *openPaymentServiceClient) PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error) {
+	out := new(PreCheckOutgoingPaymentResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/PreCheckOutgoingPayment", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ type OpenPaymentServiceServer interface {
 	LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error)
 	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
-	CheckOutgoingPaymentLimit(context.Context, *CheckOutgoingPaymentLimitRequest) (*CheckMachnetTXLimitResponse, error)
+	PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error)
 	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
 	//deprecated
@@ -211,8 +211,8 @@ func (UnimplementedOpenPaymentServiceServer) CreateIncomingPayment(context.Conte
 func (UnimplementedOpenPaymentServiceServer) LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupIncomingPayment not implemented")
 }
-func (UnimplementedOpenPaymentServiceServer) CheckOutgoingPaymentLimit(context.Context, *CheckOutgoingPaymentLimitRequest) (*CheckMachnetTXLimitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckOutgoingPaymentLimit not implemented")
+func (UnimplementedOpenPaymentServiceServer) PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PreCheckOutgoingPayment not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOutgoingPayment not implemented")
@@ -382,20 +382,20 @@ func _OpenPaymentService_LookupIncomingPayment_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenPaymentService_CheckOutgoingPaymentLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckOutgoingPaymentLimitRequest)
+func _OpenPaymentService_PreCheckOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreCheckOutgoingPaymentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).CheckOutgoingPaymentLimit(ctx, in)
+		return srv.(OpenPaymentServiceServer).PreCheckOutgoingPayment(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.OpenPaymentService/CheckOutgoingPaymentLimit",
+		FullMethod: "/backend.v1.OpenPaymentService/PreCheckOutgoingPayment",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CheckOutgoingPaymentLimit(ctx, req.(*CheckOutgoingPaymentLimitRequest))
+		return srv.(OpenPaymentServiceServer).PreCheckOutgoingPayment(ctx, req.(*PreCheckOutgoingPaymentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -512,8 +512,8 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OpenPaymentService_LookupIncomingPayment_Handler,
 		},
 		{
-			MethodName: "CheckOutgoingPaymentLimit",
-			Handler:    _OpenPaymentService_CheckOutgoingPaymentLimit_Handler,
+			MethodName: "PreCheckOutgoingPayment",
+			Handler:    _OpenPaymentService_PreCheckOutgoingPayment_Handler,
 		},
 		{
 			MethodName: "CreateOutgoingPayment",

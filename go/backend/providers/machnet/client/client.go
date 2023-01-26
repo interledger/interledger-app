@@ -167,6 +167,10 @@ func (c client) GetWallet(ctx context.Context, id string) (*machnet.Wallet, erro
 	return ops.GetWallet(ctx, c.b, id)
 }
 
+func (c client) GetWalletByWalletID(ctx context.Context, walletID string) (*machnet.Wallet, error) {
+	return ops.GetWalletByWalletID(ctx, c.b, walletID)
+}
+
 func (c client) WithdrawFromWallet(ctx context.Context, args machnet.WithdrawFromWalletArgs) (machnet.Await, error) {
 	limits, err := c.GetUserLimits(ctx, args.WalletID)
 	if err != nil {

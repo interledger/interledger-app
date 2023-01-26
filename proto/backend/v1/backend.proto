@@ -29,7 +29,7 @@ service OpenPaymentService {
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
-  rpc CheckOutgoingPaymentLimit(CheckOutgoingPaymentLimitRequest) returns (CheckMachnetTXLimitResponse);
+  rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
 
@@ -79,8 +79,14 @@ message OutgoingPayment {
   google.protobuf.Timestamp updatedAt = 10;
 }
 
-message CheckOutgoingPaymentLimitRequest {
+message PreCheckOutgoingPaymentRequest {
   string quoteID = 1;
+}
+
+message PreCheckOutgoingPaymentResponse {
+  bool exceedsLimits = 1;
+  string limitType = 2; // ANNUAL, MONTHLY, DAILY, HOLD (MAX BALANCE)
+  bool insufficientBalance = 3;
 }
 
 message CreateOutgoingPaymentRequest {

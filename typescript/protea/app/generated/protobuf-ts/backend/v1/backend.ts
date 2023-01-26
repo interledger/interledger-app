@@ -173,13 +173,30 @@ export interface OutgoingPayment {
     updatedAt?: Timestamp;
 }
 /**
- * @generated from protobuf message backend.v1.CheckOutgoingPaymentLimitRequest
+ * @generated from protobuf message backend.v1.PreCheckOutgoingPaymentRequest
  */
-export interface CheckOutgoingPaymentLimitRequest {
+export interface PreCheckOutgoingPaymentRequest {
     /**
      * @generated from protobuf field: string quoteID = 1;
      */
     quoteID: string;
+}
+/**
+ * @generated from protobuf message backend.v1.PreCheckOutgoingPaymentResponse
+ */
+export interface PreCheckOutgoingPaymentResponse {
+    /**
+     * @generated from protobuf field: bool exceedsLimits = 1;
+     */
+    exceedsLimits: boolean;
+    /**
+     * @generated from protobuf field: string limitType = 2;
+     */
+    limitType: string; // ANNUAL, MONTHLY, DAILY, HOLD (MAX BALANCE)
+    /**
+     * @generated from protobuf field: bool insufficientBalance = 3;
+     */
+    insufficientBalance: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateOutgoingPaymentRequest
@@ -1731,20 +1748,20 @@ class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
  */
 export const OutgoingPayment = new OutgoingPayment$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CheckOutgoingPaymentLimitRequest$Type extends MessageType<CheckOutgoingPaymentLimitRequest> {
+class PreCheckOutgoingPaymentRequest$Type extends MessageType<PreCheckOutgoingPaymentRequest> {
     constructor() {
-        super("backend.v1.CheckOutgoingPaymentLimitRequest", [
+        super("backend.v1.PreCheckOutgoingPaymentRequest", [
             { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CheckOutgoingPaymentLimitRequest>): CheckOutgoingPaymentLimitRequest {
+    create(value?: PartialMessage<PreCheckOutgoingPaymentRequest>): PreCheckOutgoingPaymentRequest {
         const message = { quoteID: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CheckOutgoingPaymentLimitRequest>(this, message, value);
+            reflectionMergePartial<PreCheckOutgoingPaymentRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckOutgoingPaymentLimitRequest): CheckOutgoingPaymentLimitRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PreCheckOutgoingPaymentRequest): PreCheckOutgoingPaymentRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -1763,7 +1780,7 @@ class CheckOutgoingPaymentLimitRequest$Type extends MessageType<CheckOutgoingPay
         }
         return message;
     }
-    internalBinaryWrite(message: CheckOutgoingPaymentLimitRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: PreCheckOutgoingPaymentRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string quoteID = 1; */
         if (message.quoteID !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
@@ -1774,9 +1791,70 @@ class CheckOutgoingPaymentLimitRequest$Type extends MessageType<CheckOutgoingPay
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.CheckOutgoingPaymentLimitRequest
+ * @generated MessageType for protobuf message backend.v1.PreCheckOutgoingPaymentRequest
  */
-export const CheckOutgoingPaymentLimitRequest = new CheckOutgoingPaymentLimitRequest$Type();
+export const PreCheckOutgoingPaymentRequest = new PreCheckOutgoingPaymentRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PreCheckOutgoingPaymentResponse$Type extends MessageType<PreCheckOutgoingPaymentResponse> {
+    constructor() {
+        super("backend.v1.PreCheckOutgoingPaymentResponse", [
+            { no: 1, name: "exceedsLimits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "limitType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "insufficientBalance", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PreCheckOutgoingPaymentResponse>): PreCheckOutgoingPaymentResponse {
+        const message = { exceedsLimits: false, limitType: "", insufficientBalance: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PreCheckOutgoingPaymentResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PreCheckOutgoingPaymentResponse): PreCheckOutgoingPaymentResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool exceedsLimits */ 1:
+                    message.exceedsLimits = reader.bool();
+                    break;
+                case /* string limitType */ 2:
+                    message.limitType = reader.string();
+                    break;
+                case /* bool insufficientBalance */ 3:
+                    message.insufficientBalance = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PreCheckOutgoingPaymentResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool exceedsLimits = 1; */
+        if (message.exceedsLimits !== false)
+            writer.tag(1, WireType.Varint).bool(message.exceedsLimits);
+        /* string limitType = 2; */
+        if (message.limitType !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.limitType);
+        /* bool insufficientBalance = 3; */
+        if (message.insufficientBalance !== false)
+            writer.tag(3, WireType.Varint).bool(message.insufficientBalance);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PreCheckOutgoingPaymentResponse
+ */
+export const PreCheckOutgoingPaymentResponse = new PreCheckOutgoingPaymentResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymentRequest> {
     constructor() {
@@ -5713,7 +5791,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
-    { name: "CheckOutgoingPaymentLimit", options: {}, I: CheckOutgoingPaymentLimitRequest, O: CheckMachnetTXLimitResponse },
+    { name: "PreCheckOutgoingPayment", options: {}, I: PreCheckOutgoingPaymentRequest, O: PreCheckOutgoingPaymentResponse },
     { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
