@@ -12,11 +12,25 @@ import { Icon } from '.'
  */
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /**
+   * Wrap contents instead of filling container.
+   */
   shrink?: boolean // sm:max-w-fit
 }
 
 export const Button = forwardRef<any, ButtonProps>(
-  ({ children, shrink, ...buttonProps }, ref) => {
+  (
+    {
+      // Help
+      children,
+      /**
+       * Help again
+       */
+      shrink,
+      ...buttonProps
+    },
+    ref
+  ) => {
     return (
       <button
         ref={ref}

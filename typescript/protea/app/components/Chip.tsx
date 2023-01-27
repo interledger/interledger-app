@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 
+// TODO: Refactor to use static string types for colours rather
 export enum ChipColor {
   green = 'bg-green-200 text-green-800',
   purple = 'bg-purple-200 text-purple-800',
@@ -10,11 +11,17 @@ export enum ChipColor {
 }
 
 export type ChipProps = {
+  /**
+   * Label text of the chip.
+   */
   children?: ReactNode
+  /**
+   * Background and text colour theme.
+   */
   color: ChipColor
 }
 
-export const Chip: FC<ChipProps> = ({ children, color }) => {
+export const Chip: FC<ChipProps> = ({ children, color = ChipColor.blue }) => {
   return (
     <div
       className={clsx(
