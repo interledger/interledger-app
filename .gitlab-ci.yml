@@ -33,10 +33,11 @@ trigger_deploy_dev_eu1:
   when: manual
   variables:
     GIT_STRATEGY: none
-  image: alpine:3.8
+  image: alpine:3.17
   before_script:
     - apk add --no-cache git
     - wget -qO- https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.5/kustomize_v4.5.5_linux_amd64.tar.gz | tar xvz -C /usr/local/bin/
+    - ls -la
     - mkdir rooibos
     - git clone --single-branch --branch main https://$CI_USERNAME:$CI_PUSH_TOKEN@gitlab.com/fynbos/rooibos.git rooibos
     - git config --global user.email "${GITLAB_USER_EMAIL}"
@@ -63,10 +64,11 @@ trigger_deploy_prod_use2:
   when: manual
   variables:
     GIT_STRATEGY: none
-  image: alpine:3.8
+  image: alpine:3.17
   before_script:
     - apk add --no-cache git
     - wget -qO- https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.5/kustomize_v4.5.5_linux_amd64.tar.gz | tar xvz -C /usr/local/bin/
+    - ls -la
     - mkdir rooibos
     - git clone --single-branch --branch main https://$CI_USERNAME:$CI_PUSH_TOKEN@gitlab.com/fynbos/rooibos.git rooibos
     - git config --global user.email "${GITLAB_USER_EMAIL}"
