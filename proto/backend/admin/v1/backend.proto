@@ -108,4 +108,5 @@ message WaitlistSignup {
   bool beta_opt_in = 4;
   bool can_signup = 5;
   string mug_id = 6;
+  string country_code = 7;
 }
