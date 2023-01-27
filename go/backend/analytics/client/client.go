@@ -1,0 +1,69 @@
+package client
+
+import (
+	segment "github.com/segmentio/analytics-go/v3"
+	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/analytics/ops"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+)
+
+var _ analytics.Client = client{}
+
+type client struct {
+	b       ops.Backends
+	enabled bool
+}
+
+func New(b Backends, key string) analytics.Client {
+
+	segmentClient := segment.New(key)
+
+	enabled := false
+	if key != "" {
+		enabled = true
+	}
+
+	ob := &opsBackends{
+		Backends: b,
+		segment:  segmentClient,
+	}
+
+	return &client{
+		b:       ob,
+		enabled: enabled,
+	}
+}
+
+func (c client) Close() {
+	if c.enabled {
+		err := c.b.Segment().Close()
+		if err != nil {
+			log.Error("error closing segment", zap.Error(err))
+		}
+	}
+}
+
+func (c client) Identify(args analytics.IdentifyArgs) {
+	if c.enabled {
+		ops.Identify(c.b, args)
+	}
+}
+
+func (c client) TrackUserSignup(userID string) {
+	if c.enabled {
+		ops.TrackUserSignup(c.b, userID)
+	}
+}
+
+func (c client) TrackUserLogin(userID string) {
+	if c.enabled {
+		ops.TrackUserLogin(c.b, userID)
+	}
+}
+
+func (c client) TrackUserLogout(userID string) {
+	if c.enabled {
+		ops.TrackUserLogout(c.b, userID)
+	}
+}
