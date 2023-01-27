@@ -28,12 +28,13 @@ func (s *AdminRpcService) ListWaitlistSignups(
 	ret := make([]*adminv1.WaitlistSignup, len(signups))
 	for i, signup := range signups {
 		ret[i] = &adminv1.WaitlistSignup{
-			Id:        signup.ID,
-			Name:      signup.Name,
-			Email:     signup.Email,
-			BetaOptIn: signup.BetaOtpIn,
-			CanSignup: signup.CanSignup,
-			MugId:     signup.MugID,
+			Id:          signup.ID,
+			Name:        signup.Name,
+			Email:       signup.Email,
+			BetaOptIn:   signup.BetaOtpIn,
+			CanSignup:   signup.CanSignup,
+			MugId:       signup.MugID,
+			CountryCode: signup.CountryCode,
 		}
 	}
 
