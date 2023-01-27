@@ -833,5 +833,49 @@ const blogShapes: {
         color: 'bg-blue-100'
       }
     ]
+  ],
+  'how-technical-standards-promote-innovation': [
+    [
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-yellow-400'
+      },
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-100'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-purple-400'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-slate-200'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-green-400'
+      },
+      {
+        radius: 'rounded-tr-full',
+        color: 'bg-yellow-400'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-bl-full',
+        color: 'bg-rose-300'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-slate-500'
+      },
+      {
+        radius: 'rounded-tl-full',
+        color: 'bg-purple-600'
+      }
+    ]
   ]
 }
