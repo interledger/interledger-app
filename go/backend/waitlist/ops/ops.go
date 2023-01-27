@@ -138,12 +138,13 @@ func SetSignupComplete(ctx context.Context, b Backends, id, userID string) error
 
 func ListSignups(ctx context.Context, b Backends) (signups []waitlist.Signup, err error) {
 	type dbSignup struct {
-		ID        string `db:"id"`
-		Name      string `db:"full_name"`
-		Email     string `db:"email"`
-		BetaOptIn bool   `db:"beta_opt_in"`
-		CanSignup bool   `db:"can_signup"`
-		MugID     string `db:"mug_id"`
+		ID          string `db:"id"`
+		Name        string `db:"full_name"`
+		Email       string `db:"email"`
+		BetaOptIn   bool   `db:"beta_opt_in"`
+		CanSignup   bool   `db:"can_signup"`
+		MugID       string `db:"mug_id"`
+		CountryCode string `db:"country_code"`
 	}
 	dbSignups := []dbSignup{}
 	err = b.DB().SelectContext(ctx, &dbSignups,
@@ -154,12 +155,13 @@ func ListSignups(ctx context.Context, b Backends) (signups []waitlist.Signup, er
 
 	for _, signup := range dbSignups {
 		signups = append(signups, waitlist.Signup{
-			ID:        signup.ID,
-			Name:      signup.Name,
-			Email:     signup.Email,
-			BetaOtpIn: signup.BetaOptIn,
-			CanSignup: signup.CanSignup,
-			MugID:     signup.MugID,
+			ID:          signup.ID,
+			Name:        signup.Name,
+			Email:       signup.Email,
+			BetaOtpIn:   signup.BetaOptIn,
+			CanSignup:   signup.CanSignup,
+			MugID:       signup.MugID,
+			CountryCode: signup.CountryCode,
 		})
 	}
 
