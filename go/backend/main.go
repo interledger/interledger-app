@@ -29,6 +29,9 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
 	agreements_migrations "gitlab.com/fynbos/backend/agreements/migrations"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -167,6 +170,8 @@ func start(args *cli.StartArgs) {
 
 	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
+	b.analytics = analytics_client.New(b, args.SegmentKey)
+
 	var wg sync.WaitGroup
 
 	router := chi.NewRouter()
@@ -176,6 +181,9 @@ func start(args *cli.StartArgs) {
 		w.WriteHeader(200)
 	}))
 	router.Handle("/webhooks/machnet", machnet_webhook.New(b, args.MachnetWebhookSecret, args.MachnetClientID, args.MachnetClientSecret))
+	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
+	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
+	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
@@ -229,6 +237,7 @@ func start(args *cli.StartArgs) {
 
 	log.Info("waiting for shutdown")
 	wg.Wait()
+	b.analytics.Close()
 	log.Info("clean shutdown")
 }
 
@@ -420,6 +429,7 @@ type backends struct {
 	transactions   transactions.Client
 	notify         notify.Client
 	statements     statements.Client
+	analytics      analytics.Client
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -500,4 +510,8 @@ func (b backends) Notify() notify.Client {
 
 func (b backends) Statements() statements.Client {
 	return b.statements
+}
+
+func (b backends) Analytics() analytics.Client {
+	return b.analytics
 }
