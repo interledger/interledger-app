@@ -75,6 +75,12 @@ export default function Page() {
                         scope='col'
                         className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
                       >
+                        Country
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                      >
                         Beta opt in
                       </th>
                       <th
@@ -99,6 +105,9 @@ export default function Page() {
                         </td>
                         <td className='px-3 py-4 text-sm text-gray-500'>
                           {person.email}
+                        </td>
+                        <td className='px-3 py-4 text-sm text-gray-500'>
+                          {person.countryCode}
                         </td>
                         <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
                           {person.betaOptIn ? (
