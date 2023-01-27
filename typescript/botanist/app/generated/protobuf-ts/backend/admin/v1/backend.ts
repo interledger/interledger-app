@@ -273,6 +273,10 @@ export interface WaitlistSignup {
      * @generated from protobuf field: string mug_id = 6;
      */
     mugId: string;
+    /**
+     * @generated from protobuf field: string country_code = 7;
+     */
+    countryCode: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
@@ -1142,11 +1146,12 @@ class WaitlistSignup$Type extends MessageType<WaitlistSignup> {
             { no: 3, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "beta_opt_in", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 5, name: "can_signup", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 6, name: "mug_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 6, name: "mug_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "country_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WaitlistSignup>): WaitlistSignup {
-        const message = { id: "", name: "", email: "", betaOptIn: false, canSignup: false, mugId: "" };
+        const message = { id: "", name: "", email: "", betaOptIn: false, canSignup: false, mugId: "", countryCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WaitlistSignup>(this, message, value);
@@ -1174,6 +1179,9 @@ class WaitlistSignup$Type extends MessageType<WaitlistSignup> {
                     break;
                 case /* string mug_id */ 6:
                     message.mugId = reader.string();
+                    break;
+                case /* string country_code */ 7:
+                    message.countryCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1205,6 +1213,9 @@ class WaitlistSignup$Type extends MessageType<WaitlistSignup> {
         /* string mug_id = 6; */
         if (message.mugId !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.mugId);
+        /* string country_code = 7; */
+        if (message.countryCode !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.countryCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
