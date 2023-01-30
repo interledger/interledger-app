@@ -12,9 +12,21 @@ export async function canSignup(request: Request): Promise<void> {
 
   const userSettings = await getSession(request.headers.get('Cookie'))
 
+  let waitlistSignupId = userSettings.get('waitlistSignupId')
+  if (waitlistSignupId) {
+    // Check against service
+    const canSignupCall = await grpcClient.canSignup({
+      id: waitlistSignupId
+    })
+
+    if (canSignupCall.response.canSignup) {
+      return
+    }
+  }
+
   //Check for QP
   const url = new URL(request.url)
-  let waitlistSignupId = url.searchParams.get('waitlistSignupId')
+  waitlistSignupId = url.searchParams.get('waitlistSignupId')
   if (waitlistSignupId) {
     // Check
     const canSignupCall = await grpcClient.canSignup({
@@ -25,25 +37,13 @@ export async function canSignup(request: Request): Promise<void> {
       throw redirect(route('/'))
     }
 
-    //if exists && valid redirect back to /signup with cookie and without qp
+    //if exists && valid redirect back to /signup with cookie
     userSettings.set('waitlistSignupId', waitlistSignupId)
-    throw redirect(route('/signup'), {
+    throw redirect('/signup' + url.search, {
       headers: {
         'Set-Cookie': await commitSession(userSettings)
       }
     })
-  }
-
-  waitlistSignupId = userSettings.get('waitlistSignupId')
-  if (waitlistSignupId) {
-    // Check against service
-    const canSignupCall = await grpcClient.canSignup({
-      id: waitlistSignupId
-    })
-
-    if (canSignupCall.response.canSignup) {
-      return
-    }
   }
 
   throw redirect(route('/'))
