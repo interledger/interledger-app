@@ -7,13 +7,13 @@ import (
 	"gitlab.com/fynbos/backend/authorisation/ops"
 )
 
-var _ authorisation.Client = client{}
+var _ authorisation.InternalClient = client{}
 
 type client struct {
 	b ops.Backends
 }
 
-func New(b ops.Backends) authorisation.Client {
+func New(b ops.Backends) authorisation.InternalClient {
 	return &client{
 		b: b,
 	}
