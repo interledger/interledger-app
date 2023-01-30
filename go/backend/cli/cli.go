@@ -62,6 +62,7 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 type StartArgs struct {
 	Port                 string
 	OpenPaymentsPort     string
+	AuthorisationPort    string
 	DbConnectionString   string
 	KratosUrl            string
 	KratosAdminUrl       string
@@ -103,6 +104,11 @@ func ParseStartArgs() (*StartArgs, error) {
 	openPaymentsPort := os.Getenv("OPEN_PAYMENTS_PORT")
 	if openPaymentsPort == "" {
 		openPaymentsPort = "8081"
+	}
+
+	authorisationPort := os.Getenv("AUTHORISATION_PORT")
+	if authorisationPort == "" {
+		authorisationPort = "8082"
 	}
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
@@ -176,6 +182,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	return &StartArgs{
 		Port:                 port,
 		OpenPaymentsPort:     openPaymentsPort,
+		AuthorisationPort:    authorisationPort,
 		DbConnectionString:   dbUrl,
 		KratosUrl:            kratosUrl,
 		KratosAdminUrl:       kratosAdminUrl,
