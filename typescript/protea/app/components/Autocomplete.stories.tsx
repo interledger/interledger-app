@@ -1,0 +1,38 @@
+import type { StoryFn, Meta } from '@storybook/react'
+import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import { Autocomplete } from '~/components'
+
+const meta: Meta<typeof Autocomplete> = {
+  title: 'components/Autocomplete',
+  component: Autocomplete,
+  decorators: [
+    (Story) => {
+      const RemixStub = createRemixStub([
+        {
+          path: '/',
+          // @ts-ignore
+          element: <Story />
+        }
+      ])
+
+      return <RemixStub />
+    }
+  ]
+}
+
+export default meta
+
+const Template: StoryFn<typeof Autocomplete> = (_args) => (
+  <Autocomplete {..._args} />
+)
+
+export const AutocompleteStory = Template.bind({})
+AutocompleteStory.storyName = 'Default Autocomplete'
+AutocompleteStory.args = {
+  label: 'This is a label',
+  options: [
+    { id: '1', name: 'first' },
+    { id: '2', name: 'second' },
+    { id: '3', name: 'third' }
+  ]
+}
