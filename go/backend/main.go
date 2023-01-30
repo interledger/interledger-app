@@ -12,11 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -29,9 +24,13 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
 	agreements_migrations "gitlab.com/fynbos/backend/agreements/migrations"
+	"gitlab.com/fynbos/backend/authorisation"
+	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
+	auth_http "gitlab.com/fynbos/backend/authorisation/http"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
@@ -42,6 +41,7 @@ import (
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
+	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/machnet"
@@ -49,6 +49,8 @@ import (
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
+	"gitlab.com/fynbos/backend/statements"
+	statements_client "gitlab.com/fynbos/backend/statements/client"
 	"gitlab.com/fynbos/backend/supporttickets"
 	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
@@ -167,6 +169,8 @@ func start(args *cli.StartArgs) {
 
 	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
+	b.auth = authorisation_client.New(b)
+
 	var wg sync.WaitGroup
 
 	router := chi.NewRouter()
@@ -178,6 +182,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/machnet", machnet_webhook.New(b, args.MachnetWebhookSecret, args.MachnetClientID, args.MachnetClientSecret))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
+
+	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
 	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
 	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
@@ -420,6 +426,11 @@ type backends struct {
 	transactions   transactions.Client
 	notify         notify.Client
 	statements     statements.Client
+	auth           authorisation.Client
+}
+
+func (b backends) Authorisation() authorisation.Client {
+	return b.auth
 }
 
 func (b backends) Transactions() transactions.Client {

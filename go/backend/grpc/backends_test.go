@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/authorisation"
+
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/transactions"
 
@@ -61,6 +63,10 @@ type TestContainer struct {
 	KYCClient          *kyc_mock.MockClient
 	EmailClient        *email_mock.MockClient
 	TransactionsClient *transactions_mock.MockClient
+}
+
+func (t TestContainer) Authorisation() authorisation.Client {
+	return nil
 }
 
 func (t TestContainer) Email() email.Client {

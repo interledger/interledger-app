@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
+	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -38,4 +39,5 @@ type Backends interface {
 	KYC() kyc.Client
 	Email() email.Client
 	Transactions() transactions.Client
+	Authorisation() authorisation.Client
 }
