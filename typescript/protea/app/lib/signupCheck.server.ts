@@ -9,6 +9,11 @@ export async function canSignup(request: Request): Promise<void> {
   if (!IS_SIGNUP_GATED) {
     return
   }
+  const url = new URL(request.url)
+  // Allow if loop11
+  if (url.searchParams.get('l11_tracking') && url.searchParams.get('l11_uid')) {
+    return
+  }
 
   const userSettings = await getSession(request.headers.get('Cookie'))
 
@@ -25,7 +30,6 @@ export async function canSignup(request: Request): Promise<void> {
   }
 
   //Check for QP
-  const url = new URL(request.url)
   waitlistSignupId = url.searchParams.get('waitlistSignupId')
   if (waitlistSignupId) {
     // Check
