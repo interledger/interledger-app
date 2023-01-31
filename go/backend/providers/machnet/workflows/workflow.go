@@ -228,7 +228,15 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 	}
 
 	var recvTrxID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&recvTrxID)
+	if err != nil {
+		logger.Error("error generating transactionID as side effect", "Error", err)
+		return nil, err
+	}
 	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		ID:          recvTrxID,
 		WalletID:    transactionWallets.ToWalletID,
 		ForeignID:   args.ToForeignID,
 		ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
@@ -246,7 +254,7 @@ func CreateTransactionWorkflow(ctx workflow.Context, args machnet.CreateTransact
 				State:           transactions.StatePending,
 			},
 		},
-	}).Get(ctx, &recvTrxID)
+	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("AddTransaction Activity failed.", "Error", err)
 		return nil, err
@@ -311,7 +319,15 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 	logger.Info("CreateWalletTopupWorkflow workflow started", "From", args.FromLinkedAccountID, "Amount", args.Amount)
 
 	var trxID string
-	err := workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&trxID)
+	if err != nil {
+		logger.Error("error generating transactionID as side effect", "Error", err)
+		return "", err
+	}
+	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		ID:          trxID,
 		WalletID:    args.WalletID,
 		ForeignType: transactions.TransactionTypeMachnetWalletTopUp,
 		Provider:    transactions.ProviderMachnet,
@@ -331,7 +347,7 @@ func CreateWalletTopupWorkflow(ctx workflow.Context, args machnet.StartWalletTop
 				State:           transactions.StatePending,
 			},
 		},
-	}).Get(ctx, &trxID)
+	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("AddTransaction Activity failed.", "Error", err)
 		return "", err
@@ -489,7 +505,15 @@ func CreateWalletWithdrawalWorkflow(ctx workflow.Context, args machnet.WithdrawF
 	}
 
 	var trxID string
-	err := workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&trxID)
+	if err != nil {
+		logger.Error("error generating transactionID as side effect", "Error", err)
+		return "", err
+	}
+	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		ID:          trxID,
 		WalletID:    args.WalletID,
 		ForeignType: transactions.TransactionTypeMachnetWalletWithdrawal,
 		Provider:    transactions.ProviderMachnet,
@@ -509,7 +533,7 @@ func CreateWalletWithdrawalWorkflow(ctx workflow.Context, args machnet.WithdrawF
 				State:           transactions.StatePending,
 			},
 		},
-	}).Get(ctx, &trxID)
+	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("AddTransaction Activity failed.", "Error", err)
 		return "", err
