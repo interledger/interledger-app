@@ -13,6 +13,7 @@
     "paths": {
       "~/*": ["./app/*"]
     },
+    "types": ["vitest/globals"],
     "noEmit": true,
     "allowJs": true,
     "forceConsistentCasingInFileNames": true
