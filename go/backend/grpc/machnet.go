@@ -486,22 +486,22 @@ func (s *rpcService) GetUserLimits(ctx context.Context, _ *backendv1.Empty) (*ba
 			Annual: &backendv1.LimitAmount{
 				Remaining:  limits.Annual.Format(),
 				Total:      tier.Annual.Format(),
-				Percentage: int32((limits.Annual.Value / tier.Annual.Value) * 100),
+				Percentage: int32((limits.Annual.Float64() / tier.Annual.Float64()) * 100),
 			},
 			Daily: &backendv1.LimitAmount{
 				Remaining:  limits.Daily.Format(),
 				Total:      tier.Daily.Format(),
-				Percentage: int32((limits.Daily.Value / tier.Daily.Value) * 100),
+				Percentage: int32((limits.Daily.Float64() / tier.Daily.Float64()) * 100),
 			},
 			Monthly: &backendv1.LimitAmount{
 				Remaining:  limits.Monthly.Format(),
 				Total:      tier.Monthly.Format(),
-				Percentage: int32((limits.Monthly.Value / tier.Monthly.Value) * 100),
+				Percentage: int32((limits.Monthly.Float64() / tier.Monthly.Float64()) * 100),
 			},
 			WalletHold: &backendv1.LimitAmount{
 				Remaining:  limits.WalletHold.Format(),
 				Total:      tier.WalletHold.Format(),
-				Percentage: int32((limits.WalletHold.Value / tier.WalletHold.Value) * 100),
+				Percentage: int32((limits.WalletHold.Float64() / tier.WalletHold.Float64()) * 100),
 			},
 		}
 	}
