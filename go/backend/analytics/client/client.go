@@ -67,3 +67,21 @@ func (c client) TrackUserLogout(userID string) {
 		ops.TrackUserLogout(c.b, userID)
 	}
 }
+
+func (c client) TrackWalletCreated(walletID, userID string) {
+	if c.enabled {
+		ops.TrackWalletCreated(c.b, walletID, userID)
+	}
+}
+
+func (c client) TrackWalletPaymentPointerCreated(walletID string) {
+	if c.enabled {
+		ops.TrackWalletPaymentPointerCreated(c.b, walletID)
+	}
+}
+
+func (c client) GroupUserWallet(walletID, userID string) {
+	if c.enabled {
+		ops.GroupWallet(c.b, walletID, userID)
+	}
+}
