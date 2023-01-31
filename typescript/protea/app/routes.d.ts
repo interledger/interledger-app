@@ -26,6 +26,7 @@ declare module "routes-gen" {
     "/what-is-a-payment-pointer": Record<string, never>;
     "/personal-details/address": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
+    "/settings/account-limits": Record<string, never>;
     "/personal-details/about": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
     "/linked-account/:type": { "type": string };
@@ -94,6 +95,7 @@ declare module "routes-gen" {
       | ["/what-is-a-payment-pointer"]
       | ["/personal-details/address"]
       | ["/settings/linked-accounts"]
+      | ["/settings/account-limits"]
       | ["/personal-details/about"]
       | ["/legal/privacy-policy"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
