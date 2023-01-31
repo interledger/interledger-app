@@ -24,12 +24,12 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_client "gitlab.com/fynbos/backend/agreements/client"
 	agreements_migrations "gitlab.com/fynbos/backend/agreements/migrations"
-	"gitlab.com/fynbos/backend/authorisation"
-	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
-	auth_http "gitlab.com/fynbos/backend/authorisation/http"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
+	"gitlab.com/fynbos/backend/authorisation"
+	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
+	auth_http "gitlab.com/fynbos/backend/authorisation/http"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
@@ -399,6 +399,8 @@ func startWorker(args *cli.StartArgs) {
 	b.notify = notify_client.New(b, args.PusherAddr)
 
 	b.statements = statements_client.New()
+
+	b.analytics = analytics_client.New(b, args.SegmentKey)
 
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
