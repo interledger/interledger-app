@@ -1,6 +1,8 @@
 package main
 
 import (
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"log"
 	"os"
 
@@ -114,6 +116,7 @@ type backends struct {
 	transactions   transactions.Client
 	statements     statements.Client
 	email          email.Client
+	analytics      analytics.Client
 }
 
 func (b *backends) Transactions() transactions.Client {
@@ -250,4 +253,11 @@ func (b *backends) Email() email.Client {
 		return email_client.New(b, os.Getenv("SENDGRID_API_KEY"))
 	}
 	return b.email
+}
+
+func (b *backends) Analytics() analytics.Client {
+	if b.analytics == nil {
+		b.analytics = analytics_client.New(b, "")
+	}
+	return b.analytics
 }
