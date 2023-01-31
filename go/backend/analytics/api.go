@@ -8,5 +8,8 @@ type Client interface {
 	GroupUserWallet(walletID, userID string)
 	TrackWalletCreated(walletID, userID string)
 	TrackWalletPaymentPointerCreated(walletID string)
+	TrackWalletTransactionCreated(walletID string, args WalletTransactionArgs)
+	TrackWalletTransactionCompleted(walletID string, args WalletTransactionArgs)
+	TrackWalletTransactionFailed(walletID string, args WalletTransactionArgs)
 	Close()
 }

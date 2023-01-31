@@ -85,3 +85,21 @@ func (c client) GroupUserWallet(walletID, userID string) {
 		ops.GroupWallet(c.b, walletID, userID)
 	}
 }
+
+func (c client) TrackWalletTransactionCreated(walletID string, args analytics.WalletTransactionArgs) {
+	if c.enabled {
+		ops.TrackWalletTransactionCreated(c.b, walletID, args)
+	}
+}
+
+func (c client) TrackWalletTransactionCompleted(walletID string, args analytics.WalletTransactionArgs) {
+	if c.enabled {
+		ops.TrackWalletTransactionCompleted(c.b, walletID, args)
+	}
+}
+
+func (c client) TrackWalletTransactionFailed(walletID string, args analytics.WalletTransactionArgs) {
+	if c.enabled {
+		ops.TrackWalletTransactionFailed(c.b, walletID, args)
+	}
+}
