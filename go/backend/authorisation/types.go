@@ -1,5 +1,10 @@
 package authorisation
 
+type Client struct {
+	ID  string `db:"id"`
+	URL string `db:"url"`
+}
+
 type Grant struct {
 	ID    string
 	State GrantState
@@ -38,7 +43,7 @@ func (gs GrantState) ValidTransition(next GrantState) bool {
 type (
 	GrantRequest struct {
 		AccessToken AccessTokenReq `json:"access_token"`
-		Client      Client         `json:"client"`
+		Client      ClientReq      `json:"client"`
 		Interact    Interact       `json:"interact"`
 		Subject     Subject        `json:"subject"`
 	}
@@ -66,9 +71,9 @@ type (
 		Jwk   Jwk    `json:"jwk"`
 	}
 
-	Client struct {
+	ClientReq struct {
 		Display Display `json:"display"`
-		Key     Key     `json:"key"`
+		Key     Key     `json:"key" validate:"url"`
 	}
 
 	Finish struct {
