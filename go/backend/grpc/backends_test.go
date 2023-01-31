@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"fmt"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"net"
 	"testing"
 
@@ -63,6 +65,7 @@ type TestContainer struct {
 	KYCClient          *kyc_mock.MockClient
 	EmailClient        *email_mock.MockClient
 	TransactionsClient *transactions_mock.MockClient
+	AnalyticsClient    analytics.Client
 }
 
 func (t TestContainer) Authorisation() authorisation.Client {
@@ -137,6 +140,10 @@ func (t TestContainer) Transactions() transactions.Client {
 	return t.TransactionsClient
 }
 
+func (t TestContainer) Analytics() analytics.Client {
+	return t.AnalyticsClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -162,6 +169,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		TemporalImpl:       &mocks.Client{},
 		KYCClient:          kyc_mock.NewMockClient(ctrl),
 		TransactionsClient: transactions_mock.NewMockClient(ctrl),
+		AnalyticsClient:    analytics_client.New(nil, ""),
 	}
 
 	for _, opt := range opts {

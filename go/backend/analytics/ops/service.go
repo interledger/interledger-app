@@ -73,8 +73,10 @@ func TrackUserLogout(b Backends, userID string) {
 }
 
 func TrackWalletCreated(b Backends, walletID string, userID string) {
+
+	GroupWallet(b, walletID, userID)
+
 	err := b.Segment().Enqueue(segment.Track{
-		UserId:     userID,
 		Event:      "Wallet Created",
 		Properties: segment.NewProperties(),
 		Context: &segment.Context{
@@ -88,11 +90,15 @@ func TrackWalletCreated(b Backends, walletID string, userID string) {
 	}
 }
 
-func TrackWalletPaymentPointerCreated(b Backends) {
+func TrackWalletPaymentPointerCreated(b Backends, walletID string) {
 	err := b.Segment().Enqueue(segment.Track{
 		Event:      "Payment Pointer Created",
 		Properties: segment.NewProperties(),
-		Context:    &segment.Context{},
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": walletID,
+			},
+		},
 	})
 	if err != nil {
 		log.Error("analytics: error TrackWalletPaymentPointerCreated", zap.Error(err))
