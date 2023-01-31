@@ -28,4 +28,5 @@ type Client interface {
 	DeleteFundSource(ctx context.Context, linkedAccID string) (Await, error)
 	GetStatement(ctx context.Context, walletID, period string) ([]byte, error)
 	ListStatementPeriods(ctx context.Context, page db.Pagination, walletID string) ([]string, error)
+	GetTierLimits(ctx context.Context, tier int) *Tier
 }

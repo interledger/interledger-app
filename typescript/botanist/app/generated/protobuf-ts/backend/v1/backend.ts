@@ -1234,21 +1234,38 @@ export interface GetUserLimitsResponse {
  */
 export interface Limit {
     /**
-     * @generated from protobuf field: backend.v1.Amount Annual = 1 [json_name = "Annual"];
+     * @generated from protobuf field: backend.v1.LimitAmount Annual = 1 [json_name = "Annual"];
      */
-    annual?: Amount;
+    annual?: LimitAmount;
     /**
-     * @generated from protobuf field: backend.v1.Amount Daily = 2 [json_name = "Daily"];
+     * @generated from protobuf field: backend.v1.LimitAmount Daily = 2 [json_name = "Daily"];
      */
-    daily?: Amount;
+    daily?: LimitAmount;
     /**
-     * @generated from protobuf field: backend.v1.Amount Monthly = 3 [json_name = "Monthly"];
+     * @generated from protobuf field: backend.v1.LimitAmount Monthly = 3 [json_name = "Monthly"];
      */
-    monthly?: Amount;
+    monthly?: LimitAmount;
     /**
-     * @generated from protobuf field: backend.v1.Amount WalletHold = 4 [json_name = "WalletHold"];
+     * @generated from protobuf field: backend.v1.LimitAmount WalletHold = 4 [json_name = "WalletHold"];
      */
-    walletHold?: Amount;
+    walletHold?: LimitAmount;
+}
+/**
+ * @generated from protobuf message backend.v1.LimitAmount
+ */
+export interface LimitAmount {
+    /**
+     * @generated from protobuf field: string remaining = 1;
+     */
+    remaining: string;
+    /**
+     * @generated from protobuf field: string total = 2;
+     */
+    total: string;
+    /**
+     * @generated from protobuf field: int32 percentage = 3;
+     */
+    percentage: number;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
@@ -5715,10 +5732,10 @@ export const GetUserLimitsResponse = new GetUserLimitsResponse$Type();
 class Limit$Type extends MessageType<Limit> {
     constructor() {
         super("backend.v1.Limit", [
-            { no: 1, name: "Annual", kind: "message", jsonName: "Annual", T: () => Amount },
-            { no: 2, name: "Daily", kind: "message", jsonName: "Daily", T: () => Amount },
-            { no: 3, name: "Monthly", kind: "message", jsonName: "Monthly", T: () => Amount },
-            { no: 4, name: "WalletHold", kind: "message", jsonName: "WalletHold", T: () => Amount }
+            { no: 1, name: "Annual", kind: "message", jsonName: "Annual", T: () => LimitAmount },
+            { no: 2, name: "Daily", kind: "message", jsonName: "Daily", T: () => LimitAmount },
+            { no: 3, name: "Monthly", kind: "message", jsonName: "Monthly", T: () => LimitAmount },
+            { no: 4, name: "WalletHold", kind: "message", jsonName: "WalletHold", T: () => LimitAmount }
         ]);
     }
     create(value?: PartialMessage<Limit>): Limit {
@@ -5733,17 +5750,17 @@ class Limit$Type extends MessageType<Limit> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* backend.v1.Amount Annual = 1 [json_name = "Annual"];*/ 1:
-                    message.annual = Amount.internalBinaryRead(reader, reader.uint32(), options, message.annual);
+                case /* backend.v1.LimitAmount Annual = 1 [json_name = "Annual"];*/ 1:
+                    message.annual = LimitAmount.internalBinaryRead(reader, reader.uint32(), options, message.annual);
                     break;
-                case /* backend.v1.Amount Daily = 2 [json_name = "Daily"];*/ 2:
-                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                case /* backend.v1.LimitAmount Daily = 2 [json_name = "Daily"];*/ 2:
+                    message.daily = LimitAmount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
                     break;
-                case /* backend.v1.Amount Monthly = 3 [json_name = "Monthly"];*/ 3:
-                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                case /* backend.v1.LimitAmount Monthly = 3 [json_name = "Monthly"];*/ 3:
+                    message.monthly = LimitAmount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
                     break;
-                case /* backend.v1.Amount WalletHold = 4 [json_name = "WalletHold"];*/ 4:
-                    message.walletHold = Amount.internalBinaryRead(reader, reader.uint32(), options, message.walletHold);
+                case /* backend.v1.LimitAmount WalletHold = 4 [json_name = "WalletHold"];*/ 4:
+                    message.walletHold = LimitAmount.internalBinaryRead(reader, reader.uint32(), options, message.walletHold);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5757,18 +5774,18 @@ class Limit$Type extends MessageType<Limit> {
         return message;
     }
     internalBinaryWrite(message: Limit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.Amount Annual = 1 [json_name = "Annual"]; */
+        /* backend.v1.LimitAmount Annual = 1 [json_name = "Annual"]; */
         if (message.annual)
-            Amount.internalBinaryWrite(message.annual, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount Daily = 2 [json_name = "Daily"]; */
+            LimitAmount.internalBinaryWrite(message.annual, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.LimitAmount Daily = 2 [json_name = "Daily"]; */
         if (message.daily)
-            Amount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount Monthly = 3 [json_name = "Monthly"]; */
+            LimitAmount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.LimitAmount Monthly = 3 [json_name = "Monthly"]; */
         if (message.monthly)
-            Amount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount WalletHold = 4 [json_name = "WalletHold"]; */
+            LimitAmount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.LimitAmount WalletHold = 4 [json_name = "WalletHold"]; */
         if (message.walletHold)
-            Amount.internalBinaryWrite(message.walletHold, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+            LimitAmount.internalBinaryWrite(message.walletHold, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5779,6 +5796,67 @@ class Limit$Type extends MessageType<Limit> {
  * @generated MessageType for protobuf message backend.v1.Limit
  */
 export const Limit = new Limit$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LimitAmount$Type extends MessageType<LimitAmount> {
+    constructor() {
+        super("backend.v1.LimitAmount", [
+            { no: 1, name: "remaining", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "total", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "percentage", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LimitAmount>): LimitAmount {
+        const message = { remaining: "", total: "", percentage: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LimitAmount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LimitAmount): LimitAmount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string remaining */ 1:
+                    message.remaining = reader.string();
+                    break;
+                case /* string total */ 2:
+                    message.total = reader.string();
+                    break;
+                case /* int32 percentage */ 3:
+                    message.percentage = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LimitAmount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string remaining = 1; */
+        if (message.remaining !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.remaining);
+        /* string total = 2; */
+        if (message.total !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.total);
+        /* int32 percentage = 3; */
+        if (message.percentage !== 0)
+            writer.tag(3, WireType.Varint).int32(message.percentage);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.LimitAmount
+ */
+export const LimitAmount = new LimitAmount$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */

@@ -519,8 +519,14 @@ message GetUserLimitsResponse {
 }
 
 message Limit {
-  Amount Annual = 1;
-  Amount Daily = 2;
-  Amount Monthly = 3;
-  Amount WalletHold = 4;
+  LimitAmount Annual = 1;
+  LimitAmount Daily = 2;
+  LimitAmount Monthly = 3;
+  LimitAmount WalletHold = 4;
+}
+
+message LimitAmount {
+  string remaining = 1;
+  string total = 2;
+  int32 percentage = 3;
 }

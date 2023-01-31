@@ -248,6 +248,18 @@ type (
 		Monthly    currency.Amount
 		WalletHold currency.Amount
 	}
+
+	Tier struct {
+		FundWallet TierLimit
+		Withdrawal TierLimit
+		Transfer   TierLimit
+	}
+	TierLimit struct {
+		Annual     currency.Amount
+		Daily      currency.Amount
+		Monthly    currency.Amount
+		WalletHold currency.Amount
+	}
 )
 
 func (rl *RemainingLimit) Exceeds(amt currency.Amount, checkHold bool) (bool, string) {
