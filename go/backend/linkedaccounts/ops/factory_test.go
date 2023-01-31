@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"testing"
@@ -25,6 +27,7 @@ type TestContainer struct {
 	LinkedAccounts linkedaccounts.Client
 	ValidatorImpl  *validator.Validate
 	Nf             notify.Client
+	Ac             analytics.Client
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -43,17 +46,23 @@ func (t TestContainer) Notify() notify.Client {
 	return t.Nf
 }
 
+func (t TestContainer) Analytics() analytics.Client {
+	return t.Ac
+}
+
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
-	db := db.MigrateTestDB(t, ctx)
-	c.Db = db
+	mdb := db.MigrateTestDB(t, ctx)
+	c.Db = mdb
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, err
 	}
 	c.Logger = logger
+
+	c.Ac = analytics_client.New(c, "")
 
 	c.Us = user_client.New(c, "kratosURL", "kratosAdminURL")
 
