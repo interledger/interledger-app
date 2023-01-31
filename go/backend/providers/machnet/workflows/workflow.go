@@ -663,7 +663,7 @@ func EmailStatements(ctx workflow.Context) error {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	encodedPeriod := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return time.Now().Format("2006-01")
+		return time.Now().AddDate(0, 0, -1).Format("2006-01") // cron runs on the 1st. Send statement for the previous month.
 	})
 
 	var period string
