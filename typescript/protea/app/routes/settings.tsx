@@ -62,6 +62,16 @@ export default function Page() {
           </div>
           <Icon>navigate_next</Icon>
         </Router>
+        <Router
+          to={route('/settings/account-limits')}
+          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+        >
+          <div className='flex space-x-3'>
+            <Icon>tune</Icon>
+            <span>Account limits</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
         <h2 className='mt-6 text-sm font-medium'>Security</h2>
         <Router
           to={route('/login/challenge')}

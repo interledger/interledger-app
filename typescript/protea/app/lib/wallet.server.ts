@@ -8,6 +8,7 @@ import {
 import { json, redirect } from '@remix-run/node'
 import type {
   Amount,
+  GetUserLimitsResponse,
   KYCStatusResponse,
   LinkedAccount,
   PaginationRequest,
@@ -33,6 +34,27 @@ export async function getKycStatus(
 ): Promise<KYCStatusResponse> {
   const response = await grpcClient
     .kYCStatus(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function getAccountLimits(
+  request: Request
+): Promise<GetUserLimitsResponse> {
+  let response = await grpcClient
+    .getUserLimits(
       {},
       {
         meta: {
