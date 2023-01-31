@@ -1,6 +1,8 @@
 package client
 
 import (
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -12,6 +14,7 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	Analytics() analytics.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -35,6 +38,7 @@ func NewTestBackends(
 		val: validator.New(),
 		db:  db,
 		kr:  kratos,
+		ac:  analytics_client.New(nil, ""),
 	}
 }
 
@@ -44,6 +48,7 @@ type testBackends struct {
 	val *validator.Validate
 	db  *sqlx.DB
 	kr  *kratos.APIClient
+	ac  analytics.Client
 }
 
 func (b testBackends) Kratos() *kratos.APIClient {
@@ -56,4 +61,8 @@ func (b testBackends) Validator() *validator.Validate {
 
 func (b testBackends) DB() *sqlx.DB {
 	return b.db
+}
+
+func (b testBackends) Analytics() analytics.Client {
+	return b.ac
 }
