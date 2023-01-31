@@ -2,6 +2,8 @@ package ops
 
 import (
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"testing"
@@ -16,12 +18,14 @@ type Backends interface {
 	DB() *sqlx.DB
 	Users() user.Client
 	Notify() notify.Client
+	Analytics() analytics.Client
 }
 
 type testBackends struct {
 	db     *sqlx.DB
 	val    *validator.Validate
 	notify notify.Client
+	ac     analytics.Client
 }
 
 func (t testBackends) Users() user.Client {
@@ -40,9 +44,13 @@ func (t testBackends) Notify() notify.Client {
 	return t.notify
 }
 
+func (t testBackends) Analytics() analytics.Client {
+	return t.ac
+}
+
 func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
 	ctrl := gomock.NewController(t)
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), notify: nc}
+	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, "")}
 }

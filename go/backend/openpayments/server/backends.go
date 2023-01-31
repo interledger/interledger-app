@@ -1,6 +1,8 @@
 package server
 
 import (
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"testing"
 
 	"gitlab.com/fynbos/backend/authorisation"
@@ -33,6 +35,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Transactions() transactions.Client
 	Authorisation() authorisation.Client
+	Analytics() analytics.Client
 }
 
 type testBackends struct {
@@ -43,6 +46,7 @@ type testBackends struct {
 	em   email.Client
 	mc   machnet.Client
 	tr   transactions.Client
+	ac   analytics.Client
 }
 
 func (t testBackends) Authorisation() authorisation.Client {
@@ -85,6 +89,11 @@ func (t testBackends) Transactions() transactions.Client {
 	return t.tr
 }
 
+func (t testBackends) Analytics() analytics.Client {
+	return t.ac
+}
+
 func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr}
+	ac := analytics_client.New(nil, "")
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac}
 }
