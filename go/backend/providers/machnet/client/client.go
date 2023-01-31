@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/statements"
@@ -272,4 +274,78 @@ func (c client) GetStatement(ctx context.Context, walletID, period string) ([]by
 
 func (c client) GetUserLimits(ctx context.Context, walletID string) (*machnet.UserLimits, error) {
 	return ops.GetUserLimits(ctx, c.b, walletID)
+}
+
+func (c client) GetTierLimits(ctx context.Context, tier int) *machnet.Tier {
+	tiers := map[int]machnet.Tier{
+		1: {
+			FundWallet: machnet.TierLimit{
+				Annual:     currency.FromFloat64(6000, currency.USD),
+				Daily:      currency.FromFloat64(500, currency.USD),
+				Monthly:    currency.FromFloat64(1000, currency.USD),
+				WalletHold: currency.FromFloat64(1000, currency.USD),
+			},
+			Withdrawal: machnet.TierLimit{
+				Annual:     currency.FromFloat64(6000, currency.USD),
+				Daily:      currency.FromFloat64(500, currency.USD),
+				Monthly:    currency.FromFloat64(1000, currency.USD),
+				WalletHold: currency.FromFloat64(1000, currency.USD),
+			},
+			Transfer: machnet.TierLimit{
+				Annual:     currency.FromFloat64(6000, currency.USD),
+				Daily:      currency.FromFloat64(500, currency.USD),
+				Monthly:    currency.FromFloat64(1000, currency.USD),
+				WalletHold: currency.FromFloat64(1000, currency.USD),
+			},
+		},
+		2: {
+			FundWallet: machnet.TierLimit{
+				Annual:     currency.FromFloat64(12000, currency.USD),
+				Daily:      currency.FromFloat64(2999, currency.USD),
+				Monthly:    currency.FromFloat64(5000, currency.USD),
+				WalletHold: currency.FromFloat64(5000, currency.USD),
+			},
+			Withdrawal: machnet.TierLimit{
+				Annual:     currency.FromFloat64(12000, currency.USD),
+				Daily:      currency.FromFloat64(2999, currency.USD),
+				Monthly:    currency.FromFloat64(5000, currency.USD),
+				WalletHold: currency.FromFloat64(5000, currency.USD),
+			},
+			Transfer: machnet.TierLimit{
+				Annual:     currency.FromFloat64(12000, currency.USD),
+				Daily:      currency.FromFloat64(2999, currency.USD),
+				Monthly:    currency.FromFloat64(5000, currency.USD),
+				WalletHold: currency.FromFloat64(5000, currency.USD),
+			},
+		},
+		3: {
+			FundWallet: machnet.TierLimit{
+				Annual:     currency.FromFloat64(30000, currency.USD),
+				Daily:      currency.FromFloat64(6000, currency.USD),
+				Monthly:    currency.FromFloat64(10000, currency.USD),
+				WalletHold: currency.FromFloat64(10000, currency.USD),
+			},
+			Withdrawal: machnet.TierLimit{
+				Annual:     currency.FromFloat64(30000, currency.USD),
+				Daily:      currency.FromFloat64(6000, currency.USD),
+				Monthly:    currency.FromFloat64(10000, currency.USD),
+				WalletHold: currency.FromFloat64(10000, currency.USD),
+			},
+			Transfer: machnet.TierLimit{
+				Annual:     currency.FromFloat64(30000, currency.USD),
+				Daily:      currency.FromFloat64(6000, currency.USD),
+				Monthly:    currency.FromFloat64(10000, currency.USD),
+				WalletHold: currency.FromFloat64(10000, currency.USD),
+			},
+		},
+	}
+
+	tl, ok := tiers[tier]
+	if !ok {
+		// Lowest common denominator.
+		tl = tiers[1]
+	}
+
+	return &tl
+
 }

@@ -478,18 +478,37 @@ func (s *rpcService) GetUserLimits(ctx context.Context, _ *backendv1.Empty) (*ba
 		return nil, toGRPCError(err)
 	}
 
-	transform := func(limits machnet.RemainingLimit) *backendv1.Limit {
+	// TODO: Get tier dynamically when supporting higher tiers
+	tl := s.b.Machnet().GetTierLimits(ctx, 1)
+
+	transform := func(limits machnet.RemainingLimit, tier machnet.TierLimit) *backendv1.Limit {
 		return &backendv1.Limit{
-			Annual:     limits.Annual.ToPB(),
-			Daily:      limits.Daily.ToPB(),
-			Monthly:    limits.Monthly.ToPB(),
-			WalletHold: limits.WalletHold.ToPB(),
+			Annual: &backendv1.LimitAmount{
+				Remaining:  limits.Annual.Format(),
+				Total:      tier.Annual.Format(),
+				Percentage: int32((limits.Annual.Value / tier.Annual.Value) * 100),
+			},
+			Daily: &backendv1.LimitAmount{
+				Remaining:  limits.Daily.Format(),
+				Total:      tier.Daily.Format(),
+				Percentage: int32((limits.Daily.Value / tier.Daily.Value) * 100),
+			},
+			Monthly: &backendv1.LimitAmount{
+				Remaining:  limits.Monthly.Format(),
+				Total:      tier.Monthly.Format(),
+				Percentage: int32((limits.Monthly.Value / tier.Monthly.Value) * 100),
+			},
+			WalletHold: &backendv1.LimitAmount{
+				Remaining:  limits.WalletHold.Format(),
+				Total:      tier.WalletHold.Format(),
+				Percentage: int32((limits.WalletHold.Value / tier.WalletHold.Value) * 100),
+			},
 		}
 	}
 
 	return &backendv1.GetUserLimitsResponse{
-		FundWallet: transform(ul.FundWallet),
-		Withdrawal: transform(ul.Withdrawal),
-		Transfer:   transform(ul.Transfer),
+		FundWallet: transform(ul.FundWallet, tl.FundWallet),
+		Withdrawal: transform(ul.Withdrawal, tl.Withdrawal),
+		Transfer:   transform(ul.Transfer, tl.Transfer),
 	}, nil
 }

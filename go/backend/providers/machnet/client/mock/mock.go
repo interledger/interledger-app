@@ -172,6 +172,20 @@ func (mr *MockClientMockRecorder) GetStatement(ctx, walletID, period interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatement", reflect.TypeOf((*MockClient)(nil).GetStatement), ctx, walletID, period)
 }
 
+// GetTierLimits mocks base method.
+func (m *MockClient) GetTierLimits(ctx context.Context, tier int) *machnet.Tier {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTierLimits", ctx, tier)
+	ret0, _ := ret[0].(*machnet.Tier)
+	return ret0
+}
+
+// GetTierLimits indicates an expected call of GetTierLimits.
+func (mr *MockClientMockRecorder) GetTierLimits(ctx, tier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTierLimits", reflect.TypeOf((*MockClient)(nil).GetTierLimits), ctx, tier)
+}
+
 // GetUserByID mocks base method.
 func (m *MockClient) GetUserByID(ctx context.Context, id string) (*machnet.User, error) {
 	m.ctrl.T.Helper()
