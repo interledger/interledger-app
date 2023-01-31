@@ -46,3 +46,6 @@ yarn-error.log*
 /test-results/
 /playwright-report/
 /playwright/.cache/
+/storybook-static/
+
+build-storybook.log

@@ -43,5 +43,7 @@ yarn-error.log*
 .yarn/*
 .pnp.*
 *.cjs
+pnpm-lock.yaml
 
 playwright-report
+storybook-static
