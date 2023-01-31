@@ -3,6 +3,7 @@ package ops
 import (
 	segment "github.com/segmentio/analytics-go/v3"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -102,5 +103,80 @@ func TrackWalletPaymentPointerCreated(b Backends, walletID string) {
 	})
 	if err != nil {
 		log.Error("analytics: error TrackWalletPaymentPointerCreated", zap.Error(err))
+	}
+}
+
+func TrackWalletTransactionCreated(b Backends, walletID string, args analytics.WalletTransactionArgs) {
+
+	props := segment.NewProperties()
+	props.Set("id", args.ID)
+	props.Set("amount", args.Amount.Value)
+	props.Set("currency", args.Amount.Currency)
+	props.Set("type", args.TrxType)
+	props.Set("prover", args.Provider)
+	props.Set("state", transactions.StatePending)
+	props.Set("walletId", walletID)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Transaction Created",
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": walletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletTransactionCreated", zap.Error(err))
+	}
+}
+
+func TrackWalletTransactionFailed(b Backends, walletID string, args analytics.WalletTransactionArgs) {
+
+	props := segment.NewProperties()
+	props.Set("id", args.ID)
+	props.Set("amount", args.Amount.Value)
+	props.Set("currency", args.Amount.Currency)
+	props.Set("type", args.TrxType)
+	props.Set("prover", args.Provider)
+	props.Set("state", transactions.StatePending)
+	props.Set("walletId", walletID)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Transaction Failed",
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": walletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletTransactionFailed", zap.Error(err))
+	}
+}
+
+func TrackWalletTransactionCompleted(b Backends, walletID string, args analytics.WalletTransactionArgs) {
+
+	props := segment.NewProperties()
+	props.Set("id", args.ID)
+	props.Set("amount", args.Amount.Value)
+	props.Set("currency", args.Amount.Currency)
+	props.Set("type", args.TrxType)
+	props.Set("prover", args.Provider)
+	props.Set("state", transactions.StatePending)
+	props.Set("walletId", walletID)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Transaction Completed",
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": walletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletTransactionCompleted", zap.Error(err))
 	}
 }
