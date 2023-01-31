@@ -10,12 +10,26 @@ export async function canSignup(request: Request): Promise<void> {
     return
   }
   const url = new URL(request.url)
-  // Allow if loop11
-  if (url.searchParams.get('l11_tracking') && url.searchParams.get('l11_uid')) {
+  const userSettings = await getSession(request.headers.get('Cookie'))
+
+  if (userSettings.get('canSignup')) {
     return
   }
 
-  const userSettings = await getSession(request.headers.get('Cookie'))
+  // Allow if loop11 first time and set the session to canSignup
+  if (url.searchParams.get('l11_tracking') && url.searchParams.get('l11_uid')) {
+    if (userSettings.get('canSignup')) {
+      return
+    }
+
+    userSettings.set('canSignup', true)
+
+    throw redirect('/signup' + url.search, {
+      headers: {
+        'Set-Cookie': await commitSession(userSettings)
+      }
+    })
+  }
 
   let waitlistSignupId = userSettings.get('waitlistSignupId')
   if (waitlistSignupId) {
