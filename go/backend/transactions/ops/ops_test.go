@@ -34,6 +34,24 @@ func TestCreateTransaction(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "success with provided ID",
+			args: transactions.CreateTransactionArgs{
+				ID:          uuid.NewString(),
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderMachnet,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+		},
+		{
 			name: "success with foreign id",
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
@@ -142,8 +160,11 @@ func TestCreateTransaction(t *testing.T) {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
 
-			_, err = ops.CreateTransaction(ctx, b, tc.args)
+			tid, err := ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
+			if tc.args.ID != "" {
+				assert.Equal(t, tc.args.ID, tid)
+			}
 		})
 	}
 }
