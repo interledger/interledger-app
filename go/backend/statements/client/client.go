@@ -30,8 +30,8 @@ var (
 
 	xPixelWidth   = 1190.00    // see figma
 	yPixelHeight  = 1684.00    // see figma
-	xLeftMargin   = xunit(124) // see figma
-	xRightMargin  = gopdf.PageSizeA4.W - xunit(124)
+	xLeftMargin   = xunit(140) // see figma
+	xRightMargin  = gopdf.PageSizeA4.W - xLeftMargin
 	yTopMargin    = yunit(150)                     // see figma
 	yBottomMargin = gopdf.PageSizeA4.H - yunit(60) // see figma
 
@@ -111,6 +111,7 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 		tableEvenRowBackground,
 	}
 	rowColour := 0
+	textAlignment := []int{gopdf.Middle, gopdf.Middle, gopdf.Middle, gopdf.Middle | gopdf.Right} // right align amount
 	for i, trx := range args.Transactions {
 		entries := []string{trx.Date, trx.RecieptID, trx.Description, trx.Amount}
 		if prevReceiptID == trx.RecieptID {
@@ -123,19 +124,19 @@ func (c client) GenerateWalletStatementPDF(ctx context.Context, args statements.
 		rows[i] = tableRow{
 			FontSize:         pxToPt(8),
 			TextColour:       textColourStrong,
-			TextAlign:        gopdf.Middle,
+			TextAlign:        textAlignment,
 			Entries:          entries,
 			BackgroundColour: rowBackgroundColours[rowColour%2],
 		}
 	}
 	err = tableFromRows(&pdf, tableFromRowsArgs{
 		RowHeight: yunit(40),
-		ColWidths: []float64{xunit(120), xunit(300), xunit(380), xunit(144)},
+		ColWidths: []float64{xunit(120), xunit(300), xunit(320), xunit(100)},
 		Headers: tableRow{
 			FontSize:   pxToPt(8),
 			TextColour: textColourMedium,
-			TextAlign:  gopdf.Middle,
-			Entries:    []string{"Date", "Receipt number", "Description", "Amount"},
+			TextAlign:  textAlignment,
+			Entries:    []string{"Date", "Receipt number", "Description", "Amount  "},
 		},
 		Rows: rows,
 	})
@@ -162,7 +163,7 @@ type tableFromRowsArgs struct {
 type tableRow struct {
 	Entries          []string
 	TextColour       rgbColour
-	TextAlign        int
+	TextAlign        []int
 	FontSize         float64
 	LinkedToPrevious bool
 	BackgroundColour rgbColour
@@ -194,7 +195,6 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 			}
 		}
 
-		pdf.SetX(pdf.MarginLeft())
 		err = addRow(pdf, args.RowHeight, args.ColWidths, row.BackgroundColour, row)
 		if err != nil {
 			return err
@@ -209,22 +209,25 @@ func addRow(pdf *gopdf.GoPdf, rowHeight float64, colWidths []float64, fill rgbCo
 	if err != nil {
 		return err
 	}
+
+	// row background
+	pdf.SetX(pdf.MarginLeft())
 	pdf.SetTextColor(row.TextColour.R, row.TextColour.G, row.TextColour.B)
+	pdf.SetFillColor(fill.R, fill.G, fill.B)
+	pdf.RectFromUpperLeftWithStyle(pdf.GetX(), pdf.GetY(), xRightMargin-xLeftMargin, rowHeight, "F")
+
+	pdf.SetX(pdf.MarginLeft() + pxToPt(4))
 	for i, entry := range row.Entries {
 		carriagePosition := gopdf.Right
 		if i == (len(row.Entries) - 1) {
 			carriagePosition = gopdf.Bottom
 		}
 
-		pdf.SetLineWidth(0.1)
-		pdf.SetFillColor(fill.R, fill.G, fill.B)
-		pdf.RectFromUpperLeftWithStyle(pdf.GetX(), pdf.GetY(), colWidths[i], rowHeight, "F")
-		pdf.SetFillColor(0, 0, 0)
 		err = pdf.CellWithOption(&gopdf.Rect{
 			H: rowHeight,
 			W: colWidths[i],
 		}, entry, gopdf.CellOption{
-			Align: row.TextAlign,
+			Align: row.TextAlign[i],
 			Float: carriagePosition,
 		})
 		if err != nil {
