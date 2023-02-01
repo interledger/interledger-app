@@ -437,11 +437,11 @@ type backends struct {
 	transactions   transactions.Client
 	notify         notify.Client
 	statements     statements.Client
-	auth           authorisation.Client
+	auth           authorisation.InternalClient
 	analytics      analytics.Client
 }
 
-func (b backends) Authorisation() authorisation.Client {
+func (b backends) Authorisation() authorisation.InternalClient {
 	return b.auth
 }
 

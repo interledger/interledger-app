@@ -3,16 +3,17 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"

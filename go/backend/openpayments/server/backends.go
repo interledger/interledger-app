@@ -34,7 +34,7 @@ type Backends interface {
 	Machnet() machnet.Client
 	KYC() kyc.Client
 	Transactions() transactions.Client
-	Authorisation() authorisation.Client
+	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
 }
 
@@ -49,7 +49,7 @@ type testBackends struct {
 	ac   analytics.Client
 }
 
-func (t testBackends) Authorisation() authorisation.Client {
+func (t testBackends) Authorisation() authorisation.InternalClient {
 	return nil
 }
 

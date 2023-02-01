@@ -68,7 +68,7 @@ type TestContainer struct {
 	AnalyticsClient    analytics.Client
 }
 
-func (t TestContainer) Authorisation() authorisation.Client {
+func (t TestContainer) Authorisation() authorisation.InternalClient {
 	return nil
 }
 

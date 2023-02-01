@@ -1446,7 +1446,7 @@ table "authorisation_grants" {
     on_delete   = NO_ACTION
   }
 }
-table "authorisation_grant_access" {
+table "authorisation_tokens" {
   schema = schema.public
   column "id" {
     null    = false
@@ -1454,6 +1454,61 @@ table "authorisation_grant_access" {
     default = sql("gen_random_uuid()")
   }
   column "grant_id" {
+    null = false
+    type = uuid
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "label" {
+    null = false
+    type = text
+  }
+  column "token" {
+    null = false
+    type = text
+  }
+  column "expires_in" {
+    null = false
+    type = bigint
+  }
+  column "revoked_at" {
+    null    = true
+    type    = timestamp
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "token_uniq" {
+    unique  = true
+    columns = [column.token]
+  }
+  foreign_key "fk_token_grant" {
+    columns     = [column.grant_id]
+    ref_columns = [table.authorisation_grants.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
+table "authorisation_token_access" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "token_id" {
     null = false
     type = uuid
   }
@@ -1484,60 +1539,9 @@ table "authorisation_grant_access" {
   primary_key {
     columns = [column.id]
   }
-  foreign_key "fk_grant_access_grant" {
-    columns     = [column.grant_id]
-    ref_columns = [table.authorisation_grants.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-}
-table "authorisation_access_tokens" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "grant_id" {
-    null = false
-    type = uuid
-  }
-  column "label" {
-    null = false
-    type = text
-  }
-  column "value" {
-    null = false
-    type = text
-  }
-  column "expires_in" {
-    null = false
-    type = bigint
-  }
-  column "revoked_at" {
-    null    = true
-    type    = timestamp
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "value_uniq" {
-    unique  = true
-    columns = [column.continue_token]
-  }
-  foreign_key "fk_access_token_grant" {
-    columns     = [column.grant_id]
-    ref_columns = [table.authorisation_grants.column.id]
+  foreign_key "fk_access_token" {
+    columns     = [column.token_id]
+    ref_columns = [table.authorisation_tokens.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }

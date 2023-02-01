@@ -9,11 +9,22 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/authorisation"
 )
+
+func CreateClient(ctx context.Context, b Backends, clientURL string) error {
+	_, err := b.DB().ExecContext(ctx, "INSERT INTO authorisation_clients (url) VALUES ($1)", clientURL)
+	if err != nil {
+		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	return nil
+}
 
 func LookupClient(ctx context.Context, b Backends, clientURL string) (*authorisation.Client, error) {
 	var client authorisation.Client
@@ -39,10 +50,6 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 	}
 
 	gid := uuid.NewString()
-	label := args.AccessToken.Label
-	if label == "" {
-		label = fmt.Sprintf("auto_label_%d", rand.Int31n(1000))
-	}
 
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 
@@ -52,18 +59,25 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 			return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 		}
 
-		for _, acc := range args.AccessToken.Access {
-			_, err = tx.ExecContext(ctx, "INSERT INTO authorisation_grant_access (grant_id, type, actions, identifier, locations, data_types) VALUES ($1, $2, $3, $4, $5, $6)",
-				gid, acc.Type, acc.Actions, uuid.NewString(), acc.Locations, acc.Datatypes)
+		for _, tkn := range args.AccessToken {
+			tokenID := uuid.NewString()
+			label := tkn.Label
+			if label == "" {
+				label = fmt.Sprintf("auto_label_%d", rand.Int31n(10000))
+			}
+			_, err = tx.ExecContext(ctx, "INSERT INTO authorisation_tokens (id, grant_id, state, token, label, expires_in) VALUES ($1, $2, $3, $4, $5, $6)",
+				tokenID, gid, authorisation.TokenStateEnabled, uuid.NewString(), label, 60*60)
 			if err != nil {
 				return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 			}
-		}
 
-		_, err = tx.ExecContext(ctx, "INSERT INTO authorisation_access_tokens (grant_id, value, label, expires_in) VALUES ($1, $2, $3)",
-			gid, uuid.NewString(), label, 60*60)
-		if err != nil {
-			return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+			for _, acc := range tkn.Access {
+				_, err = tx.ExecContext(ctx, "INSERT INTO authorisation_token_access (token_id, type, actions, identifier, locations, data_types) VALUES ($1, $2, $3, $4, $5, $6)",
+					tokenID, acc.Type, pq.Array(acc.Actions), uuid.NewString(), pq.Array(acc.Locations), pq.Array(acc.Datatypes))
+				if err != nil {
+					return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+				}
+			}
 		}
 
 		return nil
@@ -85,19 +99,19 @@ type dbGrant struct {
 
 type dbAccessToken struct {
 	ID        string    `db:"id"`
-	Value     string    `db:"value"`
+	Value     string    `db:"token"`
 	Label     string    `db:"label"`
 	ExpiresIn int       `db:"expires_in"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
 type dbAccess struct {
-	ID         string   `db:"id"`
-	Type       string   `db:"type"`
-	Actions    []string `db:"actions"`
-	Identifier string   `db:"identifier"`
-	Locations  []string `db:"locations"`
-	DataTypes  []string `db:"data_types"`
+	ID         string         `db:"id"`
+	Type       string         `db:"type"`
+	Actions    pq.StringArray `db:"actions"`
+	Identifier string         `db:"identifier"`
+	Locations  pq.StringArray `db:"locations"`
+	DataTypes  pq.StringArray `db:"data_types"`
 }
 
 func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Grant, error) {
@@ -110,18 +124,6 @@ func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Gra
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
-	var access []dbAccess
-	err = b.DB().SelectContext(ctx, &access, "SELECT id, type, actions, identifier, locations, data_types FROM authorisation_grant_access WHERE grant_id=$1", id)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
-	}
-
-	var tokens []dbAccessToken
-	err = b.DB().SelectContext(ctx, tokens, "SELECT id, value, label, expires_in, created_at FROM authorisation_access_tokens WHERE grant_id=$1", id)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
-	}
-
 	resp := &authorisation.Grant{
 		ID:            dbg.ID,
 		State:         dbg.State,
@@ -129,24 +131,38 @@ func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Gra
 		Wait:          dbg.Wait,
 	}
 
-	respAccess := make([]authorisation.Access, len(access))
-	for i, ac := range access {
-		respAccess[i] = authorisation.Access{
-			Type:      ac.Type,
-			Actions:   ac.Actions,
-			Locations: ac.Locations,
-			Datatypes: ac.DataTypes,
-		}
+	var tokens []dbAccessToken
+	err = b.DB().SelectContext(ctx, &tokens, "SELECT id, token, label, expires_in, created_at FROM authorisation_tokens WHERE grant_id=$1", id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
 	respTokens := make([]authorisation.AccessToken, len(tokens))
 	for i, tk := range tokens {
+		var access []dbAccess
+		err = b.DB().SelectContext(ctx, &access, "SELECT id, type, actions, identifier, locations, data_types FROM authorisation_token_access WHERE token_id=$1", tk.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+		}
+
+		respAccess := make([]authorisation.Access, len(access))
+		for y, ac := range access {
+			respAccess[y] = authorisation.Access{
+				Type:      ac.Type,
+				Actions:   ac.Actions,
+				Locations: ac.Locations,
+				Datatypes: ac.DataTypes,
+			}
+		}
+
 		respTokens[i] = authorisation.AccessToken{
 			Value:     tk.Value,
 			Access:    respAccess,
 			ExpiresIn: int(math.Max(float64(tk.CreatedAt.Unix()+int64(tk.ExpiresIn)-time.Now().Unix()), 0)),
 		}
 	}
+
+	resp.Tokens = respTokens
 
 	return resp, nil
 }
