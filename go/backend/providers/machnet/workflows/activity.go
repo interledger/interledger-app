@@ -791,24 +791,14 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 	return a.b.Email().SendMailTemplate(ctx, walletID, email.FailedTransactionTemplateID, personalisations, []email.Attachment{})
 }
 
-func (a *Activity) ListWalletIDs(ctx context.Context) ([]string, error) {
-	wallets, err := a.b.LinkedAccounts().ListMachnetWallets(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make([]string, len(wallets))
-	for i, wallet := range wallets {
-		ret[i] = wallet.ProviderID
-	}
-
-	return ret, nil
+func (a *Activity) ListWalletIDs(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
+	return a.b.LinkedAccounts().ListMachnetWallets(ctx)
 }
 
-func (a *Activity) EmailStatement(ctx context.Context, walletID, period string) error {
-	pdf, err := ops.GetStatement(ctx, a.b, walletID, period)
+func (a *Activity) EmailStatement(ctx context.Context, walletLinkedAccount linkedaccounts.LinkedAccount, period string) error {
+	pdf, err := ops.GetStatement(ctx, a.b, walletLinkedAccount.ProviderID, period)
 	if errors.Is(err, machnet.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError("No machnet wallet found. walletID="+walletID, "ErrNotFound", err)
+		return temporal.NewNonRetryableApplicationError("No machnet wallet found. walletID="+walletLinkedAccount.ProviderID, "ErrNotFound", err)
 	}
 	if err != nil {
 		return err
@@ -819,7 +809,7 @@ func (a *Activity) EmailStatement(ctx context.Context, walletID, period string) 
 		return temporal.NewNonRetryableApplicationError("Failed to parse period="+period, "ErrInternal", err)
 	}
 
-	return a.b.Email().SendMailTemplate(ctx, walletID, email.StatementTemplateID,
+	return a.b.Email().SendMailTemplate(ctx, walletLinkedAccount.WalletID, email.StatementTemplateID,
 		map[string]interface{}{
 			"period":  fmt.Sprintf("%s -%s", periodStart.Format("02 Jan 2006"), periodStart.AddDate(0, 1, -1).Format("02 Jan 2006")),
 			"subject": email.StatementTemplateID.Subject(),

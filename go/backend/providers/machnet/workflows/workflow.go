@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/providers/machnet/ops"
@@ -675,15 +676,15 @@ func EmailStatements(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("EmailStatements workflow started", "period", period)
 
-	var walletIDs []string
-	err = workflow.ExecuteActivity(ctx, a.ListWalletIDs).Get(ctx, &walletIDs)
+	var walletLinkedAccounts []linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(ctx, a.ListWalletIDs).Get(ctx, &walletLinkedAccounts)
 	if err != nil {
 		return err
 	}
 
-	results := make([]workflow.Future, len(walletIDs))
-	for i, walletID := range walletIDs {
-		future := workflow.ExecuteActivity(ctx, a.EmailStatement, walletID, period)
+	results := make([]workflow.Future, len(walletLinkedAccounts))
+	for i, la := range walletLinkedAccounts {
+		future := workflow.ExecuteActivity(ctx, a.EmailStatement, la, period)
 		results[i] = future
 	}
 
@@ -691,12 +692,12 @@ func EmailStatements(ctx workflow.Context) error {
 	for i, result := range results {
 		err := result.Get(ctx, nil)
 		if err != nil {
-			failedIDs = append(failedIDs, walletIDs[i])
+			failedIDs = append(failedIDs, walletLinkedAccounts[i].ID)
 		}
 	}
 
 	if len(failedIDs) > 0 {
-		errMessage := fmt.Sprintf("Failed to send out all of the monthly statements. FailedIDs=%s", failedIDs)
+		errMessage := fmt.Sprintf("Failed to send out all of the monthly statements. Failed linked accountIDs=%s", failedIDs)
 		logger.Error(errMessage)
 		return fmt.Errorf(errMessage)
 	}
