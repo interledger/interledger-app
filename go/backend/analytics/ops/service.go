@@ -140,7 +140,7 @@ func TrackWalletTransactionFailed(b Backends, walletID string, args analytics.Wa
 	props.Set("currency", args.Amount.Currency)
 	props.Set("type", args.TrxType)
 	props.Set("prover", args.Provider)
-	props.Set("state", transactions.StatePending)
+	props.Set("state", transactions.StateFailed)
 	props.Set("walletId", walletID)
 	props.Set("userId", args.UserID)
 
@@ -167,7 +167,7 @@ func TrackWalletTransactionCompleted(b Backends, walletID string, args analytics
 	props.Set("currency", args.Amount.Currency)
 	props.Set("type", args.TrxType)
 	props.Set("prover", args.Provider)
-	props.Set("state", transactions.StatePending)
+	props.Set("state", transactions.StateCompleted)
 	props.Set("walletId", walletID)
 	props.Set("userId", args.UserID)
 
