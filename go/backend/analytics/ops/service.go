@@ -119,6 +119,7 @@ func TrackWalletTransactionCreated(b Backends, walletID string, args analytics.W
 
 	err := b.Segment().Enqueue(segment.Track{
 		Event:      "Transaction Created",
+		UserId:     args.UserID,
 		Properties: props,
 		Context: &segment.Context{
 			Extra: map[string]interface{}{
@@ -141,9 +142,11 @@ func TrackWalletTransactionFailed(b Backends, walletID string, args analytics.Wa
 	props.Set("prover", args.Provider)
 	props.Set("state", transactions.StatePending)
 	props.Set("walletId", walletID)
+	props.Set("userId", args.UserID)
 
 	err := b.Segment().Enqueue(segment.Track{
 		Event:      "Transaction Failed",
+		UserId:     args.UserID,
 		Properties: props,
 		Context: &segment.Context{
 			Extra: map[string]interface{}{
@@ -166,9 +169,11 @@ func TrackWalletTransactionCompleted(b Backends, walletID string, args analytics
 	props.Set("prover", args.Provider)
 	props.Set("state", transactions.StatePending)
 	props.Set("walletId", walletID)
+	props.Set("userId", args.UserID)
 
 	err := b.Segment().Enqueue(segment.Track{
 		Event:      "Transaction Completed",
+		UserId:     args.UserID,
 		Properties: props,
 		Context: &segment.Context{
 			Extra: map[string]interface{}{
