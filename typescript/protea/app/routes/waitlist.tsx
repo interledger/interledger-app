@@ -124,7 +124,7 @@ export default function Page() {
             <img
               className='w-full sm:w-2/5'
               alt='Fynbos mug'
-              src='https://cdn.fynbos.workers.dev/marketing/enamel-mug-waitlist.webp'
+              src='https://cdn.fynbos.app/marketing/enamel-mug-waitlist.webp'
             />
           </div>
           <span className='mt-6 text-medium'>
