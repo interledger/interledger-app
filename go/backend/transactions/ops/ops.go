@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -20,7 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Client, args transactions.CreateTransactionArgs) (string, error) {
+func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Client, ac analytics.Client, args transactions.CreateTransactionArgs) (string, error) {
 	transID := uuid.NewString()
 	is := db.NewInsert("transactions").
 		Value("id", transID).
@@ -61,10 +62,19 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Cl
 		}
 	}
 
+	log.Info("Notify wallet")
 	err = nc.NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("notify error", zap.Error(err))
 	}
+
+	log.Info("Track created wallet")
+	ac.TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
+		ID:       transID,
+		TrxType:  args.ForeignType,
+		Provider: args.Provider,
+		Amount:   args.Amount,
+	})
 
 	return transID, nil
 }
@@ -75,7 +85,7 @@ func CreateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args tran
 		return "", fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	return createTransaction(ctx, tx, b.Notify(), args)
+	return createTransaction(ctx, tx, b.Notify(), b.Analytics(), args)
 }
 
 func CreateTransaction(ctx context.Context, b Backends, args transactions.CreateTransactionArgs) (string, error) {
@@ -86,7 +96,7 @@ func CreateTransaction(ctx context.Context, b Backends, args transactions.Create
 
 	var trxID = ""
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		id, err := createTransaction(ctx, tx, b.Notify(), args)
+		id, err := createTransaction(ctx, tx, b.Notify(), b.Analytics(), args)
 		trxID = id
 		return err
 	})
@@ -437,31 +447,70 @@ func SetTransferForeignID(ctx context.Context, b Backends, ID string, foreignID 
 }
 
 func SetTransactionState(ctx context.Context, b Backends, ID string, state transactions.State) error {
-	var walletID string
-	err := b.DB().GetContext(ctx, &walletID, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2 returning wallet_id",
+	var trxDetails struct {
+		ID       string                       `db:"id"`
+		WalletID string                       `db:"wallet_id"`
+		Amount   uint64                       `db:"amount"`
+		Type     transactions.TransactionType `db:"type"`
+		Provider transactions.Provider        `db:"provider"`
+	}
+	err := b.DB().GetContext(ctx, &trxDetails, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2 returning id, wallet_id, amount, type, provider",
 		state, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("error sending notification", zap.Error(err))
 	}
+
+	analyticsArgs := analytics.WalletTransactionArgs{
+		ID:       trxDetails.ID,
+		TrxType:  trxDetails.Type,
+		Provider: trxDetails.Provider,
+		Amount:   currency.FromUInt64(trxDetails.Amount, currency.USD),
+	}
+
+	if state == transactions.StateCompleted {
+		b.Analytics().TrackWalletTransactionCompleted(trxDetails.WalletID, analyticsArgs)
+	} else if state == transactions.StateFailed {
+		b.Analytics().TrackWalletTransactionFailed(trxDetails.WalletID, analyticsArgs)
+	}
+
 	return nil
 }
 
 func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID string, state transactions.State) error {
-	var walletID string
-	err := tx.GetContext(ctx, &walletID, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2 returning wallet_id",
+	var trxDetails struct {
+		ID       string                       `db:"id"`
+		WalletID string                       `db:"wallet_id"`
+		Amount   uint64                       `db:"amount"`
+		Type     transactions.TransactionType `db:"type"`
+		Provider transactions.Provider        `db:"provider"`
+	}
+	err := tx.GetContext(ctx, &trxDetails, "UPDATE transactions SET state=$1, updated_at=now() WHERE id=$2 returning id, wallet_id, amount, type, provider",
 		state, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("error sending notification", zap.Error(err))
+	}
+
+	analyticsArgs := analytics.WalletTransactionArgs{
+		ID:       trxDetails.ID,
+		TrxType:  trxDetails.Type,
+		Provider: trxDetails.Provider,
+		Amount:   currency.FromUInt64(trxDetails.Amount, currency.USD),
+	}
+
+	if state == transactions.StateCompleted {
+		b.Analytics().TrackWalletTransactionCompleted(trxDetails.WalletID, analyticsArgs)
+	} else if state == transactions.StateFailed {
+		b.Analytics().TrackWalletTransactionFailed(trxDetails.WalletID, analyticsArgs)
 	}
 
 	return nil

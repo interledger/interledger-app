@@ -85,6 +85,7 @@ type StartArgs struct {
 	SmartyAuthID         string
 	SmartyAuthToken      string
 	PusherAddr           string
+	SegmentKey           string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -205,5 +206,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		SmartyAuthID:         os.Getenv("SMARTY_AUTH_ID"),
 		SmartyAuthToken:      os.Getenv("SMARTY_AUTH_TOKEN"),
 		PusherAddr:           os.Getenv("PUSHER_ADDR"),
+		SegmentKey:           os.Getenv("SEGMENT_KEY"),
 	}, nil
 }

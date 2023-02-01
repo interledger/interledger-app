@@ -3,6 +3,7 @@ package workflows
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
@@ -32,6 +33,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Notify() notify.Client
 	Statements() statements.Client
+	Analytics() analytics.Client
 }
 
 type opsBackends struct {
@@ -54,6 +56,7 @@ type testBackends struct {
 	tx         transactions.Client
 	notify     notify.Client
 	statements *statements_mock.MockClient
+	analytics  analytics.Client
 }
 
 func (b testBackends) External() external.Client {
@@ -102,4 +105,8 @@ func (b testBackends) Notify() notify.Client {
 
 func (b testBackends) Statements() statements.Client {
 	return b.statements
+}
+
+func (b testBackends) Analytics() analytics.Client {
+	return b.analytics
 }
