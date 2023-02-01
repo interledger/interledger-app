@@ -40,6 +40,6 @@ type Backends interface {
 	KYC() kyc.Client
 	Email() email.Client
 	Transactions() transactions.Client
-	Authorisation() authorisation.Client
+	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
 }

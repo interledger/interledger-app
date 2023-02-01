@@ -43,12 +43,19 @@ func (gs GrantState) ValidTransition(next GrantState) bool {
 	return false
 }
 
+type TokenState string
+
+const (
+	TokenStateEnabled TokenState = "enabled"
+	TokenStatePending TokenState = "pending"
+)
+
 type (
 	GrantRequest struct {
-		AccessToken AccessTokenReq `json:"access_token"`
-		Client      ClientReq      `json:"client"`
-		Interact    Interact       `json:"interact"`
-		Subject     Subject        `json:"subject"`
+		AccessToken []AccessTokenReq `json:"access_token"`
+		Client      ClientReq        `json:"client"`
+		Interact    Interact         `json:"interact"`
+		Subject     Subject          `json:"subject"`
 	}
 
 	AccessTokenReq struct {
