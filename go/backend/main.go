@@ -104,8 +104,6 @@ func main() {
 }
 
 func start(args *cli.StartArgs) {
-	var b = new(backends)
-	b.val = validator.New()
 
 	traceShutdown, err := tracing.InitTraceProvider("backend")
 	if err != nil {
@@ -118,58 +116,7 @@ func start(args *cli.StartArgs) {
 		}
 	}()
 
-	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-	b.db = db
-
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
-
-	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.temporal = tp
-
-	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
-
-	b.countries = country_client.New(b)
-
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.TwilioSid,
-		AccountToken: args.TwilioSecret,
-		ServiceSid:   args.TwilioServiceSid,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.twilio = twilioService
-
-	b.linkedaccounts = linked_account_client.New(b)
-
-	b.signup = signup_client.New(b)
-
-	b.waitlist = waitlist_client.New(b, logger)
-
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
-
-	b.auth = authorisation_client.New(b)
+	b := setupBackends(args, false)
 
 	var wg sync.WaitGroup
 
@@ -187,37 +134,6 @@ func start(args *cli.StartArgs) {
 
 	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
 	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
-
-	health, err := healthcheck.NewService()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.healthcheck = health
-
-	adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.adminAuth = auth.NewLoggingService(adminUsers, logger)
-
-	b.agreements = agreements_client.New(b)
-
-	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
-
-	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	b.email = email_client.New(b, args.SendgridAPIKey)
-
-	b.openpayments = openpayments_client.New(b)
-
-	b.transactions = transactions_client.New(b)
-
-	b.notify = notify_client.New(b, args.PusherAddr)
-
-	b.statements = statements_client.New()
 
 	server, err := _grpc.NewServer(b)
 	if err != nil {
@@ -336,6 +252,34 @@ func startWorker(args *cli.StartArgs) {
 		}
 	}()
 
+	b := setupBackends(args, true)
+
+	log.Info("Worker creating")
+	w, err := temporal.NewTemporalWorker(b)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = w.Run(worker.InterruptCh())
+	log.Info("Worker started")
+	if err != nil {
+		log.Fatal("Unable to start worker", zap.Error(err))
+	}
+}
+
+func setupBackends(args *cli.StartArgs, isWorker bool) *backends {
+	cfg := zap.NewProductionConfig()
+	err := cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	cfg.OutputPaths = []string{args.LogOutputPath}
+	logger, err := cfg.Build(zap.AddCallerSkip(1))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Setup(logger)
+
 	var b = new(backends)
 	b.val = validator.New()
 
@@ -350,36 +294,34 @@ func startWorker(args *cli.StartArgs) {
 	}()
 	b.db = db
 
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
-
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.temporal = tp
 
+	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
+
+	b.countries = country_client.New(b)
+
+	b.linkedaccounts = linked_account_client.New(b)
+
 	b.signup = signup_client.New(b)
 
-	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
+	b.waitlist = waitlist_client.New(b, logger)
+
+	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
+
+	b.auth = authorisation_client.New(b)
+
+	b.agreements = agreements_client.New(b)
+
+	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
 	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	b.linkedaccounts = linked_account_client.New(b)
-
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
@@ -391,42 +333,61 @@ func startWorker(args *cli.StartArgs) {
 
 	b.statements = statements_client.New()
 
-	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b)
+	if !isWorker {
+		adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.adminAuth = auth.NewLoggingService(adminUsers, logger)
+
+		twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+			AccountSid:   args.TwilioSid,
+			AccountToken: args.TwilioSecret,
+			ServiceSid:   args.TwilioServiceSid,
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.twilio = twilioService
+
+		health, err := healthcheck.NewService()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.healthcheck = health
+	}
+
+	err = b.val.Struct(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = w.Run(worker.InterruptCh())
-	log.Info("Worker started")
-	if err != nil {
-		logger.Fatal("Unable to start worker", zap.Error(err))
-	}
+	return b
 }
 
 type backends struct {
-	val *validator.Validate
-	db  *sqlx.DB
+	val *validator.Validate `validate:"required"`
+	db  *sqlx.DB            `validate:"required"`
 
 	adminAuth      auth.Service
-	agreements     agreements.Client
-	countries      country.Client
-	linkedaccounts linkedaccounts.Client
-	machnet        machnet.Client
+	agreements     agreements.Client     `validate:"required"`
+	countries      country.Client        `validate:"required"`
+	linkedaccounts linkedaccounts.Client `validate:"required"`
+	machnet        machnet.Client        `validate:"required"`
 	healthcheck    healthcheck.Service
-	signup         signup.Client
-	supportTickets supporttickets.Client
-	temporal       client.Client
+	signup         signup.Client         `validate:"required"`
+	supportTickets supporttickets.Client `validate:"required"`
+	temporal       client.Client         `validate:"required"`
 	twilio         _twilio.Service
-	users          user.Client
-	waitlist       waitlist.Client
-	kyc            kyc.Client
-	email          email.Client
-	openpayments   openpayments.Client
-	transactions   transactions.Client
-	notify         notify.Client
-	statements     statements.Client
-	auth           authorisation.Client
+	users          user.Client          `validate:"required"`
+	waitlist       waitlist.Client      `validate:"required"`
+	kyc            kyc.Client           `validate:"required"`
+	email          email.Client         `validate:"required"`
+	openpayments   openpayments.Client  `validate:"required"`
+	transactions   transactions.Client  `validate:"required"`
+	notify         notify.Client        `validate:"required"`
+	statements     statements.Client    `validate:"required"`
+	auth           authorisation.Client `validate:"required"`
 }
 
 func (b backends) Authorisation() authorisation.Client {
