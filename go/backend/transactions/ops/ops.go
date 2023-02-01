@@ -62,11 +62,13 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Cl
 		}
 	}
 
+	log.Info("Notify wallet")
 	err = nc.NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("notify error", zap.Error(err))
 	}
 
+	log.Info("Track created wallet")
 	ac.TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
 		ID:       transID,
 		TrxType:  args.ForeignType,

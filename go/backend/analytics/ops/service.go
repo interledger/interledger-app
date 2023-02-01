@@ -107,7 +107,7 @@ func TrackWalletPaymentPointerCreated(b Backends, walletID string) {
 }
 
 func TrackWalletTransactionCreated(b Backends, walletID string, args analytics.WalletTransactionArgs) {
-
+	log.Info("TrackWalletTransactionCreated calling")
 	props := segment.NewProperties()
 	props.Set("id", args.ID)
 	props.Set("amount", args.Amount.Value)

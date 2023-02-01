@@ -87,6 +87,7 @@ func (c client) GroupUserWallet(walletID, userID string) {
 }
 
 func (c client) TrackWalletTransactionCreated(walletID string, args analytics.WalletTransactionArgs) {
+	log.Info("TrackWalletTransactionCreated", zap.Bool("isEnabled", c.enabled))
 	if c.enabled {
 		ops.TrackWalletTransactionCreated(c.b, walletID, args)
 	}
