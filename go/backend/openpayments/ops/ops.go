@@ -40,6 +40,7 @@ func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
+	b.Analytics().TrackWalletPaymentPointerCreated(pointer.WalletID)
 	return nil
 }
 

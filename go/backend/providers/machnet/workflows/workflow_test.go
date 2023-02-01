@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"testing"
 	"time"
 
@@ -35,9 +36,10 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      db.MigrateTestDB(t, context.Background()),
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
+		db:        db.MigrateTestDB(t, context.Background()),
+		kycImpl:   kyc_mock.NewMockClient(ctrl),
+		machnet:   mockMachnet,
+		analytics: analytics_client.New(nil, ""),
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -83,10 +85,11 @@ func TestCreateTransactionWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      db.MigrateTestDB(t, context.Background()),
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
+		db:        db.MigrateTestDB(t, context.Background()),
+		kycImpl:   kyc_mock.NewMockClient(ctrl),
+		linked:    linkedaccounts_mock.NewMockClient(ctrl),
+		machnet:   mockMachnet,
+		analytics: analytics_client.New(nil, ""),
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -151,10 +154,11 @@ func TestDeleteAccountWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      db.MigrateTestDB(t, context.Background()),
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
+		db:        db.MigrateTestDB(t, context.Background()),
+		kycImpl:   kyc_mock.NewMockClient(ctrl),
+		linked:    linkedaccounts_mock.NewMockClient(ctrl),
+		machnet:   mockMachnet,
+		analytics: analytics_client.New(nil, ""),
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -180,10 +184,11 @@ func TestExecuteWalletTopupWorkflow(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      nil,
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
+		db:        nil,
+		kycImpl:   kyc_mock.NewMockClient(ctrl),
+		linked:    linkedaccounts_mock.NewMockClient(ctrl),
+		machnet:   mockMachnet,
+		analytics: analytics_client.New(nil, ""),
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -246,10 +251,11 @@ func TestExecuteWalletTopupSendsFailedEmail(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      nil,
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
+		db:        nil,
+		kycImpl:   kyc_mock.NewMockClient(ctrl),
+		linked:    linkedaccounts_mock.NewMockClient(ctrl),
+		machnet:   mockMachnet,
+		analytics: analytics_client.New(nil, ""),
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
@@ -314,10 +320,11 @@ func TestExecuteWalletWithdrawalSendsFailedEmail(t *testing.T) {
 	mockMachnet := machnet_mock_client.NewMockClient(ctrl)
 	mockMachnet.EXPECT().External().Return(machnet_external_inmem.New()).AnyTimes()
 	b := testBackends{
-		db:      nil,
-		kycImpl: kyc_mock.NewMockClient(ctrl),
-		linked:  linkedaccounts_mock.NewMockClient(ctrl),
-		machnet: mockMachnet,
+		db:        nil,
+		kycImpl:   kyc_mock.NewMockClient(ctrl),
+		linked:    linkedaccounts_mock.NewMockClient(ctrl),
+		machnet:   mockMachnet,
+		analytics: analytics_client.New(nil, ""),
 	}
 	b.users = user_client.New(b, "kratosURL", "kratosAdminURL")
 
