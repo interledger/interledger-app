@@ -633,8 +633,8 @@ func GetStatement(ctx context.Context, b Backends, walletID, period string) ([]b
 		ctx,
 		machnetUser.WalletID, // fynbos wallet
 		transactions.TransactionRangeFilter{
-			StartTimestamp: periodStart,
-			EndTimestamp:   periodStart.AddDate(0, 1, -1), // to the end of the month
+			StartTimestamp: periodStart,                                    // 1st day of the month at 00:00:00
+			EndTimestamp:   periodStart.AddDate(0, 1, 0).Add(-time.Second), // last day of the month at 23:59:59
 		})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
