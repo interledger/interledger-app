@@ -6,6 +6,7 @@ import {
   Meta,
   Scripts,
   ScrollRestoration,
+  ShouldRevalidateFunction,
   useCatch,
   useLoaderData,
   useMatches
@@ -79,6 +80,19 @@ function Document({
       </body>
     </html>
   )
+}
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  defaultShouldRevalidate,
+  nextUrl
+}) => {
+  /**
+   * NOTE: We always revalidate when routing to /.
+   * To ensure the layout is in sync on client side navigation.
+   * This needs to be done for any route that returns a function in its layout handle.
+   */
+  if (nextUrl.pathname == '/') return true
+  return defaultShouldRevalidate
 }
 
 export async function loader({ request }: LoaderArgs) {
