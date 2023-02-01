@@ -26,8 +26,11 @@ type client struct {
 }
 
 func (c client) CreateTicket(ctx context.Context, email, name, description string) error {
-	body := CreateTicketReq{
-		Ticket: Ticket{
+	subject := "New ticket created via the Fynbos app"
+	
+	body := CreateRequestReq{
+		Request: Request{
+			Subject: subject,
 			Requester: Requester{
 				Name:  name,
 				Email: email,
@@ -41,7 +44,7 @@ func (c client) CreateTicket(ctx context.Context, email, name, description strin
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL+"/tickets", bytes.NewBuffer(bodyBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL+"/requests", bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return err
 	}
