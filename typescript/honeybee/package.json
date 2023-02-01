@@ -8,16 +8,16 @@
     "build": "node index.js"
   },
   "devDependencies": {
-    "postcss": "latest",
-    "prettier": "^2.7.1",
+    "postcss": "^8.4.21",
+    "prettier": "^2.8.3",
     "prettier-plugin-tailwindcss": "^0.1.13",
     "rehype-parse": "^8.0.4",
     "rehype-stringify": "^9.0.3",
-    "tailwindcss": "^3.2.1",
+    "tailwindcss": "^3.2.4",
     "to-vfile": "^7.2.3",
     "unified": "^10.1.2",
-    "unist-util-visit": "^4.1.1"
+    "unist-util-visit": "^4.1.2"
   },
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "pnpm@7.26.1",
   "sideEffects": false
 }

@@ -233,7 +233,6 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-
       h1 {
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -269,6 +268,7 @@
         display: flex;
         height: 50px;
         width: 100%;
+        margin-top: 32px;
         border-radius: 9999px;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -329,162 +329,50 @@
                     <td style="
                         width: 442px;
                         vertical-align: top;
-                        padding: 24px 16px;
-                      ">
-                      <div style="max-width: 442px; margin: 0 auto">
-                        <table style="
-                            width: 100%;
-                            border: 0;
-                            border-collapse: collapse;
-                            margin: 0;
-                            empty-cells: show;
-                          ">
-                          <tbody>
-                            <tr>
-                              <td style="
-                                  background: #475569;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                ">
-                                <div style="margin-top: 100%"></div>
-                              </td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #facc15;
-                                  border-top-right-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #fda4af;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #a3e635;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #f43f5e;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #bef264;
-                                  border-top-right-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="width: 10%; height: 10%"></td>
-                            </tr>
-                            <tr>
-                              <td style="width: 10%; height: 10%">
-                                <div style="margin-top: 100%"></div>
-                              </td>
-                              <td style="
-                                  background: #fb7185;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #84cc16;
-                                  border-bottom-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #cbd5e1;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #fef08a;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #64748b;
-                                  border-bottom-right-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #ffe4e6;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #fda4af;
-                                  border-bottom-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="
-                        width: 442px;
-                        vertical-align: top;
-                        padding: 0 16px 24px;
+                        padding: 16px 16px 24px 16px;
                       ">
                       <div style="max-width: 442px; margin: 0 auto">
                         <article>
-    <h1 style="margin: 0 auto 24px">
-        Your recent deposit was successful.
-    </h1>
-    <p style="margin: 0 auto 4px">Total amount</p>
-    <p style="color: #0f172a; margin: 0 auto 24px;
-          font-family: &#x27;Inter&#x27;,serif;
-          font-style: normal;
-          font-weight: 500;
-          font-size: 24px;
-          line-height: 32px;">
-      {{ amount }}
-    </p>
+  <h1 style="margin: 0 auto 24px">Your recent deposit was successful.</h1>
+  <p style="margin: 0 auto 4px">Total amount</p>
+  <p style="
+      color: #0f172a;
+      margin: 0 auto 24px;
+      font-family: &#x27;Inter&#x27;, serif;
+      font-style: normal;
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 32px;
+    ">
+    {{ amount }}
+  </p>
 
-    <table style="width: 100%; border-collapse: collapse">
-        <tbody>
-        <tr style="margin-top: 8px">
-            <th style="width: 30%"><p>Deposit date</p></th>
-            <td style="vertical-align: center; text-align: end; padding: 0">
-                <p style="color: #0f172a; font-weight: 500">{{ date }}</p>
-            </td>
-        </tr>
-        <tr style="margin-top: 8px">
-            <th style="width: 30%"><p>Linked account</p></th>
-            <td style="vertical-align: center; text-align: end; padding: 0">
-                <p style="color: #0f172a; font-weight: 500">{{ linkedAccount }}</p>
-            </td>
-        </tr>
-        <tr style="margin-top: 8px">
-            <th style="width: 30%"><p>Fees</p></th>
-            <td style="vertical-align: center; text-align: end; padding: 0">
-                <p style="color: #0f172a; font-weight: 500">$ 0.00</p>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+  <table style="width: 100%; border-collapse: collapse">
+    <tbody>
+      <tr style="margin-top: 8px">
+        <th style="width: 30%"><p>Deposit date</p></th>
+        <td style="vertical-align: center; text-align: end; padding: 0">
+          <p style="color: #0f172a; font-weight: 500">{{ date }}</p>
+        </td>
+      </tr>
+      <tr style="margin-top: 8px">
+        <th style="width: 30%"><p>Linked account</p></th>
+        <td style="vertical-align: center; text-align: end; padding: 0">
+          <p style="color: #0f172a; font-weight: 500">{{ linkedAccount }}</p>
+        </td>
+      </tr>
+      <tr style="margin-top: 8px">
+        <th style="width: 30%"><p>Fees</p></th>
+        <td style="vertical-align: center; text-align: end; padding: 0">
+          <p style="color: #0f172a; font-weight: 500">$ 0.00</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
-    <a class="anchorButton" style="margin-top: 32px;" href="{{ accountUrl }}">
-        <p style="margin: auto auto; color: white">View account</p>
-    </a>
+  <a class="anchorButton" style="margin-top: 32px" href="{{ accountUrl }}">
+    <p style="margin: auto auto; color: white">View account</p>
+  </a>
 </article>
                       </div>
                     </td>
@@ -555,8 +443,8 @@
                             line-height: 16px;
                           ">
                           We respect your right to privacy. For more
-                          information, please see our Privacy Policy and Terms &#x26;
-                          Conditions.
+                          information, please see our Privacy Policy and Terms
+                          &amp; Conditions.
                         </p>
                         <p style="
                             font-size: 12px;
@@ -564,10 +452,10 @@
                             font-weight: 500;
                           ">
                           <span style="margin-right: 12px">
-                            © Fynbos
+                            &copy;&nbsp;Fynbos
                           </span>
                           <a href="https://fynbos.app/legal" target="_blank">
-                            Privacy &#x26; Terms
+                            Privacy &amp; Terms
                           </a>
                         </p>
                       </div>
