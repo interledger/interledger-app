@@ -162,10 +162,6 @@ func ListWallets(ctx context.Context, b Backends, userID string) ([]user.Wallet,
 		return nil, err
 	}
 
-	for _, wallet := range wallets {
-		b.Analytics().GroupUserWallet(wallet.ID, userID)
-	}
-
 	return wallets, nil
 }
 

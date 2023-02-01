@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"context"
 	"encoding/json"
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/log"
@@ -69,6 +70,15 @@ func NewHandleLogin(backends Backends) http.HandlerFunc {
 			LastName:  event.LastName,
 		})
 		backends.Analytics().TrackUserLogin(event.UserId)
+
+		wallets, err := backends.Users().ListWallets(context.Background(), event.UserId)
+		if err != nil {
+			log.Error("error get user wallets", zap.Error(err))
+		}
+
+		for _, wallet := range wallets {
+			backends.Analytics().GroupUserWallet(wallet.ID, event.UserId)
+		}
 
 		w.WriteHeader(http.StatusOK)
 	}
