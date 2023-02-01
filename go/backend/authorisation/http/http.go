@@ -2,12 +2,9 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
-	"math/rand"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"github.com/riandyrn/otelchi"
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/authorisation/ops"
@@ -41,17 +38,14 @@ func grantHandler(b ops.Backends) http.HandlerFunc {
 		// - Lookup signatures by client URI (payment pointer)
 		// - Validate signature provided in req
 
-		label := gr.AccessToken.Label
-		if label == "" {
-			label = fmt.Sprintf("auto_label_%d", rand.Int31n(1000))
+		grant, err := ops.CreateGrant(req.Context(), b, gr)
+		if err != nil {
+			log.Error("failed to create grant", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
 
-		resp := authorisation.GrantAccessTokenResp{AccessToken: authorisation.AccessToken{
-			Value:     uuid.NewString(),
-			Access:    gr.AccessToken.Access,
-			Label:     gr.AccessToken.Label,
-			ExpiresIn: 60 * 60, // Valid for 1 hour
-		}}
+		resp := authorisation.GrantAccessTokenResp{AccessTokens: grant.Tokens}
 
 		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {

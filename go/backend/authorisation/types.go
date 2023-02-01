@@ -6,8 +6,11 @@ type Client struct {
 }
 
 type Grant struct {
-	ID    string
-	State GrantState
+	ID            string
+	State         GrantState
+	Tokens        []AccessToken
+	ContinueToken string
+	Wait          string
 }
 
 type GrantState string
@@ -93,7 +96,7 @@ type (
 	}
 
 	GrantAccessTokenResp struct {
-		AccessToken AccessToken `json:"access_token"`
+		AccessTokens []AccessToken `json:"access_token"`
 	}
 
 	Access struct {

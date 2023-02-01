@@ -1502,6 +1502,10 @@ table "authorisation_access_tokens" {
     null = false
     type = uuid
   }
+  column "label" {
+    null = false
+    type = text
+  }
   column "value" {
     null = false
     type = text
