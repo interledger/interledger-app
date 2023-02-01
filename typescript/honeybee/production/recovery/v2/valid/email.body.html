@@ -233,7 +233,6 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-
       h1 {
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -330,139 +329,25 @@
                     <td style="
                         width: 442px;
                         vertical-align: top;
-                        padding: 24px 16px;
-                      ">
-                      <div style="max-width: 442px; margin: 0 auto">
-                        <table style="
-                            width: 100%;
-                            border: 0;
-                            border-collapse: collapse;
-                            margin: 0;
-                            empty-cells: show;
-                          ">
-                          <tbody>
-                            <tr>
-                              <td style="
-                                  background: #475569;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                ">
-                                <div style="margin-top: 100%"></div>
-                              </td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #facc15;
-                                  border-top-right-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #fda4af;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #a3e635;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #f43f5e;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #bef264;
-                                  border-top-right-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="width: 10%; height: 10%"></td>
-                            </tr>
-                            <tr>
-                              <td style="width: 10%; height: 10%">
-                                <div style="margin-top: 100%"></div>
-                              </td>
-                              <td style="
-                                  background: #fb7185;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #84cc16;
-                                  border-bottom-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #cbd5e1;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #fef08a;
-                                  border-top-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #64748b;
-                                  border-bottom-right-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="width: 10%; height: 10%"></td>
-                              <td style="
-                                  background: #ffe4e6;
-                                  border-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                              <td style="
-                                  background: #fda4af;
-                                  border-bottom-left-radius: 9999px;
-                                  width: 10%;
-                                  height: 10%;
-                                "></td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="
-                        width: 442px;
-                        vertical-align: top;
-                        padding: 0 16px 24px;
+                        padding: 16px 16px 24px 16px;
                       ">
                       <div style="max-width: 442px; margin: 0 auto">
                         <article>
-  <h1>Invalid account recovery attempt</h1>
+  <p>Hello {{ .Identity.traits.firstName }},</p>
+  <h1 style="margin: 24px auto 0">
+    There was a request to recover your account
+  </h1>
   <p style="margin: 24px auto 0">
-    You (or someone else) entered this email address when trying to recover
-    access to a Fynbos account.
-  </p>
-  <p style="margin: 24px auto 0">
-    However, this email address is not on our database of registered users and
-    therefore the attempt has failed.
+    Please click on the button below to recover your account and set a new
+    password!
   </p>
   <p style="margin: 16px auto 0">
-    If this was you, please check if you signed up using a different email
-    address.
+    If you did not request to recover your account, you can safely ignore this
+    email.
   </p>
-  <p style="margin: 24px auto 0">
-    If this was not you, you can safely ignore this email.
-  </p>
+  <a class="anchorButton" href="{{ .RecoveryURL }}">
+    <p style="margin: auto auto; color: white">Recover account</p>
+  </a>
 </article>
                       </div>
                     </td>
@@ -533,8 +418,8 @@
                             line-height: 16px;
                           ">
                           We respect your right to privacy. For more
-                          information, please see our Privacy Policy and Terms &#x26;
-                          Conditions.
+                          information, please see our Privacy Policy and Terms
+                          &amp; Conditions.
                         </p>
                         <p style="
                             font-size: 12px;
@@ -542,10 +427,10 @@
                             font-weight: 500;
                           ">
                           <span style="margin-right: 12px">
-                            © Fynbos
+                            &copy;&nbsp;Fynbos
                           </span>
                           <a href="https://fynbos.app/legal" target="_blank">
-                            Privacy &#x26; Terms
+                            Privacy &amp; Terms
                           </a>
                         </p>
                       </div>
@@ -558,6 +443,6 @@
         </tr>
       </tbody>
     </table>
-
+  
 
 </body></html>

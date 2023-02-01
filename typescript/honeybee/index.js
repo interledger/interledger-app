@@ -28,8 +28,14 @@ async function main() {
     const out = await unified()
       .use(rehypeParse, { fragment: true })
       .use(wrapTemplate)
-      .use(rehypeStringify)
+      .use(rehypeStringify, {
+        entities: {
+          useNamedReferences: true
+        }
+      })
       .process(await read(`./templates${temp}`))
+    out.value = out.value.replace('©', '&copy;')
+    out.value = out.value.replace(' ', '&nbsp;')
     writeFileSync(`./production${temp}`, out.value)
   }
 }
