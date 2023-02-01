@@ -79,6 +79,7 @@ func TrackWalletCreated(b Backends, walletID string, userID string) {
 
 	err := b.Segment().Enqueue(segment.Track{
 		Event:      "Wallet Created",
+		UserId:     userID,
 		Properties: segment.NewProperties(),
 		Context: &segment.Context{
 			Extra: map[string]interface{}{
