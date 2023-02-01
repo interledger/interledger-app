@@ -14,7 +14,7 @@ import (
 var _ statements.Client = client{}
 
 var (
-	walletStatementUrl = "https://cdn.fynbos.workers.dev/pdfs/statement-plain-A4.pdf"
+	walletStatementUrl = "https://cdn.fynbos.app/pdfs/statement-plain-A4.pdf"
 
 	fontDisplay    = "font-display"
 	fontDisplayUrl = "https://cdn.fynbos.app/fonts/poppins/v20/400/Regular.ttf"
