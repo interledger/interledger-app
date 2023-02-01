@@ -17,4 +17,5 @@ type WalletTransactionArgs struct {
 	TrxType  transactions.TransactionType
 	Provider transactions.Provider
 	Amount   currency.Amount
+	UserID   string
 }
