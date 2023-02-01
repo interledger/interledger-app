@@ -1,7 +1,7 @@
 package zendesk
 
-type CreateTicketReq struct {
-	Ticket Ticket `json:"ticket"`
+type CreateRequestReq struct {
+	Request Request `json:"request"`
 }
 
 type Comment struct {
@@ -13,7 +13,7 @@ type Requester struct {
 	Email string `json:"email"`
 }
 
-type Ticket struct {
+type Request struct {
 	Subject   string    `json:"subject"`
 	Requester Requester `json:"requester"`
 	Comment   Comment   `json:"comment"`
