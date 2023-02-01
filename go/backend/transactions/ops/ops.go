@@ -21,7 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Client, ac analytics.Client, args transactions.CreateTransactionArgs) (string, error) {
+func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, args transactions.CreateTransactionArgs) (string, error) {
 	transID := uuid.NewString()
 	is := db.NewInsert("transactions").
 		Value("id", transID).
@@ -62,16 +62,18 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, nc notify.Cl
 		}
 	}
 
-	err = nc.NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
+	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("notify error", zap.Error(err))
 	}
 
-	ac.TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
+	userID := getWalletUserID(ctx, b, args.WalletID)
+	b.Analytics().TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
 		ID:       transID,
 		TrxType:  args.ForeignType,
 		Provider: args.Provider,
 		Amount:   args.Amount,
+		UserID:   userID,
 	})
 
 	return transID, nil
@@ -83,7 +85,7 @@ func CreateTransactionTx(ctx context.Context, b Backends, tx *sqlx.Tx, args tran
 		return "", fmt.Errorf("%w %s", transactions.ErrInvalidArgument, err)
 	}
 
-	return createTransaction(ctx, tx, b.Notify(), b.Analytics(), args)
+	return createTransaction(ctx, tx, b, args)
 }
 
 func CreateTransaction(ctx context.Context, b Backends, args transactions.CreateTransactionArgs) (string, error) {
@@ -94,7 +96,7 @@ func CreateTransaction(ctx context.Context, b Backends, args transactions.Create
 
 	var trxID = ""
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		id, err := createTransaction(ctx, tx, b.Notify(), b.Analytics(), args)
+		id, err := createTransaction(ctx, tx, b, args)
 		trxID = id
 		return err
 	})
@@ -463,11 +465,13 @@ func SetTransactionState(ctx context.Context, b Backends, ID string, state trans
 		log.Error("error sending notification", zap.Error(err))
 	}
 
+	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
 	analyticsArgs := analytics.WalletTransactionArgs{
 		ID:       trxDetails.ID,
 		TrxType:  trxDetails.Type,
 		Provider: trxDetails.Provider,
 		Amount:   currency.FromUInt64(trxDetails.Amount, currency.USD),
+		UserID:   userID,
 	}
 
 	if state == transactions.StateCompleted {
@@ -498,11 +502,13 @@ func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID stri
 		log.Error("error sending notification", zap.Error(err))
 	}
 
+	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
 	analyticsArgs := analytics.WalletTransactionArgs{
 		ID:       trxDetails.ID,
 		TrxType:  trxDetails.Type,
 		Provider: trxDetails.Provider,
 		Amount:   currency.FromUInt64(trxDetails.Amount, currency.USD),
+		UserID:   userID,
 	}
 
 	if state == transactions.StateCompleted {
@@ -538,4 +544,23 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 	}
 
 	return nil
+}
+
+func getWalletUserID(ctx context.Context, b Backends, walletID string) string {
+	if b.Users() == nil {
+		return ""
+	}
+
+	users, err := b.Users().ListUsers(ctx, walletID)
+	if err != nil {
+		return ""
+	}
+
+	// if there are more than 1 user or no users don't return anything
+	if len(users) != 1 {
+		return ""
+	}
+
+	firstUser := users[0]
+	return firstUser.ID
 }
