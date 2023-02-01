@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"testing"
 
 	"gitlab.com/fynbos/backend/transactions"
@@ -19,6 +21,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Machnet() machnet.Client
 	Transactions() transactions.Client
+	Analytics() analytics.Client
 }
 
 type testBackends struct {
@@ -27,6 +30,7 @@ type testBackends struct {
 	la  linkedaccounts.Client
 	mc  machnet.Client
 	tc  transactions.Client
+	ac  analytics.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -49,6 +53,11 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
+func (t testBackends) Analytics() analytics.Client {
+	return t.ac
+}
+
 func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, mc machnet.Client, tc transactions.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), la: la, mc: mc, tc: tc}
+	ac := analytics_client.New(nil, "")
+	return &testBackends{db: db, val: validator.New(), la: la, mc: mc, tc: tc, ac: ac}
 }

@@ -140,6 +140,8 @@ func CreateWallet(ctx context.Context, b Backends, userID, name string) (*user.W
 		return nil
 	})
 
+	b.Analytics().TrackWalletCreated(walletID, userID)
+
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +162,10 @@ func ListWallets(ctx context.Context, b Backends, userID string) ([]user.Wallet,
 		return nil, err
 	}
 
+	for _, wallet := range wallets {
+		b.Analytics().GroupUserWallet(wallet.ID, userID)
+	}
+
 	return wallets, nil
 }
 
@@ -174,6 +180,8 @@ func GetWallet(ctx context.Context, b Backends, userID, walletID string) (*user.
 	if err != nil {
 		return nil, err
 	}
+
+	b.Analytics().GroupUserWallet(walletID, userID)
 
 	return &wallet, nil
 }
