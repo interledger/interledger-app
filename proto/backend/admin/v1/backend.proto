@@ -15,7 +15,7 @@ service Backend {
   rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
   rpc ListWallets(PaginationRequest) returns (ListWalletsResponse);
   rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
-  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
+//  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
   rpc EmailWalletStatement(EmailWalletStatementRequest) returns (Empty);
 }
 
@@ -33,7 +33,7 @@ message ListWalletTransactionsRequest {
 
 message ListWalletTransactionsResponse {
   repeated Transaction transactions = 1;
-  PaginationResponse page = 2;
+  string nextPageToken = 2;
 }
 
 message Transaction {
@@ -66,14 +66,8 @@ message WalletDetails {
 }
 
 message PaginationRequest {
-  int32 page = 1;
-  int32 pageSize = 2;
-}
-
-message PaginationResponse {
-  int32 page = 1;
-  int32 pageSize = 2;
-  bool hasNextPage = 3;
+  int32 pageSize = 1;
+  optional string pageToken = 2;
 }
 
 message Wallet {
@@ -84,7 +78,7 @@ message Wallet {
 
 message ListWalletsResponse {
   repeated Wallet wallets = 1;
-  PaginationResponse page = 2;
+  string nextPageToken = 2;
 }
 
 message User {

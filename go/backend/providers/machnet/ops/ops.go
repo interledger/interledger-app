@@ -771,55 +771,6 @@ func mapWalletWithdrawalToStatementRow(trx transactions.Transaction) []statement
 	return ret
 }
 
-func ListStatementPeriods(ctx context.Context, b Backends, page db.Pagination, walletID string) ([]string, error) {
-	wallet, err := GetWallet(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	now := time.Now()
-	start, err := time.Parse(time.RFC3339, wallet.CreatedAt)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", machnet.ErrInternal, err)
-	}
-
-	years := now.Year() - start.Year()
-	if (now.Month() - start.Month()) < 0 {
-		years--
-	}
-	months := int(0)
-	if now.Month() == start.Month() {
-		months = 1
-	} else {
-		months += 12 - int(start.Month())
-		months += int(now.Month())
-	}
-	numPeriods := years*12 + months
-
-	if numPeriods < 1 {
-		return nil, fmt.Errorf("%w Got less than 1 statement period start=%s now=%s", machnet.ErrInternal, start, now)
-	}
-
-	pageStart := page.Page * page.PageSize
-	if pageStart > numPeriods {
-		return nil, nil
-	}
-
-	pageEnd := (page.Page + 1) * page.PageSize
-	if pageEnd > numPeriods {
-		pageEnd = numPeriods
-	}
-
-	// TODO: optimize
-	periods := make([]string, numPeriods)
-	for i := range periods {
-		periods[i] = start.Format("2006-01")
-		start = start.AddDate(0, 1, 0)
-	}
-
-	return periods[pageStart:pageEnd], nil
-}
-
 func GetUserLimits(ctx context.Context, b Backends, walletID string) (*machnet.UserLimits, error) {
 	user, err := GetUserByWalletID(ctx, b, walletID)
 	if err != nil {

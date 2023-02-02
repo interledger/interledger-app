@@ -6,9 +6,6 @@ import (
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
-	"strings"
-	"testing"
-	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/email"
@@ -16,6 +13,8 @@ import (
 	"gitlab.com/fynbos/backend/statements"
 	statements_mock "gitlab.com/fynbos/backend/statements/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
+	"strings"
+	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -402,51 +401,6 @@ func TestCreateAndGetWallet(t *testing.T) {
 		SendUserID: sendUser.ID,
 	})
 	require.Error(t, err)
-}
-
-func TestListStatementPeriods(t *testing.T) {
-	b := NewTestBackends(t)
-	walletID := NewWallet(t, b)
-
-	externalSendUser, err := b.External().RegisterUser(context.Background(), external.User{
-		ID:   uuid.NewString(),
-		Type: external.TypeSendUser,
-	})
-	require.NoError(t, err)
-
-	sendUser, err := ops.CreateUser(context.Background(), b, machnet.CreateArgs{
-		WalletID:   walletID,
-		ExternalID: externalSendUser.ID,
-	})
-	require.NoError(t, err)
-
-	linkedAccountID := uuid.NewString()
-	var externalWalletID string
-	b.linkedaccounts.EXPECT().Create(context.Background(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
-			externalWalletID = args.ProviderID
-			return &linkedaccounts.LinkedAccount{
-				ID:         linkedAccountID,
-				WalletID:   walletID,
-				Name:       args.Name,
-				Mask:       args.Mask,
-				Provider:   args.Provider,
-				ProviderID: args.ProviderID,
-				Type:       args.Type,
-			}, nil
-		},
-	).Times(1)
-
-	_, err = ops.CreateWallet(context.Background(), b, machnet.CreateWalletArgs{
-		Nickname:   "fynesse",
-		SendUserID: sendUser.ID,
-	})
-	require.NoError(t, err)
-
-	periods, err := ops.ListStatementPeriods(context.Background(), b, db.Pagination{Page: 0, PageSize: 10}, externalWalletID)
-	require.NoError(t, err)
-
-	assert.Equal(t, []string{time.Now().Format("2006-01")}, periods)
 }
 
 func TestGetUserLimits(t *testing.T) {
