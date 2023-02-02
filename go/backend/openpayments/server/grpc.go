@@ -449,6 +449,25 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 	}, nil
 }
 
+func (g *grpcServer) CanSendToPaymentPointer(ctx context.Context, req *pb.CanSendToPaymentPointerRequest) (*pb.CanSendToPaymentPointerResponse, error) {
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
+
+	wallet, err := g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	canSend, err := ops.ValidateCanSend(ctx, g.b, wallet.ID, req.PaymentPointer)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.CanSendToPaymentPointerResponse{CanSend: canSend}, nil
+}
+
 func (g *grpcServer) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
 	page := db.PaginationFromPB(req)
 

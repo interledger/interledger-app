@@ -468,3 +468,36 @@ func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, i
 
 	return transformQuote(ctx, b, *dbq)
 }
+
+func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string) (bool, error) {
+	ppl, err := ListWalletPaymentPointers(ctx, b, walletID)
+	if err != nil {
+		return false, err
+	}
+
+	pp, err := GetPaymentPointer(ctx, b, ppString)
+	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+		// Payment pointer doesn't exists, don't error just return false
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	for _, own := range ppl {
+		if own.ID == pp.ID {
+			return false, nil
+		}
+	}
+
+	_, err = b.Machnet().GetWalletByWalletID(ctx, pp.WalletID)
+	if errors.Is(err, machnet.ErrNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	// Target Payment Pointer exists, Machnet wallet exists, it's not sending to itself
+	return true, nil
+}

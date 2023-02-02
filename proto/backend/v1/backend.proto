@@ -32,10 +32,19 @@ service OpenPaymentService {
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
+  rpc CanSendToPaymentPointer(CanSendToPaymentPointerRequest) returns (CanSendToPaymentPointerResponse);
 
   //deprecated
   rpc ListTransactions(PaginationRequest) returns (ListTransactionsResponse);
   rpc ListPendingTransactions(PaginationRequest) returns (ListTransactionsResponse);
+}
+
+message CanSendToPaymentPointerRequest {
+  string paymentPointer = 1;
+}
+
+message CanSendToPaymentPointerResponse {
+  bool canSend = 1;
 }
 
 message Transaction {
