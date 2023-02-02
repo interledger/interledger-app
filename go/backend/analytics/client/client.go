@@ -103,3 +103,21 @@ func (c client) TrackWalletTransactionFailed(walletID string, args analytics.Wal
 		ops.TrackWalletTransactionFailed(c.b, walletID, args)
 	}
 }
+
+func (c client) TrackWalletMachnetKYCStatus(args analytics.MachnetKYCArgs) {
+	if c.enabled {
+		ops.TrackWalletMachnetKYCStatus(c.b, args)
+	}
+}
+
+func (c client) TrackWalletMachnetCardAdded(args analytics.MachnetCardAddedArgs) {
+	if c.enabled {
+		ops.TrackWalletMachnetCardAdded(c.b, args)
+	}
+}
+
+func (c client) TrackWalletMachnetBankAdded(args analytics.MachnetBankAddedArgs) {
+	if c.enabled {
+		ops.TrackWalletMachnetBankAdded(c.b, args)
+	}
+}

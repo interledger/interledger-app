@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"strings"
 	"testing"
 	"time"
@@ -480,6 +482,7 @@ func NewTestBackends(t *testing.T) backends {
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
 		temporal:       &mocks.Client{},
 		email:          email_mock.NewMockClient(ctrl),
+		analytics:      analytics_client.New(nil, ""),
 	}
 }
 
@@ -493,6 +496,7 @@ type backends struct {
 	temporal       *mocks.Client
 	transactions   transactions.Client
 	email          *email_mock.MockClient
+	analytics      analytics.Client
 }
 
 func (b backends) Users() user.Client {
@@ -529,4 +533,8 @@ func (b backends) Transactions() transactions.Client {
 
 func (b backends) Statements() statements.Client {
 	return b.statements
+}
+
+func (b backends) Analytics() analytics.Client {
+	return b.analytics
 }

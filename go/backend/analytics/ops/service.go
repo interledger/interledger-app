@@ -3,6 +3,7 @@ package ops
 import (
 	segment "github.com/segmentio/analytics-go/v3"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -184,5 +185,86 @@ func TrackWalletTransactionCompleted(b Backends, walletID string, args analytics
 	})
 	if err != nil {
 		log.Error("analytics: error TrackWalletTransactionCompleted", zap.Error(err))
+	}
+}
+
+func TrackWalletMachnetKYCStatus(b Backends, args analytics.MachnetKYCArgs) {
+
+	event := "Machnet User KYC"
+	props := segment.NewProperties()
+	switch args.Status {
+	case machnet.KYCStatusInProgress:
+		event = event + " Started"
+		props.Set("status", "in_progress")
+	case machnet.KYCStatusSuspended:
+		event = event + " Suspended"
+		props.Set("status", "suspended")
+	case machnet.KYCStatusRetry:
+		event = event + " Retry"
+		props.Set("status", "retry")
+	case machnet.KYCStatusVerified:
+		event = event + " Verified"
+		props.Set("status", "verified")
+	case machnet.KYCStatusReviewPending:
+		event = event + " Review Pending"
+		props.Set("status", "review_pending")
+	}
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      event,
+		UserId:     args.UserID,
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": args.WalletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletMachnetKYCStatus", zap.Error(err))
+	}
+}
+
+func TrackWalletMachnetCardAdded(b Backends, args analytics.MachnetCardAddedArgs) {
+
+	props := segment.NewProperties()
+	props.Set("type", "card")
+	props.Set("provider", "machnet")
+	props.Set("scheme", args.Scheme)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Linked Account Added",
+		UserId:     args.UserID,
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": args.WalletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletMachnetCardAdded", zap.Error(err))
+	}
+}
+
+func TrackWalletMachnetBankAdded(b Backends, args analytics.MachnetBankAddedArgs) {
+
+	props := segment.NewProperties()
+	props.Set("type", "bank")
+	props.Set("provider", "machnet")
+	props.Set("institution", args.Institution)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Linked Account Added",
+		UserId:     args.UserID,
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": args.WalletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletMachnetBankAdded", zap.Error(err))
 	}
 }

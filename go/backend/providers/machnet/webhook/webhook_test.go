@@ -2,6 +2,8 @@ package webhook_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"testing"
 	"time"
 
@@ -331,6 +333,7 @@ func newTestBackends(t *testing.T) testBackends {
 		linkedaccounts: linkedaccounts_mock.NewMockClient(ctrl),
 		temporal:       &mocks.Client{},
 		email:          email_mock.NewMockClient(ctrl),
+		analytics:      analytics_client.New(nil, ""),
 	}
 }
 
@@ -343,6 +346,7 @@ type testBackends struct {
 	temporal       *mocks.Client
 	statements     *statements_mock.MockClient
 	email          *email_mock.MockClient
+	analytics      analytics.Client
 }
 
 func (b testBackends) Machnet() machnet.Client {
@@ -383,4 +387,8 @@ func (b testBackends) Transactions() transactions.Client {
 
 func (b testBackends) Statements() statements.Client {
 	return b.statements
+}
+
+func (b testBackends) Analytics() analytics.Client {
+	return b.analytics
 }

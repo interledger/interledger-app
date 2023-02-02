@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/analytics"
 	"io"
 	"net/http"
 
@@ -123,7 +124,7 @@ func ValidateWebhook(payload []byte, secret, signature string) error {
 }
 
 func HandleUserKYCEvent(ctx context.Context, b ops.Backends, event external.Event) error {
-	_, err := ops.GetUserByID(ctx, b, event.UserID)
+	mu, err := ops.GetUserByID(ctx, b, event.UserID)
 	if err != nil {
 		return err
 	}
@@ -152,6 +153,13 @@ func HandleUserKYCEvent(ctx context.Context, b ops.Backends, event external.Even
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
+
+	fUserId := getWalletUserID(ctx, b, mu.WalletID)
+	b.Analytics().TrackWalletMachnetKYCStatus(analytics.MachnetKYCArgs{
+		UserID:   fUserId,
+		WalletID: mu.WalletID,
+		Status:   newStatus,
+	})
 
 	refs, err := ops.ListActiveUserWorkflowRefs(ctx, b, event.UserID)
 	if err != nil {
@@ -192,6 +200,13 @@ func HandleUserCardAddedEvent(ctx context.Context, b ops.Backends, event externa
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
+	fUserId := getWalletUserID(ctx, b, user.WalletID)
+	b.Analytics().TrackWalletMachnetCardAdded(analytics.MachnetCardAddedArgs{
+		UserID:   fUserId,
+		WalletID: user.WalletID,
+		Scheme:   card.InstitutionName,
+	})
+
 	return nil
 }
 
@@ -218,6 +233,13 @@ func HandleBankAccountAddedEvent(ctx context.Context, b ops.Backends, event exte
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
+
+	fUserId := getWalletUserID(ctx, b, user.WalletID)
+	b.Analytics().TrackWalletMachnetBankAdded(analytics.MachnetBankAddedArgs{
+		UserID:      fUserId,
+		WalletID:    user.WalletID,
+		Institution: bankAcc.InstitutionName,
+	})
 
 	return nil
 }
@@ -279,4 +301,23 @@ func SaveWebhook(ctx context.Context, b ops.Backends, event external.Event) erro
 	}
 
 	return nil
+}
+
+func getWalletUserID(ctx context.Context, b Backends, walletID string) string {
+	if b.Users() == nil {
+		return ""
+	}
+
+	users, err := b.Users().ListUsers(ctx, walletID)
+	if err != nil {
+		return ""
+	}
+
+	// if there are more than 1 user or no users don't return anything
+	if len(users) != 1 {
+		return ""
+	}
+
+	firstUser := users[0]
+	return firstUser.ID
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/analytics"
 	"reflect"
 	"time"
 
@@ -43,6 +44,7 @@ type Backends interface {
 	Email() email.Client
 	Transactions() transactions.Client
 	Statements() statements.Client
+	Analytics() analytics.Client
 }
 
 type opsBackends struct {
