@@ -4,10 +4,11 @@
 import { BackendService } from "./backend";
 import type { StatementPDF } from "./backend";
 import type { GetStatementPDFRequest } from "./backend";
-import type { ListStatementsResponse } from "./backend";
 import type { GetUserLimitsResponse } from "./backend";
 import type { Transaction } from "./backend";
 import type { LookupTransactionRequest } from "./backend";
+import type { ListTransactionsResponse } from "./backend";
+import type { PaginationRequest } from "./backend";
 import type { IsMugAvailableResponse } from "./backend";
 import type { IsMugAvailableRequest } from "./backend";
 import type { SetSignupCompleteRequest } from "./backend";
@@ -51,8 +52,6 @@ import type { UpdateIndividualKYCRequest } from "./backend";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenPaymentService } from "./backend";
-import type { ListTransactionsResponse } from "./backend";
-import type { PaginationRequest } from "./backend";
 import type { CanSendToPaymentPointerResponse } from "./backend";
 import type { CanSendToPaymentPointerRequest } from "./backend";
 import type { LookupOutgoingPaymentRequest } from "./backend";
@@ -128,16 +127,6 @@ export interface IOpenPaymentServiceClient {
      * @generated from protobuf rpc: CanSendToPaymentPointer(backend.v1.CanSendToPaymentPointerRequest) returns (backend.v1.CanSendToPaymentPointerResponse);
      */
     canSendToPaymentPointer(input: CanSendToPaymentPointerRequest, options?: RpcOptions): UnaryCall<CanSendToPaymentPointerRequest, CanSendToPaymentPointerResponse>;
-    /**
-     * deprecated
-     *
-     * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
-     */
-    listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
-    /**
-     * @generated from protobuf rpc: ListPendingTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
-     */
-    listPendingTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.OpenPaymentService
@@ -231,22 +220,6 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
     canSendToPaymentPointer(input: CanSendToPaymentPointerRequest, options?: RpcOptions): UnaryCall<CanSendToPaymentPointerRequest, CanSendToPaymentPointerResponse> {
         const method = this.methods[11], opt = this._transport.mergeOptions(options);
         return stackIntercept<CanSendToPaymentPointerRequest, CanSendToPaymentPointerResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * deprecated
-     *
-     * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
-     */
-    listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * @generated from protobuf rpc: ListPendingTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
-     */
-    listPendingTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[13], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**
@@ -424,10 +397,6 @@ export interface IBackendServiceClient {
     /**
      * Statements
      *
-     * @generated from protobuf rpc: ListStatements(backend.v1.PaginationRequest) returns (backend.v1.ListStatementsResponse);
-     */
-    listStatements(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListStatementsResponse>;
-    /**
      * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
     getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF>;
@@ -726,17 +695,10 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     /**
      * Statements
      *
-     * @generated from protobuf rpc: ListStatements(backend.v1.PaginationRequest) returns (backend.v1.ListStatementsResponse);
-     */
-    listStatements(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListStatementsResponse> {
-        const method = this.methods[38], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListStatementsResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
      * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
     getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF> {
-        const method = this.methods[39], opt = this._transport.mergeOptions(options);
+        const method = this.methods[38], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetStatementPDFRequest, StatementPDF>("unary", this._transport, method, opt, input);
     }
 }

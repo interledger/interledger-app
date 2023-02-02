@@ -10,14 +10,8 @@ import "google/protobuf/timestamp.proto";
 option go_package = "./backend/v1;backend";
 
 message PaginationRequest {
-  int32 page = 1;
-  int32 pageSize = 2;
-}
-
-message PaginationResponse {
-  int32 page = 1;
-  int32 pageSize = 2;
-  bool hasNextPage = 3;
+  int32 pageSize = 1;
+  optional string pageToken = 2;
 }
 
 service OpenPaymentService {
@@ -33,10 +27,6 @@ service OpenPaymentService {
   rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc CanSendToPaymentPointer(CanSendToPaymentPointerRequest) returns (CanSendToPaymentPointerResponse);
-
-  //deprecated
-  rpc ListTransactions(PaginationRequest) returns (ListTransactionsResponse);
-  rpc ListPendingTransactions(PaginationRequest) returns (ListTransactionsResponse);
 }
 
 message CanSendToPaymentPointerRequest {
@@ -61,7 +51,7 @@ message Transaction {
 
 message ListTransactionsResponse {
   repeated Transaction transactions = 1;
-  PaginationResponse page = 2;
+  string nextPageToken = 2;
 }
 
 message Amount {
@@ -241,7 +231,6 @@ service BackendService {
   rpc GetUserLimits(Empty) returns (GetUserLimitsResponse);
 
   //Statements
-  rpc ListStatements(PaginationRequest) returns (ListStatementsResponse);
   rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
 }
 
@@ -256,7 +245,7 @@ message Transfer {
 
 message ListStatementsResponse {
   repeated string periods = 1;
-  PaginationResponse page = 2;
+  string nextPageToken = 2;
 }
 
 message GetStatementPDFRequest {

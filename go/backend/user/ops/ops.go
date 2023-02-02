@@ -58,21 +58,6 @@ func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error)
 	return &u, nil
 }
 
-func ListAllUsers(ctx context.Context, b Backends, pagination db.Pagination) ([]user.User, error) {
-
-	ids, _, err := b.Kratos().V0alpha2Api.AdminListIdentities(ctx).Page(int64(pagination.Page)).PerPage(int64(pagination.PageSize)).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
-	}
-
-	resp := make([]user.User, len(ids))
-	for i, id := range ids {
-		resp[i] = convertTraits(id.Id, id.Traits)
-	}
-
-	return resp, nil
-}
-
 func convertTraits(userID string, traits interface{}) user.User {
 	traitsMap := traits.(map[string]interface{})
 	u := user.User{
@@ -230,6 +215,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 
 func ListAllWallets(ctx context.Context, b Backends, page db.Pagination) ([]user.Wallet, error) {
 	var wallets []user.Wallet
+	// TODO pagination
 	err := b.DB().SelectContext(ctx, &wallets, "SELECT id, name FROM wallets ORDER BY created_at DESC "+page.SQL())
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

@@ -41,8 +41,8 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 	}
 
 	return &adminv1.ListWalletsResponse{
-		Wallets: resp,
-		Page:    page.ToAdminPB(len(resp)),
+		Wallets:       resp,
+		NextPageToken: "", // TODO Need to actually populate this
 	}, nil
 }
 
@@ -99,30 +99,4 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		Address:     address,
 		Users:       usersPB,
 	}, nil
-}
-
-func (s *AdminRpcService) ListWalletTransactions(ctx context.Context, req *adminv1.ListWalletTransactionsRequest) (*adminv1.ListWalletTransactionsResponse, error) {
-	page := db.FromAdminPB(req.Page)
-
-	// TODO: move to transactions service
-	trxs, err := s.b.OpenPayments().ListTransactions(ctx, req.WalletID, db.Pagination{})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	res := make([]*adminv1.Transaction, len(trxs))
-	for i, tx := range trxs {
-		res[i] = &adminv1.Transaction{
-			WalletID:    req.WalletID,
-			Id:          tx.ID,
-			Type:        string(tx.Type),
-			Asset:       tx.Amount.Currency.String(),
-			Amount:      tx.Amount.Float64(),
-			Source:      tx.Source,
-			Destination: tx.Destination,
-			Timestamp:   timestamppb.New(tx.Timestamp),
-		}
-	}
-
-	return &adminv1.ListWalletTransactionsResponse{Transactions: res, Page: page.ToAdminPB(len(res))}, nil
 }

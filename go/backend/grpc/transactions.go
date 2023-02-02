@@ -76,8 +76,18 @@ func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.Pa
 }
 
 func transformTransactions(txs []transactions.Transaction, page db.Pagination) (*pb.ListTransactionsResponse, error) {
-	res := make([]*pb.Transaction, len(txs))
+	var nextPageToken string
+	var res []*pb.Transaction
+
 	for i, tx := range txs {
+
+		// If we have more txs than PageSize, we have a next page.
+		if i == page.PageSize {
+			// Use the PageSize+1 tx.ID as the start of the next page.
+			nextPageToken = tx.ID
+			break
+		}
+
 		trs := make([]*pb.Transfer, len(tx.Transfers))
 		for y, tr := range tx.Transfers {
 			trs[y] = &pb.Transfer{
@@ -90,7 +100,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) (
 			}
 		}
 
-		res[i] = &pb.Transaction{
+		res = append(res, &pb.Transaction{
 			Id:          tx.ID,
 			ForeignId:   tx.ForeignID,
 			Type:        string(tx.Type),
@@ -100,12 +110,12 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) (
 			Timestamp:   timestamppb.New(tx.Timestamp),
 			State:       string(tx.State),
 			Transfers:   trs,
-		}
+		})
 	}
 
 	return &pb.ListTransactionsResponse{
-		Transactions: res,
-		Page:         page.ToPB(len(res)),
+		Transactions:  res,
+		NextPageToken: nextPageToken,
 	}, nil
 }
 
