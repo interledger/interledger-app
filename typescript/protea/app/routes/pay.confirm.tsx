@@ -107,10 +107,13 @@ export default function Page() {
           }
           errorMessage={actionData?.errors.serviceAgreement}
         >
-          I authorize Fynbos to debit the card indicated for the amount noted on
-          today’s date. I will not dispute Fynbos debiting my account, so long
-          as the transaction corresponds to the terms in this online form and my
-          agreement with Fynbos.
+          I authorize Fynbos to debit
+          {linkedAccount?.type == 'card'
+            ? ' the card indicated '
+            : ' my account '}
+          for the amount noted on today’s date. I will not dispute Fynbos
+          debiting my account, so long as the transaction corresponds to the
+          terms in this online form and my agreement with Fynbos.
         </Checkbox>
         <div className='mt-6'>
           <Button form='pay-confirm' type='submit'>

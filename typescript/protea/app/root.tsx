@@ -1,12 +1,13 @@
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type {
+  ShouldRevalidateFunction} from '@remix-run/react';
 import {
   Links,
   LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
-  ShouldRevalidateFunction,
   useCatch,
   useLoaderData,
   useMatches
