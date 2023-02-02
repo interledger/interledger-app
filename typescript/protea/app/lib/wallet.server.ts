@@ -278,10 +278,15 @@ function transactionTitle(trx: GrpcTransaction): string {
   }
 }
 
+type getTransactionsWithPendingResponse = {
+  nextPageToken: string
+  transactions: Transaction[]
+}
+
 export async function getTransactionsWithPending(
   request: Request,
-  input: PaginationRequest = { page: 1, pageSize: 20 }
-): Promise<Transaction[]> {
+  input: PaginationRequest
+): Promise<getTransactionsWithPendingResponse> {
   const cookie = String(request.headers.get('cookie'))
   return grpcClient
     .listTransactionsWithPending(input, {
@@ -289,8 +294,9 @@ export async function getTransactionsWithPending(
         cookies: cookie || ''
       }
     })
-    .then((response) =>
-      response.response.transactions.map((trx) => ({
+    .then((response) => ({
+      nextPageToken: response.response.nextPageToken,
+      transactions: response.response.transactions.map((trx) => ({
         id: trx.id,
         type: trx.type,
         icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
@@ -303,13 +309,13 @@ export async function getTransactionsWithPending(
           parseInt(trx.timestamp?.seconds ?? '')
         ).toFormat('dd MMM yyyy')
       }))
-    )
+    }))
     .catch((error) => {
       const status = StatusError(error)
       if (isGrpcError(status)) {
         throw json({}, httpMapping(status.code))
       }
-      return []
+      return { nextPageToken: '', transactions: [] }
     })
 }
 
