@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/notify"
 	"regexp"
 	"strings"
 	"time"
@@ -177,6 +178,15 @@ func (a *Activity) CreateWallet(ctx context.Context, externalID string) error {
 		Nickname:   "default",
 		SendUserID: mu.ID,
 	})
+	if err == nil {
+		return err
+	}
+
+	// Only try if no error
+	u, err := ops.GetUserByID(ctx, a.b, mu.ID)
+	if err == nil {
+		err = a.b.Notify().NotifyWallet(ctx, u.WalletID, notify.NotificationTypeKyc)
+	}
 
 	return err
 }

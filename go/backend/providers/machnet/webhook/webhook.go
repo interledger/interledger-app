@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/notify"
 	"io"
 	"net/http"
 
@@ -171,6 +172,11 @@ func HandleUserKYCEvent(ctx context.Context, b ops.Backends, event external.Even
 		if err != nil {
 			return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 		}
+	}
+
+	err = b.Notify().NotifyWallet(ctx, mu.WalletID, notify.NotificationTypeKyc)
+	if err != nil {
+		log.Error("error notifying wallet", zap.Error(err))
 	}
 
 	return nil

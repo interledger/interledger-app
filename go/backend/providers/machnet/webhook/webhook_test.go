@@ -4,6 +4,8 @@ import (
 	"context"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"testing"
 	"time"
 
@@ -36,6 +38,7 @@ func TestHandleUserKYCEvent(t *testing.T) {
 	b := newTestBackends(t)
 	walletID := newWallet(t, b)
 	mu := newMachnetUser(t, b, walletID)
+	b.noitify.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 
 	kycEvent := external.Event{
 		ID:             uuid.NewString(),
@@ -334,6 +337,7 @@ func newTestBackends(t *testing.T) testBackends {
 		temporal:       &mocks.Client{},
 		email:          email_mock.NewMockClient(ctrl),
 		analytics:      analytics_client.New(nil, ""),
+		noitify:        notify_client.NewMockClient(ctrl),
 	}
 }
 
@@ -347,6 +351,7 @@ type testBackends struct {
 	statements     *statements_mock.MockClient
 	email          *email_mock.MockClient
 	analytics      analytics.Client
+	noitify        *notify_client.MockClient
 }
 
 func (b testBackends) Machnet() machnet.Client {
@@ -391,4 +396,8 @@ func (b testBackends) Statements() statements.Client {
 
 func (b testBackends) Analytics() analytics.Client {
 	return b.analytics
+}
+
+func (b testBackends) Notify() notify.Client {
+	return b.noitify
 }
