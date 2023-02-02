@@ -21,6 +21,9 @@ import (
 
 func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, args transactions.CreateTransactionArgs) (string, error) {
 	transID := uuid.NewString()
+	if args.ID != "" {
+		transID = args.ID
+	}
 	is := db.NewInsert("transactions").
 		Value("id", transID).
 		Value("wallet_id", args.WalletID).
