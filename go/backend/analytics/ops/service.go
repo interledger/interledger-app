@@ -224,3 +224,47 @@ func TrackWalletMachnetKYCStatus(b Backends, args analytics.MachnetKYCArgs) {
 		log.Error("analytics: error TrackWalletMachnetKYCStatus", zap.Error(err))
 	}
 }
+
+func TrackWalletMachnetCardAdded(b Backends, args analytics.MachnetCardAddedArgs) {
+
+	props := segment.NewProperties()
+	props.Set("type", "card")
+	props.Set("provider", "machnet")
+	props.Set("scheme", args.Scheme)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Linked Account Added",
+		UserId:     args.UserID,
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": args.WalletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletMachnetCardAdded", zap.Error(err))
+	}
+}
+
+func TrackWalletMachnetBankAdded(b Backends, args analytics.MachnetBankAddedArgs) {
+
+	props := segment.NewProperties()
+	props.Set("type", "bank")
+	props.Set("provider", "machnet")
+	props.Set("institution", args.Institution)
+
+	err := b.Segment().Enqueue(segment.Track{
+		Event:      "Linked Account Added",
+		UserId:     args.UserID,
+		Properties: props,
+		Context: &segment.Context{
+			Extra: map[string]interface{}{
+				"groupId": args.WalletID,
+			},
+		},
+	})
+	if err != nil {
+		log.Error("analytics: error TrackWalletMachnetBankAdded", zap.Error(err))
+	}
+}
