@@ -728,3 +728,111 @@ func TestCreateQuote(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateCanSend(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+
+	ctrl := gomock.NewController(t)
+	laClient := linked_account_mock.NewMockClient(ctrl)
+	mClient := machnet_mock_client.NewMockClient(ctrl)
+	txClient := transactions_mock.NewMockClient(ctrl)
+	txID := uuid.NewString()
+	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
+
+	b := ops.NewTestBackends(t, db, laClient, mClient, txClient)
+
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+
+	cases := []struct {
+		name      string
+		sendPP    string
+		recvPP    string
+		hasWallet bool
+		hasPP     bool
+		expected  bool
+		err       error
+	}{
+		{
+			name:      "can_send",
+			sendPP:    "http://fynbos.me/paysend",
+			recvPP:    "http://fynbos.me/payrecv",
+			hasWallet: true,
+			hasPP:     true,
+			expected:  true,
+		},
+		{
+			name:      "same_paymentpointer",
+			sendPP:    "http://fynbos.me/samesame",
+			recvPP:    "http://fynbos.me/samesame",
+			hasWallet: false,
+			hasPP:     true,
+			expected:  false,
+		},
+		{
+			name:      "no_wallet",
+			sendPP:    "http://fynbos.me/samesend",
+			recvPP:    "http://fynbos.me/differenrt",
+			hasWallet: false,
+			hasPP:     true,
+			expected:  false,
+		},
+		{
+			name:      "no_such_pointer",
+			sendPP:    "http://fynbos.me/senderpoint",
+			recvPP:    "http://fynbos.me/notreal",
+			hasWallet: false,
+			hasPP:     false,
+			expected:  false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			sendUserID := uuid.NewString()
+			recvUserID := uuid.NewString()
+			// Create Signups
+			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), sendUserID, uuid.NewString(), recvUserID)
+			require.NoError(t, err)
+			// Create Wallets
+			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			require.NoError(t, err)
+			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			require.NoError(t, err)
+
+			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+				URL:        tc.sendPP,
+				WalletID:   sendWallet.ID,
+				Alias:      "Alias",
+				Asset:      currency.USD,
+				AssetScale: 2,
+			})
+			require.NoError(t, err)
+			if tc.sendPP != tc.recvPP && tc.hasPP {
+				err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+					URL:        tc.recvPP,
+					WalletID:   recvWallet.ID,
+					Alias:      "Alias",
+					Asset:      currency.USD,
+					AssetScale: 2,
+				})
+				require.NoError(t, err)
+			}
+
+			if tc.hasWallet {
+				mClient.EXPECT().GetWalletByWalletID(ctx, recvWallet.ID).Return(&machnet.Wallet{}, nil).AnyTimes()
+			} else {
+				mClient.EXPECT().GetWalletByWalletID(ctx, recvWallet.ID).Return(nil, machnet.ErrNotFound).AnyTimes()
+			}
+
+			canSend, err := ops.ValidateCanSend(ctx, b, sendWallet.ID, tc.recvPP)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, canSend)
+		})
+	}
+}

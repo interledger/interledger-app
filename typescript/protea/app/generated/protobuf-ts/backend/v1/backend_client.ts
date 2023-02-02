@@ -53,6 +53,8 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenPaymentService } from "./backend";
 import type { ListTransactionsResponse } from "./backend";
 import type { PaginationRequest } from "./backend";
+import type { CanSendToPaymentPointerResponse } from "./backend";
+import type { CanSendToPaymentPointerRequest } from "./backend";
 import type { LookupOutgoingPaymentRequest } from "./backend";
 import type { OutgoingPayment } from "./backend";
 import type { CreateOutgoingPaymentRequest } from "./backend";
@@ -122,6 +124,10 @@ export interface IOpenPaymentServiceClient {
      * @generated from protobuf rpc: LookupOutgoingPayment(backend.v1.LookupOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     lookupOutgoingPayment(input: LookupOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<LookupOutgoingPaymentRequest, OutgoingPayment>;
+    /**
+     * @generated from protobuf rpc: CanSendToPaymentPointer(backend.v1.CanSendToPaymentPointerRequest) returns (backend.v1.CanSendToPaymentPointerResponse);
+     */
+    canSendToPaymentPointer(input: CanSendToPaymentPointerRequest, options?: RpcOptions): UnaryCall<CanSendToPaymentPointerRequest, CanSendToPaymentPointerResponse>;
     /**
      * deprecated
      *
@@ -220,19 +226,26 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<LookupOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: CanSendToPaymentPointer(backend.v1.CanSendToPaymentPointerRequest) returns (backend.v1.CanSendToPaymentPointerResponse);
+     */
+    canSendToPaymentPointer(input: CanSendToPaymentPointerRequest, options?: RpcOptions): UnaryCall<CanSendToPaymentPointerRequest, CanSendToPaymentPointerResponse> {
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CanSendToPaymentPointerRequest, CanSendToPaymentPointerResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * deprecated
      *
      * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListPendingTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listPendingTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
 }

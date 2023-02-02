@@ -33,6 +33,7 @@ type OpenPaymentServiceClient interface {
 	PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error)
 	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
+	CanSendToPaymentPointer(ctx context.Context, in *CanSendToPaymentPointerRequest, opts ...grpc.CallOption) (*CanSendToPaymentPointerResponse, error)
 	//deprecated
 	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	ListPendingTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
@@ -145,6 +146,15 @@ func (c *openPaymentServiceClient) LookupOutgoingPayment(ctx context.Context, in
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) CanSendToPaymentPointer(ctx context.Context, in *CanSendToPaymentPointerRequest, opts ...grpc.CallOption) (*CanSendToPaymentPointerResponse, error) {
+	out := new(CanSendToPaymentPointerResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CanSendToPaymentPointer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *openPaymentServiceClient) ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
 	out := new(ListTransactionsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListTransactions", in, out, opts...)
@@ -178,6 +188,7 @@ type OpenPaymentServiceServer interface {
 	PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error)
 	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
+	CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error)
 	//deprecated
 	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	ListPendingTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
@@ -219,6 +230,9 @@ func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Conte
 }
 func (UnimplementedOpenPaymentServiceServer) LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupOutgoingPayment not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CanSendToPaymentPointer not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTransactions not implemented")
@@ -436,6 +450,24 @@ func _OpenPaymentService_LookupOutgoingPayment_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenPaymentService_CanSendToPaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CanSendToPaymentPointerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).CanSendToPaymentPointer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/CanSendToPaymentPointer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).CanSendToPaymentPointer(ctx, req.(*CanSendToPaymentPointerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OpenPaymentService_ListTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PaginationRequest)
 	if err := dec(in); err != nil {
@@ -522,6 +554,10 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LookupOutgoingPayment",
 			Handler:    _OpenPaymentService_LookupOutgoingPayment_Handler,
+		},
+		{
+			MethodName: "CanSendToPaymentPointer",
+			Handler:    _OpenPaymentService_CanSendToPaymentPointer_Handler,
 		},
 		{
 			MethodName: "ListTransactions",

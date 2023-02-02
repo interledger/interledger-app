@@ -44,6 +44,28 @@ export interface PaginationResponse {
     hasNextPage: boolean;
 }
 /**
+ * @generated from protobuf message backend.v1.CanSendToPaymentPointerRequest
+ */
+export interface CanSendToPaymentPointerRequest {
+    /**
+     * @generated from protobuf field: string paymentPointer = 1;
+     */
+    paymentPointer: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 2;
+     */
+    amount?: Amount;
+}
+/**
+ * @generated from protobuf message backend.v1.CanSendToPaymentPointerResponse
+ */
+export interface CanSendToPaymentPointerResponse {
+    /**
+     * @generated from protobuf field: bool canSend = 1;
+     */
+    canSend: boolean;
+}
+/**
  * @generated from protobuf message backend.v1.Transaction
  */
 export interface Transaction {
@@ -1382,6 +1404,107 @@ class PaginationResponse$Type extends MessageType<PaginationResponse> {
  * @generated MessageType for protobuf message backend.v1.PaginationResponse
  */
 export const PaginationResponse = new PaginationResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CanSendToPaymentPointerRequest$Type extends MessageType<CanSendToPaymentPointerRequest> {
+    constructor() {
+        super("backend.v1.CanSendToPaymentPointerRequest", [
+            { no: 1, name: "paymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "amount", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<CanSendToPaymentPointerRequest>): CanSendToPaymentPointerRequest {
+        const message = { paymentPointer: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CanSendToPaymentPointerRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CanSendToPaymentPointerRequest): CanSendToPaymentPointerRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string paymentPointer */ 1:
+                    message.paymentPointer = reader.string();
+                    break;
+                case /* backend.v1.Amount amount */ 2:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CanSendToPaymentPointerRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string paymentPointer = 1; */
+        if (message.paymentPointer !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.paymentPointer);
+        /* backend.v1.Amount amount = 2; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CanSendToPaymentPointerRequest
+ */
+export const CanSendToPaymentPointerRequest = new CanSendToPaymentPointerRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CanSendToPaymentPointerResponse$Type extends MessageType<CanSendToPaymentPointerResponse> {
+    constructor() {
+        super("backend.v1.CanSendToPaymentPointerResponse", [
+            { no: 1, name: "canSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CanSendToPaymentPointerResponse>): CanSendToPaymentPointerResponse {
+        const message = { canSend: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CanSendToPaymentPointerResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CanSendToPaymentPointerResponse): CanSendToPaymentPointerResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool canSend */ 1:
+                    message.canSend = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CanSendToPaymentPointerResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool canSend = 1; */
+        if (message.canSend !== false)
+            writer.tag(1, WireType.Varint).bool(message.canSend);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CanSendToPaymentPointerResponse
+ */
+export const CanSendToPaymentPointerResponse = new CanSendToPaymentPointerResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Transaction$Type extends MessageType<Transaction> {
     constructor() {
@@ -5872,6 +5995,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "PreCheckOutgoingPayment", options: {}, I: PreCheckOutgoingPaymentRequest, O: PreCheckOutgoingPaymentResponse },
     { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
+    { name: "CanSendToPaymentPointer", options: {}, I: CanSendToPaymentPointerRequest, O: CanSendToPaymentPointerResponse },
     { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "ListPendingTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse }
 ]);
