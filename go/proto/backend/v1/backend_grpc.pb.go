@@ -34,9 +34,6 @@ type OpenPaymentServiceClient interface {
 	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	CanSendToPaymentPointer(ctx context.Context, in *CanSendToPaymentPointerRequest, opts ...grpc.CallOption) (*CanSendToPaymentPointerResponse, error)
-	//deprecated
-	ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
-	ListPendingTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 }
 
 type openPaymentServiceClient struct {
@@ -155,24 +152,6 @@ func (c *openPaymentServiceClient) CanSendToPaymentPointer(ctx context.Context, 
 	return out, nil
 }
 
-func (c *openPaymentServiceClient) ListTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
-	out := new(ListTransactionsResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListTransactions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) ListPendingTransactions(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
-	out := new(ListTransactionsResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/ListPendingTransactions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // OpenPaymentServiceServer is the server API for OpenPaymentService service.
 // All implementations should embed UnimplementedOpenPaymentServiceServer
 // for forward compatibility
@@ -189,9 +168,6 @@ type OpenPaymentServiceServer interface {
 	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
 	CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error)
-	//deprecated
-	ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
-	ListPendingTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 }
 
 // UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
@@ -233,12 +209,6 @@ func (UnimplementedOpenPaymentServiceServer) LookupOutgoingPayment(context.Conte
 }
 func (UnimplementedOpenPaymentServiceServer) CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CanSendToPaymentPointer not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) ListTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListTransactions not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) ListPendingTransactions(context.Context, *PaginationRequest) (*ListTransactionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPendingTransactions not implemented")
 }
 
 // UnsafeOpenPaymentServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -468,42 +438,6 @@ func _OpenPaymentService_CanSendToPaymentPointer_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenPaymentService_ListTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaginationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).ListTransactions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.OpenPaymentService/ListTransactions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).ListTransactions(ctx, req.(*PaginationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_ListPendingTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaginationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).ListPendingTransactions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.OpenPaymentService/ListPendingTransactions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).ListPendingTransactions(ctx, req.(*PaginationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // OpenPaymentService_ServiceDesc is the grpc.ServiceDesc for OpenPaymentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -558,14 +492,6 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CanSendToPaymentPointer",
 			Handler:    _OpenPaymentService_CanSendToPaymentPointer_Handler,
-		},
-		{
-			MethodName: "ListTransactions",
-			Handler:    _OpenPaymentService_ListTransactions_Handler,
-		},
-		{
-			MethodName: "ListPendingTransactions",
-			Handler:    _OpenPaymentService_ListPendingTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -623,7 +549,6 @@ type BackendServiceClient interface {
 	// Limits
 	GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error)
 	//Statements
-	ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error)
 	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
 }
 
@@ -977,15 +902,6 @@ func (c *backendServiceClient) GetUserLimits(ctx context.Context, in *Empty, opt
 	return out, nil
 }
 
-func (c *backendServiceClient) ListStatements(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListStatementsResponse, error) {
-	out := new(ListStatementsResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListStatements", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error) {
 	out := new(StatementPDF)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
@@ -1046,7 +962,6 @@ type BackendServiceServer interface {
 	// Limits
 	GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error)
 	//Statements
-	ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error)
 	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
 }
 
@@ -1167,9 +1082,6 @@ func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *Loo
 }
 func (UnimplementedBackendServiceServer) GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserLimits not implemented")
-}
-func (UnimplementedBackendServiceServer) ListStatements(context.Context, *PaginationRequest) (*ListStatementsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListStatements not implemented")
 }
 func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
@@ -1870,24 +1782,6 @@ func _BackendService_GetUserLimits_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_ListStatements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaginationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).ListStatements(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/ListStatements",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).ListStatements(ctx, req.(*PaginationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetStatementPDFRequest)
 	if err := dec(in); err != nil {
@@ -2064,10 +1958,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserLimits",
 			Handler:    _BackendService_GetUserLimits_Handler,
-		},
-		{
-			MethodName: "ListStatements",
-			Handler:    _BackendService_ListStatements_Handler,
 		},
 		{
 			MethodName: "GetStatementPDF",

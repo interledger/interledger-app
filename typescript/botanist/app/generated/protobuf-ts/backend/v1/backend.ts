@@ -18,30 +18,13 @@ import { Timestamp } from "../../google/protobuf/timestamp";
  */
 export interface PaginationRequest {
     /**
-     * @generated from protobuf field: int32 page = 1;
-     */
-    page: number;
-    /**
-     * @generated from protobuf field: int32 pageSize = 2;
-     */
-    pageSize: number;
-}
-/**
- * @generated from protobuf message backend.v1.PaginationResponse
- */
-export interface PaginationResponse {
-    /**
-     * @generated from protobuf field: int32 page = 1;
-     */
-    page: number;
-    /**
-     * @generated from protobuf field: int32 pageSize = 2;
+     * @generated from protobuf field: int32 pageSize = 1;
      */
     pageSize: number;
     /**
-     * @generated from protobuf field: bool hasNextPage = 3;
+     * @generated from protobuf field: optional string pageToken = 2;
      */
-    hasNextPage: boolean;
+    pageToken?: string;
 }
 /**
  * @generated from protobuf message backend.v1.CanSendToPaymentPointerRequest
@@ -51,10 +34,6 @@ export interface CanSendToPaymentPointerRequest {
      * @generated from protobuf field: string paymentPointer = 1;
      */
     paymentPointer: string;
-    /**
-     * @generated from protobuf field: backend.v1.Amount amount = 2;
-     */
-    amount?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.CanSendToPaymentPointerResponse
@@ -115,9 +94,9 @@ export interface ListTransactionsResponse {
      */
     transactions: Transaction[];
     /**
-     * @generated from protobuf field: backend.v1.PaginationResponse page = 2;
+     * @generated from protobuf field: string nextPageToken = 2;
      */
-    page?: PaginationResponse;
+    nextPageToken: string;
 }
 /**
  * @generated from protobuf message backend.v1.Amount
@@ -524,9 +503,9 @@ export interface ListStatementsResponse {
      */
     periods: string[];
     /**
-     * @generated from protobuf field: backend.v1.PaginationResponse page = 2;
+     * @generated from protobuf field: string nextPageToken = 2;
      */
-    page?: PaginationResponse;
+    nextPageToken: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetStatementPDFRequest
@@ -1293,12 +1272,12 @@ export interface LimitAmount {
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
         super("backend.v1.PaginationRequest", [
-            { no: 1, name: "page", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 2, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 1, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "pageToken", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PaginationRequest>): PaginationRequest {
-        const message = { page: 0, pageSize: 0 };
+        const message = { pageSize: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PaginationRequest>(this, message, value);
@@ -1309,11 +1288,11 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* int32 page */ 1:
-                    message.page = reader.int32();
-                    break;
-                case /* int32 pageSize */ 2:
+                case /* int32 pageSize */ 1:
                     message.pageSize = reader.int32();
+                    break;
+                case /* optional string pageToken */ 2:
+                    message.pageToken = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1327,12 +1306,12 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
         return message;
     }
     internalBinaryWrite(message: PaginationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* int32 page = 1; */
-        if (message.page !== 0)
-            writer.tag(1, WireType.Varint).int32(message.page);
-        /* int32 pageSize = 2; */
+        /* int32 pageSize = 1; */
         if (message.pageSize !== 0)
-            writer.tag(2, WireType.Varint).int32(message.pageSize);
+            writer.tag(1, WireType.Varint).int32(message.pageSize);
+        /* optional string pageToken = 2; */
+        if (message.pageToken !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.pageToken);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1344,72 +1323,10 @@ class PaginationRequest$Type extends MessageType<PaginationRequest> {
  */
 export const PaginationRequest = new PaginationRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class PaginationResponse$Type extends MessageType<PaginationResponse> {
-    constructor() {
-        super("backend.v1.PaginationResponse", [
-            { no: 1, name: "page", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 2, name: "pageSize", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 3, name: "hasNextPage", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<PaginationResponse>): PaginationResponse {
-        const message = { page: 0, pageSize: 0, hasNextPage: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<PaginationResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PaginationResponse): PaginationResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* int32 page */ 1:
-                    message.page = reader.int32();
-                    break;
-                case /* int32 pageSize */ 2:
-                    message.pageSize = reader.int32();
-                    break;
-                case /* bool hasNextPage */ 3:
-                    message.hasNextPage = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: PaginationResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* int32 page = 1; */
-        if (message.page !== 0)
-            writer.tag(1, WireType.Varint).int32(message.page);
-        /* int32 pageSize = 2; */
-        if (message.pageSize !== 0)
-            writer.tag(2, WireType.Varint).int32(message.pageSize);
-        /* bool hasNextPage = 3; */
-        if (message.hasNextPage !== false)
-            writer.tag(3, WireType.Varint).bool(message.hasNextPage);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.PaginationResponse
- */
-export const PaginationResponse = new PaginationResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class CanSendToPaymentPointerRequest$Type extends MessageType<CanSendToPaymentPointerRequest> {
     constructor() {
         super("backend.v1.CanSendToPaymentPointerRequest", [
-            { no: 1, name: "paymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "amount", kind: "message", T: () => Amount }
+            { no: 1, name: "paymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CanSendToPaymentPointerRequest>): CanSendToPaymentPointerRequest {
@@ -1427,9 +1344,6 @@ class CanSendToPaymentPointerRequest$Type extends MessageType<CanSendToPaymentPo
                 case /* string paymentPointer */ 1:
                     message.paymentPointer = reader.string();
                     break;
-                case /* backend.v1.Amount amount */ 2:
-                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -1445,9 +1359,6 @@ class CanSendToPaymentPointerRequest$Type extends MessageType<CanSendToPaymentPo
         /* string paymentPointer = 1; */
         if (message.paymentPointer !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.paymentPointer);
-        /* backend.v1.Amount amount = 2; */
-        if (message.amount)
-            Amount.internalBinaryWrite(message.amount, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1613,11 +1524,11 @@ class ListTransactionsResponse$Type extends MessageType<ListTransactionsResponse
     constructor() {
         super("backend.v1.ListTransactionsResponse", [
             { no: 1, name: "transactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transaction },
-            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+            { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ListTransactionsResponse>): ListTransactionsResponse {
-        const message = { transactions: [] };
+        const message = { transactions: [], nextPageToken: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListTransactionsResponse>(this, message, value);
@@ -1631,8 +1542,8 @@ class ListTransactionsResponse$Type extends MessageType<ListTransactionsResponse
                 case /* repeated backend.v1.Transaction transactions */ 1:
                     message.transactions.push(Transaction.internalBinaryRead(reader, reader.uint32(), options));
                     break;
-                case /* backend.v1.PaginationResponse page */ 2:
-                    message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
+                case /* string nextPageToken */ 2:
+                    message.nextPageToken = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1649,9 +1560,9 @@ class ListTransactionsResponse$Type extends MessageType<ListTransactionsResponse
         /* repeated backend.v1.Transaction transactions = 1; */
         for (let i = 0; i < message.transactions.length; i++)
             Transaction.internalBinaryWrite(message.transactions[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PaginationResponse page = 2; */
-        if (message.page)
-            PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string nextPageToken = 2; */
+        if (message.nextPageToken !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2971,11 +2882,11 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
     constructor() {
         super("backend.v1.ListStatementsResponse", [
             { no: 1, name: "periods", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "page", kind: "message", T: () => PaginationResponse }
+            { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ListStatementsResponse>): ListStatementsResponse {
-        const message = { periods: [] };
+        const message = { periods: [], nextPageToken: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListStatementsResponse>(this, message, value);
@@ -2989,8 +2900,8 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
                 case /* repeated string periods */ 1:
                     message.periods.push(reader.string());
                     break;
-                case /* backend.v1.PaginationResponse page */ 2:
-                    message.page = PaginationResponse.internalBinaryRead(reader, reader.uint32(), options, message.page);
+                case /* string nextPageToken */ 2:
+                    message.nextPageToken = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3007,9 +2918,9 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
         /* repeated string periods = 1; */
         for (let i = 0; i < message.periods.length; i++)
             writer.tag(1, WireType.LengthDelimited).string(message.periods[i]);
-        /* backend.v1.PaginationResponse page = 2; */
-        if (message.page)
-            PaginationResponse.internalBinaryWrite(message.page, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string nextPageToken = 2; */
+        if (message.nextPageToken !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5995,9 +5906,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "PreCheckOutgoingPayment", options: {}, I: PreCheckOutgoingPaymentRequest, O: PreCheckOutgoingPaymentResponse },
     { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
-    { name: "CanSendToPaymentPointer", options: {}, I: CanSendToPaymentPointerRequest, O: CanSendToPaymentPointerResponse },
-    { name: "ListTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
-    { name: "ListPendingTransactions", options: {}, I: PaginationRequest, O: ListTransactionsResponse }
+    { name: "CanSendToPaymentPointer", options: {}, I: CanSendToPaymentPointerRequest, O: CanSendToPaymentPointerResponse }
 ]);
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
@@ -6041,6 +5950,5 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "GetUserLimits", options: {}, I: Empty, O: GetUserLimitsResponse },
-    { name: "ListStatements", options: {}, I: PaginationRequest, O: ListStatementsResponse },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF }
 ]);

@@ -27,7 +27,7 @@ type BackendClient interface {
 	AllowWaitlistSignup(ctx context.Context, in *AllowWaitlistSignupRequest, opts ...grpc.CallOption) (*Empty, error)
 	ListWallets(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListWalletsResponse, error)
 	GetWalletDetails(ctx context.Context, in *GetWalletDetailsRequest, opts ...grpc.CallOption) (*WalletDetails, error)
-	ListWalletTransactions(ctx context.Context, in *ListWalletTransactionsRequest, opts ...grpc.CallOption) (*ListWalletTransactionsResponse, error)
+	//  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
 	EmailWalletStatement(ctx context.Context, in *EmailWalletStatementRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -75,15 +75,6 @@ func (c *backendClient) GetWalletDetails(ctx context.Context, in *GetWalletDetai
 	return out, nil
 }
 
-func (c *backendClient) ListWalletTransactions(ctx context.Context, in *ListWalletTransactionsRequest, opts ...grpc.CallOption) (*ListWalletTransactionsResponse, error) {
-	out := new(ListWalletTransactionsResponse)
-	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListWalletTransactions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendClient) EmailWalletStatement(ctx context.Context, in *EmailWalletStatementRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/EmailWalletStatement", in, out, opts...)
@@ -101,7 +92,7 @@ type BackendServer interface {
 	AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error)
 	ListWallets(context.Context, *PaginationRequest) (*ListWalletsResponse, error)
 	GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error)
-	ListWalletTransactions(context.Context, *ListWalletTransactionsRequest) (*ListWalletTransactionsResponse, error)
+	//  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
 	EmailWalletStatement(context.Context, *EmailWalletStatementRequest) (*Empty, error)
 }
 
@@ -120,9 +111,6 @@ func (UnimplementedBackendServer) ListWallets(context.Context, *PaginationReques
 }
 func (UnimplementedBackendServer) GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletDetails not implemented")
-}
-func (UnimplementedBackendServer) ListWalletTransactions(context.Context, *ListWalletTransactionsRequest) (*ListWalletTransactionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListWalletTransactions not implemented")
 }
 func (UnimplementedBackendServer) EmailWalletStatement(context.Context, *EmailWalletStatementRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmailWalletStatement not implemented")
@@ -211,24 +199,6 @@ func _Backend_GetWalletDetails_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Backend_ListWalletTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListWalletTransactionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServer).ListWalletTransactions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.admin.v1.Backend/ListWalletTransactions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).ListWalletTransactions(ctx, req.(*ListWalletTransactionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Backend_EmailWalletStatement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EmailWalletStatementRequest)
 	if err := dec(in); err != nil {
@@ -269,10 +239,6 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWalletDetails",
 			Handler:    _Backend_GetWalletDetails_Handler,
-		},
-		{
-			MethodName: "ListWalletTransactions",
-			Handler:    _Backend_ListWalletTransactions_Handler,
 		},
 		{
 			MethodName: "EmailWalletStatement",

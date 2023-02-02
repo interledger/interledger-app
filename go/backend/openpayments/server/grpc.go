@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -466,16 +465,4 @@ func (g *grpcServer) CanSendToPaymentPointer(ctx context.Context, req *pb.CanSen
 	}
 
 	return &pb.CanSendToPaymentPointerResponse{CanSend: canSend}, nil
-}
-
-func (g *grpcServer) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
-	page := db.PaginationFromPB(req)
-
-	return &pb.ListTransactionsResponse{Transactions: nil, Page: page.ToPB(0)}, nil
-}
-
-func (g *grpcServer) ListPendingTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
-	page := db.PaginationFromPB(req)
-
-	return &pb.ListTransactionsResponse{Transactions: nil, Page: page.ToPB(0)}, nil
 }
