@@ -200,6 +200,13 @@ func HandleUserCardAddedEvent(ctx context.Context, b ops.Backends, event externa
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
 
+	fUserId := getWalletUserID(ctx, b, user.WalletID)
+	b.Analytics().TrackWalletMachnetCardAdded(analytics.MachnetCardAddedArgs{
+		UserID:   fUserId,
+		WalletID: user.WalletID,
+		Scheme:   card.InstitutionName,
+	})
+
 	return nil
 }
 
@@ -226,6 +233,13 @@ func HandleBankAccountAddedEvent(ctx context.Context, b ops.Backends, event exte
 	if err != nil {
 		return fmt.Errorf("%w %s", machnet.ErrInternal, err)
 	}
+
+	fUserId := getWalletUserID(ctx, b, user.WalletID)
+	b.Analytics().TrackWalletMachnetBankAdded(analytics.MachnetBankAddedArgs{
+		UserID:      fUserId,
+		WalletID:    user.WalletID,
+		Institution: bankAcc.InstitutionName,
+	})
 
 	return nil
 }

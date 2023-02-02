@@ -26,3 +26,15 @@ type MachnetKYCArgs struct {
 	WalletID string
 	Status   machnet.KYCStatus
 }
+
+type MachnetCardAddedArgs struct {
+	UserID   string
+	WalletID string
+	Scheme   string
+}
+
+type MachnetBankAddedArgs struct {
+	UserID      string
+	WalletID    string
+	Institution string
+}

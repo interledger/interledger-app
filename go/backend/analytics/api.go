@@ -12,5 +12,7 @@ type Client interface {
 	TrackWalletTransactionCompleted(walletID string, args WalletTransactionArgs)
 	TrackWalletTransactionFailed(walletID string, args WalletTransactionArgs)
 	TrackWalletMachnetKYCStatus(args MachnetKYCArgs)
+	TrackWalletMachnetCardAdded(args MachnetCardAddedArgs)
+	TrackWalletMachnetBankAdded(args MachnetBankAddedArgs)
 	Close()
 }
