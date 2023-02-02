@@ -4,6 +4,8 @@ import (
 	"context"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"strings"
 	"testing"
 	"time"
@@ -483,6 +485,7 @@ func NewTestBackends(t *testing.T) backends {
 		temporal:       &mocks.Client{},
 		email:          email_mock.NewMockClient(ctrl),
 		analytics:      analytics_client.New(nil, ""),
+		notify:         notify_client.NewMockClient(ctrl),
 	}
 }
 
@@ -497,6 +500,7 @@ type backends struct {
 	transactions   transactions.Client
 	email          *email_mock.MockClient
 	analytics      analytics.Client
+	notify         *notify_client.MockClient
 }
 
 func (b backends) Users() user.Client {
@@ -537,4 +541,8 @@ func (b backends) Statements() statements.Client {
 
 func (b backends) Analytics() analytics.Client {
 	return b.analytics
+}
+
+func (b backends) Notify() notify.Client {
+	return b.notify
 }

@@ -27,7 +27,7 @@ type client struct {
 
 func (c client) CreateTicket(ctx context.Context, email, name, description string) error {
 	subject := "New ticket created via the Fynbos app"
-	
+
 	body := CreateRequestReq{
 		Request: Request{
 			Subject: subject,

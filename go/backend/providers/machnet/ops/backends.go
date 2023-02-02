@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
@@ -24,4 +25,5 @@ type Backends interface {
 	Temporal() client.Client
 	Transactions() transactions.Client
 	Analytics() analytics.Client
+	Notify() notify.Client
 }

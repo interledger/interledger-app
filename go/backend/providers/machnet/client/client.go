@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/notify"
 	"reflect"
 	"time"
 
@@ -45,6 +46,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Statements() statements.Client
 	Analytics() analytics.Client
+	Notify() notify.Client
 }
 
 type opsBackends struct {
