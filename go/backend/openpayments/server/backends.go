@@ -1,27 +1,20 @@
 package server
 
 import (
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"testing"
-
-	"gitlab.com/fynbos/backend/authorisation"
-
-	"gitlab.com/fynbos/backend/kyc"
-
-	"gitlab.com/fynbos/backend/transactions"
-
-	"gitlab.com/fynbos/backend/providers/machnet"
-
-	"gitlab.com/fynbos/backend/email"
-
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	temporal "go.temporal.io/sdk/client"
-
-	"gitlab.com/fynbos/backend/user"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/authorisation"
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/user"
+	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
