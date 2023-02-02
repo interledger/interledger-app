@@ -2,6 +2,7 @@ package analytics
 
 import (
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/transactions"
 )
 
@@ -18,4 +19,10 @@ type WalletTransactionArgs struct {
 	Provider transactions.Provider
 	Amount   currency.Amount
 	UserID   string
+}
+
+type MachnetKYCArgs struct {
+	UserID   string
+	WalletID string
+	Status   machnet.KYCStatus
 }

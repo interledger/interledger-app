@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -21,6 +22,7 @@ type Backends interface {
 	Temporal() client.Client
 	Transactions() transactions.Client
 	Email() email.Client
+	Analytics() analytics.Client
 }
 
 type opsBackends struct {

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -22,4 +23,5 @@ type Backends interface {
 	Statements() statements.Client
 	Temporal() client.Client
 	Transactions() transactions.Client
+	Analytics() analytics.Client
 }
