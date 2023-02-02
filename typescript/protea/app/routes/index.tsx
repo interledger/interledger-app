@@ -84,7 +84,7 @@ export async function loader({ request }: LoaderArgs) {
       getUserSession(request),
       getWalletPaymentPointer(request),
       getWalletBalance(request),
-      getTransactionsWithPending(request, { page: 1, pageSize: 3 }),
+      getTransactionsWithPending(request, { pageSize: 3 }),
       getKycStatus(request),
       getLinkedAccounts(request),
       getSnackbar(request),
@@ -96,7 +96,7 @@ export async function loader({ request }: LoaderArgs) {
       firstName: session.identity.traits.firstName,
       paymentPointer,
       balance,
-      transactions: transactions,
+      transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
       canTopUp: linkedAccounts.canTopUp,
       canWithdraw: linkedAccounts.canWithdraw,
@@ -123,7 +123,7 @@ export async function loader({ request }: LoaderArgs) {
       }
     } else if (
       data.kycStatus == KycStatus.Verified &&
-      transactions.length == 0 &&
+      transactions.transactions.length == 0 &&
       !data.canTopUp
     ) {
       data.nextStep = {
@@ -138,7 +138,7 @@ export async function loader({ request }: LoaderArgs) {
       }
     } else if (
       data.kycStatus == KycStatus.Verified &&
-      transactions.length > 0 &&
+      transactions.transactions.length > 0 &&
       !data.canWithdraw
     ) {
       data.nextStep = {
