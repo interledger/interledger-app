@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
+	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
@@ -303,11 +304,41 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	case "outgoing-payments":
 		getOutgoingPayment(b, w, req)
 		return
+	case ".well-known/keys":
+		listClientKeys(b, pp, w, req)
+		return
 	}
 
 	// Fallback to get payment pointer
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(pp)
+	if err != nil {
+		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func listClientKeys(b Backends, pp *openpayments.PaymentPointer, w http.ResponseWriter, req *http.Request) {
+	// we assume the client url has been registered as the pp
+	clientURL := pp.URL
+	keys, err := b.Authorisation().ListKeys(req.Context(), clientURL)
+	if errors.Is(err, authorisation.ErrNotFound) {
+		log.Error("Failed to list client keys. clientURL not found.", zap.Error(err), zap.String("clientURL", clientURL))
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	}
+	if err != nil {
+		log.Error("error listing client public keys", zap.Error(err), zap.String("clientURL", clientURL))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	keySet := struct {
+		Keys []authorisation.Jwk `json:"keys"`
+	}{
+		Keys: keys,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(keySet)
 	if err != nil {
 		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
