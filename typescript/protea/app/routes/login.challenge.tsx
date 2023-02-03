@@ -10,12 +10,11 @@ import {
   kratosErrorMapping
 } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
-import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
-  await requireFlow(request, flowType.PasswordChallenge)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -132,7 +131,6 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const flow = await requireFlow(request, flowType.PasswordChallenge)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -169,8 +167,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   const headers = trimHeaders(res.headers, ['set-cookie'])
-  await exitFlow(request, flowType.PasswordChallenge)
-  return redirect(flow.returnTo, {
+  return redirect(route('/settings/password'), {
     headers: headers
   })
 }
