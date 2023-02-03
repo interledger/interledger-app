@@ -2,10 +2,12 @@ package grpc
 
 import (
 	"fmt"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"net"
 	"testing"
+
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/authorisation"
 
@@ -66,6 +68,10 @@ type TestContainer struct {
 	EmailClient        *email_mock.MockClient
 	TransactionsClient *transactions_mock.MockClient
 	AnalyticsClient    analytics.Client
+}
+
+func (t TestContainer) OpenPayments() openpayments.Client {
+	return nil
 }
 
 func (t TestContainer) Authorisation() authorisation.InternalClient {

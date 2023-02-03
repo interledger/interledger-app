@@ -232,6 +232,25 @@ service BackendService {
 
   //Statements
   rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
+
+  //Client keys
+  rpc CreateClientPublicKey(JWK) returns (Empty);
+}
+
+// example edDSA public key
+// {
+//   "kty": "OKP",
+//   "kid": "test-key",
+//   "alg": "EdDSA",
+//   "crv": "Ed25519",
+//   "x": "<base64 encoded public key>"
+// }
+message JWK {
+  string kty = 1;
+  string kid = 2;
+  string alg = 3;
+  string x = 4;
+  string crv = 5;
 }
 
 message Transfer {

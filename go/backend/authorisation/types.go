@@ -74,6 +74,9 @@ type (
 		Kid string `json:"kid"`
 		Alg string `json:"alg"`
 		N   string `json:"n"`
+		Crv string `json:"crv"`
+		X   string `json:"x"`
+		Use string `json:"use"`
 	}
 
 	Key struct {
@@ -122,3 +125,11 @@ type (
 		Flags     []string `json:"flags,omitempty"`
 	}
 )
+
+func (key Jwk) IsEdDSAPublicKey() bool {
+	return key.Kty == "OKP" &&
+		key.Use == "sign" &&
+		key.Crv == "ed25519" &&
+		key.Alg == "edDSA" &&
+		key.X != ""
+}

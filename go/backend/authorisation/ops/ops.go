@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -165,4 +166,106 @@ func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Gra
 	resp.Tokens = respTokens
 
 	return resp, nil
+}
+
+type dbClientKey struct {
+	ID        string    `db:"id"`
+	ClientID  string    `db:"client_id"`
+	KeyID     string    `db:"key_id"`
+	JWK       string    `db:"jwk"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func CreateClientPublicKey(
+	ctx context.Context,
+	b Backends,
+	clientURL string,
+	publicKey authorisation.Jwk,
+) error {
+	client, err := LookupClient(ctx, b, clientURL)
+	if err != nil {
+		return err
+	}
+
+	serializedKey, err := json.Marshal(publicKey)
+	if err != nil {
+		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	sql := "INSERT INTO authorisation_keys (client_id, key_id, jwk) VALUES ($1, $2, $3);"
+	_, err = b.DB().ExecContext(ctx, sql, client.ID, publicKey.Kid, serializedKey)
+	if err != nil {
+		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func GetClientPublicKey(
+	ctx context.Context, b Backends, clientURL string, keyID string,
+) (*authorisation.Jwk, error) {
+	client, err := LookupClient(ctx, b, clientURL)
+	if err != nil {
+		return nil, err
+	}
+
+	var key dbClientKey
+	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1 AND key_id=$2;"
+	err = b.DB().GetContext(ctx, &key, sql, client.ID, keyID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	var jwk authorisation.Jwk
+	if err = json.Unmarshal([]byte(key.JWK), &jwk); err != nil {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	return &authorisation.Jwk{
+		Kty: jwk.Kty,
+		E:   jwk.E,
+		Kid: jwk.Kid,
+		Alg: jwk.Alg,
+		N:   jwk.N,
+		Crv: jwk.Crv,
+		X:   jwk.X,
+		Use: jwk.Use,
+	}, nil
+}
+
+func ListKeys(
+	ctx context.Context, b Backends, clientURL string,
+) ([]authorisation.Jwk, error) {
+	client, err := LookupClient(ctx, b, clientURL)
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []dbClientKey
+	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1;"
+	err = b.DB().SelectContext(ctx, &keys, sql, client.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	jwks := make([]authorisation.Jwk, len(keys))
+	for i, key := range keys {
+		var jwk authorisation.Jwk
+		if err = json.Unmarshal([]byte(key.JWK), &jwk); err != nil {
+			return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+		}
+		jwks[i] = authorisation.Jwk{
+			Kty: jwk.Kty,
+			E:   jwk.E,
+			Kid: jwk.Kid,
+			Alg: jwk.Alg,
+			N:   jwk.N,
+			Crv: jwk.Crv,
+			X:   jwk.X,
+			Use: jwk.Use,
+		}
+	}
+
+	return jwks, nil
 }

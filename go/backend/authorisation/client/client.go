@@ -19,16 +19,14 @@ func New(b ops.Backends) authorisation.InternalClient {
 	}
 }
 
-func (c client) AddPublicKey(ctx context.Context, walletID string, key string) error {
-	//TODO implement me
-	panic("implement me")
+func (c client) AddPublicKey(ctx context.Context, clientURL string, publicKey authorisation.Jwk) error {
+	return ops.CreateClientPublicKey(ctx, c.b, clientURL, publicKey)
 }
 func (c client) Introspect(ctx context.Context, token string) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c client) ListKeys(ctx context.Context, paymentPointer string) ([]string, error) {
-	//TODO implement me
-	panic("implement me")
+func (c client) ListKeys(ctx context.Context, clientURL string) ([]authorisation.Jwk, error) {
+	return ops.ListKeys(ctx, c.b, clientURL)
 }
