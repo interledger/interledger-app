@@ -45,7 +45,7 @@ export const TextField = forwardRef<any, TextFieldProps>(
         <div className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
           <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
             {prefixIcon && (
-              <div className='-mr-3 flex h-full items-center px-3'>
+              <div className='-mr-6 flex h-full items-center px-3'>
                 {prefixIcon}
               </div>
             )}
