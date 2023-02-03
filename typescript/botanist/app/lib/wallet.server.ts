@@ -8,7 +8,6 @@ import { json } from '@remix-run/node'
 import type { Amount } from '~/generated/protobuf-ts/backend/v1/backend'
 import type {
   ListWalletsResponse,
-  ListWalletTransactionsResponse,
   PaginationRequest,
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
@@ -52,30 +51,6 @@ export async function GetWalletDetails(
   let response = await grpcClient
     .getWalletDetails(
       { walletID },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
-
-  return response.response
-}
-
-export async function ListWalletTransactions(
-  request: Request,
-  walletID: string,
-  page: PaginationRequest
-): Promise<ListWalletTransactionsResponse> {
-  const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
-    .listWalletTransactions(
-      { walletID, page },
       {
         meta: {
           cookies: cookie || ''
