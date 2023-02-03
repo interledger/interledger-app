@@ -10,6 +10,7 @@ import {
   Router,
   Shape,
   Snackbar,
+  AnimatedSchedule,
   WalletGrid
 } from '~/components'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
@@ -21,13 +22,14 @@ import {
   getLinkedAccounts,
   getTransactionsWithPending
 } from '~/lib/wallet.server'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import type { PusherArgs } from '~/lib/usePusher'
 import { usePusher } from '~/lib/usePusher'
 import { getPusherArgs } from '~/lib/pusher.server'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export enum KycStatus {
   Unknown,
@@ -458,9 +460,23 @@ function AppPage() {
   } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
+  const [animatedBalance, setBalance] = useState<string>(balance)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
   )
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (animatedBalance != balance) {
+      setBalance('')
+      timer = setTimeout(() => {
+        setBalance(balance)
+      }, 100)
+    }
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [balance, animatedBalance])
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
@@ -585,7 +601,33 @@ function AppPage() {
       {kycStatus == KycStatus.Verified && (
         <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>Cash balance</h2>
-          <h1 className='mt-2 text-3xl font-medium'>{balance}</h1>
+          <div className='flex mt-2 h-9'>
+            <AnimatePresence mode='wait'>
+              {animatedBalance && (
+                <motion.h1
+                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0.5,
+                    transition: {
+                      duration: 0.1
+                    }
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 400,
+                    damping: 20,
+                    duration: 0.15
+                  }}
+                  className='text-3xl font-medium'
+                >
+                  {animatedBalance}
+                </motion.h1>
+              )}
+            </AnimatePresence>
+          </div>
+
           <div className='mt-5 flex w-full justify-end space-x-6'>
             <Router
               className='text-sm font-medium text-primary'
@@ -660,7 +702,16 @@ function AppPage() {
                 className='mt-2 flex w-full justify-between'
               >
                 <div className='flex space-x-1'>
-                  <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
+                  {transaction.icon == 'schedule' && (
+                    <div className='mt-0.5'>
+                      <AnimatedSchedule />
+                    </div>
+                  )}
+                  {transaction.icon != 'schedule' && (
+                    <Icon className='mt-0.5 text-medium'>
+                      {transaction.icon}
+                    </Icon>
+                  )}
                   <div className='flex flex-col space-y-2'>
                     <span className='text-medium'>{transaction.title}</span>
                     <span className='text-xs text-medium'>
