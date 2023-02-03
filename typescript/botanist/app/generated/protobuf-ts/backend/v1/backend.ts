@@ -466,6 +466,40 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * example edDSA public key
+ * {
+ *   "kty": "OKP",
+ *   "kid": "test-key",
+ *   "alg": "EdDSA",
+ *   "crv": "Ed25519",
+ *   "x": "<base64 encoded public key>"
+ * }
+ *
+ * @generated from protobuf message backend.v1.JWK
+ */
+export interface JWK {
+    /**
+     * @generated from protobuf field: string kty = 1;
+     */
+    kty: string;
+    /**
+     * @generated from protobuf field: string kid = 2;
+     */
+    kid: string;
+    /**
+     * @generated from protobuf field: string alg = 3;
+     */
+    alg: string;
+    /**
+     * @generated from protobuf field: string x = 4;
+     */
+    x: string;
+    /**
+     * @generated from protobuf field: string crv = 5;
+     */
+    crv: string;
+}
+/**
  * @generated from protobuf message backend.v1.Transfer
  */
 export interface Transfer {
@@ -2795,6 +2829,81 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class JWK$Type extends MessageType<JWK> {
+    constructor() {
+        super("backend.v1.JWK", [
+            { no: 1, name: "kty", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "kid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "alg", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "x", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "crv", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<JWK>): JWK {
+        const message = { kty: "", kid: "", alg: "", x: "", crv: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<JWK>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: JWK): JWK {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string kty */ 1:
+                    message.kty = reader.string();
+                    break;
+                case /* string kid */ 2:
+                    message.kid = reader.string();
+                    break;
+                case /* string alg */ 3:
+                    message.alg = reader.string();
+                    break;
+                case /* string x */ 4:
+                    message.x = reader.string();
+                    break;
+                case /* string crv */ 5:
+                    message.crv = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: JWK, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string kty = 1; */
+        if (message.kty !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.kty);
+        /* string kid = 2; */
+        if (message.kid !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.kid);
+        /* string alg = 3; */
+        if (message.alg !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.alg);
+        /* string x = 4; */
+        if (message.x !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.x);
+        /* string crv = 5; */
+        if (message.crv !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.crv);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.JWK
+ */
+export const JWK = new JWK$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Transfer$Type extends MessageType<Transfer> {
     constructor() {
@@ -5950,5 +6059,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "GetUserLimits", options: {}, I: Empty, O: GetUserLimitsResponse },
-    { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF }
+    { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF },
+    { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty }
 ]);

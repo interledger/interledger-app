@@ -550,6 +550,8 @@ type BackendServiceClient interface {
 	GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error)
 	//Statements
 	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
+	//Client keys
+	CreateClientPublicKey(ctx context.Context, in *JWK, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -911,6 +913,15 @@ func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetState
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateClientPublicKey(ctx context.Context, in *JWK, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateClientPublicKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -963,6 +974,8 @@ type BackendServiceServer interface {
 	GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error)
 	//Statements
 	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
+	//Client keys
+	CreateClientPublicKey(context.Context, *JWK) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1085,6 +1098,9 @@ func (UnimplementedBackendServiceServer) GetUserLimits(context.Context, *Empty) 
 }
 func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateClientPublicKey(context.Context, *JWK) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateClientPublicKey not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1800,6 +1816,24 @@ func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateClientPublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JWK)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateClientPublicKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateClientPublicKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateClientPublicKey(ctx, req.(*JWK))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1962,6 +1996,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStatementPDF",
 			Handler:    _BackendService_GetStatementPDF_Handler,
+		},
+		{
+			MethodName: "CreateClientPublicKey",
+			Handler:    _BackendService_CreateClientPublicKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

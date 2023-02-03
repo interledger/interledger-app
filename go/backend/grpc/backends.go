@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -42,4 +43,5 @@ type Backends interface {
 	Transactions() transactions.Client
 	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
+	OpenPayments () openpayments.Client
 }

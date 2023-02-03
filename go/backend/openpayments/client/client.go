@@ -23,3 +23,7 @@ func New(b ops.Backends) openpayments.Client {
 func (c client) ListTransactions(ctx context.Context, walletID string, pagination db.Pagination) ([]openpayments.Transaction, error) {
 	return nil, nil
 }
+
+func (c client) GetWalletPaymentPointer(ctx context.Context, walletID string) (*openpayments.PaymentPointer, error) {
+	return ops.GetWalletPaymentPointer(ctx, c.b, walletID)
+}

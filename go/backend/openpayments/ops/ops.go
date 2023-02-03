@@ -506,3 +506,16 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 	// Target Payment Pointer exists, Machnet wallet exists, it's not sending to itself
 	return true, nil
 }
+
+func GetWalletPaymentPointer(ctx context.Context, b Backends, walletID string) (*openpayments.PaymentPointer, error) {
+	var pp openpayments.PaymentPointer
+	err := b.DB().GetContext(ctx, &pp, "SELECT id, wallet_id, url, alias, asset, scale FROM payment_pointers WHERE wallet_id = $1 LIMIT 1;", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w unkown payment pointer for walletID(%s)", openpayments.ErrPaymentPointerNotFound, walletID)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return &pp, nil
+}

@@ -167,6 +167,38 @@ func TestCreatePaymentPointer(t *testing.T) {
 	}
 }
 
+func TestGetWalletPaymentPointer(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db, nil, nil, nil)
+
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userID := uuid.NewString()
+	// Create Signup
+	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+	// Create Wallet
+	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	require.NoError(t, err)
+
+	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		URL:        "https://fynbos.me/abcd1",
+		WalletID:   wallet.ID,
+		Alias:      "Alias",
+		Asset:      currency.ParseCurrency("USD"),
+		AssetScale: 2,
+	})
+	require.NoError(t, err)
+
+	pp, err := ops.GetWalletPaymentPointer(ctx, b, wallet.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "https://fynbos.me/abcd1", pp.URL)
+	assert.Equal(t, "Alias", pp.Alias)
+	assert.Equal(t, 2, pp.AssetScale)
+}
+
 func TestExtractPaymentPointer(t *testing.T) {
 	cases := []struct {
 		name            string
