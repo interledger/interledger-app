@@ -55,7 +55,9 @@ export async function requireFlow(
     flows[type] = currentFlow
 
     session.set('flows', flows)
-    throw redirect(currentFlow.startRoute, {
+    // Ensure qp are preserved for loop11
+    const url = new URL(request.url)
+    throw redirect(currentFlow.startRoute + url.search, {
       headers: {
         'Set-Cookie': await commitSession(session)
       }
