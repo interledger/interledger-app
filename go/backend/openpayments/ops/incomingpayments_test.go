@@ -43,8 +43,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 		{
 			name: "success",
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "http://fynbos.me/moneyplease",
-				FromPaymentPointer: "http://fynbos.me/sendingmoney",
+				PaymentPointer:     "https://fynbos.me/moneyplease",
+				FromPaymentPointer: "https://fynbos.me/sendingmoney",
 				IncomingAmount: &currency.Amount{
 					Value:    100,
 					Currency: currency.ParseCurrency("USD"),
@@ -58,8 +58,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 		{
 			name: "success no incoming amount",
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "http://fynbos.me/moneyplease4",
-				FromPaymentPointer: "http://fynbos.me/sendingmoney4",
+				PaymentPointer:     "https://fynbos.me/moneyplease4",
+				FromPaymentPointer: "https://fynbos.me/sendingmoney4",
 				ExternalRef:        "external",
 				ExpiresAt:          time.Now().Add(time.Hour),
 			},
@@ -69,8 +69,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 			ppAsset: "ZAR",
 			err:     openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "http://fynbos.me/moneyplease2",
-				FromPaymentPointer: "http://fynbos.me/sendingmoney2",
+				PaymentPointer:     "https://fynbos.me/moneyplease2",
+				FromPaymentPointer: "https://fynbos.me/sendingmoney2",
 				IncomingAmount: &currency.Amount{
 					Value:    100,
 					Currency: currency.ParseCurrency("USD"),
@@ -84,8 +84,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 			name: "past expiry",
 			err:  openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "http://fynbos.me/moneyplease3",
-				FromPaymentPointer: "http://fynbos.me/sendingmoney3",
+				PaymentPointer:     "https://fynbos.me/moneyplease3",
+				FromPaymentPointer: "https://fynbos.me/sendingmoney3",
 				IncomingAmount: &currency.Amount{
 					Value:    100,
 					Currency: currency.ParseCurrency("USD"),

@@ -48,7 +48,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 	}{
 		{
 			name:      "success",
-			url:       "http://fynbos.me/abcd1",
+			url:       "https://fynbos.me/abcd1",
 			alias:     "Alias",
 			assetCode: "USD",
 			scale:     2,
@@ -56,7 +56,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "invalid_url",
-			url:       "fynbos.me/creature",
+			url:       "httpssss://fynbos.me/creature",
 			alias:     "",
 			assetCode: "USD",
 			scale:     2,
@@ -64,7 +64,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "invalid_asset",
-			url:       "http://fynbos.me/abcd2",
+			url:       "https://fynbos.me/abcd2",
 			alias:     "",
 			assetCode: "FUzzY",
 			scale:     2,
@@ -72,7 +72,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "duplicate",
-			url:       "http://fynbos.me/abcd3",
+			url:       "https://fynbos.me/abcd3",
 			alias:     "",
 			assetCode: "ZAR",
 			scale:     2,
@@ -81,7 +81,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "regex_first_4_not_alpha",
-			url:       "http://fynbos.me/1234PayMe",
+			url:       "https://fynbos.me/1234PayMe",
 			alias:     "",
 			assetCode: "ZAR",
 			scale:     2,
@@ -90,7 +90,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "regex_contains_slash",
-			url:       "http://fynbos.me/PayMe/1234",
+			url:       "https://fynbos.me/PayMe/1234",
 			alias:     "",
 			assetCode: "ZAR",
 			scale:     2,
@@ -99,7 +99,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "regex_too_short",
-			url:       "http://fynbos.me/Pay",
+			url:       "https://fynbos.me/Pay",
 			alias:     "",
 			assetCode: "ZAR",
 			scale:     2,
@@ -108,7 +108,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "regex_too_long",
-			url:       "http://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
+			url:       "https://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
 			alias:     "",
 			assetCode: "ZAR",
 			scale:     2,
@@ -177,29 +177,29 @@ func TestExtractPaymentPointer(t *testing.T) {
 	}{
 		{
 			name:            "no_suffix",
-			url:             "http://fynbos.me/asdf",
-			expectedPointer: "http://fynbos.me/asdf",
+			url:             "https://fynbos.me/asdf",
+			expectedPointer: "https://fynbos.me/asdf",
 			expectedSuffix:  "",
 			err:             nil,
 		},
 		{
 			name:            "no_suffix_trailing_slash",
-			url:             "http://fynbos.me/asdf/",
-			expectedPointer: "http://fynbos.me/asdf",
+			url:             "https://fynbos.me/asdf/",
+			expectedPointer: "https://fynbos.me/asdf",
 			expectedSuffix:  "",
 			err:             nil,
 		},
 		{
 			name:            "incoming_payments_suffix",
-			url:             "http://fynbos.me/asdf/incoming-payments",
-			expectedPointer: "http://fynbos.me/asdf",
+			url:             "https://fynbos.me/asdf/incoming-payments",
+			expectedPointer: "https://fynbos.me/asdf",
 			expectedSuffix:  "incoming-payments",
 			err:             nil,
 		},
 		{
 			name:            "outgoing_payments_suffix",
-			url:             "http://fynbos.me/asdf/outgoing-payments",
-			expectedPointer: "http://fynbos.me/asdf",
+			url:             "https://fynbos.me/asdf/outgoing-payments",
+			expectedPointer: "https://fynbos.me/asdf",
 			expectedSuffix:  "outgoing-payments",
 			err:             nil,
 		},
@@ -210,7 +210,7 @@ func TestExtractPaymentPointer(t *testing.T) {
 		},
 		{
 			name: "double_suffix",
-			url:  "http://fynbos.me/asdf/incoming-payments/outgoing-payments",
+			url:  "https://fynbos.me/asdf/incoming-payments/outgoing-payments",
 			err:  openpayments.ErrInvalidPointerURL,
 		},
 	}
@@ -246,7 +246,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	require.NoError(t, err)
 
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-		URL:        "http://fynbos.me/payp1",
+		URL:        "https://fynbos.me/payp1",
 		WalletID:   wallet.ID,
 		Alias:      "Alias1",
 		Asset:      "USD",
@@ -254,7 +254,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	})
 	require.NoError(t, err)
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-		URL:        "http://fynbos.me/payp2",
+		URL:        "https://fynbos.me/payp2",
 		WalletID:   wallet.ID,
 		Alias:      "Alias2",
 		Asset:      "ZAR",
@@ -267,7 +267,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, pp, 2)
 	for _, p := range pp {
-		if p.URL == "http://fynbos.me/payp1" {
+		if p.URL == "https://fynbos.me/payp1" {
 			assert.Equal(t, "Alias1", p.Alias)
 			assert.Equal(t, "USD", p.Asset.String())
 			assert.Equal(t, 2, p.AssetScale)
@@ -295,77 +295,77 @@ func TestValidatePaymentPointer(t *testing.T) {
 	}{
 		{
 			name: "success",
-			url:  "http://fynbos.me/abcd1",
+			url:  "https://fynbos.me/abcd1",
 			err:  nil,
 		},
 		{
-			name: "invalid_url",
-			url:  "fynbos.me/creature",
+			name: "reserved_word",
+			url:  "fynbos.me/incoming-payments",
 			err:  openpayments.ErrInvalidPointerPath,
 		},
 		{
 			name:   "regex_first_4_not_alpha",
-			url:    "http://fynbos.me/1234PayMe",
+			url:    "https://fynbos.me/1234PayMe",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your first 4 characters must be letters",
 		},
 		{
 			name:   "regex_contains_slash",
-			url:    "http://fynbos.me/PayMe/1234",
+			url:    "https://fynbos.me/PayMe/1234",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "regex_too_short",
-			url:    "http://fynbos.me/Pay",
+			url:    "https://fynbos.me/Pay",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer must be longer than 4 characters",
 		},
 		{
 			name:   "regex_too_long",
-			url:    "http://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
+			url:    "https://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer must be shorter than 30 characters",
 		},
 		{
 			name:   "contains_hash",
-			url:    "http://fynbos.me/asdfn#asdf",
+			url:    "https://fynbos.me/asdfn#asdf",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "contains_url_escape_space",
-			url:    "http://fynbos.me/asdfn%20asdf",
+			url:    "https://fynbos.me/asdfn%20asdf",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "contains_url_escape_<",
-			url:    "http://fynbos.me/asdfn%3Casdf",
+			url:    "https://fynbos.me/asdfn%3Casdf",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "trailing_slash",
-			url:    "http://fynbos.me/asdfn/",
+			url:    "https://fynbos.me/asdfn/",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "query_params",
-			url:    "http://fynbos.me/asdfn?asdf3e=34334",
+			url:    "https://fynbos.me/asdfn?asdf3e=34334",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "invalid_escapes",
-			url:    "http://fynbos.me/asdfn%2",
+			url:    "https://fynbos.me/asdfn%2",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
 		{
 			name:   "invalid_dots",
-			url:    "http://fynbos.me/abcdef..sasd",
+			url:    "https://fynbos.me/abcdef..sasd",
 			err:    openpayments.ErrInvalidPointerPath,
 			errMsg: "Your payment pointer can only contain letters, numbers and '_'",
 		},
@@ -444,7 +444,7 @@ func TestStandardisePaymentPointer(t *testing.T) {
 	}{
 		{
 			name:     "http",
-			url:      "http://fynbos.me/asdf",
+			url:      "https://fynbos.me/asdf",
 			expected: "https://fynbos.me/asdf",
 		},
 		{
@@ -481,7 +481,7 @@ func TestFormattedPaymentPointer(t *testing.T) {
 	}{
 		{
 			name:              "http",
-			url:               "http://fynbos.me/asdf",
+			url:               "https://fynbos.me/asdf",
 			expectedFormatted: "$fynbos.me/asdf",
 			err:               nil,
 		},
@@ -535,8 +535,8 @@ func TestCreateQuote(t *testing.T) {
 			sendKYC: machnet.KYCStatusVerified,
 			recvKYC: machnet.KYCStatusVerified,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv",
+				SendPaymentPointer:    "https://fynbos.me/paysend",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv",
 				Description:           "IncomingPayment",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
@@ -553,8 +553,8 @@ func TestCreateQuote(t *testing.T) {
 			recvAsset: "ZAR",
 			err:       openpayments.ErrInvalidArgument,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend1",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv2",
+				SendPaymentPointer:    "https://fynbos.me/paysend1",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv2",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    100,
@@ -569,8 +569,8 @@ func TestCreateQuote(t *testing.T) {
 			recvKYC: machnet.KYCStatusVerified,
 			err:     openpayments.ErrInvalidArgument,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend3",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv4",
+				SendPaymentPointer:    "https://fynbos.me/paysend3",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv4",
 				ExpiresAt:             time.Now().Add(time.Hour * -1),
 				SendAmount: currency.Amount{
 					Value:    100,
@@ -585,8 +585,8 @@ func TestCreateQuote(t *testing.T) {
 			recvKYC: machnet.KYCStatusReviewPending,
 			err:     openpayments.ErrPaymentPointerCannotRecv,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend5",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv6",
+				SendPaymentPointer:    "https://fynbos.me/paysend5",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv6",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    100,
@@ -601,8 +601,8 @@ func TestCreateQuote(t *testing.T) {
 			recvKYC: machnet.KYCStatusVerified,
 			err:     openpayments.ErrPaymentPointerCannotSend,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend7",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv8",
+				SendPaymentPointer:    "https://fynbos.me/paysend7",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv8",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    100,
@@ -616,8 +616,8 @@ func TestCreateQuote(t *testing.T) {
 			sendKYC: machnet.KYCStatusVerified,
 			recvKYC: machnet.KYCStatusVerified,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend9",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv10",
+				SendPaymentPointer:    "https://fynbos.me/paysend9",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv10",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    100,
@@ -634,8 +634,8 @@ func TestCreateQuote(t *testing.T) {
 			recvKYC: machnet.KYCStatusVerified,
 			err:     openpayments.ErrInsufficientBalance,
 			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend11",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv12",
+				SendPaymentPointer:    "https://fynbos.me/paysend11",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv12",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    1000,
@@ -756,35 +756,43 @@ func TestValidateCanSend(t *testing.T) {
 	}{
 		{
 			name:      "can_send",
-			sendPP:    "http://fynbos.me/paysend",
-			recvPP:    "http://fynbos.me/payrecv",
+			sendPP:    "https://fynbos.me/paysend",
+			recvPP:    "https://fynbos.me/payrecv",
 			hasWallet: true,
 			hasPP:     true,
 			expected:  true,
 		},
 		{
 			name:      "same_paymentpointer",
-			sendPP:    "http://fynbos.me/samesame",
-			recvPP:    "http://fynbos.me/samesame",
+			sendPP:    "https://fynbos.me/samesame",
+			recvPP:    "https://fynbos.me/samesame",
 			hasWallet: false,
 			hasPP:     true,
 			expected:  false,
 		},
 		{
 			name:      "no_wallet",
-			sendPP:    "http://fynbos.me/samesend",
-			recvPP:    "http://fynbos.me/differenrt",
+			sendPP:    "https://fynbos.me/samesend",
+			recvPP:    "https://fynbos.me/differenrt",
 			hasWallet: false,
 			hasPP:     true,
 			expected:  false,
 		},
 		{
 			name:      "no_such_pointer",
-			sendPP:    "http://fynbos.me/senderpoint",
-			recvPP:    "http://fynbos.me/notreal",
+			sendPP:    "https://fynbos.me/senderpoint",
+			recvPP:    "https://fynbos.me/notreal",
 			hasWallet: false,
 			hasPP:     false,
 			expected:  false,
+		},
+		{
+			name:      "dollar_sign_pointer",
+			sendPP:    "$fynbos.me/tothedollar",
+			recvPP:    "$fynbos.me/accepteddollar",
+			hasWallet: true,
+			hasPP:     true,
+			expected:  true,
 		},
 	}
 

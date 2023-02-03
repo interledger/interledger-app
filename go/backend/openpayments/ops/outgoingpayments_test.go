@@ -48,8 +48,8 @@ func TestCreateOutgoingPayment(t *testing.T) {
 		{
 			name: "success",
 			quoteArgs: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "http://fynbos.me/paysend",
-				ReceivePaymentPointer: "http://fynbos.me/payrecv",
+				SendPaymentPointer:    "https://fynbos.me/paysend",
+				ReceivePaymentPointer: "https://fynbos.me/payrecv",
 				ExpiresAt:             time.Now().Add(time.Hour),
 				SendAmount: currency.Amount{
 					Value:    100,
