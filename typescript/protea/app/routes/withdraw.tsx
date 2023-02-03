@@ -160,10 +160,6 @@ export async function action({ request }: ActionArgs) {
   const balance = parseInt(
     (await getWalletBalance(request)).replace('$ ', '').replace('.', '')
   )
-  if (balance < parseInt(amountToSubmit)) {
-    fieldErrors.amount = "Amount can't exceed your balance."
-    return json({ errors: { ...fieldErrors } }, { status: 400 })
-  }
 
   let receiveAmount = amountToSubmit,
     fee = 0
@@ -182,6 +178,11 @@ export async function action({ request }: ActionArgs) {
   }
 
   await updateFlow(request, flowType.Withdraw, data)
+
+  if (balance < parseInt(amountToSubmit)) {
+    data.errors.amount = "Amount can't exceed your balance."
+    return json(data, { status: 400 })
+  }
 
   // TODO: should always return data, because using fetcher means redirecting from here doesn't add the route to the stack which breaks the back button.
   if (routeTo == 'next') {
