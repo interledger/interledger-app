@@ -22,7 +22,7 @@ export async function loader({ request }: LoaderArgs) {
   const { kycStatus } = await getKycStatus(request)
 
   if (kycStatus != KycStatus.Verified)
-    return redirect(route('/linked-account/:type', { type: 'card' }))
+    return redirect(route('/personal-details'))
 
   const paymentPointerQR = qrSvg(await generateQR(paymentPointer.url))
 
@@ -172,7 +172,6 @@ export async function action({ request }: ActionArgs) {
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))
   }
-
 
   const canSendResponse = await openPaymentsClient
     .canSendToPaymentPointer(
