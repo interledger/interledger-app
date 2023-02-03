@@ -10,6 +10,7 @@ import {
   Icon,
   Layouts,
   Router,
+  AnimatedSchedule,
   WalletGrid
 } from '~/components'
 import type { Transaction } from '~/lib/wallet.server'
@@ -202,7 +203,17 @@ export default function Page() {
                 className='mt-4 flex w-full justify-between'
               >
                 <div className='flex space-x-1'>
-                  <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
+                  {transaction.icon == 'schedule' && (
+                    <div className='mt-0.5'>
+                      <AnimatedSchedule />
+                    </div>
+                  )}
+                  {transaction.icon != 'schedule' && (
+                    <Icon className='mt-0.5 text-medium'>
+                      {transaction.icon}
+                    </Icon>
+                  )}
+                  {/*<Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>*/}
                   <div className='flex flex-col space-y-2'>
                     <span className='text-medium'>{transaction.title}</span>
                     <span className='text-xs text-medium'>

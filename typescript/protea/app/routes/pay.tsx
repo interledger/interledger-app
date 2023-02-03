@@ -173,6 +173,33 @@ export async function action({ request }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
+
+  const canSendResponse = await openPaymentsClient
+    .canSendToPaymentPointer(
+      { paymentPointer: paymentPointer },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(canSendResponse)) {
+    if (canSendResponse.code == 3) {
+      for (let violation of (canSendResponse as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else throw json({}, httpMapping(canSendResponse.code))
+  } else if (!canSendResponse.response.canSend) {
+    fieldErrors.paymentPointer = "Payment pointer can't receive payments."
+    return json({ errors: { ...fieldErrors } }, { status: 400 })
+  }
+
   await updateFlow(request, flowType.Pay, {
     paymentPointer: { ...response.response }
   })
