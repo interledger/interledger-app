@@ -40,10 +40,11 @@ type testBackends struct {
 	mc   machnet.Client
 	tr   transactions.Client
 	ac   analytics.Client
+	auth authorisation.InternalClient
 }
 
 func (t testBackends) Authorisation() authorisation.InternalClient {
-	return nil
+	return t.auth
 }
 
 func (t testBackends) KYC() kyc.Client {
@@ -86,7 +87,7 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client) Backends {
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client, auth authorisation.InternalClient) Backends {
 	ac := analytics_client.New(nil, "")
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac}
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac, auth: auth}
 }

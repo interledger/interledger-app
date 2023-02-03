@@ -156,21 +156,6 @@ func (mr *MockClientMockRecorder) ListCompleted(ctx, page, walletID interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCompleted", reflect.TypeOf((*MockClient)(nil).ListCompleted), ctx, page, walletID)
 }
 
-// ListWithPending mocks base method.
-func (m *MockClient) ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListWithPending", ctx, page, walletID)
-	ret0, _ := ret[0].([]transactions.Transaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListWithPending indicates an expected call of ListWithPending.
-func (mr *MockClientMockRecorder) ListWithPending(ctx, page, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithPending", reflect.TypeOf((*MockClient)(nil).ListWithPending), ctx, page, walletID)
-}
-
 // ListTransactionsInRange mocks base method.
 func (m *MockClient) ListTransactionsInRange(ctx context.Context, walletID string, inRange transactions.TransactionRangeFilter) ([]transactions.Transaction, error) {
 	m.ctrl.T.Helper()
@@ -184,6 +169,21 @@ func (m *MockClient) ListTransactionsInRange(ctx context.Context, walletID strin
 func (mr *MockClientMockRecorder) ListTransactionsInRange(ctx, walletID, inRange interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactionsInRange", reflect.TypeOf((*MockClient)(nil).ListTransactionsInRange), ctx, walletID, inRange)
+}
+
+// ListWithPending mocks base method.
+func (m *MockClient) ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListWithPending", ctx, page, walletID)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListWithPending indicates an expected call of ListWithPending.
+func (mr *MockClientMockRecorder) ListWithPending(ctx, page, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithPending", reflect.TypeOf((*MockClient)(nil).ListWithPending), ctx, page, walletID)
 }
 
 // SetTransactionAmountTx mocks base method.

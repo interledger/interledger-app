@@ -92,7 +92,7 @@ func GetPaymentPointer(ctx context.Context, b Backends, pointerURLRaw string) (*
 	return &pp, nil
 }
 
-var reservedURLParts = []string{"outgoing-payments", "incoming-payments", "quotes"}
+var reservedURLParts = []string{"outgoing-payments", "incoming-payments", "quotes", ".well-known/keys"}
 
 // sanitizePaymentPointer takes a full URL and checks for any reserved words and invalid formatting
 func sanitizePaymentPointer(rawURL string) (string, error) {

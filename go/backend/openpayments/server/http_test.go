@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/authorisation"
+	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
 	"gitlab.com/fynbos/backend/currency"
 
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
@@ -44,7 +46,7 @@ func TestGetHandler(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -131,7 +133,7 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, mc, tc)
+	b := NewTestBackends(t, db, nil, nil, mc, tc, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -241,7 +243,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, nil, tc)
+	b := NewTestBackends(t, db, nil, nil, nil, tc, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -402,7 +404,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -529,4 +531,59 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 
 		assert.Equal(t, tc.opArgs.Description, op.Description)
 	}
+}
+
+func TestListKeys(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	db := db.MigrateTestDB(t, ctx)
+	authClient := mock_auth.NewMockInternalClient(ctrl)
+	b := NewTestBackends(t, db, nil, nil, nil, nil, authClient)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+
+	// Create Signups, wallet, pp
+	userID := uuid.NewString()
+	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
+	require.NoError(t, err)
+	// Create Wallets
+	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	require.NoError(t, err)
+	asset := currency.USD
+	assetScale := 2
+	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		URL:        "https://fynbos.local.me/found_me",
+		Alias:      "alias",
+		WalletID:   wallet.ID,
+		Asset:      asset,
+		AssetScale: assetScale,
+	})
+	require.NoError(t, err)
+
+	authClient.EXPECT().ListKeys(gomock.Any(), "https://fynbos.local.me/found_me").Return([]authorisation.Jwk{
+		{
+			Kty: "OKP",
+			X:   "encoded key",
+		},
+	}, nil)
+
+	rr := httptest.NewRecorder()
+	handler := catchAllHandler(b)
+
+	req := httptest.NewRequest("GET", "https://fynbos.local.me/found_me/.well-known/keys", nil)
+	handler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	respBytes, err := io.ReadAll(rr.Body)
+	require.NoError(t, err)
+
+	var keySet struct {
+		Keys []authorisation.Jwk
+	}
+	err = json.Unmarshal(respBytes, &keySet)
+	require.NoError(t, err)
+
+	require.Len(t, keySet.Keys, 1)
+	assert.Equal(t, "OKP", keySet.Keys[0].Kty)
+	assert.Equal(t, "encoded key", keySet.Keys[0].X)
 }

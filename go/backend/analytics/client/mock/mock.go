@@ -46,6 +46,18 @@ func (mr *MockClientMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockClient)(nil).Close))
 }
 
+// GroupUserWallet mocks base method.
+func (m *MockClient) GroupUserWallet(walletID, userID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "GroupUserWallet", walletID, userID)
+}
+
+// GroupUserWallet indicates an expected call of GroupUserWallet.
+func (mr *MockClientMockRecorder) GroupUserWallet(walletID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GroupUserWallet", reflect.TypeOf((*MockClient)(nil).GroupUserWallet), walletID, userID)
+}
+
 // Identify mocks base method.
 func (m *MockClient) Identify(args analytics.IdentifyArgs) {
 	m.ctrl.T.Helper()
@@ -92,4 +104,100 @@ func (m *MockClient) TrackUserSignup(userID string) {
 func (mr *MockClientMockRecorder) TrackUserSignup(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackUserSignup", reflect.TypeOf((*MockClient)(nil).TrackUserSignup), userID)
+}
+
+// TrackWalletCreated mocks base method.
+func (m *MockClient) TrackWalletCreated(walletID, userID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletCreated", walletID, userID)
+}
+
+// TrackWalletCreated indicates an expected call of TrackWalletCreated.
+func (mr *MockClientMockRecorder) TrackWalletCreated(walletID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletCreated", reflect.TypeOf((*MockClient)(nil).TrackWalletCreated), walletID, userID)
+}
+
+// TrackWalletMachnetBankAdded mocks base method.
+func (m *MockClient) TrackWalletMachnetBankAdded(args analytics.MachnetBankAddedArgs) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletMachnetBankAdded", args)
+}
+
+// TrackWalletMachnetBankAdded indicates an expected call of TrackWalletMachnetBankAdded.
+func (mr *MockClientMockRecorder) TrackWalletMachnetBankAdded(args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletMachnetBankAdded", reflect.TypeOf((*MockClient)(nil).TrackWalletMachnetBankAdded), args)
+}
+
+// TrackWalletMachnetCardAdded mocks base method.
+func (m *MockClient) TrackWalletMachnetCardAdded(args analytics.MachnetCardAddedArgs) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletMachnetCardAdded", args)
+}
+
+// TrackWalletMachnetCardAdded indicates an expected call of TrackWalletMachnetCardAdded.
+func (mr *MockClientMockRecorder) TrackWalletMachnetCardAdded(args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletMachnetCardAdded", reflect.TypeOf((*MockClient)(nil).TrackWalletMachnetCardAdded), args)
+}
+
+// TrackWalletMachnetKYCStatus mocks base method.
+func (m *MockClient) TrackWalletMachnetKYCStatus(args analytics.MachnetKYCArgs) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletMachnetKYCStatus", args)
+}
+
+// TrackWalletMachnetKYCStatus indicates an expected call of TrackWalletMachnetKYCStatus.
+func (mr *MockClientMockRecorder) TrackWalletMachnetKYCStatus(args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletMachnetKYCStatus", reflect.TypeOf((*MockClient)(nil).TrackWalletMachnetKYCStatus), args)
+}
+
+// TrackWalletPaymentPointerCreated mocks base method.
+func (m *MockClient) TrackWalletPaymentPointerCreated(walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletPaymentPointerCreated", walletID)
+}
+
+// TrackWalletPaymentPointerCreated indicates an expected call of TrackWalletPaymentPointerCreated.
+func (mr *MockClientMockRecorder) TrackWalletPaymentPointerCreated(walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletPaymentPointerCreated", reflect.TypeOf((*MockClient)(nil).TrackWalletPaymentPointerCreated), walletID)
+}
+
+// TrackWalletTransactionCompleted mocks base method.
+func (m *MockClient) TrackWalletTransactionCompleted(walletID string, args analytics.WalletTransactionArgs) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletTransactionCompleted", walletID, args)
+}
+
+// TrackWalletTransactionCompleted indicates an expected call of TrackWalletTransactionCompleted.
+func (mr *MockClientMockRecorder) TrackWalletTransactionCompleted(walletID, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletTransactionCompleted", reflect.TypeOf((*MockClient)(nil).TrackWalletTransactionCompleted), walletID, args)
+}
+
+// TrackWalletTransactionCreated mocks base method.
+func (m *MockClient) TrackWalletTransactionCreated(walletID string, args analytics.WalletTransactionArgs) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletTransactionCreated", walletID, args)
+}
+
+// TrackWalletTransactionCreated indicates an expected call of TrackWalletTransactionCreated.
+func (mr *MockClientMockRecorder) TrackWalletTransactionCreated(walletID, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletTransactionCreated", reflect.TypeOf((*MockClient)(nil).TrackWalletTransactionCreated), walletID, args)
+}
+
+// TrackWalletTransactionFailed mocks base method.
+func (m *MockClient) TrackWalletTransactionFailed(walletID string, args analytics.WalletTransactionArgs) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TrackWalletTransactionFailed", walletID, args)
+}
+
+// TrackWalletTransactionFailed indicates an expected call of TrackWalletTransactionFailed.
+func (mr *MockClientMockRecorder) TrackWalletTransactionFailed(walletID, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletTransactionFailed", reflect.TypeOf((*MockClient)(nil).TrackWalletTransactionFailed), walletID, args)
 }
