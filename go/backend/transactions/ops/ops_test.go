@@ -169,7 +169,7 @@ func TestCreateTransaction(t *testing.T) {
 	}
 }
 
-func TestListTransaction(t *testing.T) {
+func TestListWithPendingTransaction(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
@@ -325,6 +325,106 @@ func TestListTransaction(t *testing.T) {
 					}
 					assert.True(t, found)
 				}
+			}
+		})
+	}
+}
+
+func TestListWithPendingPagination(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+
+	pendingTxs := make([]transactions.CreateTransactionArgs, 20)
+	for i := range pendingTxs {
+		pendingTxs[i] = transactions.CreateTransactionArgs{
+			WalletID:    uuid.NewString(),
+			ForeignID:   uuid.NewString(),
+			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			Provider:    transactions.ProviderMachnet,
+			State:       transactions.StatePending,
+			Source:      "$fynbos.me/alice",
+			Destination: "$fynbos.me/bob",
+			Amount: currency.Amount{
+				Value:    1000,
+				Currency: currency.USD,
+				Scale:    2,
+			},
+		}
+	}
+
+	cases := []struct {
+		name  string
+		args  db.Pagination
+		start int
+		len   int
+	}{
+		{
+			name:  "no pagination",
+			len:   20,
+			start: 0,
+			args:  db.Pagination{},
+		},
+		{
+			name:  "No overflow returns PageSize+1 transactions",
+			len:   5,
+			start: 0,
+			args: db.Pagination{
+				PageSize:  4,
+				PageToken: "",
+			},
+		},
+		{
+			name:  "Can paginate starting at a specific token",
+			len:   10,
+			start: 1,
+			args: db.Pagination{
+				PageSize:  9,
+				PageToken: "",
+			},
+		},
+		{
+			name:  "Can paginate starting at a specific token with overflow",
+			len:   15,
+			start: 5,
+			args: db.Pagination{
+				PageSize:  20,
+				PageToken: "",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Signups
+			userID := uuid.NewString()
+			walletID := uuid.NewString()
+			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", walletID, userID)
+			require.NoError(t, err)
+			// Create Wallets
+			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			require.NoError(t, err)
+
+			for i, tx := range pendingTxs {
+				tx.WalletID = wallet.ID
+				txId, err := ops.CreateTransaction(ctx, b, tx)
+				require.NoError(t, err)
+				if tc.start != 0 && tc.start == len(pendingTxs)-i-1 {
+					tc.args.PageToken = txId
+				}
+			}
+
+			txs, err := ops.ListWithPending(ctx, b, wallet.ID, tc.args)
+			require.NoError(t, err)
+			require.Len(t, txs, tc.len)
+
+			require.GreaterOrEqual(t, txs[0].Timestamp, txs[len(txs)-1].Timestamp)
+
+			if tc.start != 0 {
+				require.Equal(t, tc.args.PageToken, txs[0].ID)
 			}
 		})
 	}

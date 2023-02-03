@@ -8,7 +8,6 @@ import { grpcClient } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const wallets = await ListWallets(request, {
-    page: 1,
     pageSize: 10000
   })
   const signups = await grpcClient.listWaitlistSignups(

@@ -200,24 +200,39 @@ type dbTransaction struct {
 
 func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
 
-	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 ORDER BY updated_at DESC %s"
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 ORDER BY updated_at DESC,id  %s"
 	sqlArgs := []interface{}{walletID}
+
+	if page.PageToken != "" {
+		sqlStmt = "SELECT %s FROM transactions WHERE wallet_id=$1 and updated_at<=(SELECT updated_at FROM transactions WHERE id=$2) ORDER BY updated_at DESC,id %s"
+		sqlArgs = []interface{}{walletID, page.PageToken}
+	}
 
 	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
 }
 
 func ListCompleted(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
 
-	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and state=$2 ORDER BY updated_at DESC %s"
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and state=$2 ORDER BY updated_at DESC,id %s"
 	sqlArgs := []interface{}{walletID, transactions.StateCompleted}
+
+	if page.PageToken != "" {
+		sqlStmt = "SELECT %s FROM transactions WHERE wallet_id=$1 and state=$2 and updated_at<=(SELECT updated_at FROM transactions WHERE id=$3) ORDER BY updated_at DESC,id %s"
+		sqlArgs = []interface{}{walletID, transactions.StateCompleted, page.PageToken}
+	}
 
 	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
 }
 
 func ListWithPending(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
 
-	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2) or (state=$3 and type<>$4)) ORDER BY updated_at DESC %s"
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2) or (state=$3 and type<>$4)) ORDER BY updated_at DESC,id %s"
 	sqlArgs := []interface{}{walletID, transactions.StateCompleted, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming}
+
+	if page.PageToken != "" {
+		sqlStmt = "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2) or (state=$3 and type<>$4)) and updated_at<=(SELECT updated_at FROM transactions WHERE id=$5) ORDER BY updated_at DESC,id %s"
+		sqlArgs = []interface{}{walletID, transactions.StateCompleted, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming, page.PageToken}
+	}
 
 	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
 }

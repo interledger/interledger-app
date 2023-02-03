@@ -78,10 +78,6 @@ func (c *client) ListUsers(ctx context.Context, walletID string) ([]user.User, e
 	return ops.ListUsers(ctx, c.b, walletID)
 }
 
-func (c *client) ListAllUsers(ctx context.Context, pagination db.Pagination) ([]user.User, error) {
-	return ops.ListAllUsers(ctx, c.b, pagination)
-}
-
 func (c *client) WalletForContext(ctx context.Context) (uw *user.Wallet, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
