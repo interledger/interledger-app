@@ -44,7 +44,11 @@ export async function loader({ request }: LoaderArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return json({
+    flow,
+    csrfToken: getCsrfTokenFromFlow(flow)
+    // backTo: route('/settings')
+  })
 }
 
 export const handle = {
@@ -145,8 +149,8 @@ export async function action({ request }: ActionArgs) {
       }
     }
   )
-
   const data = await res.json()
+
   if (res.status > 400) handleFlowError(data, 'settings/password')
   if (res.status == 400) {
     return kratosErrorMapping(res, fieldErrors)
