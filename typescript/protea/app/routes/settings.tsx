@@ -12,6 +12,8 @@ import {
   WalletGrid
 } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
+import { getKycStatus } from '~/lib/wallet.server'
+import { KycStatus } from '~/routes/index'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -19,10 +21,13 @@ export async function loader({ request }: LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
 
+  const { kycStatus } = await getKycStatus(request)
+
   const snackbar = await getSnackbar(request)
 
   return json({
-    snackbar
+    snackbar,
+    kycStatus
   })
 }
 
@@ -31,7 +36,7 @@ export const handle = {
 }
 
 export default function Page() {
-  const { snackbar } = useLoaderData<typeof loader>()
+  const { snackbar, kycStatus } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   return (
     <WalletGrid>
@@ -62,16 +67,18 @@ export default function Page() {
           </div>
           <Icon>navigate_next</Icon>
         </Router>
-        <Router
-          to={route('/settings/account-limits')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
-        >
-          <div className='flex space-x-3'>
-            <Icon>tune</Icon>
-            <span>Account limits</span>
-          </div>
-          <Icon>navigate_next</Icon>
-        </Router>
+        {kycStatus == KycStatus.Verified && (
+          <Router
+            to={route('/settings/account-limits')}
+            className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          >
+            <div className='flex space-x-3'>
+              <Icon>tune</Icon>
+              <span>Account limits</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </Router>
+        )}
         <h2 className='mt-6 text-sm font-medium'>Security</h2>
         <Router
           to={route('/login/challenge')}
