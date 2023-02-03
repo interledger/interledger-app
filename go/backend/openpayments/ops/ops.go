@@ -96,6 +96,7 @@ var reservedURLParts = []string{"outgoing-payments", "incoming-payments", "quote
 
 // sanitizePaymentPointer takes a full URL and checks for any reserved words and invalid formatting
 func sanitizePaymentPointer(rawURL string) (string, error) {
+	rawURL = StandardisePaymentPointer(rawURL)
 	pointerURL, err := url.Parse(rawURL)
 	if err != nil {
 		return "", openpayments.ErrInvalidPointerURL
@@ -105,6 +106,9 @@ func sanitizePaymentPointer(rawURL string) (string, error) {
 		return "", openpayments.ErrInvalidPointerURL
 	}
 
+	if len(pointerURL.Path) == 0 {
+		return "", openpayments.ErrInvalidPointerURL
+	}
 	pathParts := strings.Split(pointerURL.Path, "/")
 	for _, pp := range pathParts {
 		for _, res := range reservedURLParts {
@@ -127,6 +131,7 @@ var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{4}$`)
 // - The first 4 characters can only be alpha
 // Assumption: {base} does not contain any slashes
 func validatePaymentPointer(rawURL string) (string, error) {
+	rawURL = StandardisePaymentPointer(rawURL)
 
 	unescaped, err := url.PathUnescape(rawURL)
 	if err != nil || unescaped != rawURL {
@@ -475,7 +480,7 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 		return false, err
 	}
 
-	pp, err := GetPaymentPointer(ctx, b, ppString)
+	pp, err := GetPaymentPointer(ctx, b, StandardisePaymentPointer(ppString))
 	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 		// Payment pointer doesn't exists, don't error just return false
 		return false, nil
