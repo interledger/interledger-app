@@ -3,8 +3,9 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { Empty, MethodKind } from "@bufbuild/protobuf";
+import { Empty } from "../../../google/protobuf/empty_pb.js";
 import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, WalletDetails } from "./backend_pb.js";
+import { MethodKind } from "@bufbuild/protobuf";
 
 /**
  * @generated from service backend.admin.v1.Backend
