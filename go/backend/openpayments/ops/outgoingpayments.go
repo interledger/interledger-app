@@ -258,6 +258,16 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 		return err
 	}
 
+	fromTrx, err := b.Transactions().GetTransactionByForeignID(ctx, fromPP.WalletID, opID)
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	toTrx, err := b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
 	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		res, err := tx.ExecContext(ctx, "UPDATE openpayments_outgoing_payment SET updated_at=now(), completed=true, sent_amount=$1, sent_asset=$2, sent_scale=$3 WHERE id=$4 AND failed=false",
 			args.SentAmount.Value, args.SentAmount.Currency, args.SentAmount.Scale, opID)
@@ -272,10 +282,6 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, opID)
 		}
 
-		fromTrx, err := b.Transactions().GetTransactionByForeignID(ctx, fromPP.WalletID, opID)
-		if err != nil {
-			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-		}
 		err = b.Transactions().SetTransactionStateTx(ctx, tx, fromTrx.ID, transactions.StateCompleted)
 		if err != nil {
 			return err
@@ -285,7 +291,7 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return err
 		}
 
-		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET updated_at=now(), received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4 AND received_amount<=$1",
+		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET updated_at=now(), received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4",
 			args.SentAmount.Value, args.SentAmount.Currency, args.SentAmount.Scale, ipID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
@@ -298,10 +304,6 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return fmt.Errorf("%w incoming payment (%s) not found", openpayments.ErrNotFound, ipID)
 		}
 
-		toTrx, err := b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
-		if err != nil {
-			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-		}
 		err = b.Transactions().SetTransactionStateTx(ctx, tx, toTrx.ID, transactions.StateCompleted)
 		if err != nil {
 			return err
