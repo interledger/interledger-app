@@ -8,6 +8,7 @@ require (
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38
 	github.com/coreos/go-oidc/v3 v3.1.0
+	github.com/dunglas/httpsfv v1.0.1
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
@@ -49,7 +50,6 @@ require (
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
-	github.com/dunglas/httpsfv v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

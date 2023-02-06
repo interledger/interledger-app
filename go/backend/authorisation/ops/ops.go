@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/lib/pq"
@@ -52,6 +53,14 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 
 	gid := uuid.NewString()
 
+	tokens, err := validateTokenAccess(ctx, args.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("%w no valid access token requests found", authorisation.ErrInvalidArgument)
+	}
+
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 
 		_, err := tx.ExecContext(ctx, "INSERT INTO authorisation_grants (id, client_id, state, continue_token, wait) VALUES ($1, $2, $3, $4, $5)",
@@ -60,7 +69,7 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 			return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 		}
 
-		for _, tkn := range args.AccessToken {
+		for _, tkn := range tokens {
 			tokenID := uuid.NewString()
 			label := tkn.Label
 			if label == "" {
@@ -88,6 +97,60 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 	}
 
 	return lookupGrant(ctx, b, gid)
+}
+
+// validateTokenAccess returns all the tokens for access that can automatically be granted.
+// Currently, the only supported access is for "incoming-payments" data type and "read,write" actions
+func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) ([]authorisation.AccessTokenReq, error) {
+
+	var resp []authorisation.AccessTokenReq
+	for _, at := range req {
+		var access []authorisation.Access
+		for _, acc := range at.Access {
+			var typeFound bool
+			for _, dt := range acc.Datatypes {
+				if strings.EqualFold(dt, "incoming-payments") {
+					typeFound = true
+					break
+				}
+			}
+
+			// Ignore this access
+			if !typeFound {
+				continue
+			}
+
+			var actions []string
+			for _, act := range acc.Actions {
+				if strings.EqualFold(act, "read") || strings.EqualFold(act, "write") {
+					actions = append(actions, act)
+				}
+			}
+
+			// No valid actions where found, ignore the rest of this access
+			if len(actions) == 0 {
+				continue
+			}
+
+			access = append(access, authorisation.Access{
+				Type:      acc.Type,
+				Actions:   actions,
+				Locations: acc.Locations,
+				Datatypes: []string{"incoming-payments"},
+			})
+		}
+		// No valid access requests where found for this token. Ignore it.
+		if len(access) == 0 {
+			continue
+		}
+
+		resp = append(resp, authorisation.AccessTokenReq{
+			Access: access,
+			Label:  at.Label,
+		})
+	}
+
+	return resp, nil
 }
 
 type dbGrant struct {
