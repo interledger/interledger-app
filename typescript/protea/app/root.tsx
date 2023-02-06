@@ -156,7 +156,6 @@ export default function Page() {
                     </AnchorRouter>{' '}
                     outlining what you were trying to do.
                   </p>
-                  <p className='hidden'>::CLOUDFLARE_ERROR_500S_BOX::</p>
                 </div>
                 <div className='mt-10'>
                   <Link to={'/'}>
@@ -167,6 +166,11 @@ export default function Page() {
             </div>
           </section>
         </main>
+        <footer className='p-4 fixed bottom-0 flex w-full justify-center'>
+          <div className='flex text-weak text-xs'>
+            <p>::CLOUDFLARE_ERROR_500S_BOX::</p>
+          </div>
+        </footer>
       </Document>
     )
 
