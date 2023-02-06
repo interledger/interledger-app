@@ -1272,6 +1272,9 @@ table "transactions" {
   index "wallet_id_state_updated_ind" {
     columns = [column.wallet_id, column.state, column.updated_at]
   }
+  index "wallet_id_foreign_id_ind" {
+    columns = [column.wallet_id, column.foreign_id]
+  }
 }
 table "transfers" {
   schema = schema.public
