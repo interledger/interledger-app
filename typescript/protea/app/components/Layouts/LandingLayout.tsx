@@ -36,6 +36,7 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
 export function LandingLayout() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
+  const isUser = matches[0]?.data.isUser
   const isSignupGated = matches[0]?.data.isSignupGated
   return (
     <div className='relative flex min-h-screen w-full flex-col bg-white'>
@@ -65,21 +66,32 @@ export function LandingLayout() {
             </div>
           </div>
           <div className='hidden items-center lg:flex'>
-            <div className='flex space-x-10 pt-3 pb-2'>
-              <Router to={route('/login')}>
-                <span className='text-sm font-medium'>Log in</span>
-              </Router>
-              {isSignupGated && (
-                <Router to={route('/waitlist')}>
-                  <span className='text-sm font-medium'>Join the waitlist</span>
+            {!isUser && (
+              <div className='flex space-x-10 pt-3 pb-2'>
+                <Router to={route('/login')}>
+                  <span className='text-sm font-medium'>Log in</span>
                 </Router>
-              )}
-              {!isSignupGated && (
-                <Router to={route('/signup')}>
-                  <span className='text-sm font-medium'>Sign up</span>
-                </Router>
-              )}
-            </div>
+                {isSignupGated && (
+                  <Router to={route('/waitlist')}>
+                    <span className='text-sm font-medium'>
+                      Join the waitlist
+                    </span>
+                  </Router>
+                )}
+                {!isSignupGated && (
+                  <Router to={route('/signup')}>
+                    <span className='text-sm font-medium'>Sign up</span>
+                  </Router>
+                )}
+              </div>
+            )}
+            {isUser && (
+              <div className='flex items-center '>
+                <ButtonRouter to={route('/')}>
+                  <span className='text-sm font-medium'>Go to app</span>
+                </ButtonRouter>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -222,26 +234,35 @@ export function LandingLayout() {
             </NavDrawer.ListItem>
           </NavDrawer.List>
           <NavDrawer.List>
-            <div className='flex flex-col space-y-2'>
-              <Router
-                className='flex h-11 w-full items-center justify-center'
-                to={route('/login')}
-              >
-                <span className='font-display font-medium text-medium'>
-                  Log in
-                </span>
-              </Router>
-              {isSignupGated && (
-                <ButtonRouter className='h-11' to={route('/waitlist')}>
-                  Join the waitlist
+            {!isUser && (
+              <div className='flex flex-col space-y-2'>
+                <Router
+                  className='flex h-11 w-full items-center justify-center'
+                  to={route('/login')}
+                >
+                  <span className='font-display font-medium text-medium'>
+                    Log in
+                  </span>
+                </Router>
+                {isSignupGated && (
+                  <ButtonRouter className='h-11' to={route('/waitlist')}>
+                    Join the waitlist
+                  </ButtonRouter>
+                )}
+                {!isSignupGated && (
+                  <ButtonRouter className='h-11' to={route('/signup')}>
+                    Sign up
+                  </ButtonRouter>
+                )}
+              </div>
+            )}
+            {isUser && (
+              <div className='flex flex-col space-y-2'>
+                <ButtonRouter className='h-11' to={route('/')}>
+                  Go to app
                 </ButtonRouter>
-              )}
-              {!isSignupGated && (
-                <ButtonRouter className='h-11' to={route('/signup')}>
-                  Sign up
-                </ButtonRouter>
-              )}
-            </div>
+              </div>
+            )}
           </NavDrawer.List>
         </NavDrawer>
       </NavDrawer.Modal>
