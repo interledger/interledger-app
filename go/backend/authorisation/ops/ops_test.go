@@ -23,12 +23,19 @@ func TestCreateGrant(t *testing.T) {
 
 	g, err := ops.CreateGrant(ctx, b, authorisation.GrantRequest{
 		AccessToken: []authorisation.AccessTokenReq{{
-			Access: []authorisation.Access{{
-				Type:      "incoming-payment",
-				Actions:   []string{"create", "read"},
-				Locations: []string{"https://fynbos.me/bobby"},
-				Datatypes: []string{""},
-			}},
+			Access: []authorisation.Access{
+				{
+					Type:      "incoming-payment",
+					Actions:   []string{"write", "read"},
+					Locations: []string{"https://fynbos.me/bobby"},
+					Datatypes: []string{"incoming-Payments"},
+				},
+				{
+					Type:      "We don't get this access",
+					Actions:   []string{"write", "read"},
+					Locations: []string{"https://fynbos.me/bobby"},
+					Datatypes: []string{"outgoing-payment"},
+				}},
 			Label: "TestAccess1",
 		}},
 		Client: authorisation.ClientReq{
@@ -40,6 +47,10 @@ func TestCreateGrant(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	assert.Len(t, g.Tokens, 1)
+	assert.Len(t, g.Tokens[0].Access, 1)
+	assert.EqualValues(t, g.Tokens[0].Access[0].Datatypes, []string{"incoming-payments"})
+	assert.EqualValues(t, g.Tokens[0].Access[0].Actions, []string{"write", "read"})
 	fmt.Println(g)
 }
 
