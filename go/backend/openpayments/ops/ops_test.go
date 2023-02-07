@@ -781,6 +781,7 @@ func TestValidateCanSend(t *testing.T) {
 		name      string
 		sendPP    string
 		recvPP    string
+		unauthed  bool
 		hasWallet bool
 		hasPP     bool
 		expected  bool
@@ -826,6 +827,33 @@ func TestValidateCanSend(t *testing.T) {
 			hasPP:     true,
 			expected:  true,
 		},
+		{
+			name:      "un_authed_can_send",
+			sendPP:    "$fynbos.me/notloggedin",
+			recvPP:    "$fynbos.me/thisisreal",
+			hasWallet: true,
+			unauthed:  true,
+			hasPP:     true,
+			expected:  true,
+		},
+		{
+			name:      "un_authed_no_wallet",
+			sendPP:    "$fynbos.me/notloggedinagain",
+			recvPP:    "$fynbos.me/thisisnotKYC",
+			hasWallet: false,
+			unauthed:  true,
+			hasPP:     true,
+			expected:  false,
+		},
+		{
+			name:      "un_authed_no_pp",
+			sendPP:    "$fynbos.me/notloggedinagainreallly",
+			recvPP:    "$fynbos.me/stillnotreal",
+			hasWallet: false,
+			unauthed:  true,
+			hasPP:     false,
+			expected:  false,
+		},
 	}
 
 	for _, tc := range cases {
@@ -862,11 +890,16 @@ func TestValidateCanSend(t *testing.T) {
 
 			if tc.hasWallet {
 				mClient.EXPECT().GetWalletByWalletID(ctx, recvWallet.ID).Return(&machnet.Wallet{}, nil).AnyTimes()
+				mClient.EXPECT().GetWalletByWalletID(ctx, sendWallet.ID).Return(&machnet.Wallet{}, nil).AnyTimes()
 			} else {
+				mClient.EXPECT().GetWalletByWalletID(ctx, sendWallet.ID).Return(nil, machnet.ErrNotFound).AnyTimes()
 				mClient.EXPECT().GetWalletByWalletID(ctx, recvWallet.ID).Return(nil, machnet.ErrNotFound).AnyTimes()
 			}
-
-			canSend, err := ops.ValidateCanSend(ctx, b, sendWallet.ID, tc.recvPP)
+			walletID := sendWallet.ID
+			if tc.unauthed {
+				walletID = ""
+			}
+			canSend, err := ops.ValidateCanSend(ctx, b, walletID, tc.recvPP)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 				return
