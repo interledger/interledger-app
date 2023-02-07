@@ -1,6 +1,6 @@
 import type { StoryFn, Meta } from '@storybook/react'
 import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
-import { Autocomplete } from '~/components'
+import { Autocomplete, Icon } from '~/components'
 
 const meta: Meta<typeof Autocomplete> = {
   title: 'components/Autocomplete',
@@ -30,6 +30,27 @@ export const AutocompleteStory = Template.bind({})
 AutocompleteStory.storyName = 'Default Autocomplete'
 AutocompleteStory.args = {
   label: 'This is a label',
+  options: [
+    { id: '1', name: 'first' },
+    { id: '2', name: 'second' },
+    { id: '3', name: 'third' }
+  ]
+}
+
+export const WithzPrefixIcon = Template.bind({})
+WithzPrefixIcon.args = {
+  label: 'This is a label',
+  prefixIcon: <Icon>search</Icon>,
+  options: [
+    { id: '1', name: 'first' },
+    { id: '2', name: 'second' },
+    { id: '3', name: 'third' }
+  ]
+}
+export const WithzPrefix = Template.bind({})
+WithzPrefix.args = {
+  label: 'This is a label',
+  prefix: 'Prefix',
   options: [
     { id: '1', name: 'first' },
     { id: '2', name: 'second' },
