@@ -97,10 +97,10 @@ func TestGrantRequest(t *testing.T) {
 		},
 		AccessToken: []authorisation.AccessTokenReq{{
 			Access: []authorisation.Access{{
-				Type:      "incoming-payment",
-				Actions:   []string{"create", "read"},
+				Type:      "incoming-payments",
+				Actions:   []string{"write", "read"},
 				Locations: []string{"https://fynbos.me/bobby"},
-				Datatypes: []string{""},
+				Datatypes: []string{"incoming-payments"},
 			}},
 			Label: "TestAccess1",
 		}},
