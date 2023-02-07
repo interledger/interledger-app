@@ -2,6 +2,7 @@ package actions
 
 import (
 	"context"
+	cryptorand "crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"math/rand"
@@ -50,7 +51,7 @@ func MakeUser(b Backends) cli.ActionFunc {
 	return func(cCtx *cli.Context) error {
 		phone := 10_000_000 - rand.Int63n(999) // faker E164Phonenumber format is not accepted
 		buf := make([]byte, 32)
-		_, err := rand.Read(buf)
+		_, err := cryptorand.Read(buf)
 		if err != nil {
 			return err
 		}
