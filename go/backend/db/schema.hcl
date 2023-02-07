@@ -1365,6 +1365,10 @@ table "authorisation_clients" {
   primary_key {
     columns = [column.id]
   }
+  index "url_uniq" {
+    unique  = true
+    columns = [column.url]
+  }
 }
 table "authorisation_keys" {
   schema = schema.public

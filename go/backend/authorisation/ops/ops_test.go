@@ -18,7 +18,7 @@ func TestCreateGrant(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx))
 
-	err := ops.CreateClient(ctx, b, "https://fynbos.me/alice")
+	_, err := ops.CreateClient(ctx, b, "https://fynbos.me/alice")
 	require.NoError(t, err)
 
 	g, err := ops.CreateGrant(ctx, b, authorisation.GrantRequest{
@@ -58,7 +58,7 @@ func TestCreateAndListClientKeys(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx))
 
-	err := ops.CreateClient(ctx, b, "https://fynbos.me/alice")
+	_, err := ops.CreateClient(ctx, b, "https://fynbos.me/alice")
 	require.NoError(t, err)
 
 	key := authorisation.Jwk{

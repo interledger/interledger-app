@@ -75,7 +75,7 @@ func TestGrantRequest(t *testing.T) {
 		opserver.Close()
 	})
 
-	err = ops.CreateClient(ctx, b, fmt.Sprintf("%s/.well-known/keys", opserver.URL))
+	_, err = ops.CreateClient(ctx, b, fmt.Sprintf("%s/.well-known/keys", opserver.URL))
 	require.NoError(t, err)
 
 	gr := authorisation.GrantRequest{

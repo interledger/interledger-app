@@ -22,7 +22,7 @@ func (s *rpcService) CreateClientPublicKey(
 
 	key := authorisation.Jwk{
 		Kty: req.GetKty(),
-		Kid: req.GetKty(),
+		Kid: req.GetKid(),
 		Alg: req.GetAlg(),
 		Crv: req.GetCrv(),
 		X:   req.GetX(),

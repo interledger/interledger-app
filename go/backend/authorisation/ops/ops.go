@@ -22,17 +22,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/authorisation"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/httpmessagesignatures"
 	"gitlab.com/fynbos/log"
 )
 
-func CreateClient(ctx context.Context, b Backends, clientURL string) error {
-	_, err := b.DB().ExecContext(ctx, "INSERT INTO authorisation_clients (url) VALUES ($1)", clientURL)
+func CreateClient(ctx context.Context, b Backends, clientURL string) (*authorisation.Client, error) {
+	var client authorisation.Client
+	err := b.DB().GetContext(ctx, &client, "INSERT INTO authorisation_clients (url) VALUES ($1) RETURNING id, url;", clientURL)
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return LookupClient(ctx, b, clientURL)
+	}
 	if err != nil {
-		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
-	return nil
+	return &client, nil
 }
 
 func LookupClient(ctx context.Context, b Backends, clientURL string) (*authorisation.Client, error) {
@@ -253,7 +258,7 @@ func CreateClientPublicKey(
 	clientURL string,
 	publicKey authorisation.Jwk,
 ) error {
-	client, err := LookupClient(ctx, b, clientURL)
+	client, err := CreateClient(ctx, b, clientURL)
 	if err != nil {
 		return err
 	}
