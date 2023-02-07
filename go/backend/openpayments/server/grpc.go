@@ -449,17 +449,15 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 }
 
 func (g *grpcServer) CanSendToPaymentPointer(ctx context.Context, req *pb.CanSendToPaymentPointerRequest) (*pb.CanSendToPaymentPointerResponse, error) {
-	_, err := g.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("no login found")
-	}
+	var walletID string
 
 	wallet, err := g.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+	if err == nil {
+		// Ignore the error. If the request is unauthenticated we just don't check the users PP
+		walletID = wallet.ID
 	}
 
-	canSend, err := ops.ValidateCanSend(ctx, g.b, wallet.ID, req.PaymentPointer)
+	canSend, err := ops.ValidateCanSend(ctx, g.b, walletID, req.PaymentPointer)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

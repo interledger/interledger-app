@@ -475,11 +475,6 @@ func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, i
 }
 
 func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string) (bool, error) {
-	ppl, err := ListWalletPaymentPointers(ctx, b, walletID)
-	if err != nil {
-		return false, err
-	}
-
 	pp, err := GetPaymentPointer(ctx, b, StandardisePaymentPointer(ppString))
 	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 		// Payment pointer doesn't exists, don't error just return false
@@ -487,12 +482,6 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 	}
 	if err != nil {
 		return false, err
-	}
-
-	for _, own := range ppl {
-		if own.ID == pp.ID {
-			return false, nil
-		}
 	}
 
 	_, err = b.Machnet().GetWalletByWalletID(ctx, pp.WalletID)
@@ -503,7 +492,23 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 		return false, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	// Target Payment Pointer exists, Machnet wallet exists, it's not sending to itself
+	if walletID == "" {
+		// Target Payment Pointer exists, Machnet wallet exists, unauthenticated request, so don't check that it's not sending to itself
+		return true, nil
+	}
+
+	ppl, err := ListWalletPaymentPointers(ctx, b, walletID)
+	if err != nil {
+		return false, err
+	}
+
+	for _, own := range ppl {
+		if own.ID == pp.ID {
+			return false, nil
+		}
+	}
+
+	// Target Payment Pointer exists, Machnet wallet exists, it's not sending to itself, authenticated request
 	return true, nil
 }
 
