@@ -2,21 +2,28 @@ package ops
 
 import (
 	"context"
+	"crypto"
+	"crypto/ed25519"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"math/rand"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/lib/pq"
+	"go.uber.org/zap"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/authorisation"
+	"gitlab.com/fynbos/httpmessagesignatures"
+	"gitlab.com/fynbos/log"
 )
 
 func CreateClient(ctx context.Context, b Backends, clientURL string) error {
@@ -331,4 +338,51 @@ func ListKeys(
 	}
 
 	return jwks, nil
+}
+
+// This function assumes that EdDSA is used with the ed25519 curve.
+func VerifyRequest(ctx context.Context, b Backends, req *http.Request, keySetURL, keyID string) bool {
+	resp, err := http.Get(keySetURL)
+	if err != nil {
+		log.Error("failed to get public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		return false
+	}
+
+	var keySet struct{ Keys []authorisation.Jwk }
+	err = json.NewDecoder(resp.Body).Decode(&keySet)
+	if err != nil {
+		log.Error("failed to unmarshal keyset", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		return false
+	}
+
+	var key *authorisation.Jwk
+	for _, k := range keySet.Keys {
+		if k.Kid == keyID {
+			key = &k
+			break
+		}
+	}
+	if key == nil {
+		log.Error("public key not found", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		return false
+	}
+	if key.Alg != "edDSA" && key.Crv != "ed25519" && key.Use != "sign" && key.Kty != "OKP" {
+		log.Error("public key is not a edDSA-ed25519 public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		return false
+	}
+
+	publicKeyBytes, err := base64.StdEncoding.DecodeString(key.X)
+	if err != nil {
+		log.Error("failed to parse public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		return false
+	}
+
+	return httpmessagesignatures.VerifySignature(ctx, req, ed25519.PublicKey(publicKeyBytes), ed25519Verifier{})
+}
+
+type ed25519Verifier struct {
+}
+
+func (s ed25519Verifier) Verify(publicKey crypto.PublicKey, digest []byte, signature []byte) bool {
+	return ed25519.Verify(publicKey.(ed25519.PublicKey), digest, signature)
 }
