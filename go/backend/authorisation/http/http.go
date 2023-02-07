@@ -2,12 +2,14 @@ package http
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/authorisation/ops"
+	"gitlab.com/fynbos/httpmessagesignatures"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -25,18 +27,36 @@ func AuthorisationHTTPHandler(b ops.Backends) http.Handler {
 
 func grantHandler(b ops.Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		rawBody, err := io.ReadAll(req.Body)
+		if err != nil {
+			log.Error("failed to read grant request body", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		if err = httpmessagesignatures.VerifyContentDigest(req.Context(), req.Header.Get("Content-Digest"), rawBody); err != nil {
+			log.Error("grant request does not match Content-Digest header.", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 
 		var gr authorisation.GrantRequest
-		err := json.NewDecoder(req.Body).Decode(&gr)
+		err = json.Unmarshal(rawBody, &gr)
 		if err != nil {
 			log.Error("failed to unmarshal grant request body", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
-		// TODO:
-		// - Lookup signatures by client URI (payment pointer)
-		// - Validate signature provided in req
+		if !ops.VerifyRequest(req.Context(), b, req, gr.Client.Display.URI, gr.Client.Key.Jwk.Kid) {
+			log.Error(
+				"grant request failed signature validation",
+				zap.String("clientURI", gr.Client.Display.URI),
+				zap.String("KeyID", gr.Client.Key.Jwk.Kid),
+			)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 
 		grant, err := ops.CreateGrant(req.Context(), b, gr)
 		if err != nil {
