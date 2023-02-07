@@ -472,6 +472,7 @@ export interface Empty {
  *   "kid": "test-key",
  *   "alg": "EdDSA",
  *   "crv": "Ed25519",
+ *   "use": "sign",
  *   "x": "<base64 encoded public key>"
  * }
  *
@@ -498,6 +499,10 @@ export interface JWK {
      * @generated from protobuf field: string crv = 5;
      */
     crv: string;
+    /**
+     * @generated from protobuf field: string use = 6;
+     */
+    use: string;
 }
 /**
  * @generated from protobuf message backend.v1.Transfer
@@ -2850,11 +2855,12 @@ class JWK$Type extends MessageType<JWK> {
             { no: 2, name: "kid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "alg", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "x", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "crv", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "crv", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "use", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<JWK>): JWK {
-        const message = { kty: "", kid: "", alg: "", x: "", crv: "" };
+        const message = { kty: "", kid: "", alg: "", x: "", crv: "", use: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<JWK>(this, message, value);
@@ -2879,6 +2885,9 @@ class JWK$Type extends MessageType<JWK> {
                     break;
                 case /* string crv */ 5:
                     message.crv = reader.string();
+                    break;
+                case /* string use */ 6:
+                    message.use = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2907,6 +2916,9 @@ class JWK$Type extends MessageType<JWK> {
         /* string crv = 5; */
         if (message.crv !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.crv);
+        /* string use = 6; */
+        if (message.use !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.use);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

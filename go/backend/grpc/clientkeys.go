@@ -26,7 +26,7 @@ func (s *rpcService) CreateClientPublicKey(
 		Alg: req.GetAlg(),
 		Crv: req.GetCrv(),
 		X:   req.GetX(),
-		Use: req.GetX(),
+		Use: req.GetUse(),
 	}
 	if !key.IsEdDSAPublicKey() {
 		return nil, NewValidationError("", "Must be a EdDSA public key.")

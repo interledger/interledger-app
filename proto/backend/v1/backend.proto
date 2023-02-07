@@ -244,6 +244,7 @@ service BackendService {
 //   "kid": "test-key",
 //   "alg": "EdDSA",
 //   "crv": "Ed25519",
+//   "use": "sign",
 //   "x": "<base64 encoded public key>"
 // }
 message JWK {
@@ -252,6 +253,7 @@ message JWK {
   string alg = 3;
   string x = 4;
   string crv = 5;
+  string use = 6;
 }
 
 message Transfer {
