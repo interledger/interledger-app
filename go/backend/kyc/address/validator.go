@@ -2,8 +2,10 @@ package address
 
 import (
 	"context"
-	"fmt"
 	"strings"
+
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
@@ -56,7 +58,8 @@ func (c *client) USPSAddress(ctx context.Context, address kyc.Address) (bool, er
 
 	err := c.extenal.SendBatchWithContext(ctx, batch)
 	if err != nil {
-		return false, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+		log.Error("error query address", zap.Any("address", address))
+		return true, nil
 	}
 
 	for _, input := range batch.Records() {
@@ -65,5 +68,7 @@ func (c *client) USPSAddress(ctx context.Context, address kyc.Address) (bool, er
 		}
 	}
 
-	return false, nil
+	log.Error("usps query did not return any results", zap.Any("address", address))
+
+	return true, nil
 }
