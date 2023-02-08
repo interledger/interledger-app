@@ -2,7 +2,6 @@ package ops_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,44 +13,38 @@ import (
 )
 
 func TestCreateGrant(t *testing.T) {
-
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx))
-
-	_, err := ops.CreateClient(ctx, b, "https://fynbos.me/alice")
+	clientPaymentPointer := "https://fynbos.me/alice"
+	resourceOwnerPaymentPointer := "https://fynbos.me/bobby"
+	_, err := ops.CreateClient(ctx, b, clientPaymentPointer)
 	require.NoError(t, err)
 
 	g, err := ops.CreateGrant(ctx, b, authorisation.GrantRequest{
 		AccessToken: []authorisation.AccessTokenReq{{
 			Access: []authorisation.Access{
 				{
-					Type:      "incoming-payment",
-					Actions:   []string{"write", "read"},
-					Locations: []string{"https://fynbos.me/bobby"},
-					Datatypes: []string{"incoming-Payments"},
+					Type:       "incoming-payments",
+					Actions:    []string{"write", "read"},
+					Identifier: resourceOwnerPaymentPointer,
 				},
 				{
-					Type:      "We don't get this access",
-					Actions:   []string{"write", "read"},
-					Locations: []string{"https://fynbos.me/bobby"},
-					Datatypes: []string{"outgoing-payment"},
+					// we won't be able to get access to this
+					Type:       "outgoing-payments",
+					Actions:    []string{"write", "read"},
+					Identifier: resourceOwnerPaymentPointer,
 				}},
 			Label: "TestAccess1",
 		}},
-		Client: authorisation.ClientReq{
-			Display: authorisation.Display{Name: "Not Used", URI: "https://fynbos.me/alice"},
-			Key: authorisation.Key{
-				Proof: "TODO",
-			},
-		},
+		Client: clientPaymentPointer,
 	})
 	require.NoError(t, err)
 
 	assert.Len(t, g.Tokens, 1)
 	assert.Len(t, g.Tokens[0].Access, 1)
-	assert.EqualValues(t, g.Tokens[0].Access[0].Datatypes, []string{"incoming-payments"})
+	assert.Equal(t, g.Tokens[0].Access[0].Type, "incoming-payments")
+	assert.EqualValues(t, g.Tokens[0].Access[0].Locations, []string{"https://fynbos.me/incoming-payments"})
 	assert.EqualValues(t, g.Tokens[0].Access[0].Actions, []string{"write", "read"})
-	fmt.Println(g)
 }
 
 func TestCreateAndListClientKeys(t *testing.T) {

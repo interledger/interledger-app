@@ -53,9 +53,9 @@ const (
 type (
 	GrantRequest struct {
 		AccessToken []AccessTokenReq `json:"access_token"`
-		Client      ClientReq        `json:"client"`
-		Interact    Interact         `json:"interact"`
-		Subject     Subject          `json:"subject"`
+		Client      string           `json:"client"` // we identify a client by its payment pointer
+		Interact    *Interact        `json:"interact,omitempty"`
+		Subject     *Subject         `json:"subject,omitempty"`
 	}
 
 	AccessTokenReq struct {
@@ -69,24 +69,19 @@ type (
 	}
 
 	Jwk struct {
-		Kty string `json:"kty"`
-		E   string `json:"e"`
-		Kid string `json:"kid"`
-		Alg string `json:"alg"`
-		N   string `json:"n"`
-		Crv string `json:"crv"`
-		X   string `json:"x"`
-		Use string `json:"use"`
+		Kty string `json:"kty,omitempty"`
+		E   string `json:"e,omitempty"`
+		Kid string `json:"kid,omitempty"`
+		Alg string `json:"alg,omitempty"`
+		N   string `json:"n,omitempty"`
+		Crv string `json:"crv,omitempty"`
+		X   string `json:"x,omitempty"`
+		Use string `json:"use,omitempty"`
 	}
 
 	Key struct {
 		Proof string `json:"proof"`
 		Jwk   Jwk    `json:"jwk"`
-	}
-
-	ClientReq struct {
-		Display Display `json:"display"`
-		Key     Key     `json:"key" validate:"url"`
 	}
 
 	Finish struct {
@@ -110,10 +105,11 @@ type (
 	}
 
 	Access struct {
-		Type      string   `json:"type"`
-		Actions   []string `json:"actions"`
-		Locations []string `json:"locations"`
-		Datatypes []string `json:"datatypes"`
+		Type       string   `json:"type"`
+		Actions    []string `json:"actions"`
+		Locations  []string `json:"locations,omitempty"`
+		Datatypes  []string `json:"datatypes,omitempty"`
+		Identifier string   `json:"identifier"`
 	}
 
 	AccessToken struct {
@@ -128,8 +124,6 @@ type (
 
 func (key Jwk) IsEdDSAPublicKey() bool {
 	return key.Kty == "OKP" &&
-		key.Use == "sign" &&
-		key.Crv == "ed25519" &&
-		key.Alg == "edDSA" &&
+		key.Crv == "Ed25519" &&
 		key.X != ""
 }
