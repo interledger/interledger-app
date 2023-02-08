@@ -23,14 +23,6 @@ func TestCreateWallet(t *testing.T) {
 
 	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
 
-	// User does not have a signup
-	_, err := ops.CreateWallet(ctx, b, userID, "test1")
-	require.ErrorIs(t, err, user.ErrNoUserFound)
-
-	// Create Signup
-	_, err = dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
-
 	w, err := ops.CreateWallet(ctx, b, userID, "test1")
 	require.NoError(t, err)
 	assert.Equal(t, "test1", w.Name)
@@ -82,9 +74,6 @@ func TestListWallets(t *testing.T) {
 	b := user_client.NewTestBackends(t, dbc, nil)
 
 	userID := "80629e7b-276b-4e38-82d5-8f73ef8c3806"
-	// Create Signup
-	_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
 
 	w, err := ops.CreateWallet(ctx, b, userID, "test1")
 	require.NoError(t, err)
@@ -104,9 +93,6 @@ func TestGetWallet(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 	b := user_client.NewTestBackends(t, dbc, nil)
 	userID := uuid.NewString()
-	// Create Signup
-	_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
 	w, err := ops.CreateWallet(ctx, b, userID, "default")
 	require.NoError(t, err)
 

@@ -112,9 +112,6 @@ func TestActivity_CreateUser(t *testing.T) {
 	env.RegisterActivity(a.CreateUser)
 
 	userID := uuid.NewString()
-	// Create Signup
-	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
 
 	externalUserID := uuid.NewString()
 	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
@@ -304,9 +301,6 @@ func TestActivity_FundUserWalletFromCard(t *testing.T) {
 
 	fromLinkedAccID := uuid.NewString()
 	fromUserID := uuid.NewString()
-	// Create Signup
-	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), fromUserID)
-	require.NoError(t, err)
 
 	fromWallet, err := b.users.CreateNewWallet(ctx, fromUserID, "TestWallet")
 	require.NoError(t, err)
@@ -457,10 +451,6 @@ func TestActivity_WithdrawFromWallet(t *testing.T) {
 	b.tx = trx_client.New(b)
 
 	userID := uuid.NewString()
-	// Create Signup
-	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
-
 	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
 	require.NoError(t, err)
 

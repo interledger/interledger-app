@@ -48,9 +48,6 @@ func TestCreateSendUserWorkflow(t *testing.T) {
 
 	userID := uuid.NewString()
 	externalUserID := uuid.NewString()
-	// Create Signup
-	_, err := b.db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
 	wallet, err := b.users.CreateNewWallet(ctx, userID, "TestWallet")
 	require.NoError(t, err)
 

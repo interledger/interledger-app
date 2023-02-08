@@ -22,9 +22,6 @@ func TestLinkedAccounts(s *testing.T) {
 
 	s.Run("can create a linked account", func(t *testing.T) {
 		userId := uuid.NewString()
-		// Create Signup
-		_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
-		require.NoError(t, err)
 		// Create Wallet
 		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
 		if err != nil {
@@ -49,9 +46,6 @@ func TestLinkedAccounts(s *testing.T) {
 
 	s.Run("can get a linked account", func(t *testing.T) {
 		userId := uuid.NewString()
-		// Create Signup
-		_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
-		require.NoError(t, err)
 		// Create Wallet
 		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
 		if err != nil {
@@ -88,9 +82,6 @@ func TestLinkedAccounts(s *testing.T) {
 
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {
 		userId := uuid.NewString()
-		// Create Signup
-		_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
-		require.NoError(t, err)
 		// Create Wallet
 		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
 		if err != nil {
@@ -123,9 +114,6 @@ func TestDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	userId := uuid.NewString()
-	// Create Signup
-	_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
-	require.NoError(t, err)
 	// Create Wallet
 	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
 	if err != nil {
@@ -156,9 +144,6 @@ func TestListMachnetWallets(t *testing.T) {
 	require.NoError(t, err)
 
 	userId := uuid.NewString()
-	// Create Signup
-	_, err = c.Db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userId)
-	require.NoError(t, err)
 	// Create Wallet
 	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
 	if err != nil {
