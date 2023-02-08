@@ -335,7 +335,18 @@ func ListKeys(
 }
 
 // This function assumes that EdDSA is used with the ed25519 curve.
-func VerifyRequest(ctx context.Context, b Backends, req *http.Request, keySetURL, keyID string) bool {
+func VerifyRequest(ctx context.Context, b Backends, req *http.Request, clientPaymentPointer string) bool {
+	keySetURL := clientPaymentPointer
+	if !strings.Contains(keySetURL, ".well-known/keys") {
+		keySetURL += "/.well-known/keys"
+	}
+
+	keyID := httpmessagesignatures.ExtractKeyIDForSignature(ctx, req, "sig-1") // assume sig-1 for now
+	if keyID == "" {
+		log.Error("failed to extract keyID for signature", zap.String("signature id", "sig-1"))
+		return false
+	}
+
 	resp, err := http.Get(keySetURL)
 	if err != nil {
 		log.Error("failed to get public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
@@ -360,7 +371,7 @@ func VerifyRequest(ctx context.Context, b Backends, req *http.Request, keySetURL
 		log.Error("public key not found", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
 		return false
 	}
-	if key.Alg != "edDSA" && key.Crv != "ed25519" && key.Use != "sign" && key.Kty != "OKP" {
+	if !key.IsEdDSAPublicKey() {
 		log.Error("public key is not a edDSA-ed25519 public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
 		return false
 	}

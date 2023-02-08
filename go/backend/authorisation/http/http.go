@@ -48,11 +48,10 @@ func grantHandler(b ops.Backends) http.HandlerFunc {
 			return
 		}
 
-		if !ops.VerifyRequest(req.Context(), b, req, gr.Client.Display.URI, gr.Client.Key.Jwk.Kid) {
+		if !ops.VerifyRequest(req.Context(), b, req, gr.Client) {
 			log.Error(
 				"grant request failed signature validation",
-				zap.String("clientURI", gr.Client.Display.URI),
-				zap.String("KeyID", gr.Client.Key.Jwk.Kid),
+				zap.String("clientURI", gr.Client),
 			)
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
