@@ -36,12 +36,12 @@ const (
 )
 
 var templateSubjects = map[TemplateID]string{
-	ReceiptTemplateID:           "Fynbos payment receipt.", // TODO: This is just an example
-	ReceivedReceiptTemplateID:   "You received a payment.",
-	DepositSuccessTemplateID:    "Deposit received.",
-	WithdrawalInitiated:         "You've initiated a withdrawal.",
-	StatementTemplateID:         "Your monthly statement.",
-	FailedTransactionTemplateID: "Your recent %s was unsuccessful.",
+	ReceiptTemplateID:           "Fynbos payment receipt",
+	ReceivedReceiptTemplateID:   "You received a payment",
+	DepositSuccessTemplateID:    "Deposit received",
+	WithdrawalInitiated:         "You've initiated a withdrawal",
+	StatementTemplateID:         "Your monthly statement",
+	FailedTransactionTemplateID: "Your recent %s was unsuccessful",
 }
 
 type Attachment struct {
