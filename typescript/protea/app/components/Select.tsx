@@ -54,8 +54,8 @@ export const Select: FC<SelectProps> = ({
           >
             {({ disabled }: { disabled: boolean }) => (
               <div className='flex h-full items-center justify-between overflow-hidden rounded-xl'>
-                <span className='ml-4 text-left text-sm'>
-                  {disabled ? 'Hello' : value?.name}
+                <span className='px-4 text-left text-sm'>
+                  {disabled ? '' : value?.name}
                 </span>
                 <div className='flex h-full items-center bg-container px-4 text-medium'>
                   <Icon>unfold_more</Icon>
