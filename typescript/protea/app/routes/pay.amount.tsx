@@ -77,7 +77,7 @@ export default function Page() {
           name='amount'
           defaultValue={flow?.data.amount}
           onChange={_onChangeInput}
-          prefixIcon={<Icon className='text-medium'>attach_money</Icon>}
+          prefix='$'
           type='number'
           min='0'
           step='0.01'
