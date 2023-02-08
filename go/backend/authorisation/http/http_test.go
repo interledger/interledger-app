@@ -8,7 +8,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -63,8 +62,8 @@ func TestGrantRequest(t *testing.T) {
 			{
 				Kty: "OKP",
 				Kid: keyID,
-				Alg: "edDSA",
-				Crv: "ed25519",
+				Alg: "EdDSA",
+				Crv: "Ed25519",
 				Use: "sign",
 				X:   base64.StdEncoding.EncodeToString(pub),
 			},
@@ -75,35 +74,25 @@ func TestGrantRequest(t *testing.T) {
 		opserver.Close()
 	})
 
-	_, err = ops.CreateClient(ctx, b, fmt.Sprintf("%s/.well-known/keys", opserver.URL))
+	clientPaymentPointer := opserver.URL
+	_, err = ops.CreateClient(ctx, b, clientPaymentPointer)
 	require.NoError(t, err)
 
-	gr := authorisation.GrantRequest{
-		Client: authorisation.ClientReq{
-			Display: authorisation.Display{
-				Name: "test",
-				URI:  fmt.Sprintf("%s/.well-known/keys", opserver.URL),
-			},
-			Key: authorisation.Key{
-				Proof: "httpsig",
-				Jwk: authorisation.Jwk{
-					Kty: "OKP",
-					Kid: keyID,
-					Alg: "edDSA",
-					Crv: "ed25519",
-					X:   base64.StdEncoding.EncodeToString(pub),
+	resourceOwnerPaymnetPointer := "https://fynbos.me/bobby"
+	gr := map[string]interface{}{
+		"client": clientPaymentPointer,
+		"access_token": []map[string]interface{}{
+			{
+				"access": []map[string]interface{}{
+					{
+						"type":       "incoming-payments",
+						"actions":    []string{"write", "read"},
+						"identifier": resourceOwnerPaymnetPointer,
+					},
 				},
+				"label": "test",
 			},
 		},
-		AccessToken: []authorisation.AccessTokenReq{{
-			Access: []authorisation.Access{{
-				Type:      "incoming-payments",
-				Actions:   []string{"write", "read"},
-				Locations: []string{"https://fynbos.me/bobby"},
-				Datatypes: []string{"incoming-payments"},
-			}},
-			Label: "TestAccess1",
-		}},
 	}
 	body, err := json.Marshal(gr)
 	require.NoError(t, err)
@@ -111,7 +100,7 @@ func TestGrantRequest(t *testing.T) {
 	digest, err := httpmessagesignatures.CreateContentDigest(ctx, body, []string{"sha-256"})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "http://fynbos.test/grant", bytes.NewBuffer(body))
+	req := httptest.NewRequest("POST", "http://auth.fynbos.test/grant", bytes.NewBuffer(body))
 	req.Header.Set("Content-Digest", digest)
 	err = httpmessagesignatures.SignRequest(
 		ctx,

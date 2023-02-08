@@ -217,3 +217,41 @@ func VerifySignature(ctx context.Context, req *http.Request, publicKey crypto.Pu
 
 	return verifier.Verify(publicKey, []byte(base), signature)
 }
+
+func ExtractKeyIDForSignature(ctx context.Context, req *http.Request, signatureID string) string {
+	if req.Header.Get("Signature-Input") == "" {
+		return ""
+	}
+
+	sigInput, err := httpsfv.UnmarshalDictionary([]string{req.Header.Get("Signature-Input")})
+	if err != nil {
+		log.Error("Failed to unmarshal Signature-Input header.", zap.Error(err))
+		return ""
+	}
+
+	sig1Params, exists := sigInput.Get(signatureID)
+	if !exists {
+		log.Error("sig-1 does not exist in sig input dictionary.")
+		return ""
+	}
+
+	sigParamList, ok := sig1Params.(httpsfv.InnerList)
+	if !ok {
+		log.Error("Failed to cast sig input to inner list.")
+		return ""
+	}
+
+	id, exists := sigParamList.Params.Get("keyid")
+	if !exists {
+		log.Error("Failed to get keyid.", zap.String("signature", signatureID))
+		return ""
+	}
+
+	keyID, ok := id.(string)
+	if !ok {
+		log.Error("Failed cast keyid to string.")
+		return ""
+	}
+
+	return keyID
+}
