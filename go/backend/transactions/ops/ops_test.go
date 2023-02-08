@@ -137,11 +137,8 @@ func TestCreateTransaction(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
+			userID := uuid.NewString()
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
 
@@ -273,11 +270,8 @@ func TestListWithPendingTransaction(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
+			userID := uuid.NewString()
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
 
@@ -401,9 +395,6 @@ func TestListWithPendingPagination(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
-			walletID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", walletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
@@ -467,8 +458,6 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
@@ -555,8 +544,6 @@ func TestSetTransferForeignID(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
@@ -637,8 +624,6 @@ func TestSetTransactionState(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)
@@ -725,8 +710,6 @@ func TestSetTransferState(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
-			_, err := dbc.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", tc.args.WalletID, userID)
-			require.NoError(t, err)
 			// Create Wallets
 			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 			require.NoError(t, err)

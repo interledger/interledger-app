@@ -92,17 +92,7 @@ func CreateWallet(ctx context.Context, b Backends, userID, name string) (*user.W
 
 	walletID := uuid.NewString()
 	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		// Lock on the signup. This is a bit hacky, but it does ensure that the user has finished signup before we create a wallet
-		var signupID string
-		err := tx.GetContext(ctx, &signupID, "SELECT id FROM signups WHERE user_id = $1 FOR UPDATE", userID)
-		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("%w signup incomplete fo user id(%s)", user.ErrNoUserFound, userID)
-		}
-		if err != nil {
-			return fmt.Errorf("%w %s", user.ErrInternal, err)
-		}
-
-		_, err = tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
+		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
 		if err != nil {
 			return fmt.Errorf("%w %s", user.ErrInternal, err)
 		}

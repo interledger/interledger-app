@@ -85,8 +85,6 @@ func TestGetHandler(t *testing.T) {
 			// Setup the payment pointer
 			if tc.pointer != nil {
 				userID := uuid.NewString()
-				_, err = db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-				require.NoError(t, err)
 				// Create Wallets
 				wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 				require.NoError(t, err)
@@ -160,9 +158,6 @@ func TestHTTPCreateQuoteGet(t *testing.T) {
 
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
-		// Create Signups
-		_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), sendUserID, uuid.NewString(), recvUserID)
-		require.NoError(t, err)
 		// Create Wallets
 		sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
 		require.NoError(t, err)
@@ -281,9 +276,6 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	for _, tc := range cases {
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
-		// Create Signups
-		_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2),($3, $4)", uuid.NewString(), recvUserID, uuid.NewString(), sendUserID)
-		require.NoError(t, err)
 		// Create Wallets
 		recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
 		require.NoError(t, err)
@@ -436,9 +428,6 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
-		// Create Signups
-		_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), sendUserID, uuid.NewString(), recvUserID)
-		require.NoError(t, err)
 		// Create Wallets
 		sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
 		require.NoError(t, err)
@@ -542,10 +531,7 @@ func TestListKeys(t *testing.T) {
 	b := NewTestBackends(t, db, nil, nil, nil, nil, authClient)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
-	// Create Signups, wallet, pp
 	userID := uuid.NewString()
-	_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2)", uuid.NewString(), userID)
-	require.NoError(t, err)
 	// Create Wallets
 	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
 	require.NoError(t, err)

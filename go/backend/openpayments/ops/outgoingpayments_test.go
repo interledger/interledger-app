@@ -68,9 +68,6 @@ func TestCreateOutgoingPayment(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			sendUserID := uuid.NewString()
 			recvUserID := uuid.NewString()
-			// Create Signups
-			_, err := db.ExecContext(ctx, "INSERT INTO signups (id, user_id) VALUES ($1, $2), ($3, $4)", uuid.NewString(), sendUserID, uuid.NewString(), recvUserID)
-			require.NoError(t, err)
 			// Create Wallets
 			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
 			require.NoError(t, err)
