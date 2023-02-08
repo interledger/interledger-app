@@ -116,7 +116,7 @@ export const PhoneTextField = forwardRef<
                   )}`}
                   type='tel'
                   onChange={_onChangeInput}
-                  className='w-full overflow-hidden border-none focus:ring-0'
+                  className='w-full bg-transparent overflow-hidden border-none px-4 focus:ring-0'
                 />
               </div>
             </div>
