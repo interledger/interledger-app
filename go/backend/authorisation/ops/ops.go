@@ -58,7 +58,7 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInvalidArgument, err)
 	}
 
-	cl, err := LookupClient(ctx, b, args.Client.Display.URI)
+	cl, err := LookupClient(ctx, b, args.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -112,23 +112,13 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 }
 
 // validateTokenAccess returns all the tokens for access that can automatically be granted.
-// Currently, the only supported access is for "incoming-payments" data type and "read,write" actions
+// Currently, the only supported access is for "incoming-payments" type and "read,write" actions
 func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) ([]authorisation.AccessTokenReq, error) {
-
 	var resp []authorisation.AccessTokenReq
 	for _, at := range req {
 		var access []authorisation.Access
 		for _, acc := range at.Access {
-			var typeFound bool
-			for _, dt := range acc.Datatypes {
-				if strings.EqualFold(dt, "incoming-payments") {
-					typeFound = true
-					break
-				}
-			}
-
-			// Ignore this access
-			if !typeFound {
+			if !strings.EqualFold(acc.Type, "incoming-payments") {
 				continue
 			}
 
@@ -147,8 +137,7 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 			access = append(access, authorisation.Access{
 				Type:      acc.Type,
 				Actions:   actions,
-				Locations: acc.Locations,
-				Datatypes: []string{"incoming-payments"},
+				Locations: []string{"https://fynbos.me/incoming-payments"},
 			})
 		}
 		// No valid access requests where found for this token. Ignore it.
