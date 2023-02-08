@@ -37,10 +37,18 @@ TextFieldStory.args = {
 /**
  * Js docs get put in storybook
  */
-export const TextFieldWithPrefixIcon = Template.bind({})
-TextFieldWithPrefixIcon.args = {
+export const WithPrefixIcon = Template.bind({})
+WithPrefixIcon.args = {
   name: 'something',
   type: 'text',
   label: 'This is an input',
   prefixIcon: <Icon>face</Icon>
+}
+
+export const WithPrefix = Template.bind({})
+WithPrefix.args = {
+  name: 'something',
+  type: 'text',
+  label: 'This is an input',
+  prefix: '$'
 }
