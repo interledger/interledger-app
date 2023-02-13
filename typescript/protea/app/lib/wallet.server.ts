@@ -129,7 +129,7 @@ export async function getWalletBalance(request: Request): Promise<string> {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    if (response.code == Code.NOT_FOUND) return '$ 0.00'
+    if (response.code == Code.NOT_FOUND) return 'No balance.'
     throw json({}, httpMapping(response.code))
   }
 
@@ -216,12 +216,12 @@ const formatLinkedAccount = (
   switch (linkedAccount.type) {
     case 'sendCard':
       type = 'card'
-      name = `Card ending ${linkedAccount.mask}`
+      name = `**** ${linkedAccount.mask}`
       icon = 'credit_card'
       break
     case 'bankAccount':
       type = 'bank'
-      name = `${linkedAccount.name} ${linkedAccount.mask}`
+      name = `${linkedAccount.name}`
       icon = 'account_balance'
       break
     case 'wallet':
