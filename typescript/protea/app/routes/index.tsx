@@ -1,6 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { defer, json } from '@remix-run/node'
+import { Await, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   ButtonRouter,
@@ -22,7 +22,7 @@ import {
   getLinkedAccounts,
   getTransactionsWithPending
 } from '~/lib/wallet.server'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, Suspense, useEffect, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
@@ -56,7 +56,7 @@ export async function loader({ request }: LoaderArgs) {
       walletID: '',
       formatted: ''
     },
-    balance: '',
+    balance: '' as unknown as Promise<string>,
     transactions: [] as Transaction[],
     kycStatus: KycStatus.Unknown,
     canTopUp: false,
@@ -76,7 +76,7 @@ export async function loader({ request }: LoaderArgs) {
     const [
       session,
       paymentPointer,
-      balance,
+      // balance,
       transactions,
       kycStatus,
       linkedAccounts,
@@ -85,7 +85,7 @@ export async function loader({ request }: LoaderArgs) {
     ] = await Promise.all([
       getUserSession(request),
       getWalletPaymentPointer(request),
-      getWalletBalance(request),
+      // getWalletBalance(request),
       getTransactionsWithPending(request, { pageSize: 3 }),
       getKycStatus(request),
       getLinkedAccounts(request),
@@ -97,7 +97,7 @@ export async function loader({ request }: LoaderArgs) {
       ...data,
       firstName: session.identity.traits.firstName,
       paymentPointer,
-      balance,
+      balance: getWalletBalance(request),
       transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
       canTopUp: linkedAccounts.canTopUp,
@@ -155,7 +155,7 @@ export async function loader({ request }: LoaderArgs) {
       }
     }
   }
-  return json(data)
+  return defer(data)
 }
 
 export const handle = {
@@ -460,23 +460,23 @@ function AppPage() {
   } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
-  const [animatedBalance, setBalance] = useState<string>(balance)
+  // const [animatedBalance, setBalance] = useState<string>(balance)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
   )
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (animatedBalance != balance) {
-      setBalance('')
-      timer = setTimeout(() => {
-        setBalance(balance)
-      }, 100)
-    }
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [balance, animatedBalance])
+  // useEffect(() => {
+  //   let timer: NodeJS.Timeout
+  //   if (animatedBalance != balance) {
+  //     setBalance('')
+  //     timer = setTimeout(() => {
+  //       setBalance(balance)
+  //     }, 100)
+  //   }
+  //   return () => {
+  //     clearTimeout(timer)
+  //   }
+  // }, [balance, animatedBalance])
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
@@ -603,7 +603,7 @@ function AppPage() {
           <h2 className='font-display text-lg font-medium'>Cash balance</h2>
           <div className='flex mt-2 h-9'>
             <AnimatePresence mode='wait'>
-              {animatedBalance && (
+              {
                 <motion.h1
                   animate={{ opacity: 1, scale: 1 }}
                   initial={{ opacity: 0, scale: 0.5 }}
@@ -622,9 +622,18 @@ function AppPage() {
                   }}
                   className='text-3xl font-medium'
                 >
-                  {animatedBalance}
+                  <Suspense fallback={'Loading balance...'}>
+                    <Await
+                      resolve={balance}
+                      errorElement={'Error loading balance!'}
+                    >
+                      {(balance) => (
+                        <h1 className='text-3xl font-medium'>{balance}</h1>
+                      )}
+                    </Await>
+                  </Suspense>
                 </motion.h1>
-              )}
+              }
             </AnimatePresence>
           </div>
 
