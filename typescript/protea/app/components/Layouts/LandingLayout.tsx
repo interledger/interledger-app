@@ -6,6 +6,7 @@ import { Logo } from '../Logo'
 import { AnchorRouter, ButtonRouter, Router } from '../Router'
 import { NavDrawer } from './NavDrawer'
 import { IconButton } from '~/components'
+import { DateTime } from 'luxon'
 
 type HeaderLinkProps = {
   title: string
@@ -202,7 +203,7 @@ export function LandingLayout() {
           </div>
           <div className='col-span-full mt-8 mb-20 flex flex-col lg:col-span-6 lg:col-start-4'>
             <span className='text-sm text-slate-300'>
-              &copy; 2022 Fynbos Technologies Ltd.
+              &copy; 2022 - {DateTime.now().year} Fynbos Technologies Ltd.
             </span>
           </div>
         </section>
