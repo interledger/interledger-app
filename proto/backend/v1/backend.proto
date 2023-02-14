@@ -196,6 +196,7 @@ service BackendService {
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
+  rpc SetNameLinkedAccount(SetNameLinkedAccountRequest) returns (LinkedAccount);
   rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
@@ -419,6 +420,11 @@ message GetLinkedAccountsResponse {
 
 message GetLinkedAccountRequest {
   string id = 1;
+}
+
+message SetNameLinkedAccountRequest {
+  string id = 1;
+  string name = 2;
 }
 
 message DeleteLinkedAccountRequest {

@@ -963,6 +963,19 @@ export interface GetLinkedAccountRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.SetNameLinkedAccountRequest
+ */
+export interface SetNameLinkedAccountRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string name = 2;
+     */
+    name: string;
+}
+/**
  * @generated from protobuf message backend.v1.DeleteLinkedAccountRequest
  */
 export interface DeleteLinkedAccountRequest {
@@ -4656,6 +4669,60 @@ class GetLinkedAccountRequest$Type extends MessageType<GetLinkedAccountRequest> 
  */
 export const GetLinkedAccountRequest = new GetLinkedAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class SetNameLinkedAccountRequest$Type extends MessageType<SetNameLinkedAccountRequest> {
+    constructor() {
+        super("backend.v1.SetNameLinkedAccountRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetNameLinkedAccountRequest>): SetNameLinkedAccountRequest {
+        const message = { id: "", name: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetNameLinkedAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetNameLinkedAccountRequest): SetNameLinkedAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string name */ 2:
+                    message.name = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetNameLinkedAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string name = 2; */
+        if (message.name !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetNameLinkedAccountRequest
+ */
+export const SetNameLinkedAccountRequest = new SetNameLinkedAccountRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class DeleteLinkedAccountRequest$Type extends MessageType<DeleteLinkedAccountRequest> {
     constructor() {
         super("backend.v1.DeleteLinkedAccountRequest", [
@@ -6034,6 +6101,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "GetLinkedAccounts", options: {}, I: Empty, O: GetLinkedAccountsResponse },
     { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount },
+    { name: "SetNameLinkedAccount", options: {}, I: SetNameLinkedAccountRequest, O: LinkedAccount },
     { name: "DeleteLinkedAccount", options: {}, I: DeleteLinkedAccountRequest, O: Empty },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
     { name: "GetCountries", options: {}, I: Empty, O: GetCountriesResponse },
