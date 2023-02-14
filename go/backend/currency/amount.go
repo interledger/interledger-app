@@ -51,7 +51,7 @@ var currencyFormat = map[Currency]string{
 type Amount struct {
 	Value    uint64   `validate:"gt=0" json:"amount,string"`
 	Currency Currency `validate:"iso4217"  json:"currency"`
-	Scale    int      `validate:"omitempty,gt=0" json:"-"`
+	Scale    int      `validate:"omitempty,gt=0" json:"scale"`
 }
 
 // FormatAmount returns the amount in the scale as representative of a human readable format.
