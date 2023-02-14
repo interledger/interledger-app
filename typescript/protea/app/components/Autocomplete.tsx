@@ -69,14 +69,14 @@ export const Autocomplete: FC<AutocompleteProps> = ({
                 </div>
               )}
               {prefix && (
-                <span className='z-10 ml-4 -mr-3 text-weak font-medium'>
+                <span className='z-10 ml-4 -mr-3 font-medium text-weak'>
                   {prefix}
                 </span>
               )}
               <Combobox.Input
                 autoComplete='off'
                 type='text'
-                className='w-full bg-transparent overflow-hidden px-4 border-none focus:ring-0'
+                className='w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'
                 displayValue={(value: AutocompleteOptions) => value?.name}
                 onChange={(event) => onQuery(event.target.value)}
               />

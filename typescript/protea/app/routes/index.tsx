@@ -601,7 +601,7 @@ function AppPage() {
       {kycStatus == KycStatus.Verified && (
         <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>Cash balance</h2>
-          <div className='flex mt-2 h-9'>
+          <div className='mt-2 flex h-9'>
             <AnimatePresence mode='wait'>
               {animatedBalance && (
                 <motion.h1
