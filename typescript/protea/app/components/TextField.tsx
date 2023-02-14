@@ -50,7 +50,7 @@ export const TextField = forwardRef<any, TextFieldProps>(
               </div>
             )}
             {prefix && (
-              <span className='z-10 ml-4 -mr-3 text-weak font-medium'>
+              <span className='z-10 ml-4 -mr-3 font-medium text-weak'>
                 {prefix}
               </span>
             )}

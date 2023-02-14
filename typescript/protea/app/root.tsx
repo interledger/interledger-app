@@ -166,8 +166,8 @@ export default function Page() {
             </div>
           </section>
         </main>
-        <footer className='p-4 fixed bottom-0 flex w-full justify-center'>
-          <div className='flex text-weak text-xs'>
+        <footer className='fixed bottom-0 flex w-full justify-center p-4'>
+          <div className='flex text-xs text-weak'>
             <p>::CLOUDFLARE_ERROR_500S_BOX::</p>
           </div>
         </footer>
