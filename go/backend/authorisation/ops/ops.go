@@ -349,14 +349,14 @@ func VerifyRequest(ctx context.Context, b Backends, req *http.Request, clientPay
 
 	resp, err := http.Get(keySetURL)
 	if err != nil {
-		log.Error("failed to get public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		log.Error("failed to get public key", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID), zap.Error(err))
 		return false
 	}
 
 	var keySet struct{ Keys []authorisation.Jwk }
 	err = json.NewDecoder(resp.Body).Decode(&keySet)
 	if err != nil {
-		log.Error("failed to unmarshal keyset", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID))
+		log.Error("failed to unmarshal keyset", zap.String("keySetURL", keySetURL), zap.String("keyID", keyID), zap.Error(err))
 		return false
 	}
 
