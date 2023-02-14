@@ -1,10 +1,11 @@
 package main
 
 import (
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"log"
 	"os"
+
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
@@ -90,6 +91,18 @@ func main() {
 						Usage:  "create a transaction that uses machnet provider",
 						Flags:  actions.MakeMachnetTransactionFlags,
 						Action: actions.MakeMachnetTransaction(b),
+					},
+					{
+						Name:   "ed25519_key_pair",
+						Usage:  "generate ed25519 key pair",
+						Flags:  nil,
+						Action: actions.MakeGenerateEd25519KeyPair(b),
+					},
+					{
+						Name:   "sign_grant_request",
+						Usage:  "sign test grant request",
+						Flags:  actions.SignGrantRequestFlags,
+						Action: actions.MakeSignGrantRequest(b),
 					},
 				},
 			},
