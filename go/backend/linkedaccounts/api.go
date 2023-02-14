@@ -9,4 +9,5 @@ type Client interface {
 	GetByProviderID(ctx context.Context, args GetByProviderIDArgs) (*LinkedAccount, error)
 	ListByWalletId(ctx context.Context, walletId string) ([]LinkedAccount, error)
 	ListMachnetWallets(ctx context.Context) ([]LinkedAccount, error)
+	SetName(ctx context.Context, id, name string) (*LinkedAccount, error)
 }

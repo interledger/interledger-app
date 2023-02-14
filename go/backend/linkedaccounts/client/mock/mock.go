@@ -123,3 +123,18 @@ func (mr *MockClientMockRecorder) ListMachnetWallets(ctx interface{}) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMachnetWallets", reflect.TypeOf((*MockClient)(nil).ListMachnetWallets), ctx)
 }
+
+// SetName mocks base method.
+func (m *MockClient) SetName(ctx context.Context, id, name string) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetName", ctx, id, name)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetName indicates an expected call of SetName.
+func (mr *MockClientMockRecorder) SetName(ctx, id, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetName", reflect.TypeOf((*MockClient)(nil).SetName), ctx, id, name)
+}
