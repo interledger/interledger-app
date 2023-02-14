@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
 	"gitlab.com/fynbos/backend/authorisation"
@@ -27,8 +25,12 @@ import (
 func OpenPaymentsHTTPHandler(b Backends) http.Handler {
 	router := chi.NewRouter()
 	router.Use(otelchi.Middleware("open_payments", otelchi.WithChiRoutes(router)))
+
 	router.Post("/incoming_payment", createIncomingPayment(b))
-	router.Get("/incoming_payment/{payment_id}", createIncomingPayment(b))
+	router.Get("/incoming_payment/{payment_id}", getIncomingPayment(b))
+
+	router.Post("/outgoing_payment", createOutgoingPayment(b))
+	router.Get("/outgoing_payment/{payment_id}", getOutgoingPayment(b))
 
 	router.Post("/incoming_payment", createIncomingPayment(b))
 	router.Get("/incoming_payment/{payment_id}", getIncomingPayment(b))
