@@ -44,6 +44,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	id := uuid.NewString()
 	trxID := uuid.NewString()
 
+	amt := currency.FromFloat64(10.55, currency.USD)
 	mArgs := machnet.CreateTransactionArgs{
 		FromForeignID:       uuid.NewString(),
 		ToForeignID:         uuid.NewString(),
@@ -51,8 +52,8 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 		ToPaymentPointer:    uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		ToLinkedAccountID:   uuid.NewString(),
-		Amount:              currency.FromFloat64(10.5, currency.ParseCurrency("USD")),
-		IPAddress:           "198.0.0.3",
+		Amount:              amt,
+		IPAddress:           "198.0.0.4",
 	}
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
@@ -64,7 +65,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, "external_id").Return(nil)
 	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)
 
-	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.3")
+	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.4")
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())

@@ -3,8 +3,6 @@ package openpayments
 import (
 	"time"
 
-	"gitlab.com/fynbos/env"
-
 	"gitlab.com/fynbos/backend/currency"
 )
 
@@ -57,16 +55,16 @@ type CreateIncomingPaymentArgs struct {
 
 type IncomingPayment struct {
 	ID                 string           `json:"id"`
-	PaymentPointer     string           `json:"paymentPointer"`
+	PaymentPointer     string           `json:"to"`
 	FromPaymentPointer string           `json:"from"`
-	IncomingAmount     *currency.Amount `json:"incomingAmount,omitempty"`
-	ReceivedAmount     *currency.Amount `json:"receivedAmount,omitempty"`
+	IncomingAmount     *currency.Amount `json:"incoming_amount,omitempty"`
+	ReceivedAmount     *currency.Amount `json:"outgoing_amount,omitempty"`
 	Completed          bool             `json:"completed"`
-	ExternalRef        string           `json:"externalRef"`
+	ExternalRef        string           `json:"external_ref"`
 	Description        string           `json:"description"`
-	ExpiresAt          time.Time        `json:"expiresAt"`
-	CreatedAt          time.Time        `json:"createdAt"`
-	UpdatedAt          time.Time        `json:"updatedAt"`
+	ExpiresAt          time.Time        `json:"expires_at"`
+	CreatedAt          time.Time        `json:"created_at"`
+	UpdatedAt          time.Time        `json:"updated_at"`
 }
 
 type CreateOutgoingPaymentArgs struct {
@@ -79,30 +77,20 @@ type CreateOutgoingPaymentArgs struct {
 
 type OutgoingPayment struct {
 	ID                string          `json:"id"`
-	PaymentPointer    string          `json:"paymentPointer"`
+	PaymentPointer    string          `json:"from"`
 	ToPaymentPointer  string          `json:"to"`
 	Failed            bool            `json:"failed"`
 	Receiver          string          `json:"receiver"`
-	SendAmount        currency.Amount `json:"sendAmount"`
-	ReceiveAmount     currency.Amount `json:"receiveAmount"`
-	SentAmount        currency.Amount `json:"sentAmount"`
+	SendAmount        currency.Amount `json:"send_amount"`
+	ReceiveAmount     currency.Amount `json:"receive_amount"`
+	SentAmount        currency.Amount `json:"sent_amount"`
 	Description       string          `json:"description"`
-	CreatedAt         time.Time       `json:"createdAt"`
-	UpdatedAt         time.Time       `json:"updatedAt"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
 	FromLinkedAccount string          `json:"-"`
 }
 
 type CompleteOutgoingPaymentArgs struct {
 	ID         string
 	SentAmount currency.Amount
-}
-
-func BaseURL() string {
-	if env.IsProd() {
-		return "https://open.fynbos.app"
-	}
-	if env.IsDev() {
-		return "https://eu1.open.fynbos.app"
-	}
-	return "https://eu1.open.fynbos.app"
 }
