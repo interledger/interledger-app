@@ -43,5 +43,5 @@ type Backends interface {
 	Transactions() transactions.Client
 	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
-	OpenPayments () openpayments.Client
+	OpenPayments() openpayments.Client
 }

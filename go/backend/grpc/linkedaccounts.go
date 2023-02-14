@@ -100,3 +100,31 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 
 	return &pb.Empty{}, toGRPCError(err)
 }
+
+func (s *rpcService) SetNameLinkedAccount(ctx context.Context, req *pb.SetNameLinkedAccountRequest) (*pb.LinkedAccount, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().SetName(ctx, req.Id, req.Name)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if la.WalletID != wallet.ID {
+		return nil, toGRPCError(linkedaccounts.ErrNotFound)
+	}
+
+	return &pb.LinkedAccount{
+		Id:   la.ID,
+		Type: la.Type,
+		Name: la.Name,
+		Mask: la.Mask,
+	}, nil
+}
