@@ -519,6 +519,7 @@ type BackendServiceClient interface {
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
 	GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error)
 	GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	SetNameLinkedAccount(ctx context.Context, in *SetNameLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
@@ -673,6 +674,15 @@ func (c *backendServiceClient) GetLinkedAccounts(ctx context.Context, in *Empty,
 func (c *backendServiceClient) GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetLinkedAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SetNameLinkedAccount(ctx context.Context, in *SetNameLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetNameLinkedAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -943,6 +953,7 @@ type BackendServiceServer interface {
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
 	GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error)
 	GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error)
+	SetNameLinkedAccount(context.Context, *SetNameLinkedAccountRequest) (*LinkedAccount, error)
 	DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
@@ -1020,6 +1031,9 @@ func (UnimplementedBackendServiceServer) GetLinkedAccounts(context.Context, *Emp
 }
 func (UnimplementedBackendServiceServer) GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) SetNameLinkedAccount(context.Context, *SetNameLinkedAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetNameLinkedAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteLinkedAccount not implemented")
@@ -1344,6 +1358,24 @@ func _BackendService_GetLinkedAccount_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).GetLinkedAccount(ctx, req.(*GetLinkedAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_SetNameLinkedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetNameLinkedAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SetNameLinkedAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SetNameLinkedAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SetNameLinkedAccount(ctx, req.(*SetNameLinkedAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1892,6 +1924,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLinkedAccount",
 			Handler:    _BackendService_GetLinkedAccount_Handler,
+		},
+		{
+			MethodName: "SetNameLinkedAccount",
+			Handler:    _BackendService_SetNameLinkedAccount_Handler,
 		},
 		{
 			MethodName: "DeleteLinkedAccount",
