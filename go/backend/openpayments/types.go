@@ -3,6 +3,8 @@ package openpayments
 import (
 	"time"
 
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/backend/currency"
 )
 
@@ -95,21 +97,12 @@ type CompleteOutgoingPaymentArgs struct {
 	SentAmount currency.Amount
 }
 
-type TransactionType string
-
-const (
-	TransactionTypeIncomingPayment TransactionType = "incoming"
-	TransactionTypeOutgoingPayment TransactionType = "outgoing"
-)
-
-// Transaction is abstract information representing either an incoming or outgoing payment.
-// This is used for listing transactions for the frontend
-type Transaction struct {
-	ID          string
-	Source      string
-	Destination string
-	Note        string
-	Type        TransactionType
-	Timestamp   time.Time
-	Amount      currency.Amount
+func BaseURL() string {
+	if env.IsProd() {
+		return "https://open.fynbos.app"
+	}
+	if env.IsDev() {
+		return "https://eu1.open.fynbos.app"
+	}
+	return "https://eu1.open.fynbos.app"
 }

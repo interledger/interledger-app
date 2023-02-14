@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+
 	"gitlab.com/fynbos/backend/authorisation"
 	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
 	"gitlab.com/fynbos/backend/currency"
@@ -243,31 +245,31 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 
 	cases := []struct {
 		name       string
-		args       openpayments.CreateIncomingPaymentArgs
+		args       PaymentArgs
 		statusCode int
 	}{
 		{
 			name: "success",
-			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "https://fynbos.me/moneyplease",
-				FromPaymentPointer: "https://fynbos.me/sendmoney",
-				IncomingAmount: &currency.Amount{
-					Value:    100,
-					Currency: currency.USD,
-					Scale:    2,
+			args: PaymentArgs{
+				FromPP: "https://fynbos.me/sendmoney",
+				Type:   "incoming_payment",
+				ToPP:   "https://fynbos.me/moneyplease",
+				Amount: &struct {
+					Amount   float64 `json:"amount,string"`
+					Currency string  `json:"currency"`
+				}{
+					Amount:   10,
+					Currency: "USD",
 				},
-				ExternalRef: "External",
-				ExpiresAt:   time.Now().Add(time.Hour),
 			},
 			statusCode: http.StatusCreated,
 		},
 		{
 			name: "success no amount",
-			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "https://fynbos.me/moneyplease2",
-				FromPaymentPointer: "https://fynbos.me/sendmoney2",
-				ExternalRef:        "External",
-				ExpiresAt:          time.Now().Add(time.Hour),
+			args: PaymentArgs{
+				ToPP:   "https://fynbos.me/moneyplease2",
+				FromPP: "https://fynbos.me/sendmoney2",
+				Type:   "incoming_payment",
 			},
 			statusCode: http.StatusCreated,
 		},
@@ -285,18 +287,14 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming-payments", tc.args.PaymentPointer), bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming-payments", openpayments.BaseURL()), bytes.NewReader(body))
 		require.NoError(t, err)
 
 		// Setup the payment pointers
 		asset := currency.USD
 		assetScale := 2
-		if tc.args.IncomingAmount != nil {
-			asset = tc.args.IncomingAmount.Currency
-			assetScale = tc.args.IncomingAmount.Scale
-		}
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-			URL:        tc.args.PaymentPointer,
+			URL:        tc.args.ToPP,
 			Alias:      "alias",
 			WalletID:   recvWallet.ID,
 			Asset:      asset,
@@ -304,7 +302,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		})
 		require.NoError(t, err)
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-			URL:        tc.args.FromPaymentPointer,
+			URL:        tc.args.FromPP,
 			Alias:      "alias",
 			WalletID:   sendWallet.ID,
 			Asset:      asset,
@@ -313,7 +311,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
-		handler := catchAllHandler(b)
+		handler := createIncomingPayment(b)
 		handler.ServeHTTP(rr, req)
 
 		require.Equal(t, tc.statusCode, rr.Code)
@@ -325,11 +323,11 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		err = json.Unmarshal(respBytes, &ip)
 		require.NoError(t, err)
 
-		assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
-		if tc.args.IncomingAmount != nil {
-			assert.Equal(t, tc.args.IncomingAmount.Value, ip.IncomingAmount.Value)
-			assert.Equal(t, tc.args.IncomingAmount.Currency, ip.IncomingAmount.Currency)
-			assert.Equal(t, tc.args.IncomingAmount.Scale, ip.IncomingAmount.Scale)
+		assert.Equal(t, tc.args.ToPP, ip.PaymentPointer)
+		assert.Equal(t, tc.args.FromPP, ip.FromPaymentPointer)
+		if tc.args.Amount != nil {
+			assert.Equal(t, tc.args.Amount.Amount, ip.IncomingAmount.Float64())
+			assert.Equal(t, tc.args.Amount.Currency, ip.IncomingAmount.Currency.String())
 		} else {
 			assert.Nil(t, ip.IncomingAmount)
 		}
@@ -337,10 +335,14 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
 
 		// Do a get and get the same values
-		req, err = http.NewRequest(http.MethodGet, ip.ID, nil)
+		req, err = http.NewRequest(http.MethodGet, "/incoming_payment/{payment_id}", nil)
 		require.NoError(t, err)
+		rCtx := chi.NewRouteContext()
+		rCtx.URLParams.Add("payment_id", ip.ID)
+		req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rCtx))
 
 		rr = httptest.NewRecorder()
+		handler = getIncomingPayment(b)
 		handler.ServeHTTP(rr, req)
 
 		require.Equal(t, http.StatusOK, rr.Code)
@@ -352,11 +354,11 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		err = json.Unmarshal(respBytes, &lip)
 		require.NoError(t, err)
 
-		assert.Equal(t, tc.args.PaymentPointer, lip.PaymentPointer)
-		if tc.args.IncomingAmount != nil {
-			assert.Equal(t, tc.args.IncomingAmount.Value, lip.IncomingAmount.Value)
-			assert.Equal(t, tc.args.IncomingAmount.Currency, lip.IncomingAmount.Currency)
-			assert.Equal(t, tc.args.IncomingAmount.Scale, lip.IncomingAmount.Scale)
+		assert.Equal(t, tc.args.FromPP, lip.FromPaymentPointer)
+		assert.Equal(t, tc.args.ToPP, lip.PaymentPointer)
+		if tc.args.Amount != nil {
+			assert.Equal(t, tc.args.Amount.Amount, lip.IncomingAmount.Float64())
+			assert.Equal(t, tc.args.Amount.Currency, lip.IncomingAmount.Currency.String())
 		} else {
 			assert.Nil(t, lip.IncomingAmount)
 		}
