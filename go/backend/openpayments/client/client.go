@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 )
@@ -18,10 +17,6 @@ func New(b ops.Backends) openpayments.Client {
 	return &client{
 		b: b,
 	}
-}
-
-func (c client) ListTransactions(ctx context.Context, walletID string, pagination db.Pagination) ([]openpayments.Transaction, error) {
-	return nil, nil
 }
 
 func (c client) GetWalletPaymentPointer(ctx context.Context, walletID string) (*openpayments.PaymentPointer, error) {
