@@ -151,3 +151,19 @@ func ListMachnetWallets(ctx context.Context, b Backends) ([]linkedaccounts.Linke
 
 	return linkedAccounts, nil
 }
+
+func SetName(ctx context.Context, b Backends, id, name string) error {
+	result, err := b.DB().ExecContext(ctx, `UPDATE linked_accounts set name = $1 where id = $2`, name, id)
+	if err != nil {
+		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+	ra, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+	if ra == 0 {
+		return linkedaccounts.ErrNotFound
+	}
+
+	return nil
+}

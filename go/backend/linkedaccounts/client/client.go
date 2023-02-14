@@ -117,3 +117,12 @@ func (c client) Delete(ctx context.Context, id string) error {
 func (c client) ListMachnetWallets(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
 	return ops.ListMachnetWallets(ctx, c.b)
 }
+
+func (c client) SetName(ctx context.Context, id, name string) (*linkedaccounts.LinkedAccount, error) {
+	err := ops.SetName(ctx, c.b, id, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return ops.Get(ctx, c.b, id)
+}
