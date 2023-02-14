@@ -3,8 +3,6 @@ package openpayments
 import (
 	"time"
 
-	"gitlab.com/fynbos/env"
-
 	"gitlab.com/fynbos/backend/currency"
 )
 
