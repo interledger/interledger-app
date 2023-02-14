@@ -5,6 +5,8 @@ import (
 	"crypto"
 	"crypto/ed25519"
 	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"io"
 	"net/http/httptest"
@@ -14,6 +16,7 @@ import (
 	"github.com/dunglas/httpsfv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/httpmessagesignatures"
 )
 
@@ -160,17 +163,6 @@ func TestVerifyReqeust(t *testing.T) {
 
 	t.Run("works with ed25519", func(st *testing.T) {
 		// https://www.ietf.org/archive/id/draft-ietf-httpbis-message-signatures-15.html#appendix-B.2.6
-		privateKeyPEM := `-----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIJ+DYvh6SEqVTm50DFtMDoQikTmiCqirVv9mWG9qfSnF
------END PRIVATE KEY-----`
-
-		b, _ := pem.Decode([]byte(privateKeyPEM))
-		key, err := x509.ParsePKCS8PrivateKey(b.Bytes)
-		require.NoError(t, err)
-
-		privateKey, ok := key.(ed25519.PrivateKey)
-		require.True(t, ok)
-
 		r := httptest.NewRequest("POST", "https://example.com/foo", nil)
 		r.Header.Set("date", "Tue, 20 Apr 2021 02:07:55 GMT")
 		r.Header.Set("content-type", "application/json")
@@ -178,6 +170,18 @@ MC4CAQAwBQYDK2VwBCIEIJ+DYvh6SEqVTm50DFtMDoQikTmiCqirVv9mWG9qfSnF
 		r.Header.Set("Signature-Input", `sig-1=("date" "@method" "@path" "@authority" "content-type" "content-length");created=1618884473;keyid="test-key-ed25519"`)
 		r.Header.Set("Signature", "sig-1=:wqcAqbmYJ2ji2glfAMaRy4gruYYnx2nEFN2HN6jrnDnQCK1u02Gb04v9EDgwUPiu4A0w6vuQv5lIp5WPpBKRCw==:")
 
-		assert.True(st, httpmessagesignatures.VerifySignature(context.Background(), r, privateKey.Public(), testEd25519Verifier{}))
+		var jwk authorisation.Jwk
+		err := json.Unmarshal([]byte(`{
+  "kty": "OKP",
+  "crv": "Ed25519",
+  "kid": "test-key-ed25519",
+  "d": "n4Ni-HpISpVObnQMW0wOhCKROaIKqKtW_2ZYb2p9KcU",
+  "x": "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
+}`), &jwk)
+		require.NoError(st, err)
+		pubKeyBytes, err := base64.StdEncoding.DecodeString(jwk.X)
+		require.NoError(st, err)
+
+		assert.True(st, httpmessagesignatures.VerifySignature(context.Background(), r, ed25519.PublicKey(pubKeyBytes), testEd25519Verifier{}))
 	})
 }
