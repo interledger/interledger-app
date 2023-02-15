@@ -4,7 +4,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { SelectOptions } from '~/components'
-import { Button, Icon, Layouts, Select, TextField } from '~/components'
+import { Button, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -17,8 +17,13 @@ import {
 import { DateTime } from 'luxon'
 import { getLinkedAccounts, getWalletPaymentPointer } from '~/lib/wallet.server'
 import { v4 } from 'uuid'
+import { hasUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
+  if (!hasUserSession(request)) {
+    // Handles un-authed clicks from /me/$
+    return redirect('/login?return_to=/pay/amount')
+  }
   const flow = await requireFlow(request, flowType.Pay)
   const { linkedAccounts } = await getLinkedAccounts(request)
   return json({
