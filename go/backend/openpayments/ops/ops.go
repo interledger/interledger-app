@@ -225,6 +225,10 @@ func FormattedPaymentPointer(rawURL string) (string, error) {
 // - $fynbos.me/alice
 // Returns the standard format of : https:///fynbos.me/alice
 func StandardisePaymentPointer(pp string) string {
+	if env.IsLocal() {
+		return standardisePaymentPointerForLocal(pp)
+	}
+
 	if strings.HasPrefix(pp, "https://") {
 		return pp
 	}
@@ -241,6 +245,26 @@ func StandardisePaymentPointer(pp string) string {
 
 	// The payment pointer has no prefix assume we need to add https://
 	return "https://" + pp
+}
+
+// Break from the standard and return http:// to get around tls for local deploy.
+func standardisePaymentPointerForLocal(pp string) string {
+	if strings.HasPrefix(pp, "https://") {
+		return strings.Replace(pp, "https://", "http://", 1)
+	}
+
+	// Replace the $ with http://
+	if strings.HasPrefix(pp, "$") {
+		return strings.Replace(pp, "$", "http://", 1)
+	}
+
+	// We use https here
+	if strings.HasPrefix(pp, "http://") {
+		return pp
+	}
+
+	// The payment pointer has no prefix assume we need to add http://
+	return "http://" + pp
 }
 
 // ExtractPaymentPointer takes a full URL and removes the known suffix and what is left is the original Payment pointer
