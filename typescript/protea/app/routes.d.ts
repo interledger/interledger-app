@@ -28,6 +28,7 @@ declare module "routes-gen" {
     "/settings/linked-accounts": Record<string, never>;
     "/settings/account-limits": Record<string, never>;
     "/personal-details/about": Record<string, never>;
+    "/temp-cloudflare-error": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
     "/linked-account/:type": { "type": string };
     "/legal/terms-of-use": Record<string, never>;
@@ -97,6 +98,7 @@ declare module "routes-gen" {
       | ["/settings/linked-accounts"]
       | ["/settings/account-limits"]
       | ["/personal-details/about"]
+      | ["/temp-cloudflare-error"]
       | ["/legal/privacy-policy"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/legal/terms-of-use"]

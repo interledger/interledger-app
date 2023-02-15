@@ -216,12 +216,12 @@ const formatLinkedAccount = (
   switch (linkedAccount.type) {
     case 'sendCard':
       type = 'card'
-      name = `Card ending ${linkedAccount.mask}`
+      name = `**** ${linkedAccount.mask}`
       icon = 'credit_card'
       break
     case 'bankAccount':
       type = 'bank'
-      name = `${linkedAccount.name} ${linkedAccount.mask}`
+      name = `${linkedAccount.name}`
       icon = 'account_balance'
       break
     case 'wallet':
