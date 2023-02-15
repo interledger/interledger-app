@@ -129,7 +129,7 @@ export async function getWalletBalance(request: Request): Promise<string> {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    if (response.code == Code.NOT_FOUND) return '$ 0.00'
+    if (response.code == Code.NOT_FOUND) return 'No balance.'
     throw json({}, httpMapping(response.code))
   }
 
