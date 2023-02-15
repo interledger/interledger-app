@@ -7,6 +7,7 @@ type Client struct {
 
 type Grant struct {
 	ID            string
+	Client        string
 	State         GrantState
 	Tokens        []AccessToken
 	ContinueToken string
