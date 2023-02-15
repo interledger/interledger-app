@@ -64,11 +64,12 @@ func (mr *MockInternalClientMockRecorder) BaseURL() *gomock.Call {
 }
 
 // Introspect mocks base method.
-func (m *MockInternalClient) Introspect(ctx context.Context, token string) error {
+func (m *MockInternalClient) Introspect(ctx context.Context, token string) (*authorisation.Grant, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Introspect", ctx, token)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*authorisation.Grant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Introspect indicates an expected call of Introspect.

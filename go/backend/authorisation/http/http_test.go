@@ -85,7 +85,7 @@ func TestGrantRequest(t *testing.T) {
 			{
 				"access": []map[string]interface{}{
 					{
-						"type":       "incoming-payments",
+						"type":       "incoming-payment",
 						"actions":    []string{"write", "read"},
 						"identifier": resourceOwnerPaymnetPointer,
 					},

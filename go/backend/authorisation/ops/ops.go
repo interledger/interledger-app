@@ -142,7 +142,7 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 	for _, at := range req {
 		var access []authorisation.Access
 		for _, acc := range at.Access {
-			if !strings.EqualFold(acc.Type, "incoming-payments") {
+			if !strings.EqualFold(acc.Type, "incoming-payment") {
 				continue
 			}
 
@@ -158,9 +158,9 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 				continue
 			}
 
-			location := "https://fynbos.me/incoming-payments"
+			location := "https://fynbos.me/incoming-payment"
 			if env.IsLocal() {
-				location = "http://fynbos.me/incoming-payments"
+				location = "http://fynbos.me/incoming-payment"
 			}
 
 			access = append(access, authorisation.Access{
@@ -192,11 +192,13 @@ type dbGrant struct {
 }
 
 type dbAccessToken struct {
-	ID        string    `db:"id"`
-	Value     string    `db:"token"`
-	Label     string    `db:"label"`
-	ExpiresIn int       `db:"expires_in"`
-	CreatedAt time.Time `db:"created_at"`
+	ID        string       `db:"id"`
+	GrantID   string       `db:"grant_id"`
+	Value     string       `db:"token"`
+	Label     string       `db:"label"`
+	ExpiresIn int          `db:"expires_in"`
+	RevokedAt sql.NullTime `db:"revoked_at"`
+	CreatedAt time.Time    `db:"created_at"`
 }
 
 type dbAccess struct {
@@ -419,4 +421,41 @@ type ed25519Verifier struct {
 
 func (s ed25519Verifier) Verify(publicKey crypto.PublicKey, digest []byte, signature []byte) bool {
 	return ed25519.Verify(publicKey.(ed25519.PublicKey), digest, signature)
+}
+
+func Introspect(ctx context.Context, b Backends, token string) (*authorisation.Grant, error) {
+	var dbToken dbAccessToken
+	err := b.DB().GetContext(ctx, &dbToken, "SELECT id, grant_id, token, label, expires_in, revoked_at, created_at FROM authorisation_tokens WHERE token=$1;", token)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, authorisation.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	if dbToken.RevokedAt.Valid {
+		return nil, authorisation.ErrTokenRevoked
+	}
+
+	tokenExpiry := dbToken.CreatedAt.Add(time.Duration(dbToken.ExpiresIn) * time.Second)
+	if time.Now().After(tokenExpiry) {
+		return nil, authorisation.ErrTokenExpired
+	}
+
+	grant, err := lookupGrant(ctx, b, dbToken.GrantID)
+	if err != nil {
+		return nil, err
+	}
+
+	// don't leak all other tokens
+	var filteredTokens []authorisation.AccessToken
+	for _, t := range grant.Tokens {
+		if t.Value == token {
+			filteredTokens = append(filteredTokens, t)
+			break
+		}
+	}
+	grant.Tokens = filteredTokens
+
+	return grant, nil
 }
