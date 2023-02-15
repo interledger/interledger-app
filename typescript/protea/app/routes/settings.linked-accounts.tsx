@@ -47,7 +47,7 @@ export default function Page() {
               <div className='flex items-center space-x-3 text-medium'>
                 {method.icon && <Icon>{method.icon}</Icon>}
                 <div className='flex flex-col text-sm'>
-                  <span>{method.name}</span>
+                  <span>{method.name} (My nickname)</span>
                 </div>
               </div>
             </div>

@@ -11,7 +11,9 @@ export async function loader({ request }: LoaderArgs) {
     .geocode({
       params: {
         place_id: placeId,
-        key: process.env.GOOGLE_MAPS_API_KEY || ''
+        key:
+          process.env.GOOGLE_MAPS_API_KEY ||
+          'AIzaSyAPvt9g9WQknJwsVi2UWq2G4lDONHbYJNU'
       }
     })
     .then((r) => {

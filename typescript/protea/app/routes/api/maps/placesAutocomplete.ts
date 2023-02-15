@@ -14,7 +14,9 @@ export async function loader({ request }: LoaderArgs) {
         input: query,
         types: PlaceAutocompleteType.address,
         components: [`country:${country}`],
-        key: process.env.GOOGLE_MAPS_API_KEY || ''
+        key:
+          process.env.GOOGLE_MAPS_API_KEY ||
+          'AIzaSyAPvt9g9WQknJwsVi2UWq2G4lDONHbYJNU'
       },
       signal: request.signal
     })

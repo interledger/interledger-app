@@ -7,6 +7,7 @@ import { Button, HomeShapes, Icon, Layouts, Snackbar } from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getWalletPaymentPointer } from '~/lib/wallet.server'
 import {
+  GrpcError,
   httpMapping,
   isGrpcError,
   openPaymentsClient,
@@ -24,6 +25,25 @@ export async function loader({ request, params }: LoaderArgs) {
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
+
+  // TODO once conditional auth implemented.
+  // const canSendResponse = await openPaymentsClient
+  //   .canSendToPaymentPointer(
+  //     { paymentPointer: response.response.url },
+  //     {
+  //       meta: {
+  //         cookies: String(request.headers.get('cookie')) || ''
+  //       }
+  //     }
+  //   )
+  //   .then((v) => v)
+  //   .catch(StatusError)
+  //
+  // console.log('canSendResponse', canSendResponse)
+  // if (isGrpcError(canSendResponse)) {
+  //   throw json({}, httpMapping(canSendResponse.code))
+  // }
+
   const paymentPointer = response.response
 
   if (request.headers.get('Content-type') == 'application/json')
@@ -64,7 +84,7 @@ export default function Page() {
         <HomeShapes />
       </div>
       <h1 className='mt-6 flex items-center justify-between font-display text-2xl font-medium'>
-        <span>{paymentPointer.alias}</span>
+        <span>{paymentPointer.legalName}</span>
         {/*TODO: Edit button once we can edit the alias */}
         {/*{!editable && <IconButton>edit</IconButton>}*/}
       </h1>
@@ -137,6 +157,7 @@ export default function Page() {
 }
 
 export async function action({ request, params }: ActionArgs) {
+  const isUser = hasUserSession(request)
   const paymentPointerParam = params['*'] as string
   const response = await openPaymentsClient
     .getPaymentPointer({ url: paymentPointerParam })
@@ -146,8 +167,11 @@ export async function action({ request, params }: ActionArgs) {
     throw json({}, httpMapping(response.code))
   }
 
+  // This is a public page, we need to make sure we handle the redirect appropriately
+  if (isUser) {
+  }
   await requireFlow(request, flowType.Pay, {
-    startRoute: route('/pay'),
+    startRoute: route('/pay/amount'),
     data: {
       paymentPointer: { ...response.response }
     },
