@@ -158,10 +158,15 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 				continue
 			}
 
+			location := "https://fynbos.me/incoming-payments"
+			if env.IsLocal() {
+				location = "http://fynbos.me/incoming-payments"
+			}
+
 			access = append(access, authorisation.Access{
 				Type:      acc.Type,
 				Actions:   actions,
-				Locations: []string{"https://fynbos.me/incoming-payments"},
+				Locations: []string{location},
 			})
 		}
 		// No valid access requests where found for this token. Ignore it.
