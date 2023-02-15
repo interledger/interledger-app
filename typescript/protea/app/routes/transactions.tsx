@@ -95,7 +95,7 @@ export default function Page() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transactions.length]
+    [transactions?.length]
   )
 
   // Add Listeners to scroll and client resize
@@ -173,7 +173,7 @@ export default function Page() {
           <HomeShapes />
         </div>
         <h1 className='mt-6 font-display text-2xl font-medium'>Transactions</h1>
-        {transactions.length == 0 && (
+        {transactions && transactions.length == 0 && (
           <div className='mt-4 flex flex-col space-y-4'>
             <span className='text-sm text-medium'>
               Your payment activity will appear here once you start using your
@@ -188,45 +188,46 @@ export default function Page() {
           </div>
         )}
       </Card>
-      {transactions.map((transactionGroup, index) => (
-        <Card
-          key={`group-${index}`}
-          className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        >
-          <span className='text-xs text-medium'>
-            {transactionGroup[0].date}
-          </span>
-          {transactionGroup.map((transaction) => (
-            <Fragment key={transaction.id}>
-              <Router
-                to={`/transaction/${transaction.type}/${transaction.id}`}
-                className='mt-4 flex w-full justify-between'
-              >
-                <div className='flex space-x-1'>
-                  {transaction.icon == 'schedule' && (
-                    <div className='mt-0.5'>
-                      <AnimatedSchedule />
+      {transactions &&
+        transactions.map((transactionGroup, index) => (
+          <Card
+            key={`group-${index}`}
+            className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
+          >
+            <span className='text-xs text-medium'>
+              {transactionGroup[0].date}
+            </span>
+            {transactionGroup.map((transaction) => (
+              <Fragment key={transaction.id}>
+                <Router
+                  to={`/transaction/${transaction.type}/${transaction.id}`}
+                  className='mt-4 flex w-full justify-between'
+                >
+                  <div className='flex space-x-1'>
+                    {transaction.icon == 'schedule' && (
+                      <div className='mt-0.5'>
+                        <AnimatedSchedule />
+                      </div>
+                    )}
+                    {transaction.icon != 'schedule' && (
+                      <Icon className='mt-0.5 text-medium'>
+                        {transaction.icon}
+                      </Icon>
+                    )}
+                    {/*<Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>*/}
+                    <div className='flex flex-col space-y-2'>
+                      <span className='text-medium'>{transaction.title}</span>
+                      <span className='text-xs text-medium'>
+                        {transaction.time}
+                      </span>
                     </div>
-                  )}
-                  {transaction.icon != 'schedule' && (
-                    <Icon className='mt-0.5 text-medium'>
-                      {transaction.icon}
-                    </Icon>
-                  )}
-                  {/*<Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>*/}
-                  <div className='flex flex-col space-y-2'>
-                    <span className='text-medium'>{transaction.title}</span>
-                    <span className='text-xs text-medium'>
-                      {transaction.time}
-                    </span>
                   </div>
-                </div>
-                <span className='font-medium'>{transaction.total}</span>
-              </Router>
-            </Fragment>
-          ))}
-        </Card>
-      ))}
+                  <span className='font-medium'>{transaction.total}</span>
+                </Router>
+              </Fragment>
+            ))}
+          </Card>
+        ))}
     </WalletGrid>
   )
 }
