@@ -178,7 +178,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		_, err = w.Write(respBytes)
 		if err != nil {
-			log.Error("failed to write create quote response", zap.Error(err))
+			log.Error("failed to write outgoing payment response", zap.Error(err))
 		}
 	}
 }
@@ -343,7 +343,7 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(op)
 		if err != nil {
-			log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
+			log.Error("error writing get outgoing payment http response", zap.Error(err), zap.String("url", getFullURL(req)))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
@@ -361,7 +361,7 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 		if err != nil {
-			log.Error("failed to get quote", zap.Error(err), zap.String("url", getFullURL(req)))
+			log.Error("failed to get incoming payment", zap.Error(err), zap.String("url", getFullURL(req)))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
@@ -370,7 +370,7 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(ip)
 		if err != nil {
-			log.Error("error writing get quote http response", zap.Error(err), zap.String("url", getFullURL(req)))
+			log.Error("error writing get incoming payment http response", zap.Error(err), zap.String("url", getFullURL(req)))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
