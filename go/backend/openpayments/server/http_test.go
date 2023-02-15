@@ -125,10 +125,11 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
 	tc := transactions_mock.NewMockClient(ctrl)
+	auth := mock_auth.NewMockInternalClient(ctrl)
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, nil, tc, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, tc, auth)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -164,6 +165,23 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		testToken := uuid.NewString()
+		auth.EXPECT().Introspect(gomock.Any(), testToken).Return(&authorisation.Grant{
+			ID:     uuid.NewString(),
+			Client: "http://fynbos.me/client",
+			Tokens: []authorisation.AccessToken{
+				{
+					Value: testToken,
+					Access: []authorisation.Access{
+						{
+							Type:       "incoming-payment",
+							Actions:    []string{"read", "write"},
+							Identifier: tc.args.ToPP,
+						},
+					},
+				},
+			},
+		}, nil).AnyTimes()
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
 		// Create Wallets
@@ -175,7 +193,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming-payments", ops.BaseURL()), bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming-payment", ops.BaseURL()), bytes.NewReader(body))
+		req.Header.Set("authorization", "GNAP "+testToken)
 		require.NoError(t, err)
 
 		// Setup the payment pointers
@@ -223,8 +242,9 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
 
 		// Do a get and get the same values
-		req, err = http.NewRequest(http.MethodGet, "/incoming_payment/{payment_id}", nil)
+		req, err = http.NewRequest(http.MethodGet, tc.args.ToPP+"/incoming-payment/{payment_id}", nil)
 		require.NoError(t, err)
+		req.Header.Set("authorization", "GNAP "+testToken)
 		rCtx := chi.NewRouteContext()
 		rCtx.URLParams.Add("payment_id", ip.ID)
 		req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rCtx))
@@ -259,6 +279,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
+	auth := mock_auth.NewMockInternalClient(ctrl)
 	tc := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
@@ -286,7 +307,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, nil)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, auth)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -314,7 +335,23 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-
+		testToken := uuid.NewString()
+		auth.EXPECT().Introspect(gomock.Any(), testToken).Return(&authorisation.Grant{
+			ID:     uuid.NewString(),
+			Client: "http://fynbos.me/client",
+			Tokens: []authorisation.AccessToken{
+				{
+					Value: testToken,
+					Access: []authorisation.Access{
+						{
+							Type:       "outgoing-payment",
+							Actions:    []string{"read", "write"},
+							Identifier: tc.args.FromPP,
+						},
+					},
+				},
+			},
+		}, nil).AnyTimes()
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
 		// Create Wallets
@@ -364,8 +401,9 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPost, "/outgoing-payments", bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, "/outgoing-payment", bytes.NewReader(body))
 		require.NoError(t, err)
+		req.Header.Set("Authorization", "GNAP "+testToken)
 		req.Header.Set("X-Forwarded-For", ipAddress)
 
 		rr := httptest.NewRecorder()

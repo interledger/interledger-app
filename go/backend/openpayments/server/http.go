@@ -99,6 +99,52 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, b.Authorisation().BaseURL(), http.StatusSeeOther)
 }
 
+func authoriseClient(b Backends, req *http.Request, accessType, action, identifier string) string {
+	gnapToken := req.Header.Get("authorization")
+	parts := strings.Split(req.Header.Get("authorization"), " ")
+	if len(parts) > 1 && parts[0] == "GNAP" {
+		gnapToken = parts[1]
+	}
+	grant, err := b.Authorisation().Introspect(req.Context(), gnapToken)
+	if err != nil {
+		log.Error("token introspection failed", zap.Error(err))
+		return ""
+	}
+
+	var accessToken *authorisation.AccessToken
+	for _, t := range grant.Tokens {
+		if gnapToken == t.Value {
+			accessToken = &t
+			break
+		}
+	}
+	if accessToken == nil {
+		log.Error("grant does not have token", zap.String("grantID", grant.ID), zap.String("token", gnapToken))
+		return ""
+	}
+
+	hasAccess := false
+	for _, access := range accessToken.Access {
+		if access.Type != accessType {
+			continue
+		}
+
+		for _, act := range access.Actions {
+			if act == action && access.Identifier == identifier {
+				hasAccess = true
+				break
+			}
+		}
+	}
+
+	client := ""
+	if hasAccess {
+		client = grant.Client
+	}
+
+	return client
+}
+
 type OutgoingPaymentArgs struct {
 	FromPP      string `json:"wallet"`
 	Type        string `json:"type"`
@@ -127,6 +173,14 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
+
+		client := authoriseClient(b, req, "outgoing-payment", "write", httpArgs.FromPP)
+		if client == "" {
+			log.Error("token does not have required access")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		// TODO: verify content-digest and client signature
 
 		argAmount := currency.FromFloat64(httpArgs.SendAmount.Amount, currency.ParseCurrency(httpArgs.SendAmount.Currency))
 
@@ -217,6 +271,14 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
+
+		client := authoriseClient(b, req, "incoming-payment", "write", httpArgs.ToPP)
+		if client == "" {
+			log.Error("token does not have required access")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		// TODO: verify content-digest and client signature
 
 		var argAmount *currency.Amount
 		if httpArgs.IncomingAmount != nil {
@@ -330,6 +392,20 @@ func listClientKeys(b Backends, pp *openpayments.PaymentPointer, w http.Response
 
 func getOutgoingPayment(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		fURL := getFullURL(req)
+		ppURL, _, err := ops.ExtractPaymentPointer(fURL)
+		if err != nil {
+			log.Error("Failed to extract payment pointer", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		client := authoriseClient(b, req, "outgoing-payment", "read", ppURL)
+		if client == "" {
+			log.Error("token does not have required access")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		// TODO: verify content-digest and client signature
 
 		id := chi.URLParam(req, "payment_id")
 
@@ -358,6 +434,20 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 
 func getIncomingPayment(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		fURL := getFullURL(req)
+		ppURL, _, err := ops.ExtractPaymentPointer(fURL)
+		if err != nil {
+			log.Error("Failed to extract payment pointer", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		client := authoriseClient(b, req, "incoming-payment", "read", ppURL)
+		if client == "" {
+			log.Error("token does not have required access")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		// TODO: verify content-digest and client signature
 
 		id := chi.URLParam(req, "payment_id")
 		ip, err := ops.GetIncomingPayment(req.Context(), b, id)
