@@ -1,7 +1,7 @@
 import { ButtonRouter, Layouts, SuccessShapes } from '~/components'
 import { route } from 'routes-gen'
 import { useLoaderData, useParams } from '@remix-run/react'
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs , MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { flowType, requireFlow } from '~/lib/flows.server'
 
@@ -22,6 +22,12 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Add linked account | Success'
+  }
 }
 
 export default function Page() {

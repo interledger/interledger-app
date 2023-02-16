@@ -1,6 +1,6 @@
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { SelectOptions } from '~/components'
@@ -25,6 +25,12 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Withdraw'
+  }
 }
 
 export default function Page() {

@@ -1,3 +1,4 @@
+import type { MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { Layouts } from '~/components'
@@ -12,6 +13,12 @@ export async function loader() {
 
 export const handle = {
   layout: Layouts.LandingLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Legal | Privacy policy'
+  }
 }
 
 export default function Page() {

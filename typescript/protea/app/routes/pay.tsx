@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Icon, Layouts, Snackbar, TextField } from '~/components'
@@ -31,6 +31,12 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Pay'
+  }
 }
 
 export default function Page() {

@@ -33,4 +33,5 @@ chromatic_publish:
     - pnpm install --frozen-lockfile
 
   script:
-    - pnpm chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --auto-accept-changes=main
+    - pnpm chromatic --project-token=$CHROMATIC_PROJECT_TOKEN
+      --auto-accept-changes=main

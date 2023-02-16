@@ -1,8 +1,15 @@
 import { ButtonRouter, Layouts, SuccessShapes } from '~/components'
 import { route } from 'routes-gen'
+import type { MetaFunction } from '@remix-run/node'
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Support | Success'
+  }
 }
 
 export default function Page() {

@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs , MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useNavigate, useParams } from '@remix-run/react'
 import { useCallback, useEffect } from 'react'
@@ -59,6 +59,12 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Add linked account'
+  }
 }
 
 export default function Page() {

@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs , MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { AnchorRouter, Card, Layouts, WalletGrid } from '~/components'
@@ -14,6 +14,12 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.WalletLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Settings | Account limits'
+  }
 }
 
 export default function Page() {
