@@ -1,4 +1,4 @@
-import type { ActionArgs } from '@remix-run/node'
+import type { ActionArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import {
@@ -19,6 +19,12 @@ import {
 
 export const handle = {
   layout: Layouts.LandingLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Contact us'
+  }
 }
 
 export default function Page() {

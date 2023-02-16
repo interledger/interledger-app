@@ -1,8 +1,15 @@
 import { AnchorRouter, Layouts, Router } from '~/components'
 import { route } from 'routes-gen'
+import type { MetaFunction } from '@remix-run/node'
 
 export const handle = {
   layout: Layouts.LandingLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Legal'
+  }
 }
 
 export default function Page() {

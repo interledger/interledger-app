@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
@@ -60,6 +60,12 @@ export function links() {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Sign up | Phone number'
+  }
 }
 
 export default function Page() {

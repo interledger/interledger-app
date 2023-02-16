@@ -1,6 +1,6 @@
 import { HomeShapes, Layouts } from '~/components'
 import { useFetcher, useParams } from '@remix-run/react'
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 import { flowType, requireFlow } from '~/lib/flows.server'
@@ -31,6 +31,12 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Add linked account | Almost there'
+  }
 }
 
 export default function Page() {

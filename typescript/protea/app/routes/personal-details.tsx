@@ -1,4 +1,4 @@
-import type { LoaderArgs, ActionArgs } from '@remix-run/node'
+import type { LoaderArgs, ActionArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import { Button, Layouts, Shape } from '~/components'
@@ -12,6 +12,12 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Activate payment pointer'
+  }
 }
 
 export default function Page() {

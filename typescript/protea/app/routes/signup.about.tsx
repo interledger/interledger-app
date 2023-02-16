@@ -1,5 +1,5 @@
 import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
@@ -41,6 +41,12 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   layout: Layouts.FocusLayout
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Sign up | Profile details'
+  }
 }
 
 export default function Page() {
