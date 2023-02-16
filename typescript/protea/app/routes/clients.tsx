@@ -1,7 +1,8 @@
-import { ActionArgs, json, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node';
+import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { Button, Shape, TextArea } from '~/components'
-import { JWK } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { JWK } from '~/generated/protobuf-ts/backend/v1/backend'
 import {
   grpcClient,
   httpMapping,
