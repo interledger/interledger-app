@@ -689,6 +689,10 @@ table "openpayments_incoming_payment" {
     null = true
     type = text
   }
+  column "created_by" {
+    null = true
+    type = text
+  }
   primary_key {
     columns = [column.id]
   }
@@ -755,6 +759,10 @@ table "openpayments_outgoing_payment" {
     null    = false
     type    = boolean
     default = false
+  }
+  column "created_by" {
+    null = true
+    type = text
   }
   primary_key {
     columns = [column.id]
@@ -832,6 +840,10 @@ table "openpayments_quotes" {
   column "send_linked_acc_id" {
     null = true
     type = uuid
+  }
+  column "created_by" {
+    null = true
+    type = text
   }
   primary_key {
     columns = [column.id]

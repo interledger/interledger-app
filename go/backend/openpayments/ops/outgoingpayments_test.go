@@ -56,10 +56,12 @@ func TestCreateOutgoingPayment(t *testing.T) {
 					Currency: "USD",
 					Scale:    2,
 				},
+				CreatedBy: uuid.NewString(),
 			},
 			opArgs: openpayments.CreateOutgoingPaymentArgs{
 				Description: "Description",
 				ExternalRef: "ExternalRef",
+				CreatedBy:   uuid.NewString(),
 			},
 		},
 	}
@@ -105,6 +107,7 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			assert.Equal(t, opID, op.ID)
 			assert.Equal(t, tc.quoteArgs.SendPaymentPointer, op.PaymentPointer)
 			assert.Equal(t, tc.opArgs.Description, op.Description)
+			assert.Equal(t, tc.opArgs.CreatedBy, op.CreatedBy)
 			assert.True(t, strings.HasPrefix(op.Receiver, tc.quoteArgs.ReceivePaymentPointer))
 		})
 	}

@@ -56,6 +56,22 @@ func TestCreateIncomingPayment(t *testing.T) {
 			},
 		},
 		{
+			name: "success with created by",
+			args: openpayments.CreateIncomingPaymentArgs{
+				PaymentPointer:     "https://fynbos.me/moneypleaseapi",
+				FromPaymentPointer: "https://fynbos.me/sendingmoneyapi",
+				IncomingAmount: &currency.Amount{
+					Value:    100,
+					Currency: currency.ParseCurrency("USD"),
+					Scale:    2,
+				},
+				ExternalRef: "external",
+				Description: "Desc Incoming Payment",
+				ExpiresAt:   time.Now().Add(time.Hour),
+				CreatedBy:   uuid.NewString(),
+			},
+		},
+		{
 			name: "success no incoming amount",
 			args: openpayments.CreateIncomingPaymentArgs{
 				PaymentPointer:     "https://fynbos.me/moneyplease4",
@@ -143,6 +159,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 			assert.Equal(t, tc.args.PaymentPointer, ip.PaymentPointer)
 			assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
 			assert.Equal(t, tc.args.Description, ip.Description)
+			assert.Equal(t, tc.args.CreatedBy, ip.CreatedBy)
 			if tc.args.IncomingAmount != nil {
 				assert.Equal(t, tc.args.IncomingAmount.Currency, ip.IncomingAmount.Currency)
 				assert.Equal(t, tc.args.IncomingAmount.Scale, ip.IncomingAmount.Scale)
