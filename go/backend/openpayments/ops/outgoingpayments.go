@@ -20,19 +20,20 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
-const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at `
+const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at, created_by `
 
 type dbOutgoingPayments struct {
-	ID                 string    `db:"id"`
-	QuoteID            string    `db:"quote_id"`
-	ToPaymentPointerID string    `db:"to_payment_pointer_id"`
-	Failed             bool      `db:"failed"`
-	Description        string    `db:"description"`
-	AssetCode          string    `db:"sent_asset"`
-	AssetScale         int       `db:"sent_scale"`
-	SentAmount         uint64    `db:"sent_amount"`
-	CreatedAt          time.Time `db:"created_at"`
-	UpdatedAt          time.Time `db:"updated_at"`
+	ID                 string         `db:"id"`
+	QuoteID            string         `db:"quote_id"`
+	ToPaymentPointerID string         `db:"to_payment_pointer_id"`
+	Failed             bool           `db:"failed"`
+	Description        string         `db:"description"`
+	AssetCode          string         `db:"sent_asset"`
+	AssetScale         int            `db:"sent_scale"`
+	SentAmount         uint64         `db:"sent_amount"`
+	CreatedAt          time.Time      `db:"created_at"`
+	UpdatedAt          time.Time      `db:"updated_at"`
+	CreatedBy          sql.NullString `db:"created_by"`
 }
 
 func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (string, string, error) {
@@ -73,7 +74,11 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		Value("description", args.Description).
 		Value("sent_amount", 0).
 		Value("sent_asset", q.SendAsset).
-		Value("sent_scale", q.SendAssetScale).GetStatement()
+		Value("sent_scale", q.SendAssetScale).
+		Value("created_by", sql.NullString{
+			String: args.CreatedBy,
+			Valid:  args.CreatedBy != "",
+		}).GetStatement()
 	if err != nil {
 		return "", "", fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
@@ -187,6 +192,7 @@ func transformOutgoingPayment(ctx context.Context, b Backends, op dbOutgoingPaym
 		Description: op.Description,
 		CreatedAt:   op.CreatedAt,
 		UpdatedAt:   op.UpdatedAt,
+		CreatedBy:   op.CreatedBy.String,
 	}, nil
 }
 

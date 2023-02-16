@@ -145,14 +145,6 @@ func (g *grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPo
 }
 
 func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest) (*pb.Quote, error) {
-	amount := currency.FromPB(req.Amount)
-	args := openpayments.CreateQuoteArgs{
-		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
-		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
-		ExpiresAt:             req.ExpiresAt.AsTime(),
-		SendAmount:            amount,
-		LinkedAccID:           req.GetSendLinkedAccount(),
-	}
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -167,6 +159,16 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 	ppl, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	amount := currency.FromPB(req.Amount)
+	args := openpayments.CreateQuoteArgs{
+		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
+		ExpiresAt:             req.ExpiresAt.AsTime(),
+		SendAmount:            amount,
+		LinkedAccID:           req.GetSendLinkedAccount(),
+		CreatedBy:             wallet.ID,
 	}
 
 	var found bool
@@ -229,15 +231,6 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 }
 
 func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIncomingPaymentRequest) (*pb.IncomingPayment, error) {
-	args := openpayments.CreateIncomingPaymentArgs{
-		PaymentPointer: ops.StandardisePaymentPointer(req.PaymentPointer),
-		ExternalRef:    req.Reference,
-		ExpiresAt:      req.ExpiresAt.AsTime(),
-	}
-	if req.Amount != nil {
-		amt := currency.FromPB(req.GetAmount())
-		args.IncomingAmount = &amt
-	}
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -252,6 +245,17 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 	ppl, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	args := openpayments.CreateIncomingPaymentArgs{
+		PaymentPointer: ops.StandardisePaymentPointer(req.PaymentPointer),
+		ExternalRef:    req.Reference,
+		ExpiresAt:      req.ExpiresAt.AsTime(),
+		CreatedBy:      wallet.ID,
+	}
+	if req.Amount != nil {
+		amt := currency.FromPB(req.GetAmount())
+		args.IncomingAmount = &amt
 	}
 
 	// TODO: Can you only create incoming payments for yourself...
@@ -379,20 +383,8 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 }
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
-	args := openpayments.CreateOutgoingPaymentArgs{
-		IdempotencyKey: req.IdempotencyKey,
-		QuoteID:        req.QuoteID,
-		Description:    req.Description,
-		ExternalRef:    req.ExternalRef,
-		IPAddress:      req.IpAddress,
-	}
 
-	err := g.b.Validator().Struct(args)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	_, err = g.b.Users().UserForContext(ctx)
+	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no login found")
 	}
@@ -400,6 +392,20 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	wallet, err := g.b.Users().WalletForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	args := openpayments.CreateOutgoingPaymentArgs{
+		IdempotencyKey: req.IdempotencyKey,
+		QuoteID:        req.QuoteID,
+		Description:    req.Description,
+		ExternalRef:    req.ExternalRef,
+		IPAddress:      req.IpAddress,
+		CreatedBy:      wallet.ID,
+	}
+
+	err = g.b.Validator().Struct(args)
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
 
 	_, err = ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)

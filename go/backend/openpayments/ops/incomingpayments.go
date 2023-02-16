@@ -16,7 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 )
 
-const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at`
+const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at, created_by`
 
 type dbIncomingPayment struct {
 	ID                   string         `db:"id"`
@@ -35,6 +35,7 @@ type dbIncomingPayment struct {
 	ExpiresAt            sql.NullTime   `db:"expires_at"`
 	CreatedAt            time.Time      `db:"created_at"`
 	UpdatedAt            time.Time      `db:"updated_at"`
+	CreatedBy            sql.NullString `db:"created_by"`
 }
 
 func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments.CreateIncomingPaymentArgs) (*openpayments.IncomingPayment, error) {
@@ -66,7 +67,11 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		Value("id", id).
 		Value("payment_pointer_id", pp.ID).
 		Value("received_amount", 0).
-		Value("from_payment_pointer_id", fromPP.ID)
+		Value("from_payment_pointer_id", fromPP.ID).
+		Value("created_by", sql.NullString{
+			String: payment.CreatedBy,
+			Valid:  payment.CreatedBy != "",
+		})
 	if payment.IncomingAmount != nil {
 		ib.Value("asset_code", payment.IncomingAmount.Currency).
 			Value("asset_scale", payment.IncomingAmount.Scale).
@@ -139,6 +144,7 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 		CreatedAt:          payment.CreatedAt,
 		UpdatedAt:          payment.UpdatedAt,
 		Description:        payment.Description.String,
+		CreatedBy:          payment.CreatedBy.String,
 	}
 	if payment.IncomingAmount > 0 {
 		resp.IncomingAmount = &currency.Amount{

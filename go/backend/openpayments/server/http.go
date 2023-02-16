@@ -191,6 +191,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			SendAmount:            argAmount,
 			Reference:             httpArgs.ExternalRef,
 			ExpiresAt:             time.Now().Add(time.Hour), // Default till the API definition changes
+			CreatedBy:             client,
 		})
 		if err != nil {
 			log.Error("failed to create quote for outgoing payment", zap.Error(err))
@@ -202,6 +203,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			QuoteID:     q.ID,
 			Description: httpArgs.ExternalRef,
 			ExternalRef: httpArgs.ExternalRef,
+			CreatedBy:   client,
 		}
 
 		// Extract IP address from the req
@@ -291,6 +293,7 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			FromPaymentPointer: ops.StandardisePaymentPointer(httpArgs.FromPP),
 			IncomingAmount:     argAmount,
 			ExternalRef:        httpArgs.ExternalRef,
+			CreatedBy:          client,
 		}
 
 		q, err := ops.CreateIncomingPayment(req.Context(), b, args)

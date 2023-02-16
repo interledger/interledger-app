@@ -564,6 +564,7 @@ func TestCreateQuote(t *testing.T) {
 					Currency: currency.ParseCurrency("USD"),
 					Scale:    2,
 				},
+				CreatedBy: uuid.NewString(),
 			},
 		},
 		{
@@ -736,6 +737,7 @@ func TestCreateQuote(t *testing.T) {
 			assert.Equal(t, tc.args.ExpiresAt.Minute(), q.ExpiresAt.Minute())
 			assert.Equal(t, tc.args.ExpiresAt.Second(), q.ExpiresAt.Second())
 			assert.Equal(t, tc.args.SendPaymentPointer, q.PaymentPointer)
+			assert.Equal(t, tc.args.CreatedBy, q.CreatedBy)
 			assert.Equal(t, tc.args.SendAmount.Value, q.ReceiveAmount.Value)
 			assert.Equal(t, tc.args.SendAmount.Currency, q.ReceiveAmount.Currency)
 			assert.Equal(t, tc.args.SendAmount.Scale, q.ReceiveAmount.Scale)

@@ -383,6 +383,7 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		ExternalRef:        args.Reference,
 		Description:        args.Description,
 		IncomingAmount:     &args.SendAmount,
+		CreatedBy:          args.CreatedBy,
 	})
 	if err != nil {
 		return nil, err
@@ -402,10 +403,15 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("recv_amount", args.SendAmount.Value).
 		Value("recv_asset", args.SendAmount.Currency).
 		Value("recv_scale", args.SendAmount.Scale).
-		Value("expires_at", args.ExpiresAt).Value("send_linked_acc_id", sql.NullString{
-		String: args.LinkedAccID,
-		Valid:  args.LinkedAccID != "",
-	}).GetStatement()
+		Value("expires_at", args.ExpiresAt).
+		Value("send_linked_acc_id", sql.NullString{
+			String: args.LinkedAccID,
+			Valid:  args.LinkedAccID != "",
+		}).
+		Value("created_by", sql.NullString{
+			String: args.CreatedBy,
+			Valid:  args.CreatedBy != "",
+		}).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w insert sql create failed (%s)", openpayments.ErrInternal, err)
 	}
@@ -432,6 +438,7 @@ type dbQuote struct {
 	CreatedAt             time.Time      `db:"created_at"`
 	UpdatedAt             time.Time      `db:"updated_at"`
 	SendLinkedAccountID   sql.NullString `db:"send_linked_acc_id"`
+	CreatedBy             sql.NullString `db:"created_by"`
 }
 
 // getDBQuote returns a single quote in it's raw form from the DB without formatting.
@@ -439,7 +446,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -475,6 +482,7 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		ExpiresAt:         dbq.ExpiresAt,
 		CreatedAt:         dbq.CreatedAt,
 		FromLinkedAccount: dbq.SendLinkedAccountID.String,
+		CreatedBy:         dbq.CreatedBy.String,
 	}, nil
 }
 

@@ -23,6 +23,7 @@ type CreateQuoteArgs struct {
 	Reference             string
 	Description           string
 	LinkedAccID           string
+	CreatedBy             string // Either the wallet_id from gRPC or the client_id from Openapyments API
 }
 
 type Quote struct {
@@ -34,6 +35,7 @@ type Quote struct {
 	ExpiresAt         time.Time       `json:"expiresAt"`
 	CreatedAt         time.Time       `json:"createdAt"`
 	FromLinkedAccount string          `json:"-"`
+	CreatedBy         string          `json:"-"`
 }
 
 type ILPConnection struct {
@@ -51,6 +53,7 @@ type CreateIncomingPaymentArgs struct {
 	ExternalRef        string
 	ExpiresAt          time.Time
 	Description        string
+	CreatedBy          string // Either the wallet_id from gRPC or the client_id from Openapyments API
 }
 
 type IncomingPayment struct {
@@ -65,6 +68,7 @@ type IncomingPayment struct {
 	ExpiresAt          time.Time        `json:"expires_at"`
 	CreatedAt          time.Time        `json:"created_at"`
 	UpdatedAt          time.Time        `json:"updated_at"`
+	CreatedBy          string           `json:"-"`
 }
 
 type CreateOutgoingPaymentArgs struct {
@@ -73,6 +77,7 @@ type CreateOutgoingPaymentArgs struct {
 	Description    string `json:"description"`
 	ExternalRef    string `json:"externalRef"`
 	IPAddress      string `json:"-" validate:"ip_addr"`
+	CreatedBy      string // Either the wallet_id from gRPC or the client_id from Openapyments API
 }
 
 type OutgoingPayment struct {
@@ -88,6 +93,7 @@ type OutgoingPayment struct {
 	CreatedAt         time.Time       `json:"created_at"`
 	UpdatedAt         time.Time       `json:"updated_at"`
 	FromLinkedAccount string          `json:"-"`
+	CreatedBy         string          `json:"-"`
 }
 
 type CompleteOutgoingPaymentArgs struct {
