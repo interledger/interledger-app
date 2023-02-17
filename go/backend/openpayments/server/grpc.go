@@ -168,7 +168,7 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		ExpiresAt:             req.ExpiresAt.AsTime(),
 		SendAmount:            amount,
 		LinkedAccID:           req.GetSendLinkedAccount(),
-		CreatedBy:             wallet.ID,
+		CreatedBy:             ops.StandardisePaymentPointer(req.SendPaymentPointer),
 	}
 
 	var found bool
@@ -251,7 +251,7 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 		PaymentPointer: ops.StandardisePaymentPointer(req.PaymentPointer),
 		ExternalRef:    req.Reference,
 		ExpiresAt:      req.ExpiresAt.AsTime(),
-		CreatedBy:      wallet.ID,
+		CreatedBy:      ops.StandardisePaymentPointer(req.PaymentPointer),
 	}
 	if req.Amount != nil {
 		amt := currency.FromPB(req.GetAmount())
@@ -400,7 +400,6 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		Description:    req.Description,
 		ExternalRef:    req.ExternalRef,
 		IPAddress:      req.IpAddress,
-		CreatedBy:      wallet.ID,
 	}
 
 	err = g.b.Validator().Struct(args)
@@ -408,10 +407,13 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, toGRPCError(err)
 	}
 
-	_, err = ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
+	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+
+	// Assume that the quote and the outgoing payment have the same created by.
+	args.CreatedBy = q.CreatedBy
 
 	op, err := workflows.StartOutgoingPayment(ctx, g.b, args)
 	if err != nil {

@@ -136,7 +136,7 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 				continue
 			}
 
-			location := env.OpenPaymentsURL() + "/incoming-payment"
+			location := env.OpenPaymentsURL() + "/incoming_payment"
 
 			access = append(access, authorisation.Access{
 				Type:       acc.Type,
