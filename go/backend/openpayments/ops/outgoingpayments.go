@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/google/uuid"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -135,7 +137,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		return "", "", err
 	}
 
-	return fmt.Sprintf("%s/outgoing-payment/%s", BaseURL(), id), trxID, nil
+	return fmt.Sprintf("%s/outgoing-payment/%s", env.OpenPaymentsURL(), id), trxID, nil
 }
 
 func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpayments.OutgoingPayment, error) {
@@ -176,7 +178,7 @@ func transformOutgoingPayment(ctx context.Context, b Backends, op dbOutgoingPaym
 	}
 
 	return &openpayments.OutgoingPayment{
-		ID:                fmt.Sprintf("%s/outgoing-payment/%s", BaseURL(), op.ID),
+		ID:                fmt.Sprintf("%s/outgoing-payment/%s", env.OpenPaymentsURL(), op.ID),
 		PaymentPointer:    q.PaymentPointer,
 		FromLinkedAccount: q.FromLinkedAccount,
 		ToPaymentPointer:  toPP.URL,

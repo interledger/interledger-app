@@ -49,20 +49,6 @@ func (mr *MockInternalClientMockRecorder) AddPublicKey(ctx, clientURL, key inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPublicKey", reflect.TypeOf((*MockInternalClient)(nil).AddPublicKey), ctx, clientURL, key)
 }
 
-// BaseURL mocks base method.
-func (m *MockInternalClient) BaseURL() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BaseURL")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// BaseURL indicates an expected call of BaseURL.
-func (mr *MockInternalClientMockRecorder) BaseURL() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BaseURL", reflect.TypeOf((*MockInternalClient)(nil).BaseURL))
-}
-
 // Introspect mocks base method.
 func (m *MockInternalClient) Introspect(ctx context.Context, token string) (*authorisation.Grant, error) {
 	m.ctrl.T.Helper()

@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/go-chi/chi/v5"
 
 	"gitlab.com/fynbos/backend/authorisation"
@@ -193,7 +195,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming-payment", ops.BaseURL()), bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming_payment", env.OpenPaymentsURL()), bytes.NewReader(body))
 		req.Header.Set("authorization", "GNAP "+testToken)
 		require.NoError(t, err)
 
