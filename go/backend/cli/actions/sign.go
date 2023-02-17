@@ -99,7 +99,7 @@ func MakeSignGrantRequest(b Backends) cli.ActionFunc {
 				{
 					"access": []map[string]interface{}{
 						{
-							"type":       "incoming-payments",
+							"type":       "incoming-payment",
 							"actions":    []string{"write", "read"},
 							"identifier": cCtx.String("resourceOwnerPaymentPointer"),
 						},

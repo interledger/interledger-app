@@ -119,7 +119,7 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 
 			for _, acc := range tkn.Access {
 				_, err = tx.ExecContext(ctx, "INSERT INTO authorisation_token_access (token_id, type, actions, identifier, locations, data_types) VALUES ($1, $2, $3, $4, $5, $6)",
-					tokenID, acc.Type, pq.Array(acc.Actions), uuid.NewString(), pq.Array(acc.Locations), pq.Array(acc.Datatypes))
+					tokenID, acc.Type, pq.Array(acc.Actions), acc.Identifier, pq.Array(acc.Locations), pq.Array(acc.Datatypes))
 				if err != nil {
 					return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 				}
@@ -158,15 +158,16 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 				continue
 			}
 
-			location := "https://fynbos.me/incoming-payment"
+			location := "https://fynbos.me/incoming_payment"
 			if env.IsLocal() {
-				location = "http://fynbos.me/incoming-payment"
+				location = "http://fynbos.me/incoming_payment"
 			}
 
 			access = append(access, authorisation.Access{
-				Type:      acc.Type,
-				Actions:   actions,
-				Locations: []string{location},
+				Type:       acc.Type,
+				Actions:    actions,
+				Locations:  []string{location},
+				Identifier: acc.Identifier,
 			})
 		}
 		// No valid access requests where found for this token. Ignore it.
@@ -220,11 +221,18 @@ func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Gra
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
+	var client authorisation.Client
+	err = b.DB().GetContext(ctx, &client, "SELECT id, url FROM authorisation_clients WHERE id=$1;", dbg.ClientID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
 	resp := &authorisation.Grant{
 		ID:            dbg.ID,
 		State:         dbg.State,
 		ContinueToken: dbg.ContinueToken,
 		Wait:          dbg.Wait,
+		Client:        client.URL,
 	}
 
 	var tokens []dbAccessToken
@@ -244,10 +252,11 @@ func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Gra
 		respAccess := make([]authorisation.Access, len(access))
 		for y, ac := range access {
 			respAccess[y] = authorisation.Access{
-				Type:      ac.Type,
-				Actions:   ac.Actions,
-				Locations: ac.Locations,
-				Datatypes: ac.DataTypes,
+				Type:       ac.Type,
+				Actions:    ac.Actions,
+				Locations:  ac.Locations,
+				Datatypes:  ac.DataTypes,
+				Identifier: ac.Identifier,
 			}
 		}
 
