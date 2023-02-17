@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:watsonia/styles/colors.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -54,11 +55,21 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+Future<void> getSession() async {
+  // const String basePath = r'http://cove-athletic-reed-scanning.trycloudflare.com';
+
+  var url = Uri.http('cove-athletic-reed-scanning.trycloudflare.com', 'sessions/whoami');
+  var response = await http.get(url);
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   int _count = 0;
 
   @override
   Widget build(BuildContext context) {
+    getSession();
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
