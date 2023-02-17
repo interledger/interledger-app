@@ -12,9 +12,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -30,26 +28,6 @@ import (
 	"gitlab.com/fynbos/httpmessagesignatures"
 	"gitlab.com/fynbos/log"
 )
-
-var baseURL string
-var baseSync sync.Once
-
-func BaseURL() string {
-	baseSync.Do(func() {
-		baseURL = os.Getenv("AUTH_BASE_URL")
-		if baseURL == "" {
-			if env.IsProd() {
-				baseURL = "https://auth.fynbos.app"
-			} else if env.IsDev() {
-				baseURL = "https://eu1.auth.fynbos.app"
-			} else {
-				baseURL = "https://eu1.auth.fynbos.app"
-			}
-		}
-	})
-
-	return baseURL
-}
 
 func CreateClient(ctx context.Context, b Backends, clientURL string) (*authorisation.Client, error) {
 	var client authorisation.Client
@@ -158,10 +136,7 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 				continue
 			}
 
-			location := "https://fynbos.me/incoming_payment"
-			if env.IsLocal() {
-				location = "http://fynbos.me/incoming_payment"
-			}
+			location := env.OpenPaymentsURL() + "/incoming-payment"
 
 			access = append(access, authorisation.Access{
 				Type:       acc.Type,

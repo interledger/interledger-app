@@ -13,10 +13,6 @@ type client struct {
 	b ops.Backends
 }
 
-func (c client) BaseURL() string {
-	return ops.BaseURL()
-}
-
 func New(b ops.Backends) authorisation.InternalClient {
 	return &client{
 		b: b,

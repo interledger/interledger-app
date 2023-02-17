@@ -6,42 +6,18 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"path"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
-	"gitlab.com/fynbos/env"
-
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/machnet"
-
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	"gitlab.com/fynbos/env"
 )
-
-var baseURL string
-var baseSync sync.Once
-
-func BaseURL() string {
-	baseSync.Do(func() {
-		baseURL = os.Getenv("OPEN_PAYMENTS_BASE")
-		if baseURL == "" {
-			if env.IsProd() {
-				baseURL = "https://open.fynbos.app"
-			} else if env.IsDev() {
-				baseURL = "https://eu1.open.fynbos.app"
-			} else {
-				baseURL = "https://eu1.open.fynbos.app"
-			}
-		}
-	})
-
-	return baseURL
-}
 
 func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.PaymentPointer) error {
 	err := b.Validator().Struct(pointer)

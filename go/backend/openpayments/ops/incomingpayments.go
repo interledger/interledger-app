@@ -8,12 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/openpayments"
-
-	"gitlab.com/fynbos/backend/currency"
-
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/env"
 )
 
 const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at, created_by`
@@ -135,7 +134,7 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 	}
 
 	resp := &openpayments.IncomingPayment{
-		ID:                 fmt.Sprintf("%s/incoming-payment/%s", BaseURL(), payment.ID),
+		ID:                 fmt.Sprintf("%s/incoming-payment/%s", env.OpenPaymentsURL(), payment.ID),
 		PaymentPointer:     toPP.URL,
 		FromPaymentPointer: fromPP.URL,
 		Completed:          payment.Completed,

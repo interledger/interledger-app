@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/riandyrn/otelchi"
 	"gitlab.com/fynbos/backend/authorisation"
@@ -96,7 +98,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, b.Authorisation().BaseURL(), http.StatusSeeOther)
+	http.Redirect(w, req, env.AuthURL(), http.StatusSeeOther)
 }
 
 type authoriseClientArgs struct {

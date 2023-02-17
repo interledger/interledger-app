@@ -2,6 +2,7 @@ package env
 
 import (
 	"os"
+	"sync"
 )
 
 const (
@@ -68,4 +69,48 @@ func GetUrl() string {
 	}
 
 	return prodUrl
+}
+
+var openPaymentsURL string
+var openPaymentsSync sync.Once
+
+func OpenPaymentsURL() string {
+	openPaymentsSync.Do(func() {
+		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
+		if openPaymentsURL == "" {
+			if IsProd() {
+				openPaymentsURL = "https://open.fynbos.app"
+			} else if IsDev() {
+				openPaymentsURL = "https://eu1.open.fynbos.app"
+			} else if IsLocal() {
+				openPaymentsURL = "http://open.fynbos.test"
+			} else {
+				openPaymentsURL = "https://eu1.open.fynbos.app"
+			}
+		}
+	})
+
+	return openPaymentsURL
+}
+
+var authURL string
+var authURLSync sync.Once
+
+func AuthURL() string {
+	authURLSync.Do(func() {
+		authURL = os.Getenv("AUTH_BASE_URL")
+		if authURL == "" {
+			if IsProd() {
+				authURL = "https://auth.fynbos.app"
+			} else if IsDev() {
+				authURL = "https://eu1.auth.fynbos.app"
+			} else if IsLocal() {
+				authURL = "http://auth.fynbos.test"
+			} else {
+				authURL = "https://eu1.auth.fynbos.app"
+			}
+		}
+	})
+
+	return authURL
 }
