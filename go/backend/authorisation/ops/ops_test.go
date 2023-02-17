@@ -43,7 +43,7 @@ func TestCreateGrant(t *testing.T) {
 	assert.Len(t, g.Tokens, 1)
 	assert.Len(t, g.Tokens[0].Access, 1)
 	assert.Equal(t, g.Tokens[0].Access[0].Type, "incoming-payment")
-	assert.EqualValues(t, g.Tokens[0].Access[0].Locations, []string{"https://fynbos.me/incoming_payment"})
+	assert.EqualValues(t, g.Tokens[0].Access[0].Locations, []string{"https://open.fynbos.app/incoming_payment"})
 	assert.EqualValues(t, g.Tokens[0].Access[0].Actions, []string{"write", "read"})
 
 	grant, err := ops.Introspect(ctx, b, g.Tokens[0].Value)
@@ -51,7 +51,7 @@ func TestCreateGrant(t *testing.T) {
 	assert.Len(t, grant.Tokens, 1)
 	assert.Len(t, grant.Tokens[0].Access, 1)
 	assert.Equal(t, grant.Tokens[0].Access[0].Type, "incoming-payment")
-	assert.EqualValues(t, grant.Tokens[0].Access[0].Locations, []string{"https://fynbos.me/incoming_payment"})
+	assert.EqualValues(t, grant.Tokens[0].Access[0].Locations, []string{"https://open.fynbos.app/incoming_payment"})
 	assert.EqualValues(t, grant.Tokens[0].Access[0].Actions, []string{"write", "read"})
 }
 
