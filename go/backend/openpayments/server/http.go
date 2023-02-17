@@ -99,13 +99,21 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, b.Authorisation().BaseURL(), http.StatusSeeOther)
 }
 
-func authoriseClient(b Backends, req *http.Request, accessType, action, identifier string) string {
-	gnapToken := req.Header.Get("authorization")
-	parts := strings.Split(req.Header.Get("authorization"), " ")
+type authoriseClientArgs struct {
+	Request           *http.Request
+	AccessType        string
+	Action            string
+	Identifier        string
+	ResourceCreatedBy string
+}
+
+func authoriseClient(b Backends, args authoriseClientArgs) string {
+	gnapToken := args.Request.Header.Get("authorization")
+	parts := strings.Split(args.Request.Header.Get("authorization"), " ")
 	if len(parts) > 1 && parts[0] == "GNAP" {
 		gnapToken = parts[1]
 	}
-	grant, err := b.Authorisation().Introspect(req.Context(), gnapToken)
+	grant, err := b.Authorisation().Introspect(args.Request.Context(), gnapToken)
 	if err != nil {
 		log.Error("token introspection failed", zap.Error(err))
 		return ""
@@ -125,12 +133,18 @@ func authoriseClient(b Backends, req *http.Request, accessType, action, identifi
 
 	hasAccess := false
 	for _, access := range accessToken.Access {
-		if access.Type != accessType {
+		if access.Type != args.AccessType {
 			continue
 		}
 
+		// TODO: define policies better
 		for _, act := range access.Actions {
-			if act == action && access.Identifier == identifier {
+			if act == "write" && access.Identifier == args.Identifier {
+				hasAccess = true
+				break
+			}
+
+			if act == "read" && access.Identifier == args.Identifier && grant.Client == args.ResourceCreatedBy {
 				hasAccess = true
 				break
 			}
@@ -174,7 +188,12 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		client := authoriseClient(b, req, "outgoing-payment", "write", httpArgs.FromPP)
+		client := authoriseClient(b, authoriseClientArgs{
+			Request:    req,
+			AccessType: "outgoing-payment",
+			Action:     "write",
+			Identifier: httpArgs.FromPP,
+		})
 		if client == "" {
 			log.Error("token does not have required access")
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
@@ -274,7 +293,12 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		client := authoriseClient(b, req, "incoming-payment", "write", httpArgs.ToPP)
+		client := authoriseClient(b, authoriseClientArgs{
+			Request:    req,
+			AccessType: "incoming-payment",
+			Action:     "write",
+			Identifier: httpArgs.ToPP,
+		})
 		if client == "" {
 			log.Error("token does not have required access")
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
@@ -395,21 +419,6 @@ func listClientKeys(b Backends, pp *openpayments.PaymentPointer, w http.Response
 
 func getOutgoingPayment(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		fURL := getFullURL(req)
-		ppURL, _, err := ops.ExtractPaymentPointer(fURL)
-		if err != nil {
-			log.Error("Failed to extract payment pointer", zap.Error(err))
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		client := authoriseClient(b, req, "outgoing-payment", "read", ppURL)
-		if client == "" {
-			log.Error("token does not have required access")
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
-		}
-		// TODO: verify content-digest and client signature
-
 		id := chi.URLParam(req, "payment_id")
 
 		op, err := ops.GetOutgoingPayment(req.Context(), b, id)
@@ -424,6 +433,20 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
+		client := authoriseClient(b, authoriseClientArgs{
+			Request:           req,
+			AccessType:        "outgoing-payment",
+			Action:            "read",
+			Identifier:        op.PaymentPointer,
+			ResourceCreatedBy: op.CreatedBy,
+		})
+		if client == "" {
+			log.Error("token does not have required access")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		// TODO: verify content-digest and client signature
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(op)
@@ -437,21 +460,6 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 
 func getIncomingPayment(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		fURL := getFullURL(req)
-		ppURL, _, err := ops.ExtractPaymentPointer(fURL)
-		if err != nil {
-			log.Error("Failed to extract payment pointer", zap.Error(err))
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		client := authoriseClient(b, req, "incoming-payment", "read", ppURL)
-		if client == "" {
-			log.Error("token does not have required access")
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
-		}
-		// TODO: verify content-digest and client signature
-
 		id := chi.URLParam(req, "payment_id")
 		ip, err := ops.GetIncomingPayment(req.Context(), b, id)
 		if errors.Is(err, openpayments.ErrNotFound) {
@@ -464,6 +472,20 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
+
+		client := authoriseClient(b, authoriseClientArgs{
+			Request:           req,
+			AccessType:        "incoming-payment",
+			Action:            "read",
+			Identifier:        ip.PaymentPointer,
+			ResourceCreatedBy: ip.CreatedBy,
+		})
+		if client == "" {
+			log.Error("token does not have required access")
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			return
+		}
+		// TODO: verify content-digest and client signature
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
