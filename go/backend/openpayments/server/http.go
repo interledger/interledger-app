@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/httpmessagesignatures"
+
 	"gitlab.com/fynbos/env"
 
 	"github.com/go-chi/chi/v5"
@@ -27,12 +29,6 @@ import (
 func OpenPaymentsHTTPHandler(b Backends) http.Handler {
 	router := chi.NewRouter()
 	router.Use(otelchi.Middleware("open_payments", otelchi.WithChiRoutes(router)))
-
-	router.Post("/incoming_payment", createIncomingPayment(b))
-	router.Get("/incoming_payment/{payment_id}", getIncomingPayment(b))
-
-	router.Post("/outgoing_payment", createOutgoingPayment(b))
-	router.Get("/outgoing_payment/{payment_id}", getOutgoingPayment(b))
 
 	router.Post("/incoming_payment", createIncomingPayment(b))
 	router.Get("/incoming_payment/{payment_id}", getIncomingPayment(b))
@@ -201,7 +197,19 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
-		// TODO: verify content-digest and client signature
+
+		// Verify content-digest and client signature
+		if err = httpmessagesignatures.VerifyContentDigest(req.Context(), req.Header.Get("Content-Digest"), bodyData); err != nil {
+			log.Error("create outgoing payment request does not match Content-Digest header.", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"content-digest", "authorization"}) {
+			log.Error("create outgoing payment request failed signature validation", zap.String("client", client), zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 
 		argAmount := currency.FromFloat64(httpArgs.SendAmount.Amount, currency.ParseCurrency(httpArgs.SendAmount.Currency))
 
@@ -306,7 +314,19 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
-		// TODO: verify content-digest and client signature
+
+		// Verify content-digest and client signature
+		if err = httpmessagesignatures.VerifyContentDigest(req.Context(), req.Header.Get("Content-Digest"), bodyData); err != nil {
+			log.Error("create incoming payment request does not match Content-Digest header.", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"content-digest", "authorization"}) {
+			log.Error("create incoming payment request failed signature validation", zap.String("client", client), zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 
 		var argAmount *currency.Amount
 		if httpArgs.IncomingAmount != nil {
@@ -447,7 +467,13 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
-		// TODO: verify content-digest and client signature
+
+		// Verify client signature.
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"authorization"}) {
+			log.Error("get outgoing payment request failed signature validation", zap.String("client", client), zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -487,7 +513,13 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
-		// TODO: verify content-digest and client signature
+
+		// Verify client signature.
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"authorization"}) {
+			log.Error("get incoming payment request failed signature validation", zap.String("client", client), zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

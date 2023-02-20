@@ -111,6 +111,7 @@ func TestGrantRequest(t *testing.T) {
 			Created: 1618884475,
 			KeyID:   keyID,
 		},
+		[]string{"Content-Digest"},
 	)
 	require.NoError(t, err)
 

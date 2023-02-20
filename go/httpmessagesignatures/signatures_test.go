@@ -79,7 +79,7 @@ func TestSignRequest(t *testing.T) {
 
 		r := httptest.NewRequest("POST", "https://www.example.com/movies/titanic/123?version=1", nil)
 		r.Header.Add("Content-Digest", "digest")
-		require.NoError(st, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params))
+		require.NoError(st, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params, []string{"content-digest"}))
 
 		signatureDictionary, err := httpsfv.UnmarshalDictionary([]string{r.Header.Get("Signature")})
 		require.NoError(st, err)
@@ -90,6 +90,18 @@ func TestSignRequest(t *testing.T) {
 
 		assert.Equal(st, strings.Join(expectedBase, "\n"), string(signatureItem.Value.([]byte)))
 		assert.Equal(st, `sig-1=("@method" "@target_uri" "@authority" "@scheme" "@request-target" "content-digest" "@path" "@query" "@query-params");created=1618884475;keyid="test123"`, r.Header.Get("Signature-Input"))
+	})
+
+	t.Run("required components not part of sig", func(st *testing.T) {
+		components := []string{"@method", "@target_uri", "@authority", "@scheme", "@request-target", "@path", "@query", "@query-params"}
+		params := httpmessagesignatures.SignatureParams{
+			Created: 1618884475,
+			KeyID:   "test123",
+		}
+
+		r := httptest.NewRequest("POST", "https://www.example.com/movies/titanic/123?version=1", nil)
+		r.Header.Add("Content-Digest", "digest")
+		require.Error(st, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params, []string{"content-digest"}))
 	})
 
 	t.Run("works with ed25519", func(st *testing.T) {
@@ -115,7 +127,7 @@ MC4CAQAwBQYDK2VwBCIEIJ+DYvh6SEqVTm50DFtMDoQikTmiCqirVv9mWG9qfSnF
 		r.Header.Set("date", "Tue, 20 Apr 2021 02:07:55 GMT")
 		r.Header.Set("content-type", "application/json")
 		r.Header.Set("content-length", "18")
-		require.NoError(st, httpmessagesignatures.SignRequest(context.Background(), r, testEd25519Signer{privateKey}, components, params))
+		require.NoError(st, httpmessagesignatures.SignRequest(context.Background(), r, testEd25519Signer{privateKey}, components, params, nil))
 
 		assert.Equal(st, `sig-1=("date" "@method" "@path" "@authority" "content-type" "content-length");created=1618884473;keyid="test-key-ed25519"`, r.Header.Get("Signature-Input"))
 		assert.Equal(st, "sig-1=:wqcAqbmYJ2ji2glfAMaRy4gruYYnx2nEFN2HN6jrnDnQCK1u02Gb04v9EDgwUPiu4A0w6vuQv5lIp5WPpBKRCw==:", r.Header.Get("Signature"))
@@ -132,7 +144,7 @@ func TestVerifyReqeust(t *testing.T) {
 	t.Run("returns true when verification succeeds", func(st *testing.T) {
 		r := httptest.NewRequest("POST", "https://www.example.com/movies/titanic/123?version=1", nil)
 		r.Header.Add("Content-Digest", "digest")
-		require.NoError(t, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params))
+		require.NoError(t, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params, nil))
 
 		assert.True(
 			st,
@@ -141,6 +153,7 @@ func TestVerifyReqeust(t *testing.T) {
 				r,
 				[]byte{},
 				testVerifier{true},
+				nil,
 			),
 		)
 	})
@@ -148,7 +161,7 @@ func TestVerifyReqeust(t *testing.T) {
 	t.Run("returns false when verification fails", func(st *testing.T) {
 		r := httptest.NewRequest("POST", "https://www.example.com/movies/titanic/123?version=1", nil)
 		r.Header.Add("Content-Digest", "digest")
-		require.NoError(t, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params))
+		require.NoError(t, httpmessagesignatures.SignRequest(context.Background(), r, testSigner{}, components, params, nil))
 
 		assert.False(
 			st,
@@ -157,6 +170,7 @@ func TestVerifyReqeust(t *testing.T) {
 				r,
 				[]byte{},
 				testVerifier{false},
+				nil,
 			),
 		)
 	})
@@ -182,6 +196,6 @@ func TestVerifyReqeust(t *testing.T) {
 		pubKeyBytes, err := base64.StdEncoding.DecodeString(jwk.X)
 		require.NoError(st, err)
 
-		assert.True(st, httpmessagesignatures.VerifySignature(context.Background(), r, ed25519.PublicKey(pubKeyBytes), testEd25519Verifier{}))
+		assert.True(st, httpmessagesignatures.VerifySignature(context.Background(), r, ed25519.PublicKey(pubKeyBytes), testEd25519Verifier{}, nil))
 	})
 }

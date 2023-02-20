@@ -133,6 +133,7 @@ func MakeSignGrantRequest(b Backends) cli.ActionFunc {
 				Created: 1618884475,
 				KeyID:   "test",
 			},
+			[]string{"content-digest"},
 		)
 		if err != nil {
 			return err

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"net/http"
 
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/authorisation/ops"
@@ -28,4 +29,8 @@ func (c client) Introspect(ctx context.Context, token string) (*authorisation.Gr
 
 func (c client) ListKeys(ctx context.Context, clientURL string) ([]authorisation.Jwk, error) {
 	return ops.ListKeys(ctx, c.b, clientURL)
+}
+
+func (c client) VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
+	return ops.VerifyRequestSig(ctx, req, clientPaymentPointer, requiredParts)
 }
