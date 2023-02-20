@@ -131,13 +131,16 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
+	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+
 	b := NewTestBackends(t, db, nil, nil, nil, tc, auth)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
-		name       string
-		args       IncomingPaymentArgs
-		statusCode int
+		name          string
+		args          IncomingPaymentArgs
+		statusCode    int
+		contentDigest string
 	}{
 		{
 			name: "success",
@@ -153,7 +156,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 					Currency: "USD",
 				},
 			},
-			statusCode: http.StatusCreated,
+			statusCode:    http.StatusCreated,
+			contentDigest: "sha-256=:OK8OHUEemX/nX+oImQMmwO81nLoOuSU1xiuqDFg2HE4=:",
 		},
 		{
 			name: "success no amount",
@@ -162,7 +166,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 				FromPP: "https://fynbos.me/sendmoney2",
 				Type:   "incoming_payment",
 			},
-			statusCode: http.StatusCreated,
+			statusCode:    http.StatusCreated,
+			contentDigest: "sha-256=:hgrR3MPMrqqKeknX+liGoxhDGIMtJ8onQerDh6wmirA=:",
 		},
 	}
 
@@ -197,6 +202,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 
 		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming_payment", env.OpenPaymentsURL()), bytes.NewReader(body))
 		req.Header.Set("authorization", "GNAP "+testToken)
+		req.Header.Set("Content-Digest", tc.contentDigest)
 		require.NoError(t, err)
 
 		// Setup the payment pointers
@@ -310,12 +316,15 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	tmp_mock := &mocks.Client{}
 
 	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, auth)
+	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
-		name       string
-		args       OutgoingPaymentArgs
-		statusCode int
+		name          string
+		args          OutgoingPaymentArgs
+		statusCode    int
+		contentDigest string
 	}{
 		{
 			name:       "success",
@@ -333,6 +342,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 					Currency: "USD",
 				},
 			},
+			contentDigest: "sha-256=:hv/f0acdygqxt31nP2TtUXVycjowcR0oer8Sv4xw7g4=:",
 		},
 	}
 
@@ -407,6 +417,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		require.NoError(t, err)
 		req.Header.Set("Authorization", "GNAP "+testToken)
 		req.Header.Set("X-Forwarded-For", ipAddress)
+		req.Header.Set("Content-Digest", tc.contentDigest)
 
 		rr := httptest.NewRecorder()
 		handler := createOutgoingPayment(b)

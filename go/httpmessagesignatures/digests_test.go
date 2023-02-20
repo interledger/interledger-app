@@ -106,6 +106,12 @@ func TestVerifyContentDigest(t *testing.T) {
 			Body:   []byte(`{hello:"world"}`),
 			Fails:  true,
 		},
+		{
+			Name:   "doesn't verify if empty digest",
+			Digest: "",
+			Body:   []byte(`{hello:"world"}`),
+			Fails:  true,
+		},
 	}
 
 	for _, tc := range cases {

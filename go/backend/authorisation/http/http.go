@@ -48,7 +48,7 @@ func grantHandler(b ops.Backends) http.HandlerFunc {
 			return
 		}
 
-		if !ops.VerifyRequest(req.Context(), b, req, gr.Client) {
+		if !ops.VerifyRequestSig(req.Context(), req, gr.Client, []string{"Content-Digest"}) {
 			log.Error(
 				"grant request failed signature validation",
 				zap.String("clientURI", gr.Client),

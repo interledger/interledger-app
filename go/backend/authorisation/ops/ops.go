@@ -349,8 +349,8 @@ func ListKeys(
 	return jwks, nil
 }
 
-// This function assumes that EdDSA is used with the ed25519 curve.
-func VerifyRequest(ctx context.Context, b Backends, req *http.Request, clientPaymentPointer string) bool {
+// VerifyRequestSig assumes that EdDSA is used with the ed25519 curve.
+func VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
 	keySetURL := clientPaymentPointer
 	if !strings.Contains(keySetURL, ".well-known/keys") {
 		keySetURL += "/.well-known/keys"
@@ -397,7 +397,7 @@ func VerifyRequest(ctx context.Context, b Backends, req *http.Request, clientPay
 		return false
 	}
 
-	return httpmessagesignatures.VerifySignature(ctx, req, ed25519.PublicKey(publicKeyBytes), ed25519Verifier{})
+	return httpmessagesignatures.VerifySignature(ctx, req, ed25519.PublicKey(publicKeyBytes), ed25519Verifier{}, requiredParts)
 }
 
 type ed25519Verifier struct {

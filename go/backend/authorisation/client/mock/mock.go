@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -77,4 +78,18 @@ func (m *MockInternalClient) ListKeys(ctx context.Context, clientURl string) ([]
 func (mr *MockInternalClientMockRecorder) ListKeys(ctx, clientURl interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListKeys", reflect.TypeOf((*MockInternalClient)(nil).ListKeys), ctx, clientURl)
+}
+
+// VerifyRequestSig mocks base method.
+func (m *MockInternalClient) VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyRequestSig", ctx, req, clientPaymentPointer, requiredParts)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// VerifyRequestSig indicates an expected call of VerifyRequestSig.
+func (mr *MockInternalClientMockRecorder) VerifyRequestSig(ctx, req, clientPaymentPointer, requiredParts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyRequestSig", reflect.TypeOf((*MockInternalClient)(nil).VerifyRequestSig), ctx, req, clientPaymentPointer, requiredParts)
 }

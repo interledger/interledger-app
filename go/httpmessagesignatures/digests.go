@@ -46,6 +46,10 @@ func CreateContentDigest(ctx context.Context, body []byte, algorithms []string) 
 }
 
 func VerifyContentDigest(ctx context.Context, digest string, body []byte) error {
+	if digest == "" {
+		return fmt.Errorf("empty content digest cannot be validated")
+	}
+
 	dictionary, err := httpsfv.UnmarshalDictionary([]string{digest})
 	if err != nil {
 		return err

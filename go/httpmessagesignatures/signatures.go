@@ -19,16 +19,17 @@ func (h zeroHasher) HashFunc() crypto.Hash {
 	return 0
 }
 
-// Signs a request using https://www.ietf.org/archive/id/draft-ietf-httpbis-message-signatures-15.html#name-creating-a-signature
+// SignRequest Signs a request using https://www.ietf.org/archive/id/draft-ietf-httpbis-message-signatures-15.html#name-creating-a-signature
 // This function assumes that it'll be adding the only signature. i.e. it'll set Signature: sig1={signature}.
-func SignRequest(ctx context.Context, req *http.Request, signer crypto.Signer, components []string, params SignatureParams) error {
+// Content-Digest and Authorisation are required components.
+func SignRequest(ctx context.Context, req *http.Request, signer crypto.Signer, components []string, params SignatureParams, requiredParts []string) error {
 	sanitizedComponents := make([]string, len(components))
 	for i, component := range components {
 		sanitizedComponents[i] = strings.TrimSpace(strings.ToLower(component))
 	}
 
 	signatureParams := createSignatureParams(ctx, sanitizedComponents, params)
-	base, err := createSignatureBase(ctx, req, signatureParams)
+	base, err := createSignatureBase(ctx, req, signatureParams, requiredParts)
 	if err != nil {
 		log.Error("Failed to create signature base", zap.Error(err))
 		return err
@@ -62,11 +63,13 @@ func SignRequest(ctx context.Context, req *http.Request, signer crypto.Signer, c
 	return nil
 }
 
-func createSignatureBase(ctx context.Context, req *http.Request, params httpsfv.InnerList) (string, error) {
+func createSignatureBase(ctx context.Context, req *http.Request, params httpsfv.InnerList, requiredParts []string) (string, error) {
 	var parts []string
+	var partKeys []string
 
 	for _, item := range params.Items {
 		component := item.Value.(string)
+		partKeys = append(partKeys, component)
 		if strings.HasPrefix(component, "@") {
 			extractedComponent, err := extractDerivedComponent(ctx, component, req)
 			if err != nil {
@@ -79,6 +82,19 @@ func createSignatureBase(ctx context.Context, req *http.Request, params httpsfv.
 				return "", fmt.Errorf("Header=%s is missing.", header)
 			}
 			parts = append(parts, fmt.Sprintf(`"%s": %s`, component, header))
+		}
+	}
+
+	for _, rp := range requiredParts {
+		var found bool
+		for _, p := range partKeys {
+			if strings.EqualFold(p, rp) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return "", fmt.Errorf("required sig params not found, %s", rp)
 		}
 	}
 
@@ -163,9 +179,9 @@ func extractDerivedComponent(ctx context.Context, component string, req *http.Re
 	return parts, nil
 }
 
-// Verifies a request signature using https://www.ietf.org/archive/id/draft-ietf-httpbis-message-signatures-15.html#section-3.2
+// VerifySignature Verifies a request signature using https://www.ietf.org/archive/id/draft-ietf-httpbis-message-signatures-15.html#section-3.2
 // This function assumes that there's only one signature (sig1).
-func VerifySignature(ctx context.Context, req *http.Request, publicKey crypto.PublicKey, verifier Verifier) bool {
+func VerifySignature(ctx context.Context, req *http.Request, publicKey crypto.PublicKey, verifier Verifier, requiredParts []string) bool {
 	if req.Header.Get("Signature") == "" || req.Header.Get("Signature-Input") == "" {
 		return false
 	}
@@ -188,7 +204,7 @@ func VerifySignature(ctx context.Context, req *http.Request, publicKey crypto.Pu
 		return false
 	}
 
-	base, err := createSignatureBase(ctx, req, sigParamList)
+	base, err := createSignatureBase(ctx, req, sigParamList, requiredParts)
 	if err != nil {
 		log.Error("Failed to create signature base.", zap.Error(err))
 		return false
