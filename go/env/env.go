@@ -8,7 +8,7 @@ import (
 const (
 	prodUrl  = "https://fynbos.app"
 	devUrl   = "https://eu1.fynbos.dev"
-	localUrl = "http://fynbos.test"
+	localUrl = "https://fynbos.test"
 )
 
 var allowedEnvs = []string{
@@ -83,7 +83,7 @@ func OpenPaymentsURL() string {
 			} else if IsDev() {
 				openPaymentsURL = "https://eu1.fynbos.me"
 			} else if IsLocal() {
-				openPaymentsURL = "http://fynbos.me"
+				openPaymentsURL = "https://local.fynbos.me"
 			} else {
 				openPaymentsURL = "https://eu1.fynbos.me"
 			}
@@ -105,7 +105,7 @@ func AuthURL() string {
 			} else if IsDev() {
 				authURL = "https://auth.eu1.fynbos.dev"
 			} else if IsLocal() {
-				authURL = "http://auth.fynbos.test"
+				authURL = "https://auth.fynbos.test"
 			} else {
 				authURL = "https://auth.eu1.fynbos.dev"
 			}
