@@ -18,6 +18,10 @@ kinddown:
 	./dev/kind/nuke.sh
 	@echo "Cluster deleted"
 
+kindupdateca:
+	@echo "Adding localCA to trust store"
+	./dev/kind/installCA.sh
+
 buildgo:
 	DOCKER_BUILDKIT=1 docker build $(current_dir)/go -f $(current_dir)/go/$(target)/Dockerfile -t localhost:5005/$(target):latest
 	docker push localhost:5005/$(target):latest
