@@ -6,6 +6,8 @@ kindup:
 	./dev/kind/run.sh
 	@echo "Cluster online. Deploying..."
 	./dev/kind/deploy.sh
+	@echo "Adding localCA to trust store"
+	./dev/kind/installCA.sh
 
 kinddeploy:
 	@echo "Deploying..."
