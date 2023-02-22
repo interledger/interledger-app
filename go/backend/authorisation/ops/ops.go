@@ -120,7 +120,7 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 	for _, at := range req {
 		var access []authorisation.Access
 		for _, acc := range at.Access {
-			if !strings.EqualFold(acc.Type, "incoming-payment") {
+			if !strings.EqualFold(acc.Type, "incoming-payment") && !strings.EqualFold(acc.Type, "outgoing-payment") {
 				continue
 			}
 
@@ -137,6 +137,9 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 			}
 
 			location := env.OpenPaymentsURL() + "/incoming"
+			if strings.EqualFold(acc.Type, "outgoing-payment") {
+				location = env.OpenPaymentsURL() + "/outgoing"
+			}
 
 			access = append(access, authorisation.Access{
 				Type:       acc.Type,

@@ -29,7 +29,6 @@ func TestCreateGrant(t *testing.T) {
 					Identifier: resourceOwnerPaymentPointer,
 				},
 				{
-					// we won't be able to get access to this
 					Type:       "outgoing-payment",
 					Actions:    []string{"write", "read"},
 					Identifier: resourceOwnerPaymentPointer,
@@ -41,18 +40,42 @@ func TestCreateGrant(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Len(t, g.Tokens, 1)
-	assert.Len(t, g.Tokens[0].Access, 1)
-	assert.Equal(t, g.Tokens[0].Access[0].Type, "incoming-payment")
-	assert.EqualValues(t, g.Tokens[0].Access[0].Locations, []string{"https://fynbos.me/incoming"})
-	assert.EqualValues(t, g.Tokens[0].Access[0].Actions, []string{"write", "read"})
+	assert.Len(t, g.Tokens[0].Access, 2)
+	for _, access := range g.Tokens[0].Access {
+		if access.Type == "incoming-payment" {
+			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/incoming"})
+			assert.EqualValues(t, access.Actions, []string{"write", "read"})
+			continue
+		}
+
+		if access.Type == "outgoing-payment" {
+			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/outgoing"})
+			assert.EqualValues(t, access.Actions, []string{"write", "read"})
+			continue
+		}
+
+		t.Fatal("Only expected outgoing-payment and incoming-payment access types")
+	}
 
 	grant, err := ops.Introspect(ctx, b, g.Tokens[0].Value)
 	require.NoError(t, err)
 	assert.Len(t, grant.Tokens, 1)
-	assert.Len(t, grant.Tokens[0].Access, 1)
-	assert.Equal(t, grant.Tokens[0].Access[0].Type, "incoming-payment")
-	assert.EqualValues(t, grant.Tokens[0].Access[0].Locations, []string{"https://fynbos.me/incoming"})
-	assert.EqualValues(t, grant.Tokens[0].Access[0].Actions, []string{"write", "read"})
+	assert.Len(t, grant.Tokens[0].Access, 2)
+	for _, access := range grant.Tokens[0].Access {
+		if access.Type == "incoming-payment" {
+			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/incoming"})
+			assert.EqualValues(t, access.Actions, []string{"write", "read"})
+			continue
+		}
+
+		if access.Type == "outgoing-payment" {
+			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/outgoing"})
+			assert.EqualValues(t, access.Actions, []string{"write", "read"})
+			continue
+		}
+
+		t.Fatal("Only expected outgoing-payment and incoming-payment access types")
+	}
 }
 
 func TestCreateAndListClientKeys(t *testing.T) {
