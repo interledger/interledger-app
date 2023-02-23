@@ -196,7 +196,7 @@ service BackendService {
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
-  rpc SetNameLinkedAccount(SetNameLinkedAccountRequest) returns (LinkedAccount);
+  rpc SetNicknameLinkedAccount(SetNicknameLinkedAccountRequest) returns (LinkedAccount);
   rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
@@ -332,6 +332,7 @@ message LinkedAccount {
   string type = 2;
   string name = 3;
   string mask = 4;
+  string nickname = 5;
 }
 
 message GetSignupRequest {
@@ -424,9 +425,9 @@ message GetLinkedAccountRequest {
   string id = 1;
 }
 
-message SetNameLinkedAccountRequest {
+message SetNicknameLinkedAccountRequest {
   string id = 1;
-  string name = 2;
+  string nickname = 2;
 }
 
 message DeleteLinkedAccountRequest {

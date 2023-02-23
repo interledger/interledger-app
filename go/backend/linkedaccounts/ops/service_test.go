@@ -166,7 +166,7 @@ func TestListMachnetWallets(t *testing.T) {
 	assert.Equal(t, linkedAccount.ID, machnetWallets[0].ID)
 }
 
-func TestSetName(s *testing.T) {
+func TestSetNickname(s *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, s)
 	require.NoError(s, err)
@@ -185,18 +185,18 @@ func TestSetName(s *testing.T) {
 		Type:     "bank",
 	})
 	require.NoError(s, err)
-	assert.Equal(s, "Test", la.Name)
+	assert.Equal(s, "", la.Nickname)
 
-	s.Run("can set name", func(t *testing.T) {
-		la, err = c.LinkedAccounts.SetName(ctx, la.ID, "New name")
+	s.Run("can set nickname", func(t *testing.T) {
+		la, err = c.LinkedAccounts.SetNickname(ctx, la.ID, "New name")
 		require.NoError(t, err)
 
-		assert.Equal(t, "New name", la.Name)
+		assert.Equal(t, "New name", la.Nickname)
 	})
 
 	s.Run("returns error if no account found", func(t *testing.T) {
 		rid := uuid.NewString()
-		la, err = c.LinkedAccounts.SetName(ctx, rid, "New name")
+		la, err = c.LinkedAccounts.SetNickname(ctx, rid, "New name")
 		require.ErrorIs(t, err, linkedaccounts.ErrNotFound)
 	})
 }

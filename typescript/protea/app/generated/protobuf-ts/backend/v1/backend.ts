@@ -728,6 +728,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: string mask = 4;
      */
     mask: string;
+    /**
+     * @generated from protobuf field: string nickname = 5;
+     */
+    nickname: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetSignupRequest
@@ -968,17 +972,17 @@ export interface GetLinkedAccountRequest {
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.SetNameLinkedAccountRequest
+ * @generated from protobuf message backend.v1.SetNicknameLinkedAccountRequest
  */
-export interface SetNameLinkedAccountRequest {
+export interface SetNicknameLinkedAccountRequest {
     /**
      * @generated from protobuf field: string id = 1;
      */
     id: string;
     /**
-     * @generated from protobuf field: string name = 2;
+     * @generated from protobuf field: string nickname = 2;
      */
-    name: string;
+    nickname: string;
 }
 /**
  * @generated from protobuf message backend.v1.DeleteLinkedAccountRequest
@@ -3654,11 +3658,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", type: "", name: "", mask: "" };
+        const message = { id: "", type: "", name: "", mask: "", nickname: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -3680,6 +3685,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string mask */ 4:
                     message.mask = reader.string();
+                    break;
+                case /* string nickname */ 5:
+                    message.nickname = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3705,6 +3713,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string mask = 4; */
         if (message.mask !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.mask);
+        /* string nickname = 5; */
+        if (message.nickname !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.nickname);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4681,21 +4692,21 @@ class GetLinkedAccountRequest$Type extends MessageType<GetLinkedAccountRequest> 
  */
 export const GetLinkedAccountRequest = new GetLinkedAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class SetNameLinkedAccountRequest$Type extends MessageType<SetNameLinkedAccountRequest> {
+class SetNicknameLinkedAccountRequest$Type extends MessageType<SetNicknameLinkedAccountRequest> {
     constructor() {
-        super("backend.v1.SetNameLinkedAccountRequest", [
+        super("backend.v1.SetNicknameLinkedAccountRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<SetNameLinkedAccountRequest>): SetNameLinkedAccountRequest {
-        const message = { id: "", name: "" };
+    create(value?: PartialMessage<SetNicknameLinkedAccountRequest>): SetNicknameLinkedAccountRequest {
+        const message = { id: "", nickname: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<SetNameLinkedAccountRequest>(this, message, value);
+            reflectionMergePartial<SetNicknameLinkedAccountRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetNameLinkedAccountRequest): SetNameLinkedAccountRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetNicknameLinkedAccountRequest): SetNicknameLinkedAccountRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -4703,8 +4714,8 @@ class SetNameLinkedAccountRequest$Type extends MessageType<SetNameLinkedAccountR
                 case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* string name */ 2:
-                    message.name = reader.string();
+                case /* string nickname */ 2:
+                    message.nickname = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4717,13 +4728,13 @@ class SetNameLinkedAccountRequest$Type extends MessageType<SetNameLinkedAccountR
         }
         return message;
     }
-    internalBinaryWrite(message: SetNameLinkedAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: SetNicknameLinkedAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string name = 2; */
-        if (message.name !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* string nickname = 2; */
+        if (message.nickname !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nickname);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4731,9 +4742,9 @@ class SetNameLinkedAccountRequest$Type extends MessageType<SetNameLinkedAccountR
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.SetNameLinkedAccountRequest
+ * @generated MessageType for protobuf message backend.v1.SetNicknameLinkedAccountRequest
  */
-export const SetNameLinkedAccountRequest = new SetNameLinkedAccountRequest$Type();
+export const SetNicknameLinkedAccountRequest = new SetNicknameLinkedAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class DeleteLinkedAccountRequest$Type extends MessageType<DeleteLinkedAccountRequest> {
     constructor() {
@@ -6113,7 +6124,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "GetLinkedAccounts", options: {}, I: Empty, O: GetLinkedAccountsResponse },
     { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount },
-    { name: "SetNameLinkedAccount", options: {}, I: SetNameLinkedAccountRequest, O: LinkedAccount },
+    { name: "SetNicknameLinkedAccount", options: {}, I: SetNicknameLinkedAccountRequest, O: LinkedAccount },
     { name: "DeleteLinkedAccount", options: {}, I: DeleteLinkedAccountRequest, O: Empty },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
     { name: "GetCountries", options: {}, I: Empty, O: GetCountriesResponse },

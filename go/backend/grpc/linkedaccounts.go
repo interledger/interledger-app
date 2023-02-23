@@ -29,10 +29,11 @@ func (s *rpcService) GetLinkedAccounts(
 	ret := make([]*pb.LinkedAccount, len(linkedAccounts))
 	for i, fs := range linkedAccounts {
 		ret[i] = &pb.LinkedAccount{
-			Id:   fs.ID,
-			Name: fs.Name,
-			Mask: fs.Mask,
-			Type: fs.Type,
+			Id:       fs.ID,
+			Name:     fs.Name,
+			Mask:     fs.Mask,
+			Type:     fs.Type,
+			Nickname: fs.Nickname,
 		}
 	}
 
@@ -62,10 +63,11 @@ func (s *rpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinkedAcco
 	}
 
 	return &pb.LinkedAccount{
-		Id:   la.ID,
-		Type: la.Type,
-		Name: la.Name,
-		Mask: la.Mask,
+		Id:       la.ID,
+		Type:     la.Type,
+		Name:     la.Name,
+		Mask:     la.Mask,
+		Nickname: la.Nickname,
 	}, nil
 
 }
@@ -101,7 +103,7 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 	return &pb.Empty{}, toGRPCError(err)
 }
 
-func (s *rpcService) SetNameLinkedAccount(ctx context.Context, req *pb.SetNameLinkedAccountRequest) (*pb.LinkedAccount, error) {
+func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNicknameLinkedAccountRequest) (*pb.LinkedAccount, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -121,15 +123,16 @@ func (s *rpcService) SetNameLinkedAccount(ctx context.Context, req *pb.SetNameLi
 		return nil, toGRPCError(linkedaccounts.ErrNotFound)
 	}
 
-	la, err = s.b.LinkedAccounts().SetName(ctx, req.Id, req.Name)
+	la, err = s.b.LinkedAccounts().SetNickname(ctx, req.Id, req.Nickname)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &pb.LinkedAccount{
-		Id:   la.ID,
-		Type: la.Type,
-		Name: la.Name,
-		Mask: la.Mask,
+		Id:       la.ID,
+		Type:     la.Type,
+		Name:     la.Name,
+		Mask:     la.Mask,
+		Nickname: la.Nickname,
 	}, nil
 }

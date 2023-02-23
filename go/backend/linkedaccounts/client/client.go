@@ -118,8 +118,8 @@ func (c client) ListMachnetWallets(ctx context.Context) ([]linkedaccounts.Linked
 	return ops.ListMachnetWallets(ctx, c.b)
 }
 
-func (c client) SetName(ctx context.Context, id, name string) (*linkedaccounts.LinkedAccount, error) {
-	err := ops.SetName(ctx, c.b, id, name)
+func (c client) SetNickname(ctx context.Context, id, nickname string) (*linkedaccounts.LinkedAccount, error) {
+	err := ops.SetNickname(ctx, c.b, id, nickname)
 	if err != nil {
 		return nil, err
 	}
