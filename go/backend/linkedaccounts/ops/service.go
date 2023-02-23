@@ -38,7 +38,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 				id, wallet_id, name, mask, provider, provider_id, type
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			RETURNING id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at;
+			RETURNING id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at;
 		`,
 		linkedAccountID,
 		args.WalletID,
@@ -69,7 +69,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	err := b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts where id=$1 and deleted_at IS NULL LIMIT 1;",
+		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts where id=$1 and deleted_at IS NULL LIMIT 1;",
 		id,
 	)
 	if err != nil {
@@ -98,7 +98,7 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 		ctx,
 		&linkedAccount,
 		`
-			SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts 
+			SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts 
 			WHERE provider=$1 AND provider_id=$2 AND type=$3 AND wallet_id=$4;
 		`,
 		args.Provider,
@@ -123,7 +123,7 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND wallet_id=$1;",
+		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND wallet_id=$1;",
 		walletId,
 	)
 	if err != nil {
@@ -142,7 +142,7 @@ func ListMachnetWallets(ctx context.Context, b Backends) ([]linkedaccounts.Linke
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		"SELECT id, wallet_id, name, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;",
+		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;",
 		machnet.ProviderName, machnet.TypeWallet,
 	)
 	if err != nil {
@@ -152,8 +152,8 @@ func ListMachnetWallets(ctx context.Context, b Backends) ([]linkedaccounts.Linke
 	return linkedAccounts, nil
 }
 
-func SetName(ctx context.Context, b Backends, id, name string) error {
-	result, err := b.DB().ExecContext(ctx, `UPDATE linked_accounts set name = $1 where id = $2`, name, id)
+func SetNickname(ctx context.Context, b Backends, id, nickname string) error {
+	result, err := b.DB().ExecContext(ctx, `UPDATE linked_accounts set nickname = $1 where id = $2`, nickname, id)
 	if err != nil {
 		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
 	}

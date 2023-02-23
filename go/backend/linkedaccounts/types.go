@@ -4,6 +4,7 @@ type LinkedAccount struct {
 	ID         string
 	WalletID   string `db:"wallet_id"`
 	Name       string
+	Nickname   string `db:"nickname"`
 	Mask       string
 	Provider   string
 	ProviderID string `db:"provider_id"`

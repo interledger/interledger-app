@@ -32,7 +32,7 @@ import type { GetCurrentWalletResponse } from "./backend";
 import type { GetCountriesResponse } from "./backend";
 import type { CreateSupportTicketRequest } from "./backend";
 import type { DeleteLinkedAccountRequest } from "./backend";
-import type { SetNameLinkedAccountRequest } from "./backend";
+import type { SetNicknameLinkedAccountRequest } from "./backend";
 import type { LinkedAccount } from "./backend";
 import type { GetLinkedAccountRequest } from "./backend";
 import type { GetLinkedAccountsResponse } from "./backend";
@@ -289,9 +289,9 @@ export interface IBackendServiceClient {
      */
     getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount>;
     /**
-     * @generated from protobuf rpc: SetNameLinkedAccount(backend.v1.SetNameLinkedAccountRequest) returns (backend.v1.LinkedAccount);
+     * @generated from protobuf rpc: SetNicknameLinkedAccount(backend.v1.SetNicknameLinkedAccountRequest) returns (backend.v1.LinkedAccount);
      */
-    setNameLinkedAccount(input: SetNameLinkedAccountRequest, options?: RpcOptions): UnaryCall<SetNameLinkedAccountRequest, LinkedAccount>;
+    setNicknameLinkedAccount(input: SetNicknameLinkedAccountRequest, options?: RpcOptions): UnaryCall<SetNicknameLinkedAccountRequest, LinkedAccount>;
     /**
      * @generated from protobuf rpc: DeleteLinkedAccount(backend.v1.DeleteLinkedAccountRequest) returns (backend.v1.Empty);
      */
@@ -522,11 +522,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: SetNameLinkedAccount(backend.v1.SetNameLinkedAccountRequest) returns (backend.v1.LinkedAccount);
+     * @generated from protobuf rpc: SetNicknameLinkedAccount(backend.v1.SetNicknameLinkedAccountRequest) returns (backend.v1.LinkedAccount);
      */
-    setNameLinkedAccount(input: SetNameLinkedAccountRequest, options?: RpcOptions): UnaryCall<SetNameLinkedAccountRequest, LinkedAccount> {
+    setNicknameLinkedAccount(input: SetNicknameLinkedAccountRequest, options?: RpcOptions): UnaryCall<SetNicknameLinkedAccountRequest, LinkedAccount> {
         const method = this.methods[13], opt = this._transport.mergeOptions(options);
-        return stackIntercept<SetNameLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
+        return stackIntercept<SetNicknameLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: DeleteLinkedAccount(backend.v1.DeleteLinkedAccountRequest) returns (backend.v1.Empty);

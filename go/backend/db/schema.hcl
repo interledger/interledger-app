@@ -209,6 +209,11 @@ table "linked_accounts" {
     null = false
     type = text
   }
+  column "nickname" {
+    null = false
+    type = text
+    default = ""
+  }
   column "created_at" {
     null    = false
     type    = timestamp
