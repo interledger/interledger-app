@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useParams } from '@remix-run/react'
 import { getUserSession } from '~/lib/kratos.server'

@@ -1,4 +1,4 @@
-import type { ActionArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import {

@@ -1,4 +1,4 @@
-import type { LoaderArgs, ActionArgs , MetaFunction} from '@remix-run/node'
+import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { flowType, requireFlow } from '~/lib/flows.server'

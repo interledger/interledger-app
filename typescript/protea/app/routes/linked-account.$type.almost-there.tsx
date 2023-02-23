@@ -1,6 +1,6 @@
 import { HomeShapes, Layouts } from '~/components'
 import { useFetcher, useParams } from '@remix-run/react'
-import type { LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 import { flowType, requireFlow } from '~/lib/flows.server'
