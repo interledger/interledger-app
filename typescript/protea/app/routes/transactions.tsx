@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
-import type { LoaderArgs , MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'

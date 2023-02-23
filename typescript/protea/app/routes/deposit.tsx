@@ -1,6 +1,6 @@
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { SelectOptions } from '~/components'

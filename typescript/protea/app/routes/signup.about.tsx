@@ -1,5 +1,5 @@
 import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'

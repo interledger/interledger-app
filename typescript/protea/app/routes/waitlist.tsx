@@ -5,7 +5,7 @@ import {
   Layouts,
   TextField
 } from '~/components'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import type { GrpcError } from '~/lib/proto.server'
 import { httpMapping } from '~/lib/proto.server'

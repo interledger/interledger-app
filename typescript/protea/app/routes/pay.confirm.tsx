@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Checkbox, Layouts } from '~/components'
