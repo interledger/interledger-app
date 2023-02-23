@@ -12,6 +12,8 @@ import * as postI from '~/routes/blog.our-fynbos-family-meet-barnard.mdx'
 import * as postJ from '~/routes/blog.why-payment-pointers-are-urls.mdx'
 import * as postK from '~/routes/blog.our-fynbos-family-meet-omer.mdx'
 import * as postL from '~/routes/blog.how-technical-standards-promote-innovation.mdx'
+import * as postM from '~/routes/blog.joining-the-owf.mdx'
+
 const modules = [
   postA,
   postB,
@@ -24,7 +26,8 @@ const modules = [
   postI,
   postJ,
   postK,
-  postL
+  postL,
+  postM
 ]
 
 export type Author = {
