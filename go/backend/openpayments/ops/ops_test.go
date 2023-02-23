@@ -216,17 +216,17 @@ func TestExtractPaymentPointer(t *testing.T) {
 			err:             nil,
 		},
 		{
-			name:            "incoming_payments_suffix",
-			url:             "https://fynbos.me/asdf/incoming-payments",
+			name:            "incoming_suffix",
+			url:             "https://fynbos.me/asdf/incoming",
 			expectedPointer: "https://fynbos.me/asdf",
-			expectedSuffix:  "incoming-payments",
+			expectedSuffix:  "incoming",
 			err:             nil,
 		},
 		{
-			name:            "outgoing_payments_suffix",
-			url:             "https://fynbos.me/asdf/outgoing-payments",
+			name:            "outgoing_suffix",
+			url:             "https://fynbos.me/asdf/outgoing",
 			expectedPointer: "https://fynbos.me/asdf",
-			expectedSuffix:  "outgoing-payments",
+			expectedSuffix:  "outgoing",
 			err:             nil,
 		},
 		{
@@ -236,7 +236,7 @@ func TestExtractPaymentPointer(t *testing.T) {
 		},
 		{
 			name: "double_suffix",
-			url:  "https://fynbos.me/asdf/incoming-payments/outgoing-payments",
+			url:  "https://fynbos.me/asdf/incoming/outgoing",
 			err:  openpayments.ErrInvalidPointerURL,
 		},
 	}
@@ -323,8 +323,8 @@ func TestValidatePaymentPointer(t *testing.T) {
 		},
 		{
 			name: "reserved_word",
-			url:  "fynbos.me/incoming-payments",
-			err:  openpayments.ErrInvalidPointerPath,
+			url:  "fynbos.me/incoming",
+			err:  openpayments.ErrInvalidPointerURL,
 		},
 		{
 			name:   "regex_first_4_not_alpha",

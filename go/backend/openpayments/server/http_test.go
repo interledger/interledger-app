@@ -200,7 +200,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming_payment", env.OpenPaymentsURL()), bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming", env.OpenPaymentsURL()), bytes.NewReader(body))
 		req.Header.Set("authorization", "GNAP "+testToken)
 		req.Header.Set("Content-Digest", tc.contentDigest)
 		require.NoError(t, err)
@@ -250,7 +250,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		assert.Equal(t, tc.args.ExternalRef, ip.ExternalRef)
 
 		// Do a get and get the same values
-		req, err = http.NewRequest(http.MethodGet, tc.args.ToPP+"/incoming-payment/{payment_id}", nil)
+		req, err = http.NewRequest(http.MethodGet, tc.args.ToPP+"/incoming/{payment_id}", nil)
 		require.NoError(t, err)
 		req.Header.Set("authorization", "GNAP "+testToken)
 		rCtx := chi.NewRouteContext()
@@ -413,7 +413,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
-		req, err := http.NewRequest(http.MethodPost, "/outgoing-payment", bytes.NewReader(body))
+		req, err := http.NewRequest(http.MethodPost, "/outgoing", bytes.NewReader(body))
 		require.NoError(t, err)
 		req.Header.Set("Authorization", "GNAP "+testToken)
 		req.Header.Set("X-Forwarded-For", ipAddress)
@@ -470,7 +470,7 @@ func TestListKeys(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler := catchAllHandler(b)
 
-	req := httptest.NewRequest("GET", "https://fynbos.local.me/found_me/.well-known/keys", nil)
+	req := httptest.NewRequest("GET", "https://fynbos.local.me/found_me/jwks.json", nil)
 	handler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusOK, rr.Code)
 

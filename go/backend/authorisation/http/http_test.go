@@ -29,7 +29,7 @@ type keyHandler struct {
 }
 
 func (h keyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.URL.Path, ".well-known/keys") {
+	if strings.Contains(r.URL.Path, "jwks.json") {
 		err := json.NewEncoder(w).Encode(h)
 		require.NoError(h.T, err)
 		return

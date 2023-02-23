@@ -136,7 +136,7 @@ func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) 
 				continue
 			}
 
-			location := env.OpenPaymentsURL() + "/incoming_payment"
+			location := env.OpenPaymentsURL() + "/incoming"
 
 			access = append(access, authorisation.Access{
 				Type:       acc.Type,
@@ -352,8 +352,8 @@ func ListKeys(
 // VerifyRequestSig assumes that EdDSA is used with the ed25519 curve.
 func VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
 	keySetURL := clientPaymentPointer
-	if !strings.Contains(keySetURL, ".well-known/keys") {
-		keySetURL += "/.well-known/keys"
+	if !strings.Contains(keySetURL, "jwks.json") {
+		keySetURL += "/jwks.json"
 	}
 
 	keyID := httpmessagesignatures.ExtractKeyIDForSignature(ctx, req, "sig-1") // assume sig-1 for now

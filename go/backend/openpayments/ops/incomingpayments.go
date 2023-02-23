@@ -134,7 +134,7 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 	}
 
 	resp := &openpayments.IncomingPayment{
-		ID:                 fmt.Sprintf("%s/incoming-payment/%s", env.OpenPaymentsURL(), payment.ID),
+		ID:                 fmt.Sprintf("%s/incoming/%s", env.OpenPaymentsURL(), payment.ID),
 		PaymentPointer:     toPP.URL,
 		FromPaymentPointer: fromPP.URL,
 		Completed:          payment.Completed,
