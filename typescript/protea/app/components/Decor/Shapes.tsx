@@ -883,5 +883,49 @@ const blogShapes: {
         color: 'bg-purple-600'
       }
     ]
+  ],
+  'joining-the-owf': [
+    [
+      {
+        radius: 'rounded-l-full',
+        color: 'bg-blue-600'
+      },
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-slate-50'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-blue-100'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-l-full',
+        color: 'bg-slate-50'
+      },
+      {
+        radius: 'rounded-none',
+        color: 'bg-purple-500'
+      },
+      {
+        radius: 'rounded-r-full',
+        color: 'bg-purple-600'
+      }
+    ],
+    [
+      {
+        radius: 'rounded-br-full',
+        color: 'bg-blue-100'
+      },
+      {
+        radius: 'rounded-full',
+        color: 'bg-orange-500'
+      },
+      {
+        radius: 'rounded-r-full',
+        color: 'bg-yellow-400'
+      }
+    ]
   ]
 }
