@@ -64,7 +64,7 @@ export const handle = {
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Sign up | Phone number'
+    title: 'Sign up | Mobile phone number'
   }
 }
 
@@ -98,7 +98,7 @@ export default function Page() {
       <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium'>
-            Phone number
+            Mobile phone number
           </span>
           <div className='hidden sm:flex'>
             <Shape
@@ -264,7 +264,7 @@ export async function action({ request }: ActionArgs) {
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else if (response.code == Code.ALREADY_EXISTS) {
-      fieldErrors['phone'] = 'Phone number is already registered.'
+      fieldErrors['phone'] = 'Mobile phone number is already registered.'
       return json({ errors: { ...fieldErrors } }, { status: 409 })
     } else throw json({}, httpMapping(response.code))
   }
