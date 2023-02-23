@@ -63,7 +63,7 @@ export default function Page() {
           color={'bg-lime-500'}
         />
         <div className='ml-5'>
-          <h3 className='mb-1 font-medium text-strong'>Phone number</h3>
+          <h3 className='mb-1 font-medium text-strong'>Mobile phone number</h3>
           <p className='text-xs text-medium'>
             A mobile phone number we can verify.
           </p>

@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -11,17 +11,18 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { getLinkedAccount } from '~/lib/wallet.server'
+import {
+  getPublicWalletDetails,
+  getWalletPaymentPointer
+} from '~/lib/wallet.server'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 
-export async function loader({ request, params }: LoaderArgs) {
-  const linkedAccount = await getLinkedAccount(
-    request,
-    params.accountId as string
-  )
+export async function loader({ request }: LoaderArgs) {
+  const paymentPointer = await getWalletPaymentPointer(request)
+  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
 
   return json({
-    name: linkedAccount.nickname
+    name: wallet.publicName
   })
 }
 
@@ -38,27 +39,24 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { name } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const params = useParams()
 
   return (
     <Card>
       <div className='flex flex-col space-y-6'>
-        <h1 className='font-display text-2xl font-medium'>
-          Linked account nickname
-        </h1>
+        <h1 className='font-display text-2xl font-medium'>Edit public name</h1>
       </div>
 
       <Form
-        id='edit-linked-account-name'
-        action={`/settings/linked-accounts/${params.accountId}`}
+        id='edit-public-name'
+        action='/settings/profile-public/name'
         method='post'
         className='hidden'
       />
       <TextField
         id='name'
-        label='Nickname'
+        label='Public name'
         name='name'
-        form='edit-linked-account-name'
+        form='edit-public-name'
         type='text'
         defaultValue={name}
         className='mt-6'
@@ -66,9 +64,10 @@ export default function Page() {
         aria-describedby={
           actionData?.errors.name ? 'password-error' : undefined
         }
+        required
         errorMessage={actionData?.errors.name}
       />
-      <Button className='mt-12' form='edit-linked-account-name' type='submit'>
+      <Button className='mt-12' form='edit-public-name' type='submit'>
         Save
       </Button>
     </Card>
@@ -76,21 +75,21 @@ export default function Page() {
 }
 
 // The field names given by the backend for field violations
-type fieldErrorsMap = 'Nickname'
+type fieldErrorsMap = 'Name'
 
 function mapper(field: fieldErrorsMap): 'name' | null {
   switch (field) {
-    case 'Nickname':
+    case 'Name':
       return 'name'
     default:
       return null
   }
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request }: ActionArgs) {
   const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
-  const nickname = form.get('name') as string
+  const name = form.get('name') as string
 
   const fieldErrors = {
     form: '',
@@ -98,10 +97,9 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   const response = await grpcClient
-    .setNicknameLinkedAccount(
+    .setWalletName(
       {
-        id: params.accountId as string,
-        nickname
+        name
       },
       {
         meta: {
@@ -123,9 +121,9 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   await flashSnackbar(request, {
-    message: 'Linked account nickname updated.',
+    message: 'Your public name was updated.',
     icon: 'close'
   })
 
-  return redirect(route('/settings/linked-accounts'))
+  return redirect(route('/settings/profile-public'))
 }

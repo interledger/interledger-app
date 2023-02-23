@@ -2,16 +2,22 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Icon, Layouts, Router, WalletGrid } from '~/components'
+import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/index'
+import { useState } from 'react'
+import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { linkedAccounts, canTopUp, canWithdraw } = await getLinkedAccounts(
     request
   )
   const kycStatus = await getKycStatus(request)
+
+  const snackbar = await getSnackbar(request)
+
   return json({
+    snackbar,
     linkedAccounts: linkedAccounts.filter(
       (account) => account.type != 'wallet'
     ),
@@ -32,12 +38,15 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { linkedAccounts, canTopUp, canWithdraw, kycStatus } =
+  const { snackbar, linkedAccounts, canTopUp, canWithdraw, kycStatus } =
     useLoaderData<typeof loader>()
+
+  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
     <WalletGrid>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      {/*// flex flex-col rounded-2xl bg-page p-4 pb-6*/}
+      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-2xl font-medium'>Linked accounts</h1>
         {linkedAccounts.length == 0 && (
           <p className='mt-6'>You do not have any linked accounts.</p>
@@ -46,17 +55,21 @@ export default function Page() {
         {linkedAccounts &&
           linkedAccounts.length > 0 &&
           linkedAccounts.map((method) => (
-            <div
+            <Router
               key={method.id}
-              className='mt-4 flex w-full items-center justify-between  space-x-3 rounded-xl bg-container p-3 first-of-type:mt-6'
+              to={route('/settings/linked-accounts/:accountId', {
+                accountId: method.id
+              })}
+              className='mt-4 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
             >
-              <div className='flex items-center space-x-3 text-medium'>
+              <div className='flex space-x-3'>
                 {method.icon && <Icon>{method.icon}</Icon>}
-                <div className='flex flex-col text-sm'>
-                  <span>{method.name}</span>
-                </div>
+                <span>
+                  {method.name} {method.nickname && '(' + method.nickname + ')'}
+                </span>
               </div>
-            </div>
+              <Icon>navigate_next</Icon>
+            </Router>
           ))}
         {linkedAccounts.length > 0 && (
           <Router
@@ -66,9 +79,9 @@ export default function Page() {
             Link another account
           </Router>
         )}
-      </div>
+      </Card>
       {kycStatus == KycStatus.Unknown && (
-        <div className='col-span-full flex flex-col space-y-4 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
@@ -87,10 +100,10 @@ export default function Page() {
               </Router>
             </div>
           </div>
-        </div>
+        </Card>
       )}
       {kycStatus == KycStatus.Verified && !canTopUp && (
-        <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
               <Icon>credit_card</Icon>
@@ -109,10 +122,10 @@ export default function Page() {
               </Router>
             </div>
           </div>
-        </div>
+        </Card>
       )}
       {kycStatus == KycStatus.Verified && !canWithdraw && (
-        <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
               <Icon>account_balance</Icon>
@@ -131,8 +144,18 @@ export default function Page() {
               </Router>
             </div>
           </div>
-        </div>
+        </Card>
       )}
+      <Snackbar
+        message={snackbar.message}
+        action={snackbar.action}
+        icon={snackbar.icon}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        dismissAfter={3000}
+        offset
+        onClose={() => setSnackbar(false)}
+      />
     </WalletGrid>
   )
 }

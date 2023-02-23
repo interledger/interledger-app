@@ -20,15 +20,19 @@ declare module "routes-gen" {
     "/blog/card-payments-still-suck": Record<string, never>;
     "/legal/electronic-disclosures": Record<string, never>;
     "/linked-account/:type/success": { "type": string };
+    "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/linked-account/:type/widget": { "type": string };
-    "/settings/personal-details": Record<string, never>;
+    "/settings/profile-personal": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/personal-details/address": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
+    "/settings/profile-contact": Record<string, never>;
     "/settings/account-limits": Record<string, never>;
+    "/settings/profile-public": Record<string, never>;
     "/personal-details/about": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
+    "/blog/joining-the-owf": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
     "/linked-account/:type": { "type": string };
     "/legal/terms-of-use": Record<string, never>;
@@ -91,15 +95,19 @@ declare module "routes-gen" {
       | ["/blog/card-payments-still-suck"]
       | ["/legal/electronic-disclosures"]
       | ["/linked-account/:type/success", RouteParams["/linked-account/:type/success"]]
+      | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/linked-account/:type/widget", RouteParams["/linked-account/:type/widget"]]
-      | ["/settings/personal-details"]
+      | ["/settings/profile-personal"]
       | ["/what-is-a-payment-pointer"]
       | ["/personal-details/address"]
       | ["/settings/linked-accounts"]
+      | ["/settings/profile-contact"]
       | ["/settings/account-limits"]
+      | ["/settings/profile-public"]
       | ["/personal-details/about"]
       | ["/temp-cloudflare-error"]
+      | ["/blog/joining-the-owf"]
       | ["/legal/privacy-policy"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/legal/terms-of-use"]
