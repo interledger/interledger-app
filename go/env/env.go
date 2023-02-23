@@ -79,13 +79,13 @@ func OpenPaymentsURL() string {
 		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
 		if openPaymentsURL == "" {
 			if IsProd() {
-				openPaymentsURL = "https://open.fynbos.app"
+				openPaymentsURL = "https://fynbos.me"
 			} else if IsDev() {
-				openPaymentsURL = "https://eu1.open.fynbos.app"
+				openPaymentsURL = "https://eu1.fynbos.me"
 			} else if IsLocal() {
-				openPaymentsURL = "http://open.fynbos.test"
+				openPaymentsURL = "http://fynbos.me"
 			} else {
-				openPaymentsURL = "https://eu1.open.fynbos.app"
+				openPaymentsURL = "https://eu1.fynbos.me"
 			}
 		}
 	})
@@ -103,11 +103,11 @@ func AuthURL() string {
 			if IsProd() {
 				authURL = "https://auth.fynbos.app"
 			} else if IsDev() {
-				authURL = "https://eu1.auth.fynbos.app"
+				authURL = "https://auth.eu1.fynbos.dev"
 			} else if IsLocal() {
 				authURL = "http://auth.fynbos.test"
 			} else {
-				authURL = "https://eu1.auth.fynbos.app"
+				authURL = "https://auth.eu1.fynbos.dev"
 			}
 		}
 	})
