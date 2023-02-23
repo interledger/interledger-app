@@ -30,8 +30,15 @@ import (
 )
 
 func CreateClient(ctx context.Context, b Backends, clientURL string) (*authorisation.Client, error) {
+
+	// Ensure the client URL is a fynbos payment pointer.
+	_, err := b.OpenPayments().GetPaymentPointer(ctx, clientURL)
+	if err != nil {
+		return nil, err
+	}
+
 	var client authorisation.Client
-	err := b.DB().GetContext(ctx, &client, "INSERT INTO authorisation_clients (url) VALUES ($1) RETURNING id, url;", clientURL)
+	err = b.DB().GetContext(ctx, &client, "INSERT INTO authorisation_clients (url) VALUES ($1) RETURNING id, url;", clientURL)
 	if db.IsErrorCode(err, db.UniqueViolationError) {
 		return LookupClient(ctx, b, clientURL)
 	}
@@ -67,7 +74,7 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 
 	gid := uuid.NewString()
 
-	tokens, err := validateTokenAccess(ctx, args.AccessToken)
+	tokens, err := validateTokenAccess(ctx, b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +122,24 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 
 // validateTokenAccess returns all the tokens for access that can automatically be granted.
 // Currently, the only supported access is for "incoming-payments" type and "read,write" actions
-func validateTokenAccess(_ context.Context, req []authorisation.AccessTokenReq) ([]authorisation.AccessTokenReq, error) {
+func validateTokenAccess(ctx context.Context, b Backends, args authorisation.GrantRequest) ([]authorisation.AccessTokenReq, error) {
+
+	// Check that the request is for one of the Fynbos payment pointers
+	pp, err := b.OpenPayments().GetPaymentPointer(ctx, args.Client)
+	if err != nil {
+		return nil, err
+	}
+
 	var resp []authorisation.AccessTokenReq
-	for _, at := range req {
+	for _, at := range args.AccessToken {
 		var access []authorisation.Access
 		for _, acc := range at.Access {
+
+			// Only allow access to your own payment pointer for now.
+			if !strings.EqualFold(acc.Identifier, pp.URL) {
+				continue
+			}
+
 			if !strings.EqualFold(acc.Type, "incoming-payment") && !strings.EqualFold(acc.Type, "outgoing-payment") {
 				continue
 			}

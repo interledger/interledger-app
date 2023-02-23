@@ -22,3 +22,7 @@ func New(b ops.Backends) openpayments.Client {
 func (c client) GetWalletPaymentPointer(ctx context.Context, walletID string) (*openpayments.PaymentPointer, error) {
 	return ops.GetWalletPaymentPointer(ctx, c.b, walletID)
 }
+
+func (c client) GetPaymentPointer(ctx context.Context, ppURL string) (*openpayments.PaymentPointer, error) {
+	return ops.GetPaymentPointer(ctx, c.b, ppURL)
+}
