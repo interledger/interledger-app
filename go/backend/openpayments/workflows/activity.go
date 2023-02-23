@@ -75,7 +75,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		incomingID = incomingID[idxSlash+1:]
 	}
 
-	recvPPURL, _, err := ops.ExtractPaymentPointer(op.Receiver)
+	recvPPURL := ip.PaymentPointer
 	if err != nil {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to parse payment pointer URL from receiver (%s)", op.Receiver), "ErrInvalidURL", err)
 	}
