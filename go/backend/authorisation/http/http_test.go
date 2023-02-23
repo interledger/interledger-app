@@ -14,6 +14,11 @@ import (
 	"strings"
 	"testing"
 
+	"gitlab.com/fynbos/backend/openpayments"
+
+	"github.com/golang/mock/gomock"
+	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
+
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/authorisation"
 	fynbos_http "gitlab.com/fynbos/backend/authorisation/http"
@@ -52,7 +57,9 @@ func (s testEd25519Signer) Public() crypto.PublicKey {
 
 func TestGrantRequest(t *testing.T) {
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx))
+	ctrl := gomock.NewController(t)
+	op := openpayments_mock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), op)
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 
@@ -75,10 +82,11 @@ func TestGrantRequest(t *testing.T) {
 	})
 
 	clientPaymentPointer := opserver.URL
+
+	op.EXPECT().GetPaymentPointer(gomock.Any(), clientPaymentPointer).Return(&openpayments.PaymentPointer{URL: clientPaymentPointer}, nil).AnyTimes()
 	_, err = ops.CreateClient(ctx, b, clientPaymentPointer)
 	require.NoError(t, err)
 
-	resourceOwnerPaymnetPointer := "https://fynbos.me/bobby"
 	gr := map[string]interface{}{
 		"client": clientPaymentPointer,
 		"access_token": []map[string]interface{}{
@@ -87,7 +95,7 @@ func TestGrantRequest(t *testing.T) {
 					{
 						"type":       "incoming-payment",
 						"actions":    []string{"write", "read"},
-						"identifier": resourceOwnerPaymnetPointer,
+						"identifier": clientPaymentPointer,
 					},
 				},
 				"label": "test",
