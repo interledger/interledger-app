@@ -70,16 +70,9 @@ func getFullURL(req *http.Request) string {
 func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
-	fURL := getFullURL(req)
-	ppURL, _, err := ops.ExtractPaymentPointer(fURL)
+	ppURL := getFullURL(req)
 
-	if err != nil {
-		log.Error("error trying to parse post to payment pointer", zap.Error(err), zap.String("url", req.URL.String()))
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-
-	_, err = ops.GetPaymentPointer(ctx, b, ppURL)
+	_, err := ops.GetPaymentPointer(ctx, b, ppURL)
 	if err != nil {
 		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)

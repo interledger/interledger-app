@@ -202,31 +202,17 @@ func TestExtractPaymentPointer(t *testing.T) {
 		err             error
 	}{
 		{
-			name:            "no_suffix",
+			name:            "no_trailing_slash",
 			url:             "https://fynbos.me/asdf",
 			expectedPointer: "https://fynbos.me/asdf",
 			expectedSuffix:  "",
 			err:             nil,
 		},
 		{
-			name:            "no_suffix_trailing_slash",
+			name:            "trailing_slash",
 			url:             "https://fynbos.me/asdf/",
 			expectedPointer: "https://fynbos.me/asdf",
 			expectedSuffix:  "",
-			err:             nil,
-		},
-		{
-			name:            "incoming_suffix",
-			url:             "https://fynbos.me/asdf/incoming",
-			expectedPointer: "https://fynbos.me/asdf",
-			expectedSuffix:  "incoming",
-			err:             nil,
-		},
-		{
-			name:            "outgoing_suffix",
-			url:             "https://fynbos.me/asdf/outgoing",
-			expectedPointer: "https://fynbos.me/asdf",
-			expectedSuffix:  "outgoing",
 			err:             nil,
 		},
 		{
@@ -235,9 +221,25 @@ func TestExtractPaymentPointer(t *testing.T) {
 			err:  openpayments.ErrInvalidPointerURL,
 		},
 		{
-			name: "double_suffix",
-			url:  "https://fynbos.me/asdf/incoming/outgoing",
-			err:  openpayments.ErrInvalidPointerURL,
+			name:            "extracts_suffix_jwks.json",
+			url:             "https://fynbos.me/asdf/jwks.json",
+			expectedPointer: "https://fynbos.me/asdf",
+			expectedSuffix:  "jwks.json",
+			err:             nil,
+		},
+		{
+			name:            "extracts_suffix_incoming",
+			url:             "https://fynbos.me/asdf/incoming",
+			expectedPointer: "https://fynbos.me/asdf",
+			expectedSuffix:  "incoming",
+			err:             nil,
+		},
+		{
+			name:            "double_suffix",
+			url:             "https://fynbos.me/asdf/bbsdf",
+			expectedPointer: "https://fynbos.me/asdf/bbsdf",
+			expectedSuffix:  "",
+			err:             nil,
 		},
 	}
 

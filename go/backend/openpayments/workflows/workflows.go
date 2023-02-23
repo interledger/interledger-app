@@ -34,11 +34,12 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		return nil, err
 	}
 
-	recvPPURL, _, err := ops.ExtractPaymentPointer(q.IncomingPayment)
+	ip, err := ops.GetIncomingPayment(ctx, b, q.IncomingPayment)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
 	}
+	recvPPURL := ip.PaymentPointer
 
 	// Check that the recv payment pointer can receive
 	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, machnet.ProviderName, machnet.TypeWallet)
