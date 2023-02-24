@@ -586,6 +586,35 @@ export interface CreateSupportTicketRequest {
     email: string;
 }
 /**
+ * @generated from protobuf message backend.v1.IndividualKYCResponse
+ */
+export interface IndividualKYCResponse {
+    /**
+     * @generated from protobuf field: string firstName = 1;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 2;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string countryCode = 3;
+     */
+    countryCode: string;
+    /**
+     * @generated from protobuf field: int32 gender = 4;
+     */
+    gender: number; // 0 Unknown, 1 Male, 2 Female, 3 Other
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp dateOfBirth = 5;
+     */
+    dateOfBirth?: Timestamp;
+    /**
+     * @generated from protobuf field: backend.v1.Address address = 6;
+     */
+    address?: Address;
+}
+/**
  * @generated from protobuf message backend.v1.UpdateIndividualKYCRequest
  */
 export interface UpdateIndividualKYCRequest {
@@ -3231,6 +3260,88 @@ class CreateSupportTicketRequest$Type extends MessageType<CreateSupportTicketReq
  * @generated MessageType for protobuf message backend.v1.CreateSupportTicketRequest
  */
 export const CreateSupportTicketRequest = new CreateSupportTicketRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IndividualKYCResponse$Type extends MessageType<IndividualKYCResponse> {
+    constructor() {
+        super("backend.v1.IndividualKYCResponse", [
+            { no: 1, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "gender", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 5, name: "dateOfBirth", kind: "message", T: () => Timestamp },
+            { no: 6, name: "address", kind: "message", T: () => Address }
+        ]);
+    }
+    create(value?: PartialMessage<IndividualKYCResponse>): IndividualKYCResponse {
+        const message = { firstName: "", lastName: "", countryCode: "", gender: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IndividualKYCResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IndividualKYCResponse): IndividualKYCResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string firstName */ 1:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 2:
+                    message.lastName = reader.string();
+                    break;
+                case /* string countryCode */ 3:
+                    message.countryCode = reader.string();
+                    break;
+                case /* int32 gender */ 4:
+                    message.gender = reader.int32();
+                    break;
+                case /* google.protobuf.Timestamp dateOfBirth */ 5:
+                    message.dateOfBirth = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.dateOfBirth);
+                    break;
+                case /* backend.v1.Address address */ 6:
+                    message.address = Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IndividualKYCResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string firstName = 1; */
+        if (message.firstName !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 2; */
+        if (message.lastName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.lastName);
+        /* string countryCode = 3; */
+        if (message.countryCode !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.countryCode);
+        /* int32 gender = 4; */
+        if (message.gender !== 0)
+            writer.tag(4, WireType.Varint).int32(message.gender);
+        /* google.protobuf.Timestamp dateOfBirth = 5; */
+        if (message.dateOfBirth)
+            Timestamp.internalBinaryWrite(message.dateOfBirth, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Address address = 6; */
+        if (message.address)
+            Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IndividualKYCResponse
+ */
+export const IndividualKYCResponse = new IndividualKYCResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCRequest> {
     constructor() {
@@ -6112,6 +6223,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
  */
 export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UpdateIndividualKYC", options: {}, I: UpdateIndividualKYCRequest, O: Empty },
+    { name: "GetIndividualKYC", options: {}, I: Empty, O: IndividualKYCResponse },
     { name: "IsUSPSAddress", options: {}, I: Address, O: IsUSPSAddressResponse },
     { name: "SetSignupUserData", options: {}, I: SetSignupUserDataRequest, O: SetSignupUserDataResponse },
     { name: "SetSignupMobileNumber", options: {}, I: SetSignupMobileNumberRequest, O: Empty },
