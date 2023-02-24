@@ -180,6 +180,7 @@ message Empty {}
 
 service BackendService {
   rpc UpdateIndividualKYC(UpdateIndividualKYCRequest) returns (Empty);
+  rpc GetIndividualKYC(Empty) returns (IndividualKYCResponse);
   rpc IsUSPSAddress(Address) returns (IsUSPSAddressResponse);
   rpc SetSignupUserData(SetSignupUserDataRequest) returns (SetSignupUserDataResponse);
   rpc SetSignupMobileNumber(SetSignupMobileNumberRequest) returns (Empty);
@@ -283,6 +284,15 @@ message CreateSupportTicketRequest {
   string firstName = 2;
   string lastName = 3;
   string email = 4;
+}
+
+message IndividualKYCResponse {
+  string firstName = 1;
+  string lastName = 2;
+  string countryCode = 3;
+  int32 gender = 4; // 0 Unknown, 1 Male, 2 Female, 3 Other
+  google.protobuf.Timestamp dateOfBirth = 5;
+  Address address = 6;
 }
 
 message UpdateIndividualKYCRequest {

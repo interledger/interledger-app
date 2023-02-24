@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"gitlab.com/fynbos/env"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"gitlab.com/fynbos/backend/kyc"
 
@@ -117,4 +118,46 @@ func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.Is
 	return &pb.IsUSPSAddressResponse{
 		Valid: valid,
 	}, toGRPCError(err)
+}
+
+func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.IndividualKYCResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	details, err := s.b.KYC().GetIndividualDetails(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := &pb.IndividualKYCResponse{
+		FirstName:   details.FirstName,
+		LastName:    details.LastName,
+		CountryCode: details.CountryCode,
+		Gender:      int32(details.Gender),
+		DateOfBirth: timestamppb.New(details.DateOfBirth),
+	}
+
+	if details.Address != nil {
+		resp.Address = &pb.Address{
+			Line1:            &details.Address.Line1,
+			Line2:            &details.Address.Line2,
+			Building:         &details.Address.Building,
+			Apartment:        &details.Address.Apartment,
+			City:             &details.Address.City,
+			State:            &details.Address.State,
+			ZipCode:          &details.Address.ZipCode,
+			CountryCode:      &details.Address.CountryCode,
+			PlaceID:          &details.Address.PlaceID,
+			FormattedAddress: &details.Address.FormattedAddress,
+		}
+	}
+
+	return resp, nil
 }

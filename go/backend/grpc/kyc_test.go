@@ -130,3 +130,50 @@ func TestUpdateUserKYC(t *testing.T) {
 	}
 	assert.EqualValues(t, errorFields, []string{"IpAddress", "AddressCountryCode", "AddressState"})
 }
+
+func TestGetIndividualKYC(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	u := &user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), u.ID, "default")
+	require.NoError(t, err)
+
+	ud := kyc.IndividualDetails{
+		WalletID:    wallet.ID,
+		FirstName:   "FirstName1",
+		LastName:    "LastName2",
+		CountryCode: "US",
+		Gender:      kyc.GenderFemale,
+		IPAddress:   "41.71.7.130",
+		DateOfBirth: time.Date(2000, time.April, 4, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "Line1",
+			Line2:       "Line2",
+			Building:    "Building",
+			Apartment:   "Apartment",
+			City:        "City",
+			State:       "US-CA",
+			ZipCode:     "ZipCode",
+			CountryCode: "US",
+		},
+	}
+
+	c.KYCClient.EXPECT().GetIndividualDetails(gomock.Any(), wallet.ID).Return(&ud, nil)
+
+	details, err := client.GetIndividualKYC(user_mock.ActingAsContext(t, context.Background(), u), &pb.Empty{})
+	require.NoError(t, err)
+
+	require.Equal(t, ud.FirstName, details.FirstName)
+	require.Equal(t, ud.LastName, details.LastName)
+	require.Equal(t, ud.CountryCode, details.CountryCode)
+	require.Equal(t, int32(ud.Gender), details.Gender)
+	require.True(t, details.DateOfBirth.AsTime().Equal(ud.DateOfBirth))
+}
