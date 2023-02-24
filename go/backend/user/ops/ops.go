@@ -216,3 +216,12 @@ func ListAllWallets(ctx context.Context, b Backends, page db.Pagination) ([]user
 
 	return wallets, nil
 }
+
+func SetWalletName(ctx context.Context, b Backends, id, name string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", name, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
