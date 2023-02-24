@@ -102,3 +102,21 @@ func TestGetWallet(t *testing.T) {
 	require.Equal(t, w.ID, wallet.ID)
 	require.Equal(t, w.Name, wallet.Name)
 }
+
+func TestSetWalletName(t *testing.T) {
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+	b := user_client.NewTestBackends(t, dbc, nil)
+	userID := uuid.NewString()
+	w, err := ops.CreateWallet(ctx, b, userID, "default")
+	require.NoError(t, err)
+	require.Equal(t, "default", w.Name)
+
+	err = ops.SetWalletName(ctx, b, w.ID, "Harry Potter")
+	require.NoError(t, err)
+
+	w, err = ops.GetWallet(ctx, b, userID, w.ID)
+	require.NoError(t, err)
+	require.Equal(t, w.ID, w.ID)
+	require.Equal(t, w.Name, "Harry Potter")
+}

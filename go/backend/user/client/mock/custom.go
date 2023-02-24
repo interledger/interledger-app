@@ -135,6 +135,16 @@ func (mc mockClient) ListWallets(_ context.Context, userID string) ([]user.Walle
 	return wallets, nil
 }
 
+func (mc mockClient) SetWalletName(_ context.Context, id, name string) error {
+	_, ok := mc.wallets[id]
+	if ok {
+		mc.wallets[id].Name = name
+		return nil
+	}
+
+	return user.ErrNoWalletFound
+}
+
 var _testCookieName = "ory_kratos_session"
 
 const (

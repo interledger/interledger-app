@@ -23,3 +23,19 @@ func (s *rpcService) GetCurrentWallet(ctx context.Context, req *pb.Empty) (*pb.G
 		Id: w.ID,
 	}, toGRPCError(err)
 }
+
+func (s *rpcService) SetWalletName(ctx context.Context, req *pb.SetWalletNameRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	w, err := s.b.Users().WalletForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	err = s.b.Users().SetWalletName(ctx, w.ID, req.Name)
+
+	return &pb.Empty{}, toGRPCError(err)
+}
