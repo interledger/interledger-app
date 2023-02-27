@@ -124,6 +124,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 				Currency: currency.ParseCurrency(q.SendAsset),
 				Scale:    q.SendAssetScale,
 			},
+			GrantID: args.GrantID,
 		})
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)

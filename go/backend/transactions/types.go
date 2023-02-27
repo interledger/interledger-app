@@ -51,6 +51,7 @@ type CreateTransactionArgs struct {
 	Destination string // Usually the receiving payment pointer
 	Amount      currency.Amount
 	Transfers   []TransferArgs `validate:"omitempty,dive"`
+	GrantID     string
 }
 
 type UpdateTransactionArgs struct {
