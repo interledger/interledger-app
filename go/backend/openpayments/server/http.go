@@ -98,7 +98,7 @@ type authoriseClientArgs struct {
 	ResourceCreatedBy string
 }
 
-func authoriseClient(b Backends, args authoriseClientArgs) string {
+func authoriseGrant(b Backends, args authoriseClientArgs) *authorisation.Grant {
 	gnapToken := args.Request.Header.Get("authorization")
 	parts := strings.Split(args.Request.Header.Get("authorization"), " ")
 	if len(parts) > 1 && parts[0] == "GNAP" {
@@ -107,7 +107,7 @@ func authoriseClient(b Backends, args authoriseClientArgs) string {
 	grant, err := b.Authorisation().Introspect(args.Request.Context(), gnapToken)
 	if err != nil {
 		log.Error("token introspection failed", zap.Error(err))
-		return ""
+		return nil
 	}
 
 	var accessToken *authorisation.AccessToken
@@ -119,7 +119,7 @@ func authoriseClient(b Backends, args authoriseClientArgs) string {
 	}
 	if accessToken == nil {
 		log.Error("grant does not have token", zap.String("grantID", grant.ID), zap.String("token", gnapToken))
-		return ""
+		return nil
 	}
 
 	hasAccess := false
@@ -142,12 +142,11 @@ func authoriseClient(b Backends, args authoriseClientArgs) string {
 		}
 	}
 
-	client := ""
-	if hasAccess {
-		client = grant.Client
+	if !hasAccess {
+		return nil
 	}
 
-	return client
+	return grant
 }
 
 type OutgoingPaymentArgs struct {
@@ -179,13 +178,13 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		client := authoriseClient(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseClientArgs{
 			Request:    req,
 			AccessType: "outgoing-payment",
 			Action:     "write",
 			Identifier: httpArgs.FromPP,
 		})
-		if client == "" {
+		if grant == nil {
 			log.Error("token does not have required access")
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
@@ -198,8 +197,8 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"content-digest", "authorization"}) {
-			log.Error("create outgoing payment request failed signature validation", zap.String("client", client), zap.Error(err))
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, grant.Client, []string{"content-digest", "authorization"}) {
+			log.Error("create outgoing payment request failed signature validation", zap.String("client", grant.Client), zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -213,7 +212,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			SendAmount:            argAmount,
 			Reference:             httpArgs.ExternalRef,
 			ExpiresAt:             time.Now().Add(time.Hour), // Default till the API definition changes
-			CreatedBy:             client,
+			CreatedBy:             grant.Client,
 		})
 		if err != nil {
 			log.Error("failed to create quote for outgoing payment", zap.Error(err))
@@ -225,7 +224,8 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			QuoteID:     q.ID,
 			Description: httpArgs.ExternalRef,
 			ExternalRef: httpArgs.ExternalRef,
-			CreatedBy:   client,
+			CreatedBy:   grant.Client,
+			GrantID:     grant.ID,
 		}
 
 		// Extract IP address from the req
@@ -296,13 +296,13 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		client := authoriseClient(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseClientArgs{
 			Request:    req,
 			AccessType: "incoming-payment",
 			Action:     "write",
 			Identifier: httpArgs.ToPP,
 		})
-		if client == "" {
+		if grant == nil {
 			log.Error("token does not have required access")
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
@@ -315,8 +315,8 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"content-digest", "authorization"}) {
-			log.Error("create incoming payment request failed signature validation", zap.String("client", client), zap.Error(err))
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, grant.Client, []string{"content-digest", "authorization"}) {
+			log.Error("create incoming payment request failed signature validation", zap.String("client", grant.Client), zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -332,7 +332,7 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			FromPaymentPointer: ops.StandardisePaymentPointer(httpArgs.FromPP),
 			IncomingAmount:     argAmount,
 			ExternalRef:        httpArgs.ExternalRef,
-			CreatedBy:          client,
+			CreatedBy:          grant.Client,
 		}
 
 		q, err := ops.CreateIncomingPayment(req.Context(), b, args)
@@ -448,22 +448,22 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		client := authoriseClient(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseClientArgs{
 			Request:           req,
 			AccessType:        "outgoing-payment",
 			Action:            "read",
 			Identifier:        op.PaymentPointer,
 			ResourceCreatedBy: op.CreatedBy,
 		})
-		if client == "" {
+		if grant == nil {
 			log.Error("token does not have required access")
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 
 		// Verify client signature.
-		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"authorization"}) {
-			log.Error("get outgoing payment request failed signature validation", zap.String("client", client), zap.Error(err))
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, grant.Client, []string{"authorization"}) {
+			log.Error("get outgoing payment request failed signature validation", zap.String("client", grant.Client), zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
@@ -494,22 +494,22 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		client := authoriseClient(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseClientArgs{
 			Request:           req,
 			AccessType:        "incoming-payment",
 			Action:            "read",
 			Identifier:        ip.PaymentPointer,
 			ResourceCreatedBy: ip.CreatedBy,
 		})
-		if client == "" {
+		if grant == nil {
 			log.Error("token does not have required access")
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 
 		// Verify client signature.
-		if !b.Authorisation().VerifyRequestSig(req.Context(), req, client, []string{"authorization"}) {
-			log.Error("get incoming payment request failed signature validation", zap.String("client", client), zap.Error(err))
+		if !b.Authorisation().VerifyRequestSig(req.Context(), req, grant.Client, []string{"authorization"}) {
+			log.Error("get incoming payment request failed signature validation", zap.String("client", grant.Client), zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}

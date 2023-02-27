@@ -1225,6 +1225,10 @@ table "transactions" {
     null = true
     type = uuid
   }
+  column "grant_id" {
+    null = true
+    type = uuid
+  }
   column "type" {
     null = false
     type = text
@@ -1279,6 +1283,9 @@ table "transactions" {
     ref_columns = [table.wallets.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
+  }
+  index "grant_id_ind" {
+    columns = [column.grant_id]
   }
   index "wallet_id_ind" {
     columns = [column.wallet_id]

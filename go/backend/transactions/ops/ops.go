@@ -32,7 +32,11 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		Value("provider", args.Provider).
 		Value("amount", args.Amount.Value).
 		Value("asset_code", args.Amount.Currency).
-		Value("asset_scale", args.Amount.Scale)
+		Value("asset_scale", args.Amount.Scale).
+		Value("grant_id", sql.NullString{
+			String: args.GrantID,
+			Valid:  args.GrantID != "",
+		})
 	if args.Source != "" {
 		is.Value("source", args.Source)
 	}
