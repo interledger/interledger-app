@@ -1284,8 +1284,11 @@ table "transactions" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
-  index "grant_id_ind" {
-    columns = [column.grant_id]
+  index "grant_id_limits_ind" {
+    columns = [column.grant_id, column.wallet_id, column.created_at, column.state]
+  }
+  index "grant_id_limits_overall_ind" {
+    columns = [column.grant_id, column.wallet_id, column.state]
   }
   index "wallet_id_ind" {
     columns = [column.wallet_id]
@@ -1479,6 +1482,9 @@ table "authorisation_grants" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
+  index "client_id_ind" {
+    columns = [column.client_id]
+  }
 }
 table "authorisation_tokens" {
   schema = schema.public
@@ -1609,5 +1615,64 @@ table "contacts" {
   }
 }
 
+table "authorisation_limits" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "foreign_id" {
+    null = false
+    type = uuid
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "currency" {
+    null = false
+    type = text
+  }
+  column "daily" {
+    null = false
+    type = bigint
+  }
+  column "monthly" {
+    null = false
+    type = bigint
+  }
+  column "overall" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  foreign_key "fk_wallet_id" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  index "wallet_id_foreign_id_uniq" {
+    unique  = true
+    columns = [column.wallet_id, column.foreign_id, column.currency]
+  }
+}
 schema "public" {
 }

@@ -1,0 +1,86 @@
+package ops_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/authorisation"
+	auth_ops "gitlab.com/fynbos/backend/authorisation/ops"
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/limits/ops"
+	"gitlab.com/fynbos/backend/transactions"
+	tx_client "gitlab.com/fynbos/backend/transactions/client"
+	users_client "gitlab.com/fynbos/backend/user/client"
+)
+
+func TestExceeds(t *testing.T) {
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc, nil)
+	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+	txClient := tx_client.New(b)
+
+	cases := []struct {
+		name   string
+		tx     transactions.CreateTransactionArgs
+		amnt   currency.Amount
+		expect bool
+	}{
+		{
+			name: "exceeds daily defaults",
+			tx: transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice1",
+				Destination: "https://fynbos.me/bob1",
+				Amount:      currency.FromFloat64(200, currency.USD),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:   currency.FromFloat64(200, currency.USD),
+			expect: true,
+		},
+		{
+			name: "does not exceed daily defaults",
+			tx: transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice2",
+				Destination: "https://fynbos.me/bob2",
+				Amount:      currency.FromFloat64(2, currency.USD),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:   currency.FromFloat64(2, currency.USD),
+			expect: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+			require.NoError(t, err)
+
+			client, err := auth_ops.CreateClient(ctx, b, tc.tx.Source)
+			require.NoError(t, err)
+
+			gid := uuid.NewString()
+			_, err = b.DB().ExecContext(ctx, "INSERT INTO authorisation_grants (id, client_id, state, continue_token, wait) VALUES ($1, $2, $3, $4, $5)",
+				gid, client.ID, authorisation.GrantStateApproved, uuid.NewString(), 0)
+			require.NoError(t, err)
+
+			tc.tx.WalletID = wallet.ID
+			tc.tx.GrantID = gid
+
+			_, err = txClient.CreateTransaction(ctx, tc.tx)
+			require.NoError(t, err)
+
+			exceeds, err := ops.Exceeds(ctx, b, wallet.ID, client.ID, tc.amnt)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expect, exceeds)
+		})
+	}
+}

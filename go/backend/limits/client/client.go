@@ -1,0 +1,35 @@
+package client
+
+import (
+	"context"
+
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/limits"
+	"gitlab.com/fynbos/backend/limits/ops"
+)
+
+var _ limits.Client = client{}
+
+type client struct {
+	b ops.Backends
+}
+
+func New(b ops.Backends) limits.Client {
+	return &client{
+		b: b,
+	}
+}
+
+func (c client) Exceeds(ctx context.Context, walletID, clientID string, amount currency.Amount) (bool, error) {
+	return ops.Exceeds(ctx, c.b, walletID, clientID, amount)
+}
+
+func (c client) UpdateLimit(ctx context.Context, walletID, foreignID string, limit limits.Limit) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c client) List(ctx context.Context, walletID string) ([]limits.WalletLimit, error) {
+	//TODO implement me
+	panic("implement me")
+}
