@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+// TODO Probably want to abstract the material package so we don't depend on it too much?
+import 'package:flutter/material.dart' as material;
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:watsonia/styles/colors.dart';
 import 'package:http/http.dart' as http;
@@ -13,14 +15,14 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return material.MaterialApp(
       title: 'Fynbos',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      theme: material.ThemeData(
         useMaterial3: true,
-        colorScheme: const ColorScheme(
+        colorScheme: const material.ColorScheme(
           background: TWColors.bgApp,
-          brightness: Brightness.light,
+          brightness: material.Brightness.light,
           primary: TWColors.bgApp,
           onPrimary: TWColors.bgApp,
           secondary: TWColors.bgApp,
@@ -77,8 +79,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     // return const SignupPage();
-    return Scaffold(
-      appBar: AppBar(
+    return material.Scaffold(
+      appBar: material.AppBar(
         title: Image.asset(
           'images/Logo.png',
           height: 32,
@@ -87,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: <Widget>[
-          Card(
+          material.Card(
             margin: const EdgeInsets.all(0),
             elevation: 0,
             color: TWColors.white,
@@ -107,15 +109,15 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       drawerScrimColor: TWColors.bgScrim,
-      drawer: Drawer(
+      drawer: material.Drawer(
         width: 250,
         shape: const Border(),
         child: SafeArea(
           child: ListView(
             // padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
             children: <Widget>[
-              AppBar(
-                leading: const Icon(Icons.menu_open_outlined),
+              material.AppBar(
+                leading: const Icon(material.Icons.menu_open_outlined),
                 title: Image.asset(
                   'images/Logo.png',
                   height: 32,
@@ -123,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
-                child: ListTile(
+                child: material.ListTile(
                   title: Text(
                     'Home',
                     style: GoogleFonts.poppins(
@@ -141,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: ListTile(
+                child: material.ListTile(
                   title: Text(
                     'Transactions',
                     style: GoogleFonts.poppins(
@@ -158,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: ListTile(
+                child: material.ListTile(
                   title: Text(
                     'Settings',
                     style: GoogleFonts.poppins(
@@ -175,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: ListTile(
+                child: material.ListTile(
                   title: Text(
                     'Contact',
                     style: GoogleFonts.poppins(
@@ -194,12 +196,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.large(
+      floatingActionButton: material.FloatingActionButton.large(
         backgroundColor: TWColors.blue[500],
         foregroundColor: TWColors.white,
         onPressed: () => setState(() => _count++),
         tooltip: 'Increment Counter',
-        child: const Icon(Icons.attach_money_outlined),
+        child: const Icon(material.Icons.attach_money_outlined),
       ),
     );
   }
