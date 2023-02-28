@@ -39,3 +39,12 @@ func (s *rpcService) SetWalletName(ctx context.Context, req *pb.SetWalletNameReq
 
 	return &pb.Empty{}, toGRPCError(err)
 }
+
+func (s *rpcService) GetPublicWalletDetails(ctx context.Context, req *pb.GetPublicWalletDetailsRequest) (*pb.GetPublicWalletDetailsResponse, error) {
+	w, err := s.b.Users().GetWallet(ctx, req.GetId())
+
+	return &pb.GetPublicWalletDetailsResponse{
+		Id:         w.ID,
+		PublicName: w.Name,
+	}, toGRPCError(err)
+}

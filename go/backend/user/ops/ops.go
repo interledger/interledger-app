@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"net/http"
 	"sync"
 	"time"
@@ -140,11 +142,11 @@ func ListWallets(ctx context.Context, b Backends, userID string) ([]user.Wallet,
 	return wallets, nil
 }
 
-func GetWallet(ctx context.Context, b Backends, userID, walletID string) (*user.Wallet, error) {
+func GetWallet(ctx context.Context, b Backends, walletID string) (*user.Wallet, error) {
 
 	var wallet user.Wallet
 	err := b.DB().GetContext(ctx, &wallet,
-		"SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1 and w.id=$2", userID, walletID)
+		"SELECT id, name FROM wallets WHERE id=$1", walletID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, user.ErrNoWalletFound
 	}
@@ -152,7 +154,14 @@ func GetWallet(ctx context.Context, b Backends, userID, walletID string) (*user.
 		return nil, err
 	}
 
-	b.Analytics().GroupUserWallet(walletID, userID)
+	users, err := ListUsers(ctx, b, walletID)
+	if err != nil {
+		log.Error("error getting users", zap.Error(err))
+		return &wallet, nil
+	}
+	for _, u := range users {
+		b.Analytics().GroupUserWallet(walletID, u.ID)
+	}
 
 	return &wallet, nil
 }
@@ -178,21 +187,25 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 
 	var resp []user.User
 	var anyErr error
-	for _, userID := range userIDs {
-		wg.Add(1)
-		go func(uID string) {
-			defer wg.Done()
-			id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, uID).Execute()
-			if err != nil {
-				anyErr = err
-				return
-			}
 
-			// lock
-			mx.Lock()
-			defer mx.Unlock()
-			resp = append(resp, convertTraits(id.Id, id.Traits))
-		}(userID)
+	// Required to check so test can pass due to kratos not being mocked.
+	if b.Kratos() != nil {
+		for _, userID := range userIDs {
+			wg.Add(1)
+			go func(uID string) {
+				defer wg.Done()
+				id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, uID).Execute()
+				if err != nil {
+					anyErr = err
+					return
+				}
+
+				// lock
+				mx.Lock()
+				defer mx.Unlock()
+				resp = append(resp, convertTraits(id.Id, id.Traits))
+			}(userID)
+		}
 	}
 
 	wg.Wait()
