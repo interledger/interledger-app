@@ -96,8 +96,8 @@ func (c *client) ListWallets(ctx context.Context, userID string) ([]user.Wallet,
 	return ops.ListWallets(ctx, c.b, userID)
 }
 
-func (c *client) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
-	return ops.GetWallet(ctx, c.b, userID, id)
+func (c *client) GetWallet(ctx context.Context, id string) (*user.Wallet, error) {
+	return ops.GetWallet(ctx, c.b, id)
 }
 
 func (c *client) ListAllWallets(ctx context.Context, pagination db.Pagination) ([]user.Wallet, error) {

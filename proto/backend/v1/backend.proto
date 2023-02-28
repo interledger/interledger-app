@@ -239,6 +239,9 @@ service BackendService {
 
   //Client keys
   rpc CreateClientPublicKey(JWK) returns (Empty);
+
+  // Public Wallet Data
+  rpc GetPublicWalletDetails(GetPublicWalletDetailsRequest) returns (GetPublicWalletDetailsResponse);
 }
 
 // example edDSA public key
@@ -571,4 +574,13 @@ message LimitAmount {
 
 message SetWalletNameRequest {
   string name = 1;
+}
+
+message GetPublicWalletDetailsRequest {
+  string id = 1;
+}
+
+message GetPublicWalletDetailsResponse {
+  string id = 1;
+  string publicName = 2;
 }

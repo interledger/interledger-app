@@ -2,6 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { GetPublicWalletDetailsResponse } from "./backend";
+import type { GetPublicWalletDetailsRequest } from "./backend";
 import type { JWK } from "./backend";
 import type { StatementPDF } from "./backend";
 import type { GetStatementPDFRequest } from "./backend";
@@ -424,6 +426,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateClientPublicKey(backend.v1.JWK) returns (backend.v1.Empty);
      */
     createClientPublicKey(input: JWK, options?: RpcOptions): UnaryCall<JWK, Empty>;
+    /**
+     * Public Wallet Data
+     *
+     * @generated from protobuf rpc: GetPublicWalletDetails(backend.v1.GetPublicWalletDetailsRequest) returns (backend.v1.GetPublicWalletDetailsResponse);
+     */
+    getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -756,5 +764,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     createClientPublicKey(input: JWK, options?: RpcOptions): UnaryCall<JWK, Empty> {
         const method = this.methods[42], opt = this._transport.mergeOptions(options);
         return stackIntercept<JWK, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Public Wallet Data
+     *
+     * @generated from protobuf rpc: GetPublicWalletDetails(backend.v1.GetPublicWalletDetailsRequest) returns (backend.v1.GetPublicWalletDetailsResponse);
+     */
+    getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse> {
+        const method = this.methods[43], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>("unary", this._transport, method, opt, input);
     }
 }

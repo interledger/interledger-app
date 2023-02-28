@@ -28,7 +28,7 @@ func MakeMachnetSendUser(b Backends) cli.ActionFunc {
 	return func(cCtx *cli.Context) error {
 		ctx := cCtx.Context
 		walletID := cCtx.String("walletID")
-		_, err := b.Users().GetWallet(ctx, cCtx.String("userID"), walletID)
+		_, err := b.Users().GetWallet(ctx, walletID)
 		if err != nil {
 			return err
 		}

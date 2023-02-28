@@ -68,7 +68,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		usersPB[i] = convertUser(u)
 	}
 
-	wallet, err := s.b.Users().GetWallet(ctx, users[0].ID, req.WalletID)
+	wallet, err := s.b.Users().GetWallet(ctx, req.WalletID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

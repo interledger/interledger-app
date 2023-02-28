@@ -1362,6 +1362,28 @@ export interface SetWalletNameRequest {
      */
     name: string;
 }
+/**
+ * @generated from protobuf message backend.v1.GetPublicWalletDetailsRequest
+ */
+export interface GetPublicWalletDetailsRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetPublicWalletDetailsResponse
+ */
+export interface GetPublicWalletDetailsResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string publicName = 2;
+     */
+    publicName: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -6257,6 +6279,107 @@ class SetWalletNameRequest$Type extends MessageType<SetWalletNameRequest> {
  * @generated MessageType for protobuf message backend.v1.SetWalletNameRequest
  */
 export const SetWalletNameRequest = new SetWalletNameRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPublicWalletDetailsRequest$Type extends MessageType<GetPublicWalletDetailsRequest> {
+    constructor() {
+        super("backend.v1.GetPublicWalletDetailsRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPublicWalletDetailsRequest>): GetPublicWalletDetailsRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPublicWalletDetailsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPublicWalletDetailsRequest): GetPublicWalletDetailsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPublicWalletDetailsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPublicWalletDetailsRequest
+ */
+export const GetPublicWalletDetailsRequest = new GetPublicWalletDetailsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPublicWalletDetailsResponse$Type extends MessageType<GetPublicWalletDetailsResponse> {
+    constructor() {
+        super("backend.v1.GetPublicWalletDetailsResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "publicName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPublicWalletDetailsResponse>): GetPublicWalletDetailsResponse {
+        const message = { id: "", publicName: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPublicWalletDetailsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPublicWalletDetailsResponse): GetPublicWalletDetailsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string publicName */ 2:
+                    message.publicName = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPublicWalletDetailsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string publicName = 2; */
+        if (message.publicName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.publicName);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPublicWalletDetailsResponse
+ */
+export const GetPublicWalletDetailsResponse = new GetPublicWalletDetailsResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -6320,5 +6443,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "GetUserLimits", options: {}, I: Empty, O: GetUserLimitsResponse },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF },
-    { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty }
+    { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
+    { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse }
 ]);

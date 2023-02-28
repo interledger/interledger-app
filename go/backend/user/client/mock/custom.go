@@ -69,16 +69,12 @@ func (mc mockClient) ListUsers(ctx context.Context, walletID string) ([]user.Use
 	}, nil
 }
 
-func (mc mockClient) GetWallet(ctx context.Context, userID, id string) (*user.Wallet, error) {
+func (mc mockClient) GetWallet(ctx context.Context, id string) (*user.Wallet, error) {
 	wallet := mc.wallets[id]
 	if wallet == nil {
 		return nil, user.ErrNoWalletFound
 	}
-	walletUser := mc.walletUser[wallet.ID]
 
-	if walletUser != userID {
-		return nil, user.ErrNoWalletFound
-	}
 	return wallet, nil
 }
 

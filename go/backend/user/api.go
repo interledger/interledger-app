@@ -14,7 +14,7 @@ type Client interface {
 	WalletForContext(ctx context.Context) (*Wallet, error)
 	CreateNewWallet(ctx context.Context, userID, walletName string) (*Wallet, error)
 	ListWallets(ctx context.Context, userID string) ([]Wallet, error)
-	GetWallet(ctx context.Context, userID, id string) (*Wallet, error)
+	GetWallet(ctx context.Context, id string) (*Wallet, error)
 	ListAllWallets(ctx context.Context, pagination db.Pagination) ([]Wallet, error)
 	SetWalletName(ctx context.Context, id, name string) error
 }
