@@ -8,6 +8,13 @@ type Limit struct {
 	Overall currency.Amount
 }
 
+type LimitConfigured struct {
+	Limit          Limit
+	ForeignID      string
+	ForeignDisplay string
+	ForeignType    FKType
+}
+
 type FKType string
 
 const (
