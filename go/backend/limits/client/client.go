@@ -14,7 +14,7 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b ops.Backends) limits.Client {
+func New(b ops.Backends) *client {
 	return &client{
 		b: b,
 	}
@@ -28,7 +28,6 @@ func (c client) UpdateClientLimits(ctx context.Context, walletID, clientURL stri
 	return ops.UpdateClientLimits(ctx, c.b, walletID, clientURL, limit)
 }
 
-func (c client) List(ctx context.Context, walletID string) ([]limits.Limit, error) {
-	//TODO implement me
-	panic("implement me")
+func (c client) List(ctx context.Context, walletID string) ([]limits.LimitConfigured, error) {
+	return ops.ListLimits(ctx, c.b, walletID)
 }

@@ -14,14 +14,14 @@ import (
 )
 
 type dbLimits struct {
-	ID        string `db:"id"`
-	ForeignID string `db:"foreign_id"`
-	Type      string `db:"type"`
-	WalletID  string `db:"wallet_id"`
-	Currency  string `db:"currency"`
-	Daily     uint64 `db:"daily"`
-	Monthly   uint64 `db:"monthly"`
-	Overall   uint64 `db:"overall"`
+	ID        string        `db:"id"`
+	ForeignID string        `db:"foreign_id"`
+	Type      limits.FKType `db:"type"`
+	WalletID  string        `db:"wallet_id"`
+	Currency  string        `db:"currency"`
+	Daily     uint64        `db:"daily"`
+	Monthly   uint64        `db:"monthly"`
+	Overall   uint64        `db:"overall"`
 }
 
 func getLimits(ctx context.Context, b Backends, walletID, foreignID string) (*dbLimits, error) {
@@ -166,4 +166,42 @@ func UpdateClientLimits(ctx context.Context, b Backends, walletID, clientURL str
 	}
 
 	return nil
+}
+
+func ListLimits(ctx context.Context, b Backends, walletID string) ([]limits.LimitConfigured, error) {
+	var l []dbLimits
+	err := b.DB().SelectContext(ctx, &l,
+		"SELECT id, foreign_id, type, wallet_id, currency, daily, monthly, overall FROM authorisation_limits WHERE wallet_id=$1",
+		walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, limits.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", limits.ErrInternal, err)
+	}
+
+	resp := make([]limits.LimitConfigured, len(l))
+	for i, dbl := range l {
+		var display string
+		switch dbl.Type {
+		case limits.FKTypeClient:
+			err = b.DB().GetContext(ctx, &display, "SELECT url FROM authorisation_clients WHERE id=$1", dbl.ForeignID)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", limits.ErrInternal, err)
+			}
+		}
+
+		resp[i] = limits.LimitConfigured{
+			Limit: limits.Limit{
+				Daily:   currency.FromUInt64(dbl.Daily, currency.ParseCurrency(dbl.Currency)),
+				Monthly: currency.FromUInt64(dbl.Monthly, currency.ParseCurrency(dbl.Currency)),
+				Overall: currency.FromUInt64(dbl.Overall, currency.ParseCurrency(dbl.Currency)),
+			},
+			ForeignID:      dbl.ForeignID,
+			ForeignType:    dbl.Type,
+			ForeignDisplay: display,
+		}
+	}
+
+	return resp, nil
 }
