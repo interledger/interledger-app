@@ -175,7 +175,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args CreateOutgoingP
 		return fmt.Errorf("Unsuccessful outgoing payment. statusCode=%d url=%s", opResp.StatusCode, outgoingPaymentURL)
 	}
 
-	fmt.Println(fmt.Sprintf("view outgoing payment: %s", op.ID))
+	fmt.Printf("view outgoing payment: %s\n", op.ID)
 
 	return nil
 }
