@@ -40,7 +40,7 @@ func getLimits(ctx context.Context, b Backends, walletID, foreignID string) (*db
 }
 
 // defaultLimits inserts default limits for foreign_id as a fallback in case this step was skipped by the UI.
-func defaultLimits(ctx context.Context, b Backends, walletID, foreignID string, fkType limits.LimitFKType) (*dbLimits, error) {
+func defaultLimits(ctx context.Context, b Backends, walletID, foreignID string, fkType limits.FKType) (*dbLimits, error) {
 
 	// Lookup the payment pointer for it's currency.
 	pp, err := b.OpenPayments().GetWalletPaymentPointer(ctx, walletID)
@@ -57,12 +57,22 @@ func defaultLimits(ctx context.Context, b Backends, walletID, foreignID string, 
 	return getLimits(ctx, b, walletID, foreignID)
 }
 
+func monthStart() time.Time {
+	year, month, _ := time.Now().Date()
+	return time.Date(year, month, 0, 0, 0, 0, 0, time.UTC)
+}
+
+func dayStart() time.Time {
+	year, month, day := time.Now().Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+}
+
 func Exceeds(ctx context.Context, b Backends, walletID, clientID string, amount currency.Amount) (bool, error) {
 
 	// Lookup client limits
 	clientLimits, err := getLimits(ctx, b, walletID, clientID)
 	if errors.Is(err, limits.ErrNotFound) {
-		clientLimits, err = defaultLimits(ctx, b, walletID, clientID, limits.LimitFKTypeClient)
+		clientLimits, err = defaultLimits(ctx, b, walletID, clientID, limits.FKTypeClient)
 	}
 	if err != nil {
 		return false, err
@@ -113,12 +123,47 @@ func Exceeds(ctx context.Context, b Backends, walletID, clientID string, amount 
 	return false, nil
 }
 
-func monthStart() time.Time {
-	year, month, _ := time.Now().Date()
-	return time.Date(year, month, 0, 0, 0, 0, 0, time.UTC)
-}
+func UpdateClientLimits(ctx context.Context, b Backends, walletID, clientURL string, limit limits.Limit) error {
 
-func dayStart() time.Time {
-	year, month, day := time.Now().Date()
-	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	// Lookup the payment pointer for its currency.
+	pp, err := b.OpenPayments().GetWalletPaymentPointer(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	// Lookup the auth client ID for the payment pointer
+	var clientID string
+	err = b.DB().GetContext(ctx, &clientID, "SELECT id FROM authorisation_clients WHERE url=$1", clientURL)
+	if errors.Is(err, sql.ErrNoRows) {
+		return limits.ErrNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("%w %s", limits.ErrInternal, err)
+	}
+
+	exists := true
+	_, err = getLimits(ctx, b, walletID, clientID)
+	if errors.Is(err, limits.ErrNotFound) {
+		exists = false
+	} else if err != nil {
+		return err
+	}
+
+	if exists {
+		_, err = b.DB().ExecContext(ctx, "UPDATE authorisation_limits SET daily=$1, monthly=$2, overall=$3, updated_at=now() WHERE wallet_id=$4 AND foreign_id=$5",
+			limit.Daily.Value, limit.Monthly.Value, limit.Overall.Value, walletID, clientID)
+		if err != nil {
+			return fmt.Errorf("%w %s", limits.ErrInternal, err)
+		}
+
+		return nil
+	}
+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO authorisation_limits (foreign_id, type, wallet_id, currency, daily, monthly, overall) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		clientID, limits.FKTypeClient, walletID, pp.Asset, limit.Daily.Value, limit.Monthly.Value, limit.Overall.Value)
+	if err != nil {
+		return fmt.Errorf("%w %s", limits.ErrInternal, err)
+	}
+
+	return nil
 }
