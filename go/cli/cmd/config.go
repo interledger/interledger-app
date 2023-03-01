@@ -85,7 +85,7 @@ func NewGetConfigCmd(b Backends) *cobra.Command {
 				return fmt.Errorf("Valid config variables are %+v", validConfigKeys)
 			}
 
-			fmt.Println(fmt.Sprintf("%s=%s", key, b.Config().GetString(key)))
+			fmt.Printf("%s=%s\n", key, b.Config().GetString(key))
 
 			return nil
 		},

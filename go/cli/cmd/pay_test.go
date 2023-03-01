@@ -46,8 +46,11 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			}
 			jsonGrant, err := json.Marshal(g)
 			require.NoError(t, err)
+
 			w.Header().Set("Content-Type", "application/json")
-			w.Write(jsonGrant)
+			_, err = w.Write(jsonGrant)
+			require.NoError(t, err)
+
 			return
 		}
 
@@ -58,7 +61,10 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			jsonOp, err := json.Marshal(op)
 			require.NoError(t, err)
 			w.Header().Set("Content-Type", "application/json")
-			w.Write(jsonOp)
+
+			_, err = w.Write(jsonOp)
+			require.NoError(t, err)
+
 			return
 		}
 
@@ -107,6 +113,8 @@ func NewSavedPrivateKey(t *testing.T) string {
 	require.NoError(t, err)
 
 	pkcs8Key, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	require.NoError(t, err)
+
 	keyBytes := bytes.NewBuffer(nil)
 	err = pem.Encode(keyBytes, &pem.Block{
 		Type:  "PRIVATE KEY",
