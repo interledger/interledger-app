@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/limits"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -81,6 +83,49 @@ func TestExceeds(t *testing.T) {
 			exceeds, err := ops.Exceeds(ctx, b, wallet.ID, client.ID, tc.amnt)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expect, exceeds)
+		})
+	}
+}
+
+func TestUpdateClientLimits(t *testing.T) {
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc, nil)
+	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+
+	wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+	require.NoError(t, err)
+
+	_, err = auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
+	require.NoError(t, err)
+
+	cases := []struct {
+		name string
+		wl   limits.Limit
+	}{
+		{
+			name: "success new",
+			wl: limits.Limit{
+				Daily:   currency.FromFloat64(5, currency.USD),
+				Monthly: currency.FromFloat64(20, currency.USD),
+				Overall: currency.FromFloat64(200, currency.USD),
+			},
+		},
+		{
+			name: "success updated",
+			wl: limits.Limit{
+				Daily:   currency.FromFloat64(5, currency.USD),
+				Monthly: currency.FromFloat64(3000, currency.USD),
+				Overall: currency.FromFloat64(40000, currency.USD),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ops.UpdateClientLimits(ctx, b, wallet.ID, "https://fynbos.me/bobby", tc.wl)
+			require.NoError(t, err)
 		})
 	}
 }

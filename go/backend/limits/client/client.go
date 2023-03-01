@@ -24,12 +24,11 @@ func (c client) Exceeds(ctx context.Context, walletID, clientID string, amount c
 	return ops.Exceeds(ctx, c.b, walletID, clientID, amount)
 }
 
-func (c client) UpdateLimit(ctx context.Context, walletID, foreignID string, limit limits.Limit) error {
-	//TODO implement me
-	panic("implement me")
+func (c client) UpdateClientLimits(ctx context.Context, walletID, clientURL string, limit limits.Limit) error {
+	return ops.UpdateClientLimits(ctx, c.b, walletID, clientURL, limit)
 }
 
-func (c client) List(ctx context.Context, walletID string) ([]limits.WalletLimit, error) {
+func (c client) List(ctx context.Context, walletID string) ([]limits.Limit, error) {
 	//TODO implement me
 	panic("implement me")
 }

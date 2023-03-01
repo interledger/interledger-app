@@ -68,7 +68,7 @@ func NewTestBackends(t *testing.T, db *sqlx.DB, uc user.Client) Backends {
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 
 	op := openpayments_mock.NewMockClient(ctrl)
-	op.EXPECT().GetWalletPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{Asset: "USD"}, nil).AnyTimes()
-	op.EXPECT().GetPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{Asset: "USD"}, nil).AnyTimes()
+	op.EXPECT().GetWalletPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{Asset: "USD", URL: "https://fynbos.me/bobby"}, nil).AnyTimes()
+	op.EXPECT().GetPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{Asset: "USD", URL: "https://fynbos.me/bobby"}, nil).AnyTimes()
 	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), user: uc, op: op}
 }
