@@ -1573,5 +1573,34 @@ table "authorisation_token_access" {
     on_delete   = NO_ACTION
   }
 }
+
+table "contacts" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "payment_pointer" {
+    null = false
+    type = text
+  }
+  column "name" {
+    null = false
+    type = text
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_payment_pointer_unique" {
+    unique  = true
+    columns = [column.wallet_id, column.payment_pointer]
+  }
+}
+
 schema "public" {
 }

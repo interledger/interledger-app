@@ -111,11 +111,12 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
-	cmd := exec.CommandContext(ctx,
+	out, err := exec.CommandContext(ctx,
 		"atlas", "schema", "apply", "--auto-approve", "-u", connString,
 		"--exclude", "public.payment_pointers.payment_pointers_url_lower",
-		"-f", filepath.Join(moduleDir, "../schema.hcl"))
-	if err = cmd.Run(); err != nil {
+		"-f", filepath.Join(moduleDir, "../schema.hcl")).CombinedOutput()
+	if err != nil {
+		log.Error("error migrating", zap.String("output", string(out)))
 		t.Fatal(err)
 	}
 
