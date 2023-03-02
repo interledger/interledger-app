@@ -1,9 +1,17 @@
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Layouts, Shape, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  Icon,
+  Layouts,
+  Shape,
+  Snackbar,
+  TextField
+} from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   httpMapping,
@@ -96,7 +104,7 @@ export default function Page() {
   )
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium'>
@@ -174,7 +182,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
         dismissAfter={3000}
       />
-    </div>
+    </Card>
   )
 }
 

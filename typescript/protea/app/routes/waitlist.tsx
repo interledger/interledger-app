@@ -1,11 +1,12 @@
 import {
   Autocomplete,
   Button,
+  Card,
   Checkbox,
   Layouts,
   TextField
 } from '~/components'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import type { GrpcError } from '~/lib/proto.server'
 import { httpMapping } from '~/lib/proto.server'
@@ -106,7 +107,7 @@ export default function Page() {
   }, [query, countries])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       {!mug.available && (
         <>
           <span className='font-display text-2xl font-medium'>
@@ -228,7 +229,7 @@ export default function Page() {
       <Button className='mt-8' form='join-waitlist' type='submit'>
         Join now
       </Button>
-    </div>
+    </Card>
   )
 }
 

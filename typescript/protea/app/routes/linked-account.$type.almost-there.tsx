@@ -1,6 +1,6 @@
-import { HomeShapes, Layouts } from '~/components'
+import { Card, HomeShapes, Layouts } from '~/components'
 import { useFetcher, useParams } from '@remix-run/react'
-import type { LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 import { flowType, requireFlow } from '~/lib/flows.server'
@@ -59,7 +59,7 @@ export default function Page() {
   }, [fetcher, params.type])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <HomeShapes rows={4} animate />
 
       <span className='mt-6 font-display text-2xl font-medium'>
@@ -69,6 +69,6 @@ export default function Page() {
         Please wait a moment while we verify a few final details. You will be
         redirected shortly.
       </span>
-    </div>
+    </Card>
   )
 }

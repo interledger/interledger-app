@@ -1,4 +1,4 @@
-import type { LoaderArgs , MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import {
@@ -117,7 +117,7 @@ export default function Page() {
           <span className='text-sm text-strong'>{transaction.id}</span>
         </Card.Item>
       </Card>
-      <Card className='mt-6 flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card className='mt-6'>
         <h2 className='font-display font-medium text-strong'>Support</h2>
         <span className='mt-4 text-sm'>
           If you have any questions, issues, or complaints, please first contact

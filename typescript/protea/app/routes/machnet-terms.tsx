@@ -1,7 +1,14 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
-import { AnchorRouter, Button, Checkbox, Layouts, Shape } from '~/components'
+import {
+  AnchorRouter,
+  Button,
+  Card,
+  Checkbox,
+  Layouts,
+  Shape
+} from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import {
   grpcClient,
@@ -35,7 +42,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='flex justify-between'>
         <h1 className='font-display text-2xl font-medium'>Privacy and Terms</h1>
         <div className='hidden sm:flex'>
@@ -113,7 +120,7 @@ export default function Page() {
       <Button className='mt-12' form='personal-details-machnet' type='submit'>
         Continue
       </Button>
-    </div>
+    </Card>
   )
 }
 

@@ -1,7 +1,7 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Icon, Layouts, Snackbar, TextField } from '~/components'
+import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -56,7 +56,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card>
         <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
         <span>Enter the recipient’s payment pointer.</span>
         <Form
@@ -88,8 +88,8 @@ export default function Page() {
             Pay
           </Button>
         </div>
-      </div>
-      <div className='mt-6 flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      </Card>
+      <Card className='mt-6'>
         <h1 className='mb-6 font-display text-2xl font-medium'>Receive</h1>
         <span>Present or share your payment pointer.</span>
 
@@ -124,7 +124,7 @@ export default function Page() {
           </span>
           <Icon className='text-medium'>content_copy</Icon>
         </button>
-      </div>
+      </Card>
       <Snackbar
         message={snackbar.message}
         action={snackbar.action}

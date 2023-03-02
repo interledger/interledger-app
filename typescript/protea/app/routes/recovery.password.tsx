@@ -1,7 +1,7 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Layouts, Snackbar, TextField } from '~/components'
+import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -75,7 +75,7 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>Set password</h1>
       <span>
         You've successfully recovered your account. Set a new password to
@@ -122,7 +122,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </div>
+    </Card>
   )
 }
 

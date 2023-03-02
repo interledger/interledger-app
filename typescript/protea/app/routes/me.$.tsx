@@ -3,9 +3,20 @@ import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Button, HomeShapes, Icon, Layouts, Snackbar } from '~/components'
+import {
+  Button,
+  Card,
+  HomeShapes,
+  Icon,
+  Layouts,
+  Router,
+  Snackbar
+} from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
-import { getWalletPaymentPointer } from '~/lib/wallet.server'
+import {
+  getPublicWalletDetails,
+  getWalletPaymentPointer
+} from '~/lib/wallet.server'
 import {
   httpMapping,
   isGrpcError,
@@ -24,7 +35,28 @@ export async function loader({ request, params }: LoaderArgs) {
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
+
+  // TODO once conditional auth implemented.
+  // const canSendResponse = await openPaymentsClient
+  //   .canSendToPaymentPointer(
+  //     { paymentPointer: response.response.url },
+  //     {
+  //       meta: {
+  //         cookies: String(request.headers.get('cookie')) || ''
+  //       }
+  //     }
+  //   )
+  //   .then((v) => v)
+  //   .catch(StatusError)
+  //
+  // console.log('canSendResponse', canSendResponse)
+  // if (isGrpcError(canSendResponse)) {
+  //   throw json({}, httpMapping(canSendResponse.code))
+  // }
+
   const paymentPointer = response.response
+
+  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
 
   if (request.headers.get('Content-type') == 'application/json')
     return redirect(paymentPointer.url)
@@ -39,6 +71,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({
     editable,
+    wallet,
     paymentPointer,
     paymentPointerParam
   })
@@ -49,7 +82,8 @@ export const handle = {
 }
 
 export default function Page() {
-  const { paymentPointer, paymentPointerParam } = useLoaderData<typeof loader>()
+  const { editable, wallet, paymentPointer, paymentPointerParam } =
+    useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>({
     message: 'Payment pointer copied to clipboard.',
@@ -59,14 +93,17 @@ export default function Page() {
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false)
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='mt-2'>
         <HomeShapes />
       </div>
       <h1 className='mt-6 flex items-center justify-between font-display text-2xl font-medium'>
-        <span>{paymentPointer.alias}</span>
-        {/*TODO: Edit button once we can edit the alias */}
-        {/*{!editable && <IconButton>edit</IconButton>}*/}
+        <span>{wallet.publicName}</span>
+        {editable && (
+          <Router to={route('/settings/profile-public')}>
+            <Icon>edit</Icon>
+          </Router>
+        )}
       </h1>
       <button
         type='button'
@@ -132,7 +169,7 @@ export default function Page() {
         dismissAfter={3000}
         onClose={() => setShowSnackbar(false)}
       />
-    </div>
+    </Card>
   )
 }
 
@@ -146,8 +183,9 @@ export async function action({ request, params }: ActionArgs) {
     throw json({}, httpMapping(response.code))
   }
 
+  // We can redirect immediately because /pay/amount will handle un-authed calls appropriately.
   await requireFlow(request, flowType.Pay, {
-    startRoute: route('/pay'),
+    startRoute: route('/pay/amount'),
     data: {
       paymentPointer: { ...response.response }
     },

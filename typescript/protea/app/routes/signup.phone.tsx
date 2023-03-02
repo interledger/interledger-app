@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
@@ -10,6 +10,7 @@ import {
 import type { PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
+  Card,
   Dialog,
   Icon,
   Layouts,
@@ -64,7 +65,7 @@ export const handle = {
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Sign up | Phone number'
+    title: 'Sign up | Mobile phone number'
   }
 }
 
@@ -94,11 +95,11 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium'>
-            Phone number
+            Mobile phone number
           </span>
           <div className='hidden sm:flex'>
             <Shape
@@ -215,7 +216,7 @@ export default function Page() {
           </TextButton>
         </div>
       </Dialog>
-    </div>
+    </Card>
   )
 }
 
@@ -264,7 +265,7 @@ export async function action({ request }: ActionArgs) {
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else if (response.code == Code.ALREADY_EXISTS) {
-      fieldErrors['phone'] = 'Phone number is already registered.'
+      fieldErrors['phone'] = 'Mobile phone number is already registered.'
       return json({ errors: { ...fieldErrors } }, { status: 409 })
     } else throw json({}, httpMapping(response.code))
   }

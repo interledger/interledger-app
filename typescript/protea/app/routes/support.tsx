@@ -1,9 +1,10 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import {
   AnchorRouter,
   Button,
+  Card,
   HomeShapes,
   Icon,
   Layouts,
@@ -39,7 +40,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   return (
     <WalletGrid>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='mt-2'>
           <HomeShapes />
         </div>
@@ -90,8 +91,8 @@ export default function Page() {
         <Button className='mt-12' form='support-form' type='submit'>
           Submit
         </Button>
-      </div>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      </Card>
+      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h2 className='font-display font-medium text-strong'>Support</h2>
         <span className='mt-4 text-sm'>
           Our telephone support lines are open Monday to Friday between 9am and
@@ -146,7 +147,7 @@ export default function Page() {
           </AnchorRouter>
           .
         </span>
-      </div>
+      </Card>
     </WalletGrid>
   )
 }

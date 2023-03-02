@@ -1,7 +1,7 @@
-import type { LoaderArgs, ActionArgs , MetaFunction} from '@remix-run/node'
+import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Layouts } from '~/components'
+import { Button, Card, Layouts } from '~/components'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { route } from 'routes-gen'
@@ -35,7 +35,7 @@ export default function Page() {
   const { logoutToken } = useLoaderData<typeof loader>()
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>Log out</h1>
       <span>Are you sure you want to log out?</span>
 
@@ -50,7 +50,7 @@ export default function Page() {
           Log out
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 

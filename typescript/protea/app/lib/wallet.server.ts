@@ -9,6 +9,7 @@ import { json, redirect } from '@remix-run/node'
 import type {
   Amount,
   GetUserLimitsResponse,
+  IndividualKYCResponse,
   KYCStatusResponse,
   LinkedAccount,
   PaginationRequest,
@@ -18,6 +19,7 @@ import type {
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
+import type { GetPublicWalletDetailsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -34,6 +36,27 @@ export async function getKycStatus(
 ): Promise<KYCStatusResponse> {
   const response = await grpcClient
     .kYCStatus(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function getKycDetails(
+  request: Request
+): Promise<IndividualKYCResponse> {
+  const response = await grpcClient
+    .getIndividualKYC(
       {},
       {
         meta: {
@@ -91,6 +114,31 @@ export async function getWalletId(request: Request): Promise<string> {
   return response.response.id
 }
 
+export async function getPublicWalletDetails(
+  request: Request,
+  id: string
+): Promise<GetPublicWalletDetailsResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getPublicWalletDetails(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
 export async function getWalletPaymentPointer(
   request: Request
 ): Promise<PaymentPointer> {
@@ -143,6 +191,7 @@ export async function getWalletBalance(request: Request): Promise<string> {
 type FormattedLinkedAccount = {
   id: string
   name: string
+  nickname: string
   type: string
   icon: string
 }
@@ -216,12 +265,12 @@ const formatLinkedAccount = (
   switch (linkedAccount.type) {
     case 'sendCard':
       type = 'card'
-      name = `Card ending ${linkedAccount.mask}`
+      name = `**** ${linkedAccount.mask}`
       icon = 'credit_card'
       break
     case 'bankAccount':
       type = 'bank'
-      name = `${linkedAccount.name} ${linkedAccount.mask}`
+      name = `**** ${linkedAccount.mask}`
       icon = 'account_balance'
       break
     case 'wallet':
@@ -231,7 +280,7 @@ const formatLinkedAccount = (
       break
   }
   return {
-    id: linkedAccount.id,
+    ...linkedAccount,
     name,
     type,
     icon

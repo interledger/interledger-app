@@ -1,7 +1,7 @@
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Layouts } from '~/components'
+import { Button, Card, Layouts } from '~/components'
 import { route } from 'routes-gen'
 import {
   KRATOS_URL,
@@ -90,7 +90,7 @@ export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <main className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>
         Verify your email
       </h1>
@@ -113,7 +113,7 @@ export default function Page() {
       <Button className='mt-6' form='verify' type='submit'>
         Resend verification
       </Button>
-    </main>
+    </Card>
   )
 }
 

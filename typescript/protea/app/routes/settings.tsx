@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import type { LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
+  Card,
   HomeShapes,
   Icon,
   Layouts,
@@ -46,19 +47,41 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   return (
     <WalletGrid>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='mt-2'>
           <HomeShapes />
         </div>
         <h1 className='mt-6 font-display text-2xl font-medium'>Settings</h1>
         <h2 className='mt-6 text-sm font-medium'>Profile</h2>
+        {kycStatus != KycStatus.Unknown && (
+          <Router
+            to={route('/settings/profile-personal')}
+            className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          >
+            <div className='flex space-x-3'>
+              <Icon>account_circle</Icon>
+              <span>Personal information</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </Router>
+        )}
         <Router
-          to={route('/settings/personal-details')}
+          to={route('/settings/profile-public')}
           className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
         >
           <div className='flex space-x-3'>
-            <Icon>face</Icon>
-            <span>Personal details</span>
+            <Icon>contact_page</Icon>
+            <span>Public information</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
+        <Router
+          to={route('/settings/profile-contact')}
+          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+        >
+          <div className='flex space-x-3'>
+            <Icon>call</Icon>
+            <span>Contact information</span>
           </div>
           <Icon>navigate_next</Icon>
         </Router>
@@ -106,7 +129,14 @@ export default function Page() {
           </div>
           <Icon>navigate_next</Icon>
         </Router>
-      </div>
+        <Router
+          to={route('/logout')}
+          className='mt-6 flex items-center space-x-3 rounded-xl p-3 text-primary'
+        >
+          <Icon>logout</Icon>
+          <span>Log out</span>
+        </Router>
+      </Card>
       <Snackbar
         message={snackbar.message}
         action={snackbar.action}

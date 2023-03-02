@@ -1,10 +1,10 @@
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { SelectOptions } from '~/components'
-import { Button, Icon, Layouts, Select, TextField } from '~/components'
+import { Button, Card, Icon, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import { getLinkedAccounts, getWalletBalance } from '~/lib/wallet.server'
@@ -56,7 +56,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card>
         <h1 className='mb-6 font-display text-2xl font-medium'>Withdraw</h1>
         <span>Enter the amount to withdraw.</span>
         <fetcher.Form
@@ -131,7 +131,7 @@ export default function Page() {
             Continue
           </Button>
         </div>
-      </div>
+      </Card>
       <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>*</span>
         <span className='text-xs text-medium'>

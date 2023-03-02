@@ -1,10 +1,17 @@
 import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
-import type { ActionArgs, LoaderArgs , MetaFunction} from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { Autocomplete, Button, Layouts, Shape, TextField } from '~/components'
+import {
+  Autocomplete,
+  Button,
+  Card,
+  Layouts,
+  Shape,
+  TextField
+} from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -84,7 +91,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card>
         <div className='flex justify-between'>
           <h1 className='font-display text-2xl font-medium'>Profile details</h1>
 
@@ -186,7 +193,7 @@ export default function Page() {
         <Button className='mt-12' form='signup-about-details' type='submit'>
           Continue
         </Button>
-      </div>
+      </Card>
       <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>
           <sup>&dagger;</sup>

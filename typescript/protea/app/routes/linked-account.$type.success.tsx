@@ -1,7 +1,7 @@
-import { ButtonRouter, Layouts, SuccessShapes } from '~/components'
+import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
 import { route } from 'routes-gen'
 import { useLoaderData, useParams } from '@remix-run/react'
-import type { LoaderArgs , MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { flowType, requireFlow } from '~/lib/flows.server'
 
@@ -34,7 +34,7 @@ export default function Page() {
   const params = useParams()
   const { flow } = useLoaderData<typeof loader>()
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <SuccessShapes />
 
       <span className='mt-6 font-display text-2xl font-medium'>Success</span>
@@ -48,6 +48,6 @@ export default function Page() {
           Close
         </ButtonRouter>
       </div>
-    </div>
+    </Card>
   )
 }
