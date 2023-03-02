@@ -10,6 +10,7 @@ import {
 import type { PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
+  Card,
   Dialog,
   Icon,
   Layouts,
@@ -94,7 +95,7 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
           <span className='font-display text-2xl font-medium'>
@@ -215,7 +216,7 @@ export default function Page() {
           </TextButton>
         </div>
       </Dialog>
-    </div>
+    </Card>
   )
 }
 

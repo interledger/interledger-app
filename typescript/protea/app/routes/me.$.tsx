@@ -5,6 +5,7 @@ import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   Button,
+  Card,
   HomeShapes,
   Icon,
   Layouts,
@@ -92,7 +93,7 @@ export default function Page() {
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false)
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='mt-2'>
         <HomeShapes />
       </div>
@@ -168,7 +169,7 @@ export default function Page() {
         dismissAfter={3000}
         onClose={() => setShowSnackbar(false)}
       />
-    </div>
+    </Card>
   )
 }
 

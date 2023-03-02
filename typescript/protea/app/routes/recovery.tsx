@@ -6,7 +6,7 @@ import {
   useLoaderData,
   useNavigation
 } from '@remix-run/react'
-import { Button, Layouts, Snackbar, TextField } from '~/components'
+import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -79,7 +79,7 @@ export default function Page() {
   }, [navigation.state, snackbar.show])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>
         Recover account
       </h1>
@@ -125,7 +125,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
         dismissAfter={3000}
       />
-    </div>
+    </Card>
   )
 }
 

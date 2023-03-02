@@ -3,6 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import {
   Button,
+  Card,
   Checkbox,
   Layouts,
   Router,
@@ -94,7 +95,7 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='flex flex-col space-y-6'>
         <div className='flex justify-between'>
           <h1 className='font-display text-2xl font-medium'>Password</h1>
@@ -185,7 +186,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </div>
+    </Card>
   )
 }
 

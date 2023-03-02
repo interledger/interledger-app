@@ -8,6 +8,7 @@ import {
 } from '@remix-run/react'
 import {
   Button,
+  Card,
   HomeShapes,
   Layouts,
   Router,
@@ -93,7 +94,7 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='mt-2'>
         <HomeShapes />
       </div>
@@ -169,7 +170,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </div>
+    </Card>
   )
 }
 

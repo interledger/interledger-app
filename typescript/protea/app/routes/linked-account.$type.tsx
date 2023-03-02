@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useParams } from '@remix-run/react'
 import { getUserSession } from '~/lib/kratos.server'
 import type { RadioGroupOption } from '~/components'
-import { Button, Layouts, RadioGroup, Shape } from '~/components'
+import { Button, Card, Layouts, RadioGroup, Shape } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import { useState } from 'react'
 import { route } from 'routes-gen'
@@ -52,7 +52,7 @@ function GenericPage() {
   const [value, setValue] = useState<RadioGroupOption>(options[0])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>
         Add linked account
       </h1>
@@ -78,13 +78,13 @@ function GenericPage() {
           Continue
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
 function CardPage() {
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>
         Top up cash balance
       </h1>
@@ -115,13 +115,13 @@ function CardPage() {
           Let's go
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
 function BankPage() {
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <h1 className='mb-6 font-display text-2xl font-medium'>Withdraw</h1>
       <span>You first need to add a bank account to make withdrawals.</span>
       <div className='mt-10 flex items-start'>
@@ -157,7 +157,7 @@ function BankPage() {
           Let's go
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 

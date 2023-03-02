@@ -11,7 +11,8 @@ import {
   Shape,
   Snackbar,
   AnimatedSchedule,
-  WalletGrid
+  WalletGrid,
+  Card
 } from '~/components'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import type { Transaction } from '~/lib/wallet.server'
@@ -468,7 +469,7 @@ function AppPage() {
 
   return (
     <WalletGrid>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <div className='mt-2'>
           <HomeShapes />
         </div>
@@ -528,18 +529,18 @@ function AppPage() {
             <Icon className='text-medium'>content_copy</Icon>
           </button>
         )}
-      </div>
+      </Card>
 
       {kycStatus == KycStatus.InProgress && (
-        <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>
             Activation pending
           </h2>
           <p className='mt-4'>Just a moment, we are verifying your details.</p>
-        </div>
+        </Card>
       )}
       {kycStatus == KycStatus.Retry && (
-        <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>
             Activation failed
           </h2>
@@ -553,10 +554,10 @@ function AppPage() {
           >
             Fix personal details
           </Router>
-        </div>
+        </Card>
       )}
       {kycStatus == KycStatus.Suspended && (
-        <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>
             Activation failed
           </h2>
@@ -570,10 +571,10 @@ function AppPage() {
           >
             Contact support
           </Router>
-        </div>
+        </Card>
       )}
       {kycStatus == KycStatus.ReviewPending && (
-        <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>
             Reviewing activation
           </h2>
@@ -581,11 +582,11 @@ function AppPage() {
             We need to manually review your verification details. We will notify
             you when this process completes.
           </p>
-        </div>
+        </Card>
       )}
 
       {kycStatus == KycStatus.Verified && (
-        <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>Cash balance</h2>
           <div className='flex mt-2 h-9 w-full'>
             <AnimatePresence mode='wait'>
@@ -689,11 +690,11 @@ function AppPage() {
               Withdraw
             </Router>
           </div>
-        </div>
+        </Card>
       )}
 
       {nextStep.show && (
-        <div className='col-span-full flex flex-col space-y-6 rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
@@ -709,11 +710,11 @@ function AppPage() {
               </Router>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {kycStatus == KycStatus.Verified && (
-        <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center justify-between'>
             <h1 className='font-display text-lg font-medium'>
               Latest transactions
@@ -770,7 +771,7 @@ function AppPage() {
               </Router>
             </Fragment>
           ))}
-        </div>
+        </Card>
       )}
       <Snackbar
         message={snackbarState.message}
