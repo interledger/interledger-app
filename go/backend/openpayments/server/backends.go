@@ -3,6 +3,8 @@ package server
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/limits"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/analytics"
@@ -29,6 +31,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
+	Limits() limits.Client
 }
 
 type testBackends struct {
@@ -41,6 +44,7 @@ type testBackends struct {
 	tr   transactions.Client
 	ac   analytics.Client
 	auth authorisation.InternalClient
+	lmt  limits.Client
 }
 
 func (t testBackends) Authorisation() authorisation.InternalClient {
@@ -87,7 +91,11 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client, auth authorisation.InternalClient) Backends {
+func (t testBackends) Limits() limits.Client {
+	return t.lmt
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client, auth authorisation.InternalClient, lmt limits.Client) Backends {
 	ac := analytics_client.New(nil, "")
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac, auth: auth}
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac, auth: auth, lmt: lmt}
 }

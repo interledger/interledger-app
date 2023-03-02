@@ -10,38 +10,27 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.com/fynbos/env"
-
 	"github.com/go-chi/chi/v5"
-
+	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/authorisation"
 	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
 	"gitlab.com/fynbos/backend/currency"
-
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-
-	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
-
-	"github.com/stretchr/testify/mock"
-
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/machnet"
-
+	limits_mock "gitlab.com/fynbos/backend/limits/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-
-	"go.temporal.io/sdk/mocks"
-
-	"github.com/golang/mock/gomock"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-
-	users_client "gitlab.com/fynbos/backend/user/client"
-
-	"github.com/google/uuid"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	"gitlab.com/fynbos/backend/providers/machnet"
+	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	users_client "gitlab.com/fynbos/backend/user/client"
+	"gitlab.com/fynbos/env"
+	"go.temporal.io/sdk/mocks"
 )
 
 func TestGetHandler(t *testing.T) {
@@ -49,7 +38,7 @@ func TestGetHandler(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -133,7 +122,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, nil, tc, auth)
+	b := NewTestBackends(t, db, nil, nil, nil, tc, auth, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -314,8 +303,10 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	}, nil)
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	tmp_mock := &mocks.Client{}
+	lmt_mock := limits_mock.NewMockClient(ctrl)
+	lmt_mock.EXPECT().Exceeds(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, auth)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, auth, lmt_mock)
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -442,7 +433,7 @@ func TestListKeys(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := db.MigrateTestDB(t, ctx)
 	authClient := mock_auth.NewMockInternalClient(ctrl)
-	b := NewTestBackends(t, db, nil, nil, nil, nil, authClient)
+	b := NewTestBackends(t, db, nil, nil, nil, nil, authClient, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()

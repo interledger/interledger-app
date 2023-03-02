@@ -42,6 +42,8 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
+	"gitlab.com/fynbos/backend/limits"
+	limits_client "gitlab.com/fynbos/backend/limits/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/notify"
@@ -229,6 +231,8 @@ func start(args *cli.StartArgs) {
 
 	b.statements = statements_client.New()
 
+	b.limits = limits_client.New(b)
+
 	b.contacts = contacts_client.New(b)
 
 	server, err := _grpc.NewServer(b)
@@ -406,6 +410,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
+	b.limits = limits_client.New(b)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -444,6 +450,7 @@ type backends struct {
 	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
+	limits         limits.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -536,4 +543,8 @@ func (b backends) Analytics() analytics.Client {
 
 func (b backends) Contacts() contacts.Client {
 	return b.contacts
+}
+
+func (b backends) Limits() limits.Client {
+	return b.limits
 }

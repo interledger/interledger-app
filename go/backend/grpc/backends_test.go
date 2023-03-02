@@ -8,6 +8,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/limits"
+
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -73,6 +75,10 @@ type TestContainer struct {
 	AnalyticsClient    analytics.Client
 	ContactsClient     *contacts_mock.MockClient
 	OPClient           *openpayments_mock.MockClient
+}
+
+func (t TestContainer) Limits() limits.Client {
+	return nil
 }
 
 func (t TestContainer) OpenPayments() openpayments.Client {
