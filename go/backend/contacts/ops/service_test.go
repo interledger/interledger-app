@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/contacts/ops"
+	"gitlab.com/fynbos/backend/paymentpointers"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -35,16 +36,18 @@ func TestCreateAContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
+	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	require.NoError(t, err)
 
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",
-		PaymentPointer: "$fynbos.me/marko",
+		PaymentPointer: pp,
 		WalletID:       wid,
 	})
 	require.NoError(t, err)
 
 	assert.Equal(t, "Marko polo", c.Name)
-	assert.Equal(t, "$fynbos.me/marko", c.PaymentPointer)
+	assert.Equal(t, pp.String(), pp.String())
 }
 
 func TestListContacts(t *testing.T) {
@@ -55,9 +58,12 @@ func TestListContacts(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
+	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	require.NoError(t, err)
+
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",
-		PaymentPointer: "$fynbos.me/marko",
+		PaymentPointer: pp,
 		WalletID:       wid,
 	})
 	require.NoError(t, err)
@@ -90,20 +96,25 @@ func TestGetContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
+	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",
-		PaymentPointer: "$fynbos.me/marko",
+		PaymentPointer: pp,
 		WalletID:       wid,
 	})
 	require.NoError(t, err)
 
-	gc, err := ops.Get(ctx, b, wid, c.PaymentPointer)
+	gc, err := ops.Get(ctx, b, wid, pp)
 	require.NoError(t, err)
 
 	assert.Equal(t, c.Name, gc.Name)
 	assert.Equal(t, c.PaymentPointer, gc.PaymentPointer)
 
 	// Unknown error
-	_, err = ops.Get(ctx, b, wid, "random")
+	randomPP, err := paymentpointers.Parse("$fynbos.me/test")
+	require.NoError(t, err)
+
+	_, err = ops.Get(ctx, b, wid, randomPP)
 	require.ErrorIs(t, err, contacts.ErrNotFound)
 }
