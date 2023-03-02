@@ -205,6 +205,26 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 
 		argAmount := currency.FromFloat64(httpArgs.SendAmount.Amount, currency.ParseCurrency(httpArgs.SendAmount.Currency))
 
+		fromPP, err := ops.GetPaymentPointer(req.Context(), b, httpArgs.FromPP)
+		if err != nil {
+			log.Error("failed to lookup from payment pointer", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// Check the limits service to see if the grant client has not exceeded its limits.
+		exceeds, err := b.Limits().Exceeds(req.Context(), fromPP.WalletID, grant.Client, argAmount)
+		if err != nil {
+			log.Error("failed to check limits of the grant client", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		if exceeds {
+			// TODO: Figure out the HTTP code to use here...
+			http.Error(w, http.StatusText(http.StatusPaymentRequired), http.StatusPaymentRequired)
+			return
+		}
+
 		// Create quote transparently
 		q, err := ops.CreateQuote(req.Context(), b, openpayments.CreateQuoteArgs{
 			SendPaymentPointer:    httpArgs.FromPP,
