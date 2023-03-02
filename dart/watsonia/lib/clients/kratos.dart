@@ -1,6 +1,6 @@
-
 class KratosClient {
-  static const String basePath = r'http://cove-athletic-reed-scanning.trycloudflare.com';
+  static const String basePath =
+      r'https://normally-small-singapore-intervals.trycloudflare.com';
 
   // final api = OryKratosClient(basePathOverride: basePath).getFrontendApi();
   // try {
@@ -14,6 +14,4 @@ class KratosClient {
   // print('Response status: ${response.statusCode}');
   // print('Response body: ${response.body}');
   const KratosClient();
-
-
 }
