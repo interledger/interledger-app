@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Shape, TextArea } from '~/components'
+import { Button, Card, Shape, TextArea } from '~/components'
 import type { JWK } from '~/generated/protobuf-ts/backend/v1/backend'
 import {
   grpcClient,
@@ -22,45 +22,43 @@ export default function Page() {
   useLoaderData<typeof loader>()
 
   return (
-    <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
-        <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>Address details</h1>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-full'}
-              color={'bg-yellow-300'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-bl-full'}
-              color={'bg-slate-300'}
-            />
-          </div>
+    <Card>
+      <div className='flex justify-between'>
+        <h1 className='font-display text-2xl font-medium'>Address details</h1>
+        <div className='hidden sm:flex'>
+          <Shape
+            width={'w-8'}
+            radius={'rounded-full'}
+            color={'bg-yellow-300'}
+          />
+          <Shape
+            width={'w-8'}
+            radius={'rounded-bl-full'}
+            color={'bg-slate-300'}
+          />
         </div>
-        <p className='mt-6 text-medium'>Please provide your address.</p>
-
-        <Form
-          id='client-jwk'
-          action='/clients'
-          method='post'
-          className='hidden'
-        />
-        <TextArea
-          id='key'
-          form='client-jwk'
-          label='Ed25519 Public key (JWK)'
-          name='key'
-          defaultValue=''
-          className='mt-6'
-        />
-
-        <Button className='mt-12' form='client-jwk' type='submit'>
-          Submit
-        </Button>
       </div>
-    </>
+      <p className='mt-6 text-medium'>Please provide your address.</p>
+
+      <Form
+        id='client-jwk'
+        action='/clients'
+        method='post'
+        className='hidden'
+      />
+      <TextArea
+        id='key'
+        form='client-jwk'
+        label='Ed25519 Public key (JWK)'
+        name='key'
+        defaultValue=''
+        className='mt-6'
+      />
+
+      <Button className='mt-12' form='client-jwk' type='submit'>
+        Submit
+      </Button>
+    </Card>
   )
 }
 

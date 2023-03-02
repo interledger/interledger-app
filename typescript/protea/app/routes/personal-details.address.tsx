@@ -10,6 +10,7 @@ import type { AutocompleteOptions } from '~/components'
 import {
   Autocomplete,
   Button,
+  Card,
   Icon,
   Layouts,
   Shape,
@@ -80,7 +81,7 @@ export default function Page() {
     flow?.data?.address.formattedAddress
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <div className='flex justify-between'>
         <h1 className='font-display text-2xl font-medium'>Address details</h1>
         <div className='hidden sm:flex'>
@@ -198,7 +199,7 @@ export default function Page() {
       <Button className='mt-12' form='personal-details-address' type='submit'>
         Continue
       </Button>
-    </div>
+    </Card>
   )
 }
 

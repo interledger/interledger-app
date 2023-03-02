@@ -1,7 +1,7 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { Icon, Layouts, WalletGrid } from '~/components'
+import { Card, Icon, Layouts, WalletGrid } from '~/components'
 import {
   grpcClient,
   httpMapping,
@@ -68,7 +68,7 @@ export default function Page() {
     useLoaderData<typeof loader>()
   return (
     <WalletGrid>
-      <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-8 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-2xl font-medium'>
           Personal information
         </h1>
@@ -117,7 +117,7 @@ export default function Page() {
             <span>{dateOfBirth}</span>
           </div>
         </div>
-      </div>
+      </Card>
     </WalletGrid>
   )
 }

@@ -45,7 +45,6 @@ export default function Page() {
 
   return (
     <WalletGrid>
-      {/*// flex flex-col rounded-2xl bg-page p-4 pb-6*/}
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-2xl font-medium'>Linked accounts</h1>
         {linkedAccounts.length == 0 && (

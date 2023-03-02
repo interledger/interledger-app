@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Layouts } from '~/components'
+import { Button, Card, Layouts } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import {
@@ -40,7 +40,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card>
         <h1 className='mb-6 font-display text-2xl font-medium'>
           Confirm withdrawal
         </h1>
@@ -80,7 +80,7 @@ export default function Page() {
             Confirm
           </Button>
         </div>
-      </div>
+      </Card>
       <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>*</span>
         <span className='text-xs text-medium'>

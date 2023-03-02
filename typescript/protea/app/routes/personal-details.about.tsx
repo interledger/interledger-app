@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { SelectOptions } from '~/components'
-import { Button, Layouts, Select, Shape, TextField } from '~/components'
+import { Button, Card, Layouts, Select, Shape, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -64,7 +64,7 @@ export default function Page() {
 
   return (
     <>
-      <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+      <Card>
         <div className='flex justify-between'>
           <h1 className='font-display text-2xl font-medium'>
             Personal details
@@ -166,7 +166,7 @@ export default function Page() {
         <Button className='mt-12' form='personal-details-about' type='submit'>
           Continue
         </Button>
-      </div>
+      </Card>
       <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>
           <sup>&dagger;</sup>

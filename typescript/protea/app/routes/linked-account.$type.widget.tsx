@@ -9,7 +9,7 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import { Layouts, Shape } from '~/components'
+import { Card, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
@@ -110,7 +110,7 @@ export default function Page() {
   }, [widgetToken, widgetUserId, listener, scriptStatus, params.type])
 
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       {params.type == 'card' && (
         <>
           <div className='flex justify-between'>
@@ -156,6 +156,6 @@ export default function Page() {
         </>
       )}
       <div id='widget' className='-mx-4 mt-6 w-[100vw-2rem]' />
-    </div>
+    </Card>
   )
 }

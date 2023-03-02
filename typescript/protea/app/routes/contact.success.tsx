@@ -1,4 +1,4 @@
-import { ButtonRouter, Layouts, SuccessShapes } from '~/components'
+import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
 import { route } from 'routes-gen'
 import type { MetaFunction } from '@remix-run/node'
 
@@ -14,7 +14,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   return (
-    <div className='flex w-full flex-col rounded-2xl bg-page p-4 pb-8'>
+    <Card>
       <SuccessShapes />
 
       <span className='mt-6 font-display text-2xl font-medium'>Thank you</span>
@@ -26,6 +26,6 @@ export default function Page() {
       <div className='flex justify-end pt-12'>
         <ButtonRouter to={route('/')}>Close</ButtonRouter>
       </div>
-    </div>
+    </Card>
   )
 }
