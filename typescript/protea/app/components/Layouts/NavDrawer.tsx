@@ -1,5 +1,6 @@
 import { Transition, Dialog } from '@headlessui/react'
 import { NavLink, useNavigation } from '@remix-run/react'
+import { motion } from 'framer-motion'
 import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
 
@@ -12,16 +13,18 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
   return (
     <NavLink
       prefetch='intent'
-      className='mt-4 w-full rounded-xl focus-visible:outline-2 focus-visible:outline-focus'
+      className='mt-4 w-full rounded-xl focus-visible:outline-2 focus-visible:outline-focus hover:bg-container'
       to={to}
     >
       {({ isActive }) => (
-        <li
-          className={`flex w-56 items-center rounded-xl p-4 ${
-            isActive ? 'bg-container-hover' : 'hover:bg-container'
-          }`}
-        >
-          <span className='font-display'>{children}</span>
+        <li className='relative flex w-56 items-center rounded-xl p-4'>
+          <span className='z-10 font-display'>{children}</span>
+          {isActive && (
+            <motion.div
+              className='absolute w-full -ml-4 rounded-xl h-full bg-container-hover'
+              layoutId='nav-active'
+            />
+          )}
         </li>
       )}
     </NavLink>
