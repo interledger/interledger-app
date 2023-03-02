@@ -31,6 +31,7 @@ const (
 	kratosCookieName = "ory_kratos_session"
 )
 
+// TODO: User for token is needed for apps
 func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, error) {
 	if cookie == "" {
 		return nil, user.ErrNoUserFound
