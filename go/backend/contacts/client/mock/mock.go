@@ -53,7 +53,7 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(ctx context.Context, walletID string, pp *paymentpointers.PaymentPointer) (*contacts.Contact, error) {
+func (m *MockClient) Get(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) (*contacts.Contact, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, walletID, pp)
 	ret0, _ := ret[0].(*contacts.Contact)

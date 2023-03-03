@@ -1,6 +1,8 @@
 package paymentpointers
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"net/url"
 	"strings"
 )
@@ -9,16 +11,16 @@ type PaymentPointer struct {
 	url *url.URL
 }
 
-func Parse(rawPaymentPointer string) (*PaymentPointer, error) {
+func Parse(rawPaymentPointer string) (PaymentPointer, error) {
 
-	pp := standardizePaymentPointer(rawPaymentPointer)
+	pp := standardize(rawPaymentPointer)
 
 	ppURL, err := url.Parse(pp)
 	if err != nil {
-		return nil, err
+		return PaymentPointer{}, err
 	}
 
-	return &PaymentPointer{
+	return PaymentPointer{
 		url: ppURL,
 	}, nil
 }
@@ -37,7 +39,7 @@ func (p *PaymentPointer) ShortString() string {
 // - fynbos.me/alice
 // - $fynbos.me/alice
 // Returns the standard format of : https:///fynbos.me/alice
-func standardizePaymentPointer(pp string) string {
+func standardize(pp string) string {
 	if strings.HasPrefix(pp, "https://") {
 		return pp
 	}
@@ -54,4 +56,18 @@ func standardizePaymentPointer(pp string) string {
 
 	// The payment pointer has no prefix assume we need to add https://
 	return "https://" + pp
+}
+
+func (p PaymentPointer) Value() (driver.Value, error) {
+	return p.String(), nil
+}
+
+func (p *PaymentPointer) Scan(src interface{}) error {
+	if v, ok := src.(string); ok {
+		pp, err := Parse(v)
+		*p = pp
+		return err
+	}
+
+	return fmt.Errorf("cannot convert %T to payment pointer", src)
 }
