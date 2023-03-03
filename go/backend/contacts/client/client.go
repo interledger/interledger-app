@@ -28,6 +28,6 @@ func (s client) List(ctx context.Context, walletID string, page db.Pagination) (
 	return ops.List(ctx, s.b, walletID, page)
 }
 
-func (s client) Get(ctx context.Context, walletID string, pp *paymentpointers.PaymentPointer) (*contacts.Contact, error) {
+func (s client) Get(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) (*contacts.Contact, error) {
 	return ops.Get(ctx, s.b, walletID, pp)
 }
