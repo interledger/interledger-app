@@ -12,7 +12,7 @@ import (
 )
 
 func TimeoutTransfersForever(b Backends) {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	standard := time.Minute * 5
 	random := time.Duration(rand.Intn(220)) * time.Second
 	ctx := context.Background()
