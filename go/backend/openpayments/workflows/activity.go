@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/paymentpointers"
 	"strings"
@@ -226,12 +227,16 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 		return err
 	}
 
+	actionUrl, err := url.JoinPath(env.GetUrl(), "pay")
+	if err != nil {
+		return err
+	}
+
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.FailedTransactionTemplateID, map[string]interface{}{
 		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
 		"transactionType": "payment",
 		"name":            user.FirstName,
-		// TODO: upgrade to go1.19 and use url.JoinPath
-		"actionUrl": strings.Join([]string{env.GetUrl(), "pay"}, "/"),
+		"actionUrl":       actionUrl,
 	}, []email.Attachment{})
 
 	return err

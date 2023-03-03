@@ -12,6 +12,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -156,9 +157,16 @@ func validateTokenAccess(ctx context.Context, b Backends, args authorisation.Gra
 				continue
 			}
 
-			location := env.OpenPaymentsURL() + "/incoming"
+			location, err := url.JoinPath(env.OpenPaymentsURL(), "incoming")
+			if err != nil {
+				return nil, err
+			}
+
 			if strings.EqualFold(acc.Type, "outgoing-payment") {
-				location = env.OpenPaymentsURL() + "/outgoing"
+				location, err = url.JoinPath(env.OpenPaymentsURL(), "outgoing")
+			}
+			if err != nil {
+				return nil, err
 			}
 
 			access = append(access, authorisation.Access{
