@@ -31,7 +31,7 @@ test_backend:
         - go/proto/**/*
   tags:
     - hetzner
-  image: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
+  image: registry.gitlab.com/fynbos/fynbos/debian-runner-base:13295664
   services:
     - name: cockroachdb/cockroach:latest-v21.2
       alias: crdb
@@ -50,7 +50,7 @@ build_backend:
   tags:
     - hetzner
   image:
-    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:13295664
   before_script:
     - docker login -u AWS -p $(aws ecr get-login-password --profile shared --region eu-west-1) 823058932981.dkr.ecr.eu-west-1.amazonaws.com
     - cd $BACKEND_PATH/../
