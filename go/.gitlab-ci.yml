@@ -16,7 +16,7 @@ go-mod:
   tags:
     - hetzner
   image:
-    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:13295664
   extends: .go-cache
   rules:
     - changes:
