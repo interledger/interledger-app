@@ -2,6 +2,9 @@ package grpc
 
 import (
 	"fmt"
+	"gitlab.com/fynbos/backend/contacts"
+	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
+	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 	"net"
 	"testing"
 
@@ -68,10 +71,12 @@ type TestContainer struct {
 	EmailClient        *email_mock.MockClient
 	TransactionsClient *transactions_mock.MockClient
 	AnalyticsClient    analytics.Client
+	ContactsClient     *contacts_mock.MockClient
+	OPClient           *openpayments_mock.MockClient
 }
 
 func (t TestContainer) OpenPayments() openpayments.Client {
-	return nil
+	return t.OPClient
 }
 
 func (t TestContainer) Authorisation() authorisation.InternalClient {
@@ -150,6 +155,10 @@ func (t TestContainer) Analytics() analytics.Client {
 	return t.AnalyticsClient
 }
 
+func (t TestContainer) Contacts() contacts.Client {
+	return t.ContactsClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -176,6 +185,8 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		KYCClient:          kyc_mock.NewMockClient(ctrl),
 		TransactionsClient: transactions_mock.NewMockClient(ctrl),
 		AnalyticsClient:    analytics_client.New(nil, ""),
+		ContactsClient:     contacts_mock.NewMockClient(ctrl),
+		OPClient:           openpayments_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

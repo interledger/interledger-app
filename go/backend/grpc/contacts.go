@@ -1,0 +1,101 @@
+package grpc
+
+import (
+	"context"
+	"gitlab.com/fynbos/backend/contacts"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/paymentpointers"
+	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+)
+
+func (s *rpcService) CreateContact(
+	ctx context.Context,
+	req *backendv1.CreateContactRequest,
+) (*backendv1.Contact, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	pp, err := paymentpointers.Parse(req.GetPaymentPointer())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	pPP, err := s.b.OpenPayments().GetPaymentPointer(ctx, pp.String())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	w, err := s.b.Users().GetWallet(ctx, pPP.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	c, err := s.b.Contacts().Create(ctx, contacts.CreateContactArgs{
+		Name:           w.Name,
+		PaymentPointer: pp,
+		WalletID:       wallet.ID,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.Contact{
+		Id:             c.ID,
+		PaymentPointer: c.PaymentPointer.ShortString(),
+		Name:           c.Name,
+		WalletId:       c.WalletID,
+	}, nil
+}
+
+func (s *rpcService) ListContacts(
+	ctx context.Context,
+	req *backendv1.PaginationRequest,
+) (*backendv1.ListContactsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	page := db.PaginationFromPB(req)
+
+	c, err := s.b.Contacts().List(ctx, wallet.ID, page)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var nextPageToken string
+	var res []*backendv1.Contact
+
+	for i, contact := range c {
+
+		if i == page.PageSize {
+			// Use the PageSize+1 tx.ID as the start of the next page.
+			nextPageToken = contact.ID
+			break
+		}
+
+		res = append(res, &backendv1.Contact{
+			Id:             contact.ID,
+			PaymentPointer: contact.PaymentPointer.ShortString(),
+			Name:           contact.Name,
+			WalletId:       contact.WalletID,
+		})
+	}
+
+	return &backendv1.ListContactsResponse{
+		Contacts:      res,
+		NextPageToken: nextPageToken,
+	}, nil
+}

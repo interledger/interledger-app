@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/contacts"
+	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"net"
 	"net/http"
 	"os"
@@ -227,6 +229,8 @@ func start(args *cli.StartArgs) {
 
 	b.statements = statements_client.New()
 
+	b.contacts = contacts_client.New(b)
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -439,6 +443,7 @@ type backends struct {
 	statements     statements.Client
 	auth           authorisation.InternalClient
 	analytics      analytics.Client
+	contacts       contacts.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -527,4 +532,8 @@ func (b backends) Statements() statements.Client {
 
 func (b backends) Analytics() analytics.Client {
 	return b.analytics
+}
+
+func (b backends) Contacts() contacts.Client {
+	return b.contacts
 }
