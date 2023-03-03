@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/notify"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/notify"
 
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
@@ -783,12 +785,15 @@ func (a *Activity) SendFailedTransactionMail(ctx context.Context, walletID strin
 	case transactions.TransactionTypeMachnetWalletTopUp:
 		trxTypeName = "top up"
 		// TODO: update to go 1.19 and use url.JoinPath
-		ctaUrl = strings.Join([]string{env.GetUrl(), "deposit"}, "/")
+		ctaUrl, err = url.JoinPath(env.GetUrl(), "deposit")
 	case transactions.TransactionTypeMachnetWalletWithdrawal:
 		trxTypeName = "withdrawal"
-		ctaUrl = strings.Join([]string{env.GetUrl(), "withdraw"}, "/")
+		ctaUrl, err = url.JoinPath(env.GetUrl(), "withdraw")
 	default:
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("invalid transaction type (%s) for failed transaction", trxType), "ErrInternal", err)
+	}
+	if err != nil {
+		return err
 	}
 
 	personalisations := map[string]interface{}{
