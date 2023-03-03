@@ -7,8 +7,8 @@ RUN apt-get update -y && apt-get -y install docker-ce docker-ce-cli containerd.i
 
 # Install goland
 ENV PATH /usr/local/go/bin:$PATH
-COPY --from=golang:1.18-bullseye /usr/local/go/ /usr/local/go/
+COPY --from=golang:1.20.1 /usr/local/go/ /usr/local/go/
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:$PATH
 RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
-RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.1
