@@ -242,6 +242,10 @@ service BackendService {
 
   // Public Wallet Data
   rpc GetPublicWalletDetails(GetPublicWalletDetailsRequest) returns (GetPublicWalletDetailsResponse);
+
+  // Contacts
+  rpc CreateContact(CreateContactRequest) returns (Contact);
+  rpc ListContacts(PaginationRequest) returns (ListContactsResponse);
 }
 
 // example edDSA public key
@@ -583,4 +587,20 @@ message GetPublicWalletDetailsRequest {
 message GetPublicWalletDetailsResponse {
   string id = 1;
   string publicName = 2;
+}
+
+message Contact {
+  string id = 1;
+  string payment_pointer = 2;
+  string name = 3;
+  string wallet_id = 4;
+}
+
+message ListContactsResponse {
+  repeated Contact contacts = 1;
+  string next_page_token = 2;
+}
+
+message CreateContactRequest {
+  string payment_pointer = 1;
 }

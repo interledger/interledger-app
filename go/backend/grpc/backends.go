@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/authorisation"
+	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -44,4 +45,5 @@ type Backends interface {
 	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
 	OpenPayments() openpayments.Client
+	Contacts() contacts.Client
 }

@@ -1384,6 +1384,49 @@ export interface GetPublicWalletDetailsResponse {
      */
     publicName: string;
 }
+/**
+ * @generated from protobuf message backend.v1.Contact
+ */
+export interface Contact {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string payment_pointer = 2;
+     */
+    paymentPointer: string;
+    /**
+     * @generated from protobuf field: string name = 3;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string wallet_id = 4;
+     */
+    walletId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ListContactsResponse
+ */
+export interface ListContactsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.Contact contacts = 1;
+     */
+    contacts: Contact[];
+    /**
+     * @generated from protobuf field: string next_page_token = 2;
+     */
+    nextPageToken: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreateContactRequest
+ */
+export interface CreateContactRequest {
+    /**
+     * @generated from protobuf field: string payment_pointer = 1;
+     */
+    paymentPointer: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -6380,6 +6423,175 @@ class GetPublicWalletDetailsResponse$Type extends MessageType<GetPublicWalletDet
  * @generated MessageType for protobuf message backend.v1.GetPublicWalletDetailsResponse
  */
 export const GetPublicWalletDetailsResponse = new GetPublicWalletDetailsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Contact$Type extends MessageType<Contact> {
+    constructor() {
+        super("backend.v1.Contact", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "payment_pointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Contact>): Contact {
+        const message = { id: "", paymentPointer: "", name: "", walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Contact>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Contact): Contact {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string payment_pointer */ 2:
+                    message.paymentPointer = reader.string();
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
+                    break;
+                case /* string wallet_id */ 4:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Contact, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string payment_pointer = 2; */
+        if (message.paymentPointer !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.paymentPointer);
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
+        /* string wallet_id = 4; */
+        if (message.walletId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Contact
+ */
+export const Contact = new Contact$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListContactsResponse$Type extends MessageType<ListContactsResponse> {
+    constructor() {
+        super("backend.v1.ListContactsResponse", [
+            { no: 1, name: "contacts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Contact },
+            { no: 2, name: "next_page_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListContactsResponse>): ListContactsResponse {
+        const message = { contacts: [], nextPageToken: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListContactsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListContactsResponse): ListContactsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.Contact contacts */ 1:
+                    message.contacts.push(Contact.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string next_page_token */ 2:
+                    message.nextPageToken = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListContactsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.Contact contacts = 1; */
+        for (let i = 0; i < message.contacts.length; i++)
+            Contact.internalBinaryWrite(message.contacts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string next_page_token = 2; */
+        if (message.nextPageToken !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListContactsResponse
+ */
+export const ListContactsResponse = new ListContactsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateContactRequest$Type extends MessageType<CreateContactRequest> {
+    constructor() {
+        super("backend.v1.CreateContactRequest", [
+            { no: 1, name: "payment_pointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateContactRequest>): CreateContactRequest {
+        const message = { paymentPointer: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateContactRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateContactRequest): CreateContactRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string payment_pointer */ 1:
+                    message.paymentPointer = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateContactRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string payment_pointer = 1; */
+        if (message.paymentPointer !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.paymentPointer);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateContactRequest
+ */
+export const CreateContactRequest = new CreateContactRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -6444,5 +6656,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetUserLimits", options: {}, I: Empty, O: GetUserLimitsResponse },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF },
     { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
-    { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse }
+    { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
+    { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
+    { name: "ListContacts", options: {}, I: PaginationRequest, O: ListContactsResponse }
 ]);

@@ -2,6 +2,9 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { ListContactsResponse } from "./backend";
+import type { Contact } from "./backend";
+import type { CreateContactRequest } from "./backend";
 import type { GetPublicWalletDetailsResponse } from "./backend";
 import type { GetPublicWalletDetailsRequest } from "./backend";
 import type { JWK } from "./backend";
@@ -432,6 +435,16 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetPublicWalletDetails(backend.v1.GetPublicWalletDetailsRequest) returns (backend.v1.GetPublicWalletDetailsResponse);
      */
     getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>;
+    /**
+     * Contacts
+     *
+     * @generated from protobuf rpc: CreateContact(backend.v1.CreateContactRequest) returns (backend.v1.Contact);
+     */
+    createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact>;
+    /**
+     * @generated from protobuf rpc: ListContacts(backend.v1.PaginationRequest) returns (backend.v1.ListContactsResponse);
+     */
+    listContacts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListContactsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -773,5 +786,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse> {
         const method = this.methods[43], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Contacts
+     *
+     * @generated from protobuf rpc: CreateContact(backend.v1.CreateContactRequest) returns (backend.v1.Contact);
+     */
+    createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact> {
+        const method = this.methods[44], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateContactRequest, Contact>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListContacts(backend.v1.PaginationRequest) returns (backend.v1.ListContactsResponse);
+     */
+    listContacts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListContactsResponse> {
+        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
     }
 }

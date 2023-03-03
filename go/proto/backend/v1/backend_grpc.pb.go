@@ -558,6 +558,9 @@ type BackendServiceClient interface {
 	CreateClientPublicKey(ctx context.Context, in *JWK, opts ...grpc.CallOption) (*Empty, error)
 	// Public Wallet Data
 	GetPublicWalletDetails(ctx context.Context, in *GetPublicWalletDetailsRequest, opts ...grpc.CallOption) (*GetPublicWalletDetailsResponse, error)
+	// Contacts
+	CreateContact(ctx context.Context, in *CreateContactRequest, opts ...grpc.CallOption) (*Contact, error)
+	ListContacts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListContactsResponse, error)
 }
 
 type backendServiceClient struct {
@@ -964,6 +967,24 @@ func (c *backendServiceClient) GetPublicWalletDetails(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateContact(ctx context.Context, in *CreateContactRequest, opts ...grpc.CallOption) (*Contact, error) {
+	out := new(Contact)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateContact", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) ListContacts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListContactsResponse, error) {
+	out := new(ListContactsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListContacts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1024,6 +1045,9 @@ type BackendServiceServer interface {
 	CreateClientPublicKey(context.Context, *JWK) (*Empty, error)
 	// Public Wallet Data
 	GetPublicWalletDetails(context.Context, *GetPublicWalletDetailsRequest) (*GetPublicWalletDetailsResponse, error)
+	// Contacts
+	CreateContact(context.Context, *CreateContactRequest) (*Contact, error)
+	ListContacts(context.Context, *PaginationRequest) (*ListContactsResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1161,6 +1185,12 @@ func (UnimplementedBackendServiceServer) CreateClientPublicKey(context.Context, 
 }
 func (UnimplementedBackendServiceServer) GetPublicWalletDetails(context.Context, *GetPublicWalletDetailsRequest) (*GetPublicWalletDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPublicWalletDetails not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateContact(context.Context, *CreateContactRequest) (*Contact, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateContact not implemented")
+}
+func (UnimplementedBackendServiceServer) ListContacts(context.Context, *PaginationRequest) (*ListContactsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListContacts not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1966,6 +1996,42 @@ func _BackendService_GetPublicWalletDetails_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateContact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateContactRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateContact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateContact",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateContact(ctx, req.(*CreateContactRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_ListContacts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListContacts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListContacts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListContacts(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2148,6 +2214,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublicWalletDetails",
 			Handler:    _BackendService_GetPublicWalletDetails_Handler,
+		},
+		{
+			MethodName: "CreateContact",
+			Handler:    _BackendService_CreateContact_Handler,
+		},
+		{
+			MethodName: "ListContacts",
+			Handler:    _BackendService_ListContacts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

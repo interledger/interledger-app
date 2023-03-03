@@ -9,7 +9,9 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	signup "gitlab.com/fynbos/backend/signup"
+	contacts "gitlab.com/fynbos/backend/contacts"
+	db "gitlab.com/fynbos/backend/db"
+	paymentpointers "gitlab.com/fynbos/backend/paymentpointers"
 )
 
 // MockClient is a mock of Client interface.
@@ -35,75 +37,47 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// Complete mocks base method.
-func (m *MockClient) Complete(ctx context.Context, id, userID string) error {
+// Create mocks base method.
+func (m *MockClient) Create(ctx context.Context, args contacts.CreateContactArgs) (*contacts.Contact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Complete", ctx, id, userID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "Create", ctx, args)
+	ret0, _ := ret[0].(*contacts.Contact)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Complete indicates an expected call of Complete.
-func (mr *MockClientMockRecorder) Complete(ctx, id, userID interface{}) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Complete", reflect.TypeOf((*MockClient)(nil).Complete), ctx, id, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClient)(nil).Create), ctx, args)
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(ctx context.Context, id string) (*signup.Signup, error) {
+func (m *MockClient) Get(ctx context.Context, walletID string, pp *paymentpointers.PaymentPointer) (*contacts.Contact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(*signup.Signup)
+	ret := m.ctrl.Call(m, "Get", ctx, walletID, pp)
+	ret0, _ := ret[0].(*contacts.Contact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Get(ctx, walletID, pp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, walletID, pp)
 }
 
-// GetForUser mocks base method.
-func (m *MockClient) GetForUser(ctx context.Context, userID string) (*signup.Signup, error) {
+// List mocks base method.
+func (m *MockClient) List(ctx context.Context, walletID string, page db.Pagination) ([]contacts.Contact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetForUser", ctx, userID)
-	ret0, _ := ret[0].(*signup.Signup)
+	ret := m.ctrl.Call(m, "List", ctx, walletID, page)
+	ret0, _ := ret[0].([]contacts.Contact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetForUser indicates an expected call of GetForUser.
-func (mr *MockClientMockRecorder) GetForUser(ctx, userID interface{}) *gomock.Call {
+// List indicates an expected call of List.
+func (mr *MockClientMockRecorder) List(ctx, walletID, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForUser", reflect.TypeOf((*MockClient)(nil).GetForUser), ctx, userID)
-}
-
-// SetMobileNumber mocks base method.
-func (m *MockClient) SetMobileNumber(ctx context.Context, args signup.MobileNumberArgs) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetMobileNumber", ctx, args)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetMobileNumber indicates an expected call of SetMobileNumber.
-func (mr *MockClientMockRecorder) SetMobileNumber(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMobileNumber", reflect.TypeOf((*MockClient)(nil).SetMobileNumber), ctx, args)
-}
-
-// SetUserData mocks base method.
-func (m *MockClient) SetUserData(ctx context.Context, args signup.UserDataArgs) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetUserData", ctx, args)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SetUserData indicates an expected call of SetUserData.
-func (mr *MockClientMockRecorder) SetUserData(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserData", reflect.TypeOf((*MockClient)(nil).SetUserData), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, walletID, page)
 }
