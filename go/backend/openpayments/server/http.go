@@ -90,7 +90,7 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, env.AuthURL(), http.StatusSeeOther)
 }
 
-type authoriseClientArgs struct {
+type authoriseGrantArgs struct {
 	Request           *http.Request
 	AccessType        string
 	Action            string
@@ -98,7 +98,7 @@ type authoriseClientArgs struct {
 	ResourceCreatedBy string
 }
 
-func authoriseGrant(b Backends, args authoriseClientArgs) *authorisation.Grant {
+func authoriseGrant(b Backends, args authoriseGrantArgs) *authorisation.Grant {
 	gnapToken := args.Request.Header.Get("authorization")
 	parts := strings.Split(args.Request.Header.Get("authorization"), " ")
 	if len(parts) > 1 && parts[0] == "GNAP" {
@@ -178,7 +178,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		grant := authoriseGrant(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseGrantArgs{
 			Request:    req,
 			AccessType: "outgoing-payment",
 			Action:     "write",
@@ -220,8 +220,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 		if exceeds {
-			// TODO: Figure out the HTTP code to use here...
-			http.Error(w, http.StatusText(http.StatusPaymentRequired), http.StatusPaymentRequired)
+			http.Error(w, "usage limits exceeded", http.StatusForbidden)
 			return
 		}
 
@@ -316,7 +315,7 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		grant := authoriseGrant(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseGrantArgs{
 			Request:    req,
 			AccessType: "incoming-payment",
 			Action:     "write",
@@ -468,7 +467,7 @@ func getOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		grant := authoriseGrant(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseGrantArgs{
 			Request:           req,
 			AccessType:        "outgoing-payment",
 			Action:            "read",
@@ -514,7 +513,7 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		grant := authoriseGrant(b, authoriseClientArgs{
+		grant := authoriseGrant(b, authoriseGrantArgs{
 			Request:           req,
 			AccessType:        "incoming-payment",
 			Action:            "read",
