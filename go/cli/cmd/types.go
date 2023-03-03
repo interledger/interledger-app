@@ -37,6 +37,21 @@ type OutgoingPayment struct {
 	CreatedBy         string    `json:"-"`
 }
 
+type IncomingPayment struct {
+	ID                 string    `json:"id"`
+	PaymentPointer     string    `json:"to"`
+	FromPaymentPointer string    `json:"from"`
+	IncomingAmount     *Amount   `json:"incoming_amount,omitempty"`
+	ReceivedAmount     *Amount   `json:"outgoing_amount,omitempty"`
+	Completed          bool      `json:"completed"`
+	ExternalRef        string    `json:"external_ref"`
+	Description        string    `json:"description"`
+	ExpiresAt          time.Time `json:"expires_at"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+	CreatedBy          string    `json:"-"`
+}
+
 type Amount struct {
 	Amount   float64 `json:"amount,string"`
 	Currency string  `json:"currency"`
