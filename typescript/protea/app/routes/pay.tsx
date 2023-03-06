@@ -1,7 +1,15 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Avatar,
+  Button,
+  Card,
+  Icon,
+  Layouts,
+  Router,
+  TextField
+} from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -11,9 +19,12 @@ import {
   openPaymentsClient,
   StatusError
 } from '~/lib/proto.server'
-import { getKycStatus, getWalletPaymentPointer } from '~/lib/wallet.server'
+import {
+  getKycStatus,
+  getWalletContacts,
+  getWalletPaymentPointer
+} from '~/lib/wallet.server'
 import { generateQR, qrSvg } from '~/lib/qr.server'
-import { useState } from 'react'
 import { KycStatus } from '~/routes/index'
 
 export async function loader({ request }: LoaderArgs) {
@@ -26,7 +37,14 @@ export async function loader({ request }: LoaderArgs) {
 
   const paymentPointerQR = qrSvg(await generateQR(paymentPointer.url))
 
-  return json({ flow, paymentPointer, paymentPointerQR })
+  const contacts = (
+    await getWalletContacts(request, {
+      pageSize: 3,
+      orderBy: 'last_paid_at desc'
+    })
+  ).contacts
+
+  return json({ contacts, flow, paymentPointer, paymentPointerQR })
 }
 
 export const handle = {
@@ -40,19 +58,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { flow, paymentPointer, paymentPointerQR } =
-    useLoaderData<typeof loader>()
+  const { contacts, flow } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-
-  const [snackbar, setSnackbar] = useState<any>({
-    message: '',
-    action: '',
-    icon: 'close',
-    show: false
-  })
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    snackbar.show ?? false
-  )
 
   return (
     <>
@@ -79,7 +86,6 @@ export default function Page() {
               ? 'paymentPointer-error'
               : undefined
           }
-          required
           errorMessage={actionData?.errors.paymentPointer}
         />
 
@@ -89,51 +95,35 @@ export default function Page() {
           </Button>
         </div>
       </Card>
-      <Card className='mt-6'>
-        <h1 className='mb-6 font-display text-2xl font-medium'>Receive</h1>
-        <span>Present or share your payment pointer.</span>
-
-        <div
-          className='mt-8 sm:px-16'
-          dangerouslySetInnerHTML={{ __html: paymentPointerQR }}
-        />
-        <button
-          type='button'
-          onClick={async () => {
-            navigator.clipboard.writeText(paymentPointer.formatted).then(
-              () => {
-                setSnackbar({
-                  message: 'Payment pointer copied to clipboard.',
-                  icon: 'close'
-                })
-                setShowSnackbar(true)
-              },
-              () => {
-                setSnackbar({
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close'
-                })
-                setShowSnackbar(true)
-              }
-            )
-          }}
-          className='mt-8 flex flex items-center justify-between rounded-xl bg-container p-4 hover:bg-container-hover'
-        >
-          <span className='font-medium text-medium'>
-            {paymentPointer.formatted}
-          </span>
-          <Icon className='text-medium'>content_copy</Icon>
-        </button>
+      <Card className='mt-6 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='flex items-center justify-between'>
+          <h1 className='font-display text-lg font-medium'>
+            Last transacted with
+          </h1>
+          <Router className='flex max-h-fit' to={route('/contacts')}>
+            <Icon className='text-medium'>read_more</Icon>
+          </Router>
+        </div>
+        {contacts.length == 0 && (
+          <div className='mt-4 flex flex-col space-y-4'>
+            <span className='text-sm text-medium'>
+              You haven't paid anyone yet.
+            </span>
+          </div>
+        )}
+        {contacts.map((contact, index) => (
+          <button
+            key={contact.id}
+            name='paymentPointer'
+            form='pay-payment-pointer'
+            value={contact.paymentPointer}
+            className='mt-6 flex w-full flex items-center space-x-3 rounded-xl'
+          >
+            <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
+            <span className='text-medium'>{contact.name}</span>
+          </button>
+        ))}
       </Card>
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        onClose={() => setShowSnackbar(false)}
-      />
     </>
   )
 }

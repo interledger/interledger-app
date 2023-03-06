@@ -55,6 +55,7 @@ declare module "routes-gen" {
     "/api/sendOtp": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/pay/amount": Record<string, never>;
+    "/contacts": Record<string, never>;
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
@@ -130,6 +131,7 @@ declare module "routes-gen" {
       | ["/api/sendOtp"]
       | ["/pay/confirm"]
       | ["/pay/amount"]
+      | ["/contacts"]
       | ["/recovery"]
       | ["/settings"]
       | ["/waitlist"]
