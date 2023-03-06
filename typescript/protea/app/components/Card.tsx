@@ -1,14 +1,16 @@
 import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
+import { forwardRef } from 'react'
 
 type CardProps = {
   children?: ReactNode
   className?: string
 }
 
-const CardRoot: FC<CardProps> = ({ children, className }) => {
+const CardRoot = forwardRef<any, CardProps>(({ children, className }, ref) => {
   return (
     <div
+      ref={ref}
       className={clsx(
         'flex w-full flex-col rounded-2xl bg-page p-4 pb-6',
         className
@@ -17,7 +19,9 @@ const CardRoot: FC<CardProps> = ({ children, className }) => {
       {children}
     </div>
   )
-}
+})
+
+CardRoot.displayName = 'Card'
 
 type CardItemProps = {
   children?: ReactNode
