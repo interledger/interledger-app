@@ -33,7 +33,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	b := NewTestBackends(t,
 		db.MigrateTestDB(t, context.Background()),
 		nil,
-		la_mock, nil, nil, kyc_mock)
+		la_mock, nil, nil, kyc_mock, nil)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -57,6 +57,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	}
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
+	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
 		TransactionState: transactions.StateCompleted,
 		ExternalID:       "external_id",
@@ -83,7 +84,7 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	b := NewTestBackends(t,
 		db.MigrateTestDB(t, context.Background()),
 		nil,
-		la_mock, nil, nil, kyc_mock)
+		la_mock, nil, nil, kyc_mock, nil)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -106,6 +107,7 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	}
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
+	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
 		TransactionState: transactions.StateFailed,
 		ExternalID:       "external_id",

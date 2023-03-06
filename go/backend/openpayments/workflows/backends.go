@@ -3,6 +3,7 @@ package workflows
 import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/contacts"
 	"testing"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -32,6 +33,7 @@ type Backends interface {
 	Machnet() machnet.Client
 	Transactions() transactions.Client
 	Analytics() analytics.Client
+	Contacts() contacts.Client
 }
 
 type testBackends struct {
@@ -44,6 +46,7 @@ type testBackends struct {
 	tx  transactions.Client
 	kyc kyc.Client
 	ac  analytics.Client
+	cc  contacts.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -86,7 +89,11 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, mc machnet.Client, kyc kyc.Client) Backends {
+func (t testBackends) Contacts() contacts.Client {
+	return t.cc
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, mc machnet.Client, kyc kyc.Client, cc contacts.Client) Backends {
 	ac := analytics_client.New(nil, "")
-	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, mc: mc, kyc: kyc, ac: ac}
+	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, mc: mc, kyc: kyc, ac: ac, cc: cc}
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/contacts"
+	"gitlab.com/fynbos/backend/paymentpointers"
 	"strings"
 	"time"
 
@@ -233,4 +235,47 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 	}, []email.Attachment{})
 
 	return err
+}
+
+func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPaymentPointer string) error {
+	issuedFromPaymentPointer, err := ops.GetPaymentPointer(ctx, a.b, fromPaymentPointer)
+	if err != nil {
+		return err
+	}
+	issuedToPaymentPointer, err := ops.GetPaymentPointer(ctx, a.b, toPaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	tpp, err := paymentpointers.Parse(toPaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	// Check if it exists and don't error on not found
+	c, err := a.b.Contacts().Get(ctx, issuedFromPaymentPointer.WalletID, tpp)
+	if err != nil && !errors.Is(err, contacts.ErrNotFound) {
+		return err
+	}
+	// Exists so we can move on
+	if c != nil {
+		return nil
+	}
+
+	toWallet, err := a.b.Users().GetWallet(ctx, issuedToPaymentPointer.WalletID)
+	if err != nil {
+		return err
+	}
+
+	// Create new contact
+	_, err = a.b.Contacts().Create(ctx, contacts.CreateContactArgs{
+		Name:           toWallet.Name,
+		PaymentPointer: tpp,
+		WalletID:       issuedFromPaymentPointer.WalletID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
