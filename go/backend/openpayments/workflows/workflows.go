@@ -161,6 +161,12 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	}
 	tArgs.IPAddress = ipAddress
 
+	err = workflow.ExecuteActivity(ctx, a.AddContact, tArgs.FromPaymentPointer, tArgs.ToPaymentPointer).Get(ctx, nil)
+	if err != nil {
+		// Log but don't fail on error
+		logger.Error("AddContact Activity failed.", "Error", err)
+	}
+
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
 	}
