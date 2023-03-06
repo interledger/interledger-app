@@ -8,6 +8,7 @@ import {
 import { json, redirect } from '@remix-run/node'
 import type {
   Amount,
+  GetPublicWalletDetailsResponse,
   GetUserLimitsResponse,
   IndividualKYCResponse,
   KYCStatusResponse,
@@ -16,10 +17,10 @@ import type {
   PaymentPointer,
   Transaction as GrpcTransaction
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
-import type { GetPublicWalletDetailsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -365,6 +366,35 @@ export async function getTransactionsWithPending(
         throw json({}, httpMapping(status.code))
       }
       return { nextPageToken: '', transactions: [] }
+    })
+}
+
+type getWalletContactsResponse = {
+  nextPageToken: string
+  contacts: ListContactsResponse['contacts']
+}
+
+export async function getWalletContacts(
+  request: Request,
+  input: PaginationRequest
+): Promise<getWalletContactsResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  return grpcClient
+    .listContacts(input, {
+      meta: {
+        cookies: cookie || ''
+      }
+    })
+    .then((response) => ({
+      nextPageToken: response.response.nextPageToken,
+      contacts: response.response.contacts
+    }))
+    .catch((error) => {
+      const status = StatusError(error)
+      if (isGrpcError(status)) {
+        throw json({}, httpMapping(status.code))
+      }
+      return { nextPageToken: '', contacts: [] }
     })
 }
 
