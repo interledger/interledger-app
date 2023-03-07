@@ -1385,6 +1385,65 @@ export interface GetPublicWalletDetailsResponse {
     publicName: string;
 }
 /**
+ * @generated from protobuf message backend.v1.ListLimitsResponse
+ */
+export interface ListLimitsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.ConfiguredLimit limits = 1;
+     */
+    limits: ConfiguredLimit[];
+}
+/**
+ * @generated from protobuf message backend.v1.ConfiguredLimit
+ */
+export interface ConfiguredLimit {
+    /**
+     * @generated from protobuf field: string foreignId = 1;
+     */
+    foreignId: string;
+    /**
+     * @generated from protobuf field: string foreignDisplay = 2;
+     */
+    foreignDisplay: string;
+    /**
+     * @generated from protobuf field: string foreignType = 3;
+     */
+    foreignType: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount daily = 4;
+     */
+    daily?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount monthly = 5;
+     */
+    monthly?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount overall = 6;
+     */
+    overall?: Amount;
+}
+/**
+ * @generated from protobuf message backend.v1.UpdateClientLimitsRequest
+ */
+export interface UpdateClientLimitsRequest {
+    /**
+     * @generated from protobuf field: string clientUrl = 1;
+     */
+    clientUrl: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount daily = 2;
+     */
+    daily?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount monthly = 3;
+     */
+    monthly?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount overall = 4;
+     */
+    overall?: Amount;
+}
+/**
  * @generated from protobuf message backend.v1.Contact
  */
 export interface Contact {
@@ -6424,6 +6483,203 @@ class GetPublicWalletDetailsResponse$Type extends MessageType<GetPublicWalletDet
  */
 export const GetPublicWalletDetailsResponse = new GetPublicWalletDetailsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ListLimitsResponse$Type extends MessageType<ListLimitsResponse> {
+    constructor() {
+        super("backend.v1.ListLimitsResponse", [
+            { no: 1, name: "limits", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ConfiguredLimit }
+        ]);
+    }
+    create(value?: PartialMessage<ListLimitsResponse>): ListLimitsResponse {
+        const message = { limits: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListLimitsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListLimitsResponse): ListLimitsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.ConfiguredLimit limits */ 1:
+                    message.limits.push(ConfiguredLimit.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListLimitsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.ConfiguredLimit limits = 1; */
+        for (let i = 0; i < message.limits.length; i++)
+            ConfiguredLimit.internalBinaryWrite(message.limits[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListLimitsResponse
+ */
+export const ListLimitsResponse = new ListLimitsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ConfiguredLimit$Type extends MessageType<ConfiguredLimit> {
+    constructor() {
+        super("backend.v1.ConfiguredLimit", [
+            { no: 1, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "foreignDisplay", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "foreignType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "daily", kind: "message", T: () => Amount },
+            { no: 5, name: "monthly", kind: "message", T: () => Amount },
+            { no: 6, name: "overall", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<ConfiguredLimit>): ConfiguredLimit {
+        const message = { foreignId: "", foreignDisplay: "", foreignType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ConfiguredLimit>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConfiguredLimit): ConfiguredLimit {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string foreignId */ 1:
+                    message.foreignId = reader.string();
+                    break;
+                case /* string foreignDisplay */ 2:
+                    message.foreignDisplay = reader.string();
+                    break;
+                case /* string foreignType */ 3:
+                    message.foreignType = reader.string();
+                    break;
+                case /* backend.v1.Amount daily */ 4:
+                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                    break;
+                case /* backend.v1.Amount monthly */ 5:
+                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                    break;
+                case /* backend.v1.Amount overall */ 6:
+                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ConfiguredLimit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string foreignId = 1; */
+        if (message.foreignId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.foreignId);
+        /* string foreignDisplay = 2; */
+        if (message.foreignDisplay !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.foreignDisplay);
+        /* string foreignType = 3; */
+        if (message.foreignType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.foreignType);
+        /* backend.v1.Amount daily = 4; */
+        if (message.daily)
+            Amount.internalBinaryWrite(message.daily, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount monthly = 5; */
+        if (message.monthly)
+            Amount.internalBinaryWrite(message.monthly, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount overall = 6; */
+        if (message.overall)
+            Amount.internalBinaryWrite(message.overall, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ConfiguredLimit
+ */
+export const ConfiguredLimit = new ConfiguredLimit$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdateClientLimitsRequest$Type extends MessageType<UpdateClientLimitsRequest> {
+    constructor() {
+        super("backend.v1.UpdateClientLimitsRequest", [
+            { no: 1, name: "clientUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "daily", kind: "message", T: () => Amount },
+            { no: 3, name: "monthly", kind: "message", T: () => Amount },
+            { no: 4, name: "overall", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<UpdateClientLimitsRequest>): UpdateClientLimitsRequest {
+        const message = { clientUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdateClientLimitsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateClientLimitsRequest): UpdateClientLimitsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string clientUrl */ 1:
+                    message.clientUrl = reader.string();
+                    break;
+                case /* backend.v1.Amount daily */ 2:
+                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                    break;
+                case /* backend.v1.Amount monthly */ 3:
+                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                    break;
+                case /* backend.v1.Amount overall */ 4:
+                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdateClientLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string clientUrl = 1; */
+        if (message.clientUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.clientUrl);
+        /* backend.v1.Amount daily = 2; */
+        if (message.daily)
+            Amount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount monthly = 3; */
+        if (message.monthly)
+            Amount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount overall = 4; */
+        if (message.overall)
+            Amount.internalBinaryWrite(message.overall, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdateClientLimitsRequest
+ */
+export const UpdateClientLimitsRequest = new UpdateClientLimitsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Contact$Type extends MessageType<Contact> {
     constructor() {
         super("backend.v1.Contact", [
@@ -6654,6 +6910,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "GetUserLimits", options: {}, I: Empty, O: GetUserLimitsResponse },
+    { name: "ListLimits", options: {}, I: Empty, O: ListLimitsResponse },
+    { name: "UpdateClientLimits", options: {}, I: UpdateClientLimitsRequest, O: Empty },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF },
     { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },

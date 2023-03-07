@@ -10,6 +10,8 @@ import type { GetPublicWalletDetailsRequest } from "./backend";
 import type { JWK } from "./backend";
 import type { StatementPDF } from "./backend";
 import type { GetStatementPDFRequest } from "./backend";
+import type { UpdateClientLimitsRequest } from "./backend";
+import type { ListLimitsResponse } from "./backend";
 import type { GetUserLimitsResponse } from "./backend";
 import type { Transaction } from "./backend";
 import type { LookupTransactionRequest } from "./backend";
@@ -412,11 +414,21 @@ export interface IBackendServiceClient {
      */
     lookupTransaction(input: LookupTransactionRequest, options?: RpcOptions): UnaryCall<LookupTransactionRequest, Transaction>;
     /**
-     * Limits
+     * Limits (Machnet)
      *
      * @generated from protobuf rpc: GetUserLimits(backend.v1.Empty) returns (backend.v1.GetUserLimitsResponse);
      */
     getUserLimits(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetUserLimitsResponse>;
+    /**
+     * Limits GNAP
+     *
+     * @generated from protobuf rpc: ListLimits(backend.v1.Empty) returns (backend.v1.ListLimitsResponse);
+     */
+    listLimits(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListLimitsResponse>;
+    /**
+     * @generated from protobuf rpc: UpdateClientLimits(backend.v1.UpdateClientLimitsRequest) returns (backend.v1.Empty);
+     */
+    updateClientLimits(input: UpdateClientLimitsRequest, options?: RpcOptions): UnaryCall<UpdateClientLimitsRequest, Empty>;
     /**
      * Statements
      *
@@ -752,7 +764,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<LookupTransactionRequest, Transaction>("unary", this._transport, method, opt, input);
     }
     /**
-     * Limits
+     * Limits (Machnet)
      *
      * @generated from protobuf rpc: GetUserLimits(backend.v1.Empty) returns (backend.v1.GetUserLimitsResponse);
      */
@@ -761,12 +773,28 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<Empty, GetUserLimitsResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * Limits GNAP
+     *
+     * @generated from protobuf rpc: ListLimits(backend.v1.Empty) returns (backend.v1.ListLimitsResponse);
+     */
+    listLimits(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListLimitsResponse> {
+        const method = this.methods[41], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, ListLimitsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UpdateClientLimits(backend.v1.UpdateClientLimitsRequest) returns (backend.v1.Empty);
+     */
+    updateClientLimits(input: UpdateClientLimitsRequest, options?: RpcOptions): UnaryCall<UpdateClientLimitsRequest, Empty> {
+        const method = this.methods[42], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateClientLimitsRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Statements
      *
      * @generated from protobuf rpc: GetStatementPDF(backend.v1.GetStatementPDFRequest) returns (backend.v1.StatementPDF);
      */
     getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF> {
-        const method = this.methods[41], opt = this._transport.mergeOptions(options);
+        const method = this.methods[43], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetStatementPDFRequest, StatementPDF>("unary", this._transport, method, opt, input);
     }
     /**
@@ -775,7 +803,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateClientPublicKey(backend.v1.JWK) returns (backend.v1.Empty);
      */
     createClientPublicKey(input: JWK, options?: RpcOptions): UnaryCall<JWK, Empty> {
-        const method = this.methods[42], opt = this._transport.mergeOptions(options);
+        const method = this.methods[44], opt = this._transport.mergeOptions(options);
         return stackIntercept<JWK, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -784,7 +812,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetPublicWalletDetails(backend.v1.GetPublicWalletDetailsRequest) returns (backend.v1.GetPublicWalletDetailsResponse);
      */
     getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse> {
-        const method = this.methods[43], opt = this._transport.mergeOptions(options);
+        const method = this.methods[45], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -793,14 +821,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateContact(backend.v1.CreateContactRequest) returns (backend.v1.Contact);
      */
     createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact> {
-        const method = this.methods[44], opt = this._transport.mergeOptions(options);
+        const method = this.methods[46], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateContactRequest, Contact>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListContacts(backend.v1.PaginationRequest) returns (backend.v1.ListContactsResponse);
      */
     listContacts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListContactsResponse> {
-        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        const method = this.methods[47], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
     }
 }

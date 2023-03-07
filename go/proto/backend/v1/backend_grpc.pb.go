@@ -550,8 +550,11 @@ type BackendServiceClient interface {
 	ListTransactionsCompleted(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	ListTransactionsWithPending(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
-	// Limits
+	// Limits (Machnet)
 	GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error)
+	// Limits GNAP
+	ListLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListLimitsResponse, error)
+	UpdateClientLimits(ctx context.Context, in *UpdateClientLimitsRequest, opts ...grpc.CallOption) (*Empty, error)
 	//Statements
 	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
 	//Client keys
@@ -940,6 +943,24 @@ func (c *backendServiceClient) GetUserLimits(ctx context.Context, in *Empty, opt
 	return out, nil
 }
 
+func (c *backendServiceClient) ListLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListLimitsResponse, error) {
+	out := new(ListLimitsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListLimits", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UpdateClientLimits(ctx context.Context, in *UpdateClientLimitsRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdateClientLimits", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error) {
 	out := new(StatementPDF)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
@@ -1037,8 +1058,11 @@ type BackendServiceServer interface {
 	ListTransactionsCompleted(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	ListTransactionsWithPending(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
-	// Limits
+	// Limits (Machnet)
 	GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error)
+	// Limits GNAP
+	ListLimits(context.Context, *Empty) (*ListLimitsResponse, error)
+	UpdateClientLimits(context.Context, *UpdateClientLimitsRequest) (*Empty, error)
 	//Statements
 	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
 	//Client keys
@@ -1176,6 +1200,12 @@ func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *Loo
 }
 func (UnimplementedBackendServiceServer) GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserLimits not implemented")
+}
+func (UnimplementedBackendServiceServer) ListLimits(context.Context, *Empty) (*ListLimitsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListLimits not implemented")
+}
+func (UnimplementedBackendServiceServer) UpdateClientLimits(context.Context, *UpdateClientLimitsRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateClientLimits not implemented")
 }
 func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
@@ -1942,6 +1972,42 @@ func _BackendService_GetUserLimits_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListLimits",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListLimits(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UpdateClientLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateClientLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UpdateClientLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/UpdateClientLimits",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UpdateClientLimits(ctx, req.(*UpdateClientLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetStatementPDFRequest)
 	if err := dec(in); err != nil {
@@ -2202,6 +2268,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserLimits",
 			Handler:    _BackendService_GetUserLimits_Handler,
+		},
+		{
+			MethodName: "ListLimits",
+			Handler:    _BackendService_ListLimits_Handler,
+		},
+		{
+			MethodName: "UpdateClientLimits",
+			Handler:    _BackendService_UpdateClientLimits_Handler,
 		},
 		{
 			MethodName: "GetStatementPDF",
