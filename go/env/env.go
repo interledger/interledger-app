@@ -3,6 +3,7 @@ package env
 import (
 	"os"
 	"sync"
+	"testing"
 )
 
 const (
@@ -16,6 +17,14 @@ var allowedEnvs = []string{
 	"sandbox", // Semi public testing env
 	"dev",     // Internal testing environment
 	"local",   // For local development
+}
+
+func SetEnv(t *testing.T, env string) {
+	orig := GetEnv()
+	_ = os.Setenv("FYNBOS_ENV", env)
+	t.Cleanup(func() {
+		_ = os.Setenv("FYNBOS_ENV", orig)
+	})
 }
 
 func GetEnv() string {

@@ -1618,7 +1618,65 @@ table "contacts" {
     columns = [column.wallet_id, column.payment_pointer]
   }
 }
-
+table "identities" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "platform" {
+    null = false
+    type = text
+  }
+  column "handle" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "public" {
+    null = false
+    type = boolean
+  }
+  column "code" {
+    null = false
+    type = text
+  }
+  column "proof" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "platform_handle_unique" {
+    unique  = true
+    columns = [column.platform, column.handle]
+  }
+  foreign_key "fk_wallet_id_ref_wallets" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
 table "authorisation_limits" {
   schema = schema.public
   column "id" {
