@@ -83,7 +83,7 @@ func TestListContacts(t *testing.T) {
 	pp, err := paymentpointers.Parse("$fynbos.me/alice")
 	require.NoError(t, err)
 
-	c.ContactsClient.EXPECT().List(gomock.Any(), wallet.ID, gomock.Any()).Return([]contacts.Contact{
+	c.ContactsClient.EXPECT().List(gomock.Any(), wallet.ID, gomock.Any(), gomock.Any()).Return([]contacts.Contact{
 		{
 			ID:             uuid.NewString(),
 			Name:           contactWallet.Name,
@@ -94,7 +94,7 @@ func TestListContacts(t *testing.T) {
 		nil,
 	).AnyTimes()
 
-	userContacts, err := client.ListContacts(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.PaginationRequest{})
+	userContacts, err := client.ListContacts(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.ListContactsRequest{})
 	require.NoError(t, err)
 
 	assert.Len(t, userContacts.GetContacts(), 1)

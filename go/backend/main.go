@@ -413,6 +413,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.limits = limits_client.New(b)
 
+	b.contacts = contacts_client.New(b)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {

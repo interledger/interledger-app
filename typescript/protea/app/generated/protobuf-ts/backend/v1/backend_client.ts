@@ -3,6 +3,7 @@
 // tslint:disable
 import { BackendService } from "./backend";
 import type { ListContactsResponse } from "./backend";
+import type { ListContactsRequest } from "./backend";
 import type { Contact } from "./backend";
 import type { CreateContactRequest } from "./backend";
 import type { GetPublicWalletDetailsResponse } from "./backend";
@@ -454,9 +455,9 @@ export interface IBackendServiceClient {
      */
     createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact>;
     /**
-     * @generated from protobuf rpc: ListContacts(backend.v1.PaginationRequest) returns (backend.v1.ListContactsResponse);
+     * @generated from protobuf rpc: ListContacts(backend.v1.ListContactsRequest) returns (backend.v1.ListContactsResponse);
      */
-    listContacts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListContactsResponse>;
+    listContacts(input: ListContactsRequest, options?: RpcOptions): UnaryCall<ListContactsRequest, ListContactsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -825,10 +826,10 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreateContactRequest, Contact>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListContacts(backend.v1.PaginationRequest) returns (backend.v1.ListContactsResponse);
+     * @generated from protobuf rpc: ListContacts(backend.v1.ListContactsRequest) returns (backend.v1.ListContactsResponse);
      */
-    listContacts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListContactsResponse> {
+    listContacts(input: ListContactsRequest, options?: RpcOptions): UnaryCall<ListContactsRequest, ListContactsResponse> {
         const method = this.methods[47], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<ListContactsRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
     }
 }

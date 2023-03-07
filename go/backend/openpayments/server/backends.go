@@ -1,6 +1,7 @@
 package server
 
 import (
+	"gitlab.com/fynbos/backend/contacts"
 	"testing"
 
 	"gitlab.com/fynbos/backend/limits"
@@ -32,6 +33,7 @@ type Backends interface {
 	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
 	Limits() limits.Client
+	Contacts() contacts.Client
 }
 
 type testBackends struct {
@@ -45,6 +47,7 @@ type testBackends struct {
 	ac   analytics.Client
 	auth authorisation.InternalClient
 	lmt  limits.Client
+	cc   contacts.Client
 }
 
 func (t testBackends) Authorisation() authorisation.InternalClient {
@@ -95,7 +98,11 @@ func (t testBackends) Limits() limits.Client {
 	return t.lmt
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client, auth authorisation.InternalClient, lmt limits.Client) Backends {
+func (t testBackends) Contacts() contacts.Client {
+	return t.cc
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client, auth authorisation.InternalClient, lmt limits.Client, cc contacts.Client) Backends {
 	ac := analytics_client.New(nil, "")
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac, auth: auth, lmt: lmt}
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac, auth: auth, lmt: lmt, cc: cc}
 }

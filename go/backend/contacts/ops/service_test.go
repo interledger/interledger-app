@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/contacts/ops"
 	"gitlab.com/fynbos/backend/paymentpointers"
+	"strings"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -58,34 +59,57 @@ func TestListContacts(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := paymentpointers.Parse("$fynbos.me/marko")
-	require.NoError(t, err)
-
-	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
-		Name:           "Marko polo",
-		PaymentPointer: pp,
-		WalletID:       wid,
-	})
-	require.NoError(t, err)
+	contactNames := []string{
+		"Joshua Davila",
+		"Timothy Zamora",
+		"Bentley Wilcox",
+		"Efrain Ayers",
+		"Aaron Charles",
+		"Todd Blanchard",
+		"Richard Booth",
+		"Craydon Rasmussen",
+		"Zauryn Estrada",
+		"Micaela Brady",
+		"John Jacob",
+	}
+	for _, name := range contactNames {
+		pp, err := paymentpointers.Parse("$fynbos.me/" + strings.TrimSpace(name))
+		require.NoError(t, err)
+		_, err = ops.Create(ctx, b, contacts.CreateContactArgs{
+			Name:           name,
+			PaymentPointer: pp,
+			WalletID:       wid,
+		})
+		require.NoError(t, err)
+	}
 
 	lc, err := ops.List(ctx, b, wid, db.Pagination{
 		PageToken: "",
 		PageSize:  50,
-	})
+	}, "")
 	require.NoError(t, err)
-
-	assert.Len(t, lc, 1)
-	assert.Equal(t, c.Name, lc[0].Name)
-	assert.Equal(t, c.PaymentPointer, lc[0].PaymentPointer)
+	assert.Len(t, lc, 11)
+	assert.Equal(t, "Aaron Charles", lc[0].Name)
 
 	// Pagination works
 	lc, err = ops.List(ctx, b, wid, db.Pagination{
-		PageToken: c.ID,
+		PageToken: lc[0].ID,
+		PageSize:  3,
+	}, "")
+	require.NoError(t, err)
+	assert.Len(t, lc, 4)
+	assert.Equal(t, "Bentley Wilcox", lc[0].Name)
+
+	// Order by works
+	err = ops.SetLastPaidAtNow(ctx, b, wid, lc[1].PaymentPointer)
+	require.NoError(t, err)
+	lc, err = ops.List(ctx, b, wid, db.Pagination{
+		PageToken: "",
 		PageSize:  50,
-	})
+	}, "last_paid_at desc")
 	require.NoError(t, err)
 
-	assert.Len(t, lc, 0)
+	assert.Equal(t, "Craydon Rasmussen", lc[0].Name)
 }
 
 func TestGetContact(t *testing.T) {
@@ -117,4 +141,31 @@ func TestGetContact(t *testing.T) {
 
 	_, err = ops.Get(ctx, b, wid, randomPP)
 	require.ErrorIs(t, err, contacts.ErrNotFound)
+}
+
+func TestSetLastPaidAtContact(t *testing.T) {
+	ctx := context.Background()
+	testDb := db.MigrateTestDB(t, ctx)
+	b := &backends{
+		validator: validator.New(),
+		db:        testDb,
+	}
+	wid := uuid.NewString()
+	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	require.NoError(t, err)
+	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
+		Name:           "Marko polo",
+		PaymentPointer: pp,
+		WalletID:       wid,
+	})
+	require.NoError(t, err)
+	require.False(t, c.LastPaidAt.Valid)
+
+	err = ops.SetLastPaidAtNow(ctx, b, c.WalletID, c.PaymentPointer)
+	require.NoError(t, err)
+
+	gc, err := ops.Get(ctx, b, wid, pp)
+	require.NoError(t, err)
+
+	require.True(t, gc.LastPaidAt.Valid)
 }

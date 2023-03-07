@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -28,4 +29,5 @@ type Backends interface {
 	Notify() notify.Client
 	Statements() statements.Client
 	Analytics() analytics.Client
+	Contacts() contacts.Client
 }

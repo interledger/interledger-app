@@ -279,3 +279,23 @@ func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPayment
 
 	return nil
 }
+
+func (a *Activity) MarkContactLastPaid(ctx context.Context, fromPaymentPointer, toPaymentPointer string) error {
+	issuedFromPaymentPointer, err := ops.GetPaymentPointer(ctx, a.b, fromPaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	tpp, err := paymentpointers.Parse(toPaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	//Also mark as last paid for now
+	err = a.b.Contacts().SetLastPaidAtNow(ctx, issuedFromPaymentPointer.WalletID, tpp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -1465,6 +1465,23 @@ export interface Contact {
     walletId: string;
 }
 /**
+ * @generated from protobuf message backend.v1.ListContactsRequest
+ */
+export interface ListContactsRequest {
+    /**
+     * @generated from protobuf field: int32 page_size = 1;
+     */
+    pageSize: number;
+    /**
+     * @generated from protobuf field: optional string page_token = 2;
+     */
+    pageToken?: string;
+    /**
+     * @generated from protobuf field: optional string order_by = 3;
+     */
+    orderBy?: string;
+}
+/**
  * @generated from protobuf message backend.v1.ListContactsResponse
  */
 export interface ListContactsResponse {
@@ -6748,6 +6765,67 @@ class Contact$Type extends MessageType<Contact> {
  */
 export const Contact = new Contact$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ListContactsRequest$Type extends MessageType<ListContactsRequest> {
+    constructor() {
+        super("backend.v1.ListContactsRequest", [
+            { no: 1, name: "page_size", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "page_token", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "order_by", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListContactsRequest>): ListContactsRequest {
+        const message = { pageSize: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListContactsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListContactsRequest): ListContactsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 page_size */ 1:
+                    message.pageSize = reader.int32();
+                    break;
+                case /* optional string page_token */ 2:
+                    message.pageToken = reader.string();
+                    break;
+                case /* optional string order_by */ 3:
+                    message.orderBy = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListContactsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 page_size = 1; */
+        if (message.pageSize !== 0)
+            writer.tag(1, WireType.Varint).int32(message.pageSize);
+        /* optional string page_token = 2; */
+        if (message.pageToken !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.pageToken);
+        /* optional string order_by = 3; */
+        if (message.orderBy !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.orderBy);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListContactsRequest
+ */
+export const ListContactsRequest = new ListContactsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ListContactsResponse$Type extends MessageType<ListContactsResponse> {
     constructor() {
         super("backend.v1.ListContactsResponse", [
@@ -6916,5 +6994,5 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
-    { name: "ListContacts", options: {}, I: PaginationRequest, O: ListContactsResponse }
+    { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse }
 ]);

@@ -38,7 +38,7 @@ func TestGetHandler(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil, nil, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -122,7 +122,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-	b := NewTestBackends(t, db, nil, nil, nil, tc, auth, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, tc, auth, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -306,7 +306,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	lmt_mock := limits_mock.NewMockClient(ctrl)
 	lmt_mock.EXPECT().Exceeds(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
 
-	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, auth, lmt_mock)
+	b := NewTestBackends(t, db, la_mock, tmp_mock, mc, tc, auth, lmt_mock, nil)
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -433,7 +433,7 @@ func TestListKeys(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := db.MigrateTestDB(t, ctx)
 	authClient := mock_auth.NewMockInternalClient(ctrl)
-	b := NewTestBackends(t, db, nil, nil, nil, nil, authClient, nil)
+	b := NewTestBackends(t, db, nil, nil, nil, nil, authClient, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()

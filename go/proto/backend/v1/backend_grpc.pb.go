@@ -563,7 +563,7 @@ type BackendServiceClient interface {
 	GetPublicWalletDetails(ctx context.Context, in *GetPublicWalletDetailsRequest, opts ...grpc.CallOption) (*GetPublicWalletDetailsResponse, error)
 	// Contacts
 	CreateContact(ctx context.Context, in *CreateContactRequest, opts ...grpc.CallOption) (*Contact, error)
-	ListContacts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListContactsResponse, error)
+	ListContacts(ctx context.Context, in *ListContactsRequest, opts ...grpc.CallOption) (*ListContactsResponse, error)
 }
 
 type backendServiceClient struct {
@@ -997,7 +997,7 @@ func (c *backendServiceClient) CreateContact(ctx context.Context, in *CreateCont
 	return out, nil
 }
 
-func (c *backendServiceClient) ListContacts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListContactsResponse, error) {
+func (c *backendServiceClient) ListContacts(ctx context.Context, in *ListContactsRequest, opts ...grpc.CallOption) (*ListContactsResponse, error) {
 	out := new(ListContactsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListContacts", in, out, opts...)
 	if err != nil {
@@ -1071,7 +1071,7 @@ type BackendServiceServer interface {
 	GetPublicWalletDetails(context.Context, *GetPublicWalletDetailsRequest) (*GetPublicWalletDetailsResponse, error)
 	// Contacts
 	CreateContact(context.Context, *CreateContactRequest) (*Contact, error)
-	ListContacts(context.Context, *PaginationRequest) (*ListContactsResponse, error)
+	ListContacts(context.Context, *ListContactsRequest) (*ListContactsResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1219,7 +1219,7 @@ func (UnimplementedBackendServiceServer) GetPublicWalletDetails(context.Context,
 func (UnimplementedBackendServiceServer) CreateContact(context.Context, *CreateContactRequest) (*Contact, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateContact not implemented")
 }
-func (UnimplementedBackendServiceServer) ListContacts(context.Context, *PaginationRequest) (*ListContactsResponse, error) {
+func (UnimplementedBackendServiceServer) ListContacts(context.Context, *ListContactsRequest) (*ListContactsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListContacts not implemented")
 }
 
@@ -2081,7 +2081,7 @@ func _BackendService_CreateContact_Handler(srv interface{}, ctx context.Context,
 }
 
 func _BackendService_ListContacts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaginationRequest)
+	in := new(ListContactsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2093,7 +2093,7 @@ func _BackendService_ListContacts_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/backend.v1.BackendService/ListContacts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).ListContacts(ctx, req.(*PaginationRequest))
+		return srv.(BackendServiceServer).ListContacts(ctx, req.(*ListContactsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
