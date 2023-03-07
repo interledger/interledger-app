@@ -821,14 +821,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateContact(backend.v1.CreateContactRequest) returns (backend.v1.Contact);
      */
     createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact> {
-        const method = this.methods[44], opt = this._transport.mergeOptions(options);
+        const method = this.methods[46], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateContactRequest, Contact>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListContacts(backend.v1.PaginationRequest) returns (backend.v1.ListContactsResponse);
      */
     listContacts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListContactsResponse> {
-        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        const method = this.methods[47], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
     }
 }

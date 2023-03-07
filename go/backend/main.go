@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"net"
 	"net/http"
 	"os"
@@ -13,6 +11,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"gitlab.com/fynbos/backend/contacts"
+	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
