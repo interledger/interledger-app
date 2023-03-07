@@ -68,16 +68,30 @@ func (mr *MockClientMockRecorder) Get(ctx, walletID, pp interface{}) *gomock.Cal
 }
 
 // List mocks base method.
-func (m *MockClient) List(ctx context.Context, walletID string, page db.Pagination) ([]contacts.Contact, error) {
+func (m *MockClient) List(ctx context.Context, walletID string, page db.Pagination, orderBy string) ([]contacts.Contact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx, walletID, page)
+	ret := m.ctrl.Call(m, "List", ctx, walletID, page, orderBy)
 	ret0, _ := ret[0].([]contacts.Contact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockClientMockRecorder) List(ctx, walletID, page interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) List(ctx, walletID, page, orderBy interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, walletID, page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, walletID, page, orderBy)
+}
+
+// SetLastPaidAtNow mocks base method.
+func (m *MockClient) SetLastPaidAtNow(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetLastPaidAtNow", ctx, walletID, pp)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetLastPaidAtNow indicates an expected call of SetLastPaidAtNow.
+func (mr *MockClientMockRecorder) SetLastPaidAtNow(ctx, walletID, pp interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastPaidAtNow", reflect.TypeOf((*MockClient)(nil).SetLastPaidAtNow), ctx, walletID, pp)
 }

@@ -58,6 +58,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
+	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
 		TransactionState: transactions.StateCompleted,
 		ExternalID:       "external_id",
@@ -108,6 +109,7 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
+	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
 		TransactionState: transactions.StateFailed,
 		ExternalID:       "external_id",

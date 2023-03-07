@@ -24,10 +24,14 @@ func (s client) Create(ctx context.Context, args contacts.CreateContactArgs) (*c
 	return ops.Create(ctx, s.b, args)
 }
 
-func (s client) List(ctx context.Context, walletID string, page db.Pagination) ([]contacts.Contact, error) {
-	return ops.List(ctx, s.b, walletID, page)
+func (s client) List(ctx context.Context, walletID string, page db.Pagination, orderBy string) ([]contacts.Contact, error) {
+	return ops.List(ctx, s.b, walletID, page, orderBy)
 }
 
 func (s client) Get(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) (*contacts.Contact, error) {
 	return ops.Get(ctx, s.b, walletID, pp)
+}
+
+func (s client) SetLastPaidAtNow(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) error {
+	return ops.SetLastPaidAtNow(ctx, s.b, walletID, pp)
 }

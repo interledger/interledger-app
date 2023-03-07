@@ -1606,6 +1606,10 @@ table "contacts" {
     null = false
     type = text
   }
+  column "last_paid_at" {
+    null = true
+    type = timestamp
+  }
   primary_key {
     columns = [column.id]
   }

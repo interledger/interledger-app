@@ -249,7 +249,7 @@ service BackendService {
 
   // Contacts
   rpc CreateContact(CreateContactRequest) returns (Contact);
-  rpc ListContacts(PaginationRequest) returns (ListContactsResponse);
+  rpc ListContacts(ListContactsRequest) returns (ListContactsResponse);
 }
 
 // example edDSA public key
@@ -619,6 +619,12 @@ message Contact {
   string payment_pointer = 2;
   string name = 3;
   string wallet_id = 4;
+}
+
+message ListContactsRequest {
+  int32 page_size = 1;
+  optional string page_token = 2;
+  optional string order_by = 3;
 }
 
 message ListContactsResponse {

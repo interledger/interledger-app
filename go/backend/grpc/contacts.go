@@ -56,7 +56,7 @@ func (s *rpcService) CreateContact(
 
 func (s *rpcService) ListContacts(
 	ctx context.Context,
-	req *backendv1.PaginationRequest,
+	req *backendv1.ListContactsRequest,
 ) (*backendv1.ListContactsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -68,9 +68,13 @@ func (s *rpcService) ListContacts(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	page := db.PaginationFromPB(req)
+	pageToken := req.GetPageToken()
+	page := db.PaginationFromPB(&backendv1.PaginationRequest{
+		PageSize:  req.GetPageSize(),
+		PageToken: &pageToken,
+	})
 
-	c, err := s.b.Contacts().List(ctx, wallet.ID, page)
+	c, err := s.b.Contacts().List(ctx, wallet.ID, page, req.GetOrderBy())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
