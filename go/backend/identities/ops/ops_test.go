@@ -123,7 +123,7 @@ func TestDelete(t *testing.T) {
 	_, err = ops.Get(ctx, b, iv.IdentityID)
 	require.NoError(t, err)
 
-	err = ops.Delete(ctx, b, iv.IdentityID)
+	err = ops.Delete(ctx, b, iv.IdentityID, w.ID)
 	require.NoError(t, err)
 
 	_, err = ops.Get(ctx, b, iv.IdentityID)
@@ -157,7 +157,7 @@ func TestSetPublic(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, id.Public)
 
-	id, err = ops.SetPublic(ctx, b, iv.IdentityID, false)
+	id, err = ops.SetPublic(ctx, b, iv.IdentityID, w.ID, false)
 	require.NoError(t, err)
 	assert.False(t, id.Public)
 }

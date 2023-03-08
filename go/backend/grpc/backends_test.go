@@ -2,11 +2,13 @@ package grpc
 
 import (
 	"fmt"
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
-	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 	"net"
 	"testing"
+
+	"gitlab.com/fynbos/backend/contacts"
+	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
+	"gitlab.com/fynbos/backend/identities"
+	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 
 	"gitlab.com/fynbos/backend/limits"
 
@@ -75,6 +77,10 @@ type TestContainer struct {
 	AnalyticsClient    analytics.Client
 	ContactsClient     *contacts_mock.MockClient
 	OPClient           *openpayments_mock.MockClient
+}
+
+func (t TestContainer) Identities() identities.Client {
+	return nil
 }
 
 func (t TestContainer) Limits() limits.Client {

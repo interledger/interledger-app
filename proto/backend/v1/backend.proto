@@ -250,6 +250,13 @@ service BackendService {
   // Contacts
   rpc CreateContact(CreateContactRequest) returns (Contact);
   rpc ListContacts(ListContactsRequest) returns (ListContactsResponse);
+
+  // Identities
+  rpc ListIdentities(Empty) returns (ListIdentitiesResponse);
+  rpc AddIdentity(AddIdentityRequest) returns (IdentityVerificationInstructions);
+  rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
+  rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
+  rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
 }
 
 // example edDSA public key
@@ -634,4 +641,44 @@ message ListContactsResponse {
 
 message CreateContactRequest {
   string payment_pointer = 1;
+}
+
+message ListIdentitiesResponse {
+  repeated Identity identities = 1;
+}
+
+message Identity {
+  string id =1;
+  string platform = 2;
+  string handle = 3;
+  string state = 4;
+  string verification_code = 5;
+  string verification_proof = 6;
+  bool public = 7;
+}
+
+message AddIdentityRequest {
+  string platform = 1;
+  string handle = 2;
+  bool public = 3;
+}
+
+message IdentityVerificationInstructions {
+  string identity_id = 1;
+  string code = 2;
+  string instructions = 3;
+}
+
+message DeleteIdentityRequest {
+  string id = 1;
+}
+
+message SetIdentityPublicRequest {
+  string id = 1;
+  bool public = 2;
+}
+
+message StartIdentityVerificationRequest {
+  string id = 1;
+  string proof = 2;
 }

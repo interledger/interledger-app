@@ -12,9 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_client "gitlab.com/fynbos/backend/contacts/client"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -34,6 +31,8 @@ import (
 	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
 	auth_http "gitlab.com/fynbos/backend/authorisation/http"
 	"gitlab.com/fynbos/backend/cli"
+	"gitlab.com/fynbos/backend/contacts"
+	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/country"
 	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/db"
@@ -41,6 +40,8 @@ import (
 	email_client "gitlab.com/fynbos/backend/email/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
+	"gitlab.com/fynbos/backend/identities"
+	identities_client "gitlab.com/fynbos/backend/identities/client"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/limits"
@@ -234,6 +235,8 @@ func start(args *cli.StartArgs) {
 
 	b.limits = limits_client.New(b)
 
+	b.ident = identities_client.New(b)
+
 	b.contacts = contacts_client.New(b)
 
 	server, err := _grpc.NewServer(b)
@@ -411,6 +414,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
+	b.ident = identities_client.New(b)
+
 	b.limits = limits_client.New(b)
 
 	b.contacts = contacts_client.New(b)
@@ -454,6 +459,7 @@ type backends struct {
 	analytics      analytics.Client
 	contacts       contacts.Client
 	limits         limits.Client
+	ident          identities.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -550,4 +556,8 @@ func (b backends) Contacts() contacts.Client {
 
 func (b backends) Limits() limits.Client {
 	return b.limits
+}
+
+func (b backends) Identities() identities.Client {
+	return b.ident
 }

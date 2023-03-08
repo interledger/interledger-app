@@ -95,17 +95,26 @@ func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities
 	}, nil
 }
 
-func Delete(ctx context.Context, b Backends, id string) error {
-	_, err := b.DB().ExecContext(ctx, "DELETE FROM identities WHERE id=$1", id)
+func Delete(ctx context.Context, b Backends, id, walletID string) error {
+	res, err := b.DB().ExecContext(ctx, "DELETE FROM identities WHERE id=$1 AND wallet_id=$2", id, walletID)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	if rows != 1 {
+		return fmt.Errorf("%w wrong number of rows deleted (%d)", identities.ErrInternal, rows)
 	}
 
 	return err
 }
 
-func SetPublic(ctx context.Context, b Backends, id string, public bool) (*identities.Identity, error) {
-	_, err := b.DB().ExecContext(ctx, "UPDATE identities SET public=$1, updated_at=now() WHERE id=$2", public, id)
+func SetPublic(ctx context.Context, b Backends, id, walletID string, public bool) (*identities.Identity, error) {
+	_, err := b.DB().ExecContext(ctx, "UPDATE identities SET public=$1, updated_at=now() WHERE id=$2 AND wallet_id=$3", public, id, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
