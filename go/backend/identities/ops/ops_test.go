@@ -15,6 +15,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
@@ -46,10 +47,10 @@ func TestAdd(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
+	t.Parallel()
+
 	ctx := context.Background()
-
 	db := db.MigrateTestDB(t, ctx)
-
 	b := ops.NewTestBackends(t, db)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -94,4 +95,69 @@ func TestList(t *testing.T) {
 	assert.Equal(t, w.ID, il[0].WalletID)
 	assert.Equal(t, identities.StateUnverified, il[0].State)
 	assert.True(t, il[0].Public)
+}
+
+func TestDelete(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+
+	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	require.NoError(t, err)
+
+	env.SetEnv(t, "local")
+
+	// Publicly visible
+	iv, err := ops.Add(ctx, b, identities.AddArgs{
+		WalletID: w.ID,
+		Platform: identities.PlatformTwitter,
+		Handle:   "@king_cold",
+		Public:   true,
+	})
+	require.NoError(t, err)
+
+	_, err = ops.Get(ctx, b, iv.IdentityID)
+	require.NoError(t, err)
+
+	err = ops.Delete(ctx, b, iv.IdentityID)
+	require.NoError(t, err)
+
+	_, err = ops.Get(ctx, b, iv.IdentityID)
+	require.ErrorIs(t, err, identities.ErrNotFound)
+}
+
+func TestSetPublic(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+
+	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	require.NoError(t, err)
+
+	env.SetEnv(t, "local")
+
+	// Publicly visible
+	iv, err := ops.Add(ctx, b, identities.AddArgs{
+		WalletID: w.ID,
+		Platform: identities.PlatformTwitter,
+		Handle:   "@king_cold",
+		Public:   true,
+	})
+	require.NoError(t, err)
+
+	id, err := ops.Get(ctx, b, iv.IdentityID)
+	require.NoError(t, err)
+	assert.True(t, id.Public)
+
+	id, err = ops.SetPublic(ctx, b, iv.IdentityID, false)
+	require.NoError(t, err)
+	assert.False(t, id.Public)
 }

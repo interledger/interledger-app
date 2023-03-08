@@ -2,14 +2,19 @@ package ops
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/platforms"
+	"go.temporal.io/api/enums/v1"
+	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = ` id, wallet_id, platform, handle, state, public, proof `
+const cols = ` id, wallet_id, platform, handle, state, public, proof, code `
 
 func List(ctx context.Context, b Backends, walletID string) ([]identities.Identity, error) {
 	var res []identities.Identity
@@ -56,4 +61,84 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 		Code:         code,
 		Instructions: p.VerifyInstructions(),
 	}, nil
+}
+
+func Get(ctx context.Context, b Backends, id string) (*identities.Identity, error) {
+	var res identities.Identity
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM identities WHERE id=$1", cols), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", identities.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return &res, nil
+
+}
+
+func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities.VerifyInstructions, error) {
+	ident, err := Get(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := platforms.Get(ident.Platform)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
+	}
+
+	return &identities.VerifyInstructions{
+		IdentityID:   id,
+		Code:         ident.VerificationCode,
+		Instructions: p.VerifyInstructions(),
+	}, nil
+}
+
+func Delete(ctx context.Context, b Backends, id string) error {
+	_, err := b.DB().ExecContext(ctx, "DELETE FROM identities WHERE id=$1", id)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return err
+}
+
+func SetPublic(ctx context.Context, b Backends, id string, public bool) (*identities.Identity, error) {
+	_, err := b.DB().ExecContext(ctx, "UPDATE identities SET public=$1, updated_at=now() WHERE id=$2", public, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return Get(ctx, b, id)
+}
+
+func StartVerification(ctx context.Context, b Backends, id, proof string) (*identities.Identity, error) {
+	ident, err := Get(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := platforms.Get(ident.Platform)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	workflowOptions := temporal_client.StartWorkflowOptions{
+		ID:                       "identities_verify_" + id,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24, // Workflow has a day to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	wf, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id, proof)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	err = wf.Get(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return Get(ctx, b, id)
 }
