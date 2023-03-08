@@ -37,12 +37,6 @@ class BackendClient extends $grpc.Client {
           '/backend.admin.v1.Backend/GetWalletDetails',
           ($1.GetWalletDetailsRequest value) => value.writeToBuffer(),
           ($core.List<$core.int> value) => $1.WalletDetails.fromBuffer(value));
-  static final _$listWalletTransactions = $grpc.ClientMethod<
-          $1.ListWalletTransactionsRequest, $1.ListWalletTransactionsResponse>(
-      '/backend.admin.v1.Backend/ListWalletTransactions',
-      ($1.ListWalletTransactionsRequest value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) =>
-          $1.ListWalletTransactionsResponse.fromBuffer(value));
   static final _$emailWalletStatement =
       $grpc.ClientMethod<$1.EmailWalletStatementRequest, $1.Empty>(
           '/backend.admin.v1.Backend/EmailWalletStatement',
@@ -76,13 +70,6 @@ class BackendClient extends $grpc.Client {
       $1.GetWalletDetailsRequest request,
       {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$getWalletDetails, request, options: options);
-  }
-
-  $grpc.ResponseFuture<$1.ListWalletTransactionsResponse>
-      listWalletTransactions($1.ListWalletTransactionsRequest request,
-          {$grpc.CallOptions? options}) {
-    return $createUnaryCall(_$listWalletTransactions, request,
-        options: options);
   }
 
   $grpc.ResponseFuture<$1.Empty> emailWalletStatement(
@@ -129,15 +116,6 @@ abstract class BackendServiceBase extends $grpc.Service {
             ($core.List<$core.int> value) =>
                 $1.GetWalletDetailsRequest.fromBuffer(value),
             ($1.WalletDetails value) => value.writeToBuffer()));
-    $addMethod($grpc.ServiceMethod<$1.ListWalletTransactionsRequest,
-            $1.ListWalletTransactionsResponse>(
-        'ListWalletTransactions',
-        listWalletTransactions_Pre,
-        false,
-        false,
-        ($core.List<$core.int> value) =>
-            $1.ListWalletTransactionsRequest.fromBuffer(value),
-        ($1.ListWalletTransactionsResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$1.EmailWalletStatementRequest, $1.Empty>(
         'EmailWalletStatement',
         emailWalletStatement_Pre,
@@ -168,12 +146,6 @@ abstract class BackendServiceBase extends $grpc.Service {
     return getWalletDetails(call, await request);
   }
 
-  $async.Future<$1.ListWalletTransactionsResponse> listWalletTransactions_Pre(
-      $grpc.ServiceCall call,
-      $async.Future<$1.ListWalletTransactionsRequest> request) async {
-    return listWalletTransactions(call, await request);
-  }
-
   $async.Future<$1.Empty> emailWalletStatement_Pre($grpc.ServiceCall call,
       $async.Future<$1.EmailWalletStatementRequest> request) async {
     return emailWalletStatement(call, await request);
@@ -187,8 +159,6 @@ abstract class BackendServiceBase extends $grpc.Service {
       $grpc.ServiceCall call, $1.PaginationRequest request);
   $async.Future<$1.WalletDetails> getWalletDetails(
       $grpc.ServiceCall call, $1.GetWalletDetailsRequest request);
-  $async.Future<$1.ListWalletTransactionsResponse> listWalletTransactions(
-      $grpc.ServiceCall call, $1.ListWalletTransactionsRequest request);
   $async.Future<$1.Empty> emailWalletStatement(
       $grpc.ServiceCall call, $1.EmailWalletStatementRequest request);
 }

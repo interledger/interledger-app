@@ -26,3 +26,20 @@ Future<void> main(List<String> args) async {
   }
   await channel.shutdown();
 }
+
+class GrpcClient {
+  static final channel = ClientChannel(
+    'rhode-myrtle-desktops-sl.trycloudflare.com',
+    port: 8443,
+    options: ChannelOptions(
+      credentials: ChannelCredentials.insecure(),
+      codecRegistry:
+      CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
+    ),
+  );
+  final backend = BackendServiceClient(channel);
+  final openPayments = OpenPaymentServiceClient(channel);
+
+  @override
+  
+}
