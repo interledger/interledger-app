@@ -58,6 +58,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
 
+  console.log('Wallet', wallet)
   if (request.headers.get('Content-type') == 'application/json')
     return redirect(paymentPointer.url)
 

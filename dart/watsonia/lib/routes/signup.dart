@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -279,12 +277,12 @@ class SignupPage extends StatelessWidget {
                                 },
                               ),
                             ),
-                            onPressed: () {
-                              Provider.of<Auth>(context, listen: false)
-                                  .signIn("username", "password");
-                              // context
-                              //     .read<Auth>()
+                            onPressed: () async {
+                              // Provider.of<Auth>(context, listen: false)
                               //     .signIn("username", "password");
+                              context
+                                  .read<Auth>()
+                                  .signIn("username", "password");
                               context.go('/');
                             },
                             child: const Text("Let's get started")),

@@ -4,6 +4,8 @@ import 'package:watsonia/auth.dart';
 import 'package:watsonia/router.dart';
 import 'package:watsonia/styles/theme.dart';
 
+import 'data/wallet.dart';
+
 void main() {
   runApp(
     /// Providers are above [MyApp] instead of inside it, so that tests
@@ -11,6 +13,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => Auth()),
+        ChangeNotifierProvider(create: (_) => Wallet()),
       ],
       child: const MyApp(),
     ),

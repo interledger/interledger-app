@@ -19,4 +19,4 @@ plugins:
   - remote: buf.build/protocolbuffers/plugins/dart
     out: ./../dart/watsonia/lib/generated/protobuf-dart
     opt:
-      - grpc #,generate_kythe_info
+      - grpc,generate_kythe_info
