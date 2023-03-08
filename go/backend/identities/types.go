@@ -19,6 +19,7 @@ type Identity struct {
 	Platform          Platform
 	Handle            string // Can be either the website URL, Twiter handle, Instagram handle etc based on the Platform
 	State             State
+	VerificationCode  string `db:"code"`
 	VerificationProof string `db:"proof"` // URL to the posted tweet or wellknown file etc.
 	Public            bool   // Whether the Identity is visible to the public
 }
