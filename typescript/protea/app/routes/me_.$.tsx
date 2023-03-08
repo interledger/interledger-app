@@ -76,6 +76,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const walletAddress = response.response
 
+  console.log('Wallet', wallet)
   if (request.headers.get('Content-type') == 'application/json')
     return redirect(walletAddress.url)
 
