@@ -81,11 +81,11 @@ type backends struct {
 	httpClient *http.Client
 }
 
-func (b *backends) Config() *viper.Viper {
+func (b backends) Config() *viper.Viper {
 	return b.config
 }
 
-func (b *backends) HttpClient() *http.Client {
+func (b backends) HttpClient() *http.Client {
 	return b.httpClient
 }
 

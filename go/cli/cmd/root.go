@@ -12,7 +12,7 @@ func NewCmdRoot(b Backends) *cobra.Command {
 		Version: "0.0.1",
 	}
 
-	cmd.AddCommand(NewPayCmd(b))
+	cmd.AddCommand(NewPayCmd(b), NewKeysCmd(b))
 
 	return cmd
 }
