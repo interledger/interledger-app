@@ -42,12 +42,12 @@ const ListWalletTransactionsResponse$json = const {
   '1': 'ListWalletTransactionsResponse',
   '2': const [
     const {'1': 'transactions', '3': 1, '4': 3, '5': 11, '6': '.backend.admin.v1.Transaction', '10': 'transactions'},
-    const {'1': 'page', '3': 2, '4': 1, '5': 11, '6': '.backend.admin.v1.PaginationResponse', '10': 'page'},
+    const {'1': 'nextPageToken', '3': 2, '4': 1, '5': 9, '10': 'nextPageToken'},
   ],
 };
 
 /// Descriptor for `ListWalletTransactionsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listWalletTransactionsResponseDescriptor = $convert.base64Decode('Ch5MaXN0V2FsbGV0VHJhbnNhY3Rpb25zUmVzcG9uc2USQQoMdHJhbnNhY3Rpb25zGAEgAygLMh0uYmFja2VuZC5hZG1pbi52MS5UcmFuc2FjdGlvblIMdHJhbnNhY3Rpb25zEjgKBHBhZ2UYAiABKAsyJC5iYWNrZW5kLmFkbWluLnYxLlBhZ2luYXRpb25SZXNwb25zZVIEcGFnZQ==');
+final $typed_data.Uint8List listWalletTransactionsResponseDescriptor = $convert.base64Decode('Ch5MaXN0V2FsbGV0VHJhbnNhY3Rpb25zUmVzcG9uc2USQQoMdHJhbnNhY3Rpb25zGAEgAygLMh0uYmFja2VuZC5hZG1pbi52MS5UcmFuc2FjdGlvblIMdHJhbnNhY3Rpb25zEiQKDW5leHRQYWdlVG9rZW4YAiABKAlSDW5leHRQYWdlVG9rZW4=');
 @$core.Deprecated('Use transactionDescriptor instead')
 const Transaction$json = const {
   '1': 'Transaction',
@@ -106,25 +106,16 @@ final $typed_data.Uint8List walletDetailsDescriptor = $convert.base64Decode('Cg1
 const PaginationRequest$json = const {
   '1': 'PaginationRequest',
   '2': const [
-    const {'1': 'page', '3': 1, '4': 1, '5': 5, '10': 'page'},
-    const {'1': 'pageSize', '3': 2, '4': 1, '5': 5, '10': 'pageSize'},
+    const {'1': 'pageSize', '3': 1, '4': 1, '5': 5, '10': 'pageSize'},
+    const {'1': 'pageToken', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'pageToken', '17': true},
+  ],
+  '8': const [
+    const {'1': '_pageToken'},
   ],
 };
 
 /// Descriptor for `PaginationRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List paginationRequestDescriptor = $convert.base64Decode('ChFQYWdpbmF0aW9uUmVxdWVzdBISCgRwYWdlGAEgASgFUgRwYWdlEhoKCHBhZ2VTaXplGAIgASgFUghwYWdlU2l6ZQ==');
-@$core.Deprecated('Use paginationResponseDescriptor instead')
-const PaginationResponse$json = const {
-  '1': 'PaginationResponse',
-  '2': const [
-    const {'1': 'page', '3': 1, '4': 1, '5': 5, '10': 'page'},
-    const {'1': 'pageSize', '3': 2, '4': 1, '5': 5, '10': 'pageSize'},
-    const {'1': 'hasNextPage', '3': 3, '4': 1, '5': 8, '10': 'hasNextPage'},
-  ],
-};
-
-/// Descriptor for `PaginationResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List paginationResponseDescriptor = $convert.base64Decode('ChJQYWdpbmF0aW9uUmVzcG9uc2USEgoEcGFnZRgBIAEoBVIEcGFnZRIaCghwYWdlU2l6ZRgCIAEoBVIIcGFnZVNpemUSIAoLaGFzTmV4dFBhZ2UYAyABKAhSC2hhc05leHRQYWdl');
+final $typed_data.Uint8List paginationRequestDescriptor = $convert.base64Decode('ChFQYWdpbmF0aW9uUmVxdWVzdBIaCghwYWdlU2l6ZRgBIAEoBVIIcGFnZVNpemUSIQoJcGFnZVRva2VuGAIgASgJSABSCXBhZ2VUb2tlbogBAUIMCgpfcGFnZVRva2Vu');
 @$core.Deprecated('Use walletDescriptor instead')
 const Wallet$json = const {
   '1': 'Wallet',
@@ -142,12 +133,12 @@ const ListWalletsResponse$json = const {
   '1': 'ListWalletsResponse',
   '2': const [
     const {'1': 'wallets', '3': 1, '4': 3, '5': 11, '6': '.backend.admin.v1.Wallet', '10': 'wallets'},
-    const {'1': 'page', '3': 2, '4': 1, '5': 11, '6': '.backend.admin.v1.PaginationResponse', '10': 'page'},
+    const {'1': 'nextPageToken', '3': 2, '4': 1, '5': 9, '10': 'nextPageToken'},
   ],
 };
 
 /// Descriptor for `ListWalletsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listWalletsResponseDescriptor = $convert.base64Decode('ChNMaXN0V2FsbGV0c1Jlc3BvbnNlEjIKB3dhbGxldHMYASADKAsyGC5iYWNrZW5kLmFkbWluLnYxLldhbGxldFIHd2FsbGV0cxI4CgRwYWdlGAIgASgLMiQuYmFja2VuZC5hZG1pbi52MS5QYWdpbmF0aW9uUmVzcG9uc2VSBHBhZ2U=');
+final $typed_data.Uint8List listWalletsResponseDescriptor = $convert.base64Decode('ChNMaXN0V2FsbGV0c1Jlc3BvbnNlEjIKB3dhbGxldHMYASADKAsyGC5iYWNrZW5kLmFkbWluLnYxLldhbGxldFIHd2FsbGV0cxIkCg1uZXh0UGFnZVRva2VuGAIgASgJUg1uZXh0UGFnZVRva2Vu');
 @$core.Deprecated('Use userDescriptor instead')
 const User$json = const {
   '1': 'User',

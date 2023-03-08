@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:watsonia/auth.dart';
 import 'package:watsonia/routes/index.dart';
 import 'package:watsonia/routes/pay.dart';
+import 'package:watsonia/routes/signup.dart';
 import 'package:watsonia/routes/transactions.dart';
 import 'package:watsonia/styles/colors.dart';
 
 // TODO Look into whether page transitions can be made more normative
 // https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/transition_animations.dart
 
-final GlobalKey<NavigatorState> _rootNavigatorKey =
-GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> _shellNavigatorKey =
-GlobalKey<NavigatorState>(debugLabel: 'shell');
-
 final appRouter = GoRouter(
-  navigatorKey: _rootNavigatorKey,
+  redirect: _handleRedirect,
   routes: _shellRoutes,
   observers: [HeroController()],
 );
@@ -23,7 +21,6 @@ final appRouter = GoRouter(
 List<RouteBase> _routes = [
   GoRoute(
     path: '/',
-    parentNavigatorKey: _rootNavigatorKey,
     pageBuilder: (BuildContext context, GoRouterState state) {
       return const MaterialPage(
           child: MyHomePage(title: 'Flutter Demo Home Page'));
@@ -31,15 +28,20 @@ List<RouteBase> _routes = [
   ),
   GoRoute(
     path: '/transactions',
-    parentNavigatorKey: _rootNavigatorKey,
     pageBuilder: (BuildContext context, GoRouterState state) {
       return const MaterialPage(
           child: TransactionsRoute(title: 'Flutter Demo Home Page'));
     },
   ),
   GoRoute(
+    path: '/signup',
+    pageBuilder: (BuildContext context, GoRouterState state) {
+      return const MaterialPage(
+          child: SignupPage());
+    },
+  ),
+  GoRoute(
     path: '/pay',
-    parentNavigatorKey: _rootNavigatorKey,
     pageBuilder: (BuildContext context, GoRouterState state) {
       // print(state.fullpath);
       return const MaterialPage(
@@ -50,7 +52,6 @@ List<RouteBase> _routes = [
 
 List<RouteBase> _shellRoutes = [
   ShellRoute(
-      navigatorKey: _shellNavigatorKey,
       routes: _routes,
       builder: (BuildContext context, GoRouterState state, Widget child) {
         print(GoRouterState.of(context).location);
@@ -172,6 +173,23 @@ List<RouteBase> _shellRoutes = [
         );
       })
 ];
+
+String? _handleRedirect(BuildContext context, GoRouterState state) {
+  final bool isUser = context.read<Auth>().isUser;
+  final bool loggingIn = state.subloc == '/signup';
+
+  // Go to /signin if the user is not signed in
+  if (!isUser && !loggingIn) { // Probably need to figure out signup
+    return '/signup';
+  }
+  // Go to / if the user is signed in and tries to go to /signin.
+  else if (isUser && loggingIn) {
+    return '/';
+  }
+
+  // else no redirect
+  return null;
+}
 
 bool showFAB(GoRouterState state) {
   return state.location == '/' || state.location == '/transactions';

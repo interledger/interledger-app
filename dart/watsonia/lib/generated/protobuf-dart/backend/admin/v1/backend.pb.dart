@@ -167,21 +167,21 @@ class ListWalletTransactionsRequest extends $pb.GeneratedMessage {
 class ListWalletTransactionsResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ListWalletTransactionsResponse', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'backend.admin.v1'), createEmptyInstance: create)
     ..pc<Transaction>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'transactions', $pb.PbFieldType.PM, subBuilder: Transaction.create)
-    ..aOM<PaginationResponse>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'page', subBuilder: PaginationResponse.create)
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nextPageToken', protoName: 'nextPageToken')
     ..hasRequiredFields = false
   ;
 
   ListWalletTransactionsResponse._() : super();
   factory ListWalletTransactionsResponse({
     $core.Iterable<Transaction>? transactions,
-    PaginationResponse? page,
+    $core.String? nextPageToken,
   }) {
     final _result = create();
     if (transactions != null) {
       _result.transactions.addAll(transactions);
     }
-    if (page != null) {
-      _result.page = page;
+    if (nextPageToken != null) {
+      _result.nextPageToken = nextPageToken;
     }
     return _result;
   }
@@ -210,15 +210,13 @@ class ListWalletTransactionsResponse extends $pb.GeneratedMessage {
   $core.List<Transaction> get transactions => $_getList(0);
 
   @$pb.TagNumber(2)
-  PaginationResponse get page => $_getN(1);
+  $core.String get nextPageToken => $_getSZ(1);
   @$pb.TagNumber(2)
-  set page(PaginationResponse v) { setField(2, v); }
+  set nextPageToken($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasPage() => $_has(1);
+  $core.bool hasNextPageToken() => $_has(1);
   @$pb.TagNumber(2)
-  void clearPage() => clearField(2);
-  @$pb.TagNumber(2)
-  PaginationResponse ensurePage() => $_ensure(1);
+  void clearNextPageToken() => clearField(2);
 }
 
 class Transaction extends $pb.GeneratedMessage {
@@ -605,22 +603,22 @@ class WalletDetails extends $pb.GeneratedMessage {
 
 class PaginationRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'PaginationRequest', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'backend.admin.v1'), createEmptyInstance: create)
-    ..a<$core.int>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'page', $pb.PbFieldType.O3)
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pageSize', $pb.PbFieldType.O3, protoName: 'pageSize')
+    ..a<$core.int>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pageSize', $pb.PbFieldType.O3, protoName: 'pageSize')
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pageToken', protoName: 'pageToken')
     ..hasRequiredFields = false
   ;
 
   PaginationRequest._() : super();
   factory PaginationRequest({
-    $core.int? page,
     $core.int? pageSize,
+    $core.String? pageToken,
   }) {
     final _result = create();
-    if (page != null) {
-      _result.page = page;
-    }
     if (pageSize != null) {
       _result.pageSize = pageSize;
+    }
+    if (pageToken != null) {
+      _result.pageToken = pageToken;
     }
     return _result;
   }
@@ -646,97 +644,22 @@ class PaginationRequest extends $pb.GeneratedMessage {
   static PaginationRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.int get page => $_getIZ(0);
+  $core.int get pageSize => $_getIZ(0);
   @$pb.TagNumber(1)
-  set page($core.int v) { $_setSignedInt32(0, v); }
+  set pageSize($core.int v) { $_setSignedInt32(0, v); }
   @$pb.TagNumber(1)
-  $core.bool hasPage() => $_has(0);
+  $core.bool hasPageSize() => $_has(0);
   @$pb.TagNumber(1)
-  void clearPage() => clearField(1);
+  void clearPageSize() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.int get pageSize => $_getIZ(1);
+  $core.String get pageToken => $_getSZ(1);
   @$pb.TagNumber(2)
-  set pageSize($core.int v) { $_setSignedInt32(1, v); }
+  set pageToken($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasPageSize() => $_has(1);
+  $core.bool hasPageToken() => $_has(1);
   @$pb.TagNumber(2)
-  void clearPageSize() => clearField(2);
-}
-
-class PaginationResponse extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'PaginationResponse', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'backend.admin.v1'), createEmptyInstance: create)
-    ..a<$core.int>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'page', $pb.PbFieldType.O3)
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'pageSize', $pb.PbFieldType.O3, protoName: 'pageSize')
-    ..aOB(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hasNextPage', protoName: 'hasNextPage')
-    ..hasRequiredFields = false
-  ;
-
-  PaginationResponse._() : super();
-  factory PaginationResponse({
-    $core.int? page,
-    $core.int? pageSize,
-    $core.bool? hasNextPage,
-  }) {
-    final _result = create();
-    if (page != null) {
-      _result.page = page;
-    }
-    if (pageSize != null) {
-      _result.pageSize = pageSize;
-    }
-    if (hasNextPage != null) {
-      _result.hasNextPage = hasNextPage;
-    }
-    return _result;
-  }
-  factory PaginationResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory PaginationResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  PaginationResponse clone() => PaginationResponse()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  PaginationResponse copyWith(void Function(PaginationResponse) updates) => super.copyWith((message) => updates(message as PaginationResponse)) as PaginationResponse; // ignore: deprecated_member_use
-  $pb.BuilderInfo get info_ => _i;
-  @$core.pragma('dart2js:noInline')
-  static PaginationResponse create() => PaginationResponse._();
-  PaginationResponse createEmptyInstance() => create();
-  static $pb.PbList<PaginationResponse> createRepeated() => $pb.PbList<PaginationResponse>();
-  @$core.pragma('dart2js:noInline')
-  static PaginationResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PaginationResponse>(create);
-  static PaginationResponse? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.int get page => $_getIZ(0);
-  @$pb.TagNumber(1)
-  set page($core.int v) { $_setSignedInt32(0, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasPage() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearPage() => clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.int get pageSize => $_getIZ(1);
-  @$pb.TagNumber(2)
-  set pageSize($core.int v) { $_setSignedInt32(1, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasPageSize() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearPageSize() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.bool get hasNextPage => $_getBF(2);
-  @$pb.TagNumber(3)
-  set hasNextPage($core.bool v) { $_setBool(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasHasNextPage() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearHasNextPage() => clearField(3);
+  void clearPageToken() => clearField(2);
 }
 
 class Wallet extends $pb.GeneratedMessage {
@@ -811,21 +734,21 @@ class Wallet extends $pb.GeneratedMessage {
 class ListWalletsResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ListWalletsResponse', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'backend.admin.v1'), createEmptyInstance: create)
     ..pc<Wallet>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'wallets', $pb.PbFieldType.PM, subBuilder: Wallet.create)
-    ..aOM<PaginationResponse>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'page', subBuilder: PaginationResponse.create)
+    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'nextPageToken', protoName: 'nextPageToken')
     ..hasRequiredFields = false
   ;
 
   ListWalletsResponse._() : super();
   factory ListWalletsResponse({
     $core.Iterable<Wallet>? wallets,
-    PaginationResponse? page,
+    $core.String? nextPageToken,
   }) {
     final _result = create();
     if (wallets != null) {
       _result.wallets.addAll(wallets);
     }
-    if (page != null) {
-      _result.page = page;
+    if (nextPageToken != null) {
+      _result.nextPageToken = nextPageToken;
     }
     return _result;
   }
@@ -854,15 +777,13 @@ class ListWalletsResponse extends $pb.GeneratedMessage {
   $core.List<Wallet> get wallets => $_getList(0);
 
   @$pb.TagNumber(2)
-  PaginationResponse get page => $_getN(1);
+  $core.String get nextPageToken => $_getSZ(1);
   @$pb.TagNumber(2)
-  set page(PaginationResponse v) { setField(2, v); }
+  set nextPageToken($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasPage() => $_has(1);
+  $core.bool hasNextPageToken() => $_has(1);
   @$pb.TagNumber(2)
-  void clearPage() => clearField(2);
-  @$pb.TagNumber(2)
-  PaginationResponse ensurePage() => $_ensure(1);
+  void clearNextPageToken() => clearField(2);
 }
 
 class User extends $pb.GeneratedMessage {

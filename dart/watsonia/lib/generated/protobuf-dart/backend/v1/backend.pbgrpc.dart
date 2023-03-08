@@ -77,18 +77,13 @@ class OpenPaymentServiceClient extends $grpc.Client {
           ($2.LookupOutgoingPaymentRequest value) => value.writeToBuffer(),
           ($core.List<$core.int> value) =>
               $2.OutgoingPayment.fromBuffer(value));
-  static final _$listTransactions =
-      $grpc.ClientMethod<$2.PaginationRequest, $2.ListTransactionsResponse>(
-          '/backend.v1.OpenPaymentService/ListTransactions',
-          ($2.PaginationRequest value) => value.writeToBuffer(),
-          ($core.List<$core.int> value) =>
-              $2.ListTransactionsResponse.fromBuffer(value));
-  static final _$listPendingTransactions =
-      $grpc.ClientMethod<$2.PaginationRequest, $2.ListTransactionsResponse>(
-          '/backend.v1.OpenPaymentService/ListPendingTransactions',
-          ($2.PaginationRequest value) => value.writeToBuffer(),
-          ($core.List<$core.int> value) =>
-              $2.ListTransactionsResponse.fromBuffer(value));
+  static final _$canSendToPaymentPointer = $grpc.ClientMethod<
+          $2.CanSendToPaymentPointerRequest,
+          $2.CanSendToPaymentPointerResponse>(
+      '/backend.v1.OpenPaymentService/CanSendToPaymentPointer',
+      ($2.CanSendToPaymentPointerRequest value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) =>
+          $2.CanSendToPaymentPointerResponse.fromBuffer(value));
 
   OpenPaymentServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
@@ -161,16 +156,10 @@ class OpenPaymentServiceClient extends $grpc.Client {
     return $createUnaryCall(_$lookupOutgoingPayment, request, options: options);
   }
 
-  $grpc.ResponseFuture<$2.ListTransactionsResponse> listTransactions(
-      $2.PaginationRequest request,
-      {$grpc.CallOptions? options}) {
-    return $createUnaryCall(_$listTransactions, request, options: options);
-  }
-
-  $grpc.ResponseFuture<$2.ListTransactionsResponse> listPendingTransactions(
-      $2.PaginationRequest request,
-      {$grpc.CallOptions? options}) {
-    return $createUnaryCall(_$listPendingTransactions, request,
+  $grpc.ResponseFuture<$2.CanSendToPaymentPointerResponse>
+      canSendToPaymentPointer($2.CanSendToPaymentPointerRequest request,
+          {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$canSendToPaymentPointer, request,
         options: options);
   }
 }
@@ -275,24 +264,15 @@ abstract class OpenPaymentServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $2.LookupOutgoingPaymentRequest.fromBuffer(value),
         ($2.OutgoingPayment value) => value.writeToBuffer()));
-    $addMethod(
-        $grpc.ServiceMethod<$2.PaginationRequest, $2.ListTransactionsResponse>(
-            'ListTransactions',
-            listTransactions_Pre,
-            false,
-            false,
-            ($core.List<$core.int> value) =>
-                $2.PaginationRequest.fromBuffer(value),
-            ($2.ListTransactionsResponse value) => value.writeToBuffer()));
-    $addMethod(
-        $grpc.ServiceMethod<$2.PaginationRequest, $2.ListTransactionsResponse>(
-            'ListPendingTransactions',
-            listPendingTransactions_Pre,
-            false,
-            false,
-            ($core.List<$core.int> value) =>
-                $2.PaginationRequest.fromBuffer(value),
-            ($2.ListTransactionsResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.CanSendToPaymentPointerRequest,
+            $2.CanSendToPaymentPointerResponse>(
+        'CanSendToPaymentPointer',
+        canSendToPaymentPointer_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $2.CanSendToPaymentPointerRequest.fromBuffer(value),
+        ($2.CanSendToPaymentPointerResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$2.Empty> createPaymentPointer_Pre($grpc.ServiceCall call,
@@ -357,16 +337,10 @@ abstract class OpenPaymentServiceBase extends $grpc.Service {
     return lookupOutgoingPayment(call, await request);
   }
 
-  $async.Future<$2.ListTransactionsResponse> listTransactions_Pre(
+  $async.Future<$2.CanSendToPaymentPointerResponse> canSendToPaymentPointer_Pre(
       $grpc.ServiceCall call,
-      $async.Future<$2.PaginationRequest> request) async {
-    return listTransactions(call, await request);
-  }
-
-  $async.Future<$2.ListTransactionsResponse> listPendingTransactions_Pre(
-      $grpc.ServiceCall call,
-      $async.Future<$2.PaginationRequest> request) async {
-    return listPendingTransactions(call, await request);
+      $async.Future<$2.CanSendToPaymentPointerRequest> request) async {
+    return canSendToPaymentPointer(call, await request);
   }
 
   $async.Future<$2.Empty> createPaymentPointer(
@@ -391,10 +365,8 @@ abstract class OpenPaymentServiceBase extends $grpc.Service {
       $grpc.ServiceCall call, $2.CreateOutgoingPaymentRequest request);
   $async.Future<$2.OutgoingPayment> lookupOutgoingPayment(
       $grpc.ServiceCall call, $2.LookupOutgoingPaymentRequest request);
-  $async.Future<$2.ListTransactionsResponse> listTransactions(
-      $grpc.ServiceCall call, $2.PaginationRequest request);
-  $async.Future<$2.ListTransactionsResponse> listPendingTransactions(
-      $grpc.ServiceCall call, $2.PaginationRequest request);
+  $async.Future<$2.CanSendToPaymentPointerResponse> canSendToPaymentPointer(
+      $grpc.ServiceCall call, $2.CanSendToPaymentPointerRequest request);
 }
 
 class BackendServiceClient extends $grpc.Client {
@@ -403,6 +375,12 @@ class BackendServiceClient extends $grpc.Client {
           '/backend.v1.BackendService/UpdateIndividualKYC',
           ($2.UpdateIndividualKYCRequest value) => value.writeToBuffer(),
           ($core.List<$core.int> value) => $2.Empty.fromBuffer(value));
+  static final _$getIndividualKYC =
+      $grpc.ClientMethod<$2.Empty, $2.IndividualKYCResponse>(
+          '/backend.v1.BackendService/GetIndividualKYC',
+          ($2.Empty value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) =>
+              $2.IndividualKYCResponse.fromBuffer(value));
   static final _$isUSPSAddress =
       $grpc.ClientMethod<$2.Address, $2.IsUSPSAddressResponse>(
           '/backend.v1.BackendService/IsUSPSAddress',
@@ -434,6 +412,11 @@ class BackendServiceClient extends $grpc.Client {
           '/backend.v1.BackendService/CreateUserDefaultWallet',
           ($2.CreateUserDefaultWalletRequest value) => value.writeToBuffer(),
           ($core.List<$core.int> value) => $2.Empty.fromBuffer(value));
+  static final _$setWalletName =
+      $grpc.ClientMethod<$2.SetWalletNameRequest, $2.Empty>(
+          '/backend.v1.BackendService/SetWalletName',
+          ($2.SetWalletNameRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) => $2.Empty.fromBuffer(value));
   static final _$sendPhoneVerification =
       $grpc.ClientMethod<$2.SendPhoneVerificationRequest, $2.Empty>(
           '/backend.v1.BackendService/SendPhoneVerification',
@@ -464,6 +447,11 @@ class BackendServiceClient extends $grpc.Client {
       $grpc.ClientMethod<$2.GetLinkedAccountRequest, $2.LinkedAccount>(
           '/backend.v1.BackendService/GetLinkedAccount',
           ($2.GetLinkedAccountRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) => $2.LinkedAccount.fromBuffer(value));
+  static final _$setNicknameLinkedAccount =
+      $grpc.ClientMethod<$2.SetNicknameLinkedAccountRequest, $2.LinkedAccount>(
+          '/backend.v1.BackendService/SetNicknameLinkedAccount',
+          ($2.SetNicknameLinkedAccountRequest value) => value.writeToBuffer(),
           ($core.List<$core.int> value) => $2.LinkedAccount.fromBuffer(value));
   static final _$deleteLinkedAccount =
       $grpc.ClientMethod<$2.DeleteLinkedAccountRequest, $2.Empty>(
@@ -600,17 +588,43 @@ class BackendServiceClient extends $grpc.Client {
           ($2.Empty value) => value.writeToBuffer(),
           ($core.List<$core.int> value) =>
               $2.GetUserLimitsResponse.fromBuffer(value));
-  static final _$listStatements =
-      $grpc.ClientMethod<$2.PaginationRequest, $2.ListStatementsResponse>(
-          '/backend.v1.BackendService/ListStatements',
-          ($2.PaginationRequest value) => value.writeToBuffer(),
+  static final _$listLimits =
+      $grpc.ClientMethod<$2.Empty, $2.ListLimitsResponse>(
+          '/backend.v1.BackendService/ListLimits',
+          ($2.Empty value) => value.writeToBuffer(),
           ($core.List<$core.int> value) =>
-              $2.ListStatementsResponse.fromBuffer(value));
+              $2.ListLimitsResponse.fromBuffer(value));
+  static final _$updateClientLimits =
+      $grpc.ClientMethod<$2.UpdateClientLimitsRequest, $2.Empty>(
+          '/backend.v1.BackendService/UpdateClientLimits',
+          ($2.UpdateClientLimitsRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) => $2.Empty.fromBuffer(value));
   static final _$getStatementPDF =
       $grpc.ClientMethod<$2.GetStatementPDFRequest, $2.StatementPDF>(
           '/backend.v1.BackendService/GetStatementPDF',
           ($2.GetStatementPDFRequest value) => value.writeToBuffer(),
           ($core.List<$core.int> value) => $2.StatementPDF.fromBuffer(value));
+  static final _$createClientPublicKey = $grpc.ClientMethod<$2.JWK, $2.Empty>(
+      '/backend.v1.BackendService/CreateClientPublicKey',
+      ($2.JWK value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) => $2.Empty.fromBuffer(value));
+  static final _$getPublicWalletDetails = $grpc.ClientMethod<
+          $2.GetPublicWalletDetailsRequest, $2.GetPublicWalletDetailsResponse>(
+      '/backend.v1.BackendService/GetPublicWalletDetails',
+      ($2.GetPublicWalletDetailsRequest value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) =>
+          $2.GetPublicWalletDetailsResponse.fromBuffer(value));
+  static final _$createContact =
+      $grpc.ClientMethod<$2.CreateContactRequest, $2.Contact>(
+          '/backend.v1.BackendService/CreateContact',
+          ($2.CreateContactRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) => $2.Contact.fromBuffer(value));
+  static final _$listContacts =
+      $grpc.ClientMethod<$2.PaginationRequest, $2.ListContactsResponse>(
+          '/backend.v1.BackendService/ListContacts',
+          ($2.PaginationRequest value) => value.writeToBuffer(),
+          ($core.List<$core.int> value) =>
+              $2.ListContactsResponse.fromBuffer(value));
 
   BackendServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
@@ -621,6 +635,12 @@ class BackendServiceClient extends $grpc.Client {
       $2.UpdateIndividualKYCRequest request,
       {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$updateIndividualKYC, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$2.IndividualKYCResponse> getIndividualKYC(
+      $2.Empty request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$getIndividualKYC, request, options: options);
   }
 
   $grpc.ResponseFuture<$2.IsUSPSAddressResponse> isUSPSAddress(
@@ -659,6 +679,11 @@ class BackendServiceClient extends $grpc.Client {
         options: options);
   }
 
+  $grpc.ResponseFuture<$2.Empty> setWalletName($2.SetWalletNameRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$setWalletName, request, options: options);
+  }
+
   $grpc.ResponseFuture<$2.Empty> sendPhoneVerification(
       $2.SendPhoneVerificationRequest request,
       {$grpc.CallOptions? options}) {
@@ -692,6 +717,13 @@ class BackendServiceClient extends $grpc.Client {
       $2.GetLinkedAccountRequest request,
       {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$getLinkedAccount, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$2.LinkedAccount> setNicknameLinkedAccount(
+      $2.SetNicknameLinkedAccountRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$setNicknameLinkedAccount, request,
+        options: options);
   }
 
   $grpc.ResponseFuture<$2.Empty> deleteLinkedAccount(
@@ -844,16 +876,45 @@ class BackendServiceClient extends $grpc.Client {
     return $createUnaryCall(_$getUserLimits, request, options: options);
   }
 
-  $grpc.ResponseFuture<$2.ListStatementsResponse> listStatements(
-      $2.PaginationRequest request,
+  $grpc.ResponseFuture<$2.ListLimitsResponse> listLimits($2.Empty request,
       {$grpc.CallOptions? options}) {
-    return $createUnaryCall(_$listStatements, request, options: options);
+    return $createUnaryCall(_$listLimits, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$2.Empty> updateClientLimits(
+      $2.UpdateClientLimitsRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$updateClientLimits, request, options: options);
   }
 
   $grpc.ResponseFuture<$2.StatementPDF> getStatementPDF(
       $2.GetStatementPDFRequest request,
       {$grpc.CallOptions? options}) {
     return $createUnaryCall(_$getStatementPDF, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$2.Empty> createClientPublicKey($2.JWK request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$createClientPublicKey, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$2.GetPublicWalletDetailsResponse>
+      getPublicWalletDetails($2.GetPublicWalletDetailsRequest request,
+          {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$getPublicWalletDetails, request,
+        options: options);
+  }
+
+  $grpc.ResponseFuture<$2.Contact> createContact(
+      $2.CreateContactRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$createContact, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$2.ListContactsResponse> listContacts(
+      $2.PaginationRequest request,
+      {$grpc.CallOptions? options}) {
+    return $createUnaryCall(_$listContacts, request, options: options);
   }
 }
 
@@ -869,6 +930,13 @@ abstract class BackendServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $2.UpdateIndividualKYCRequest.fromBuffer(value),
         ($2.Empty value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.Empty, $2.IndividualKYCResponse>(
+        'GetIndividualKYC',
+        getIndividualKYC_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) => $2.Empty.fromBuffer(value),
+        ($2.IndividualKYCResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$2.Address, $2.IsUSPSAddressResponse>(
         'IsUSPSAddress',
         isUSPSAddress_Pre,
@@ -915,6 +983,14 @@ abstract class BackendServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) =>
             $2.CreateUserDefaultWalletRequest.fromBuffer(value),
+        ($2.Empty value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.SetWalletNameRequest, $2.Empty>(
+        'SetWalletName',
+        setWalletName_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $2.SetWalletNameRequest.fromBuffer(value),
         ($2.Empty value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$2.SendPhoneVerificationRequest, $2.Empty>(
         'SendPhoneVerification',
@@ -964,6 +1040,15 @@ abstract class BackendServiceBase extends $grpc.Service {
             ($core.List<$core.int> value) =>
                 $2.GetLinkedAccountRequest.fromBuffer(value),
             ($2.LinkedAccount value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.SetNicknameLinkedAccountRequest,
+            $2.LinkedAccount>(
+        'SetNicknameLinkedAccount',
+        setNicknameLinkedAccount_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $2.SetNicknameLinkedAccountRequest.fromBuffer(value),
+        ($2.LinkedAccount value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$2.DeleteLinkedAccountRequest, $2.Empty>(
         'DeleteLinkedAccount',
         deleteLinkedAccount_Pre,
@@ -1163,15 +1248,21 @@ abstract class BackendServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $2.Empty.fromBuffer(value),
         ($2.GetUserLimitsResponse value) => value.writeToBuffer()));
-    $addMethod(
-        $grpc.ServiceMethod<$2.PaginationRequest, $2.ListStatementsResponse>(
-            'ListStatements',
-            listStatements_Pre,
-            false,
-            false,
-            ($core.List<$core.int> value) =>
-                $2.PaginationRequest.fromBuffer(value),
-            ($2.ListStatementsResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.Empty, $2.ListLimitsResponse>(
+        'ListLimits',
+        listLimits_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) => $2.Empty.fromBuffer(value),
+        ($2.ListLimitsResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.UpdateClientLimitsRequest, $2.Empty>(
+        'UpdateClientLimits',
+        updateClientLimits_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $2.UpdateClientLimitsRequest.fromBuffer(value),
+        ($2.Empty value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$2.GetStatementPDFRequest, $2.StatementPDF>(
         'GetStatementPDF',
         getStatementPDF_Pre,
@@ -1180,11 +1271,49 @@ abstract class BackendServiceBase extends $grpc.Service {
         ($core.List<$core.int> value) =>
             $2.GetStatementPDFRequest.fromBuffer(value),
         ($2.StatementPDF value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.JWK, $2.Empty>(
+        'CreateClientPublicKey',
+        createClientPublicKey_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) => $2.JWK.fromBuffer(value),
+        ($2.Empty value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.GetPublicWalletDetailsRequest,
+            $2.GetPublicWalletDetailsResponse>(
+        'GetPublicWalletDetails',
+        getPublicWalletDetails_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $2.GetPublicWalletDetailsRequest.fromBuffer(value),
+        ($2.GetPublicWalletDetailsResponse value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$2.CreateContactRequest, $2.Contact>(
+        'CreateContact',
+        createContact_Pre,
+        false,
+        false,
+        ($core.List<$core.int> value) =>
+            $2.CreateContactRequest.fromBuffer(value),
+        ($2.Contact value) => value.writeToBuffer()));
+    $addMethod(
+        $grpc.ServiceMethod<$2.PaginationRequest, $2.ListContactsResponse>(
+            'ListContacts',
+            listContacts_Pre,
+            false,
+            false,
+            ($core.List<$core.int> value) =>
+                $2.PaginationRequest.fromBuffer(value),
+            ($2.ListContactsResponse value) => value.writeToBuffer()));
   }
 
   $async.Future<$2.Empty> updateIndividualKYC_Pre($grpc.ServiceCall call,
       $async.Future<$2.UpdateIndividualKYCRequest> request) async {
     return updateIndividualKYC(call, await request);
+  }
+
+  $async.Future<$2.IndividualKYCResponse> getIndividualKYC_Pre(
+      $grpc.ServiceCall call, $async.Future<$2.Empty> request) async {
+    return getIndividualKYC(call, await request);
   }
 
   $async.Future<$2.IsUSPSAddressResponse> isUSPSAddress_Pre(
@@ -1218,6 +1347,11 @@ abstract class BackendServiceBase extends $grpc.Service {
     return createUserDefaultWallet(call, await request);
   }
 
+  $async.Future<$2.Empty> setWalletName_Pre($grpc.ServiceCall call,
+      $async.Future<$2.SetWalletNameRequest> request) async {
+    return setWalletName(call, await request);
+  }
+
   $async.Future<$2.Empty> sendPhoneVerification_Pre($grpc.ServiceCall call,
       $async.Future<$2.SendPhoneVerificationRequest> request) async {
     return sendPhoneVerification(call, await request);
@@ -1247,6 +1381,12 @@ abstract class BackendServiceBase extends $grpc.Service {
   $async.Future<$2.LinkedAccount> getLinkedAccount_Pre($grpc.ServiceCall call,
       $async.Future<$2.GetLinkedAccountRequest> request) async {
     return getLinkedAccount(call, await request);
+  }
+
+  $async.Future<$2.LinkedAccount> setNicknameLinkedAccount_Pre(
+      $grpc.ServiceCall call,
+      $async.Future<$2.SetNicknameLinkedAccountRequest> request) async {
+    return setNicknameLinkedAccount(call, await request);
   }
 
   $async.Future<$2.Empty> deleteLinkedAccount_Pre($grpc.ServiceCall call,
@@ -1383,10 +1523,14 @@ abstract class BackendServiceBase extends $grpc.Service {
     return getUserLimits(call, await request);
   }
 
-  $async.Future<$2.ListStatementsResponse> listStatements_Pre(
-      $grpc.ServiceCall call,
-      $async.Future<$2.PaginationRequest> request) async {
-    return listStatements(call, await request);
+  $async.Future<$2.ListLimitsResponse> listLimits_Pre(
+      $grpc.ServiceCall call, $async.Future<$2.Empty> request) async {
+    return listLimits(call, await request);
+  }
+
+  $async.Future<$2.Empty> updateClientLimits_Pre($grpc.ServiceCall call,
+      $async.Future<$2.UpdateClientLimitsRequest> request) async {
+    return updateClientLimits(call, await request);
   }
 
   $async.Future<$2.StatementPDF> getStatementPDF_Pre($grpc.ServiceCall call,
@@ -1394,8 +1538,32 @@ abstract class BackendServiceBase extends $grpc.Service {
     return getStatementPDF(call, await request);
   }
 
+  $async.Future<$2.Empty> createClientPublicKey_Pre(
+      $grpc.ServiceCall call, $async.Future<$2.JWK> request) async {
+    return createClientPublicKey(call, await request);
+  }
+
+  $async.Future<$2.GetPublicWalletDetailsResponse> getPublicWalletDetails_Pre(
+      $grpc.ServiceCall call,
+      $async.Future<$2.GetPublicWalletDetailsRequest> request) async {
+    return getPublicWalletDetails(call, await request);
+  }
+
+  $async.Future<$2.Contact> createContact_Pre($grpc.ServiceCall call,
+      $async.Future<$2.CreateContactRequest> request) async {
+    return createContact(call, await request);
+  }
+
+  $async.Future<$2.ListContactsResponse> listContacts_Pre(
+      $grpc.ServiceCall call,
+      $async.Future<$2.PaginationRequest> request) async {
+    return listContacts(call, await request);
+  }
+
   $async.Future<$2.Empty> updateIndividualKYC(
       $grpc.ServiceCall call, $2.UpdateIndividualKYCRequest request);
+  $async.Future<$2.IndividualKYCResponse> getIndividualKYC(
+      $grpc.ServiceCall call, $2.Empty request);
   $async.Future<$2.IsUSPSAddressResponse> isUSPSAddress(
       $grpc.ServiceCall call, $2.Address request);
   $async.Future<$2.SetSignupUserDataResponse> setSignupUserData(
@@ -1408,6 +1576,8 @@ abstract class BackendServiceBase extends $grpc.Service {
       $grpc.ServiceCall call, $2.CompleteSignupRequest request);
   $async.Future<$2.Empty> createUserDefaultWallet(
       $grpc.ServiceCall call, $2.CreateUserDefaultWalletRequest request);
+  $async.Future<$2.Empty> setWalletName(
+      $grpc.ServiceCall call, $2.SetWalletNameRequest request);
   $async.Future<$2.Empty> sendPhoneVerification(
       $grpc.ServiceCall call, $2.SendPhoneVerificationRequest request);
   $async.Future<$2.Empty> sendOTP($grpc.ServiceCall call, $2.Empty request);
@@ -1419,6 +1589,8 @@ abstract class BackendServiceBase extends $grpc.Service {
       $grpc.ServiceCall call, $2.Empty request);
   $async.Future<$2.LinkedAccount> getLinkedAccount(
       $grpc.ServiceCall call, $2.GetLinkedAccountRequest request);
+  $async.Future<$2.LinkedAccount> setNicknameLinkedAccount(
+      $grpc.ServiceCall call, $2.SetNicknameLinkedAccountRequest request);
   $async.Future<$2.Empty> deleteLinkedAccount(
       $grpc.ServiceCall call, $2.DeleteLinkedAccountRequest request);
   $async.Future<$2.Empty> createSupportTicket(
@@ -1469,8 +1641,18 @@ abstract class BackendServiceBase extends $grpc.Service {
       $grpc.ServiceCall call, $2.LookupTransactionRequest request);
   $async.Future<$2.GetUserLimitsResponse> getUserLimits(
       $grpc.ServiceCall call, $2.Empty request);
-  $async.Future<$2.ListStatementsResponse> listStatements(
-      $grpc.ServiceCall call, $2.PaginationRequest request);
+  $async.Future<$2.ListLimitsResponse> listLimits(
+      $grpc.ServiceCall call, $2.Empty request);
+  $async.Future<$2.Empty> updateClientLimits(
+      $grpc.ServiceCall call, $2.UpdateClientLimitsRequest request);
   $async.Future<$2.StatementPDF> getStatementPDF(
       $grpc.ServiceCall call, $2.GetStatementPDFRequest request);
+  $async.Future<$2.Empty> createClientPublicKey(
+      $grpc.ServiceCall call, $2.JWK request);
+  $async.Future<$2.GetPublicWalletDetailsResponse> getPublicWalletDetails(
+      $grpc.ServiceCall call, $2.GetPublicWalletDetailsRequest request);
+  $async.Future<$2.Contact> createContact(
+      $grpc.ServiceCall call, $2.CreateContactRequest request);
+  $async.Future<$2.ListContactsResponse> listContacts(
+      $grpc.ServiceCall call, $2.PaginationRequest request);
 }

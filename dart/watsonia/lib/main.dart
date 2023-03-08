@@ -1,37 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:watsonia/auth.dart';
 import 'package:watsonia/router.dart';
-import 'package:watsonia/styles/colors.dart';
+import 'package:watsonia/styles/theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    /// Providers are above [MyApp] instead of inside it, so that tests
+    /// can use [MyApp] while mocking the providers
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => Auth()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Fynbos',
       routerConfig: appRouter,
+      theme: theme,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: const ColorScheme(
-          background: TWColors.bgApp,
-          brightness: Brightness.light,
-          primary: TWColors.bgApp,
-          onPrimary: TWColors.bgApp,
-          secondary: TWColors.bgApp,
-          onSecondary: TWColors.bgApp,
-          error: TWColors.bgApp,
-          onError: TWColors.bgApp,
-          onBackground: TWColors.bgApp,
-          surface: TWColors.bgApp,
-          onSurface: TWColors.textStrong,
-        ),
-      ),
     );
   }
 }
