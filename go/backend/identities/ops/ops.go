@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,7 +29,8 @@ func List(ctx context.Context, b Backends, walletID string) ([]identities.Identi
 
 func ListPublic(ctx context.Context, b Backends, walletID string) ([]identities.Identity, error) {
 	var res []identities.Identity
-	err := b.DB().SelectContext(ctx, &res, fmt.Sprintf("SELECT %s FROM identities WHERE wallet_id=$1 AND public=true", cols), walletID)
+	err := b.DB().SelectContext(ctx, &res, fmt.Sprintf("SELECT %s FROM identities WHERE wallet_id=$1 AND public=true AND state=$2", cols),
+		walletID, identities.StateVerified)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -45,6 +47,16 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	p, err := platforms.Get(args.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
+	}
+
+	var existing identities.Identity
+	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(handle)=$2 AND state=$3", cols),
+		args.Platform, strings.ToLower(args.Handle), identities.StateVerified)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	if existing.ID != "" {
+		return nil, fmt.Errorf("%w %s handle %s has already been verified", identities.ErrInvalidArgument, args.Platform, args.Handle)
 	}
 
 	id := uuid.NewString()

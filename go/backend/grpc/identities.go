@@ -40,6 +40,28 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
 }
 
+func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPublicIdentitiesRequest) (*pb.ListIdentitiesResponse, error) {
+	ids, err := s.b.Identities().ListPublic(ctx, req.WalletId)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := make([]*pb.Identity, len(ids))
+	for i, id := range ids {
+		resp[i] = &pb.Identity{
+			Id:                id.ID,
+			Platform:          string(id.Platform),
+			Handle:            id.Handle,
+			State:             string(id.State),
+			VerificationCode:  id.VerificationCode,
+			VerificationProof: id.VerificationProof,
+			Public:            id.Public,
+		}
+	}
+
+	return &pb.ListIdentitiesResponse{Identities: resp}, nil
+}
+
 func (s *rpcService) AddIdentity(ctx context.Context, req *pb.AddIdentityRequest) (*pb.IdentityVerificationInstructions, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {

@@ -1666,9 +1666,9 @@ table "identities" {
   primary_key {
     columns = [column.id]
   }
-  index "platform_handle_unique" {
-    unique  = true
-    columns = [column.platform, column.handle]
+  index "platform_handle_state_ind" {
+    unique  = false
+    columns = [column.platform, column.handle, column.state]
   }
   foreign_key "fk_wallet_id_ref_wallets" {
     columns     = [column.wallet_id]
