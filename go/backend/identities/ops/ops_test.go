@@ -61,7 +61,7 @@ func TestList(t *testing.T) {
 	env.SetEnv(t, "local")
 
 	// Publicly visible
-	_, err = ops.Add(ctx, b, identities.AddArgs{
+	pv, err := ops.Add(ctx, b, identities.AddArgs{
 		WalletID: w.ID,
 		Platform: identities.PlatformTwitter,
 		Handle:   "@king_cold",
@@ -88,12 +88,21 @@ func TestList(t *testing.T) {
 	il, err = ops.ListPublic(ctx, b, w.ID)
 	require.NoError(t, err)
 
-	assert.Len(t, il, 1)
+	require.Len(t, il, 0)
+
+	// Verify public identity
+	_, err = db.ExecContext(ctx, "UPDATE identities SET state=$1 WHERE id=$2", identities.StateVerified, pv.IdentityID)
+	require.NoError(t, err)
+
+	il, err = ops.ListPublic(ctx, b, w.ID)
+	require.NoError(t, err)
+
+	require.Len(t, il, 1)
 	assert.Equal(t, identities.PlatformTwitter, il[0].Platform)
 	assert.Equal(t, "@king_cold", il[0].Handle)
 	assert.Equal(t, "", il[0].VerificationProof)
 	assert.Equal(t, w.ID, il[0].WalletID)
-	assert.Equal(t, identities.StateUnverified, il[0].State)
+	assert.Equal(t, identities.StateVerified, il[0].State)
 	assert.True(t, il[0].Public)
 }
 

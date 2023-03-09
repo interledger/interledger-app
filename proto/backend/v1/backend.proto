@@ -253,6 +253,7 @@ service BackendService {
 
   // Identities
   rpc ListIdentities(Empty) returns (ListIdentitiesResponse);
+  rpc ListPublicIdentities(ListPublicIdentitiesRequest) returns (ListIdentitiesResponse);
   rpc AddIdentity(AddIdentityRequest) returns (IdentityVerificationInstructions);
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
@@ -681,4 +682,8 @@ message SetIdentityPublicRequest {
 message StartIdentityVerificationRequest {
   string id = 1;
   string proof = 2;
+}
+
+message ListPublicIdentitiesRequest {
+  string wallet_id = 1;
 }
