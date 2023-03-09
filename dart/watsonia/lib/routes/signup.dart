@@ -6,10 +6,8 @@ import 'package:watsonia/auth.dart';
 
 import '../styles/colors.dart';
 
-class SignupPage extends StatelessWidget {
-  const SignupPage({
-    super.key,
-  });
+class SignupRoute extends StatelessWidget {
+  const SignupRoute({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -278,9 +276,9 @@ class SignupPage extends StatelessWidget {
                               ),
                             ),
                             onPressed: () async {
-                              // Provider.of<Auth>(context, listen: false)
-                              //     .signIn("username", "password");
-                              context.read<Auth>().whoami();
+                              Provider.of<Auth>(context, listen: false)
+                                  .signIn("username", "password");
+                              // context.read<Auth>().whoami();
                               context.go('/');
                             },
                             child: const Text("Let's get started")),

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:watsonia/styles/colors.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class IndexRoute extends StatefulWidget {
+  const IndexRoute({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -18,43 +17,36 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<IndexRoute> createState() => _IndexRouteState();
 }
 
-Future<void> getSession() async {
-  // const String basePath = r'http://cove-athletic-reed-scanning.trycloudflare.com';
-
-  var url =
-      Uri.https('rhode-myrtle-desktops-sl.trycloudflare.com', 'sessions/whoami');
-  var response = await http.get(url);
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
-}
-
-class _MyHomePageState extends State<MyHomePage> {
+class _IndexRouteState extends State<IndexRoute> {
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      children: <Widget>[
-        Card(
-          margin: const EdgeInsets.all(0),
-          elevation: 0,
-          color: TWColors.white,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Text(
-              'Welcome Cairin',
-              style: GoogleFonts.poppins(
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 24,
+    return Scaffold(
+      // We don't need an app bar on this page because the ShellRoute Scaffold will render it for us.
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        children: <Widget>[
+          Card(
+            margin: const EdgeInsets.all(0),
+            elevation: 0,
+            color: TWColors.white,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Text(
+                'Welcome Cairin',
+                style: GoogleFonts.poppins(
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 24,
+                  ),
                 ),
               ),
             ),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 }

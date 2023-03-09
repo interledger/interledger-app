@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:watsonia/styles/colors.dart';
 
-class PayPage extends StatefulWidget {
-  const PayPage({super.key, required this.title});
+class PayRoute extends StatefulWidget {
+  const PayRoute({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -17,33 +17,41 @@ class PayPage extends StatefulWidget {
   final String title;
 
   @override
-  State<PayPage> createState() => _PayPagePageState();
+  State<PayRoute> createState() => _PayPagePageState();
 }
 
-class _PayPagePageState extends State<PayPage> {
+class _PayPagePageState extends State<PayRoute> {
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      children: <Widget>[
-        Card(
-          margin: const EdgeInsets.all(0),
-          elevation: 0,
-          color: TWColors.white,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Text(
-              'Pay',
-              style: GoogleFonts.poppins(
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 24,
+    return Scaffold(
+      appBar: AppBar(
+        title: Image.asset(
+          'images/Logo.png',
+          height: 32,
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        children: <Widget>[
+          Card(
+            margin: const EdgeInsets.all(0),
+            elevation: 0,
+            color: TWColors.white,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Text(
+                'Pay',
+                style: GoogleFonts.poppins(
+                  textStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 24,
+                  ),
                 ),
               ),
             ),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 }

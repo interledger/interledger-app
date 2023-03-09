@@ -1,60 +1,57 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:watsonia/auth.dart';
+import 'package:watsonia/components/floating_action_button.dart';
+import 'package:watsonia/components/nav_drawer.dart';
 import 'package:watsonia/routes/index.dart';
 import 'package:watsonia/routes/pay.dart';
 import 'package:watsonia/routes/signup.dart';
 import 'package:watsonia/routes/transactions.dart';
 import 'package:watsonia/styles/colors.dart';
 
-// TODO Look into whether page transitions can be made more normative
-// https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/transition_animations.dart
+// We need two Global keys to manage the state of the two navigators.
+// One is used by the Shell route to enable us to have a global NavDrawer.
+// The other is used for all other pages that don't have a drawer.
+// This can be removed after https://github.com/flutter/flutter/issues/26954 is fixed.
+final GlobalKey<NavigatorState> _rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _shellNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final appRouter = GoRouter(
-  redirect: _handleRedirect,
-  routes: _shellRoutes,
-  observers: [HeroController()],
+  navigatorKey: _rootNavigatorKey,
+  redirect: _authGuard,
+  routes: _routes,
 );
 
 List<RouteBase> _routes = [
-  GoRoute(
-    path: '/',
-    pageBuilder: (BuildContext context, GoRouterState state) {
-      return const MaterialPage(
-          child: MyHomePage(title: 'Flutter Demo Home Page'));
-    },
-  ),
-  GoRoute(
-    path: '/transactions',
-    pageBuilder: (BuildContext context, GoRouterState state) {
-      return const MaterialPage(
-          child: TransactionsRoute(title: 'Flutter Demo Home Page'));
-    },
-  ),
-  GoRoute(
-    path: '/signup',
-    pageBuilder: (BuildContext context, GoRouterState state) {
-      return const MaterialPage(child: SignupPage());
-    },
-  ),
-  GoRoute(
-    path: '/pay',
-    pageBuilder: (BuildContext context, GoRouterState state) {
-      // print(state.fullpath);
-      return const MaterialPage(
-          child: PayPage(title: 'Flutter Demo Home Page'));
-    },
-  ),
-];
+  AppRoute('/pay', (_) => const PayRoute(title: 'Flutter Demo Home Page')),
+  AppRoute('/signup', (_) => const SignupRoute()),
 
-List<RouteBase> _shellRoutes = [
+  // Don't put routes in here unless you need the NavDrawer from that route.
   ShellRoute(
-      routes: _routes,
-      builder: (BuildContext context, GoRouterState state, Widget child) {
-        print(GoRouterState.of(context).location);
-        return Scaffold(
+    navigatorKey: _shellNavigatorKey,
+    routes: [
+      GoRoute(
+        path: '/',
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return const NoTransitionPage(
+              child: IndexRoute(title: 'Flutter Demo Home Page'));
+        },
+      ),
+      GoRoute(
+        path: '/transactions',
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return const NoTransitionPage(
+              child: TransactionsRoute(title: 'Flutter Demo Home Page'));
+        },
+      ),
+    ],
+    pageBuilder: (BuildContext context, GoRouterState state, Widget child) {
+      return CupertinoPage<dynamic>(
+        child: Scaffold(
           appBar: AppBar(
             title: Image.asset(
               'images/Logo.png',
@@ -63,135 +60,24 @@ List<RouteBase> _shellRoutes = [
           ),
           body: child,
           drawerScrimColor: TWColors.bgScrim,
-          drawer: Drawer(
-            backgroundColor: TWColors.bgApp,
-            width: 250,
-            shape: const Border(),
-            child: SafeArea(
-              child: ListView(
-                // padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
-                children: <Widget>[
-                  AppBar(
-                    leading: IconButton(
-                      icon: const Icon(Icons.menu_open_outlined),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    title: Image.asset(
-                      'images/Logo.png',
-                      height: 32,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
-                    child: ListTile(
-                      onTap: () {
-                        context.go('/');
-                        Navigator.of(context).pop();
-                      },
-                      title: Text(
-                        'Home',
-                        style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      selected: state.subloc == '/',
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      selectedTileColor: TWColors.bgContainerHover,
-                      selectedColor: TWColors.textStrong,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: ListTile(
-                      onTap: () {
-                        context.go('/transactions');
-                        Navigator.of(context).pop();
-                      },
-                      title: Text(
-                        'Transactions',
-                        style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      selected: state.subloc == '/transactions',
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      selectedTileColor: TWColors.bgContainerHover,
-                      selectedColor: TWColors.textStrong,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: ListTile(
-                      title: Text(
-                        'Settings',
-                        style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      selectedTileColor: TWColors.bgContainerHover,
-                      selectedColor: TWColors.textStrong,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: ListTile(
-                      title: Text(
-                        'Contact',
-                        style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      selectedTileColor: TWColors.bgContainerHover,
-                      selectedColor: TWColors.textStrong,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          floatingActionButton:
-              state.location == '/' || state.location == '/transactions'
-                  ? FloatingActionButton.large(
-                      heroTag: "main_fab",
-                      backgroundColor: TWColors.blue[500],
-                      foregroundColor: TWColors.white,
-                      // Push goes nested, go is for replacing root pages
-                      onPressed: () => context.push('/pay'),
-                      // onPressed: () => getSession(),
-                      tooltip: 'Pay',
-                      child: const Icon(Icons.attach_money_outlined),
-                    )
-                  : null,
-        );
-      })
+          drawer: const NavDrawer(),
+          floatingActionButton: const PayFAB(),
+        ),
+      );
+    },
+  )
 ];
 
-String? _handleRedirect(BuildContext context, GoRouterState state) {
+String? _authGuard(BuildContext context, GoRouterState state) {
   final bool isUser = context.read<Auth>().isUser;
   final bool loggingIn = state.subloc == '/signup';
 
   // Go to /signin if the user is not signed in
-  // if (!isUser && !loggingIn) {
-  //   // Probably need to figure out signup
-  //   return '/signup';
-  // }
-  // // Go to / if the user is signed in and tries to go to /signin.
+  if (!isUser && !loggingIn) {
+    // Probably need to figure out signup
+    return '/signup';
+  }
+  // Go to / if the user is signed in and tries to go to /signin.
   // else if (isUser && loggingIn) {
   //   return '/';
   // }
@@ -200,78 +86,20 @@ String? _handleRedirect(BuildContext context, GoRouterState state) {
   return null;
 }
 
-bool showFAB(GoRouterState state) {
-  return state.location == '/' || state.location == '/transactions';
+/// Syntactic sugar to make the router declaration easier to read.
+class AppRoute extends GoRoute {
+  AppRoute(
+    String path,
+    Widget Function(GoRouterState state) builder, {
+    List<GoRoute> routes = const [],
+  }) : super(
+          parentNavigatorKey: _rootNavigatorKey,
+          path: path,
+          routes: routes,
+          pageBuilder: (context, state) {
+            return CupertinoPage(
+              child: builder(state),
+            );
+          },
+        );
 }
-//
-// final GoRouter _router = GoRouter(
-//   navigatorKey: _rootNavigatorKey,
-//   initialLocation: '/a',
-//   routes: <RouteBase>[
-//     /// Application shell
-//     ShellRoute(
-//       navigatorKey: _shellNavigatorKey,
-//       builder: (BuildContext context, GoRouterState state, Widget child) {
-//         return ScaffoldWithNavBar(child: child);
-//       },
-//       routes: <RouteBase>[
-//         /// The first screen to display in the bottom navigation bar.
-//         GoRoute(
-//           path: '/a',
-//           builder: (BuildContext context, GoRouterState state) {
-//             return const ScreenA();
-//           },
-//           routes: <RouteBase>[
-//             // The details screen to display stacked on the inner Navigator.
-//             // This will cover screen A but not the application shell.
-//             GoRoute(
-//               path: 'details',
-//               builder: (BuildContext context, GoRouterState state) {
-//                 return const DetailsScreen(label: 'A');
-//               },
-//             ),
-//           ],
-//         ),
-//
-//         /// Displayed when the second item in the the bottom navigation bar is
-//         /// selected.
-//         GoRoute(
-//           path: '/b',
-//           builder: (BuildContext context, GoRouterState state) {
-//             return const ScreenB();
-//           },
-//           routes: <RouteBase>[
-//             /// Same as "/a/details", but displayed on the root Navigator by
-//             /// specifying [parentNavigatorKey]. This will cover both screen B
-//             /// and the application shell.
-//             GoRoute(
-//               path: 'details',
-//               parentNavigatorKey: _rootNavigatorKey,
-//               builder: (BuildContext context, GoRouterState state) {
-//                 return const DetailsScreen(label: 'B');
-//               },
-//             ),
-//           ],
-//         ),
-//
-//         /// The third screen to display in the bottom navigation bar.
-//         GoRoute(
-//           path: '/c',
-//           builder: (BuildContext context, GoRouterState state) {
-//             return const ScreenC();
-//           },
-//           routes: <RouteBase>[
-//             // The details screen to display stacked on the inner Navigator.
-//             // This will cover screen A but not the application shell.
-//             GoRoute(
-//               path: 'details',
-//               builder: (BuildContext context, GoRouterState state) {
-//                 return const DetailsScreen(label: 'C');
-//               },
-//             ),
-//           ],
-//         ),
-//       ],
-//     ),
-//   ],
-// );
