@@ -1,16 +1,9 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
-import { route } from 'routes-gen';
-import {
-  Card,
-  Icon,
-  Layouts,
-  Router
-} from '~/components';
-import {
-  grpcClient
-} from '~/lib/proto.server';
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
+import { Card, Icon, Layouts, Router } from '~/components'
+import { grpcClient } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   let keys = await grpcClient
@@ -53,7 +46,10 @@ export default function Page() {
           <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <h1 className='font-display text-2xl font-medium'>Public keys</h1>
             {keys.map((key) => (
-              <Card key={key.id} className='mt-6 bg-slate-100 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+              <Card
+                key={key.id}
+                className='mt-6 bg-slate-100 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
+              >
                 <div className='flex justify-between space-x-4'>
                   <div className='flex flex-col'>
                     <p className='text-sm text-medium space-y-1'>

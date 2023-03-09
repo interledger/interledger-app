@@ -24,6 +24,7 @@ declare module "routes-gen" {
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/linked-account/:type/widget": { "type": string };
+    "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/personal-details/address": Record<string, never>;
@@ -101,6 +102,7 @@ declare module "routes-gen" {
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/linked-account/:type/widget", RouteParams["/linked-account/:type/widget"]]
+      | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
       | ["/what-is-a-payment-pointer"]
       | ["/personal-details/address"]
