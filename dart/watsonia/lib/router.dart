@@ -36,8 +36,7 @@ List<RouteBase> _routes = [
   GoRoute(
     path: '/signup',
     pageBuilder: (BuildContext context, GoRouterState state) {
-      return const MaterialPage(
-          child: SignupPage());
+      return const MaterialPage(child: SignupPage());
     },
   ),
   GoRoute(
@@ -65,6 +64,7 @@ List<RouteBase> _shellRoutes = [
           body: child,
           drawerScrimColor: TWColors.bgScrim,
           drawer: Drawer(
+            backgroundColor: TWColors.bgApp,
             width: 250,
             shape: const Border(),
             child: SafeArea(
@@ -72,7 +72,12 @@ List<RouteBase> _shellRoutes = [
                 // padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
                 children: <Widget>[
                   AppBar(
-                    leading: const Icon(Icons.menu_open_outlined),
+                    leading: IconButton(
+                      icon: const Icon(Icons.menu_open_outlined),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
                     title: Image.asset(
                       'images/Logo.png',
                       height: 32,
@@ -93,7 +98,7 @@ List<RouteBase> _shellRoutes = [
                           ),
                         ),
                       ),
-                      selected: true,
+                      selected: state.subloc == '/',
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       selectedTileColor: TWColors.bgContainerHover,
@@ -115,6 +120,7 @@ List<RouteBase> _shellRoutes = [
                           ),
                         ),
                       ),
+                      selected: state.subloc == '/transactions',
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       selectedTileColor: TWColors.bgContainerHover,
@@ -159,17 +165,19 @@ List<RouteBase> _shellRoutes = [
               ),
             ),
           ),
-          floatingActionButton: state.location == '/' || state.location == '/pay'
-              ? FloatingActionButton.large(
-                  backgroundColor: TWColors.blue[500],
-                  foregroundColor: TWColors.white,
-                  // Push goes nested, go is for replacing root pages
-                  onPressed: () => context.push('/pay'),
-                  // onPressed: () => getSession(),
-                  tooltip: 'Pay',
-                  child: const Icon(Icons.attach_money_outlined),
-                )
-              : null,
+          floatingActionButton:
+              state.location == '/' || state.location == '/transactions'
+                  ? FloatingActionButton.large(
+                      heroTag: "main_fab",
+                      backgroundColor: TWColors.blue[500],
+                      foregroundColor: TWColors.white,
+                      // Push goes nested, go is for replacing root pages
+                      onPressed: () => context.push('/pay'),
+                      // onPressed: () => getSession(),
+                      tooltip: 'Pay',
+                      child: const Icon(Icons.attach_money_outlined),
+                    )
+                  : null,
         );
       })
 ];
@@ -179,13 +187,14 @@ String? _handleRedirect(BuildContext context, GoRouterState state) {
   final bool loggingIn = state.subloc == '/signup';
 
   // Go to /signin if the user is not signed in
-  if (!isUser && !loggingIn) { // Probably need to figure out signup
-    return '/signup';
-  }
-  // Go to / if the user is signed in and tries to go to /signin.
-  else if (isUser && loggingIn) {
-    return '/';
-  }
+  // if (!isUser && !loggingIn) {
+  //   // Probably need to figure out signup
+  //   return '/signup';
+  // }
+  // // Go to / if the user is signed in and tries to go to /signin.
+  // else if (isUser && loggingIn) {
+  //   return '/';
+  // }
 
   // else no redirect
   return null;

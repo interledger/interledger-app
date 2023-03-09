@@ -280,9 +280,7 @@ class SignupPage extends StatelessWidget {
                             onPressed: () async {
                               // Provider.of<Auth>(context, listen: false)
                               //     .signIn("username", "password");
-                              context
-                                  .read<Auth>()
-                                  .signIn("username", "password");
+                              context.read<Auth>().whoami();
                               context.go('/');
                             },
                             child: const Text("Let's get started")),

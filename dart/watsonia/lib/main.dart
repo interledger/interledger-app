@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
       title: 'Fynbos',
       routerConfig: appRouter,
       theme: theme,
+      color: Colors.teal,
       debugShowCheckedModeBanner: false,
     );
   }
