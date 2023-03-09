@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class Auth extends ChangeNotifier {
-  static const String _basePath = r'10.0.2.2:3030';
+  static const String _basePath =
+      r'stated-pattern-exists-milan.trycloudflare.com';
 
   // final api = OryKratosClient(basePathOverride: basePath).getFrontendApi();
   // try {
@@ -19,7 +20,6 @@ class Auth extends ChangeNotifier {
   bool _isUser = false; // Should persist this value and the logged in token
 
   //TODO flow ids
-  String _flowId = "";
 
   /// Whether user has logged in.
   bool get isUser => _isUser;
