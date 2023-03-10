@@ -37,3 +37,14 @@ adb shell 'am start -a android.intent.action.VIEW \
     dev.fynbos.watsonia
 
 ```
+
+# TODO:
+
+- [ ] Proper splash
+- [ ] Pusher integration - https://pusher.com/docs/channels/getting_started/flutter/
+- [ ] Finish kratos implementation
+- [ ] https://stackoverflow.com/questions/54464853/flutter-loading-an-iframe-from-webview
+- [ ] Local auth biometrics - https://pub.dev/packages/local_auth
+- [ ] Local secure storage for auth credentials once user logged in
+- [ ] Start implementing grpc clients to pull data.
+- [ ] Card component should just expose a Column. Cards should be placed in a ListView.
