@@ -1503,6 +1503,126 @@ export interface CreateContactRequest {
      */
     paymentPointer: string;
 }
+/**
+ * @generated from protobuf message backend.v1.ListIdentitiesResponse
+ */
+export interface ListIdentitiesResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.Identity identities = 1;
+     */
+    identities: Identity[];
+}
+/**
+ * @generated from protobuf message backend.v1.Identity
+ */
+export interface Identity {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string platform = 2;
+     */
+    platform: string;
+    /**
+     * @generated from protobuf field: string handle = 3;
+     */
+    handle: string;
+    /**
+     * @generated from protobuf field: string state = 4;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: string verification_code = 5;
+     */
+    verificationCode: string;
+    /**
+     * @generated from protobuf field: string verification_proof = 6;
+     */
+    verificationProof: string;
+    /**
+     * @generated from protobuf field: bool public = 7;
+     */
+    public: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.AddIdentityRequest
+ */
+export interface AddIdentityRequest {
+    /**
+     * @generated from protobuf field: string platform = 1;
+     */
+    platform: string;
+    /**
+     * @generated from protobuf field: string handle = 2;
+     */
+    handle: string;
+    /**
+     * @generated from protobuf field: bool public = 3;
+     */
+    public: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.IdentityVerificationInstructions
+ */
+export interface IdentityVerificationInstructions {
+    /**
+     * @generated from protobuf field: string identity_id = 1;
+     */
+    identityId: string;
+    /**
+     * @generated from protobuf field: string code = 2;
+     */
+    code: string;
+    /**
+     * @generated from protobuf field: string instructions = 3;
+     */
+    instructions: string;
+}
+/**
+ * @generated from protobuf message backend.v1.DeleteIdentityRequest
+ */
+export interface DeleteIdentityRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SetIdentityPublicRequest
+ */
+export interface SetIdentityPublicRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: bool public = 2;
+     */
+    public: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.StartIdentityVerificationRequest
+ */
+export interface StartIdentityVerificationRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string proof = 2;
+     */
+    proof: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ListPublicIdentitiesRequest
+ */
+export interface ListPublicIdentitiesRequest {
+    /**
+     * @generated from protobuf field: string wallet_id = 1;
+     */
+    walletId: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -6926,6 +7046,466 @@ class CreateContactRequest$Type extends MessageType<CreateContactRequest> {
  * @generated MessageType for protobuf message backend.v1.CreateContactRequest
  */
 export const CreateContactRequest = new CreateContactRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListIdentitiesResponse$Type extends MessageType<ListIdentitiesResponse> {
+    constructor() {
+        super("backend.v1.ListIdentitiesResponse", [
+            { no: 1, name: "identities", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Identity }
+        ]);
+    }
+    create(value?: PartialMessage<ListIdentitiesResponse>): ListIdentitiesResponse {
+        const message = { identities: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListIdentitiesResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListIdentitiesResponse): ListIdentitiesResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.Identity identities */ 1:
+                    message.identities.push(Identity.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListIdentitiesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.Identity identities = 1; */
+        for (let i = 0; i < message.identities.length; i++)
+            Identity.internalBinaryWrite(message.identities[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListIdentitiesResponse
+ */
+export const ListIdentitiesResponse = new ListIdentitiesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Identity$Type extends MessageType<Identity> {
+    constructor() {
+        super("backend.v1.Identity", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "platform", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "verification_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "verification_proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Identity>): Identity {
+        const message = { id: "", platform: "", handle: "", state: "", verificationCode: "", verificationProof: "", public: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Identity>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Identity): Identity {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string platform */ 2:
+                    message.platform = reader.string();
+                    break;
+                case /* string handle */ 3:
+                    message.handle = reader.string();
+                    break;
+                case /* string state */ 4:
+                    message.state = reader.string();
+                    break;
+                case /* string verification_code */ 5:
+                    message.verificationCode = reader.string();
+                    break;
+                case /* string verification_proof */ 6:
+                    message.verificationProof = reader.string();
+                    break;
+                case /* bool public */ 7:
+                    message.public = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Identity, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string platform = 2; */
+        if (message.platform !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.platform);
+        /* string handle = 3; */
+        if (message.handle !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.handle);
+        /* string state = 4; */
+        if (message.state !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.state);
+        /* string verification_code = 5; */
+        if (message.verificationCode !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.verificationCode);
+        /* string verification_proof = 6; */
+        if (message.verificationProof !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.verificationProof);
+        /* bool public = 7; */
+        if (message.public !== false)
+            writer.tag(7, WireType.Varint).bool(message.public);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Identity
+ */
+export const Identity = new Identity$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AddIdentityRequest$Type extends MessageType<AddIdentityRequest> {
+    constructor() {
+        super("backend.v1.AddIdentityRequest", [
+            { no: 1, name: "platform", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AddIdentityRequest>): AddIdentityRequest {
+        const message = { platform: "", handle: "", public: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AddIdentityRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddIdentityRequest): AddIdentityRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string platform */ 1:
+                    message.platform = reader.string();
+                    break;
+                case /* string handle */ 2:
+                    message.handle = reader.string();
+                    break;
+                case /* bool public */ 3:
+                    message.public = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AddIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string platform = 1; */
+        if (message.platform !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.platform);
+        /* string handle = 2; */
+        if (message.handle !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.handle);
+        /* bool public = 3; */
+        if (message.public !== false)
+            writer.tag(3, WireType.Varint).bool(message.public);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AddIdentityRequest
+ */
+export const AddIdentityRequest = new AddIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IdentityVerificationInstructions$Type extends MessageType<IdentityVerificationInstructions> {
+    constructor() {
+        super("backend.v1.IdentityVerificationInstructions", [
+            { no: 1, name: "identity_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "instructions", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IdentityVerificationInstructions>): IdentityVerificationInstructions {
+        const message = { identityId: "", code: "", instructions: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IdentityVerificationInstructions>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IdentityVerificationInstructions): IdentityVerificationInstructions {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identity_id */ 1:
+                    message.identityId = reader.string();
+                    break;
+                case /* string code */ 2:
+                    message.code = reader.string();
+                    break;
+                case /* string instructions */ 3:
+                    message.instructions = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IdentityVerificationInstructions, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identity_id = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        /* string code = 2; */
+        if (message.code !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.code);
+        /* string instructions = 3; */
+        if (message.instructions !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.instructions);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IdentityVerificationInstructions
+ */
+export const IdentityVerificationInstructions = new IdentityVerificationInstructions$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeleteIdentityRequest$Type extends MessageType<DeleteIdentityRequest> {
+    constructor() {
+        super("backend.v1.DeleteIdentityRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeleteIdentityRequest>): DeleteIdentityRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<DeleteIdentityRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteIdentityRequest): DeleteIdentityRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeleteIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.DeleteIdentityRequest
+ */
+export const DeleteIdentityRequest = new DeleteIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetIdentityPublicRequest$Type extends MessageType<SetIdentityPublicRequest> {
+    constructor() {
+        super("backend.v1.SetIdentityPublicRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetIdentityPublicRequest>): SetIdentityPublicRequest {
+        const message = { id: "", public: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetIdentityPublicRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetIdentityPublicRequest): SetIdentityPublicRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* bool public */ 2:
+                    message.public = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetIdentityPublicRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* bool public = 2; */
+        if (message.public !== false)
+            writer.tag(2, WireType.Varint).bool(message.public);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetIdentityPublicRequest
+ */
+export const SetIdentityPublicRequest = new SetIdentityPublicRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StartIdentityVerificationRequest$Type extends MessageType<StartIdentityVerificationRequest> {
+    constructor() {
+        super("backend.v1.StartIdentityVerificationRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StartIdentityVerificationRequest>): StartIdentityVerificationRequest {
+        const message = { id: "", proof: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<StartIdentityVerificationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StartIdentityVerificationRequest): StartIdentityVerificationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string proof */ 2:
+                    message.proof = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StartIdentityVerificationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string proof = 2; */
+        if (message.proof !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.proof);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.StartIdentityVerificationRequest
+ */
+export const StartIdentityVerificationRequest = new StartIdentityVerificationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListPublicIdentitiesRequest$Type extends MessageType<ListPublicIdentitiesRequest> {
+    constructor() {
+        super("backend.v1.ListPublicIdentitiesRequest", [
+            { no: 1, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListPublicIdentitiesRequest>): ListPublicIdentitiesRequest {
+        const message = { walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListPublicIdentitiesRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListPublicIdentitiesRequest): ListPublicIdentitiesRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string wallet_id */ 1:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListPublicIdentitiesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string wallet_id = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListPublicIdentitiesRequest
+ */
+export const ListPublicIdentitiesRequest = new ListPublicIdentitiesRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -6994,5 +7574,11 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
-    { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse }
+    { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse },
+    { name: "ListIdentities", options: {}, I: Empty, O: ListIdentitiesResponse },
+    { name: "ListPublicIdentities", options: {}, I: ListPublicIdentitiesRequest, O: ListIdentitiesResponse },
+    { name: "AddIdentity", options: {}, I: AddIdentityRequest, O: IdentityVerificationInstructions },
+    { name: "DeleteIdentity", options: {}, I: DeleteIdentityRequest, O: Empty },
+    { name: "SetIdentityPublic", options: {}, I: SetIdentityPublicRequest, O: Identity },
+    { name: "StartIdentityVerification", options: {}, I: StartIdentityVerificationRequest, O: Identity }
 ]);
