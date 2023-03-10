@@ -2,6 +2,14 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { StartIdentityVerificationRequest } from "./backend";
+import type { Identity } from "./backend";
+import type { SetIdentityPublicRequest } from "./backend";
+import type { DeleteIdentityRequest } from "./backend";
+import type { IdentityVerificationInstructions } from "./backend";
+import type { AddIdentityRequest } from "./backend";
+import type { ListPublicIdentitiesRequest } from "./backend";
+import type { ListIdentitiesResponse } from "./backend";
 import type { ListContactsResponse } from "./backend";
 import type { ListContactsRequest } from "./backend";
 import type { Contact } from "./backend";
@@ -458,6 +466,32 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: ListContacts(backend.v1.ListContactsRequest) returns (backend.v1.ListContactsResponse);
      */
     listContacts(input: ListContactsRequest, options?: RpcOptions): UnaryCall<ListContactsRequest, ListContactsResponse>;
+    /**
+     * Identities
+     *
+     * @generated from protobuf rpc: ListIdentities(backend.v1.Empty) returns (backend.v1.ListIdentitiesResponse);
+     */
+    listIdentities(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListIdentitiesResponse>;
+    /**
+     * @generated from protobuf rpc: ListPublicIdentities(backend.v1.ListPublicIdentitiesRequest) returns (backend.v1.ListIdentitiesResponse);
+     */
+    listPublicIdentities(input: ListPublicIdentitiesRequest, options?: RpcOptions): UnaryCall<ListPublicIdentitiesRequest, ListIdentitiesResponse>;
+    /**
+     * @generated from protobuf rpc: AddIdentity(backend.v1.AddIdentityRequest) returns (backend.v1.IdentityVerificationInstructions);
+     */
+    addIdentity(input: AddIdentityRequest, options?: RpcOptions): UnaryCall<AddIdentityRequest, IdentityVerificationInstructions>;
+    /**
+     * @generated from protobuf rpc: DeleteIdentity(backend.v1.DeleteIdentityRequest) returns (backend.v1.Empty);
+     */
+    deleteIdentity(input: DeleteIdentityRequest, options?: RpcOptions): UnaryCall<DeleteIdentityRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: SetIdentityPublic(backend.v1.SetIdentityPublicRequest) returns (backend.v1.Identity);
+     */
+    setIdentityPublic(input: SetIdentityPublicRequest, options?: RpcOptions): UnaryCall<SetIdentityPublicRequest, Identity>;
+    /**
+     * @generated from protobuf rpc: StartIdentityVerification(backend.v1.StartIdentityVerificationRequest) returns (backend.v1.Identity);
+     */
+    startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -831,5 +865,49 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     listContacts(input: ListContactsRequest, options?: RpcOptions): UnaryCall<ListContactsRequest, ListContactsResponse> {
         const method = this.methods[47], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListContactsRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Identities
+     *
+     * @generated from protobuf rpc: ListIdentities(backend.v1.Empty) returns (backend.v1.ListIdentitiesResponse);
+     */
+    listIdentities(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListIdentitiesResponse> {
+        const method = this.methods[48], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, ListIdentitiesResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListPublicIdentities(backend.v1.ListPublicIdentitiesRequest) returns (backend.v1.ListIdentitiesResponse);
+     */
+    listPublicIdentities(input: ListPublicIdentitiesRequest, options?: RpcOptions): UnaryCall<ListPublicIdentitiesRequest, ListIdentitiesResponse> {
+        const method = this.methods[49], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListPublicIdentitiesRequest, ListIdentitiesResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: AddIdentity(backend.v1.AddIdentityRequest) returns (backend.v1.IdentityVerificationInstructions);
+     */
+    addIdentity(input: AddIdentityRequest, options?: RpcOptions): UnaryCall<AddIdentityRequest, IdentityVerificationInstructions> {
+        const method = this.methods[50], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AddIdentityRequest, IdentityVerificationInstructions>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: DeleteIdentity(backend.v1.DeleteIdentityRequest) returns (backend.v1.Empty);
+     */
+    deleteIdentity(input: DeleteIdentityRequest, options?: RpcOptions): UnaryCall<DeleteIdentityRequest, Empty> {
+        const method = this.methods[51], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeleteIdentityRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetIdentityPublic(backend.v1.SetIdentityPublicRequest) returns (backend.v1.Identity);
+     */
+    setIdentityPublic(input: SetIdentityPublicRequest, options?: RpcOptions): UnaryCall<SetIdentityPublicRequest, Identity> {
+        const method = this.methods[52], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SetIdentityPublicRequest, Identity>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: StartIdentityVerification(backend.v1.StartIdentityVerificationRequest) returns (backend.v1.Identity);
+     */
+    startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity> {
+        const method = this.methods[53], opt = this._transport.mergeOptions(options);
+        return stackIntercept<StartIdentityVerificationRequest, Identity>("unary", this._transport, method, opt, input);
     }
 }
